@@ -1,0 +1,168 @@
+[
+  {
+    "id": "vrd_c_root_warden",
+    "set": "buried_age",
+    "name": "Root Warden",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": ["GUARD"],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ADJACENT", "count": "ALL" },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The grove keeps its own ledgers, and it does not forgive debts.",
+    "art": { "prompt": "a moss-armored sentinel of woven roots standing in a ruined stone doorway", "asset": "cdn://art/vrd_c_root_warden.webp" },
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_runner",
+    "set": "buried_age",
+    "name": "Cinder Runner",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": ["SWIFT"],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Forge-children learned to run before they learned to breathe.",
+    "art": { "prompt": "a soot-streaked young courier sprinting through a molten foundry, trailing sparks", "asset": "cdn://art/emb_c_cinder_runner.webp" },
+    "power_score": 4.85,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_silt_reader",
+    "set": "buried_age",
+    "name": "Silt Reader",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [{ "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 3 }]
+      },
+      {
+        "trigger": "ON_TURN_START",
+        "condition": { "op": "BARROW_COUNT_GTE", "value": 4 },
+        "effects": [{ "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "She read the riverbed the way her mother read faces.",
+    "art": { "prompt": "a robed scholar kneeling in shallow grey water, sifting silt through a bronze sieve", "asset": "cdn://art/tid_c_silt_reader.webp" },
+    "power_score": 10.4,
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_gravewrit_thrall",
+    "set": "buried_age",
+    "name": "Gravewrit Thrall",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": ["UNEARTH"],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 },
+          { "op": "BURY", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Its name was scraped off the stone. It came anyway.",
+    "art": { "prompt": "a gaunt corpse-servant bound in inscribed grave-tablets, one arm still buried in soil", "asset": "cdn://art/hol_c_gravewrit_thrall.webp" },
+    "power_score": 8.2,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_sealing_light",
+    "set": "buried_age",
+    "name": "Sealing Light",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "keyword": "WARD", "duration": "PERMANENT" },
+          { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "amount": 2 }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The wardens did not build doors. They built reasons not to open them.",
+    "art": { "prompt": "a shaft of pale gold light striking a carved seal on a temple floor, dust hanging in the beam", "asset": "cdn://art/dwn_r_sealing_light.webp" },
+    "power_score": 5.6,
+    "content_version": 1
+  },
+  {
+    "id": "hol_x_aelins_seal",
+    "set": "buried_age",
+    "name": "Aelin's Seal",
+    "strata": "HOLLOW",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": ["SEALED"],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [{ "op": "UNBURY", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": { "scope": "ALLY_CREATURE", "filter": "STRATA:HOLLOW", "count": "ALL" },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": { "op": "BARROW_COUNT_GTE", "value": 5 },
+    "flavor": "The Last Steward sealed the barrow with her own name. Names can be dug up.",
+    "art": { "prompt": "a cracked bronze seal-disc half-buried in dark earth, faint green light bleeding from the fracture", "asset": "cdn://art/hol_x_aelins_seal.webp" },
+    "power_score": 13.9,
+    "content_version": 1
+  }
+]

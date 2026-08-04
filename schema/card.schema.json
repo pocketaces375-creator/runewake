@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://runewake.game/schema/card.schema.json",
+  "title": "Runewake Card Definition",
+  "type": "object",
+  "required": ["id", "set", "name", "strata", "type", "rarity", "cost"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z]{3}_[a-z]_[a-z0-9_]+$" },
+    "set": { "type": "string" },
+    "name": { "type": "string", "minLength": 2, "maxLength": 40 },
+    "strata": { "$ref": "#/$defs/strata" },
+    "type": { "enum": ["CREATURE", "RITUAL", "RELIC", "CURSE", "TOKEN"] },
+    "rarity": { "enum": ["COMMON", "UNCOMMON", "RARE", "RELIC"] },
+    "cost": { "type": "integer", "minimum": 0, "maximum": 10 },
+    "attack": { "type": "integer", "minimum": 0, "maximum": 12 },
+    "vigor": { "type": "integer", "minimum": 1, "maximum": 14 },
+    "keywords": {
+      "type": "array",
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/keyword" }
+    },
+    "abilities": {
+      "type": "array",
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/ability" }
+    },
+    "identify_condition": { "oneOf": [{ "$ref": "#/$defs/condition" }, { "type": "null" }] },
+    "flavor": { "type": "string", "maxLength": 140 },
+    "art": {
+      "type": "object",
+      "properties": {
+        "prompt": { "type": "string" },
+        "asset": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "power_score": { "type": "number" },
+    "content_version": { "type": "integer", "minimum": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "CREATURE" } } },
+      "then": { "required": ["attack", "vigor"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "RELIC" } } },
+      "then": {
+        "required": ["identify_condition"],
+        "properties": { "identify_condition": { "$ref": "#/$defs/condition" } }
+      }
+    }
+  ],
+  "$defs": {
+    "strata": { "enum": ["VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN"] },
+    "keyword": {
+      "enum": ["GUARD", "SWIFT", "PIERCE", "WARD", "VENOM", "REACH",
+               "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED"]
+    },
+    "trigger": {
+      "enum": ["ON_SUMMON", "ON_DEATH", "ON_ATTACK", "ON_DAMAGED",
+               "ON_TURN_START", "ON_TURN_END", "ON_CAST_RITUAL", "ON_EXCAVATE",
+               "ON_RELIC_IDENTIFY", "ON_ALLY_DEATH", "ON_LANE_VACATED",
+               "PASSIVE", "ACTIVATED", "RESOLVE"]
+    },
+    "op": {
+      "enum": ["DAMAGE", "HEAL", "BUFF", "DEBUFF", "DESTROY", "DRAW", "DISCARD",
+               "EXCAVATE", "BURY", "UNBURY", "SUMMON", "GRANT_KEY", "REMOVE_KEY",
+               "SILENCE", "BOUNCE", "ATTUNE", "MOVE_LANE", "IDENTIFY",
+               "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH"]
+    },
+    "scope": {
+      "enum": ["SELF", "ALLY_CREATURE", "ENEMY_CREATURE", "ANY_CREATURE",
+               "PLAYER_SELF", "PLAYER_ENEMY", "LANE", "NONE"]
+    },
+    "filter": {
+      "type": "string",
+      "pattern": "^(ANY|ADJACENT|OPPOSING|SAME_LANE|EDGE_LANE|CENTER_LANE|RANDOM|LOWEST_VIGOR|HIGHEST_ATTACK|LOWEST_COST|HIGHEST_COST|DAMAGED|UNDAMAGED|CHOSEN|STRATA:(VERDANT|EMBER|TIDE|HOLLOW|DAWN)|KEYWORD:(GUARD|SWIFT|PIERCE|WARD|VENOM|REACH|ROOTED|UNEARTH|ECHO|FRAGILE|SEALED)|TYPE:(CREATURE|RITUAL|RELIC|CURSE|TOKEN))$"
+    },
+    "target": {
+      "type": "object",
+      "required": ["scope"],
+      "additionalProperties": false,
+      "properties": {
+        "scope": { "$ref": "#/$defs/scope" },
+        "filter": { "$ref": "#/$defs/filter" },
+        "count": { "oneOf": [{ "type": "integer", "minimum": 1, "maximum": 3 },
+                             { "const": "ALL" }] }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": ["ALLY_COUNT_GTE", "ENEMY_COUNT_GTE", "BARROW_COUNT_GTE",
+                   "HAND_COUNT_GTE", "HAND_COUNT_LTE", "TURN_GTE", "VIGOR_LTE",
+                   "VIGOR_GTE", "ATTUNEMENT_GTE", "CONTROLS_KEYWORD",
+                   "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE"]
+        },
+        "value": { "type": ["integer", "string", "boolean"] },
+        "all": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/condition" } },
+        "any": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/condition" } }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "required": ["op"],
+      "additionalProperties": false,
+      "properties": {
+        "op": { "$ref": "#/$defs/op" },
+        "target": { "$ref": "#/$defs/target" },
+        "amount": { "type": "integer", "minimum": -12, "maximum": 12 },
+        "attack": { "type": "integer", "minimum": -12, "maximum": 12 },
+        "vigor": { "type": "integer", "minimum": -12, "maximum": 12 },
+        "keyword": { "$ref": "#/$defs/keyword" },
+        "token_id": { "type": "string" },
+        "duration": { "enum": ["PERMANENT", "THIS_TURN", "NEXT_TURN", "WHILE_PRESENT"] }
+      }
+    },
+    "ability": {
+      "type": "object",
+      "required": ["trigger", "effects"],
+      "additionalProperties": false,
+      "properties": {
+        "trigger": { "$ref": "#/$defs/trigger" },
+        "condition": { "oneOf": [{ "$ref": "#/$defs/condition" }, { "type": "null" }] },
+        "activation_cost": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/effect" }
+        }
+      }
+    }
+  }
+}

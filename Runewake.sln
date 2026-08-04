@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Engine", "engine\Runewake.Engine.csproj", "{2622F063-FE50-4DED-9056-C7E221AA3B69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Sim", "sim\Runewake.Sim.csproj", "{78523B1E-3433-4BC5-BB35-4B682873F343}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Tests", "tests\Runewake.Tests.csproj", "{45322F57-8E8A-47B2-8177-C4A7BA30A96F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2622F063-FE50-4DED-9056-C7E221AA3B69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2622F063-FE50-4DED-9056-C7E221AA3B69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2622F063-FE50-4DED-9056-C7E221AA3B69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2622F063-FE50-4DED-9056-C7E221AA3B69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78523B1E-3433-4BC5-BB35-4B682873F343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78523B1E-3433-4BC5-BB35-4B682873F343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78523B1E-3433-4BC5-BB35-4B682873F343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78523B1E-3433-4BC5-BB35-4B682873F343}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
