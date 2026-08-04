@@ -480,3 +480,33 @@ Each encounter has a full 30-card deck drawn from the 60 hand-authored cards, di
 All 246 tests pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-04** — Progression save: SQLite, node clears, collection, shards, dig charges.
+
+## Session 25 — 2026-08-04
+
+### P4-04 — Progression save: SQLite persistence
+
+**New files:**
+- `engine/State/ProgressionState.cs` — in-memory save data model (zero dependencies):
+  - `Shards`, `DigCharges` (spend/earn helpers)
+  - `ClearedNodes` (HashSet, with `MarkNodeCleared`/`IsNodeCleared`)
+  - `Collection` (Dictionary of card ID → count, with `AddCard`)
+  - `Fragments` (Dictionary of strata → count, with `AddFragments`)
+  - `HasCompletedTutorial`, `Version` (for future migrations)
+- `client/scripts/data/SaveManager.cs` — SQLite-backed persistence:
+  - Creates DB at `user://runewake_save.db` with WAL mode
+  - Tables: `meta` (key/value), `cleared_nodes`, `collection`, `fragments`
+  - `Initialize()` → `CreateTables()` → `Load()`
+  - `Save()` uses a transaction (clear + re-insert all rows)
+  - `Close()` for clean shutdown
+
+**Modified files:**
+- `client/Runewake.Client.csproj` — added `Microsoft.Data.Sqlite` NuGet package
+- `tests/Runewake.Tests.csproj` — added `Microsoft.Data.Sqlite` NuGet package
+
+**Tests:** 12 new tests in `tests/Data/ProgressionSaveTests.cs`:
+- 8 `ProgressionStateTests`: defaults, spend shards (sufficient/insufficient), spend dig charge (with/without), mark node cleared (new/already), add card (accumulates), add fragments (accumulates)
+- 4 `SaveManagerTests` via in-memory SQLite: empty state roundtrip, full data roundtrip (shards, nodes, collection, fragments, tutorial), deduplication of cleared nodes
+
+All 258 tests pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-05** — Deck builder screen with collection filtering.
