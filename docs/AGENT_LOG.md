@@ -173,3 +173,21 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 - `ChooseAction_PrefersAttackingGuardOverEndTurn_WhenCreatureIsReady` — bot attacks Guard even when face is blocked
 
 All 142 tests pass. 0 TODO, 0 NotImplementedException.
+
+## Session 12 — 2026-08-04
+
+### P2-02 — Batch runner
+
+**New files:**
+- `sim/BatchRunner.cs` — `BatchRunner.Run(BatchConfig)` plays N games between two `GreedyBot` instances, each with a unique seed offset. Returns `BatchReport` with per-game results and aggregates (wins, win rate, average turns). `BatchReport.ToJson()` for JSON output.
+- `sim/Program.cs` — CLI entry point: `Runewake.Sim run --deck-a <path> --deck-b <path> [--games N] [--seed N]`. Loads card packs via `CardLoader`, registers them with `CardRegistry`, runs batch, prints JSON report to stdout.
+
+**Supporting types:** `BatchConfig` (seed, games, deck paths), `GameResult` (game index, winner, turns, final stats), `BatchReport` (aggregates + result list).
+
+**Tests:** 4 new tests:
+- `RunBatch_100Games_ProducesReport` — 100 games, verifies report structure and win/turn sanity
+- `RunBatch_JSONSerialization_ProducesValidJson` — report serializes to well-formed JSON with expected keys
+- `RunBatch_DifferentDecks_CanSeeImbalance` — tank deck (3/5) beats scout deck (1/1) as expected
+- `RunBatch_SameSeed_ProducesDeterministicResults` — same config produces identical results
+
+All 146 tests pass. 0 TODO, 0 NotImplementedException.
