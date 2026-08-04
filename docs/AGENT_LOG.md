@@ -891,7 +891,7 @@ Built the SIMULATE stage of the AI pipeline — batch simulation with C# engine 
 - All 10 Python tests pass (data loading, deck writing, mock run_batch, substitution, empty/not-found edge cases)
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
-Next: **P6-07** — Art module.
+Next: **P6-06** — Dedupe + moderate.
 
 ---
 
@@ -920,3 +920,5 @@ Built the DEDUPE and MODERATE stages of the AI pipeline — exact and fuzzy name
 - 51/60 hand-authored cards pass dedupe against each other (9 fuzzy-close pairs caught, e.g. similar names within 0.85 Jaro-Winkler)
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
+
+Next: **P6-07** — Art module.
