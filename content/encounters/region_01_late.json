@@ -1,0 +1,68 @@
+{
+  "encounters": [
+    {
+      "id": "r1_duel_grove_warden",
+      "name": "Grove Warden Elara",
+      "portrait": "res://art/portraits/grove_warden.png",
+      "deck": [
+        "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
+        "vrd_c_thornbark_defender", "vrd_c_thornbark_defender", "vrd_c_wildwood_stalker",
+        "vrd_c_wildwood_stalker", "vrd_u_grove_healer", "vrd_u_grove_healer",
+        "vrd_u_elder_treant", "vrd_u_elder_treant", "vrd_u_saphoof_charger",
+        "vrd_u_canopy_archer", "vrd_u_canopy_archer", "vrd_r_bloomweaver",
+        "vrd_r_undergrowth_eruption", "vrd_r_undergrowth_eruption", "vrd_r_natures_renewal",
+        "vrd_x_heartwood_relic", "vrd_x_heartwood_relic",
+        "dwn_c_dawn_warder", "dwn_c_dawn_warder", "dwn_u_steadfast_bulwark",
+        "dwn_u_steadfast_bulwark", "dwn_u_morning_herald", "dwn_u_purifying_light",
+        "dwn_r_sealing_light", "dwn_r_radiant_prophet", "dwn_x_dawn_relic",
+        "emb_c_ember_hound"
+      ],
+      "dialogue_intro": [
+        "A clearing opens. In its center, a woman in weathered plate kneels, one hand pressed to the earth.",
+        "She rises slowly. Her eyes hold no hostility — only weariness.",
+        "\"You've come far. Farther than most. But I cannot let you pass. The seal holds because I hold it.\"",
+        "She draws a blade of pale light. \"Forgive me.\""
+      ],
+      "dialogue_outro": [
+        "Elara's blade dissolves. She sinks to her knees, breathing hard.",
+        "\"The seal... is failing. I've felt it for years. Maybe you're not the threat. Maybe you're the answer.\"",
+        "She gestures toward the ridge. \"Aelin waits beyond. She will not reason with you.\""
+      ],
+      "shard_reward": 50,
+      "dig_charge_reward": 0
+    },
+    {
+      "id": "r1_elite_ashkeeper",
+      "name": "Ashkeeper Vorn",
+      "portrait": "res://art/portraits/ashkeeper.png",
+      "deck": [
+        "emb_c_cinder_runner", "emb_c_cinder_runner", "emb_c_ember_hound",
+        "emb_c_ember_hound", "emb_c_flame_javelin", "emb_c_flame_javelin",
+        "emb_c_flame_javelin", "emb_c_forgeguard_berserker", "emb_c_forgeguard_berserker",
+        "emb_u_wildfire_adept", "emb_u_wildfire_adept", "emb_u_lava_serpent",
+        "emb_u_lava_serpent", "emb_u_searing_blast", "emb_u_searing_blast",
+        "emb_u_cinderstorm_elemental", "emb_u_cinderstorm_elemental", "emb_r_magma_forger",
+        "emb_r_inferno_burst", "emb_r_inferno_burst", "emb_r_phoenix_ash",
+        "emb_x_the_last_ember",
+        "hol_c_bone_shard_volley", "hol_c_skeletal_reaver", "hol_c_skeletal_reaver",
+        "hol_u_barrow_revenant", "hol_u_crypt_crawler", "hol_u_soul_harvest",
+        "hol_x_the_black_barrow", "hol_r_curse_of_binding"
+      ],
+      "modifier": "All creatures have +1 attack",
+      "dialogue_intro": [
+        "The air grows hot. The soil is cracked and blackened, as though a fire passed through and never left.",
+        "A man stands at the center of the scorched earth. His skin is scarred, his eyes glow faintly orange.",
+        "\"They told you the seal was placed by the wise. They lied. It was placed by the desperate.\"",
+        "Flame kindles in his palms. \"And desperation leaves a mark.\""
+      ],
+      "dialogue_outro": [
+        "The fire gutters. Vorn laughs — a dry, broken sound.",
+        "\"You'll see, delver. When you reach the bottom, you'll understand why we needed to bury it.\"",
+        "He tosses you a fragment of coal that pulses with heat. \"For when you're ready to burn.\""
+      ],
+      "shard_reward": 100,
+      "dig_charge_reward": 2,
+      "fragment_reward": "ember:2"
+    }
+  ]
+}

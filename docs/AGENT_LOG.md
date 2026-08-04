@@ -450,3 +450,33 @@ Next: **P4-02** — Map screen: pan/zoom node graph, lock states, node icons.
 Client builds with `dotnet build` — 0 errors. Engine tests: 235/235 pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-03** — Encounter definitions: wielder name, portrait, deck, dialogue, rewards.
+
+## Session 24 — 2026-08-04
+
+### P4-03 — Encounter definitions: wielder name, portrait, deck, dialogue, rewards
+
+**New files:**
+- `engine/Cards/EncounterDef.cs` — data models:
+  - `EncounterDef`: id, name, portrait, deck (30 card IDs), dialogue_intro/outro, shard_reward, dig_charge_reward, fragment_reward, modifier
+  - `EncounterPack`: list wrapper for JSON serialization
+- `engine/Cards/EncounterLoader.cs` — static JSON loader following CardLoader pattern
+- `content/encounters/region_01_early.json` — 2 encounters: Wayfarer, Thornbark
+- `content/encounters/region_01_mid.json` — 2 encounters: Root-Binder (Elite + modifier), Wildwood Stalker
+- `content/encounters/region_01_late.json` — 2 encounters: Grove Warden Elara, Ashkeeper Vorn (Elite + modifier)
+- `content/encounters/region_01_boss.json` — 3 encounters: Silt-Reader Maren, Warden Aelin, Aelin the Last Steward (Warden Boss)
+
+Each encounter has a full 30-card deck drawn from the 60 hand-authored cards, dialogue for intro/outro, appropriate rewards scaling with difficulty, and portraits for elites/wardens.
+
+**Modified files:** None.
+
+**Tests:** 11 new tests in `tests/Cards/EncounterLoaderTests.cs`:
+- Correct count (9 total encounters)
+- All have IDs, names, 30-card decks, dialogue intro, shard rewards
+- Elite encounters have modifiers
+- Boss/elite encounters have portraits
+- Specific assertions on Wayfarer, Warden Aelin, Boss Aelin
+- From-string deserialization
+
+All 246 tests pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-04** — Progression save: SQLite, node clears, collection, shards, dig charges.
