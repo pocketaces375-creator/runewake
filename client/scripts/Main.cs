@@ -146,6 +146,11 @@ public partial class Main : Control
         // Load dig tool definitions
         CampaignContext.LoadDigTools();
 
+        _statusLabel.Text = "Loading relics...";
+
+        // Load Lost Relic definitions
+        CampaignContext.LoadLostRelics();
+
         _statusLabel.Text = "Loading save data...";
 
         // Initialize save manager

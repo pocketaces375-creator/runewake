@@ -712,3 +712,38 @@ Built the rune forge system (4 fragments → 1 random unowned rune per strata) a
 **All 321 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P5-06** — Lost Relic minting: engraving data, frame renderer, local ledger.
+
+---
+
+## P5-06 — Lost Relic minting: engraving data, frame renderer, local ledger
+
+**Status:** Complete
+
+**Summary:**
+Built the full Lost Relic minting pipeline — instance data model, minter service, SQLite persistence, Godot frame renderer, WARDEN_BOSS first-clear integration, and content definitions.
+
+**New files:**
+- `engine/Cards/LostRelicInstance.cs` — `LostRelicInstance` data model: UUID, card_id, acquirer_name, acquired_at, site, discovery_index, engraving_style, `GetEngravingText()` method.
+- `engine/Cards/LostRelicMinter.cs` — `LostRelicDef` definition model (maps encounter ID → card_id + site + frame style), `LostRelicPack` container, `LostRelicMinter.Mint()` static method creating instances.
+- `engine/Cards/LostRelicLoader.cs` — `LostRelicLoader.LoadPack(path)` following standard pattern.
+- `client/scripts/relics/RelicFrameRenderer.cs` — Generates Godot Control overlay with engraving banner at bottom, discovery index badge at top-right, themed colors per style (verdant_gold, ember_iron, tide_silver, hollow_onyx).
+- `content/relics/relic_defs.json` — First Lost Relic definition: "Aelin's Seal" from r1_warden_boss on "The Fallow Reach — Steward's Barrow".
+- `tests/Cards/LostRelicTests.cs` — 12 tests covering: loader deserialization, minting with correct fields, discovery index tracking, unknown encounter returns null, unique UUIDs, engraving text formatting, progression state integration.
+
+**Modified files:**
+- `engine/State/ProgressionState.cs` — Added `DiscoveredRelics` (List\<LostRelicInstance\>), `GlobalDiscoveryIndex` (int), `AddRelic()` helper.
+- `client/scripts/data/SaveManager.cs` — New SQLite table `discovered_relics` with all instance fields + `owned_runes`/`unlocked_tools` tables; load/save logic for all three.
+- `client/scripts/CampaignContext.cs` — Added `LostRelicIndex` dictionary, `LoadLostRelics()` method.
+- `client/scripts/Main.cs` — Added "Loading relics..." step in `LoadGameData()`.
+- `client/scripts/DuelScene.cs` — `OnGameOver` win flow: checks `LostRelicIndex` for the current encounter, mints relic on first clear via collection check, adds relic card to collection.
+
+**Key design decisions:**
+- Lost Relic minting is triggered by encounter ID, not node type. Any encounter with a matching `LostRelicDef` mints — this allows rare challenge encounters to also mint relics.
+- First-clear detection uses `Collection.ContainsKey(relicCardId)` — if the player already owns the relic card, they've already claimed it.
+- `DiscoveryIndex` is a per-instance global counter. The value at mint time is recorded permanently.
+- Relic frames are generated as Godot Control overlays (no image editing needed). The renderer creates a banner + text + index badge.
+- UUIDs are used for `relic_instance_id` for future Supabase sync compatibility.
+
+**All 331 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P6-01** — Card JSON Schema finalized.

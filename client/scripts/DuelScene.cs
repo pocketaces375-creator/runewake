@@ -467,6 +467,30 @@ public partial class DuelScene : Control
                     prog.AddFragments(parts[0], fragCount);
             }
 
+            // Mint Lost Relic if this encounter qualifies (WARDEN_BOSS or rare find)
+            if (CampaignContext.CurrentEncounter != null)
+            {
+                string encId = CampaignContext.CurrentEncounter.Id;
+                if (CampaignContext.LostRelicIndex.TryGetValue(encId, out var relicDef))
+                {
+                    // Only mint if the player hasn't already collected this relic card
+                    if (!prog.Collection.ContainsKey(relicDef.CardId))
+                    {
+                        var relic = LostRelicMinter.Mint(
+                            encId,
+                            CampaignContext.LostRelicIndex,
+                            "Adventurer",
+                            prog.GlobalDiscoveryIndex + 1
+                        );
+                        if (relic != null)
+                        {
+                            prog.AddRelic(relic);
+                            prog.AddCard(relic.CardId);
+                        }
+                    }
+                }
+            }
+
             // Mark node cleared
             if (CampaignContext.CurrentNodeId != null)
                 prog.MarkNodeCleared(CampaignContext.CurrentNodeId);

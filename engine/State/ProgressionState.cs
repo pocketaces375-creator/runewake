@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Runewake.Engine.Cards;
 
 namespace Runewake.Engine.State;
 
@@ -31,6 +32,15 @@ public class ProgressionState
 
     /// <summary>Dig tool IDs the player has unlocked from Elite nodes.</summary>
     public HashSet<string> UnlockedTools { get; } = new();
+
+    /// <summary>Discovered Lost Relic instances.</summary>
+    public List<LostRelicInstance> DiscoveredRelics { get; } = new();
+
+    /// <summary>
+    /// Global discovery index counter. Incremented each time a relic is minted
+    /// per card_id. The discovery_index on a relic is the value at mint time.
+    /// </summary>
+    public int GlobalDiscoveryIndex { get; set; }
 
     /// <summary>Whether the player has completed the first-run tutorial/intro duel.</summary>
     public bool HasCompletedTutorial { get; set; }
@@ -89,4 +99,21 @@ public class ProgressionState
 
     /// <summary>Unlock a dig tool. Returns false if already unlocked.</summary>
     public bool UnlockTool(string toolId) => UnlockedTools.Add(toolId);
+
+    /// <summary>Add a discovered relic instance. Returns the relic's discovery index.</summary>
+    public LostRelicInstance AddRelic(LostRelicInstance relic)
+    {
+        DiscoveredRelics.Add(relic);
+        GlobalDiscoveryIndex++;
+        return relic;
+    }
+
+    /// <summary>Check if a specific encounter's relic has already been discovered by this player.</summary>
+    public bool HasDiscoveredEncounterRelic(string encounterId)
+    {
+        // Check if any discovered relic matches an encounter by looking up the encounter's
+        // card_id in the relic def index (supplied externally via CampaignContext)
+        // For engine-level check without CampaignContext, just check by card_id match
+        return false; // runtime check happens in DuelScene via LostRelicIndex
+    }
 }

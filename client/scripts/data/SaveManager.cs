@@ -67,6 +67,24 @@ public class SaveManager
                 strata TEXT PRIMARY KEY NOT NULL,
                 count INTEGER NOT NULL DEFAULT 0
             );
+
+            CREATE TABLE IF NOT EXISTS owned_runes (
+                rune_id TEXT PRIMARY KEY NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS unlocked_tools (
+                tool_id TEXT PRIMARY KEY NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS discovered_relics (
+                relic_instance_id TEXT PRIMARY KEY NOT NULL,
+                card_id TEXT NOT NULL,
+                acquirer_name TEXT NOT NULL,
+                acquired_at TEXT NOT NULL,
+                site TEXT NOT NULL,
+                discovery_index INTEGER NOT NULL,
+                engraving_style TEXT NOT NULL DEFAULT 'default'
+            );
         """;
         cmd.ExecuteNonQuery();
     }
@@ -131,6 +149,53 @@ public class SaveManager
             while (reader.Read())
                 State.Fragments[reader.GetString(0)] = reader.GetInt32(1);
         }
+
+        // Owned runes
+        using (var cmd = _connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT rune_id FROM owned_runes";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                State.OwnedRuneIds.Add(reader.GetString(0));
+        }
+
+        // Unlocked tools
+        using (var cmd = _connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT tool_id FROM unlocked_tools";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                State.UnlockedTools.Add(reader.GetString(0));
+        }
+
+        // Discovered relics
+        using (var cmd = _connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT relic_instance_id, card_id, acquirer_name, acquired_at, site, discovery_index, engraving_style FROM discovered_relics";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                State.DiscoveredRelics.Add(new LostRelicInstance
+                {
+                    RelicInstanceId = reader.GetString(0),
+                    CardId = reader.GetString(1),
+                    AcquirerName = reader.GetString(2),
+                    AcquiredAt = reader.GetString(3),
+                    Site = reader.GetString(4),
+                    DiscoveryIndex = reader.GetInt32(5),
+                    EngravingStyle = reader.GetString(6)
+                });
+            }
+        }
+
+        // Global discovery index (track via meta)
+        using (var cmd = _connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT value FROM meta WHERE key = 'global_discovery_index'";
+            var result = cmd.ExecuteScalar();
+            if (result != null)
+                State.GlobalDiscoveryIndex = int.Parse((string)result);
+        }
     }
 
     /// <summary>
@@ -156,6 +221,7 @@ public class SaveManager
             InsertMeta("shards", State.Shards.ToString());
             InsertMeta("dig_charges", State.DigCharges.ToString());
             InsertMeta("tutorial_done", State.HasCompletedTutorial ? "1" : "0");
+            InsertMeta("global_discovery_index", State.GlobalDiscoveryIndex.ToString());
 
             // Cleared nodes: clear + re-insert
             using (var cmd = _connection.CreateCommand())
@@ -198,6 +264,56 @@ public class SaveManager
                 cmd.CommandText = "INSERT INTO fragments (strata, count) VALUES (@s, @c)";
                 cmd.Parameters.AddWithValue("@s", strata);
                 cmd.Parameters.AddWithValue("@c", count);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Owned runes: clear + re-insert
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM owned_runes";
+                cmd.ExecuteNonQuery();
+            }
+            foreach (var runeId in State.OwnedRuneIds)
+            {
+                using var cmd = _connection.CreateCommand();
+                cmd.CommandText = "INSERT INTO owned_runes (rune_id) VALUES (@id)";
+                cmd.Parameters.AddWithValue("@id", runeId);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Unlocked tools: clear + re-insert
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM unlocked_tools";
+                cmd.ExecuteNonQuery();
+            }
+            foreach (var toolId in State.UnlockedTools)
+            {
+                using var cmd = _connection.CreateCommand();
+                cmd.CommandText = "INSERT INTO unlocked_tools (tool_id) VALUES (@id)";
+                cmd.Parameters.AddWithValue("@id", toolId);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Discovered relics: clear + re-insert
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM discovered_relics";
+                cmd.ExecuteNonQuery();
+            }
+            foreach (var relic in State.DiscoveredRelics)
+            {
+                using var cmd = _connection.CreateCommand();
+                cmd.CommandText = @"INSERT INTO discovered_relics 
+                    (relic_instance_id, card_id, acquirer_name, acquired_at, site, discovery_index, engraving_style) 
+                    VALUES (@id, @cid, @name, @date, @site, @idx, @style)";
+                cmd.Parameters.AddWithValue("@id", relic.RelicInstanceId);
+                cmd.Parameters.AddWithValue("@cid", relic.CardId);
+                cmd.Parameters.AddWithValue("@name", relic.AcquirerName);
+                cmd.Parameters.AddWithValue("@date", relic.AcquiredAt);
+                cmd.Parameters.AddWithValue("@site", relic.Site);
+                cmd.Parameters.AddWithValue("@idx", relic.DiscoveryIndex);
+                cmd.Parameters.AddWithValue("@style", relic.EngravingStyle);
                 cmd.ExecuteNonQuery();
             }
 

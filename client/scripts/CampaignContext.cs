@@ -38,6 +38,9 @@ public static class CampaignContext
     /// <summary>All loaded dig tools keyed by tool ID.</summary>
     public static readonly Dictionary<string, DigToolDef> DigToolIndex = new();
 
+    /// <summary>All loaded Lost Relic definitions keyed by encounter ID.</summary>
+    public static readonly Dictionary<string, LostRelicDef> LostRelicIndex = new();
+
     /// <summary>The dig site ID the player is about to enter (set by MapScene).</summary>
     public static string? CurrentDigSiteId { get; set; }
 
@@ -115,5 +118,19 @@ public static class CampaignContext
         var pack = DigToolLoader.LoadPack(path);
         foreach (var tool in pack.Tools)
             DigToolIndex[tool.Id] = tool;
+    }
+
+    /// <summary>
+    /// Load all Lost Relic definitions from the content directory.
+    /// Call once at title screen.
+    /// </summary>
+    public static void LoadLostRelics()
+    {
+        LostRelicIndex.Clear();
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/relics";
+        var path = $"{contentDir}/relic_defs.json";
+        var pack = LostRelicLoader.LoadPack(path);
+        foreach (var relic in pack.Relics)
+            LostRelicIndex[relic.EncounterId] = relic;
     }
 }
