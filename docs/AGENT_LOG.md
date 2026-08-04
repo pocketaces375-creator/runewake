@@ -423,3 +423,30 @@ Next: **P3-07** — Mulligan screen (optional); or **P3-08** polish, edge cases,
 All 235 tests pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-02** — Map screen: pan/zoom node graph, lock states, node icons.
+
+## Session 23 — 2026-08-04
+
+### P4-02 — Map screen: pan/zoom node graph, lock states, node icons
+
+**New files:**
+- `client/scripts/MapScene.cs` + `client/scenes/map/MapScene.tscn` — full campaign map screen:
+  - Loads MapRegion JSON (`content/map/region_01.json`) at startup
+  - Renders all nodes as `MapNodeIcon` instances positioned from JSON `[x, y]` data
+  - Connects nodes with colored lines drawn via `LineDrawer` (`_Draw()` over `Node2D`)
+  - **Pan**: middle-click or right-click drag to move the map
+  - **Zoom**: scroll wheel zooms toward cursor position (0.4x–2.5x range, 0.1 step)
+  - Nodes default locked except the first one (`r1_n01`)
+  - **Info panel**: clicking a node shows name, type, rewards. "Enter" button (disabled for locked nodes) and "Close". Panel hides on close.
+  - `LineDrawer` helper class draws connection edges between linked nodes
+- `client/scripts/MapNodeIcon.cs` + `client/scenes/components/MapNodeIcon.tscn` — 72×72 node icon:
+  - Colored `ColorRect` by type: Duel=green, Elite=orange, Warden=yellow, WardenBoss=red, Dig=brown, Shrine=blue, Cache=purple, Merchant=gold
+  - Lock overlay (semi-transparent black + grey modulate)
+  - Name label beneath icon
+  - `Setup()` for initial config, `SetLocked()` for dynamic updates
+  - Emits `NodeSelected` signal on click
+
+**Modified files:** None.
+
+Client builds with `dotnet build` — 0 errors. Engine tests: 235/235 pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-03** — Encounter definitions: wielder name, portrait, deck, dialogue, rewards.

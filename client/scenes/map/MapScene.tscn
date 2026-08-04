@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3 uid="uid://map_scene"]
+
+[ext_resource type="Script" path="res://scripts/MapScene.cs" id="1_map"]
+
+[node name="MapScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_map")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.12, 1)
+
+[node name="MapContainer" type="Node2D" parent="."]
+position = Vector2(400, 300)
+
+[node name="InfoPanel" type="Panel" parent="."]
+anchors_preset = 0
+offset_left = 460
+offset_top = 20
+offset_right = 660
+offset_bottom = 200
+theme_override_styles/panel = SubResource("info_panel_style")
+
+[sub_resource type="StyleBoxFlat" id="info_panel_style"]
+bg_color = Color(0.12, 0.12, 0.18, 0.95)
+border_color = Color(0.3, 0.3, 0.4, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+
+[node name="VBox" type="VBoxContainer" parent="InfoPanel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8
+offset_top = 8
+offset_right = -8
+offset_bottom = -8
+theme_override_constants/separation = 6
+
+[node name="InfoName" type="Label" parent="InfoPanel/VBox"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Node Name"
+
+[node name="InfoType" type="Label" parent="InfoPanel/VBox"]
+theme_override_font_sizes/font_size = 11
+text = "Type"
+
+[node name="InfoRewards" type="Label" parent="InfoPanel/VBox"]
+theme_override_font_sizes/font_size = 10
+text = "Rewards"
+
+[node name="GoButton" type="Button" parent="InfoPanel/VBox"]
+size_flags_horizontal = 0
+text = "Enter"
+
+[node name="CloseButton" type="Button" parent="InfoPanel/VBox"]
+size_flags_horizontal = 0
+text = "Close"
