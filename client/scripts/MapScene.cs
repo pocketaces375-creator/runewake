@@ -254,7 +254,15 @@ public partial class MapScene : Control
 
         string encounterStr = mapNode.Encounter ?? "—";
         string displayName;
-        if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
+        if (mapNode.Type == MapNodeType.Dig)
+        {
+            // Show dig site name from the first dig site in the node's encounter field (or default label)
+            if (mapNode.Encounter != null && CampaignContext.DigSiteIndex.TryGetValue(mapNode.Encounter, out var digSite))
+                displayName = digSite.Name;
+            else
+                displayName = "Dig Site";
+        }
+        else if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
             displayName = enc.Name;
         else
             displayName = encounterStr.Replace("_", " ");
@@ -267,11 +275,12 @@ public partial class MapScene : Control
             : "None";
         _infoRewards.Text = rewardsStr;
 
-        // Go button: disabled if node is cleared, unlocked but no encounter, or locked
+        // Go button: disabled if node is cleared or locked
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
         bool isLocked = !IsNodeUnlocked(mapNode);
+        bool isDig = mapNode.Type == MapNodeType.Dig;
         bool hasEncounter = mapNode.Encounter != null && CampaignContext.EncounterIndex.ContainsKey(mapNode.Encounter);
-        _infoGoButton.Disabled = isCleared || isLocked || !hasEncounter;
+        _infoGoButton.Disabled = isCleared || isLocked || (!isDig && !hasEncounter);
         _infoGoButton.Text = isCleared ? "Done" : "Go";
 
         _infoPanel.Show();
@@ -282,7 +291,19 @@ public partial class MapScene : Control
         if (_selectedNodeId == null || _region == null) return;
 
         var mapNode = _region.Nodes.FirstOrDefault(n => n.Id == _selectedNodeId);
-        if (mapNode?.Encounter == null) return;
+        if (mapNode == null) return;
+
+        CampaignContext.CurrentNodeId = mapNode.Id;
+
+        if (mapNode.Type == MapNodeType.Dig)
+        {
+            // Navigate to dig scene
+            CampaignContext.CurrentDigSiteId = mapNode.Encounter ?? "region_01_dig";
+            GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
+            return;
+        }
+
+        if (mapNode.Encounter == null) return;
 
         if (!CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var encounterDef))
         {
@@ -291,7 +312,6 @@ public partial class MapScene : Control
         }
 
         CampaignContext.CurrentEncounter = encounterDef;
-        CampaignContext.CurrentNodeId = mapNode.Id;
 
         GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }

@@ -641,3 +641,38 @@ Next: **P5-03** — Runes injected at match start; tests confirming each starter
 **All 287 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P5-04** — Dig site interaction (grid, strikes, reveals).
+
+---
+
+## P5-04 — Dig site interaction (grid, strikes, reveals)
+
+**Status:** Complete
+
+**Summary:**
+Built the full dig site system — engine data models, JSON content, runtime state, Godot dig scene, and campaign map integration.
+
+**New files:**
+- `engine/Cards/DigSiteDef.cs` — `DigSiteDef` model (rows, cols, strikes, tile grid, headline threshold/reward), `DigTileDef` (type + value), `DigRewardType` enum, `DigSitePack` container.
+- `engine/Cards/DigSiteLoader.cs` — `DigSiteLoader.LoadPack(path)` and `LoadPackFromString(string)`, following the same pattern as `EncounterLoader` and `RuneLoader`.
+- `engine/State/DigState.cs` — `DigState` runtime model: `TilesRevealed[]`, `StrikesRemaining`, `TilesCleared`, `HeadlineClaimed`, `RewardsEarned`. Key method: `ApplyStrike(tileIndex, siteDef)` returns reward or null. `FromDef(siteDef)` factory. `Clone()` for replay.
+- `content/dig_sites/region_01_dig.json` — First dig site "The Earthen Maw": 4x4 grid, 4 strikes, threshold 3 for headline relic.
+- `client/scripts/DigScene.cs` — Full code-driven Godot scene: colored tile grid, tap-to-strike reveal, reward icons and labels, collect rewards flow, progression persistence.
+- `client/scenes/dig/DigScene.tscn` — Minimal scene file with script reference.
+- `tests/Cards/DigSiteTests.cs` — 18 tests covering: loader deserialization, all 5 reward types, strike application, duplicate/invalid strike handling, headline threshold triggering, strike depletion, deep clone isolation, headline-once enforcement.
+
+**Modified files:**
+- `content/map/region_01.json` — DIG node r1_n07 now has `encounter: "region_01_dig"` for proper routing.
+- `client/scripts/CampaignContext.cs` — Added `DigSiteIndex` dictionary, `CurrentDigSiteId`, `LoadDigSites()` method.
+- `client/scripts/MapScene.cs` — DIG nodes show dig site name in info panel; Go button routes to DigScene; enabled without encounter for DIG nodes.
+- `client/scripts/Main.cs` — Calls `LoadDigSites()` during title screen initialization.
+
+**Key design decisions:**
+- Dig site referenced via `mapNode.Encounter` field (same as duels) — the MapScene checks `mapNode.Type == MapNodeType.Dig` to route correctly.
+- Headline find is awarded automatically when `TilesCleared >= HeadlineThreshold` — no manual claim step needed.
+- Rewards are applied on "Collect Rewards" button press, not automatically — gives player a moment to see results.
+- `DigRewardType.RELIC` rewards add cards to collection; RELIC headline rewards work the same way.
+- `SpendDigCharge()` is already in `ProgressionState` — wired for future use when the campaign flow properly deducts charges.
+
+**All 305 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P5-05** — Fragment → rune forging; tools.

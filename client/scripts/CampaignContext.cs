@@ -32,6 +32,12 @@ public static class CampaignContext
     /// <summary>All loaded runes keyed by rune ID.</summary>
     public static readonly Dictionary<string, RuneDef> RuneIndex = new();
 
+    /// <summary>All loaded dig sites keyed by dig site ID.</summary>
+    public static readonly Dictionary<string, DigSiteDef> DigSiteIndex = new();
+
+    /// <summary>The dig site ID the player is about to enter (set by MapScene).</summary>
+    public static string? CurrentDigSiteId { get; set; }
+
     /// <summary>The current rune page configuration.</summary>
     public static RunePage CurrentRunePage { get; set; } = new();
 
@@ -71,5 +77,26 @@ public static class CampaignContext
         var pack = RuneLoader.LoadPack(path);
         foreach (var rune in pack.Runes)
             RuneIndex[rune.Id] = rune;
+    }
+
+    /// <summary>
+    /// Load all dig site definitions from the content directory.
+    /// Call once at title screen.
+    /// </summary>
+    public static void LoadDigSites()
+    {
+        DigSiteIndex.Clear();
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/dig_sites";
+        var paths = new[]
+        {
+            $"{contentDir}/region_01_dig.json"
+        };
+
+        foreach (var path in paths)
+        {
+            var pack = DigSiteLoader.LoadPack(path);
+            foreach (var site in pack.DigSites)
+                DigSiteIndex[site.Id] = site;
+        }
     }
 }

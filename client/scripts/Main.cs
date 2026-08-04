@@ -121,6 +121,11 @@ public partial class Main : Control
         // Load rune definitions
         CampaignContext.LoadRunes();
 
+        _statusLabel.Text = "Loading dig sites...";
+
+        // Load dig site definitions
+        CampaignContext.LoadDigSites();
+
         _statusLabel.Text = "Loading save data...";
 
         // Initialize save manager
