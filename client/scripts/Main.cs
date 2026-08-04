@@ -13,6 +13,7 @@ namespace Runewake.Client;
 public partial class Main : Control
 {
     private Button _startButton = default!;
+    private Button _runeButton = default!;
     private Label _statusLabel = default!;
     private bool _loading;
 
@@ -76,8 +77,24 @@ public partial class Main : Control
         _startButton.Pressed += OnStartCampaign;
         AddChild(_startButton);
 
+        // Rune Page button
+        var runeButton = new Button
+        {
+            Text = "Rune Page",
+            AnchorLeft = 0.35f,
+            AnchorRight = 0.65f,
+            AnchorTop = 0.87f,
+            AnchorBottom = 0.97f,
+            Disabled = true
+        };
+        runeButton.Pressed += OnOpenRunePage;
+        AddChild(runeButton);
+
         // Begin loading
         Callable.From(LoadGameData).CallDeferred();
+
+        // Store rune button reference for enabling after load
+        _runeButton = runeButton;
     }
 
     private void LoadGameData()
@@ -98,6 +115,11 @@ public partial class Main : Control
 
         // Load encounter definitions
         CampaignContext.LoadEncounters();
+
+        _statusLabel.Text = "Loading runes...";
+
+        // Load rune definitions
+        CampaignContext.LoadRunes();
 
         _statusLabel.Text = "Loading save data...";
 
@@ -138,10 +160,16 @@ public partial class Main : Control
 
         _statusLabel.Text = "";
         _startButton.Disabled = false;
+        _runeButton.Disabled = false;
     }
 
     private void OnStartCampaign()
     {
         GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+    }
+
+    private void OnOpenRunePage()
+    {
+        GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
     }
 }

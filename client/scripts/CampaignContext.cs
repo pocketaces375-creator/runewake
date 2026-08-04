@@ -29,6 +29,12 @@ public static class CampaignContext
     /// <summary>All loaded encounters keyed by encounter ID (e.g. "r1_duel_wayfarer").</summary>
     public static readonly Dictionary<string, EncounterDef> EncounterIndex = new();
 
+    /// <summary>All loaded runes keyed by rune ID.</summary>
+    public static readonly Dictionary<string, RuneDef> RuneIndex = new();
+
+    /// <summary>The current rune page configuration.</summary>
+    public static RunePage CurrentRunePage { get; set; } = new();
+
     /// <summary>
     /// Load all encounter packs from the content directory.
     /// Call once at title screen.
@@ -51,5 +57,19 @@ public static class CampaignContext
             foreach (var enc in pack.Encounters)
                 EncounterIndex[enc.Id] = enc;
         }
+    }
+
+    /// <summary>
+    /// Load all rune packs and initialize the current rune page.
+    /// Call once at title screen after card packs are loaded.
+    /// </summary>
+    public static void LoadRunes()
+    {
+        RuneIndex.Clear();
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/runes";
+        var path = $"{contentDir}/starter_runes.json";
+        var pack = RuneLoader.LoadPack(path);
+        foreach (var rune in pack.Runes)
+            RuneIndex[rune.Id] = rune;
     }
 }

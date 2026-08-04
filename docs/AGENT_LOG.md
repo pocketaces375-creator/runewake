@@ -589,3 +589,29 @@ Next: **P4-06** — ~~Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden
 **All 277 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P5-02** — Rune page editor UI (9/9/9/3 slots, budget bar).
+
+---
+
+### P5-02 — Rune page editor UI
+
+**Visual rune page editor with 9/9/9/3 slot grid, RP budget bar, rune picker overlay, and detail panel.**
+
+**New files:**
+- `client/scripts/RunePageScene.cs` — Programmatic Godot UI: 4 section headers (Offensive/Defensive/Utility/Mythic) each with a 3-column `GridContainer` of slot buttons. Empty slots show "—", equipped slots show rune name + cost. Click empty slot → picker overlay with searchable list of matching runes. Click equipped → detail panel shows name, description, trigger/effects, and unequip button. `ProgressBar` budget bar at bottom with green/yellow/red coloring. Save button persists via `CampaignContext.SaveManager.Save()`.
+- `client/scenes/rune/RunePageScene.tscn` — Minimal scene file (bare `Control` + script).
+
+**Modified files:**
+- `client/scripts/CampaignContext.cs` — Added `RuneIndex` dictionary, `CurrentRunePage` property, and `LoadRunes()` method that loads `content/runes/starter_runes.json` and indexes runes by ID.
+- `client/scripts/Main.cs` — Added "Rune Page" button below "Start Campaign" (disabled during loading, enabled after), `OnOpenRunePage()` handler, `_runeButton` field, and `CampaignContext.LoadRunes()` call in the loading sequence.
+
+**Key design decisions:**
+- All UI is code-driven (no .tscn child nodes to manage)
+- `RunePageExtensions.GetSlot()` helper method to retrieve equipped runes by type+index
+- Picker overlay filters by `RuneSlotType` matching the clicked slot; search bar filters by name/ID
+- Already-equipped runes shown greyed out in picker
+- Budget bar colors: green (<50%), yellow (<80%), red (≥80%)
+- Feedback labels auto-clear after 2 seconds
+
+**All 277 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P5-03** — Runes injected at match start; tests confirming each starter rune fires.
