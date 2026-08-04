@@ -921,4 +921,33 @@ Built the DEDUPE and MODERATE stages of the AI pipeline — exact and fuzzy name
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
 
-Next: **P6-07** — Art module.
+---
+
+## P6-07 — Art module
+
+**Status:** Complete
+
+**Summary:**
+Built the ART stage of the AI pipeline — on-demand image generation via OpenRouter's image API. Each card gets a full prompt built from its locked per-Stratum style prefix (defined in `docs/05_AI_PIPELINE.md` §1 Stage 8) plus the card-specific `art.prompt` suffix generated at Stage 2. Images are generated at 1024px, downscaled to two mip levels (1024px, 512px), and saved as WebP. On API failure — or when explicitly skipped — each card falls back to a Stratum-colored frame with a rune glyph, so a missing image never blocks a release.
+
+**Model choice:** `black-forest-labs/flux.2-pro` — best quality-to-cost among OpenRouter's current image models (latest FLUX.2 flagship; strong prompt adherence, consistent style, ~$0.03-0.05/image). Configurable via `defaults.image_model` in `config.yaml` or `--model`.
+
+**Files created:**
+- `pipeline/modules/art.py` — ART stage module with:
+  - `STRATUM_STYLES` — locked style-prompt prefix per Stratum (VERDANT/EMBER/TIDE/HOLLOW/DAWN)
+  - `STRATUM_FALLBACK_COLORS` + `STRATUM_GLYPH` — per-Stratum fallback frame tints + rune glyphs
+  - `build_prompt()` — style prefix + card art.prompt
+  - `generate_image()` — OpenRouter `POST /api/v1/images/generations` (handles `b64_json` and `url` responses)
+  - `save_image()` — 1024px + 512px mip WebP output (LANCZOS)
+  - `generate_fallback()` — Stratum-colored frame with rune glyph + card name
+  - CLI: `--input`, `--work-dir`, `--model`, `--api-key`, `--skip-api`
+  - Output: `06_art.json`, `06_summary.json`, `art/*.webp`
+- `pipeline/tests/test_art.py` — 19 Python tests
+
+**Verification:**
+- All 19 Python art tests pass
+- 331/331 C# tests still pass
+- 114/117 Python tests pass (3 pre-existing `test_generate.py` failures logged in `docs/TECH_DEBT.md`)
+- 0 TODO, 0 NotImplementedException
+
+Next: **P6-08** — Review UI.

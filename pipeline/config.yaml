@@ -3,6 +3,7 @@
 
 defaults:
   model: "openai/gpt-4o-mini"
+  image_model: "black-forest-labs/flux.2-pro"
   temperature: 0.9
   max_retries: 1
   max_cards_per_batch: 10
