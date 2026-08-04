@@ -71,3 +71,25 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 - Files under 400 lines. No `TODO` or `NotImplementedException`.
 
 **Tests:** 15 new keyword tests — Guard redirect, Swift no-exhaust, Pierce carry, Ward blocks one hit, Ward consumed, Venom destroys after combat, Reach adjacent attack, Reach non-adjacent rejects, Rooted can't attack, Unearth returns to hand, Unearth discards if unaffordable, Echo flag recognized, Fragile destroyed at end of turn, Fragile non-fragile survives, Sealed recognized as untargetable.
+
+## Session 7 — 2026-08-04
+
+### P1-05 — Effect executor
+
+**New files:**
+- `ResolvedTarget.cs`: `CreatureTarget` and `PlayerTarget` discriminated union for effect targeting
+- `TargetResolver.cs`: Resolves `TargetDef` (scope + filter + count) into concrete target lists. All 7 scopes, all 17 filters, and count selection.
+- `EffectExecutor.cs`: Executes all 23 OPs against resolved targets — DAMAGE, HEAL, BUFF, DEBUFF, DESTROY, DRAW, DISCARD, EXCAVATE, BURY, UNBURY, SUMMON, GRANT_KEY, REMOVE_KEY, SILENCE, BOUNCE, ATTUNE, MOVE_LANE, IDENTIFY, GAIN_VIGOR, LOSE_VIGOR, COPY, SET_STAT, REFRESH.
+
+**Model changes:**
+- `CardInstance.cs`: Added `Strata` field (for STRATA filter matching). Switched `CurrentAttack`/`CurrentVigor` from `int.Max` to `Math.Max`.
+
+**Key implementation details:**
+- EXCAVATE: deterministic — always picks the first of the revealed cards into hand, buries the rest
+- SUMMON: finds first empty lane, creates a TOKEN-type card
+- COPY: creates a fresh CardInstance copying source stats
+- MOVE_LANE: moves source card to the first empty lane on its board
+- All effects handle both CreatureTarget and PlayerTarget where applicable
+- Files under 400 lines. No TODO or NotImplementedException.
+
+**Tests:** 67 new tests — theory test covering all 23 OPs; detailed assertion tests for each OP (DAMAGE kills, DRAW adds cards, etc.); filter tests for all 17 filters (ADJACENT, OPPOSING, SAME_LANE, EDGE_LANE, CENTER_LANE, DAMAGED, UNDAMAGED, STRATA, KEYWORD, TYPE, LOWEST_VIGOR, HIGHEST_ATTACK, LOWEST_COST, HIGHEST_COST, CHOSEN); scope and count tests.

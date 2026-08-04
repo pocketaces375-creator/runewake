@@ -34,6 +34,9 @@ public sealed class CardInstance
     /// <summary>Attunement cost to play this card.</summary>
     public int Cost { get; set; }
 
+    /// <summary>Stratum (color/region) for filter matching (STRATA:VERDANT, etc.).</summary>
+    public Strata Strata { get; set; }
+
     /// <summary>Index of the player who controls this card (0 or 1).</summary>
     public int Controller { get; set; }
 
@@ -63,12 +66,12 @@ public sealed class CardInstance
     /// <summary>
     /// Current effective Attack: base + modifier (never below 0).
     /// </summary>
-    public int CurrentAttack => int.Max(0, BaseAttack + AttackModifier);
+    public int CurrentAttack => Math.Max(0, BaseAttack + AttackModifier);
 
     /// <summary>
     /// Current effective Vigor: base + modifier - damage (never below 0).
     /// </summary>
-    public int CurrentVigor => int.Max(0, BaseVigor + VigorModifier - Damage);
+    public int CurrentVigor => Math.Max(0, BaseVigor + VigorModifier - Damage);
 
     /// <summary>True if this card has attacked this turn.</summary>
     public bool HasAttackedThisTurn { get; set; }
@@ -141,6 +144,7 @@ public sealed class CardInstance
         CardDefId = other.CardDefId;
         CardType = other.CardType;
         Cost = other.Cost;
+        Strata = other.Strata;
         Controller = other.Controller;
         Zone = other.Zone;
         LaneIndex = other.LaneIndex;
