@@ -510,3 +510,32 @@ Next: **P4-04** — Progression save: SQLite, node clears, collection, shards, d
 All 258 tests pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-05** — Deck builder screen with collection filtering.
+
+## Session 26 — 2026-08-04
+
+### P4-05 — Deck builder screen with collection filtering
+
+**New files:**
+- `client/scripts/DeckBuilderScene.cs` + `client/scenes/deck/DeckBuilderScene.tscn` — full deck builder screen:
+  - **Collection panel** (left): shows all cards from the 5 content packs, filterable by:
+    - Search bar (name text match)
+    - Strata filter (All / VERDANT / EMBER / TIDE / HOLLOW / DAWN)
+    - Type filter (All / CREATURE / RITUAL / RELIC)
+    - Cost range (min/max SpinBox, 0–10)
+  - **Deck panel** (right): shows currently selected cards grouped by ID with counts, tracks `X/30` progress
+  - **Card detail**: clicking any card in collection or deck shows full CardView
+  - **Add/remove**: right-click a collection card to add, right-click a deck card to remove; checks ownership count from ProgressionState
+  - **Save button**: enabled only when deck is exactly 30 cards; shows "Saved!" confirmation briefly
+- `client/scripts/CardListItem.cs` + `client/scenes/components/CardListItem.tscn` — compact card list row:
+  - Strata color strip on left
+  - Cost badge, name, type label
+  - Count badge (remaining copies or deck count)
+  - Greyed-out when no copies remaining
+  - Emits `ItemClicked`, `AddRequested`, `RemoveRequested` signals
+  - Right-click support for add/remove
+
+**Modified files:** None.
+
+All 258 tests pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-06** — Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden Boss.
