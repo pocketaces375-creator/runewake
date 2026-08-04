@@ -1,0 +1,78 @@
+{
+  "aggro": {
+    "description": "Fast swarm aggro — low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "cards": [
+      "emb_c_ember_hound", "emb_c_ember_hound", "emb_c_ember_hound",
+      "emb_c_flame_javelin", "emb_c_flame_javelin", "emb_c_flame_javelin",
+      "emb_c_cinder_runner", "emb_c_cinder_runner", "emb_c_cinder_runner",
+      "emb_u_wildfire_adept",
+      "emb_c_forgeguard_berserker", "emb_c_forgeguard_berserker",
+      "emb_u_cinderstorm_elemental",
+      "emb_u_searing_blast",
+      "emb_r_inferno_burst",
+      "hol_c_skeletal_reaver", "hol_c_skeletal_reaver", "hol_c_skeletal_reaver",
+      "hol_c_gravewrit_thrall", "hol_c_gravewrit_thrall",
+      "hol_u_soul_harvest", "hol_u_soul_harvest",
+      "dwn_c_sunblade_recruit", "dwn_c_sunblade_recruit",
+      "dwn_c_dawnbreaker_charger", "dwn_c_dawnbreaker_charger",
+      "dwn_c_dawn_warder",
+      "hol_c_bone_shard_volley",
+      "dwn_r_sealing_light",
+      "emb_x_the_last_ember"
+    ]
+  },
+  "midrange": {
+    "description": "Midrange value — efficient creatures, flexible tools, strong on-curve plays",
+    "cards": [
+      "vrd_c_root_warden", "vrd_c_root_warden",
+      "vrd_c_verdant_sproutling", "vrd_c_verdant_sproutling",
+      "vrd_u_grove_healer",
+      "vrd_c_wildwood_stalker", "vrd_c_wildwood_stalker",
+      "vrd_u_canopy_archer",
+      "dwn_c_sunblade_recruit", "dwn_c_sunblade_recruit",
+      "dwn_c_golden_retainer", "dwn_c_golden_retainer",
+      "dwn_u_morning_herald",
+      "emb_c_forgeguard_berserker", "emb_c_forgeguard_berserker",
+      "emb_r_magma_forger",
+      "tid_c_deep_one", "tid_c_deep_one",
+      "tid_c_silt_reader",
+      "tid_c_whirlpool_elemental", "tid_c_whirlpool_elemental",
+      "tid_u_brine_witch",
+      "hol_c_deathspeaker", "hol_c_deathspeaker",
+      "hol_u_crypt_crawler",
+      "vrd_r_natures_renewal",
+      "emb_u_searing_blast",
+      "dwn_r_sealing_light",
+      "emb_c_ember_hound",
+      "hol_c_gravewrit_thrall"
+    ]
+  },
+  "control": {
+    "description": "Slow control — big creatures, removal, card advantage, defensive keywords",
+    "cards": [
+      "vrd_c_thornbark_defender", "vrd_c_thornbark_defender",
+      "vrd_u_elder_treant",
+      "vrd_u_saphoof_charger",
+      "vrd_r_bloomweaver",
+      "vrd_x_heartwood_relic",
+      "vrd_r_undergrowth_eruption", "vrd_r_undergrowth_eruption",
+      "dwn_u_steadfast_bulwark",
+      "dwn_r_radiant_prophet",
+      "dwn_r_holy_edict", "dwn_r_holy_edict",
+      "dwn_c_golden_retainer", "dwn_c_golden_retainer",
+      "hol_u_barrow_revenant",
+      "hol_r_hollow_herald",
+      "hol_x_the_black_barrow",
+      "hol_r_curse_of_binding",
+      "tid_c_silt_reader", "tid_c_silt_reader",
+      "tid_u_coral_guardian",
+      "tid_r_sunken_leviathan",
+      "tid_x_tidal_seal",
+      "tid_r_flood_of_secrets", "tid_r_flood_of_secrets",
+      "emb_u_cinderstorm_elemental", "emb_u_cinderstorm_elemental",
+      "emb_r_inferno_burst",
+      "emb_r_phoenix_ash",
+      "emb_x_the_last_ember"
+    ]
+  }
+}

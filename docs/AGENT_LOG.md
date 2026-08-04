@@ -863,3 +863,31 @@ Built the SCORE stage of the AI pipeline — deterministic power score computati
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
 - Formula calibration note: 5/60 hand-authored cards fit current bands; the rest need tuning after simulated play (per spec: "starting hypothesis, not truth")
+
+Next: **P6-06** — Dedupe + moderate.
+
+---
+
+## P6-05 — Simulate module
+
+**Status:** Complete
+
+**Summary:**
+Built the SIMULATE stage of the AI pipeline — batch simulation with C# engine bridge and baseline comparison. The module computes reference win rates for all baseline archetype matchups, then substitutes each candidate card into an archetype deck and runs 200-game batches (configurable via `--games`) against all baselines. Win-rate deltas >+4% flag as TOO_STRONG; avg deltas <−3% flag as TOO_WEAK.
+
+**Files created:**
+- `pipeline/modules/simulate.py` — Simulate module with:
+  - `load_card_registry()` / `load_baselines()` — loads hand-authored cards and archetype definitions
+  - `write_deck_file()` — writes card packs for the C# CLI
+  - `run_batch()` — calls `Runewake.Sim run` with parsed JSON report
+  - `compute_reference_baselines()` — runs all baseline vs baseline matchups
+  - `substitute_and_simulate()` — replaces one card in an archetype and re-runs
+  - Flag logic: max delta >+4% → TOO_STRONG, avg delta <−3% → TOO_WEAK
+  - Output: `04_simulated.json`, `rejects/` with SIM_FLAG reason codes
+- `pipeline/baselines/global_archetypes.json` — 3 archetype decks (aggro, midrange, control), 30 cards each, drawn from the 60 hand-authored cards
+- `pipeline/tests/test_simulate.py` — 10 Python tests
+
+**Verification:**
+- All 10 Python tests pass (data loading, deck writing, mock run_batch, substitution, empty/not-found edge cases)
+- 331/331 C# tests still pass
+- 0 TODO, 0 NotImplementedException
