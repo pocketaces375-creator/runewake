@@ -133,6 +133,12 @@ public sealed class CardInstance
     /// <summary>Ability definitions from the card (for trigger matching and resolution).</summary>
     public List<AbilityDef> Abilities { get; set; } = new();
 
+    /// <summary>
+    /// Condition that must be met for this RELIC to identify (flip).
+    /// Only applies to RELIC-type cards. Null for non-relics.
+    /// </summary>
+    public ConditionDef? IdentifyCondition { get; set; }
+
     // ——— Construction ———
 
     public CardInstance(int instanceId, string cardDefId, int controller)
@@ -181,6 +187,18 @@ public sealed class CardInstance
                 TokenId = e.TokenId, Duration = e.Duration
             })
         });
+        IdentifyCondition = other.IdentifyCondition is not null ? CopyCondition(other.IdentifyCondition) : null;
+    }
+
+    private static ConditionDef CopyCondition(ConditionDef c)
+    {
+        return new ConditionDef
+        {
+            Op = c.Op,
+            Value = c.Value,
+            All = c.All?.ConvertAll(s => CopyCondition(s)),
+            Any = c.Any?.ConvertAll(s => CopyCondition(s))
+        };
     }
 
     /// <summary>

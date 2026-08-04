@@ -50,6 +50,13 @@ public static class TriggerBus
     }
 
     /// <summary>
+    /// Public entry point for evaluating a condition on a card for a player.
+    /// Used by the engine for relic identification checks.
+    /// </summary>
+    public static bool EvaluateCondition(ConditionDef? condition, CardInstance source, int controller, GameState state)
+        => ConditionMet(condition, source, controller, state);
+
+    /// <summary>
     /// Maximum depth for nested trigger chains. Hard stop at 20.
     /// </summary>
     public const int MaxTriggerDepth = 20;

@@ -117,3 +117,17 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 - Files under 400 lines. No TODO or NotImplementedException.
 
 **Tests:** 7 new trigger tests — ON_SUMMON fires when creature played, ON_DEATH chain of 3 death triggers, trigger depth cap at 20 (at cap blocks, below cap fires), ON_TURN_START fires for next player, ON_TURN_END fires for ending player.
+
+## Session 9 — 2026-08-04
+
+### P1-07 — Barrow, Excavate, Bury, Relic identification
+
+**Relic identification flow:**
+- `ApplyPlayCard`: When a RELIC is played, BaseAttack is overridden to 0, BaseVigor to 3, IsIdentified=false, IsExhausted=true. CREATURE handling is unaffected.
+- `ApplyEndTurn` (start triggers phase): After Unearth and ON_TURN_START, calls `IdentifyRelics()` to check the next player's lane relics. Any with a met identify condition flips (IsIdentified=true) and fires ON_RELIC_IDENTIFY triggers.
+- `CardInstance.cs`: Added `IdentifyCondition` field (ConditionDef?) and deep clone support via `CopyCondition()` helper.
+- `TriggerBus.cs`: Added public `EvaluateCondition()` wrapper for use by the engine.
+
+**Already implemented in P1-05:** EXCAVATE, BURY, UNBURY ops in EffectExecutor. BARROW zone in PlayerState.
+
+**Tests:** 6 new tests — relic enters as unidentified 0/3, relic stats overwritten on play, relic identifies when condition met at turn start (BARROW_COUNT_GTE), relic stays unidentified when condition not met, ON_RELIC_IDENTIFY fires abilities (draws cards), EXCAVATE from ON_SUMMON works end-to-end.

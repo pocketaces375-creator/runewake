@@ -65,9 +65,10 @@ public static partial class DuelEngine
         if (!firstPlayerSkipsDraw)
             ExecuteDraw(nextPlayer, state);
 
-        // 5. Start triggers — Unearth processing + ON_TURN_START triggers
+        // 5. Start triggers — Unearth processing + ON_TURN_START triggers + relic identification
         KeywordHandlers.ProcessUnearth(nextPlayer);
         TriggerBus.Fire(state, Trigger.ON_TURN_START, state.CurrentPlayerIndex);
+        IdentifyRelics(state, nextPlayer);
 
         return state;
     }
@@ -107,6 +108,14 @@ public static partial class DuelEngine
 
                 // Fire ON_SUMMON triggers (and any chained triggers, depth-limited)
                 TriggerBus.Fire(state, Trigger.ON_SUMMON, action.PlayerIndex);
+            }
+            else if (card.CardType == CardType.RELIC)
+            {
+                // Relic enters as a 0/3 unidentified artifact
+                card.BaseAttack = 0;
+                card.BaseVigor = 3;
+                card.IsIdentified = false;
+                card.IsExhausted = true;
             }
         }
         else if (card.CardType == CardType.RITUAL)
@@ -276,6 +285,28 @@ public static partial class DuelEngine
         {
             state.IsGameOver = true;
             state.WinnerIndex = state.OpponentIndex(player.Index);
+        }
+    }
+
+    /// <summary>
+    /// Check all relics belonging to the given player. Any that have an identify condition
+    /// that is now met get flipped (IsIdentified = true) and fire ON_RELIC_IDENTIFY.
+    /// </summary>
+    private static void IdentifyRelics(GameState state, PlayerState player)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var occ = player.Lanes[i].Occupant;
+            if (occ is null || occ.CardType != CardType.RELIC || occ.IsIdentified)
+                continue;
+
+            if (occ.IdentifyCondition is not null &&
+                TriggerBus.EvaluateCondition(occ.IdentifyCondition, occ, player.Index, state))
+            {
+                occ.IsIdentified = true;
+                // Fire ON_RELIC_IDENTIFY triggers (the relic's own abilities come online)
+                TriggerBus.Fire(state, Trigger.ON_RELIC_IDENTIFY, player.Index);
+            }
         }
     }
 
