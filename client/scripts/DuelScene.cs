@@ -1,58 +1,94 @@
 using System.Collections.Generic;
 using Godot;
+using Runewake.Engine.Cards;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// Main duel scene — lays out 5+5 lanes, HUD, hand area, and
-/// manages all player input via the InputController state machine.
+/// Main duel scene — holds a GameState, dispatches actions via the engine,
+/// and re-renders all visual elements from the current state.
+/// This is the final wiring connecting input → engine → visuals.
 /// </summary>
 public partial class DuelScene : Control
 {
     // Node references
-    private HBoxContainer _enemyLanes;
-    private HBoxContainer _playerLanes;
-    private HFlowContainer _handArea;
-
     private Label _enemyName;
     private Label _enemyVigorValue;
     private Label _enemyAttuneValue;
     private Label _playerVigorValue;
     private Label _playerAttuneValue;
+    private Label _turnLabel;
+    private HBoxContainer _enemyLanes;
+    private HBoxContainer _playerLanes;
+    private HFlowContainer _handArea;
 
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
     private readonly List<HandCard> _handCards = new();
 
     private InputController _input = default!;
+    private GameStateManager _gsm = default!;
 
     public override void _Ready()
     {
+        // Wire HUD nodes
         _enemyName = GetNode<Label>("EnemyHUD/EnemyName");
         _enemyVigorValue = GetNode<Label>("EnemyHUD/EnemyVigorValue");
         _enemyAttuneValue = GetNode<Label>("EnemyHUD/EnemyAttuneValue");
         _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerVigorValue");
         _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerAttuneValue");
+        _turnLabel = GetNode<Label>("TurnLabel");
+        _handArea = GetNode<HFlowContainer>("HandArea");
 
-        // Create and register input controller
+        var board = GetNode("Board");
+        _enemyLanes = board.GetNode<HBoxContainer>("EnemyLanes");
+        _playerLanes = board.GetNode<HBoxContainer>("PlayerLanes");
+
+        // Create input controller
         _input = new InputController();
         AddChild(_input);
         _input.PlayCardRequested += OnPlayCardRequested;
         _input.AttackRequested += OnAttackRequested;
         _input.SelectionCancelled += OnSelectionCancelled;
 
-        // Set up lane slots and test data
-        var laneContainer = GetNode("Board");
-        _enemyLanes = laneContainer.GetNode<HBoxContainer>("EnemyLanes");
-        _playerLanes = laneContainer.GetNode<HBoxContainer>("PlayerLanes");
-        _handArea = GetNode<HFlowContainer>("HandArea");
+        // Create game state manager
+        _gsm = new GameStateManager();
+        AddChild(_gsm);
+        _gsm.StateChanged += OnStateChanged;
+        _gsm.GameOver += OnGameOver;
 
+        // Populate lane slots
         PopulateLanes();
-        SetTestData();
+
+        // Load card packs and start the game
+        LoadCardPacks();
+        _gsm.InitializeTestGame();
     }
 
     /// <summary>
-    /// Creates 5 lane slot instances for each row.
+    /// Load all card packs into the global CardRegistry.
+    /// </summary>
+    private static void LoadCardPacks()
+    {
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/cards";
+        var packs = new[]
+        {
+            $"{contentDir}/verdant.json",
+            $"{contentDir}/ember.json",
+            $"{contentDir}/tide.json",
+            $"{contentDir}/hollow.json",
+            $"{contentDir}/dawn.json"
+        };
+
+        foreach (var pack in packs)
+        {
+            var cards = CardLoader.LoadPack(pack);
+            CardRegistry.RegisterRange(cards);
+        }
+    }
+
+    /// <summary>
+    /// Create 5 lane slot instances for each row.
     /// </summary>
     private void PopulateLanes()
     {
@@ -60,7 +96,6 @@ public partial class DuelScene : Control
 
         for (int i = 0; i < 5; i++)
         {
-            // Enemy lane (row 0)
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
             enemySlot.LaneIndex = i;
@@ -68,7 +103,6 @@ public partial class DuelScene : Control
             _enemyLanes.AddChild(enemySlot);
             _enemySlots.Add(enemySlot);
 
-            // Player lane (row 1)
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
             playerSlot.LaneIndex = i;
@@ -79,76 +113,103 @@ public partial class DuelScene : Control
         }
     }
 
+    // ——— State-driven rendering ———
+
     /// <summary>
-    /// Populate with test data to verify layout and input visually.
+    /// Called whenever the GameState changes. Rebuilds all UI from scratch.
     /// </summary>
-    private void SetTestData()
+    private void OnStateChanged()
     {
-        _enemyName.Text = "Warden Ash";
-        SetEnemyVigor(25);
-        SetEnemyAttunement(3);
-        SetPlayerVigor(25);
-        SetPlayerAttunement(2);
-
-        // Place a few test creatures on lanes
-        _enemySlots[0].SetCard("Ember Hound", 2, 1);
-        _enemySlots[2].SetCard("Phoenix Ash", 4, 4);
-        _playerSlots[1].SetCard("Root Warden", 2, 4);
-        _playerSlots[3].SetCard("Bloomweaver", 1, 4);
-        _playerSlots[4].SetCard("Tidal Scholar", 1, 3);
-
-        // Add some test hand cards
-        AddHandCard("emb_c_flame_javelin", "Flame Javelin", 1);
-        AddHandCard("emb_c_cinder_runner", "Cinder Runner", 2);
-        AddHandCard("vrd_c_root_warden", "Root Warden", 3);
-        AddHandCard("dwn_c_purifying_light", "Purifying Light", 1);
+        RenderHud();
+        RenderBoard();
+        RenderHand();
     }
 
-    /// <summary>
-    /// Add a card to the hand-fan display.
-    /// </summary>
-    private void AddHandCard(string cardId, string name, int cost)
+    private void RenderHud()
     {
+        _enemyName.Text = "Enemy";
+
+        var enemyHud = _gsm.GetPlayerHud(1);
+        var playerHud = _gsm.GetPlayerHud(0);
+
+        SetEnemyVigor(enemyHud.Vigor);
+        SetEnemyAttunement(enemyHud.Attunement);
+        SetPlayerVigor(playerHud.Vigor);
+        SetPlayerAttunement(playerHud.Attunement);
+
+        _turnLabel.Text = $"Turn {_gsm.TurnNumber} — {( _gsm.CurrentPlayerIndex == 0 ? "Your" : "Enemy" )} Turn";
+    }
+
+    private void RenderBoard()
+    {
+        // Enemy lanes
+        var enemyLanes = _gsm.GetLanes(1);
+        for (int i = 0; i < 5; i++)
+        {
+            var info = enemyLanes[i];
+            if (info.IsEmpty)
+                _enemySlots[i].SetEmpty();
+            else
+                _enemySlots[i].SetCard(info.Name, info.Attack, info.Vigor);
+        }
+
+        // Player lanes
+        var playerLanes = _gsm.GetLanes(0);
+        for (int i = 0; i < 5; i++)
+        {
+            var info = playerLanes[i];
+            if (info.IsEmpty)
+                _playerSlots[i].SetEmpty();
+            else
+                _playerSlots[i].SetCard(info.Name, info.Attack, info.Vigor);
+        }
+    }
+
+    private void RenderHand()
+    {
+        // Remove old hand cards
+        foreach (var card in _handCards)
+            card.QueueFree();
+        _handCards.Clear();
+
+        // Rebuild from state
         var handScene = GD.Load<PackedScene>("res://scenes/components/HandCard.tscn");
-        var card = handScene.Instantiate<HandCard>();
-        card.SetCard(cardId, name, cost);
-        card.Pressed += () => OnHandCardPressed(card);
-        _handArea.AddChild(card);
-        _handCards.Add(card);
+        var hand = _gsm.GetHand(0); // Current player is always human for now
+
+        foreach (var info in hand)
+        {
+            var card = handScene.Instantiate<HandCard>();
+            card.SetCard(info.CardDefId, info.Name, info.Cost);
+            card.Pressed += () => OnHandCardPressed(card);
+            _handArea.AddChild(card);
+            _handCards.Add(card);
+        }
     }
 
     // ——— Input event handlers ———
 
-    /// <summary>
-    /// Called when a lane slot is tapped (clicked).
-    /// </summary>
     private void OnLaneTapped(int laneIndex, bool isEmpty)
     {
-        // Determine which row this lane is in
         bool isPlayerLane = _playerSlots.Exists(s => s.LaneIndex == laneIndex);
         bool isEnemyLane = _enemySlots.Exists(s => s.LaneIndex == laneIndex);
 
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
-            // Player is selecting an attack target
             if (isEnemyLane)
             {
                 _input.SelectAttackTarget(laneIndex);
             }
             else if (isPlayerLane && isEmpty)
             {
-                // Tapped empty self lane → cancel
                 _input.CancelSelection();
             }
             else if (isPlayerLane && !isEmpty)
             {
-                // Tapped another friendly creature → re-select attacker
                 _input.SelectAttacker(laneIndex);
             }
         }
         else
         {
-            // Idle state: tapping a friendly occupied lane enters attack mode
             if (isPlayerLane && !isEmpty)
             {
                 _input.SelectAttacker(laneIndex);
@@ -156,18 +217,11 @@ public partial class DuelScene : Control
         }
     }
 
-    /// <summary>
-    /// Called when a card is dragged and dropped onto a player lane slot.
-    /// </summary>
     private void OnCardDropped(string cardId, int laneIndex)
     {
         _input.TryPlayCard(cardId, laneIndex);
     }
 
-    /// <summary>
-    /// Called when a hand card button is pressed (tap, not drag).
-    /// In attack selection mode, tapping a hand card cancels.
-    /// </summary>
     private void OnHandCardPressed(HandCard card)
     {
         if (_input.State == InputController.InputState.SelectingAttacker)
@@ -176,38 +230,31 @@ public partial class DuelScene : Control
         }
     }
 
-    /// <summary>
-    /// Called by the input controller when the player wants to play a card.
-    /// </summary>
+    // ——— Action callbacks from InputController ———
+
     private void OnPlayCardRequested(string cardId, int laneIndex)
     {
-        GD.Print($"[DuelScene] Play card: {cardId} → lane {laneIndex}");
-        // P3-04: Look up card data, validate, call Engine.Apply and update visuals
+        _gsm.TryPlayCard(0, cardId, laneIndex);
     }
 
-    /// <summary>
-    /// Called by the input controller when the player confirms an attack.
-    /// </summary>
     private void OnAttackRequested(int attackerLane, int targetLane)
     {
-        string targetDesc = targetLane == -1 ? "face" : $"lane {targetLane}";
-        GD.Print($"[DuelScene] Attack: lane {attackerLane} → {targetDesc}");
-        // P3-04: Look up game state, call Engine.Apply and update visuals
+        _gsm.TryAttack(0, attackerLane, targetLane);
     }
 
-    /// <summary>
-    /// Called when the player cancels their current selection.
-    /// Clears all highlights.
-    /// </summary>
     private void OnSelectionCancelled()
     {
         foreach (var slot in _enemySlots) slot.Unhighlight();
         foreach (var slot in _playerSlots) slot.Unhighlight();
     }
 
+    private void OnGameOver(int winnerIndex)
+    {
+        _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
+    }
+
     // ——— Public update methods ———
 
-    public void SetEnemyName(string name) => _enemyName.Text = name;
     public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = vigor.ToString();
     public void SetEnemyAttunement(int attune) => _enemyAttuneValue.Text = attune.ToString();
     public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = vigor.ToString();

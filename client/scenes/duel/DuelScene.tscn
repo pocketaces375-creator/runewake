@@ -8,6 +8,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_duel")
 
+[node name="TurnLabel" type="Label" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_top = 18.0
+offset_bottom = 38.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+text = "Turn 1 — Your Turn"
+
 [node name="EnemyHUD" type="HBoxContainer" parent="."]
 anchors_preset = 8
 anchor_left = 0.0

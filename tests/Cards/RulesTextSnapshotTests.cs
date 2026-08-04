@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Runewake.Tests.Cards;
 
+[Collection("NonParallel")]
 /// <summary>
 /// Snapshot tests for the RulesTextRenderer.
 /// Each card is rendered and compared to an expected string.

@@ -6,6 +6,7 @@ using Xunit.Abstractions;
 
 namespace Runewake.Tests.Engine;
 
+[Collection("NonParallel")]
 public class ReplayDeterminismTests
 {
     private readonly ITestOutputHelper _output;
@@ -15,6 +16,15 @@ public class ReplayDeterminismTests
         _output = output;
 
         // Register a minimal set of card definitions for the fuzz game
+        ReplayDeterminismTests.RegisterTestCards();
+    }
+
+    /// <summary>
+    /// Register the test card definitions into CardRegistry.
+    /// Static so individual test methods can re-register after other tests clobber the registry.
+    /// </summary>
+    private static void RegisterTestCards()
+    {
         CardRegistry.Clear();
         CardRegistry.RegisterRange(new[]
         {
@@ -52,6 +62,10 @@ public class ReplayDeterminismTests
     [Fact]
     public void Fuzz200_ReplayedGames_ProduceIdenticalFinalState()
     {
+        // Ensure no leftover card data from other test classes
+        CardRegistry.Clear();
+        RegisterTestCards();
+
         var seeds = new ulong[]
         {
             42, 12345, 99999, 7777777, 314159265,

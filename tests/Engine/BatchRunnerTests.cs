@@ -5,6 +5,7 @@ using Xunit.Abstractions;
 
 namespace Runewake.Tests.Engine;
 
+[Collection("NonParallel")]
 public class BatchRunnerTests
 {
     private readonly ITestOutputHelper _output;

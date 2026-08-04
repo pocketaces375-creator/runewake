@@ -310,3 +310,29 @@ Wired up the full input flow for the duel scene:
 Client builds with `dotnet build` — 0 errors. Engine tests still 227/227 passing.
 
 Next: **P3-04** — Engine binding: client holds GameState, sends actions, re-renders from returned state.
+
+## Session 19 — 2026-08-04
+
+### P3-04 — Engine binding: GameState lifecycle in the client
+
+Wired the client to the deterministic engine:
+
+- **`client/scripts/GameStateManager.cs`** — manages the GameState lifecycle:
+  - `Initialize(GameConfig)` / `InitializeTestGame(seed)` sets up a fresh game
+  - `TryPlayCard(playerIndex, cardDefId, laneIndex)` / `TryAttack(playerIndex, source, target)` / `TryEndTurn()` dispatch `Engine.Apply()`
+  - On each state change: raises `StateChanged` event for UI re-render; raises `GameOver` on win
+  - Query helpers: `GetHand()`, `GetLanes()`, `GetPlayerHud()` return DTOs for rendering
+  - Data structs: `HandCardInfo`, `LaneInfo`, `PlayerHudInfo`
+
+- **`client/scripts/DuelScene.cs`** — fully rewired:
+  - `OnStateChanged()` → `RenderHud()`, `RenderBoard()`, `RenderHand()` rebuild all UI from state
+  - `OnPlayCardRequested` / `OnAttackRequested` → `_gsm.TryPlayCard()` / `_gsm.TryAttack()`
+  - `LoadCardPacks()` loads all 5 strata packs into CardRegistry at startup
+  - `InitializeTestGame()` creates a 30-card test game with real playable cards
+  - Added `TurnLabel` to the scene for turn indicator + game-over message
+
+- **Test flake fix**: Added `[Collection("NonParallel")]` to `ReplayDeterminismTests`, `RulesTextSnapshotTests`, and `BatchRunnerTests` to prevent parallel-test races on the shared static `CardRegistry`
+
+Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass (stable across repeated runs).
+
+Next: **P3-05** — Animation and feedback layer (damage numbers, death, summon).
