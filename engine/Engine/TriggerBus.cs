@@ -135,6 +135,18 @@ public static class TriggerBus
                 }
             }
         }
+
+        // Also collect from rune tokens (off-board, lane -1)
+        foreach (var token in player.RuneTokens)
+        {
+            foreach (var ability in token.Abilities)
+            {
+                if (ability.Trigger == trigger)
+                {
+                    result.Add((ability, token, player.Index, -1));
+                }
+            }
+        }
     }
 
     /// <summary>

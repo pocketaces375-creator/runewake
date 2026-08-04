@@ -128,6 +128,12 @@ public sealed class GameState
             }
         }
 
+        // Inject runes for player 0 if a rune page is configured
+        if (config.RunePage != null)
+        {
+            RuneInjector.ApplyRunes(state, config.RunePage);
+        }
+
         return state;
     }
 

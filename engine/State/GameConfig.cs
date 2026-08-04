@@ -19,4 +19,7 @@ public sealed class GameConfig
 
     /// <summary>Card definition IDs for player 1's deck (top-to-bottom before shuffle).</summary>
     public List<string> Player1DeckIds { get; init; } = new();
+
+    /// <summary>Optional rune page for player 0 (human). Runes are injected at match start.</summary>
+    public RunePage? RunePage { get; init; }
 }

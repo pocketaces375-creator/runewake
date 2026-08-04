@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Runewake.Engine.Cards;
+
 namespace Runewake.Engine.State;
 
 /// <summary>
@@ -56,6 +59,12 @@ public sealed class PlayerState
     /// </summary>
     public List<CardInstance> UnearthQueue { get; } = new();
 
+    /// <summary>
+    /// Virtual token cards for rune abilities. Each holds one rune's AbilityDef.
+    /// These sit off-board (LaneIndex = -1) and are collected by the trigger bus.
+    /// </summary>
+    public List<CardInstance> RuneTokens { get; } = new();
+
     public PlayerState(int index)
     {
         Index = index;
@@ -95,6 +104,7 @@ public sealed class PlayerState
 
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);
         UnearthQueue = other.UnearthQueue.ConvertAll(c => c.Clone());
+        RuneTokens = other.RuneTokens.ConvertAll(c => c.Clone());
     }
 
     /// <summary>

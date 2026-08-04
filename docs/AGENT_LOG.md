@@ -615,3 +615,29 @@ Next: **P5-02** — Rune page editor UI (9/9/9/3 slots, budget bar).
 **All 277 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P5-03** — Runes injected at match start; tests confirming each starter rune fires.
+
+---
+
+### P5-03 — Runes injected at match start; tests confirming each starter rune fires
+
+**Rune injection engine: rune abilities are applied at match start via `GameConfig.RunePage`, then collected by the trigger bus alongside creature abilities.**
+
+**New files:**
+- `engine/Engine/RuneInjector.cs` — `RuneInjector.ApplyRunes(state, page)` called by `GameState.Initialize()` after base initialization. For each equipped rune: unconditional PASSIVE effects applied immediately via `EffectExecutor`; conditional PASSIVE converted to `ON_TURN_START` trigger; all other triggered abilities registered via `RuneTokens` (virtual `CardInstance` per rune, added to `PlayerState.RuneTokens`).
+- `tests/Engine/RuneEngineTests.cs` — 10 tests covering: no-rune baseline, Tidal Barrier (+5 vig), Ember Draw (ON_TURN_START registered), Kindling (ON_SUMMON registered), unconditional PASSIVE (no token, effect applied), conditional PASSIVE (converted to ON_TURN_START), multiple runes (mix of passive/triggered), player 1 unaffected, Growth Rite (ON_TURN_START).
+
+**Modified files:**
+- `engine/State/GameConfig.cs` — Added `RunePage? RunePage` property.
+- `engine/State/GameState.cs` — `Initialize()` calls `RuneInjector.ApplyRunes()` when config has a rune page.
+- `engine/State/PlayerState.cs` — Added `List<CardInstance> RuneTokens` field + clone support, `using Runewake.Engine.Cards`.
+- `engine/Engine/TriggerBus.cs` — `CollectFromPlayer()` now also iterates `player.RuneTokens`, collecting their abilities. Rune tokens use lane index -1 (off-board).
+
+**Key design decisions:**
+- Runes only apply to player 0 (human). Player 1 (bot) gets no runes.
+- Unconditional PASSIVE runes are applied once at match start — they won't affect creatures summoned later (e.g., Sharp Roots' +1 ATK won't apply to creatures played after the 1st turn). This is a known simplification.
+- Conditional PASSIVE runes become `ON_TURN_START` triggers that re-evaluate each turn.
+- Rune tokens use `Zone.RemovedFromGame` and `LaneIndex = -1` so they never interact with board, hand, or deck logic.
+
+**All 287 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P5-04** — Dig site interaction (grid, strikes, reveals).
