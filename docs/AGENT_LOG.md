@@ -808,3 +808,31 @@ Built the AI pipeline's GENERATE stage — a Python module that reads a seed spe
 - 28/29 Python tests pass (1 test assertion mismatch in e2e count expectation — module loops correctly to fill batches, no bug)
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
+
+Next: **P6-03** — Validate module.
+
+---
+
+## P6-03 — Validate module (schema + engine bridge)
+
+**Status:** Complete
+
+**Summary:**
+Built the AI pipeline's VALIDATE stage — deterministic Python module that runs two validation gates on generated cards: JSON Schema validation and C# engine bridge executability check. Cards that pass both gates are written to `02_valid.json`; failures go to `rejects/` with `SCHEMA_FAIL:` or `ENGINE_FAIL:` reason codes.
+
+**Files created/modified:**
+- `pipeline/modules/validate.py` — Validate module (`python -m pipeline.modules.validate --input ... --work-dir ...`) with:
+  - `load_schema()` — loads `schema/card.schema.json`
+  - `validate_json_schema(card, schema)` — per-card validation against the card_def sub-schema
+  - `validate_csharp(cli_path, cards)` — C# engine bridge: writes batch to temp file, calls `Runewake.Sim validate-card`, parses stdout to build per-card error lists
+  - Graceful fallback when C# CLI binary is missing or times out
+  - Normalizes input to array form (handles both single card and array input)
+  - Writes `02_valid.json`, per-reject files with reason codes, and `02_summary.json`
+- `pipeline/tests/test_validate.py` — 17 Python tests covering all paths
+
+**Verification:**
+- All 17 Python tests pass (schema validation, C# bridge parsing, real C# binary on 6 example cards, end-to-end main)
+- 331/331 C# tests still pass
+- 0 TODO, 0 NotImplementedException
+
+Next: **P6-04** — Score module.
