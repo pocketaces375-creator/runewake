@@ -131,3 +131,21 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 **Already implemented in P1-05:** EXCAVATE, BURY, UNBURY ops in EffectExecutor. BARROW zone in PlayerState.
 
 **Tests:** 6 new tests — relic enters as unidentified 0/3, relic stats overwritten on play, relic identifies when condition met at turn start (BARROW_COUNT_GTE), relic stays unidentified when condition not met, ON_RELIC_IDENTIFY fires abilities (draws cards), EXCAVATE from ON_SUMMON works end-to-end.
+
+## Session 10 — 2026-08-04
+
+### P1-08 — Replay determinism
+
+**New infrastructure:**
+- `engine/State/GameConfig.cs` — seed + contentVersion + player deck ID lists. Fully determines initial state.
+- `engine/Cards/CardRegistry.cs` — thread-safe static registry mapping card def IDs to `CardDef` objects.
+- `engine/State/GameState.cs` — added `GameState.Initialize(GameConfig)` factory: resolves card defs via registry, shuffles decks with seeded Fisher-Yates, deals starting hands (P0=4, P1=5), sets P1 starting attunement. Added `ComputeStateHash()` — deterministic FNV-1a over all observable state fields (player stats, zones, lanes, creature state, effective keywords).
+- `engine/Engine/ReplayLog.cs` — JSON-serializable envelope `(config, actions[])` with polymorphic `GameActionConverter` using `$type` discriminator.
+- `engine/Engine/ReplayRunner.cs` — static `Replay(ReplayLog)` → creates fresh state from config, applies all actions sequentially.
+
+**Model changes:**
+- `GameState.ActionLog` changed from `List<object>` to `List<GameAction>` for type safety.
+
+**Tests:** 1 fuzz test (`Fuzz200_ReplayedGames_ProduceIdenticalFinalState`) — 200 random legal games (20 seeds × 10 variants), each played by a bot that picks random valid actions from the hand/board state. For each game, the action log is JSON-serialized, deserialized, and replayed. Original and replayed final state hashes are asserted equal. All pass.
+
+**Files changed:** 6 files added, 2 modified. 0 TODO, 0 NotImplementedException.
