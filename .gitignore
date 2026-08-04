@@ -43,3 +43,6 @@ Thumbs.db
 # Content
 content/packs/
 *.pack.json
+
+# Godot exports
+client/exports/
