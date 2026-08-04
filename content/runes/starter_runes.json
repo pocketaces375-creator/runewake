@@ -1,0 +1,313 @@
+{
+  "runes": [
+    {
+      "id": "rune_vrd_sharp_roots",
+      "name": "Sharp Roots",
+      "description": "Your creatures have +1 attack.",
+      "strata": "VERDANT",
+      "slot_type": "OFFENSIVE",
+      "cost": 8,
+      "ability": {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ALL", "count": 0 },
+            "attack": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_vrd_bark_armour",
+      "name": "Bark Armour",
+      "description": "Your creatures have +1 vigor.",
+      "strata": "VERDANT",
+      "slot_type": "DEFENSIVE",
+      "cost": 8,
+      "ability": {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ALL", "count": 0 },
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_vrd_growth_rite",
+      "name": "Growth Rite",
+      "description": "At the start of your turn, gain 1 attunement.",
+      "strata": "VERDANT",
+      "slot_type": "UTILITY",
+      "cost": 10,
+      "ability": {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "ATTUNE",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_emb_kindling",
+      "name": "Kindling",
+      "description": "When you summon a creature, deal 1 damage to the enemy hero.",
+      "strata": "EMBER",
+      "slot_type": "OFFENSIVE",
+      "cost": 10,
+      "ability": {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": { "scope": "PLAYER_ENEMY" },
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_emb_cinder_cloak",
+      "name": "Cinder Cloak",
+      "description": "Your creatures have Ward.",
+      "strata": "EMBER",
+      "slot_type": "DEFENSIVE",
+      "cost": 12,
+      "ability": {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ALL", "count": 0 },
+            "keyword": "Ward",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_ember_draw",
+      "name": "Ember Draw",
+      "description": "At the start of your turn, draw a card.",
+      "strata": "EMBER",
+      "slot_type": "UTILITY",
+      "cost": 14,
+      "ability": {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_tid_tidal_barrier",
+      "name": "Tidal Barrier",
+      "description": "Your hero has +5 vigor.",
+      "strata": "TIDE",
+      "slot_type": "DEFENSIVE",
+      "cost": 10,
+      "ability": {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GAIN_VIGOR",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_tid_memory_tides",
+      "name": "Memory Tides",
+      "description": "When you excavate, excavate one additional card.",
+      "strata": "TIDE",
+      "slot_type": "UTILITY",
+      "cost": 12,
+      "ability": {
+        "trigger": "ON_EXCAVATE",
+        "effects": [
+          {
+            "op": "EXCAVATE",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_hol_barrow_strength",
+      "name": "Barrow Strength",
+      "description": "Your creatures have +2 attack while damaged.",
+      "strata": "HOLLOW",
+      "slot_type": "OFFENSIVE",
+      "cost": 10,
+      "ability": {
+        "trigger": "PASSIVE",
+        "condition": {
+          "op": "DAMAGED_THIS_TURN"
+        },
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ALL", "count": 0 },
+            "attack": 2,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_hol_soul_shield",
+      "name": "Soul Shield",
+      "description": "When an ally dies, gain 2 vigor.",
+      "strata": "HOLLOW",
+      "slot_type": "DEFENSIVE",
+      "cost": 10,
+      "ability": {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_dwn_radiant_strike",
+      "name": "Radiant Strike",
+      "description": "Your creatures have Swift.",
+      "strata": "DAWN",
+      "slot_type": "OFFENSIVE",
+      "cost": 12,
+      "ability": {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": { "scope": "ALLY_CREATURE", "filter": "ALL", "count": 0 },
+            "keyword": "Swift",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_dwn_holy_ward",
+      "name": "Holy Ward",
+      "description": "When you summon a creature, it gains Ward.",
+      "strata": "DAWN",
+      "slot_type": "DEFENSIVE",
+      "cost": 10,
+      "ability": {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": { "scope": "SELF" },
+            "keyword": "Ward",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_dwn_prophecy",
+      "name": "Prophecy",
+      "description": "Look at the top 3 cards of your deck and arrange them in any order.",
+      "strata": "DAWN",
+      "slot_type": "UTILITY",
+      "cost": 14,
+      "ability": {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 3
+          }
+        ],
+        "condition": {
+          "op": "TURN_GTE",
+          "value": 1
+        }
+      }
+    },
+    {
+      "id": "rune_mythic_overgrowth",
+      "name": "Overgrowth",
+      "description": "At the start of the game, summon a 3/3 Verdant Sproutling in a random lane.",
+      "slot_type": "MYTHIC",
+      "cost": 20,
+      "ability": {
+        "trigger": "ON_TURN_START",
+        "condition": {
+          "op": "TURN_GTE",
+          "value": 1
+        },
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": { "scope": "LANE", "filter": "EMPTY", "count": 1 },
+            "token_id": "vrd_c_verdant_sproutling"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_mythic_phoenix_ash",
+      "name": "Phoenix Ash",
+      "description": "The first time you would lose the game, instead restore 10 vigor.",
+      "slot_type": "MYTHIC",
+      "cost": 20,
+      "ability": {
+        "trigger": "ON_DEATH",
+        "condition": {
+          "op": "VIGOR_LTE",
+          "value": 0
+        },
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": { "scope": "PLAYER_SELF" },
+            "amount": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "rune_mythic_seal_of_order",
+      "name": "Seal of Order",
+      "description": "All creatures lose all keywords.",
+      "slot_type": "MYTHIC",
+      "cost": 18,
+      "ability": {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "SILENCE",
+            "target": { "scope": "ANY_CREATURE", "filter": "ALL", "count": 0 }
+          }
+        ],
+        "condition": {
+          "op": "TURN_GTE",
+          "value": 5
+        }
+      }
+    }
+  ]
+}

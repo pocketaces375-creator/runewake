@@ -566,3 +566,26 @@ Next: **P4-06** — Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden B
 All 258 tests pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-06** — ~~Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden Boss.~~
+
+---
+
+### P5-01 — Rune definitions reusing `AbilityDef`; RP budget validation
+
+**Rune data model, rune page with 9/9/9/3 slot layout, budget validator, loader, and starter rune set.**
+
+**New files:**
+- `engine/Cards/RuneDef.cs` — `RuneDef` model with `Id`, `Name`, `Description`, `Strata`, `SlotType` (OFFENSIVE/DEFENSIVE/UTILITY/MYTHIC), `Cost` (RP, 1–20), and `Ability` (reuses `AbilityDef`). Also includes `RuneSlotType` enum and `RunePack` container.
+- `engine/Cards/RuneLoader.cs` — `RuneLoader.LoadPack(path)` following the `CardLoader`/`EncounterLoader` JSON pattern.
+- `engine/State/RunePage.cs` — `RunePage` with 9 offensive, 9 defensive, 9 utility, 3 mythic `RuneDef?[]` slots. `Equip(RuneDef)` — slots into first available of matching type, checks `MaxBudget` (100 RP) and per-rune cost range. `Unequip` (by slot or by ID). `TotalCost`, `EquippedCount`, `IsWithinBudget()`, `GetAllEquipped()`.
+- `content/runes/starter_runes.json` — 15 starter runes: 3 offensive (Sharp Roots +1 ATK, Kindling 1 damage on summon, Barrow Strength +2 ATK when damaged), 3 defensive (Bark Armour +1 VIG, Cinder Cloak Ward, Tidal Barrier +5 max vigor), 3 utility (Growth Rite +1 attune/turn, Ember Draw draw 1, Memory Tides excavate), 3 Dawn cross-type (Radiant Strike Swift, Holy Ward on-summon Ward, Prophecy draw), 3 mythic (Overgrowth summon 3/3, Phoenix Ash prevent lethal, Seal of Order silence all).
+- `tests/Cards/RuneTests.cs` — 19 tests covering: loader loads starter pack, all required fields present, valid abilities and slot types, all 4 slot types present, inline JSON deserialization, empty page (0 cost, 0 count), single equip, slot-type routing, multi-rune cost sum, budget overflow rejection, slot-full rejection, slot and ID-based unequip, invalid slot index, invalid cost rejection, `GetAllEquipped()`, mythic 3-slot limit.
+
+**Key design decisions:**
+- `RuneDef.Ability` reuses the full `AbilityDef` model with `Trigger`, `Condition`, and `Effects` — same structure as card abilities, no new DSL
+- Budget check is a hard gate: `Equip()` refuses if `TotalCost + rune.Cost > MaxBudget`
+- RuneDef uses a `Strata?` field for thematic matching (not enforced by budget)
+- Empty page costs 0 and is within budget
+
+**All 277 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P5-02** — Rune page editor UI (9/9/9/3 slots, budget bar).
