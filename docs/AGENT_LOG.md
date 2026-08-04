@@ -539,3 +539,30 @@ Next: **P4-05** — Deck builder screen with collection filtering.
 All 258 tests pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P4-06** — Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden Boss.
+
+---
+
+### P4-06 — Campaign flow: map → encounter → duel → reward → map loop
+
+**Campaign flow integration — wiring the map, duel, and progression into a playable loop:**
+
+**New files:**
+- `client/scripts/CampaignContext.cs` — Static bridge for scene transitions: holds current encounter, node ID, SaveManager instance, encounter index, and player deck IDs
+- `client/scripts/LineDrawer.cs` — Extracted from MapScene as a standalone Node2D subclass for connection edge rendering
+
+**Modified files:**
+- `client/scripts/Main.cs` — Title screen: "RUNEWAKE" title, "Start Campaign" button, deferred loading of card packs (5 strata), encounter packs (4 files), save initialization, starter deck generation, and auto-grant of card collection for first-time players
+- `client/scripts/MapScene.cs` — Full rewrite: code-driven UI (no .tscn dependency), live lock/clear states from `ProgressionState`, shard counter, "Go" button transitions to DuelScene with encounter config, "Back to Title" button, cleared node display with green tint
+- `client/scripts/DuelScene.cs` — Campaign encounter mode: uses encounter deck for bot (P1) and player's saved deck (P0), shows encounter name in HUD, on win applies rewards (shards, dig charges, fragments), marks node cleared, grants unowned encounter cards to collection, saves via SaveManager, shows outro dialogue + reward summary, auto-returns to map after 4s on loss or win
+- `client/scripts/MapNodeIcon.cs` — Added `SetCleared()` method: greys out icon with green tint to indicate completed nodes
+- `engine/Cards/CardRegistry.cs` — Added `GetAll()` method for starter deck generation
+
+**Key design decisions:**
+- No DI framework — `CampaignContext` is a static class that all scenes read/write directly
+- Scene transitions via `SceneTree.ChangeSceneToFile()` using `res://` paths
+- On first run, all 60 cards are auto-granted to the player's collection (can be tuned later)
+- `UnlockCondition.Value` is already deserialized as `List<string>` by `System.Text.Json`, not a raw `JsonElement`
+
+All 258 tests pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-06** — ~~Region 1 content: 10 nodes, 6 wielders, 1 Warden, 1 Warden Boss.~~

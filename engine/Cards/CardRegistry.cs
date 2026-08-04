@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Runewake.Engine.Cards;
 
@@ -43,5 +44,13 @@ public static class CardRegistry
     public static void Clear()
     {
         _cards.Clear();
+    }
+
+    /// <summary>
+    /// Get all registered card definitions.
+    /// </summary>
+    public static List<CardDef> GetAll()
+    {
+        return _cards.Values.ToList();
     }
 }

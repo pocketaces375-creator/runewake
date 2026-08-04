@@ -1,0 +1,55 @@
+using System.Collections.Generic;
+using Godot;
+using Runewake.Engine.Cards;
+using Runewake.Engine.State;
+
+namespace Runewake.Client;
+
+/// <summary>
+/// Static bridge for campaign flow state between scenes.
+/// No DI framework — scenes read/write this directly.
+/// </summary>
+public static class CampaignContext
+{
+    /// <summary>The encounter the player is about to face (set by MapScene before transition).</summary>
+    public static EncounterDef? CurrentEncounter { get; set; }
+
+    /// <summary>The map node ID the player is entering (for reward routing).</summary>
+    public static string? CurrentNodeId { get; set; }
+
+    /// <summary>Persistent save manager — initialized once at title screen.</summary>
+    public static SaveManager SaveManager { get; } = new();
+
+    /// <summary>Shortcut to the progression state.</summary>
+    public static ProgressionState Progression => SaveManager.State;
+
+    /// <summary>Player's current deck (card IDs). Defaults to a starter pool until deck builder is used.</summary>
+    public static List<string> PlayerDeckIds { get; set; } = new();
+
+    /// <summary>All loaded encounters keyed by encounter ID (e.g. "r1_duel_wayfarer").</summary>
+    public static readonly Dictionary<string, EncounterDef> EncounterIndex = new();
+
+    /// <summary>
+    /// Load all encounter packs from the content directory.
+    /// Call once at title screen.
+    /// </summary>
+    public static void LoadEncounters()
+    {
+        EncounterIndex.Clear();
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/encounters";
+        var packPaths = new[]
+        {
+            $"{contentDir}/region_01_early.json",
+            $"{contentDir}/region_01_mid.json",
+            $"{contentDir}/region_01_late.json",
+            $"{contentDir}/region_01_boss.json"
+        };
+
+        foreach (var path in packPaths)
+        {
+            var pack = EncounterLoader.LoadPack(path);
+            foreach (var enc in pack.Encounters)
+                EncounterIndex[enc.Id] = enc;
+        }
+    }
+}

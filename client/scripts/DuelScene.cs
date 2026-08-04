@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
+using Runewake.Engine.Engine;
+using Runewake.Engine.State;
 
 namespace Runewake.Client;
 
@@ -46,6 +49,9 @@ public partial class DuelScene : Control
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
+    private bool _isCampaignEncounter;
+    private bool _isGameOverHandled;
+
     public override void _Ready()
     {
         // Wire HUD nodes
@@ -83,10 +89,32 @@ public partial class DuelScene : Control
         // Populate lane slots
         PopulateLanes();
 
-        // Load card packs and start the game
+        // Load card packs
         LoadCardPacks();
         _bot.Initialize(_gsm);
-        _gsm.InitializeTestGame();
+
+        // Check if this is a campaign encounter or test game
+        var encounter = CampaignContext.CurrentEncounter;
+        _isCampaignEncounter = encounter != null;
+
+        if (_isCampaignEncounter && encounter != null)
+        {
+            // Campaign mode: enemy uses encounter deck, player uses saved deck
+            _enemyName.Text = encounter.Name;
+
+            var config = new GameConfig
+            {
+                Seed = (ulong)GD.Randi(),
+                ContentVersion = 1,
+                Player0DeckIds = CampaignContext.PlayerDeckIds,
+                Player1DeckIds = encounter.Deck
+            };
+            _gsm.Initialize(config);
+        }
+        else
+        {
+            _gsm.InitializeTestGame();
+        }
     }
 
     /// <summary>
@@ -276,7 +304,8 @@ public partial class DuelScene : Control
 
     private void RenderHud()
     {
-        _enemyName.Text = "Enemy";
+        if (!_isCampaignEncounter)
+            _enemyName.Text = "Enemy";
 
         var enemyHud = _gsm.GetPlayerHud(1);
         var playerHud = _gsm.GetPlayerHud(0);
@@ -415,6 +444,85 @@ public partial class DuelScene : Control
     private void OnGameOver(int winnerIndex)
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
+        _turnLabel.Modulate = winnerIndex == 0
+            ? new Color(1, 0.8f, 0.4f)
+            : new Color(1, 0.3f, 0.3f);
+
+        if (!_isCampaignEncounter || _isGameOverHandled) return;
+        _isGameOverHandled = true;
+
+        if (winnerIndex == 0 && CampaignContext.CurrentEncounter != null)
+        {
+            // Player won — apply rewards
+            var enc = CampaignContext.CurrentEncounter;
+            var prog = CampaignContext.Progression;
+
+            prog.Shards += enc.ShardReward;
+            if (enc.DigChargeReward > 0)
+                prog.DigCharges += enc.DigChargeReward;
+            if (enc.FragmentReward != null)
+            {
+                var parts = enc.FragmentReward.Split(':');
+                if (parts.Length == 2 && int.TryParse(parts[1], out int fragCount))
+                    prog.AddFragments(parts[0], fragCount);
+            }
+
+            // Mark node cleared
+            if (CampaignContext.CurrentNodeId != null)
+                prog.MarkNodeCleared(CampaignContext.CurrentNodeId);
+
+            // Grant the player one copy of each card in the encounter deck
+            // that they don't already own
+            foreach (var cardId in enc.Deck)
+            {
+                if (!prog.Collection.ContainsKey(cardId))
+                    prog.AddCard(cardId);
+            }
+
+            CampaignContext.SaveManager.Save();
+
+            // Show outro dialogue if available
+            if (enc.DialogueOutro is { Count: > 0 })
+            {
+                var outroLabel = new Label
+                {
+                    Text = string.Join("\n", enc.DialogueOutro),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AnchorLeft = 0.1f, AnchorRight = 0.9f,
+                    AnchorTop = 0.3f, AnchorBottom = 0.7f,
+                    AutowrapMode = TextServer.AutowrapMode.Word
+                };
+                outroLabel.AddThemeFontSizeOverride("font_size", 16);
+                outroLabel.Modulate = new Color(1, 1, 1, 0.95f);
+                AddChild(outroLabel);
+            }
+
+            // Show reward summary
+            var rewardLabel = new Label
+            {
+                Text = $"+{enc.ShardReward} shards" +
+                       (enc.DigChargeReward > 0 ? $"\n+{enc.DigChargeReward} dig charge(s)" : "") +
+                       (enc.FragmentReward != null ? $"\n+{enc.FragmentReward} fragments" : "") +
+                       $"\n+{enc.Deck.Count} new card(s) unlocked to collection",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                AnchorLeft = 0.1f, AnchorRight = 0.9f,
+                AnchorTop = 0.72f, AnchorBottom = 0.85f,
+                AutowrapMode = TextServer.AutowrapMode.Word
+            };
+            rewardLabel.AddThemeFontSizeOverride("font_size", 14);
+            rewardLabel.Modulate = new Color(0.4f, 1, 0.4f);
+            AddChild(rewardLabel);
+        }
+
+        // Navigate back to map after delay
+        var timer = new Godot.Timer();
+        timer.OneShot = true;
+        timer.WaitTime = 4.0;
+        timer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        AddChild(timer);
+        timer.Start();
     }
 
     // ——— Public update methods ———

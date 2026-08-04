@@ -22,6 +22,8 @@ public partial class MapNodeIcon : Button
     /// <summary>Whether this node is currently locked.</summary>
     public bool IsLocked { get; private set; } = true;
 
+    private bool _isCleared;
+
     /// <summary>Emits the node ID when the icon is clicked.</summary>
     [Signal]
     public delegate void NodeSelectedEventHandler(string nodeId);
@@ -91,5 +93,19 @@ public partial class MapNodeIcon : Button
             Modulate = new Color(1, 1, 1, 1);
             _lockOverlay.Hide();
         }
+    }
+
+    /// <summary>
+    /// Mark this node as cleared (completed). Shows a checkmark overlay.
+    /// </summary>
+    public void SetCleared()
+    {
+        _isCleared = true;
+        IsLocked = false;
+        Modulate = new Color(0.5f, 0.5f, 0.5f, 1);
+        _lockOverlay.Hide();
+
+        // Add a subtle check indicator — tint the icon green-tinted gray
+        _iconRect.Color = _iconRect.Color.Lerp(new Color(0, 0.8f, 0.2f), 0.15f);
     }
 }

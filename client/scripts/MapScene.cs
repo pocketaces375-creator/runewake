@@ -7,8 +7,8 @@ namespace Runewake.Client;
 
 /// <summary>
 /// Campaign map screen — renders a node graph from a MapRegion JSON file.
-/// Supports pan (drag) and zoom (scroll wheel).
-/// Nodes show type icon + lock state. Clicking a node shows info panel.
+/// Uses CampaignContext.SaveManager for live lock/clear state from SQLite.
+/// "Go" button transitions to DuelScene with the encounter's config.
 /// </summary>
 public partial class MapScene : Control
 {
@@ -23,6 +23,10 @@ public partial class MapScene : Control
     private Label _infoRewards;
     private Button _infoGoButton;
     private Button _infoCloseButton;
+
+    // Top bar
+    private Button _backButton;
+    private Label _shardLabel;
 
     // Line drawing
     private LineDrawer _lineDrawer;
@@ -46,40 +50,93 @@ public partial class MapScene : Control
 
     public override void _Ready()
     {
-        _background = GetNode<ColorRect>("Background");
-        _mapContainer = GetNode<Node2D>("MapContainer");
+        BuildUI();
+        BuildMap();
+        UpdateAllLockStates();
+    }
 
-        // Line drawer (draws edges between nodes)
+    private void BuildUI()
+    {
+        // Background
+        _background = new ColorRect
+        {
+            Color = new Color(0.08f, 0.08f, 0.12f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f
+        };
+        AddChild(_background);
+
+        // Map container
+        _mapContainer = new Node2D();
+        AddChild(_mapContainer);
+
+        // Line drawer
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
 
-        // Info panel
-        _infoPanel = GetNode<Panel>("InfoPanel");
-        _infoName = _infoPanel.GetNode<Label>("VBox/InfoName");
-        _infoType = _infoPanel.GetNode<Label>("VBox/InfoType");
-        _infoRewards = _infoPanel.GetNode<Label>("VBox/InfoRewards");
-        _infoGoButton = _infoPanel.GetNode<Button>("VBox/GoButton");
-        _infoCloseButton = _infoPanel.GetNode<Button>("VBox/CloseButton");
+        // Back button (top-left)
+        _backButton = new Button
+        {
+            Text = "< Title",
+            AnchorLeft = 0f, AnchorRight = 0.12f,
+            AnchorTop = 0f, AnchorBottom = 0.05f
+        };
+        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        AddChild(_backButton);
 
+        // Shard display (top-right)
+        _shardLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AnchorLeft = 0.7f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 0.05f,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        _shardLabel.AddThemeFontSizeOverride("font_size", 18);
+        AddChild(_shardLabel);
+
+        // Info panel
+        _infoPanel = new Panel();
+        _infoPanel.AnchorLeft = 0.1f;
+        _infoPanel.AnchorRight = 0.5f;
+        _infoPanel.AnchorTop = 0.7f;
+        _infoPanel.AnchorBottom = 0.95f;
+        AddChild(_infoPanel);
+
+        var infoVbox = new VBoxContainer();
+        infoVbox.AnchorLeft = 0f; infoVbox.AnchorRight = 1f;
+        infoVbox.AnchorTop = 0f; infoVbox.AnchorBottom = 1f;
+        _infoPanel.AddChild(infoVbox);
+
+        _infoName = new Label();
+        _infoName.AddThemeFontSizeOverride("font_size", 22);
+        infoVbox.AddChild(_infoName);
+
+        _infoType = new Label { Modulate = new Color(0.6f, 0.6f, 0.7f) };
+        infoVbox.AddChild(_infoType);
+
+        _infoRewards = new Label { Modulate = new Color(0.5f, 0.6f, 0.5f) };
+        infoVbox.AddChild(_infoRewards);
+
+        var buttonRow = new HBoxContainer();
+        infoVbox.AddChild(buttonRow);
+
+        _infoGoButton = new Button { Text = "Go" };
         _infoGoButton.Pressed += OnGoButtonPressed;
+        buttonRow.AddChild(_infoGoButton);
+
+        _infoCloseButton = new Button { Text = "Close" };
         _infoCloseButton.Pressed += () => _infoPanel.Hide();
+        buttonRow.AddChild(_infoCloseButton);
 
         _infoPanel.Hide();
-
-        // Load region and build map
-        LoadRegion();
-        BuildMap();
-    }
-
-    private void LoadRegion()
-    {
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/map";
-        string path = $"{contentDir}/region_01.json";
-        _region = MapLoader.LoadRegion(path);
     }
 
     private void BuildMap()
     {
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/map";
+        string path = $"{contentDir}/region_01.json";
+        _region = MapLoader.LoadRegion(path);
         if (_region == null) return;
 
         var iconScene = GD.Load<PackedScene>("res://scenes/components/MapNodeIcon.tscn");
@@ -104,17 +161,17 @@ public partial class MapScene : Control
         foreach (var mapNode in _region.Nodes)
         {
             var icon = iconScene.Instantiate<MapNodeIcon>();
-            string displayName = mapNode.Encounter ?? mapNode.Id;
-            displayName = displayName.Replace("r1_", "").Replace("_", " ");
-            // Capitalize first letter
-            if (displayName.Length > 0)
-                displayName = char.ToUpper(displayName[0]) + displayName[1..];
 
-            // Default all nodes locked except the first one
-            bool locked = mapNode.Id != "r1_n01";
-            icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked);
+            // Determine display name
+            string displayName;
+            if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
+                displayName = enc.Name;
+            else
+                displayName = mapNode.Type.ToString();
 
-            // Position: offset so center of map is at (0, 0) in container space
+            // Default all nodes locked; UpdateAllLockStates will fix
+            icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked: true);
+
             float x = mapNode.Position[0] - centerX;
             float y = mapNode.Position[1] - centerY;
             icon.Position = new Vector2(x, y);
@@ -124,15 +181,54 @@ public partial class MapScene : Control
             _nodeIcons[mapNode.Id] = icon;
         }
 
-        // Tell the line drawer what nodes and connections exist
         _lineDrawer.SetNodes(_region.Nodes, centerX, centerY);
 
-        // Set initial offset so map is centered in viewport
         _mapOffset = new Vector2(
             GetViewportRect().Size.X / 2f,
             GetViewportRect().Size.Y / 2f
         );
         _mapContainer.Position = _mapOffset;
+    }
+
+    private void UpdateAllLockStates()
+    {
+        if (_region == null) return;
+        var prog = CampaignContext.Progression;
+
+        foreach (var mapNode in _region.Nodes)
+        {
+            if (!_nodeIcons.TryGetValue(mapNode.Id, out var icon)) continue;
+
+            // Mark cleared
+            if (prog.IsNodeCleared(mapNode.Id))
+            {
+                icon.SetCleared();
+                continue;
+            }
+
+            // Check unlock conditions
+            bool unlocked = IsNodeUnlocked(mapNode);
+            icon.SetLocked(!unlocked);
+        }
+
+        _shardLabel.Text = $"Shards: {prog.Shards}";
+    }
+
+    private bool IsNodeUnlocked(MapNode node)
+    {
+        // First node starts unlocked
+        if (node.Id == "r1_n01") return true;
+
+        // No unlock condition = locked
+        if (node.Unlock == null) return false;
+
+        // NODES_CLEARED: all prerequisite nodes must be cleared
+        if (node.Unlock.Op == "NODES_CLEARED" && node.Unlock.Value is { Count: > 0 })
+        {
+            return node.Unlock.Value.All(p => CampaignContext.Progression.IsNodeCleared(p));
+        }
+
+        return false;
     }
 
     private void OnNodeSelected(string nodeId)
@@ -143,7 +239,6 @@ public partial class MapScene : Control
         var mapNode = _region.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (mapNode == null) return;
 
-        // Show info panel
         string typeStr = mapNode.Type switch
         {
             MapNodeType.Duel => "Duel",
@@ -158,10 +253,13 @@ public partial class MapScene : Control
         };
 
         string encounterStr = mapNode.Encounter ?? "—";
-        _infoName.Text = encounterStr.Replace("_", " ");
-        if (_infoName.Text.Length > 0)
-            _infoName.Text = char.ToUpper(_infoName.Text[0]) + _infoName.Text[1..];
+        string displayName;
+        if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
+            displayName = enc.Name;
+        else
+            displayName = encounterStr.Replace("_", " ");
 
+        _infoName.Text = displayName;
         _infoType.Text = typeStr;
 
         string rewardsStr = mapNode.Rewards is { Count: > 0 }
@@ -169,22 +267,39 @@ public partial class MapScene : Control
             : "None";
         _infoRewards.Text = rewardsStr;
 
-        _infoGoButton.Disabled = mapNode.Id != "r1_n01"; // only first node playable
+        // Go button: disabled if node is cleared, unlocked but no encounter, or locked
+        bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
+        bool isLocked = !IsNodeUnlocked(mapNode);
+        bool hasEncounter = mapNode.Encounter != null && CampaignContext.EncounterIndex.ContainsKey(mapNode.Encounter);
+        _infoGoButton.Disabled = isCleared || isLocked || !hasEncounter;
+        _infoGoButton.Text = isCleared ? "Done" : "Go";
+
         _infoPanel.Show();
     }
 
     private void OnGoButtonPressed()
     {
-        if (_selectedNodeId == null) return;
-        GD.Print($"[MapScene] Entering duel for node {_selectedNodeId}");
-        // Future: transition to DuelScene with encounter deck for this node
+        if (_selectedNodeId == null || _region == null) return;
+
+        var mapNode = _region.Nodes.FirstOrDefault(n => n.Id == _selectedNodeId);
+        if (mapNode?.Encounter == null) return;
+
+        if (!CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var encounterDef))
+        {
+            GD.PrintErr($"[MapScene] Unknown encounter: {mapNode.Encounter}");
+            return;
+        }
+
+        CampaignContext.CurrentEncounter = encounterDef;
+        CampaignContext.CurrentNodeId = mapNode.Id;
+
+        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }
 
     // ——— Input: pan and zoom ———
 
     public override void _Input(InputEvent @event)
     {
-        // Zoom with scroll wheel
         if (@event is InputEventMouseButton mouse && mouse.Pressed)
         {
             if (mouse.ButtonIndex == MouseButton.WheelUp)
@@ -199,7 +314,6 @@ public partial class MapScene : Control
             }
         }
 
-        // Pan with right-click drag (or middle-click)
         if (@event is InputEventMouseButton mouseBtn)
         {
             if (mouseBtn.ButtonIndex == MouseButton.Middle && mouseBtn.Pressed)
@@ -215,10 +329,9 @@ public partial class MapScene : Control
             }
         }
 
-        // Pan with RMB drag on background (not on nodes)
         if (@event is InputEventMouseButton rmb && rmb.ButtonIndex == MouseButton.Right)
         {
-            if (rmb.Pressed)
+            if (rmb.Pressed && !_infoPanel.GetGlobalRect().HasPoint(rmb.Position))
             {
                 _dragStart = rmb.Position;
                 _containerStartPos = _mapContainer.Position;
@@ -231,7 +344,6 @@ public partial class MapScene : Control
             }
         }
 
-        // Drag movement
         if (@event is InputEventMouseMotion motion && _isDragging)
         {
             Vector2 delta = motion.Position - _dragStart;
@@ -244,54 +356,9 @@ public partial class MapScene : Control
         float oldZoom = _zoom;
         _zoom = Mathf.Clamp(newZoom, MinZoom, MaxZoom);
 
-        // Zoom toward mouse position
         Vector2 offset = mousePos - _mapContainer.Position;
         Vector2 newOffset = offset * (_zoom / oldZoom);
         _mapContainer.Position = mousePos - newOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
-    }
-}
-
-/// <summary>
-/// Draws connection lines between map nodes.
-/// Must be a child of the map container so lines transform with pan/zoom.
-/// </summary>
-public partial class LineDrawer : Node2D
-{
-    private readonly List<(Vector2 from, Vector2 to)> _edges = new();
-
-    public void SetNodes(List<MapNode> nodes, float centerX, float centerY)
-    {
-        var positions = new Dictionary<string, Vector2>();
-        foreach (var node in nodes)
-        {
-            positions[node.Id] = new Vector2(
-                node.Position[0] - centerX,
-                node.Position[1] - centerY
-            );
-        }
-
-        _edges.Clear();
-        foreach (var node in nodes)
-        {
-            if (!positions.TryGetValue(node.Id, out var fromPos)) continue;
-            foreach (var targetId in node.Connects)
-            {
-                if (positions.TryGetValue(targetId, out var toPos))
-                {
-                    _edges.Add((fromPos, toPos));
-                }
-            }
-        }
-        QueueRedraw();
-    }
-
-    public override void _Draw()
-    {
-        foreach (var (from, to) in _edges)
-        {
-            DrawLine(from + new Vector2(36, 36), to + new Vector2(36, 36),
-                new Color(0.4f, 0.4f, 0.5f, 0.6f), 2.0f);
-        }
     }
 }
