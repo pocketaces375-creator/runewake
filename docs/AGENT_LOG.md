@@ -747,3 +747,34 @@ Built the full Lost Relic minting pipeline — instance data model, minter servi
 **All 331 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P6-01** — Card JSON Schema finalized.
+
+---
+
+## P6-01 — Card JSON Schema finalized
+
+**Status:** Complete
+
+**Summary:**
+Finalized and validated the formal JSON Schema for the card definition format. The schema now supports both single-card and array validation, covering the full closed vocabulary from `02_CARD_DSL.md` and all structural constraints from §3.
+
+**File:**
+- `schema/card.schema.json` — Complete JSON Schema (Draft 2020-12) with:
+  - `card_def` definition with all required fields and constraints
+  - Closed enums for Strata, CardType, Rarity, Duration, Trigger, Op, Scope, ConditionOp
+  - Keyword enum with all 11 keywords
+  - Filter pattern with dynamic subtypes (STRATA:X, KEYWORD:X, TYPE:X)
+  - Target definition with scope/filter/count
+  - Condition with nested `all`/`any` support (max depth 2)
+  - Effect definition with all operation-specific fields
+  - Ability definition with max 2 effects per ability, max 2 abilities per card
+  - Conditional requirements: CREATURE requires attack/vigor, RELIC requires identify_condition
+  - Stat ranges: cost 0–10, attack 0–12, vigor 1–14
+  - `id` pattern validation (`^[a-z]{3}_[a-z]_[a-z0-9_]+$`)
+
+**Verified:**
+- All 6 `example_cards.json` validate as both array and individual objects
+- Invalid cards (bad strata, out-of-range stats, missing required fields) correctly rejected
+
+**All 331 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P6-02** — Generate module.
