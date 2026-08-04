@@ -1,4 +1,5 @@
 using Runewake.Engine.State;
+using Runewake.Engine.Cards;
 
 namespace Runewake.Engine.Engine;
 
@@ -69,14 +70,174 @@ public static partial class DuelEngine
 
     private static GameState ApplyPlayCard(GameState state, PlayCardAction action)
     {
-        // Stub — not tested in P1-02
-        throw new NotImplementedException("PlayCard not implemented yet.");
+        var player = state.Player(action.PlayerIndex);
+        var card = player.Hand.FirstOrDefault(c => c.InstanceId == action.CardInstanceId)
+            ?? throw new ArgumentException($"Card instance {action.CardInstanceId} not found in hand.");
+
+        if (card.Zone != Zone.Hand)
+            throw new InvalidOperationException("Card is not in hand.");
+
+        // Cost is unknown without CardDef — use a configurable field.
+        // For now, cards without a set cost default to 0.
+        // (Full cost validation comes with P1-05 effect executor + card registry.)
+        if (player.Attunement < action.Cost)
+            throw new InvalidOperationException($"Not enough attunement: have {player.Attunement}, need {action.Cost}.");
+
+        player.Attunement -= action.Cost;
+
+        player.Hand.Remove(card);
+        card.Controller = action.PlayerIndex;
+
+        if (card.CardType == CardType.CREATURE || card.CardType == CardType.RELIC)
+        {
+            if (action.LaneIndex is not int laneIdx || laneIdx < 0 || laneIdx > 4)
+                throw new ArgumentException($"Invalid lane index: {action.LaneIndex}.");
+            var lane = player.Lanes[laneIdx];
+            if (lane.Occupant is not null)
+                throw new InvalidOperationException($"Lane {laneIdx} is already occupied.");
+            lane.Occupant = card;
+            card.Zone = Zone.Lane;
+            card.LaneIndex = laneIdx;
+
+            if (card.CardType == CardType.CREATURE)
+            {
+                // Exhaust unless Swift
+                bool hasSwift = card.EffectiveKeywords.Contains("SWIFT");
+                card.IsExhausted = !hasSwift;
+            }
+        }
+        else if (card.CardType == CardType.RITUAL)
+        {
+            // Resolve effects (no-op until P1-05), then discard
+            card.Zone = Zone.Discard;
+            player.Discard.Add(card);
+        }
+
+        return state;
     }
 
     private static GameState ApplyAttack(GameState state, AttackAction action)
     {
-        // Stub — not tested in P1-02
-        throw new NotImplementedException("Attack not implemented yet.");
+        var player = state.Player(action.PlayerIndex);
+        var opponent = state.Player(state.OpponentIndex(action.PlayerIndex));
+
+        var sourceLane = player.Lanes[action.SourceLane];
+        var attacker = sourceLane.Occupant
+            ?? throw new InvalidOperationException($"No creature in lane {action.SourceLane} to attack with.");
+
+        // Validate Ready
+        if (attacker.IsExhausted)
+            throw new InvalidOperationException("Attacker is exhausted.");
+        if (attacker.HasAttackedThisTurn)
+            throw new InvalidOperationException("Attacker has already attacked this turn.");
+
+        // Determine target lane
+        int opposingIdx = action.SourceLane;
+        var opposingLane = opponent.Lanes[opposingIdx];
+        int? targetLaneIdx;
+
+        if (opposingLane.Occupant is not null)
+        {
+            // Occupied — fight the blocker
+            targetLaneIdx = opposingIdx;
+        }
+        else
+        {
+            // Empty opposing lane — check Guard
+            var guardLane = FindGuardLane(opponent);
+            if (guardLane is not null)
+            {
+                // Redirect to Guard lane
+                targetLaneIdx = guardLane;
+            }
+            else
+            {
+                // Face damage
+                targetLaneIdx = null;
+            }
+        }
+
+        int attackPower = attacker.CurrentAttack;
+
+        if (targetLaneIdx is int tgtIdx)
+        {
+            var targetLane = opponent.Lanes[tgtIdx];
+            var defender = targetLane.Occupant!;
+
+            // Simultaneous damage
+            int atkDamage = defender.CurrentAttack;
+            defender.Damage += attackPower;
+            attacker.Damage += atkDamage;
+
+            // Pierce: excess damage to defender carries to face
+            bool defenderKilled = defender.CurrentVigor <= 0;
+            if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE"))
+            {
+                int excess = attackPower - defender.BaseVigor - defender.VigorModifier;
+                // Actually: excess is damage over what was needed to kill
+                int neededToKill = defender.BaseVigor + defender.VigorModifier;
+                int excessDamage = System.Math.Max(0, attackPower - neededToKill);
+                opponent.Vigor -= excessDamage;
+                CheckGameOver(state, opponent);
+            }
+
+            // Remove dead defender
+            if (defenderKilled)
+            {
+                targetLane.Occupant = null;
+                defender.Zone = Zone.Discard;
+                opponent.Discard.Add(defender);
+            }
+        }
+        else
+        {
+            // Face damage
+            opponent.Vigor -= attackPower;
+            CheckGameOver(state, opponent);
+        }
+
+        // Remove dead attacker
+        if (attacker.CurrentVigor <= 0)
+        {
+            sourceLane.Occupant = null;
+            attacker.Zone = Zone.Discard;
+            player.Discard.Add(attacker);
+        }
+        else
+        {
+            // Mark attacker as used if it survived
+            attacker.HasAttackedThisTurn = true;
+            attacker.IsExhausted = true;
+        }
+
+        return state;
+    }
+
+    /// <summary>
+    /// Find the first lane index (0–4) on the given player's board that holds
+    /// a creature with the Guard keyword, or null if none exists.
+    /// </summary>
+    private static int? FindGuardLane(PlayerState player)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var occ = player.Lanes[i].Occupant;
+            if (occ is not null && occ.EffectiveKeywords.Contains("GUARD"))
+                return i;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if the given player's Vigor has reached 0 or below and sets game-over state.
+    /// </summary>
+    private static void CheckGameOver(GameState state, PlayerState player)
+    {
+        if (player.Vigor <= 0)
+        {
+            state.IsGameOver = true;
+            state.WinnerIndex = state.OpponentIndex(player.Index);
+        }
     }
 
     // ——— Phase helpers ———

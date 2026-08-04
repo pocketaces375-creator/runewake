@@ -1,3 +1,5 @@
+using Runewake.Engine.Cards;
+
 namespace Runewake.Engine.State;
 
 /// <summary>
@@ -26,6 +28,12 @@ public sealed class CardInstance
     /// <summary>ID of the card definition this is an instance of.</summary>
     public string CardDefId { get; }
 
+    /// <summary>The card type from the definition (CREATURE, RITUAL, RELIC, etc.).</summary>
+    public CardType CardType { get; set; }
+
+    /// <summary>Attunement cost to play this card.</summary>
+    public int Cost { get; set; }
+
     /// <summary>Index of the player who controls this card (0 or 1).</summary>
     public int Controller { get; set; }
 
@@ -37,6 +45,12 @@ public sealed class CardInstance
 
     // ——— Combat & State ———
 
+    /// <summary>Base Attack value from the card definition.</summary>
+    public int BaseAttack { get; set; }
+
+    /// <summary>Base Vigor value from the card definition.</summary>
+    public int BaseVigor { get; set; }
+
     /// <summary>Total damage dealt to this card this game.</summary>
     public int Damage { get; set; }
 
@@ -45,6 +59,16 @@ public sealed class CardInstance
 
     /// <summary>Bonus or penalty to base Vigor, applied at creation time or on buff.</summary>
     public int VigorModifier { get; set; }
+
+    /// <summary>
+    /// Current effective Attack: base + modifier (never below 0).
+    /// </summary>
+    public int CurrentAttack => int.Max(0, BaseAttack + AttackModifier);
+
+    /// <summary>
+    /// Current effective Vigor: base + modifier - damage (never below 0).
+    /// </summary>
+    public int CurrentVigor => int.Max(0, BaseVigor + VigorModifier - Damage);
 
     /// <summary>True if this card has attacked this turn.</summary>
     public bool HasAttackedThisTurn { get; set; }
@@ -59,11 +83,28 @@ public sealed class CardInstance
 
     // ——— Keywords at runtime ———
 
+    /// <summary>Keywords this card naturally has (from its definition).</summary>
+    public List<string> Keywords { get; set; } = new();
+
     /// <summary>Keywords granted at runtime (e.g. by abilities).</summary>
     public HashSet<string> GrantedKeywords { get; } = new();
 
     /// <summary>Keywords suppressed at runtime (e.g. by Silencing effects).</summary>
     public HashSet<string> RemovedKeywords { get; } = new();
+
+    /// <summary>
+    /// Resolved keywords: definition keywords + granted - removed.
+    /// </summary>
+    public HashSet<string> EffectiveKeywords
+    {
+        get
+        {
+            var effective = new HashSet<string>(Keywords);
+            effective.UnionWith(GrantedKeywords);
+            effective.ExceptWith(RemovedKeywords);
+            return effective;
+        }
+    }
 
     // ——— Curses ———
 
@@ -84,15 +125,20 @@ public sealed class CardInstance
     {
         InstanceId = other.InstanceId;
         CardDefId = other.CardDefId;
+        CardType = other.CardType;
+        Cost = other.Cost;
         Controller = other.Controller;
         Zone = other.Zone;
         LaneIndex = other.LaneIndex;
+        BaseAttack = other.BaseAttack;
+        BaseVigor = other.BaseVigor;
         Damage = other.Damage;
         AttackModifier = other.AttackModifier;
         VigorModifier = other.VigorModifier;
         HasAttackedThisTurn = other.HasAttackedThisTurn;
         IsExhausted = other.IsExhausted;
         IsIdentified = other.IsIdentified;
+        Keywords = new List<string>(other.Keywords);
         GrantedKeywords = new HashSet<string>(other.GrantedKeywords);
         RemovedKeywords = new HashSet<string>(other.RemovedKeywords);
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);

@@ -23,6 +23,9 @@ public sealed record PlayCardAction : GameAction
     /// <summary>The instance ID of the card in hand to play.</summary>
     public int CardInstanceId { get; init; }
 
+    /// <summary>Attunement cost to pay.</summary>
+    public int Cost { get; init; }
+
     /// <summary>Target lane index (0–4) for creatures and relics.</summary>
     public int? LaneIndex { get; init; }
 }
