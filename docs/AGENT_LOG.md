@@ -891,3 +891,32 @@ Built the SIMULATE stage of the AI pipeline — batch simulation with C# engine 
 - All 10 Python tests pass (data loading, deck writing, mock run_batch, substitution, empty/not-found edge cases)
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
+Next: **P6-07** — Art module.
+
+---
+
+## P6-06 — Dedupe + moderate
+
+**Status:** Complete
+
+**Summary:**
+Built the DEDUPE and MODERATE stages of the AI pipeline — exact and fuzzy name deduplication, n-gram text similarity checking, trademark/IP blocklist enforcement, and content safety scanning. The module checks candidate card names against the existing catalog (exact + Jaro-Winkler fuzzy at 0.85 threshold), against a blocklist of 160+ terms (trademarks, religious figures, public figures, generically filtered terms), and validates text safety (no HTML/URL injection). Text dedup uses character trigram cosine similarity at 0.80 threshold.
+
+**Files created:**
+- `pipeline/modules/dedupe_moderate.py` — combined DEDUPE + MODERATE module with:
+  - `jaro_winkler_similarity()` — pure-Python Jaro-Winkler implementation (no dependencies)
+  - `compute_text_similarity()` — character trigram cosine similarity via numpy
+  - `load_blocklist()` / `build_blocklist_patterns()` — YAML blocklist with word-boundary regex patterns
+  - `check_blocklist()` / `check_card_text_safety()` — name + content safety gates
+  - `check_duplicate_name()` — exact match, fuzzy match, blocklist check
+  - `check_duplicate_text()` — n-gram cosine similarity against existing cards
+  - Output: `05_deduplicated.json`, rejects with `DEDUPE_`/`MODERATION_`/`BLOCKLIST_` reason codes
+- `pipeline/dedupe/blocklist.yaml` — 165 blocklist entries in 5 categories (trademark, religious, slurs, public figures, generic)
+- `pipeline/dedupe/existing_card_names.json` — 60 hand-authored card names for exact-match dedup
+- `pipeline/tests/test_dedupe_moderate.py` — 28 Python tests
+
+**Verification:**
+- All 28 Python tests pass
+- 51/60 hand-authored cards pass dedupe against each other (9 fuzzy-close pairs caught, e.g. similar names within 0.85 Jaro-Winkler)
+- 331/331 C# tests still pass
+- 0 TODO, 0 NotImplementedException

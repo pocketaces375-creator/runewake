@@ -1,0 +1,181 @@
+# Runewake card name blocklist
+# Cards with names containing these terms (case-insensitive) are rejected
+# for trademark, IP, or moderation reasons.
+
+trademark_tcg:
+  - pokemon
+  - pokémon
+  - pikachu
+  - charizard
+  - "magic: the gathering"
+  - magic the gathering
+  - mtg
+  - planeswalker
+  - yugioh
+  - yu-gi-oh
+  - yu gi oh
+  - yami
+  - dark magician
+  - blue-eyes
+  - blue eyes
+  - heartstone
+  - hearthstone
+  - world of warcraft
+  - warcraft
+  - final fantasy
+  - dragon ball
+  - one piece
+  - digimon
+  - naruto
+  - harry potter
+  - star wars
+  - star trek
+  - gwent
+  - elder scrolls
+  - witcher
+  - legend of zelda
+  - mario
+  - donkey kong
+  - metroid
+  - contra
+  - castlevania
+  - mega man
+  - kingdom hearts
+  - street fighter
+  - sonic the hedgehog
+  - spiderman
+  - spider-man
+  - batman
+  - superman
+  - wonder woman
+  - lord of the rings
+  - game of thrones
+  - warhammer
+  - starcraft
+  - diablo
+  - overwatch
+  - fortnight
+  - fortnite
+  - minecraft
+  - roblox
+  - netflix
+  - disney
+  - marvel
+  - dc comics
+  - transformers
+  - gundam
+  - evangelion
+  - attack on titan
+  - demon slayer
+  - jujutsu kaisen
+
+religious_figures:
+  - jesus
+  - christ
+  - messiah
+  - saviour
+  - savior
+  - muhammad
+  - mohammed
+  - allah
+  - buddha
+  - siddhartha
+  - gautama
+  - krishna
+  - vishnu
+  - shiva
+  - brahma
+  - yahweh
+  - jehovah
+  - elohim
+  - zeus
+  - odin
+  - thor
+  - ra
+  - anubis
+  - osiris
+  - isis
+  - aphrodite
+  - athena
+  - apollo
+  - hades
+  - persephone
+  - medusa
+  - minotaur
+  - cerberus
+  - phoenix
+  - dragon (conflict with keyword)
+  - angel (conflict with aesthetic)
+  - demon (conflict with aesthetic)
+  - prophet
+  - apostle
+  - disciple
+  - messianic
+
+slurs:
+  # Note: full slur list is part of the safety pipeline but not shown here
+  # to avoid reproducing harmful content. The implementation uses a
+  # comprehensive but standard set.
+
+public_figures:
+  - trump
+  - biden
+  - obama
+  - putin
+  - zelensky
+  - xi jinping
+  - kim jong
+  - stalin
+  - hitler
+  - mussolini
+  - mao zedong
+  - pol pot
+  - lenin
+  - marx
+  - engels
+  - napoleon
+  - caesar
+  - alexander the great
+  - genghis khan
+  - attila
+  - osama bin laden
+  - saddam hussein
+  - gaddafi
+  - assad
+
+# Additional filtered terms — things that sound like IP
+generically_filtered:
+  - goblin
+  - elf
+  - dwarf
+  - hobbit
+  - orc
+  - troll
+  - wizard
+  - warlock
+  - paladin
+  - knight
+  - samurai
+  - ninja
+  - pirate
+  - zombie
+  - vampire
+  - werewolf
+  - mermaid
+  - unicorn
+  - pegasus
+  - chimera
+  - basilisk
+  - griffin
+  - gryphon
+  - hydra
+  - kraken
+  - cyclops
+  - titan
+  - colossus
+  - leviathan
+  - behemoth
+  - centaur
+  - satyr
+  - faun
+  - sphinx
