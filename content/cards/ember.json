@@ -1,0 +1,237 @@
+[
+  {
+    "id": "emb_c_cinder_runner",
+    "set": "buried_age",
+    "name": "Cinder Runner",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": ["SWIFT"],
+    "abilities": [],
+    "flavor": "Forge-children learned to run before they learned to breathe.",
+    "power_score": 4.85,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ember_hound",
+    "set": "buried_age",
+    "name": "Ember Hound",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": ["SWIFT"],
+    "abilities": [],
+    "flavor": "Pack-forged and flame-tempered.",
+    "power_score": 3.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_flame_javelin",
+    "set": "buried_age",
+    "name": "Flame Javelin",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 2 }
+        ]
+      }
+    ],
+    "flavor": "A spear of fire, thrown from the heart of the forge.",
+    "power_score": 3.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_forgeguard_berserker",
+    "set": "buried_age",
+    "name": "Forgeguard Berserker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "He fights like the fire — without mercy, without memory.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_wildfire_adept",
+    "set": "buried_age",
+    "name": "Wildfire Adept",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 1 }
+        ]
+      }
+    ],
+    "flavor": "Every spell she casts fans the flames higher.",
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_lava_serpent",
+    "set": "buried_age",
+    "name": "Lava Serpent",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 3,
+    "keywords": ["PIERCE", "FRAGILE"],
+    "abilities": [],
+    "flavor": "Molten blood and a temper to match.",
+    "power_score": 7.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_searing_blast",
+    "set": "buried_age",
+    "name": "Searing Blast",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 4 }
+        ]
+      }
+    ],
+    "flavor": "The heat of a dying star, focused to a point.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinderstorm_elemental",
+    "set": "buried_age",
+    "name": "Cinderstorm Elemental",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 2 }
+        ]
+      }
+    ],
+    "flavor": "Even in dying, it burns.",
+    "power_score": 7.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_magma_forger",
+    "set": "buried_age",
+    "name": "Magma Forger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "attack": 1 }
+        ]
+      }
+    ],
+    "flavor": "He hammers strength into every ally's blade.",
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_inferno_burst",
+    "set": "buried_age",
+    "name": "Inferno Burst",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 5 },
+          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 1 }
+        ]
+      }
+    ],
+    "flavor": "The forge-gods demand sacrifice.",
+    "power_score": 8.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_phoenix_ash",
+    "set": "buried_age",
+    "name": "Phoenix Ash",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": ["UNEARTH", "ECHO"],
+    "abilities": [],
+    "flavor": "From ash, she rises. From ash, she burns again.",
+    "power_score": 9.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_the_last_ember",
+    "set": "buried_age",
+    "name": "The Last Ember",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 3,
+    "keywords": ["SEALED"],
+    "identify_condition": { "op": "DAMAGED_THIS_TURN", "value": true },
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 }
+        ]
+      }
+    ],
+    "flavor": "The last spark of a world that burned too brightly.",
+    "power_score": 9.0,
+    "content_version": 1
+  }
+]

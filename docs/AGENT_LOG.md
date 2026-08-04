@@ -205,3 +205,23 @@ All 146 tests pass. 0 TODO, 0 NotImplementedException.
 **CLI:** `Runewake.Sim validate-card <card-file>` — loads a JSON card pack, validates each card, prints `[✓]` or `[✗]` with error details. Exits 0 on success, 1 on errors.
 
 **Tests:** 20 new unit tests (166 total). All pass. Verified on 6 example cards — all pass. 0 TODO, 0 NotImplementedException.
+
+## Session 14 — 2026-08-04
+
+### P2-04 — 60 hand-authored cards (12 per Stratum)
+
+**New content:** 60 playable cards + 1 token across 5 JSON pack files:
+
+| File | Cards | Strata |
+|------|-------|--------|
+| `content/cards/verdant.json` | 12 + token | VERDANT — life, healing, growth |
+| `content/cards/ember.json` | 12 | EMBER — aggression, burn, speed |
+| `content/cards/tide.json` | 12 | TIDE — knowledge, excavation, control |
+| `content/cards/hollow.json` | 12 | HOLLOW — death, unearth, decay |
+| `content/cards/dawn.json` | 12 | DAWN — protection, order, buffs |
+
+**Card distribution per stratum:** 8 creatures, 3 rituals, 1 relic. Rarities: 4 COMMON, 4 UNCOMMON, 3 RARE, 1 RELIC. Keywords used: GUARD, SWIFT, PIERCE, WARD, VENOM, REACH, ROOTED, UNEARTH, ECHO, FRAGILE, SEALED. All triggers, ops, and effects use the engine's existing DSL. Every card validated with `validate-card` CLI — 0 errors.
+
+These are the balance anchors the AI-generated cards will be measured against.
+
+All 166 tests pass. 0 TODO, 0 NotImplementedException.

@@ -1,0 +1,238 @@
+[
+  {
+    "id": "dwn_r_sealing_light",
+    "set": "buried_age",
+    "name": "Sealing Light",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "keyword": "WARD" },
+          { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "amount": 2 }
+        ]
+      }
+    ],
+    "flavor": "The wardens did not build doors. They built reasons not to open them.",
+    "power_score": 5.6,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_dawn_warder",
+    "set": "buried_age",
+    "name": "Dawn Warder",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": ["GUARD"],
+    "abilities": [],
+    "flavor": "The first light holds the line.",
+    "power_score": 3.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_sunblade_recruit",
+    "set": "buried_age",
+    "name": "Sunblade Recruit",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "Steel and sunlight, sworn to the covenant.",
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_golden_retainer",
+    "set": "buried_age",
+    "name": "Golden Retainer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ADJACENT", "count": "ALL" }, "attack": 1, "vigor": 1 }
+        ]
+      }
+    ],
+    "flavor": "Gold and duty, inseparable in service.",
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_purifying_light",
+    "set": "buried_age",
+    "name": "Purifying Light",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "SILENCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 } }
+        ]
+      }
+    ],
+    "flavor": "Light purges corruption.",
+    "power_score": 3.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_morning_herald",
+    "set": "buried_age",
+    "name": "Morning Herald",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "filter": "DAMAGED", "count": 1 }, "amount": 2 }
+        ]
+      }
+    ],
+    "flavor": "Each dawn brings the promise of renewal.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_steadfast_bulwark",
+    "set": "buried_age",
+    "name": "Steadfast Bulwark",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 8,
+    "keywords": ["GUARD"],
+    "abilities": [],
+    "flavor": "It stands. It always stands.",
+    "power_score": 8.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_dawnbreaker_charger",
+    "set": "buried_age",
+    "name": "Dawnbreaker Charger",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": ["SWIFT"],
+    "abilities": [],
+    "flavor": "Light strikes first.",
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_radiant_prophet",
+    "set": "buried_age",
+    "name": "Radiant Prophet",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+          { "op": "GAIN_VIGOR", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+        ]
+      }
+    ],
+    "flavor": "She sees what lies buried and strengthens those who seek it.",
+    "power_score": 8.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_holy_edict",
+    "set": "buried_age",
+    "name": "Holy Edict",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          { "op": "DESTROY", "target": { "scope": "ENEMY_CREATURE", "filter": "DAMAGED", "count": 1 } }
+        ]
+      }
+    ],
+    "flavor": "Judgment is passed. Sentence is executed.",
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_archangel_of_order",
+    "set": "buried_age",
+    "name": "Archangel of Order",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": ["WARD", "GUARD"],
+    "abilities": [],
+    "flavor": "She does not fight — she enforces.",
+    "power_score": 11.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_x_dawn_relic",
+    "set": "buried_age",
+    "name": "Dawn Relic",
+    "strata": "DAWN",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 6,
+    "keywords": ["SEALED"],
+    "identify_condition": { "op": "TURN_GTE", "value": 8 },
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "keyword": "WARD" }
+        ]
+      }
+    ],
+    "flavor": "A fragment of the First Dawn, imbued with unbreakable light.",
+    "power_score": 14.0,
+    "content_version": 1
+  }
+]
