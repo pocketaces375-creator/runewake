@@ -14,6 +14,7 @@ public partial class Main : Control
 {
     private Button _startButton = default!;
     private Button _runeButton = default!;
+    private Button _forgeButton = default!;
     private Label _statusLabel = default!;
     private bool _loading;
 
@@ -84,11 +85,25 @@ public partial class Main : Control
             AnchorLeft = 0.35f,
             AnchorRight = 0.65f,
             AnchorTop = 0.87f,
-            AnchorBottom = 0.97f,
+            AnchorBottom = 0.92f,
             Disabled = true
         };
         runeButton.Pressed += OnOpenRunePage;
         AddChild(runeButton);
+
+        // Forge button
+        var forgeButton = new Button
+        {
+            Text = "Rune Forge",
+            AnchorLeft = 0.35f,
+            AnchorRight = 0.65f,
+            AnchorTop = 0.93f,
+            AnchorBottom = 0.98f,
+            Disabled = true
+        };
+        forgeButton.Pressed += OnOpenForge;
+        AddChild(forgeButton);
+        _forgeButton = forgeButton;
 
         // Begin loading
         Callable.From(LoadGameData).CallDeferred();
@@ -125,6 +140,11 @@ public partial class Main : Control
 
         // Load dig site definitions
         CampaignContext.LoadDigSites();
+
+        _statusLabel.Text = "Loading dig tools...";
+
+        // Load dig tool definitions
+        CampaignContext.LoadDigTools();
 
         _statusLabel.Text = "Loading save data...";
 
@@ -166,6 +186,7 @@ public partial class Main : Control
         _statusLabel.Text = "";
         _startButton.Disabled = false;
         _runeButton.Disabled = false;
+        _forgeButton.Disabled = false;
     }
 
     private void OnStartCampaign()
@@ -176,5 +197,10 @@ public partial class Main : Control
     private void OnOpenRunePage()
     {
         GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
+    }
+
+    private void OnOpenForge()
+    {
+        GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
     }
 }

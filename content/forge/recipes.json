@@ -1,0 +1,9 @@
+{
+  "recipes": {
+    "verdant": ["rune_vrd_sharp_roots", "rune_vrd_bark_armour", "rune_vrd_growth_rite"],
+    "ember": ["rune_emb_kindling", "rune_emb_cinder_cloak", "rune_ember_draw"],
+    "tide": ["rune_tid_tidal_barrier", "rune_tid_memory_tides"],
+    "hollow": ["rune_hol_barrow_strength", "rune_hol_soul_shield"],
+    "dawn": ["rune_dwn_radiant_strike", "rune_dwn_holy_ward", "rune_dwn_prophecy"]
+  }
+}

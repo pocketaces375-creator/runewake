@@ -26,6 +26,12 @@ public class ProgressionState
     /// <summary>Rune fragment counts per strata (e.g. "verdant" → 4).</summary>
     public Dictionary<string, int> Fragments { get; } = new();
 
+    /// <summary>Rune IDs the player has forged or acquired.</summary>
+    public HashSet<string> OwnedRuneIds { get; } = new();
+
+    /// <summary>Dig tool IDs the player has unlocked from Elite nodes.</summary>
+    public HashSet<string> UnlockedTools { get; } = new();
+
     /// <summary>Whether the player has completed the first-run tutorial/intro duel.</summary>
     public bool HasCompletedTutorial { get; set; }
 
@@ -71,4 +77,16 @@ public class ProgressionState
         else
             Fragments[strata] = count;
     }
+
+    /// <summary>Check if a rune has been acquired.</summary>
+    public bool OwnsRune(string runeId) => OwnedRuneIds.Contains(runeId);
+
+    /// <summary>Mark a rune as acquired. Returns false if already owned.</summary>
+    public bool AddOwnedRune(string runeId) => OwnedRuneIds.Add(runeId);
+
+    /// <summary>Check if a dig tool has been unlocked.</summary>
+    public bool HasTool(string toolId) => UnlockedTools.Contains(toolId);
+
+    /// <summary>Unlock a dig tool. Returns false if already unlocked.</summary>
+    public bool UnlockTool(string toolId) => UnlockedTools.Add(toolId);
 }

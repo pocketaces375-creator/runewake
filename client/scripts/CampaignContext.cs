@@ -35,6 +35,9 @@ public static class CampaignContext
     /// <summary>All loaded dig sites keyed by dig site ID.</summary>
     public static readonly Dictionary<string, DigSiteDef> DigSiteIndex = new();
 
+    /// <summary>All loaded dig tools keyed by tool ID.</summary>
+    public static readonly Dictionary<string, DigToolDef> DigToolIndex = new();
+
     /// <summary>The dig site ID the player is about to enter (set by MapScene).</summary>
     public static string? CurrentDigSiteId { get; set; }
 
@@ -98,5 +101,19 @@ public static class CampaignContext
             foreach (var site in pack.DigSites)
                 DigSiteIndex[site.Id] = site;
         }
+    }
+
+    /// <summary>
+    /// Load all dig tool definitions from the content directory.
+    /// Call once at title screen.
+    /// </summary>
+    public static void LoadDigTools()
+    {
+        DigToolIndex.Clear();
+        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/dig_tools";
+        var path = $"{contentDir}/tools.json";
+        var pack = DigToolLoader.LoadPack(path);
+        foreach (var tool in pack.Tools)
+            DigToolIndex[tool.Id] = tool;
     }
 }

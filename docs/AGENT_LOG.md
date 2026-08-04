@@ -676,3 +676,39 @@ Built the full dig site system — engine data models, JSON content, runtime sta
 **All 305 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P5-05** — Fragment → rune forging; tools.
+
+---
+
+## P5-05 — Fragment → rune forging; tools
+
+**Status:** Complete
+
+**Summary:**
+Built the rune forge system (4 fragments → 1 random unowned rune per strata) and dig tool definitions (Brush, Iron Spade, Loadstone Rod, Seer's Lens) as permanent unlocks. Added progression tracking for owned runes and unlocked tools.
+
+**New files:**
+- `engine/State/ForgeSystem.cs` — `ForgeSystem.Forge(strata, progression, runeIndex, forgeRecipes)` returns `(ForgeResult, runeId?)`. Checks fragment count (4 minimum), deduplication, and random selection from the strata's forgeable pool. Includes `CanForge()` helper.
+- `engine/Cards/DigToolDef.cs` — `DigToolDef` model (id, name, description, effect type, value, optional strata), `DigToolEffect` enum (EXTRA_STRIKE, REVEAL_RADIUS, HIGHLIGHT_TILE, LOWER_THRESHOLD), `DigToolPack` container.
+- `engine/Cards/DigToolLoader.cs` — `DigToolLoader.LoadPack(path)` following standard pattern.
+- `content/forge/recipes.json` — Maps all 5 strata to their forgeable rune ID pools (3 each for verdant/ember/dawn, 2 each for tide/hollow).
+- `content/dig_tools/tools.json` — 4 tool definitions: Brush (+1 strike), Iron Spade (+2 strikes), Loadstone Rod (reveal radius 1), Seer's Lens (lower threshold by 1).
+- `client/scripts/ForgeScene.cs` — Full code-driven Godot UI: strata color bars, fragment counts, forge buttons with dynamic enable/disable, result labels, auto-equips forged rune to current rune page.
+- `client/scenes/forge/ForgeScene.tscn` — Minimal scene file.
+- `tests/Cards/ForgeAndToolTests.cs` — 16 tests covering: forge success/failure paths (insufficient fragments, invalid strata, all owned), fragment deduction, duplicate prevention, `CanForge` checks, second forge picks remaining rune, dig tool loader (JSON parsing + field correctness), progression state helper methods, content file validation.
+
+**Modified files:**
+- `engine/State/ProgressionState.cs` — Added `OwnedRuneIds` (HashSet\<string\>), `UnlockedTools` (HashSet\<string\>), helper methods: `OwnsRune()`, `AddOwnedRune()`, `HasTool()`, `UnlockTool()`.
+- `client/scripts/CampaignContext.cs` — Added `DigToolIndex` dictionary, `LoadDigTools()` method.
+- `client/scripts/Main.cs` — Added "Rune Forge" button on title screen, `OnOpenForge` handler, dig tool loading step in `LoadGameData()`, forge button enable after load.
+
+**Key design decisions:**
+- 4 fragments per forge (matching the spec's "4 fragments forge a rune").
+- Sigil/Mythic runes have no strata — they cannot be forged. Only dropped from Warden Bosses.
+- Forge picks a random *unowned* rune from the strata's pool. No duplicate runes allowed.
+- `ForgeResult` enum provides clear feedback to the UI for all failure modes.
+- Dig tools are modeled as data definitions + progression tracking. Actual effect application in DigScene (e.g. extra strikes, reveal radius) is deferred to a future integration pass — the data and ownership system is complete.
+- Forged runes auto-equip to the current rune page if a slot is available.
+
+**All 321 tests pass.** 0 TODO, 0 NotImplementedException.
+
+Next: **P5-06** — Lost Relic minting: engraving data, frame renderer, local ledger.
