@@ -59,6 +59,20 @@ public static class RulesTextRenderer
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Render only the ability text portion of a card (no stats, keywords, flavor, or identify).
+    /// </summary>
+    public static string RenderAbilityTextOnly(CardDef card)
+    {
+        var sb = new StringBuilder();
+        foreach (var ability in card.Abilities)
+        {
+            if (sb.Length > 0) sb.AppendLine();
+            sb.Append(RenderAbility(ability));
+        }
+        return sb.ToString();
+    }
+
     // ——— Ability rendering ———
 
     private static string RenderAbility(AbilityDef ability)
@@ -403,7 +417,7 @@ public static class RulesTextRenderer
     /// <summary>
     /// Format a keyword constant to display form.
     /// </summary>
-    private static string FormatKeyword(string keyword) => keyword switch
+    public static string FormatKeyword(string keyword) => keyword switch
     {
         "GUARD" => "Guard",
         "SWIFT" => "Swift",

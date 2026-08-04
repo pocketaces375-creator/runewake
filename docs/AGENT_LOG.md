@@ -259,3 +259,26 @@ Created the duel scene visual shell in the Godot client:
 Client builds with `dotnet build` — 0 errors. Engine tests still at 227/227 passing.
 
 Next: **P3-02** — Card view component driven entirely by CardDef + rendered text + art path.
+
+## Session 17 — 2026-08-04
+
+### P3-02 — Card view component
+
+Created a full card view driven entirely by CardDef data:
+
+- **`client/scripts/CardView.cs`** + **`client/scenes/components/CardView.tscn`** — self-contained card component (180×280) showing:
+  - **Header**: cost badge + card name
+  - **Art**: strata-colored placeholder (or loads from `Art.Asset` path when available)
+  - **Type line**: "Creature · Verdant · Common" etc.
+  - **Keywords**: formatted keyword badges
+  - **Rules text**: rendered via `RulesTextRenderer.RenderAbilityTextOnly()` (ability text only)
+  - **Flavor**: quoted italic text
+  - **Stats**: Attack/Vigor panel (only shown for creatures/tokens)
+  - **Border**: strata-colored with StyleBoxFlat (green/red/blue/purple/gold)
+  - Includes `SetCard(CardDef)` and `Clear()` methods
+
+- **`engine/Cards/RulesTextRenderer.cs`** — added `RenderAbilityTextOnly(CardDef)` method (renders just abilities, no stats/flavor/keywords), made `FormatKeyword()` public for reuse by the client
+
+Engine: 227/227 tests pass. Client: `dotnet build` 0 errors. 0 TODO, 0 NotImplementedException.
+
+Next: **P3-03** — Input: drag card to lane, tap creature then tap target lane to attack.
