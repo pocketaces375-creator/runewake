@@ -1,0 +1,109 @@
+{
+  "id": "region_01",
+  "name": "The Fallow Reach",
+  "strata": "VERDANT",
+  "strata2": "DAWN",
+  "nodes": [
+    {
+      "id": "r1_n01",
+      "type": "Duel",
+      "position": [400, 80],
+      "connects": ["r1_n02", "r1_n03"],
+      "encounter": "r1_duel_wayfarer",
+      "rewards": ["shard:30"]
+    },
+    {
+      "id": "r1_n02",
+      "type": "Duel",
+      "position": [240, 190],
+      "connects": ["r1_n04"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n01"] },
+      "encounter": "r1_duel_thornbark",
+      "rewards": ["shard:40", "dig_charge:1"]
+    },
+    {
+      "id": "r1_n03",
+      "type": "Shrine",
+      "position": [560, 190],
+      "connects": ["r1_n05"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n01"] }
+    },
+    {
+      "id": "r1_n04",
+      "type": "Elite",
+      "position": [160, 340],
+      "connects": ["r1_n06", "r1_n07"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n02"] },
+      "encounter": "r1_elite_rootbinder",
+      "rewards": ["shard:80", "fragment:verdant:2", "dig_charge:1"]
+    },
+    {
+      "id": "r1_n05",
+      "type": "Duel",
+      "position": [560, 340],
+      "connects": ["r1_n07", "r1_n08"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n03"] },
+      "encounter": "r1_duel_wildwood",
+      "rewards": ["shard:50"]
+    },
+    {
+      "id": "r1_n06",
+      "type": "Duel",
+      "position": [320, 480],
+      "connects": ["r1_n09", "r1_n10"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n04"] },
+      "encounter": "r1_duel_grove_warden",
+      "rewards": ["shard:50"]
+    },
+    {
+      "id": "r1_n07",
+      "type": "Dig",
+      "position": [480, 480],
+      "connects": ["r1_n09", "r1_n10"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n04", "r1_n05"] },
+      "rewards": ["shard:20"]
+    },
+    {
+      "id": "r1_n08",
+      "type": "Merchant",
+      "position": [640, 480],
+      "connects": ["r1_n10"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n05"] }
+    },
+    {
+      "id": "r1_n09",
+      "type": "Elite",
+      "position": [320, 600],
+      "connects": ["r1_n11"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n06", "r1_n07"] },
+      "encounter": "r1_elite_ashkeeper",
+      "rewards": ["shard:100", "fragment:ember:2", "dig_charge:2"]
+    },
+    {
+      "id": "r1_n10",
+      "type": "Duel",
+      "position": [560, 600],
+      "connects": ["r1_n11"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n06", "r1_n07", "r1_n08"] },
+      "encounter": "r1_duel_silt_reader",
+      "rewards": ["shard:60"]
+    },
+    {
+      "id": "r1_n11",
+      "type": "Warden",
+      "position": [440, 720],
+      "connects": ["r1_n12"],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n09", "r1_n10"] },
+      "encounter": "r1_warden_aelin",
+      "rewards": ["shard:150", "fragment:dawn:3", "dig_charge:3"]
+    },
+    {
+      "id": "r1_n12",
+      "type": "WardenBoss",
+      "position": [440, 820],
+      "unlock": { "op": "NODES_CLEARED", "value": ["r1_n11"] },
+      "encounter": "r1_boss_warden_aelin",
+      "rewards": ["shard:300", "fragment:dawn:5", "dig_charge:5"]
+    }
+  ]
+}

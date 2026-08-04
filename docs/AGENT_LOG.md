@@ -389,3 +389,37 @@ Next: **P3-06** — Bot opponent wired in with a small think-delay.
 Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P3-07** — Mulligan screen (optional); or **P3-08** polish, edge cases, mobile sizing.
+
+## Session 22 — 2026-08-04
+
+### P4-01 — Map data format + loader
+
+**New files:**
+- `engine/Cards/MapRegion.cs` — C# data models for the campaign map:
+  - `MapNodeType` enum: Duel, Elite, Warden, WardenBoss, Dig, Shrine, Cache, Merchant
+  - `UnlockCondition` class: op + value list (e.g. `NODES_CLEARED → ["r1_n06"]`)
+  - `MapNode` class: id, type, position, connects, unlock, encounter, rewards, zone
+  - `MapRegion` class: id, name, strata, strata2, nodes list
+- `engine/Cards/MapLoader.cs` — static JSON loader (parallels CardLoader):
+  - `LoadRegion(string path)` — loads from file
+  - `LoadRegionFromString(string json)` — loads from string (for tests)
+- `content/map/region_01.json` — Region 1 "The Fallow Reach" with 12 nodes:
+  - 5 DUEL, 2 ELITE, 1 WARDEN, 1 WARDEN_BOSS, 1 DIG, 1 SHRINE, 1 MERCHANT
+  - Full node graph with unlock conditions and reward strings
+  - No CACHE yet (reserved for Codex-puzzle placement)
+
+**Modified files:** None.
+
+**Tests:** 8 new tests in `tests/Cards/MapLoaderTests.cs`:
+- File load + region metadata check
+- All 7 node types present in region
+- All nodes have IDs and 2-element positions
+- All `connects[]` references point to existing node IDs
+- Correct node count (12)
+- From-string deserialization with full object graph
+- Null unlock condition when omitted
+- Reward list parsing
+
+All 235 tests pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P4-02** — Map screen: pan/zoom node graph, lock states, node icons.
