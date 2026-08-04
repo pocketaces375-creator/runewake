@@ -1,0 +1,50 @@
+[gd_scene load_steps=2 format=3 uid="uid://hand_card_component"]
+
+[ext_resource type="Script" path="res://scripts/HandCard.cs" id="1_hand"]
+
+[node name="HandCard" type="Button"]
+anchors_preset = 0
+custom_minimum_size = Vector2(48, 68)
+size_flags_horizontal = 0
+size_flags_vertical = 3
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="ColorRect" type="ColorRect" parent="Margin"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.18, 0.18, 0.25, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+anchors_preset = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="CardName" type="Label" parent="Margin/VBox"]
+anchors_preset = 0
+size_flags_horizontal = 4
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 8
+text = ""
+
+[node name="CostLabel" type="Label" parent="Margin/VBox"]
+anchors_preset = 0
+size_flags_horizontal = 4
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 7
+text = ""

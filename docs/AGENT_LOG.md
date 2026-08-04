@@ -243,3 +243,19 @@ Created `engine/Cards/RulesTextRenderer.cs` with `Render(CardDef)` and `RenderAb
 Created `tests/Cards/RulesTextSnapshotTests.cs` — 61 snapshot tests, one per card (60 hand-authored + 1 token), each asserting the exact rendered output. Every card's text verified correct.
 
 227 tests total (166 existing + 61 new). 0 TODO, 0 NotImplementedException.
+
+## Session 16 — 2026-08-04
+
+### P3-01 — Duel scene layout
+
+Created the duel scene visual shell in the Godot client:
+
+- **`client/scenes/duel/DuelScene.tscn`** — full-screen Control with: enemy HUD (name, vigor, attunement), 5+5 lane rows with divider, player HUD, and hand fan area at the bottom
+- **`client/scripts/DuelScene.cs`** — `PopulateLanes()` instantiates 10 `LaneSlot` instances (5 per row), `SetTestData()` places test creatures + hand cards for visual verification
+- **`client/scenes/components/LaneSlot.tscn`** — panel container with dark theme, shows card name + A/V stats, `LaneSlot.cs` has `SetCard()`/`SetEmpty()` and `Row`/`LaneIndex` metadata
+- **`client/scenes/components/HandCard.tscn`** — small tappable button showing card name + cost, `HandCard.cs` has `SetCard(cardId, name, cost)`
+- **`project.godot`** — `main_scene` switched from `Main.tscn` to `DuelScene.tscn`
+
+Client builds with `dotnet build` — 0 errors. Engine tests still at 227/227 passing.
+
+Next: **P3-02** — Card view component driven entirely by CardDef + rendered text + art path.

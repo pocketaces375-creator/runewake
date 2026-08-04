@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3 uid="uid://lane_slot_component"]
+
+[ext_resource type="Script" path="res://scripts/LaneSlot.cs" id="1_xyz"]
+
+[node name="LaneSlot" type="PanelContainer"]
+anchors_preset = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_minimum_size = Vector2(64, 88)
+theme_override_styles/panel = SubResource(1)
+
+[sub_resource type="StyleBoxFlat" id="1]
+content_margin_left = 4
+content_margin_top = 4
+content_margin_right = 4
+content_margin_bottom = 4
+bg_color = Color(0.12, 0.12, 0.16, 1)
+border_color = Color(0.3, 0.3, 0.35, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="CardName" type="Label" parent="VBox"]
+anchors_preset = 0
+size_flags_horizontal = 4
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 10
+text = ""
+
+[node name="Stats" type="Label" parent="VBox"]
+anchors_preset = 0
+size_flags_horizontal = 4
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 9
+text = ""

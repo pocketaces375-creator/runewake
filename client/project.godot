@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Runewake"
 config/description="RUNEWAKE: The Buried Age — a fantasy TCG"
-run/main_scene="res://scenes/main/Main.tscn"
+run/main_scene="res://scenes/duel/DuelScene.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
 

@@ -1,0 +1,116 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4m3x1duelscene"]
+
+[ext_resource type="Script" path="res://scripts/DuelScene.cs" id="1_duel"]
+
+[node name="DuelScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_duel")
+
+[node name="EnemyHUD" type="HBoxContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_right = 0.0
+offset_bottom = 40.0
+theme_override_constants/separation = 16
+
+[node name="EnemyName" type="Label" parent="EnemyHUD"]
+size_flags_horizontal = 3
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = "ENEMY"
+
+[node name="EnemyVigorLabel" type="Label" parent="EnemyHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Vigor:"
+
+[node name="EnemyVigorValue" type="Label" parent="EnemyHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "25"
+
+[node name="EnemyAttuneLabel" type="Label" parent="EnemyHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Attune:"
+
+[node name="EnemyAttuneValue" type="Label" parent="EnemyHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "0"
+
+[node name="Board" type="VBoxContainer" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 40.0
+offset_bottom = -140.0
+theme_override_constants/separation = 4
+
+[node name="EnemyLanes" type="HBoxContainer" parent="Board"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Divider" type="ColorRect" parent="Board"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+custom_minimum_size = Vector2(0, 4)
+color = Color(0.3, 0.3, 0.35, 1)
+
+[node name="PlayerLanes" type="HBoxContainer" parent="Board"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PlayerHUD" type="HBoxContainer" parent="."]
+anchors_preset = 14
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_top = -100.0
+offset_bottom = -50.0
+
+[node name="PlayerVigorLabel" type="Label" parent="PlayerHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Vigor:"
+
+[node name="PlayerVigorValue" type="Label" parent="PlayerHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "25"
+
+[node name="PlayerAttuneLabel" type="Label" parent="PlayerHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Attune:"
+
+[node name="PlayerAttuneValue" type="Label" parent="PlayerHUD"]
+size_flags_horizontal = 0
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "0"
+
+[node name="HandArea" type="HFlowContainer" parent="."]
+anchors_preset = 14
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_top = -50.0
+offset_bottom = 0.0
+theme_override_constants/hseparation = 2
