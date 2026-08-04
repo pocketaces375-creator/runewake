@@ -149,3 +149,27 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 **Tests:** 1 fuzz test (`Fuzz200_ReplayedGames_ProduceIdenticalFinalState`) — 200 random legal games (20 seeds × 10 variants), each played by a bot that picks random valid actions from the hand/board state. For each game, the action log is JSON-serialized, deserialized, and replayed. Original and replayed final state hashes are asserted equal. All pass.
 
 **Files changed:** 6 files added, 2 modified. 0 TODO, 0 NotImplementedException.
+
+## Session 11 — 2026-08-04
+
+### P2-01 — Greedy heuristic bot
+
+**New file:**
+- `sim/Bot.cs` — `GreedyBot` class with three public methods:
+  - `Evaluate(GameState, int playerIndex)` → score = Σ(ally creature ATK+VIG) + ally Vigor − Σ(enemy creature ATK+VIG) − enemy Vigor
+  - `EnumerateValidActions(GameState, int playerIndex)` → all legal play/attack/end-turn actions
+  - `ChooseAction(GameState, int playerIndex)` → evaluates each action one-ply deep, picks the highest-scoring
+
+**Model changes:** None. Test project gained a `ProjectReference` to `Runewake.Sim`.
+
+**Tests:** 8 new unit tests:
+- `Evaluate_EmptyBoard_ReturnsVigorDifference` — score 0 when both sides equal
+- `Evaluate_AllyHasCreature_ReturnsPositiveScore` — creature stats counted
+- `Evaluate_EnemyHasStrongerCreature_ReturnsNegativeScore` — negative when outmatched
+- `EnumerateActions_EmptyBoardNoHand_OnlyEndTurn` — only legal move is pass
+- `EnumerateActions_CardsInHand_IncludesPlayActions` — play actions per empty lane
+- `ChooseAction_PrefersPlayingCreatureOverEndTurn_WhenHandHasPlayableCard` — bot plays a 4/4 instead of passing
+- `ChooseAction_PrefersAttackingOverEndTurn_WhenCreatureIsReady` — bot attacks over doing nothing
+- `ChooseAction_PrefersAttackingGuardOverEndTurn_WhenCreatureIsReady` — bot attacks Guard even when face is blocked
+
+All 142 tests pass. 0 TODO, 0 NotImplementedException.
