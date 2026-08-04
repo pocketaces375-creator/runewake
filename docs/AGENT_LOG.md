@@ -835,4 +835,31 @@ Built the AI pipeline's VALIDATE stage — deterministic Python module that runs
 - 331/331 C# tests still pass
 - 0 TODO, 0 NotImplementedException
 
-Next: **P6-04** — Score module.
+Next: **P6-05** — Simulate module.
+
+---
+
+## P6-04 — Score module
+
+**Status:** Complete
+
+**Summary:**
+Built the SCORE stage of the AI pipeline — deterministic power score computation and rarity band validation per DSL §4. The module computes `power_score` for each card, checks the delta against the rarity-specific acceptance band, and optionally auto-adjusts cost ±1 for out-of-band cards.
+
+**Files created:**
+- `pipeline/modules/score.py` — Score module (`python -m pipeline.modules.score --input ... --work-dir ...`) with:
+  - `compute_base()` — attack * 1.0 + vigor * 0.75
+  - `compute_keywords()` — sum of KEYWORD_WEIGHTS (SWIFT 1.1, GUARD 0.9, PIERCE 0.6, etc.)
+  - `compute_abilities()` — sum of effect_weight * trigger_multiplier * condition_discount per ability
+  - `expected_score()` — 2.35 * cost + 0.9
+  - `check_rarity_band()` — validates delta against COMMON/UNCOMMON/RARE/RELIC bands
+  - `auto_adjust()` — tries cost ±1 and re-scores
+  - All 23 effect ops weighted, all 14 trigger multipliers, 13 condition ops classified as easy/hard
+  - Output: `03_scored.json`, `03_adjusted.json`, `rejects/reject_score_NNN.json`
+- `pipeline/tests/test_score.py` — 26 Python tests covering all paths
+
+**Verification:**
+- All 26 Python tests pass
+- 331/331 C# tests still pass
+- 0 TODO, 0 NotImplementedException
+- Formula calibration note: 5/60 hand-authored cards fit current bands; the rest need tuning after simulated play (per spec: "starting hypothesis, not truth")
