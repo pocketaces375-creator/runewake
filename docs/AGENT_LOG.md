@@ -23,3 +23,19 @@ Created the full repository structure for Runewake. Initialized .NET solution wi
 - Android preset configured (needs Android SDK + keystore for actual export)
 
 **Remaining for DoD:** Export and install on physical Android and iOS devices requires Adam's hardware. Android needs a keystore and the Android SDK on the build machine; iOS needs macOS + Xcode.
+
+## Session 2 — 2026-08-04
+
+### P0-03 — Core state types
+
+Created `engine/State/` with five data types:
+
+- **`SeededRng`** — Deterministic SplitMix64 PRNG. `Clone()` produces an independent copy at the same position.
+- **`CardInstance`** — Runtime card instance. Tracks zone, lane, damage, modifiers, exhaustion, identification status, granted/removed keywords, and attached curses. Deep Clone.
+- **`LaneState`** — One of five lanes per player. Holds an occupant (creature/relic) and attached curses. Deep Clone.
+- **`PlayerState`** — Vigor, attunement (max/per turn), deck/hand/discard/barrow lists, five lanes, fatigue counter, max hand size. Deep Clone.
+- **`GameState`** — Two players, current player index, turn number, seeded RNG, content version, next instance ID, trigger depth cap, game-over flag. `CurrentPlayer`/`Opponent` shortcuts. Deep Clone (except ActionLog, which is append-only).
+
+Removed the template `Class1.cs` from engine.
+
+**Tests:** 6 clone-isolation tests — SeededRg, CardInstance, LaneState, PlayerState, GameState deep copy, RNG independence. All pass with 0 warnings.
