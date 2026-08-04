@@ -47,3 +47,27 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 - `CheckGameOver()`: Sets `IsGameOver` and `WinnerIndex` when vigor reaches 0.
 
 **Tests:** 17 new combat tests — play card to lane, cost deduction, occupied lane rejection, trade (both survive), one-sided kill, both die, defender in discard, face damage, face damage wins game, Guard redirect, Guard no-redirect when occupied, Guard first-lane selection, Pierce carry-through, Pierce exact-kill no-carry, exhausted attack rejected, double-attack rejected, empty-lane attack rejected, Swift not exhausted.
+
+## Session 6 — 2026-08-04
+
+### P1-04 — Keyword handlers
+
+**Engine changes:**
+- `KeywordHandlers.cs`: Static handler class with methods for all 11 keywords:
+  - `OnPlay` — Swift (no-exhaust on summon), Ward (set WardRemaining=1), SummonedThisTurn (for Fragile)
+  - `CanAttack` — Rooted returns false
+  - `ResolveTargetLane` — validates Reach adjacency (source±1) or opposing-only
+  - `ApplyWard` — absorbs one damage instance, decrements WardRemaining
+  - `OnCombatDamageDealt` — Venom marks damaged creatures
+  - `ResolveVenom` — destroys all marked creatures after combat
+  - `OnDeath` — Unearth intercepts death, queues card for return
+  - `ProcessUnearth` — returns queued cards to hand on turn start (cost deducted)
+  - `ProcessFragile` — destroys Fragile creatures summoned this turn at end phase
+  - `IsSealed` — returns true for Sealed creatures
+- `CardInstance.cs`: Added `WardRemaining`, `IsVenomed`, `SummonedThisTurn`, `UnearthCost`
+- `PlayerState.cs`: Added `UnearthQueue` (List of CardInstance)
+- `GameAction.cs`: Added `TargetLane` to AttackAction (for Reach)
+- `DuelEngine.cs`: Refactored to call KeywordHandlers instead of inline keyword checks; Guard/Pierce remain inline but use handler helpers. Fragile processed in End phase, Unearth in Start triggers.
+- Files under 400 lines. No `TODO` or `NotImplementedException`.
+
+**Tests:** 15 new keyword tests — Guard redirect, Swift no-exhaust, Pierce carry, Ward blocks one hit, Ward consumed, Venom destroys after combat, Reach adjacent attack, Reach non-adjacent rejects, Rooted can't attack, Unearth returns to hand, Unearth discards if unaffordable, Echo flag recognized, Fragile destroyed at end of turn, Fragile non-fragile survives, Sealed recognized as untargetable.

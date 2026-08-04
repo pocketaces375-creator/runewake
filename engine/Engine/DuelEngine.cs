@@ -37,10 +37,11 @@ public static partial class DuelEngine
 
     private static GameState ApplyEndTurn(GameState state, EndTurnAction action)
     {
-        var player = state.Player(action.PlayerIndex);
+        var endingPlayer = state.Player(action.PlayerIndex);
 
-        // 1. End phase — hand size check
-        TruncateHand(player);
+        // 1. End phase — Fragile check, then hand size check
+        KeywordHandlers.ProcessFragile(endingPlayer);
+        TruncateHand(endingPlayer);
 
         // 2. Switch to next player
         state.CurrentPlayerIndex = state.OpponentIndex(action.PlayerIndex);
@@ -63,7 +64,8 @@ public static partial class DuelEngine
         if (!firstPlayerSkipsDraw)
             ExecuteDraw(nextPlayer, state);
 
-        // 5. Start triggers (no-op until P1-06)
+        // 5. Start triggers — Unearth processing + trigger bus stub
+        KeywordHandlers.ProcessUnearth(nextPlayer);
 
         return state;
     }
@@ -77,9 +79,6 @@ public static partial class DuelEngine
         if (card.Zone != Zone.Hand)
             throw new InvalidOperationException("Card is not in hand.");
 
-        // Cost is unknown without CardDef — use a configurable field.
-        // For now, cards without a set cost default to 0.
-        // (Full cost validation comes with P1-05 effect executor + card registry.)
         if (player.Attunement < action.Cost)
             throw new InvalidOperationException($"Not enough attunement: have {player.Attunement}, need {action.Cost}.");
 
@@ -101,9 +100,8 @@ public static partial class DuelEngine
 
             if (card.CardType == CardType.CREATURE)
             {
-                // Exhaust unless Swift
-                bool hasSwift = card.EffectiveKeywords.Contains("SWIFT");
-                card.IsExhausted = !hasSwift;
+                // Apply keyword effects: Swift, Ward, SummonedThisTurn, etc.
+                KeywordHandlers.OnPlay(card);
             }
         }
         else if (card.CardType == CardType.RITUAL)
@@ -131,15 +129,25 @@ public static partial class DuelEngine
         if (attacker.HasAttackedThisTurn)
             throw new InvalidOperationException("Attacker has already attacked this turn.");
 
-        // Determine target lane
-        int opposingIdx = action.SourceLane;
-        var opposingLane = opponent.Lanes[opposingIdx];
-        int? targetLaneIdx;
+        // Rooted cannot attack
+        if (!KeywordHandlers.CanAttack(attacker))
+            throw new InvalidOperationException("Attacker has Rooted and cannot attack.");
 
-        if (opposingLane.Occupant is not null)
+        // Resolve target lane (handles Reach targeting)
+        int? resolvedTarget = KeywordHandlers.ResolveTargetLane(attacker, action.SourceLane, action.TargetLane);
+        if (resolvedTarget is null)
+            throw new InvalidOperationException("Invalid attack target.");
+
+        int targetLaneIdx = resolvedTarget.Value;
+
+        // Determine final target: creature or face (with Guard redirect)
+        var targetLane = opponent.Lanes[targetLaneIdx];
+        int? actualTargetLaneIdx;
+
+        if (targetLane.Occupant is not null)
         {
             // Occupied — fight the blocker
-            targetLaneIdx = opposingIdx;
+            actualTargetLaneIdx = targetLaneIdx;
         }
         else
         {
@@ -148,45 +156,56 @@ public static partial class DuelEngine
             if (guardLane is not null)
             {
                 // Redirect to Guard lane
-                targetLaneIdx = guardLane;
+                actualTargetLaneIdx = guardLane;
             }
             else
             {
                 // Face damage
-                targetLaneIdx = null;
+                actualTargetLaneIdx = null;
             }
         }
 
         int attackPower = attacker.CurrentAttack;
 
-        if (targetLaneIdx is int tgtIdx)
+        if (actualTargetLaneIdx is int tgtIdx)
         {
-            var targetLane = opponent.Lanes[tgtIdx];
-            var defender = targetLane.Occupant!;
+            var actualLane = opponent.Lanes[tgtIdx];
+            var defender = actualLane.Occupant!;
 
-            // Simultaneous damage
+            // Ward reduces attacker's damage to defender
+            int damageToDefender = KeywordHandlers.ApplyWard(defender, attackPower);
+
+            // Simultaneous damage (defender always hits back with full power)
             int atkDamage = defender.CurrentAttack;
-            defender.Damage += attackPower;
+            defender.Damage += damageToDefender;
             attacker.Damage += atkDamage;
+
+            // Venom marking
+            KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);
 
             // Pierce: excess damage to defender carries to face
             bool defenderKilled = defender.CurrentVigor <= 0;
             if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE"))
             {
-                int excess = attackPower - defender.BaseVigor - defender.VigorModifier;
-                // Actually: excess is damage over what was needed to kill
                 int neededToKill = defender.BaseVigor + defender.VigorModifier;
                 int excessDamage = System.Math.Max(0, attackPower - neededToKill);
                 opponent.Vigor -= excessDamage;
                 CheckGameOver(state, opponent);
             }
 
-            // Remove dead defender
+            // Remove dead defender (check Unearth first)
             if (defenderKilled)
             {
-                targetLane.Occupant = null;
-                defender.Zone = Zone.Discard;
-                opponent.Discard.Add(defender);
+                if (!KeywordHandlers.OnDeath(defender, opponent))
+                {
+                    actualLane.Occupant = null;
+                    defender.Zone = Zone.Discard;
+                    opponent.Discard.Add(defender);
+                }
+                else
+                {
+                    actualLane.Occupant = null; // removed from lane, now in UnearthQueue
+                }
             }
         }
         else
@@ -196,12 +215,22 @@ public static partial class DuelEngine
             CheckGameOver(state, opponent);
         }
 
-        // Remove dead attacker
+        // Resolve Venom (destroy any creatures marked by Venom this combat)
+        KeywordHandlers.ResolveVenom(state, action.PlayerIndex);
+
+        // Remove dead attacker (check Unearth first)
         if (attacker.CurrentVigor <= 0)
         {
-            sourceLane.Occupant = null;
-            attacker.Zone = Zone.Discard;
-            player.Discard.Add(attacker);
+            if (!KeywordHandlers.OnDeath(attacker, player))
+            {
+                sourceLane.Occupant = null;
+                attacker.Zone = Zone.Discard;
+                player.Discard.Add(attacker);
+            }
+            else
+            {
+                sourceLane.Occupant = null; // removed from lane, now in UnearthQueue
+            }
         }
         else
         {

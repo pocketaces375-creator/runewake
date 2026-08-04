@@ -76,6 +76,20 @@ public sealed class CardInstance
     /// <summary>True if this card is Exhausted (cannot attack or activate).</summary>
     public bool IsExhausted { get; set; }
 
+    /// <summary>True if this card was summoned during the current turn (for Fragile).</summary>
+    public bool SummonedThisTurn { get; set; }
+
+    // ——— Keyword state ———
+
+    /// <summary>Remaining Ward charges. Each prevents one instance of damage.</summary>
+    public int WardRemaining { get; set; }
+
+    /// <summary>True if marked by Venom for destruction at end of combat.</summary>
+    public bool IsVenomed { get; set; }
+
+    /// <summary>Cost to return this card via Unearth. 0 if not Unearth.</summary>
+    public int UnearthCost { get; set; }
+
     // ——— Relic-specific ———
 
     /// <summary>True if a Relic card's identity condition has been met and the card is face-up.</summary>
@@ -137,6 +151,10 @@ public sealed class CardInstance
         VigorModifier = other.VigorModifier;
         HasAttackedThisTurn = other.HasAttackedThisTurn;
         IsExhausted = other.IsExhausted;
+        SummonedThisTurn = other.SummonedThisTurn;
+        WardRemaining = other.WardRemaining;
+        IsVenomed = other.IsVenomed;
+        UnearthCost = other.UnearthCost;
         IsIdentified = other.IsIdentified;
         Keywords = new List<string>(other.Keywords);
         GrantedKeywords = new HashSet<string>(other.GrantedKeywords);

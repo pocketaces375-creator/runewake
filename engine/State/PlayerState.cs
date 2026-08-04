@@ -50,6 +50,12 @@ public sealed class PlayerState
     /// <summary>IDs of curse instances attached to this player.</summary>
     public List<int> AttachedCurseIds { get; } = new();
 
+    /// <summary>
+    /// Cards pending Unearth return. At the start of this player's turn,
+    /// they pay the cost and these return to hand.
+    /// </summary>
+    public List<CardInstance> UnearthQueue { get; } = new();
+
     public PlayerState(int index)
     {
         Index = index;
@@ -88,6 +94,7 @@ public sealed class PlayerState
             Lanes[i] = other.Lanes[i].Clone();
 
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);
+        UnearthQueue = other.UnearthQueue.ConvertAll(c => c.Clone());
     }
 
     /// <summary>

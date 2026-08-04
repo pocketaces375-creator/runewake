@@ -37,4 +37,11 @@ public sealed record AttackAction : GameAction
 {
     /// <summary>Lane of the attacking creature (0–4).</summary>
     public int SourceLane { get; init; }
+
+    /// <summary>
+    /// Target lane to attack. If null, defaults to the opposing lane
+    /// (same index as SourceLane). Non-null values allow Reach to
+    /// target adjacent lanes.
+    /// </summary>
+    public int? TargetLane { get; init; }
 }
