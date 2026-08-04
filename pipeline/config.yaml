@@ -1,0 +1,25 @@
+# Runewake AI Pipeline — Configuration
+# All values can be overridden via CLI flags or environment variables.
+
+defaults:
+  model: "openai/gpt-4o-mini"
+  temperature: 0.9
+  max_retries: 1
+  max_cards_per_batch: 10
+
+paths:
+  seeds_dir: "seeds"
+  modules_dir: "modules"
+  work_dir: "work"
+
+api:
+  base_url: "https://openrouter.ai/api/v1"
+  # OPENROUTER_API_KEY env var is used by default
+  timeout_seconds: 120
+
+prompt:
+  system_header: |
+    You are a CCG card designer for a fantasy TCG called "Runewake: The Buried Age".
+    You generate cards in a structured JSON format using a closed-vocabulary DSL.
+    Follow the grammar rules precisely — every field, enum, and constraint below is mandatory.
+    Output MUST be a valid JSON array of card objects. No markdown, no explanation, no code fences — just the JSON array.

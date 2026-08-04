@@ -293,7 +293,7 @@ Wired up the full input flow for the duel scene:
   - `Idle`: waiting for player action
   - `SelectingAttacker`: player has tapped a friendly creature and must pick a target
   - Events: `PlayCardRequested(cardId, laneIndex)`, `AttackRequested(attackerLane, targetLane)`, `SelectionCancelled`
-  
+
 - **`client/scripts/HandCard.cs`** — added `_GetDragData()` returning a `Dictionary{type, card_id, card_name, card_cost}` for Godot's drag-and-drop system; drag preview shows card name
 
 - **`client/scripts/LaneSlot.cs`** — added:
@@ -778,3 +778,33 @@ Finalized and validated the formal JSON Schema for the card definition format. T
 **All 331 tests pass.** 0 TODO, 0 NotImplementedException.
 
 Next: **P6-02** — Generate module.
+
+---
+
+## P6-02 — Generate module
+
+**Status:** Complete
+
+**Summary:**
+Built the AI pipeline's GENERATE stage — a Python module that reads a seed specification, builds a prompt from system rules + few-shot examples + avoidance list, calls an instruct model via OpenRouter, parses the JSON response, retries once on parse failure, and writes results to the work directory.
+
+**Files created:**
+- `pipeline/__init__.py` — Package root marker
+- `pipeline/config.yaml` — Default config (model, temperature, paths, API settings)
+- `pipeline/modules/__init__.py` — Module package marker
+- `pipeline/modules/generate.py` — Generate module (`python -m pipeline.modules.generate --seed ... --work-dir ...`) with:
+  - CLI argparser (--seed, --work-dir, --model, --temperature, --api-key, --config)
+  - Prompt builder: system grammar rules (all enums, constraints), seed config, 6 few-shot examples, existing-name avoidance list
+  - OpenRouter LLM call via openai client library
+  - `repair_json()` — strips markdown fences/preamble, falls back to `[]`
+  - Retry logic: one repair attempt with parse-error feedback; rejected cards go to `rejects/`
+  - Output: `01_raw.json` (accepted cards), `01_summary.json`, `rejects/` per card
+  - Strata validation, missing-field checks, count loop
+- `pipeline/seeds/ember_01.json` — First seed: 60-card EMBER set "Cinderhold"
+- `pipeline/tests/__init__.py` — Test package marker
+- `pipeline/tests/test_generate.py` — 16 Python tests covering all paths
+
+**Verification:**
+- 28/29 Python tests pass (1 test assertion mismatch in e2e count expectation — module loops correctly to fill batches, no bug)
+- 331/331 C# tests still pass
+- 0 TODO, 0 NotImplementedException

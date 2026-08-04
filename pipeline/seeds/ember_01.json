@@ -1,0 +1,11 @@
+{
+  "batch_id": "b_2026_ember_01",
+  "count": 60,
+  "strata": "EMBER",
+  "type_mix": { "CREATURE": 40, "RITUAL": 14, "RELIC": 6 },
+  "cost_curve": { "1": 6, "2": 10, "3": 12, "4": 10, "5": 8, "6": 6, "7": 4, "8": 4 },
+  "rarity_mix": { "COMMON": 28, "UNCOMMON": 20, "RARE": 9, "RELIC": 3 },
+  "theme": "Cinderhold — forge city, ash, iron, things that were mined too deep",
+  "mechanic_emphasis": ["SWIFT", "PIERCE", "BURY"],
+  "forbidden_mechanics": ["EXCAVATE"]
+}
