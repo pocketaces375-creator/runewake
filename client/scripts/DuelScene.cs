@@ -30,6 +30,7 @@ public partial class DuelScene : Control
 
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
+    private BotController _bot = default!;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -73,11 +74,18 @@ public partial class DuelScene : Control
         _gsm.StateChanged += OnStateChanged;
         _gsm.GameOver += OnGameOver;
 
+        // Create bot controller
+        _bot = new BotController();
+        AddChild(_bot);
+        _bot.BotTurnStarted += OnBotTurnStarted;
+        _bot.BotTurnEnded += OnBotTurnEnded;
+
         // Populate lane slots
         PopulateLanes();
 
         // Load card packs and start the game
         LoadCardPacks();
+        _bot.Initialize(_gsm);
         _gsm.InitializeTestGame();
     }
 
@@ -327,10 +335,23 @@ public partial class DuelScene : Control
         }
     }
 
+    // ——— Bot turn callbacks ———
+
+    private void OnBotTurnStarted()
+    {
+        _turnLabel.Text = $"Turn {_gsm.TurnNumber} — Enemy Thinking...";
+    }
+
+    private void OnBotTurnEnded()
+    {
+    }
+
     // ——— Input event handlers ———
 
     private void OnLaneTapped(int laneIndex, bool isEmpty)
     {
+        if (_bot.IsThinking) return;
+
         bool isPlayerLane = _playerSlots.Exists(s => s.LaneIndex == laneIndex);
         bool isEnemyLane = _enemySlots.Exists(s => s.LaneIndex == laneIndex);
 
@@ -360,11 +381,13 @@ public partial class DuelScene : Control
 
     private void OnCardDropped(string cardId, int laneIndex)
     {
+        if (_bot.IsThinking) return;
         _input.TryPlayCard(cardId, laneIndex);
     }
 
     private void OnHandCardPressed(HandCard card)
     {
+        if (_bot.IsThinking) return;
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
             _input.CancelSelection();

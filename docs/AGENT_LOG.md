@@ -363,3 +363,29 @@ Next: **P3-05** — Animation and feedback layer (damage numbers, death, summon)
 Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass. 0 TODO, 0 NotImplementedException.
 
 Next: **P3-06** — Bot opponent wired in with a small think-delay.
+
+## Session 21 — 2026-08-04
+
+### P3-06 — Bot opponent wired in with a think-delay
+
+**New files:**
+- `client/scripts/BotController.cs` — a Node that manages the AI turn lifecycle:
+  - Listens to `GameStateManager.StateChanged` — when it detects the enemy's turn (player index 1), starts a timer
+  - On timeout: calls `GreedyBot.ChooseAction()` to pick the best action
+  - Dispatches the action via `GameStateManager` methods (PlayCard, Attack, EndTurn)
+  - After each action, schedules the next if still the enemy's turn (0.6s interval)
+  - Exposes `BotTurnStarted` / `BotTurnEnded` events for UI feedback
+  - `IsThinking` property for input gating
+  - Think delay configurable (default 1.5s first action, 0.6s follow-ups)
+
+**Modified files:**
+- `client/Runewake.Client.csproj` — added `ProjectReference` to `Runewake.Sim` (for GreedyBot)
+- `client/scripts/DuelScene.cs` — wired BotController:
+  - Creates and initializes `BotController` in `_Ready()` (after `_gsm`, before `InitializeTestGame`)
+  - `_bot.Initialize(_gsm)` connects the bot to state changes
+  - Input event handlers (`OnLaneTapped`, `OnCardDropped`, `OnHandCardPressed`) guarded by `if (_bot.IsThinking) return;`
+  - Turn label shows "Enemy Thinking..." during bot turns
+
+Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P3-07** — Mulligan screen (optional); or **P3-08** polish, edge cases, mobile sizing.

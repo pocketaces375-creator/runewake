@@ -9,5 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\engine\Runewake.Engine.csproj" />
+    <ProjectReference Include="..\sim\Runewake.Sim.csproj" />
   </ItemGroup>
 </Project>
