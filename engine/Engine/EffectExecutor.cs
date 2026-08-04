@@ -456,5 +456,6 @@ public static class EffectExecutor
         {
             lane.Occupant = null;
         }
+        TriggerBus.FireDeathEvents(state, card, owner.Index);
     }
 }

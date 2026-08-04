@@ -93,3 +93,27 @@ Created `engine/Engine/` with the pure deterministic duel engine:
 - Files under 400 lines. No TODO or NotImplementedException.
 
 **Tests:** 67 new tests — theory test covering all 23 OPs; detailed assertion tests for each OP (DAMAGE kills, DRAW adds cards, etc.); filter tests for all 17 filters (ADJACENT, OPPOSING, SAME_LANE, EDGE_LANE, CENTER_LANE, DAMAGED, UNDAMAGED, STRATA, KEYWORD, TYPE, LOWEST_VIGOR, HIGHEST_ATTACK, LOWEST_COST, HIGHEST_COST, CHOSEN); scope and count tests.
+
+## Session 8 — 2026-08-04
+
+### P1-06 — Trigger bus
+
+**New files:**
+- `TriggerBus.cs`: Deterministic trigger bus with chain depth cap at 20. Fires abilities ordered by controller first, then lane index. Supports compound conditions (all/any). Condition evaluation for all 13 condition ops.
+
+**Integration with DuelEngine:**
+- `ApplyPlayCard`: Fires `ON_SUMMON` after placing a CREATURE
+- `ApplyAttack`: Fires `ON_DEATH` (via `FireDeathEvents`) when creatures die in combat
+- `ApplyEndTurn`: Fires `ON_TURN_END` in the end phase, `ON_TURN_START` in the start triggers phase
+- `EffectExecutor.KillCreature`: Also fires `ON_DEATH` for any destroyed creatures
+
+**Model changes:**
+- `CardInstance.cs`: Added `Abilities` list (List of AbilityDef) with deep clone support in the copy constructor.
+
+**Key implementation details:**
+- `Fire(GameState, Trigger, eventPlayerIndex)`: Collects matching abilities from all board creatures, ordered by controller then lane. Tracks `state.TriggerDepth` with a hard cap at 20.
+- `FireDeathEvents`: Fires ON_DEATH for a specific dead card (since it's no longer on the board for the standard collection).
+- Conditions evaluated: ALLY_COUNT_GTE, ENEMY_COUNT_GTE, BARROW_COUNT_GTE, HAND_COUNT_GTE/LTE, TURN_GTE, VIGOR_GTE/LTE, ATTUNEMENT_GTE, CONTROLS_KEYWORD, CONTROLS_STRATA, DAMAGED_THIS_TURN.
+- Files under 400 lines. No TODO or NotImplementedException.
+
+**Tests:** 7 new trigger tests — ON_SUMMON fires when creature played, ON_DEATH chain of 3 death triggers, trigger depth cap at 20 (at cap blocks, below cap fires), ON_TURN_START fires for next player, ON_TURN_END fires for ending player.

@@ -39,7 +39,8 @@ public static partial class DuelEngine
     {
         var endingPlayer = state.Player(action.PlayerIndex);
 
-        // 1. End phase — Fragile check, then hand size check
+        // 1. End phase — ON_TURN_END triggers, Fragile check, then hand size check
+        TriggerBus.Fire(state, Trigger.ON_TURN_END, action.PlayerIndex);
         KeywordHandlers.ProcessFragile(endingPlayer);
         TruncateHand(endingPlayer);
 
@@ -64,8 +65,9 @@ public static partial class DuelEngine
         if (!firstPlayerSkipsDraw)
             ExecuteDraw(nextPlayer, state);
 
-        // 5. Start triggers — Unearth processing + trigger bus stub
+        // 5. Start triggers — Unearth processing + ON_TURN_START triggers
         KeywordHandlers.ProcessUnearth(nextPlayer);
+        TriggerBus.Fire(state, Trigger.ON_TURN_START, state.CurrentPlayerIndex);
 
         return state;
     }
@@ -102,6 +104,9 @@ public static partial class DuelEngine
             {
                 // Apply keyword effects: Swift, Ward, SummonedThisTurn, etc.
                 KeywordHandlers.OnPlay(card);
+
+                // Fire ON_SUMMON triggers (and any chained triggers, depth-limited)
+                TriggerBus.Fire(state, Trigger.ON_SUMMON, action.PlayerIndex);
             }
         }
         else if (card.CardType == CardType.RITUAL)
@@ -196,6 +201,7 @@ public static partial class DuelEngine
             // Remove dead defender (check Unearth first)
             if (defenderKilled)
             {
+                bool isUnearthed = false;
                 if (!KeywordHandlers.OnDeath(defender, opponent))
                 {
                     actualLane.Occupant = null;
@@ -204,8 +210,11 @@ public static partial class DuelEngine
                 }
                 else
                 {
-                    actualLane.Occupant = null; // removed from lane, now in UnearthQueue
+                    actualLane.Occupant = null;
+                    isUnearthed = true; // card is in UnearthQueue, not discard
                 }
+                // Fire ON_DEATH triggers
+                TriggerBus.FireDeathEvents(state, defender, opponent.Index);
             }
         }
         else
@@ -229,8 +238,9 @@ public static partial class DuelEngine
             }
             else
             {
-                sourceLane.Occupant = null; // removed from lane, now in UnearthQueue
+                sourceLane.Occupant = null;
             }
+            TriggerBus.FireDeathEvents(state, attacker, player.Index);
         }
         else
         {

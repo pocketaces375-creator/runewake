@@ -128,6 +128,11 @@ public sealed class CardInstance
     /// <summary>List of curse instances attached to this card (by their InstanceId).</summary>
     public List<int> AttachedCurseIds { get; } = new();
 
+    // ——— Abilities ———
+
+    /// <summary>Ability definitions from the card (for trigger matching and resolution).</summary>
+    public List<AbilityDef> Abilities { get; set; } = new();
+
     // ——— Construction ———
 
     public CardInstance(int instanceId, string cardDefId, int controller)
@@ -164,6 +169,18 @@ public sealed class CardInstance
         GrantedKeywords = new HashSet<string>(other.GrantedKeywords);
         RemovedKeywords = new HashSet<string>(other.RemovedKeywords);
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);
+        Abilities = other.Abilities.ConvertAll(a => new AbilityDef
+        {
+            Trigger = a.Trigger,
+            Condition = a.Condition,
+            ActivationCost = a.ActivationCost,
+            Effects = a.Effects.ConvertAll(e => new EffectDef
+            {
+                Op = e.Op, Target = e.Target, Amount = e.Amount,
+                Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
+                TokenId = e.TokenId, Duration = e.Duration
+            })
+        });
     }
 
     /// <summary>
