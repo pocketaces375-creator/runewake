@@ -9,7 +9,10 @@ namespace Runewake.Engine.Cards;
 /// </summary>
 public static class CardLoader
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    /// <summary>
+    /// JSON serializer options used by the card loader. Exposed for reuse by the validator CLI.
+    /// </summary>
+    public static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = false,
         ReadCommentHandling = JsonCommentHandling.Skip,

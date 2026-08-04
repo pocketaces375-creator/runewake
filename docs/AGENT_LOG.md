@@ -191,3 +191,17 @@ All 142 tests pass. 0 TODO, 0 NotImplementedException.
 - `RunBatch_SameSeed_ProducesDeterministicResults` — same config produces identical results
 
 All 146 tests pass. 0 TODO, 0 NotImplementedException.
+
+## Session 13 — 2026-08-04
+
+### P2-03 — Card validator CLI
+
+**New files:**
+- `sim/CardValidator.cs` — `CardValidator.Validate(CardDef)` checks all schema constraints: required fields, ID format, name length, cost range, type-specific rules (CREATURE needs attack/vigor, RITUAL must not have attack/vigor, RELIC needs identify_condition), keyword/ability limits, nested ability/effect/target/condition validation.
+- `tests/Engine/CardValidatorTests.cs` — 20 tests covering valid creatures, rituals, relics; invalid ID, name, cost, missing attack/vigor, wrong type fields, too many keywords/abilities, unknown keyword, negative power score, low content version, long flavor.
+
+**Model changes:** `CardLoader.JsonOptions` made public (was private) for reuse by validator CLI.
+
+**CLI:** `Runewake.Sim validate-card <card-file>` — loads a JSON card pack, validates each card, prints `[✓]` or `[✗]` with error details. Exits 0 on success, 1 on errors.
+
+**Tests:** 20 new unit tests (166 total). All pass. Verified on 6 example cards — all pass. 0 TODO, 0 NotImplementedException.
