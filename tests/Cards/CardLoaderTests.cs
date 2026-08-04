@@ -35,12 +35,14 @@ public class CardLoaderTests
         Assert.Null(c.Abilities[0].Condition);
         Assert.Single(c.Abilities[0].Effects);
         Assert.Equal(Op.BUFF, c.Abilities[0].Effects[0].Op);
-        Assert.Equal(Scope.ALLY_CREATURE, c.Abilities[0].Effects[0].Target!.Scope);
-        Assert.Equal("ADJACENT", c.Abilities[0].Effects[0].Target.Filter);
-        Assert.True(c.Abilities[0].Effects[0].Target.Count!.Value.IsAll);
-        Assert.Equal(0, c.Abilities[0].Effects[0].Attack);
-        Assert.Equal(1, c.Abilities[0].Effects[0].Vigor);
-        Assert.Equal(Duration.PERMANENT, c.Abilities[0].Effects[0].Duration);
+        var rootWardenEffect = c.Abilities[0].Effects[0];
+        var rootWardenTarget = rootWardenEffect.Target!;
+        Assert.Equal(Scope.ALLY_CREATURE, rootWardenTarget.Scope);
+        Assert.Equal("ADJACENT", rootWardenTarget.Filter);
+        Assert.True(rootWardenTarget.Count!.Value.IsAll);
+        Assert.Equal(0, rootWardenEffect.Attack);
+        Assert.Equal(1, rootWardenEffect.Vigor);
+        Assert.Equal(Duration.PERMANENT, rootWardenEffect.Duration);
         Assert.Null(c.IdentifyCondition);
         Assert.Equal("The grove keeps its own ledgers, and it does not forgive debts.", c.Flavor);
         Assert.NotNull(c.Art);
@@ -152,13 +154,15 @@ public class CardLoaderTests
         Assert.Equal(2, c.Abilities[0].Effects.Count);
 
         // GrantKey
-        Assert.Equal(Op.GRANT_KEY, c.Abilities[0].Effects[0].Op);
-        Assert.Equal(Scope.ALLY_CREATURE, c.Abilities[0].Effects[0].Target!.Scope);
-        Assert.Equal("CHOSEN", c.Abilities[0].Effects[0].Target.Filter);
-        Assert.False(c.Abilities[0].Effects[0].Target.Count!.Value.IsAll);
-        Assert.Equal(1, c.Abilities[0].Effects[0].Target.Count.Value.Value);
-        Assert.Equal("WARD", c.Abilities[0].Effects[0].Keyword);
-        Assert.Equal(Duration.PERMANENT, c.Abilities[0].Effects[0].Duration);
+        var sealingLightEffect = c.Abilities[0].Effects[0];
+        var sealingLightTarget = sealingLightEffect.Target!;
+        Assert.Equal(Op.GRANT_KEY, sealingLightEffect.Op);
+        Assert.Equal(Scope.ALLY_CREATURE, sealingLightTarget.Scope);
+        Assert.Equal("CHOSEN", sealingLightTarget.Filter);
+        Assert.False(sealingLightTarget.Count!.Value.IsAll);
+        Assert.Equal(1, sealingLightTarget.Count.Value.Value);
+        Assert.Equal("WARD", sealingLightEffect.Keyword);
+        Assert.Equal(Duration.PERMANENT, sealingLightEffect.Duration);
 
         // Heal
         Assert.Equal(Op.HEAL, c.Abilities[0].Effects[1].Op);
@@ -192,14 +196,16 @@ public class CardLoaderTests
         Assert.Equal(2, c.Abilities[0].Effects[0].Amount);
 
         // Passive: Buff Hollow allies +1/+0
+        var aelinEffect = c.Abilities[1].Effects[0];
+        var aelinTarget = aelinEffect.Target!;
         Assert.Equal(Trigger.PASSIVE, c.Abilities[1].Trigger);
         Assert.Single(c.Abilities[1].Effects);
-        Assert.Equal(Op.BUFF, c.Abilities[1].Effects[0].Op);
-        Assert.Equal("STRATA:HOLLOW", c.Abilities[1].Effects[0].Target!.Filter);
-        Assert.True(c.Abilities[1].Effects[0].Target.Count!.Value.IsAll);
-        Assert.Equal(1, c.Abilities[1].Effects[0].Attack);
-        Assert.Equal(0, c.Abilities[1].Effects[0].Vigor);
-        Assert.Equal(Duration.WHILE_PRESENT, c.Abilities[1].Effects[0].Duration);
+        Assert.Equal(Op.BUFF, aelinEffect.Op);
+        Assert.Equal("STRATA:HOLLOW", aelinTarget.Filter);
+        Assert.True(aelinTarget.Count!.Value.IsAll);
+        Assert.Equal(1, aelinEffect.Attack);
+        Assert.Equal(0, aelinEffect.Vigor);
+        Assert.Equal(Duration.WHILE_PRESENT, aelinEffect.Duration);
 
         // Identify condition
         Assert.NotNull(c.IdentifyCondition);

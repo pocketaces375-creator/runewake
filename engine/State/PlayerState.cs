@@ -55,7 +55,8 @@ public sealed class PlayerState
         Index = index;
         MaxVigor = 25;
         Vigor = 25;
-        AttunementMax = 10;
+        AttunementMax = 0;
+        Attunement = 0;
         AttunementPerTurn = 1;
         MaxHandSize = 10;
         Deck = new List<CardInstance>();
