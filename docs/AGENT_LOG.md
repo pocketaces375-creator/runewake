@@ -225,3 +225,21 @@ All 146 tests pass. 0 TODO, 0 NotImplementedException.
 These are the balance anchors the AI-generated cards will be measured against.
 
 All 166 tests pass. 0 TODO, 0 NotImplementedException.
+
+## Session 15 — 2026-08-04
+
+### P2-05 — Rules text renderer
+
+Created `engine/Cards/RulesTextRenderer.cs` with `Render(CardDef)` and `RenderAbilityTextOnly(CardDef)` — full human-readable rules text from the DSL, covering:
+
+- **Stat line**: `A/V` for creatures, keyword badges
+- **Triggers**: all 14 trigger types rendered to natural English ("When this enters play", "At the start of your turn", etc.)
+- **Effects**: all 22 ops with target scope, filter, and count phrases
+- **Conditions**: all 13 condition ops with value formatting
+- **Identify**: relic identify conditions rendered inline
+- **Keywords**: all 11 keywords formatted as display names
+- **Flavor**: quoted flavor text appended last
+
+Created `tests/Cards/RulesTextSnapshotTests.cs` — 61 snapshot tests, one per card (60 hand-authored + 1 token), each asserting the exact rendered output. Every card's text verified correct.
+
+227 tests total (166 existing + 61 new). 0 TODO, 0 NotImplementedException.
