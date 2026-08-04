@@ -68,6 +68,11 @@ public partial class LaneSlot : PanelContainer
     }
 
     /// <summary>
+    /// Previous vigor value for computing damage/heal diffs.
+    /// </summary>
+    public int PreviousVigor { get; set; } = -1;
+
+    /// <summary>
     /// Show visual feedback for being a valid attack target (highlight border).
     /// </summary>
     public void Highlight()
@@ -81,6 +86,63 @@ public partial class LaneSlot : PanelContainer
     public void Unhighlight()
     {
         Modulate = new Color(1, 1, 1, 1);
+    }
+
+    // ——— Animation effects ———
+
+    /// <summary>
+    /// Play a summon animation: scale from 0 to 1.
+    /// </summary>
+    public void PlaySummonEffect()
+    {
+        Scale = new Vector2(0, 0);
+        var tween = CreateTween();
+        tween.TweenProperty(this, "scale", new Vector2(1, 1), 0.3f)
+            .SetEase(Tween.EaseType.Out)
+            .SetTrans(Tween.TransitionType.Back);
+    }
+
+    /// <summary>
+    /// Play a death animation: fade out and shrink, then reset.
+    /// </summary>
+    public void PlayDeathEffect()
+    {
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(this, "modulate:a", 0.0f, 0.4f);
+        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.4f)
+            .SetEase(Tween.EaseType.In)
+            .SetTrans(Tween.TransitionType.Back);
+        tween.SetParallel(false);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            Modulate = new Color(1, 1, 1, 1);
+            Scale = new Vector2(1, 1);
+        }));
+    }
+
+    /// <summary>
+    /// Show a floating damage number (red) at this lane's position.
+    /// </summary>
+    public void ShowDamageNumber(int amount)
+    {
+        if (amount <= 0) return;
+        var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
+        var ft = ftScene.Instantiate<FloatingText>();
+        GetParent().AddChild(ft);
+        ft.ShowAt($"-{amount}", new Color(1, 0.2f, 0.2f), GlobalPosition + new Vector2(32, 0));
+    }
+
+    /// <summary>
+    /// Show a floating heal number (green) at this lane's position.
+    /// </summary>
+    public void ShowHealNumber(int amount)
+    {
+        if (amount <= 0) return;
+        var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
+        var ft = ftScene.Instantiate<FloatingText>();
+        GetParent().AddChild(ft);
+        ft.ShowAt($"+{amount}", new Color(0.2f, 1, 0.2f), GlobalPosition + new Vector2(32, 0));
     }
 
     // ——— Drag-and-drop target ———

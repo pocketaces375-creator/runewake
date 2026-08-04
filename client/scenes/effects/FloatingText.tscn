@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://floating_text_effect"]
+
+[ext_resource type="Script" path="res://scripts/effects/FloatingText.cs" id="1_ft"]
+
+[node name="FloatingText" type="Label"]
+anchors_preset = 0
+script = ExtResource("1_ft")

@@ -336,3 +336,30 @@ Wired the client to the deterministic engine:
 Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass (stable across repeated runs).
 
 Next: **P3-05** — Animation and feedback layer (damage numbers, death, summon).
+
+## Session 20 — 2026-08-04
+
+### P3-05 — Animation and feedback layer
+
+**New files:**
+- `client/scripts/effects/FloatingText.cs` + `client/scenes/effects/FloatingText.tscn` — reusable floating text label that tweens upward, fades out, then frees itself. Used for damage numbers (red, "-X") and heal numbers (green, "+X").
+
+**Modified files:**
+- `client/scripts/LaneSlot.cs` — added:
+  - `PreviousVigor` property for tracking vigor diffs
+  - `PlaySummonEffect()` — scale from 0→1 with OutBack easing (pop-in)
+  - `PlayDeathEffect()` — fade to transparent + scale to 0 with InBack easing, then reset
+  - `ShowDamageNumber(int)` / `ShowHealNumber(int)` — spawn FloatingText at lane position
+- `client/scripts/DuelScene.cs` — added state snapshotting for diff-based animation:
+  - Captures board state snapshot before each render pass
+  - After render, compares against the previous snapshot to detect:
+    - Empty → occupied: triggers `PlaySummonEffect` on the lane slot
+    - Occupied → empty: triggers `PlayDeathEffect`
+    - Vigor decreased: triggers `ShowDamageNumber`
+    - Vigor increased: triggers `ShowHealNumber`
+  - Also tracks player vigor for face-damage/heal floating numbers
+  - Skips animation on the first (initialization) render
+
+Client builds with `dotnet build` — 0 errors. Engine tests: 227/227 pass. 0 TODO, 0 NotImplementedException.
+
+Next: **P3-06** — Bot opponent wired in with a small think-delay.

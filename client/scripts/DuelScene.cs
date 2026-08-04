@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
 
@@ -7,6 +8,7 @@ namespace Runewake.Client;
 /// <summary>
 /// Main duel scene — holds a GameState, dispatches actions via the engine,
 /// and re-renders all visual elements from the current state.
+/// Computes diffs between state renders to trigger animations.
 /// This is the final wiring connecting input → engine → visuals.
 /// </summary>
 public partial class DuelScene : Control
@@ -28,6 +30,20 @@ public partial class DuelScene : Control
 
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
+
+    // State snapshot for diff-based animation
+    private struct BoardSnapshot
+    {
+        public bool IsEmpty;
+        public string Name;
+        public int Attack;
+        public int Vigor;
+    }
+    private BoardSnapshot[] _prevEnemyBoard = new BoardSnapshot[5];
+    private BoardSnapshot[] _prevPlayerBoard = new BoardSnapshot[5];
+    private int _prevEnemyVigor = -1;
+    private int _prevPlayerVigor = -1;
+    private bool _firstRender = true;
 
     public override void _Ready()
     {
@@ -116,13 +132,138 @@ public partial class DuelScene : Control
     // ——— State-driven rendering ———
 
     /// <summary>
-    /// Called whenever the GameState changes. Rebuilds all UI from scratch.
+    /// Called whenever the GameState changes. Snapshot old state, render new,
+    /// then compute diffs and trigger animations.
     /// </summary>
     private void OnStateChanged()
     {
+        // Capture the new state for comparison
+        var newEnemyBoard = CaptureBoard(1);
+        var newPlayerBoard = CaptureBoard(0);
+
         RenderHud();
         RenderBoard();
         RenderHand();
+
+        // Compute diffs and trigger animations using the previous snapshot
+        if (!_firstRender)
+        {
+            AnimateBoardDiffs(_prevEnemyBoard, _prevPlayerBoard, newEnemyBoard, newPlayerBoard);
+            AnimateVigorDiffs();
+        }
+
+        // Save for next render
+        _prevEnemyBoard = newEnemyBoard;
+        _prevPlayerBoard = newPlayerBoard;
+        _firstRender = false;
+    }
+
+    private BoardSnapshot[] CaptureBoard(int playerIndex)
+    {
+        var lanes = _gsm.GetLanes(playerIndex);
+        var result = new BoardSnapshot[5];
+        for (int i = 0; i < 5; i++)
+        {
+            result[i] = new BoardSnapshot
+            {
+                IsEmpty = lanes[i].IsEmpty,
+                Name = lanes[i].Name,
+                Attack = lanes[i].Attack,
+                Vigor = lanes[i].Vigor
+            };
+        }
+        return result;
+    }
+
+    private void AnimateBoardDiffs(BoardSnapshot[] oldEnemy, BoardSnapshot[] oldPlayer,
+        BoardSnapshot[] newEnemy, BoardSnapshot[] newPlayer)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var slot = _enemySlots[i];
+            var prev = oldEnemy[i];
+            var cur = newEnemy[i];
+
+            if (prev.IsEmpty && !cur.IsEmpty)
+                slot.PlaySummonEffect();
+            else if (!prev.IsEmpty && cur.IsEmpty)
+                slot.PlayDeathEffect();
+            else if (!prev.IsEmpty && !cur.IsEmpty)
+            {
+                int dmg = prev.Vigor - cur.Vigor;
+                if (dmg > 0) slot.ShowDamageNumber(dmg);
+                else if (dmg < 0) slot.ShowHealNumber(-dmg);
+            }
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            var slot = _playerSlots[i];
+            var prev = oldPlayer[i];
+            var cur = newPlayer[i];
+
+            if (prev.IsEmpty && !cur.IsEmpty)
+                slot.PlaySummonEffect();
+            else if (!prev.IsEmpty && cur.IsEmpty)
+                slot.PlayDeathEffect();
+            else if (!prev.IsEmpty && !cur.IsEmpty)
+            {
+                int dmg = prev.Vigor - cur.Vigor;
+                if (dmg > 0) slot.ShowDamageNumber(dmg);
+                else if (dmg < 0) slot.ShowHealNumber(-dmg);
+            }
+        }
+    }
+
+    private void AnimateVigorDiffs()
+    {
+        var enemyHud = _gsm.GetPlayerHud(1);
+        var playerHud = _gsm.GetPlayerHud(0);
+
+        if (_prevEnemyVigor >= 0 && enemyHud.Vigor != _prevEnemyVigor)
+        {
+            int diff = _prevEnemyVigor - enemyHud.Vigor;
+            ShowFaceDamage(true, diff);
+        }
+
+        if (_prevPlayerVigor >= 0 && playerHud.Vigor != _prevPlayerVigor)
+        {
+            int diff = _prevPlayerVigor - playerHud.Vigor;
+            ShowFaceDamage(false, diff);
+        }
+
+        _prevEnemyVigor = enemyHud.Vigor;
+        _prevPlayerVigor = playerHud.Vigor;
+    }
+
+    private void ShowFaceDamage(bool isEnemy, int amount)
+    {
+        var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
+        var ft = ftScene.Instantiate<FloatingText>();
+        AddChild(ft);
+
+        Vector2 pos;
+        Color color;
+        string prefix;
+
+        if (amount > 0) // damage
+        {
+            color = new Color(1, 0.2f, 0.2f);
+            prefix = "-";
+        }
+        else // heal
+        {
+            color = new Color(0.2f, 1, 0.2f);
+            prefix = "+";
+            amount = -amount;
+        }
+
+        if (isEnemy)
+            pos = _enemyVigorValue.GlobalPosition;
+        else
+            pos = _playerVigorValue.GlobalPosition;
+
+        ft.ShowAt($"{prefix}{amount}", color, pos);
     }
 
     private void RenderHud()
