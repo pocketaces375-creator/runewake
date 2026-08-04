@@ -282,3 +282,31 @@ Created a full card view driven entirely by CardDef data:
 Engine: 227/227 tests pass. Client: `dotnet build` 0 errors. 0 TODO, 0 NotImplementedException.
 
 Next: **P3-03** — Input: drag card to lane, tap creature then tap target lane to attack.
+
+## Session 18 — 2026-08-04
+
+### P3-03 — Input: drag card to lane, tap creature to attack
+
+Wired up the full input flow for the duel scene:
+
+- **`client/scripts/InputController.cs`** — input state machine with two states:
+  - `Idle`: waiting for player action
+  - `SelectingAttacker`: player has tapped a friendly creature and must pick a target
+  - Events: `PlayCardRequested(cardId, laneIndex)`, `AttackRequested(attackerLane, targetLane)`, `SelectionCancelled`
+  
+- **`client/scripts/HandCard.cs`** — added `_GetDragData()` returning a `Dictionary{type, card_id, card_name, card_cost}` for Godot's drag-and-drop system; drag preview shows card name
+
+- **`client/scripts/LaneSlot.cs`** — added:
+  - `_CanDropData()` / `_DropData()` for accepting hand card drops on empty player lanes
+  - `_GuiInput()` for tap detection → emits `LaneTapped` and `CardDropped` signals
+  - `Highlight()` / `Unhighlight()` for visual feedback during attack targeting
+
+- **`client/scripts/DuelScene.cs`** — rewired to connect all signals:
+  - `OnCardDropped` → `InputController.TryPlayCard()`
+  - `OnLaneTapped` → state-machine dispatch: idle→select attacker, selecting→confirm/cancel
+  - `OnHandCardPressed` → cancel attack selection
+  - `OnSelectionCancelled` → clears all highlights
+
+Client builds with `dotnet build` — 0 errors. Engine tests still 227/227 passing.
+
+Next: **P3-04** — Engine binding: client holds GameState, sends actions, re-renders from returned state.
