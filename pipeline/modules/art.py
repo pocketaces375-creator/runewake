@@ -93,8 +93,15 @@ STRATUM_GLYPH: dict[str, str] = {
 
 DEFAULT_MODEL = "black-forest-labs/flux.2-pro"
 IMAGE_SIZE = 1024  # px
-MIP_LEVELS = [1024, 512]  # px (full + one mip; 256px is too small for card art)
+MIP_LEVELS = [1024, 512]  # px (full + one mip)
 FALLBACK_SIZE = (1024, 1024)
+
+# ── Commission queue ──────────────────────────────────────────────────────────
+# When API art generation fails for RARE or RELIC cards, they get flagged here
+# for hand-commissioning instead of silently accepting fallback art.
+
+COMMISSION_RARITIES = {"RARE", "RELIC"}
+DEFAULT_COMMISSION_QUEUE = Path(__file__).resolve().parent.parent.parent / "docs" / "ART_COMMISSION_QUEUE.md"
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────────
@@ -199,6 +206,37 @@ def _slugify(name: str) -> str:
     )
 
 
+def append_to_commission_queue(card: dict, queue_path: Path) -> None:
+    """Flag a card for hand-commissioning when its art failed to generate.
+
+    Appends a markdown entry to the commission queue file. Used for RARE and
+    RELIC cards that deserve hand-crafted art rather than a fallback frame.
+    """
+    name = card.get("name", "UNKNOWN")
+    strata = card.get("strata", "?")
+    rarity = card.get("rarity", "?")
+    card_id = card.get("id", "?")
+    prompt = (card.get("art") or {}).get("prompt", "")
+
+    entry = (
+        f"- [ ] **{name}** (id=`{card_id}`, strata={strata}, rarity={rarity})\n"
+        f"      Art prompt: {prompt[:140]}\n"
+    )
+
+    # Create the file with a header if it doesn't exist
+    if not queue_path.exists():
+        queue_path.parent.mkdir(parents=True, exist_ok=True)
+        queue_path.write_text(
+            "# ART COMMISSION QUEUE\n\n"
+            "Cards that failed AI art generation (RARE/RELIC) and need "
+            "hand-commissioned art. Check off when commissioned.\n\n"
+        )
+
+    with open(queue_path, "a") as f:
+        f.write(entry)
+    print(f"[art]   -> FLAGGED for hand-commission: {name} ({rarity})")
+
+
 def generate_fallback(strata: str, card_name: str, art_dir: Path) -> dict[str, str]:
     """Generate a Stratum-colored fallback frame with a rune glyph.
 
@@ -266,6 +304,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="OpenRouter API key (default: $OPENROUTER_API_KEY)")
     parser.add_argument("--skip-api", action="store_true",
                         help="Skip API calls and generate fallback art only (for testing)")
+    parser.add_argument("--commission-queue",
+                        default=str(DEFAULT_COMMISSION_QUEUE),
+                        help="Path to hand-commission queue file (default: docs/ART_COMMISSION_QUEUE.md)")
     parser.add_argument("--config",
                         default=str(DEFAULT_CONFIG),
                         help=f"Config file path (default: {DEFAULT_CONFIG})")
@@ -348,6 +389,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             api_failures += 1
             print(f"[art]   -> API failed, generating fallback")
+            # Flag RARE/RELIC cards for hand-commissioning
+            rarity = card.get("rarity", "COMMON")
+            if rarity in COMMISSION_RARITIES:
+                append_to_commission_queue(card, Path(args.commission_queue))
             assets = generate_fallback(strata, name, art_dir)
             card["art"]["asset"] = assets.get(str(MIP_LEVELS[0]), "")
             card["art"]["mips"] = assets

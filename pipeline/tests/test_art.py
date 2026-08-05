@@ -293,3 +293,74 @@ def test_main_api_success():
         assert len(cards) == 1
         assert cards[0]["art"]["fallback"] is False
         assert cards[0]["art"]["asset"]
+
+
+# ── Commission queue tests ───────────────────────────────────────────────────
+
+
+def test_append_commission_queue_creates_file():
+    """Should create the queue file with a header + card entry."""
+    from modules.art import append_to_commission_queue
+    with tempfile.TemporaryDirectory() as tmp:
+        queue_path = Path(tmp) / "ART_COMMISSION_QUEUE.md"
+        card = make_card(name="Gravewrit Thrall", strata="HOLLOW", prompt="a decayed thrall")
+        card["id"] = "hol_r_gravewrit_thrall"
+        card["rarity"] = "RARE"
+        append_to_commission_queue(card, queue_path)
+        text = queue_path.read_text()
+        assert "# ART COMMISSION QUEUE" in text
+        assert "Gravewrit Thrall" in text
+        assert "RARE" in text
+
+
+def test_append_commission_queue_appends_not_overwrites():
+    """Should append to an existing queue, not overwrite it."""
+    from modules.art import append_to_commission_queue
+    with tempfile.TemporaryDirectory() as tmp:
+        queue_path = Path(tmp) / "ART_COMMISSION_QUEUE.md"
+        queue_path.write_text("# ART COMMISSION QUEUE\n\nExisting\n")
+        card = make_card(name="Soul Harvest", strata="HOLLOW", prompt="a reaper")
+        card["rarity"] = "RELIC"
+        append_to_commission_queue(card, queue_path)
+        text = queue_path.read_text()
+        assert "Existing" in text
+        assert "Soul Harvest" in text
+
+
+def test_main_flags_rare_relic_on_api_failure():
+    """RARE/RELIC cards should be flagged for commission when API fails."""
+    with tempfile.TemporaryDirectory() as tmp:
+        rare_card = make_card(name="Barrow Revenant", strata="HOLLOW", prompt="a revenant")
+        rare_card["rarity"] = "RARE"
+        input_path = _write_input(tmp, [rare_card])
+        work_dir = Path(tmp) / "work"
+        queue_path = Path(tmp) / "commission.md"
+        with patch("modules.art.generate_image", return_value=None):
+            code = main([
+                "--input", str(input_path),
+                "--work-dir", str(work_dir),
+                "--api-key", "test-key",
+                "--commission-queue", str(queue_path),
+            ])
+        assert code == 0
+        assert queue_path.exists()
+        assert "Barrow Revenant" in queue_path.read_text()
+
+
+def test_main_does_not_flag_commons_on_api_failure():
+    """COMMON cards should NOT be flagged for commission on API failure."""
+    with tempfile.TemporaryDirectory() as tmp:
+        common_card = make_card(name="Crypt Crawler", strata="HOLLOW", prompt="a crawler")
+        common_card["rarity"] = "COMMON"
+        input_path = _write_input(tmp, [common_card])
+        work_dir = Path(tmp) / "work"
+        queue_path = Path(tmp) / "commission.md"
+        with patch("modules.art.generate_image", return_value=None):
+            code = main([
+                "--input", str(input_path),
+                "--work-dir", str(work_dir),
+                "--api-key", "test-key",
+                "--commission-queue", str(queue_path),
+            ])
+        assert code == 0
+        assert not queue_path.exists(), "COMMON should not create commission file"
