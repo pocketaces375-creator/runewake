@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_iron_ogre",
+    "set": "buried_age",
+    "name": "Iron Ogre",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It was either a failed casting or a successful guard. Depends who you ask.",
+    "art": {
+      "prompt": "a massive, crude golem of dark iron slag, with two glowing coals for eyes",
+      "asset": "cdn://art/emb_c_iron_ogre.webp"
+    },
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.90 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

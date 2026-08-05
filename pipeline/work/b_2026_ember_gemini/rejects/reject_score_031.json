@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_u_cinder_blast",
+    "set": "buried_age",
+    "name": "Cinder Blast",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.2,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.10 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

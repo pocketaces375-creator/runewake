@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_char",
+    "set": "buried_age",
+    "name": "Char",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The heat passes. The mark remains.",
+    "art": {
+      "prompt": "a blackened, smoking scorch mark on a stone wall in the shape of a hand",
+      "asset": "cdn://art/emb_c_char.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.95 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_foundry_salamander",
+    "set": "buried_age",
+    "name": "Foundry Salamander",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It basks in temperatures that would melt steel.",
+    "art": {
+      "prompt": "a large, lizard-like creature with skin like cooling magma, resting comfortably in a stream of molten metal",
+      "asset": "cdn://art/emb_c_foundry_salamander.webp"
+    },
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.55 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

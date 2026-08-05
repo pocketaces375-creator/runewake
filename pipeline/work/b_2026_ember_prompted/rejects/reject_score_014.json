@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_embermoth",
+    "set": "buried_age",
+    "name": "Embermoth",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 0,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Drawn to the greatest flame, they carry whispers of the final fire in their dust.",
+    "art": {
+      "prompt": "a cloud of moths with glowing, ember-like wings, fluttering around a single lantern",
+      "asset": "cdn://art/emb_c_embermoth.webp"
+    },
+    "power_score": 3.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.80 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

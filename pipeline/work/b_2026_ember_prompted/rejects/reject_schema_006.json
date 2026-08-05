@@ -1,0 +1,56 @@
+{
+  "card": {
+    "id": "emb_x_charred_grimoire",
+    "set": "buried_age",
+    "name": "Charred Grimoire",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "COPY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "from": "BARROW",
+            "to": "HAND",
+            "filter": "TYPE:RITUAL"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_LTE",
+      "value": 2
+    },
+    "flavor": "It survived the fire that destroyed the library. The spells within are... potent.",
+    "art": {
+      "prompt": "a thick leather-bound book, its cover scorched and edges blackened, with a single, glowing rune on its spine",
+      "asset": "cdn://art/emb_x_charred_grimoire.webp"
+    },
+    "power_score": 14.2,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0]: Additional properties are not allowed ('filter', 'from', 'to' were unexpected)"
+}

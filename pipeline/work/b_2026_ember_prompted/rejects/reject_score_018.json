@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_u_cinderhold_sentinel",
+    "set": "buried_age",
+    "name": "Cinderhold Sentinel",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It remembers every blow, and repays them with interest.",
+    "art": {
+      "prompt": "a massive construct of stone and iron, cracks of lava glowing on its body where it has been damaged",
+      "asset": "cdn://art/emb_u_cinderhold_sentinel.webp"
+    },
+    "power_score": 11.65,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.25 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

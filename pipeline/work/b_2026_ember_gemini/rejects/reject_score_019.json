@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_c_molten_vanguard",
+    "set": "buried_age",
+    "name": "Molten Vanguard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.30 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

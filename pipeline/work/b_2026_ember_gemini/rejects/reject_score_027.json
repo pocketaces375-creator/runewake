@@ -1,0 +1,20 @@
+{
+  "card": {
+    "id": "emb_c_ash_flicker",
+    "set": "buried_age",
+    "name": "Ash Flicker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 5.3,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta +0.60 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,55 @@
+{
+  "card": {
+    "id": "emb_r_cinderhold_warlord",
+    "set": "buried_age",
+    "name": "Cinderhold Warlord",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "His orders are simple: 'More heat. More pressure. More!'",
+    "art": {
+      "prompt": "a charismatic and battle-scarred general in magnificent plate armor, pointing a flaming sword towards an unseen enemy",
+      "asset": "cdn://art/emb_r_cinderhold_warlord.webp"
+    },
+    "power_score": 14.4,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.45 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

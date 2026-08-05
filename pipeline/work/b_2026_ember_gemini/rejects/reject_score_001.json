@@ -1,0 +1,41 @@
+{
+  "card": {
+    "id": "emb_r_emberstorm",
+    "set": "buried_age",
+    "name": "Emberstorm",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "A tempest of embers that reshapes the land and its fate.",
+    "art": {
+      "prompt": "a darkened sky ablaze with a whirl of fiery embers, casting a red glow over the terrain",
+      "asset": "cdn://art/emb_r_emberstorm.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.95 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

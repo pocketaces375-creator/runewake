@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_u_calderas_wrath",
+    "set": "buried_age",
+    "name": "Caldera's Wrath",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "RANDOM",
+              "count": 3
+            },
+            "amount": 5
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The mountain does not suffer fools gladly. Or at all.",
+    "art": {
+      "prompt": "three massive fireballs erupting from a volcano peak, streaking down towards the landscape below",
+      "asset": "cdn://art/emb_u_calderas_wrath.webp"
+    },
+    "power_score": 16.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -14.70 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

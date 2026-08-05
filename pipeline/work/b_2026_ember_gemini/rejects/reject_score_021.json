@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_x_fires_signature",
+    "set": "buried_age",
+    "name": "Fire's Signature",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 5
+    },
+    "power_score": 9.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -8.90 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

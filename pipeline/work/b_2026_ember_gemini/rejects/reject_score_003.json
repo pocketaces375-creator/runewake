@@ -1,0 +1,25 @@
+{
+  "card": {
+    "id": "emb_u_ember_wisp",
+    "set": "buried_age",
+    "name": "Ember Wisp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It flitters about, a flickering whisper of fire and air.",
+    "art": {
+      "prompt": "a small glowing wisp darting between the embers of a fire, trailing tiny sparks",
+      "asset": "cdn://art/emb_u_ember_wisp.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.25 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

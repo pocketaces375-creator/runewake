@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_slag_flow",
+    "set": "buried_age",
+    "name": "Slag Flow",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The city's waste is a weapon in itself.",
+    "art": {
+      "prompt": "a river of molten slag pouring down a street, engulfing training dummies",
+      "asset": "cdn://art/emb_c_slag_flow.webp"
+    },
+    "power_score": 10.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -10.65 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,50 @@
+{
+  "card": {
+    "id": "emb_u_cinderblade_guardian",
+    "set": "buried_age",
+    "name": "Cinderblade Guardian",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The guardian stands firm, an embodiment of the forge's will.",
+    "art": {
+      "prompt": "a towering armored figure wielding a fiery sword, standing watch over the forge",
+      "asset": "cdn://art/emb_u_cinderblade_guardian.webp"
+    },
+    "power_score": 12.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

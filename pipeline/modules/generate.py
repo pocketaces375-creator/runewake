@@ -68,7 +68,16 @@ KEYWORDS: GUARD | SWIFT | PIERCE | WARD | VENOM | REACH | ROOTED | UNEARTH | ECH
 11. Card IDs follow the pattern: {strata_prefix}_{rarity_prefix}_{snake_case_name}
     (e.g., "vrd_c_root_warden", "emb_r_magma_forger", "hlo_x_shadow_veil")
     Rare card prefix: r. Relic card prefix: x.
-12. COMMON rarity is the most frequent in a set (roughly 47%)."""
+12. COMMON rarity is the most frequent in a set (roughly 47%).
+13. POWER SCORE TARGETS per rarity at their assigned cost:
+    COMMON:   score 4.0–6.0  (expected ~2.35*cost + 0.9, delta −0.8 to +0.4)
+    UNCOMMON: score 6.0–10.0 (delta −0.5 to +0.9)
+    RARE:     score 8.0–14.0 (delta −0.3 to +1.5)
+    RELIC:    score 12.0–18.0 (delta 0.0 to +2.5)
+    Do NOT systematically under-tune cards. Aim for the middle of each band. A
+    cost-3 COMMON creature with no abilities should have roughly 4-5 total stat
+    points; one with keyword(s) slightly fewer. Rituals and Relics should achieve
+    their score through effects that match their cost."""
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -148,14 +157,26 @@ def build_prompt(seed: dict, examples: list, existing_names: list[str]) -> str:
     parts.append("CREATURE cards additionally need: attack, vigor, keywords (can be empty).")
     parts.append("RELIC cards need: identify_condition, keywords (includes SEALED).")
     parts.append("RITUAL cards must have at least one ability with trigger RESOLVE.")
-    parts.append("The strata MUST be " + seed['strata'] + ".")
+    parts.append("The strata MUST be " + seed["strata"] + ".")
+    parts.append("")
+    parts.append("## POWER SCORE GUIDANCE")
+    parts.append("Your generated power_score field will be validated against rarity bands.")
+    parts.append("Aim for these targets at the card's assigned cost:")
+    parts.append("  COMMON:   power_score approx 4-6 (delta -0.8 to +0.4 from expected)")
+    parts.append("  UNCOMMON: power_score approx 6-10 (delta -0.5 to +0.9)")
+    parts.append("  RARE:     power_score approx 8-14 (delta -0.3 to +1.5)")
+    parts.append("  RELIC:    power_score approx 12-18 (delta 0.0 to +2.5)")
+    parts.append("A cost-3 COMMON with no abilities should have roughly 4-5 total stat points.")
+    parts.append("Do NOT systematically under-tune cards: cards below the band will be rejected.")
     parts.append("")
 
     return "\n".join(parts)
 
 
-def repair_json(text: str) -> str:
+def repair_json(text: str | None) -> str:
     """Attempt to extract a JSON array from model output that may have markdown fences or preamble."""
+    if text is None:
+        return "[]"
     # Remove markdown code fences
     text = re.sub(r'```(?:json)?\s*', '', text).strip()
     # Find the first '[' and last ']'
@@ -178,7 +199,16 @@ def call_llm(client: OpenAI, model: str, system: str, user: str,
         temperature=temperature,
         timeout=timeout,
     )
-    return resp.choices[0].message.content
+    msg = resp.choices[0].message
+    content = msg.content
+    if content is None:
+        # Some models return None content with a finish_reason (e.g. content_filter)
+        finish = getattr(resp.choices[0], "finish_reason", "unknown")
+        raise RuntimeError(
+            f"Model returned empty content (finish_reason={finish}). "
+            "This can happen with content-filter refusals or partial generations."
+        )
+    return content
 
 
 def write_output(work_dir: Path, batch_id: str, cards: list, rejects: list):

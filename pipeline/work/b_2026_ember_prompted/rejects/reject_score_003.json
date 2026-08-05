@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_c_smoldering_rage",
+    "set": "buried_age",
+    "name": "Smoldering Rage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Anger, properly forged, can last a lifetime.",
+    "art": {
+      "prompt": "a ghostly, fiery aura envelops a warrior, their muscles tensed and eyes glowing",
+      "asset": "cdn://art/emb_c_smoldering_rage.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.20 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

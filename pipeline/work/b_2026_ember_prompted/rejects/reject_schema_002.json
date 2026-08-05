@@ -1,0 +1,46 @@
+{
+  "card": {
+    "id": "emb_r_ashwake_primordial",
+    "set": "buried_age",
+    "name": "Ashwake Primordial",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 8,
+    "attack": 8,
+    "vigor": 8,
+    "keywords": [
+      "PIERCE",
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "cost": -8,
+            "duration": "WHILE_PRESENT",
+            "condition": {
+              "op": "BARROW_COUNT_GTE",
+              "value": 8
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The first fire, awakened by the echoes of the last.",
+    "art": {
+      "prompt": "a truly immense elemental of ash and fire, so large that its form seems to be a walking volcano, with a wake of grey ash behind it",
+      "asset": "cdn://art/emb_r_ashwake_primordial.webp"
+    },
+    "power_score": 18.3,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0]: Additional properties are not allowed ('condition', 'cost' were unexpected)"
+}

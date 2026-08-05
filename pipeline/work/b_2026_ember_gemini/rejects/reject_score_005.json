@@ -1,0 +1,58 @@
+{
+  "card": {
+    "id": "emb_r_soul_of_the_forge",
+    "set": "buried_age",
+    "name": "Soul of the Forge",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 3,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 3
+    },
+    "flavor": "The echoes of creation, binding the flames in an everlasting dance.",
+    "art": {
+      "prompt": "a beautifully ornate forge tool, glowing with internal fire, surrounded by mist",
+      "asset": "cdn://art/emb_r_soul_of_the_forge.webp"
+    },
+    "power_score": 13.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.75 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

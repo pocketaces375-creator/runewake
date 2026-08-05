@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_r_final_conflagration",
+    "set": "buried_age",
+    "name": "Final Conflagration",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 8,
+            "pierce": true
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Some problems require a definitive, all-consuming answer.",
+    "art": {
+      "prompt": "a column of pure fire descends from the sky, incinerating a huge monster and scorching the ground for meters around",
+      "asset": "cdn://art/emb_r_final_conflagration.webp"
+    },
+    "power_score": 17.5,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0]: Additional properties are not allowed ('pierce' was unexpected)"
+}

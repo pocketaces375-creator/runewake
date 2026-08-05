@@ -1,0 +1,9 @@
+{
+  "input_file": "work/b_2026_ember_gemini/04_simulated.json",
+  "total_processed": 20,
+  "passed": 20,
+  "rejected": 0,
+  "blocklist_patterns": 164,
+  "existing_names": 60,
+  "timestamp": "2026-08-05T06:24:50Z"
+}

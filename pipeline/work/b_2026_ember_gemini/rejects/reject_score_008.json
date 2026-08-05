@@ -1,0 +1,41 @@
+{
+  "card": {
+    "id": "emb_r_cinder_summit",
+    "set": "buried_age",
+    "name": "Cinder Summit",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_volcanic_token"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "At its peak, the fire rages hottest, forging anew.",
+    "art": {
+      "prompt": "a volcanic summit surrounded by a halo of fire, with molten rock flowing",
+      "asset": "cdn://art/emb_r_cinder_summit.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.30 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

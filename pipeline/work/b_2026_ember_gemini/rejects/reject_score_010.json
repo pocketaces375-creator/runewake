@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_u_emberbeast",
+    "set": "buried_age",
+    "name": "Emberbeast",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It prowls the shadows of the hearth, a manifestation of fire.",
+    "art": {
+      "prompt": "a large beast formed from shifting embers, eyes glowing bright against the dark",
+      "asset": "cdn://art/emb_u_emberbeast.webp"
+    },
+    "power_score": 7.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.30 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

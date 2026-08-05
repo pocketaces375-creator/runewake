@@ -1,0 +1,2127 @@
+[
+  {
+    "id": "emb_c_ash_strider",
+    "set": "buried_age",
+    "name": "Ash Strider",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "They race the expanding cracks in the caldera floor, delivering messages of heat and haste.",
+    "art": {
+      "prompt": "a lithe figure wrapped in ashen cloth, sprinting across a network of glowing lava fissures",
+      "asset": "cdn://art/emb_c_ash_strider.webp"
+    },
+    "power_score": 4.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_forge_scrap_imp",
+    "set": "buried_age",
+    "name": "Forge Scrap Imp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Born from stray sparks and discarded slag. Its temper is as short as its life.",
+    "art": {
+      "prompt": "a tiny, impish creature made of jagged, glowing metal scraps, hissing defiantly",
+      "asset": "cdn://art/emb_c_forge_scrap_imp.webp"
+    },
+    "power_score": 3.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_unstable_temper",
+    "set": "buried_age",
+    "name": "Unstable Temper",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A moment of pure rage is a fine sharpening stone.",
+    "art": {
+      "prompt": "a warrior's axe, glowing cherry-red as if just pulled from a forge",
+      "asset": "cdn://art/emb_c_unstable_temper.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_coal_hauler",
+    "set": "buried_age",
+    "name": "Coal Hauler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "One load at a time, the city's heart is fed.",
+    "art": {
+      "prompt": "a stooped, muscular figure carrying a massive basket of glowing coals on their back through a stone tunnel",
+      "asset": "cdn://art/emb_c_coal_hauler.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ashen_striker",
+    "set": "buried_age",
+    "name": "Ashen Striker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "He doesn't need to break the line. He just needs to break the one in front of him.",
+    "art": {
+      "prompt": "a grim-faced warrior with an obsidian-tipped spear, ash caked on his face and armor",
+      "asset": "cdn://art/emb_c_ashen_striker.webp"
+    },
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_soot_smudge",
+    "set": "buried_age",
+    "name": "Soot Smudge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": -2,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A well-placed bit of grime in the eye can fell a giant.",
+    "art": {
+      "prompt": "a black handprint of soot materializing over a monstrous creature's eye",
+      "asset": "cdn://art/emb_c_soot_smudge.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_sprite",
+    "set": "buried_age",
+    "name": "Cinder Sprite",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It giggles with the sound of cracking embers.",
+    "art": {
+      "prompt": "a tiny, mischievous sprite made of swirling embers and smoke, zipping through the air",
+      "asset": "cdn://art/emb_c_cinder_sprite.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_clinkerfoot_brute",
+    "set": "buried_age",
+    "name": "Clinkerfoot Brute",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "His footsteps leave trails of molten slag. Best not to be in his way.",
+    "art": {
+      "prompt": "a hulking, dim-witted ogre whose feet are made of glowing, half-cooled lava",
+      "asset": "cdn://art/emb_c_clinkerfoot_brute.webp"
+    },
+    "power_score": 5.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_caldera_guard",
+    "set": "buried_age",
+    "name": "Caldera Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The first and last line of defense for the Cinderhold is patience, heat, and a very big shield.",
+    "art": {
+      "prompt": "a heavily armored guard with a tower shield made of volcanic rock, standing before a gate of black iron",
+      "asset": "cdn://art/emb_c_caldera_guard.webp"
+    },
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_smoldering_rage",
+    "set": "buried_age",
+    "name": "Smoldering Rage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Anger, properly forged, can last a lifetime.",
+    "art": {
+      "prompt": "a ghostly, fiery aura envelops a warrior, their muscles tensed and eyes glowing",
+      "asset": "cdn://art/emb_c_smoldering_rage.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_furnace_stoker",
+    "set": "buried_age",
+    "name": "Furnace Stoker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He shovels ash and memory with the same steady rhythm.",
+    "art": {
+      "prompt": "a wiry worker with a long shovel, feeding glowing coals into the maw of a massive furnace",
+      "asset": "cdn://art/emb_c_furnace_stoker.webp"
+    },
+    "power_score": 6.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ironclad_apprentice",
+    "set": "buried_age",
+    "name": "Ironclad Apprentice",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "She's already stronger than the iron she works.",
+    "art": {
+      "prompt": "a young woman in a leather apron, effortlessly lifting a heavy blacksmith's hammer",
+      "asset": "cdn://art/emb_c_ironclad_apprentice.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_bellows_worker",
+    "set": "buried_age",
+    "name": "Bellows Worker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The breath of the forge is in his arms.",
+    "art": {
+      "prompt": "a man with immense, muscular arms operating a giant set of bellows aimed at a roaring forge",
+      "asset": "cdn://art/emb_c_bellows_worker.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_tempered_steel",
+    "set": "buried_age",
+    "name": "Tempered Steel",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Strength isn't just about heat; it's about the cooling.",
+    "art": {
+      "prompt": "a glowing sword being plunged into a barrel of water, steam erupting violently",
+      "asset": "cdn://art/emb_c_tempered_steel.webp"
+    },
+    "power_score": 9.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_iron_ogre",
+    "set": "buried_age",
+    "name": "Iron Ogre",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It was either a failed casting or a successful guard. Depends who you ask.",
+    "art": {
+      "prompt": "a massive, crude golem of dark iron slag, with two glowing coals for eyes",
+      "asset": "cdn://art/emb_c_iron_ogre.webp"
+    },
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_slag_flow",
+    "set": "buried_age",
+    "name": "Slag Flow",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The city's waste is a weapon in itself.",
+    "art": {
+      "prompt": "a river of molten slag pouring down a street, engulfing training dummies",
+      "asset": "cdn://art/emb_c_slag_flow.webp"
+    },
+    "power_score": 10.7,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_heat_exhaustion",
+    "set": "buried_age",
+    "name": "Heat Exhaustion",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "ROOTED",
+            "duration": "NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The air itself becomes a cage.",
+    "art": {
+      "prompt": "a warrior collapsed on one knee, sweat pouring down their face, with heat haze shimmering around them",
+      "asset": "cdn://art/emb_c_heat_exhaustion.webp"
+    },
+    "power_score": 3.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_overheated_smith",
+    "set": "buried_age",
+    "name": "Overheated Smith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Perfection requires sacrifice. Sometimes it's a bit of your own skin.",
+    "art": {
+      "prompt": "a dwarf-like blacksmith with a singed beard, wincing as he pulls a perfectly crafted blade from the forge",
+      "asset": "cdn://art/emb_c_overheated_smith.webp"
+    },
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_obsidian_skitterer",
+    "set": "buried_age",
+    "name": "Obsidian Skitterer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It feeds on heat and echoes, leaving only cooled stone behind.",
+    "art": {
+      "prompt": "a spider-like creature made of sharp obsidian glass, crawling over cooling lava rock.",
+      "asset": "cdn://art/emb_c_obsidian_skitterer.webp"
+    },
+    "power_score": 5.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_deep_vein_miner",
+    "set": "buried_age",
+    "name": "Deep Vein Miner",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Some seek gold. He seeks the quiet slumber of the deep earth.",
+    "art": {
+      "prompt": "a soot-covered miner with a pickaxe, standing at the entrance to a dark tunnel that glows faintly from within",
+      "asset": "cdn://art/emb_c_deep_vein_miner.webp"
+    },
+    "power_score": 5.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_foundry_salamander",
+    "set": "buried_age",
+    "name": "Foundry Salamander",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It basks in temperatures that would melt steel.",
+    "art": {
+      "prompt": "a large, lizard-like creature with skin like cooling magma, resting comfortably in a stream of molten metal",
+      "asset": "cdn://art/emb_c_foundry_salamander.webp"
+    },
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ash_chanter",
+    "set": "buried_age",
+    "name": "Ash Chanter",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Her prayers are the city's heartbeat.",
+    "art": {
+      "prompt": "a robed priestess chanting, with ash swirling around her hands to form faint sigils",
+      "asset": "cdn://art/emb_c_ash_chanter.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_grateshield_heavy",
+    "set": "buried_age",
+    "name": "Grateshield Heavy",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 7,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The shield also serves as a furnace door. Convenient.",
+    "art": {
+      "prompt": "a massive warrior holding a shield that looks like a heavy iron furnace grate, with embers glowing from within",
+      "asset": "cdn://art/emb_c_grateshield_heavy.webp"
+    },
+    "power_score": 13.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_blackiron_bully",
+    "set": "buried_age",
+    "name": "Blackiron Bully",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "He solves most of his problems by being bigger than them.",
+    "art": {
+      "prompt": "a broad-shouldered dwarf with fists like hammers, covered in soot and sneering",
+      "asset": "cdn://art/emb_c_blackiron_bully.webp"
+    },
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_embermoth",
+    "set": "buried_age",
+    "name": "Embermoth",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 0,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Drawn to the greatest flame, they carry whispers of the final fire in their dust.",
+    "art": {
+      "prompt": "a cloud of moths with glowing, ember-like wings, fluttering around a single lantern",
+      "asset": "cdn://art/emb_c_embermoth.webp"
+    },
+    "power_score": 3.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_char",
+    "set": "buried_age",
+    "name": "Char",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The heat passes. The mark remains.",
+    "art": {
+      "prompt": "a blackened, smoking scorch mark on a stone wall in the shape of a hand",
+      "asset": "cdn://art/emb_c_char.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_caldera_drake",
+    "set": "buried_age",
+    "name": "Caldera Drake",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It nests in the heart of the volcano, convinced the whole mountain is its hoard.",
+    "art": {
+      "prompt": "a brutish, wingless dragon with scales like black obsidian, peering over the rim of a volcano",
+      "asset": "cdn://art/emb_c_caldera_drake.webp"
+    },
+    "power_score": 11.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_molten_gnasher",
+    "set": "buried_age",
+    "name": "Molten Gnasher",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It bites through rock and steel out of sheer spite.",
+    "art": {
+      "prompt": "a wolf-like creature made of flowing magma, with jagged obsidian teeth",
+      "asset": "cdn://art/emb_u_molten_gnasher.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_magma_born_rager",
+    "set": "buried_age",
+    "name": "Magma-Born Rager",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT",
+      "FRAGILE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It lives in a constant state of eruption.",
+    "art": {
+      "prompt": "a humanoid figure made of cracked, glowing lava, charging forward with reckless abandon",
+      "asset": "cdn://art/emb_u_magma_born_rager.webp"
+    },
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_slagsteel_reaver",
+    "set": "buried_age",
+    "name": "Slagsteel Reaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Armor is just another can to open.",
+    "art": {
+      "prompt": "a vicious warrior wielding a massive, crude axe made of slag metal, standing over a sundered shield",
+      "asset": "cdn://art/emb_u_slagsteel_reaver.webp"
+    },
+    "power_score": 9.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_anvil_priest",
+    "set": "buried_age",
+    "name": "Anvil Priest",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He records each death with a single hammer strike, forging the city's memory.",
+    "art": {
+      "prompt": "a solemn priest in leather vestments, striking an anvil that glows with runes every time his hammer falls",
+      "asset": "cdn://art/emb_u_anvil_priest.webp"
+    },
+    "power_score": 7.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_ash_choked_pyromancer",
+    "set": "buried_age",
+    "name": "Ash-Choked Pyromancer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "RANDOM",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He speaks in a rasping whisper, and the world burns to hear it.",
+    "art": {
+      "prompt": "a haggard mage, his mouth and nose covered by a cloth, with fire igniting in his outstretched palm",
+      "asset": "cdn://art/emb_u_ash_choked_pyromancer.webp"
+    },
+    "power_score": 7.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinderhold_sentinel",
+    "set": "buried_age",
+    "name": "Cinderhold Sentinel",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It remembers every blow, and repays them with interest.",
+    "art": {
+      "prompt": "a massive construct of stone and iron, cracks of lava glowing on its body where it has been damaged",
+      "asset": "cdn://art/emb_u_cinderhold_sentinel.webp"
+    },
+    "power_score": 11.65,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_blast_furnace_captain",
+    "set": "buried_age",
+    "name": "Blast Furnace Captain",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "SWIFT",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "'Hurry up! That steel won't strike itself!'",
+    "art": {
+      "prompt": "a commanding officer in ornate but functional armor, pointing forward with a blade still glowing with heat",
+      "asset": "cdn://art/emb_u_blast_furnace_captain.webp"
+    },
+    "power_score": 11.25,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_spear_of_the_forge",
+    "set": "buried_age",
+    "name": "Spear of the Forge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 4
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A message from the heart of the mountain, delivered at speed.",
+    "art": {
+      "prompt": "a spear made of pure, solidified lava flying through the air towards a target",
+      "asset": "cdn://art/emb_u_spear_of_the_forge.webp"
+    },
+    "power_score": 9.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_stoke_the_coals",
+    "set": "buried_age",
+    "name": "Stoke the Coals",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A single breath can turn a dying ember into an inferno.",
+    "art": {
+      "prompt": "a wave of heat and light washes over a line of Ember warriors, making their weapons glow brighter",
+      "asset": "cdn://art/emb_u_stoke_the_coals.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_forged_in_secret",
+    "set": "buried_age",
+    "name": "Forged in Secret",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The best blades are tempered with knowledge best left buried.",
+    "art": {
+      "prompt": "a hooded figure quenching a dagger in a hidden spring deep within a volcanic cave",
+      "asset": "cdn://art/emb_u_forged_in_secret.webp"
+    },
+    "power_score": 8.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_immolation_ritual",
+    "set": "buried_age",
+    "name": "Immolation Ritual",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            }
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Ash to ash, a little faster than nature intended.",
+    "art": {
+      "prompt": "a monster wreathed in magical fire, dissolving into ash before it can strike",
+      "asset": "cdn://art/emb_u_immolation_ritual.webp"
+    },
+    "power_score": 12.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_obsidian_guard",
+    "set": "buried_age",
+    "name": "Obsidian Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "SELF"
+            },
+            "keyword": "WARD",
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Its skin is cooled magma, its patience is stone.",
+    "art": {
+      "prompt": "a golem made of sharp, black obsidian, standing perfectly still, a faint magical shimmer around it",
+      "asset": "cdn://art/emb_u_obsidian_guard.webp"
+    },
+    "power_score": 9.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_deep_forge_brute",
+    "set": "buried_age",
+    "name": "Deep-Forge Brute",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 7,
+    "vigor": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It was forged in a place with no room for finesse.",
+    "art": {
+      "prompt": "a colossal, crudely-shaped iron golem emerging from a pit of lava, chains dangling from its wrists",
+      "asset": "cdn://art/emb_u_deep_forge_brute.webp"
+    },
+    "power_score": 14.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_scorched_earth",
+    "set": "buried_age",
+    "name": "Scorched Earth",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Leave them nothing to stand on.",
+    "art": {
+      "prompt": "a battlefield covered in black, cracked earth, with smoke rising in the distance",
+      "asset": "cdn://art/emb_u_scorched_earth.webp"
+    },
+    "power_score": 14.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinder_cataphract",
+    "set": "buried_age",
+    "name": "Cinder Cataphract",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "His charge announces itself with a wave of searing heat.",
+    "art": {
+      "prompt": "a heavily armored knight on a barded horse, both covered in plates of smoldering iron, crashing into a line of enemies",
+      "asset": "cdn://art/emb_u_cinder_cataphract.webp"
+    },
+    "power_score": 13.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_emberheart_shaman",
+    "set": "buried_age",
+    "name": "Emberheart Shaman",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "She tends the city's wounds, and the wounds of its enemies.",
+    "art": {
+      "prompt": "a shaman with hands plunged into a glowing brazier, with fiery energy flowing out to touch the creatures around her",
+      "asset": "cdn://art/emb_u_emberheart_shaman.webp"
+    },
+    "power_score": 8.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_ash_sculptor",
+    "set": "buried_age",
+    "name": "Ash Sculptor",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ACTIVATED",
+        "cost": 2,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "She shapes what remains into what will be.",
+    "art": {
+      "prompt": "an artist carefully arranging grey ash on a black stone table, forming an intricate pattern",
+      "asset": "cdn://art/emb_u_ash_sculptor.webp"
+    },
+    "power_score": 9.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_calderas_wrath",
+    "set": "buried_age",
+    "name": "Caldera's Wrath",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "RANDOM",
+              "count": 3
+            },
+            "amount": 5
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The mountain does not suffer fools gladly. Or at all.",
+    "art": {
+      "prompt": "three massive fireballs erupting from a volcano peak, streaking down towards the landscape below",
+      "asset": "cdn://art/emb_u_calderas_wrath.webp"
+    },
+    "power_score": 16.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_volcanic_hellion",
+    "set": "buried_age",
+    "name": "Volcanic Hellion",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT",
+      "UNEARTH"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It doesn't stay buried for long.",
+    "art": {
+      "prompt": "a ferocious, fiery beast bursting forth from a pile of ash and rock, its eyes burning with malice",
+      "asset": "cdn://art/emb_r_volcanic_hellion.webp"
+    },
+    "power_score": 11.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ironheart_artificer",
+    "set": "buried_age",
+    "name": "Ironheart Artificer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "LANE",
+              "filter": "SAME_LANE"
+            },
+            "token_id": "emb_t_ashborn_thrall",
+            "attack": 1,
+            "vigor": 1,
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "With a whispered word and a handful of ash, she gives the forge new hands to work with.",
+    "art": {
+      "prompt": "a master craftswoman with goggles on her forehead, blowing a handful of ash from which two small, vaguely humanoid shapes begin to form",
+      "asset": "cdn://art/emb_r_ironheart_artificer.webp"
+    },
+    "power_score": 9.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ignis_first_flame",
+    "set": "buried_age",
+    "name": "Ignis, First Flame",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "ritual_cost": -1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He remembers the first spark, and finds modern fires lacking.",
+    "art": {
+      "prompt": "a wise, ancient being made of living flame, seated on a throne of obsidian, judging the world with fiery eyes",
+      "asset": "cdn://art/emb_r_ignis_first_flame.webp"
+    },
+    "power_score": 13.75,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_cinderhold_warlord",
+    "set": "buried_age",
+    "name": "Cinderhold Warlord",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "His orders are simple: 'More heat. More pressure. More!'",
+    "art": {
+      "prompt": "a charismatic and battle-scarred general in magnificent plate armor, pointing a flaming sword towards an unseen enemy",
+      "asset": "cdn://art/emb_r_cinderhold_warlord.webp"
+    },
+    "power_score": 14.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_magma_titan",
+    "set": "buried_age",
+    "name": "Magma Titan",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It does not distinguish between the city and its own body. An attack on one is an attack on the other.",
+    "art": {
+      "prompt": "a colossal humanoid of magma and rock, rising from within the caldera, its fists bigger than buildings",
+      "asset": "cdn://art/emb_r_magma_titan.webp"
+    },
+    "power_score": 15.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ashwake_primordial",
+    "set": "buried_age",
+    "name": "Ashwake Primordial",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 8,
+    "attack": 8,
+    "vigor": 8,
+    "keywords": [
+      "PIERCE",
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "cost": -8,
+            "duration": "WHILE_PRESENT",
+            "condition": {
+              "op": "BARROW_COUNT_GTE",
+              "value": 8
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The first fire, awakened by the echoes of the last.",
+    "art": {
+      "prompt": "a truly immense elemental of ash and fire, so large that its form seems to be a walking volcano, with a wake of grey ash behind it",
+      "asset": "cdn://art/emb_r_ashwake_primordial.webp"
+    },
+    "power_score": 18.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_soul_of_cinder",
+    "set": "buried_age",
+    "name": "Soul of Cinder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "SELF"
+            }
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It cannot be destroyed. Only postponed.",
+    "art": {
+      "prompt": "a knight made of glowing embers and swirling ash, disintegrating but with a single, burning coal at its heart",
+      "asset": "cdn://art/emb_r_soul_of_cinder.webp"
+    },
+    "power_score": 12.25,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_world_anvil",
+    "set": "buried_age",
+    "name": "World-Anvil",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "All things must be unmade, so they may be forged anew.",
+    "art": {
+      "prompt": "a colossal, cosmic anvil in a field of stars, with a hammer descending upon it and shattering a world into motes of light",
+      "asset": "cdn://art/emb_r_world_anvil.webp"
+    },
+    "power_score": 17.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_final_conflagration",
+    "set": "buried_age",
+    "name": "Final Conflagration",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 8,
+            "pierce": true
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Some problems require a definitive, all-consuming answer.",
+    "art": {
+      "prompt": "a column of pure fire descends from the sky, incinerating a huge monster and scorching the ground for meters around",
+      "asset": "cdn://art/emb_r_final_conflagration.webp"
+    },
+    "power_score": 17.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_the_obsidian_scepter",
+    "set": "buried_age",
+    "name": "The Obsidian Scepter",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "first_ritual_cost": -1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "RITUALS_CAST_GTE",
+      "value": 4
+    },
+    "flavor": "It channels the will of the first smiths, turning prayer into power.",
+    "art": {
+      "prompt": "a scepter of polished obsidian topped with a perpetually burning coal, resting on a stone altar",
+      "asset": "cdn://art/emb_x_the_obsidian_scepter.webp"
+    },
+    "power_score": 13.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_heart_of_the_mountain",
+    "set": "buried_age",
+    "name": "Heart of the Mountain",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 6,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "keyword": "PIERCE",
+            "duration": "WHILE_PRESENT",
+            "condition": {
+              "op": "ATTACK_GTE",
+              "value": 5
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 8
+    },
+    "flavor": "It still beats with the slow, patient heat of a world being born.",
+    "art": {
+      "prompt": "a massive, glowing crystal in the shape of a heart, embedded deep within a cavern of volcanic rock",
+      "asset": "cdn://art/emb_x_heart_of_the_mountain.webp"
+    },
+    "power_score": 16.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_crown_of_embers",
+    "set": "buried_age",
+    "name": "Crown of Embers",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 2,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "LANE",
+              "filter": "SAME_LANE"
+            },
+            "token_id": "emb_t_magma_incarnate",
+            "attack": 7,
+            "vigor": 7,
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "VIGOR_LTE",
+      "value": 10
+    },
+    "flavor": "True kingship is a consuming fire. Wear it at your peril.",
+    "art": {
+      "prompt": "a crown made of smoldering embers and jagged iron, floating just above a velvet cushion, radiating intense heat",
+      "asset": "cdn://art/emb_x_crown_of_embers.webp"
+    },
+    "power_score": 12.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_sundering_stone",
+    "set": "buried_age",
+    "name": "Sundering Stone",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 3,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "ALLY_COUNT_GTE",
+      "value": 5
+    },
+    "flavor": "A fragment of the first anvil, it remembers every shattering blow.",
+    "art": {
+      "prompt": "a jagged, black rock that glows with an inner fire, covered in hairline fractures",
+      "asset": "cdn://art/emb_x_sundering_stone.webp"
+    },
+    "power_score": 12.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_charred_grimoire",
+    "set": "buried_age",
+    "name": "Charred Grimoire",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "COPY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "from": "BARROW",
+            "to": "HAND",
+            "filter": "TYPE:RITUAL"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_LTE",
+      "value": 2
+    },
+    "flavor": "It survived the fire that destroyed the library. The spells within are... potent.",
+    "art": {
+      "prompt": "a thick leather-bound book, its cover scorched and edges blackened, with a single, glowing rune on its spine",
+      "asset": "cdn://art/emb_x_charred_grimoire.webp"
+    },
+    "power_score": 14.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_pyre_of_the_phoenix",
+    "set": "buried_age",
+    "name": "Pyre of the Phoenix",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 7,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "filter": "TYPE:CREATURE",
+            "count": 1,
+            "to_hand": false
+          }
+        ]
+      },
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "SELF",
+              "from_graveyard": true
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 6
+    },
+    "flavor": "From the ashes of the fallen, a new fire will rise.",
+    "art": {
+      "prompt": "an ornate golden brazier from which ash swirls upwards to form the shape of a fiery bird",
+      "asset": "cdn://art/emb_x_pyre_of_the_phoenix.webp"
+    },
+    "power_score": 17.3,
+    "content_version": 1
+  }
+]

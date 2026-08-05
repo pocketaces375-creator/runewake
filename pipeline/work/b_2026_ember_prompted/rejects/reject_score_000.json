@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_coal_hauler",
+    "set": "buried_age",
+    "name": "Coal Hauler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "One load at a time, the city's heart is fed.",
+    "art": {
+      "prompt": "a stooped, muscular figure carrying a massive basket of glowing coals on their back through a stone tunnel",
+      "asset": "cdn://art/emb_c_coal_hauler.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.35 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

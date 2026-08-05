@@ -1,0 +1,41 @@
+{
+  "card": {
+    "id": "emb_r_pillars_of_flame",
+    "set": "buried_age",
+    "name": "Pillars of Flame",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 5
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Flames that rise to the heavens in a brilliant display of power.",
+    "art": {
+      "prompt": "flames shooting up into the sky, creating towering pillars of fire",
+      "asset": "cdn://art/emb_r_pillars_of_flame.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.65 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

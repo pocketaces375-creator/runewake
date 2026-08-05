@@ -1,0 +1,25 @@
+{
+  "card": {
+    "id": "emb_u_smelting_wraith",
+    "set": "buried_age",
+    "name": "Smelting Wraith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "A fleeting shadow that moves through the flames unseen.",
+    "art": {
+      "prompt": "a shadowy figure flickering in and out of view, cloaked in glowing embers",
+      "asset": "cdn://art/emb_u_smelting_wraith.webp"
+    },
+    "power_score": 5.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.60 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

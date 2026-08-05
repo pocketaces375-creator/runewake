@@ -1,0 +1,14 @@
+{
+  "input_file": "work/b_2026_ember_gemini/03_scored.json",
+  "total_processed": 20,
+  "simulated": 20,
+  "rejected": 0,
+  "flagged": 0,
+  "games_per_matchup": 200,
+  "archetypes": [
+    "aggro",
+    "midrange",
+    "control"
+  ],
+  "timestamp": "2026-08-05T06:24:50Z"
+}

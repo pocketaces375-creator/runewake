@@ -1,0 +1,63 @@
+{
+  "card": {
+    "id": "emb_x_heart_of_the_mountain",
+    "set": "buried_age",
+    "name": "Heart of the Mountain",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 6,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "keyword": "PIERCE",
+            "duration": "WHILE_PRESENT",
+            "condition": {
+              "op": "ATTACK_GTE",
+              "value": 5
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 8
+    },
+    "flavor": "It still beats with the slow, patient heat of a world being born.",
+    "art": {
+      "prompt": "a massive, glowing crystal in the shape of a heart, embedded deep within a cavern of volcanic rock",
+      "asset": "cdn://art/emb_x_heart_of_the_mountain.webp"
+    },
+    "power_score": 16.6,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 1 \u2192 effects \u2192 0]: Additional properties are not allowed ('condition' was unexpected)"
+}

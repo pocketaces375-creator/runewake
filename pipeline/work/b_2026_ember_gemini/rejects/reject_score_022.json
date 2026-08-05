@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_u_cinder_wellspring",
+    "set": "buried_age",
+    "name": "Cinder Wellspring",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -7.40 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_ironclad_apprentice",
+    "set": "buried_age",
+    "name": "Ironclad Apprentice",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "She's already stronger than the iron she works.",
+    "art": {
+      "prompt": "a young woman in a leather apron, effortlessly lifting a heavy blacksmith's hammer",
+      "asset": "cdn://art/emb_c_ironclad_apprentice.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.30 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

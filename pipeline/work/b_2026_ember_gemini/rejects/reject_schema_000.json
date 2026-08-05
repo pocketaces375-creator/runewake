@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_un_lava_fissure",
+    "set": "buried_age",
+    "name": "Lava Fissure",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.2,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 id]: 'emb_un_lava_fissure' does not match '^[a-z]{3}_[a-z]_[a-z0-9_]+$'"
+}

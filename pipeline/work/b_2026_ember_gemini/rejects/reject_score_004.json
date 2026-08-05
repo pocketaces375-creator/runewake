@@ -1,0 +1,58 @@
+{
+  "card": {
+    "id": "emb_r_forged_heart",
+    "set": "buried_age",
+    "name": "Forged Heart",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 3
+    },
+    "flavor": "It beats with the fury of the caldera, igniting the will of its wielders.",
+    "art": {
+      "prompt": "a radiant heart-shaped core, pulsing with heat, surrounded by intricate metalwork",
+      "asset": "cdn://art/emb_r_forged_heart.webp"
+    },
+    "power_score": 14.2,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.13 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

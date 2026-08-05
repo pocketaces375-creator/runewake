@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_r_world_anvil",
+    "set": "buried_age",
+    "name": "World-Anvil",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "All things must be unmade, so they may be forged anew.",
+    "art": {
+      "prompt": "a colossal, cosmic anvil in a field of stars, with a hammer descending upon it and shattering a world into motes of light",
+      "asset": "cdn://art/emb_r_world_anvil.webp"
+    },
+    "power_score": 17.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -16.70 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

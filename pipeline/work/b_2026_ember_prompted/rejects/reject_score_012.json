@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_c_grateshield_heavy",
+    "set": "buried_age",
+    "name": "Grateshield Heavy",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 7,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The shield also serves as a furnace door. Convenient.",
+    "art": {
+      "prompt": "a massive warrior holding a shield that looks like a heavy iron furnace grate, with embers glowing from within",
+      "asset": "cdn://art/emb_c_grateshield_heavy.webp"
+    },
+    "power_score": 13.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

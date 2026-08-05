@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_caldera_drake",
+    "set": "buried_age",
+    "name": "Caldera Drake",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It nests in the heart of the volcano, convinced the whole mountain is its hoard.",
+    "art": {
+      "prompt": "a brutish, wingless dragon with scales like black obsidian, peering over the rim of a volcano",
+      "asset": "cdn://art/emb_c_caldera_drake.webp"
+    },
+    "power_score": 11.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.25 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

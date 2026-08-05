@@ -1,0 +1,55 @@
+{
+  "card": {
+    "id": "emb_x_the_obsidian_scepter",
+    "set": "buried_age",
+    "name": "The Obsidian Scepter",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "first_ritual_cost": -1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "RITUALS_CAST_GTE",
+      "value": 4
+    },
+    "flavor": "It channels the will of the first smiths, turning prayer into power.",
+    "art": {
+      "prompt": "a scepter of polished obsidian topped with a perpetually burning coal, resting on a stone altar",
+      "asset": "cdn://art/emb_x_the_obsidian_scepter.webp"
+    },
+    "power_score": 13.4,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 1 \u2192 effects \u2192 0]: Additional properties are not allowed ('first_ritual_cost' was unexpected)"
+}

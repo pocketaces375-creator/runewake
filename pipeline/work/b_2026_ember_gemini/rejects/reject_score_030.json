@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_r_forged_victory",
+    "set": "buried_age",
+    "name": "Forged Victory",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 11.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.90 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_furnace_stoker",
+    "set": "buried_age",
+    "name": "Furnace Stoker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He shovels ash and memory with the same steady rhythm.",
+    "art": {
+      "prompt": "a wiry worker with a long shovel, feeding glowing coals into the maw of a massive furnace",
+      "asset": "cdn://art/emb_c_furnace_stoker.webp"
+    },
+    "power_score": 6.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.70 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

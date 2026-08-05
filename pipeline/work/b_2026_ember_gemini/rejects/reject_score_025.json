@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_u_cinder_barrage",
+    "set": "buried_age",
+    "name": "Cinder Barrage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.4,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.80 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_flame_signature",
+    "set": "buried_age",
+    "name": "Flame Signature",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 5.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -7.90 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,56 @@
+{
+  "card": {
+    "id": "emb_x_pyre_of_the_phoenix",
+    "set": "buried_age",
+    "name": "Pyre of the Phoenix",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 7,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "filter": "TYPE:CREATURE",
+            "count": 1,
+            "to_hand": false
+          }
+        ]
+      },
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "SELF",
+              "from_graveyard": true
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 6
+    },
+    "flavor": "From the ashes of the fallen, a new fire will rise.",
+    "art": {
+      "prompt": "an ornate golden brazier from which ash swirls upwards to form the shape of a fiery bird",
+      "asset": "cdn://art/emb_x_pyre_of_the_phoenix.webp"
+    },
+    "power_score": 17.3,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 1 \u2192 effects \u2192 0 \u2192 target]: Additional properties are not allowed ('from_graveyard' was unexpected)"
+}

@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_bellows_worker",
+    "set": "buried_age",
+    "name": "Bellows Worker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The breath of the forge is in his arms.",
+    "art": {
+      "prompt": "a man with immense, muscular arms operating a giant set of bellows aimed at a roaring forge",
+      "asset": "cdn://art/emb_c_bellows_worker.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.55 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

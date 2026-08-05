@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_u_raging_flame",
+    "set": "buried_age",
+    "name": "Raging Flame",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.4,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.15 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

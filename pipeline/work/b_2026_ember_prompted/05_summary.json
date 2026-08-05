@@ -1,0 +1,9 @@
+{
+  "input_file": "work/b_2026_ember_prompted/04_simulated.json",
+  "total_processed": 18,
+  "passed": 18,
+  "rejected": 0,
+  "blocklist_patterns": 164,
+  "existing_names": 60,
+  "timestamp": "2026-08-05T06:58:06Z"
+}

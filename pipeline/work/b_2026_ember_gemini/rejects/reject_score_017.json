@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_c_flameborn_wrecker",
+    "set": "buried_age",
+    "name": "Flameborn Wrecker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "With one mighty swing, they forge and break in equal measure.",
+    "art": {
+      "prompt": "a massive figure wielding a massive hammer engulfed in flames, striking down",
+      "asset": "cdn://art/emb_c_flameborn_wrecker.webp"
+    },
+    "power_score": 9.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.00 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_c_cinder_shaper",
+    "set": "buried_age",
+    "name": "Cinder Shaper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "What once was lost, now takes shape in the maker's hands.",
+    "art": {
+      "prompt": "a figure deftly sculpting glowing cinders into a new form, surrounded by flickering lights",
+      "asset": "cdn://art/emb_c_cinder_shaper.webp"
+    },
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.95 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,41 @@
+{
+  "card": {
+    "id": "emb_u_blast_furnace_captain",
+    "set": "buried_age",
+    "name": "Blast Furnace Captain",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "SWIFT",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "'Hurry up! That steel won't strike itself!'",
+    "art": {
+      "prompt": "a commanding officer in ornate but functional armor, pointing forward with a blade still glowing with heat",
+      "asset": "cdn://art/emb_u_blast_furnace_captain.webp"
+    },
+    "power_score": 11.25,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.10 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

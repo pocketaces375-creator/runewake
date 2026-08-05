@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_r_magma_titan",
+    "set": "buried_age",
+    "name": "Magma Titan",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It does not distinguish between the city and its own body. An attack on one is an attack on the other.",
+    "art": {
+      "prompt": "a colossal humanoid of magma and rock, rising from within the caldera, its fists bigger than buildings",
+      "asset": "cdn://art/emb_r_magma_titan.webp"
+    },
+    "power_score": 15.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.45 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,41 @@
+{
+  "card": {
+    "id": "emb_r_embers_of_creation",
+    "set": "buried_age",
+    "name": "Embers of Creation",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_fire_token"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "With each ember, a world is born anew.",
+    "art": {
+      "prompt": "a swirl of embers taking shape into various objects, glowing with life",
+      "asset": "cdn://art/emb_r_embers_of_creation.webp"
+    },
+    "power_score": 6.3,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.30 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

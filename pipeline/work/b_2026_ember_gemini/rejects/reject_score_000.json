@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_blazing_stalker",
+    "set": "buried_age",
+    "name": "Blazing Stalker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Silent in the smoldering dark, it strikes with the precision of a flame.",
+    "art": {
+      "prompt": "a fiery creature lurking behind a molten rock, eyes aglow with embers",
+      "asset": "cdn://art/emb_u_blazing_stalker.webp"
+    },
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.05 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

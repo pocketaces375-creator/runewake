@@ -1,0 +1,9 @@
+{
+  "batch_id": "02_valid",
+  "input_file": "work/b_2026_ember_gemini/02_valid.json",
+  "total_processed": 54,
+  "scored": 20,
+  "rejected": 34,
+  "auto_adjusted": 11,
+  "timestamp": "2026-08-05T06:24:19Z"
+}

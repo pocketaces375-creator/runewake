@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_x_embers_cover",
+    "set": "buried_age",
+    "name": "Ember's Cover",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 4
+    },
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -10.75 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_u_emberheart_shaman",
+    "set": "buried_age",
+    "name": "Emberheart Shaman",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "She tends the city's wounds, and the wounds of its enemies.",
+    "art": {
+      "prompt": "a shaman with hands plunged into a glowing brazier, with fiery energy flowing out to touch the creatures around her",
+      "asset": "cdn://art/emb_u_emberheart_shaman.webp"
+    },
+    "power_score": 8.4,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

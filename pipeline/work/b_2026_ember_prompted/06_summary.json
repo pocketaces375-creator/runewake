@@ -1,0 +1,9 @@
+{
+  "batch_id": "b_2026_ember_prompted",
+  "total": 18,
+  "processed": 18,
+  "api_calls": 18,
+  "api_failures": 2,
+  "fallbacks": 2,
+  "timestamp": "2026-08-05T07:02:16Z"
+}

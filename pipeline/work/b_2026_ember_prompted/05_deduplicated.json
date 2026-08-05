@@ -1,0 +1,1157 @@
+[
+  {
+    "id": "emb_c_ash_strider",
+    "set": "buried_age",
+    "name": "Ash Strider",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "They race the expanding cracks in the caldera floor, delivering messages of heat and haste.",
+    "art": {
+      "prompt": "a lithe figure wrapped in ashen cloth, sprinting across a network of glowing lava fissures",
+      "asset": "cdn://art/emb_c_ash_strider.webp"
+    },
+    "power_score": 4.0,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 1,
+      "power_score": 2.85,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_forge_scrap_imp",
+    "set": "buried_age",
+    "name": "Forge Scrap Imp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Born from stray sparks and discarded slag. Its temper is as short as its life.",
+    "art": {
+      "prompt": "a tiny, impish creature made of jagged, glowing metal scraps, hissing defiantly",
+      "asset": "cdn://art/emb_c_forge_scrap_imp.webp"
+    },
+    "power_score": 3.5,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 1,
+      "power_score": 2.45,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_unstable_temper",
+    "set": "buried_age",
+    "name": "Unstable Temper",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A moment of pure rage is a fine sharpening stone.",
+    "art": {
+      "prompt": "a warrior's axe, glowing cherry-red as if just pulled from a forge",
+      "asset": "cdn://art/emb_c_unstable_temper.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 1,
+      "power_score": 3.0,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_ashen_striker",
+    "set": "buried_age",
+    "name": "Ashen Striker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "He doesn't need to break the line. He just needs to break the one in front of him.",
+    "art": {
+      "prompt": "a grim-faced warrior with an obsidian-tipped spear, ash caked on his face and armor",
+      "asset": "cdn://art/emb_c_ashen_striker.webp"
+    },
+    "power_score": 6.0,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 2,
+      "power_score": 5.1,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_clinkerfoot_brute",
+    "set": "buried_age",
+    "name": "Clinkerfoot Brute",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "His footsteps leave trails of molten slag. Best not to be in his way.",
+    "art": {
+      "prompt": "a hulking, dim-witted ogre whose feet are made of glowing, half-cooled lava",
+      "asset": "cdn://art/emb_c_clinkerfoot_brute.webp"
+    },
+    "power_score": 5.9,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 2,
+      "power_score": 5.5,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_caldera_guard",
+    "set": "buried_age",
+    "name": "Caldera Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "The first and last line of defense for the Cinderhold is patience, heat, and a very big shield.",
+    "art": {
+      "prompt": "a heavily armored guard with a tower shield made of volcanic rock, standing before a gate of black iron",
+      "asset": "cdn://art/emb_c_caldera_guard.webp"
+    },
+    "power_score": 7.0,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 2,
+      "power_score": 5.9,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_heat_exhaustion",
+    "set": "buried_age",
+    "name": "Heat Exhaustion",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "ROOTED",
+            "duration": "NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The air itself becomes a cage.",
+    "art": {
+      "prompt": "a warrior collapsed on one knee, sweat pouring down their face, with heat haze shimmering around them",
+      "asset": "cdn://art/emb_c_heat_exhaustion.webp"
+    },
+    "power_score": 3.4,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 0,
+      "power_score": 0.8,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_overheated_smith",
+    "set": "buried_age",
+    "name": "Overheated Smith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Perfection requires sacrifice. Sometimes it's a bit of your own skin.",
+    "art": {
+      "prompt": "a dwarf-like blacksmith with a singed beard, wincing as he pulls a perfectly crafted blade from the forge",
+      "asset": "cdn://art/emb_c_overheated_smith.webp"
+    },
+    "power_score": 7.0,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 3,
+      "power_score": 7.25,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_deep_vein_miner",
+    "set": "buried_age",
+    "name": "Deep Vein Miner",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Some seek gold. He seeks the quiet slumber of the deep earth.",
+    "art": {
+      "prompt": "a soot-covered miner with a pickaxe, standing at the entrance to a dark tunnel that glows faintly from within",
+      "asset": "cdn://art/emb_c_deep_vein_miner.webp"
+    },
+    "power_score": 5.1,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 1,
+      "power_score": 3.5,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_c_ash_chanter",
+    "set": "buried_age",
+    "name": "Ash Chanter",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Her prayers are the city's heartbeat.",
+    "art": {
+      "prompt": "a robed priestess chanting, with ash swirling around her hands to form faint sigils",
+      "asset": "cdn://art/emb_c_ash_chanter.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "COMMON",
+      "cost": 2,
+      "power_score": 5.25,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_u_molten_gnasher",
+    "set": "buried_age",
+    "name": "Molten Gnasher",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It bites through rock and steel out of sheer spite.",
+    "art": {
+      "prompt": "a wolf-like creature made of flowing magma, with jagged obsidian teeth",
+      "asset": "cdn://art/emb_u_molten_gnasher.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "UNCOMMON",
+      "cost": 2,
+      "power_score": 6.35,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_u_slagsteel_reaver",
+    "set": "buried_age",
+    "name": "Slagsteel Reaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Armor is just another can to open.",
+    "art": {
+      "prompt": "a vicious warrior wielding a massive, crude axe made of slag metal, standing over a sundered shield",
+      "asset": "cdn://art/emb_u_slagsteel_reaver.webp"
+    },
+    "power_score": 9.4,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "UNCOMMON",
+      "cost": 3,
+      "power_score": 7.85,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_u_anvil_priest",
+    "set": "buried_age",
+    "name": "Anvil Priest",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He records each death with a single hammer strike, forging the city's memory.",
+    "art": {
+      "prompt": "a solemn priest in leather vestments, striking an anvil that glows with runes every time his hammer falls",
+      "asset": "cdn://art/emb_u_anvil_priest.webp"
+    },
+    "power_score": 7.4,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "UNCOMMON",
+      "cost": 2,
+      "power_score": 5.75,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_u_ash_choked_pyromancer",
+    "set": "buried_age",
+    "name": "Ash-Choked Pyromancer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "RANDOM",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He speaks in a rasping whisper, and the world burns to hear it.",
+    "art": {
+      "prompt": "a haggard mage, his mouth and nose covered by a cloth, with fire igniting in his outstretched palm",
+      "asset": "cdn://art/emb_u_ash_choked_pyromancer.webp"
+    },
+    "power_score": 7.8,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "UNCOMMON",
+      "cost": 2,
+      "power_score": 5.25,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_u_obsidian_guard",
+    "set": "buried_age",
+    "name": "Obsidian Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "SELF"
+            },
+            "keyword": "WARD",
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Its skin is cooled magma, its patience is stone.",
+    "art": {
+      "prompt": "a golem made of sharp, black obsidian, standing perfectly still, a faint magical shimmer around it",
+      "asset": "cdn://art/emb_u_obsidian_guard.webp"
+    },
+    "power_score": 9.9,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "UNCOMMON",
+      "cost": 3,
+      "power_score": 7.69,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_r_volcanic_hellion",
+    "set": "buried_age",
+    "name": "Volcanic Hellion",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT",
+      "UNEARTH"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It doesn't stay buried for long.",
+    "art": {
+      "prompt": "a ferocious, fiery beast bursting forth from a pile of ash and rock, its eyes burning with malice",
+      "asset": "cdn://art/emb_r_volcanic_hellion.webp"
+    },
+    "power_score": 11.2,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "RARE",
+      "cost": 3,
+      "power_score": 8.55,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_r_ironheart_artificer",
+    "set": "buried_age",
+    "name": "Ironheart Artificer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "LANE",
+              "filter": "SAME_LANE"
+            },
+            "token_id": "emb_t_ashborn_thrall",
+            "attack": 1,
+            "vigor": 1,
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "With a whispered word and a handful of ash, she gives the forge new hands to work with.",
+    "art": {
+      "prompt": "a master craftswoman with goggles on her forehead, blowing a handful of ash from which two small, vaguely humanoid shapes begin to form",
+      "asset": "cdn://art/emb_r_ironheart_artificer.webp"
+    },
+    "power_score": 9.4,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "RARE",
+      "cost": 3,
+      "power_score": 7.75,
+      "flagged": false
+    }
+  },
+  {
+    "id": "emb_x_crown_of_embers",
+    "set": "buried_age",
+    "name": "Crown of Embers",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 2,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "LANE",
+              "filter": "SAME_LANE"
+            },
+            "token_id": "emb_t_magma_incarnate",
+            "attack": 7,
+            "vigor": 7,
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "VIGOR_LTE",
+      "value": 10
+    },
+    "flavor": "True kingship is a consuming fire. Wear it at your peril.",
+    "art": {
+      "prompt": "a crown made of smoldering embers and jagged iron, floating just above a velvet cushion, radiating intense heat",
+      "asset": "cdn://art/emb_x_crown_of_embers.webp"
+    },
+    "power_score": 12.5,
+    "content_version": 1,
+    "simulation": {
+      "archetype": "aggro",
+      "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+      "matchup_results": {
+        "aggro": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "midrange": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        },
+        "control": {
+          "win_rate": 0.5,
+          "baseline_win_rate": 0.5,
+          "delta": 0.0,
+          "avg_turns": 0
+        }
+      },
+      "avg_delta": 0.0,
+      "max_delta": 0.0,
+      "flags": [],
+      "stratum": "EMBER",
+      "rarity": "RELIC",
+      "cost": 2,
+      "power_score": 5.6,
+      "flagged": false
+    }
+  }
+]

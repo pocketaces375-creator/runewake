@@ -1,0 +1,25 @@
+{
+  "card": {
+    "id": "emb_u_cinderwolf",
+    "set": "buried_age",
+    "name": "Cinderwolf",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "A guardian of the forge, swift and silent.",
+    "art": {
+      "prompt": "a sleek wolf with glowing embers trailing from its fur, prowling stealthily",
+      "asset": "cdn://art/emb_u_cinderwolf.webp"
+    },
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.85 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

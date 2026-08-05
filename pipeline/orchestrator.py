@@ -48,12 +48,13 @@ class CostTracker:
     """
 
     TEXT_MODEL_RATES = {
-        "gpt-4o-mini": (0.15, 0.60),   # $/M input, $/M output
-        "anthropic/claude-3.5-sonnet": (3.00, 15.00),
+        "gpt-4o-mini": (0.15, 0.60),
+        "google/gemini-2.5-pro-preview-05-06": (1.25, 10.00),
+        "google/gemini-2.5-pro": (1.25, 10.00),
+        "anthropic/claude-sonnet-5": (2.00, 10.00),
         "anthropic/claude-sonnet-4": (3.00, 15.00),
         "deepseek/deepseek-v4": (2.00, 8.00),
-        "google/gemini-2.5-pro": (1.25, 5.00),
-        "openai/o1": (15.00, 60.00),
+        "openai/gpt-5.1": (1.25, 10.00),
         "openai/gpt-4o": (2.50, 10.00),
     }
     IMAGE_COST_PER_CALL = 0.05  # FLUX.2-pro, all current OpenRouter image models
@@ -216,10 +217,12 @@ class RejectionTracker:
 
 class PipelineRunner:
     def __init__(self, work_dir: Path, stratum: str, count: int,
-                 cost: CostTracker, rejects: RejectionTracker):
+                 cost: CostTracker, rejects: RejectionTracker,
+                 model: str = "gpt-4o-mini"):
         self.work_dir = work_dir
         self.stratum = stratum
         self.count = count
+        self.model = model
         self.cost = cost
         self.rejects = rejects
         self.timing: dict[str, float] = {}
@@ -261,13 +264,14 @@ class PipelineRunner:
         return True
 
     def _model_name(self) -> str:
-        return "gpt-4o-mini"  # default — could be overridden
+        return self.model
 
     def _args_for(self, stage: str) -> list[str]:
         stage_config = {
             "generate": [
                 "--seed", str(PIPELINE / "seeds" / f"{self.stratum.lower()}_{self.count}.json"),
                 "--work-dir", str(self.work_dir),
+                "--model", self.model,
             ],
             "validate": [
                 "--input", str(self.work_dir / STAGE_FILES["generate"]),
@@ -296,41 +300,47 @@ class PipelineRunner:
     def _track_stage(self, stage: str, stdout: str):
         """Read a stage's summary JSON from its stdout and track rejects.
 
-        The module prints the summary dict as part of its output.
-        We parse it from the last JSON object in stdout.
+        The module prints the summary dict as part of its output, typically
+        in formats like:
+          [art] Summary: {'api_calls': 12, ...}
+          Summary: {'total_processed': 43, ...}
+          {'total': 43, 'accepted': 43}
+        We parse the JSON from any line containing the summary dict.
         """
-        # Find the last line that looks like a JSON object
-        # Modules print 'Summary: { ... }' or just the dict
+        # Search stdout for a line containing a JSON dict with summary keys
+        # Lines may be prefixed with [stage] or be bare
         for line in reversed(stdout.strip().splitlines()):
             line = line.strip()
-            if line.startswith("{"):
+            # Strip common prefixes like [art], [generate], etc.
+            if line.startswith("[") and "]" in line:
+                line = line.split("]", 1)[1].strip()
+            # Try to find and parse a JSON dict in this line
+            brace_start = line.find("{")
+            if brace_start >= 0:
                 try:
-                    summary = json.loads(line)
-                    self.rejects.note(stage, summary)
-                    # Also read reject files from disk for reason codes
-                    rejects_dir = self.work_dir / "rejects"
-                    self.rejects.read_reject_files(stage, rejects_dir)
-                    return
-                except json.JSONDecodeError:
-                    continue
-            # Also try 'Summary: {...}'
-            if line.startswith("Summary:"):
-                try:
-                    json_str = line[len("Summary:"):].strip()
-                    summary = json.loads(json_str)
-                    self.rejects.note(stage, summary)
-                    rejects_dir = self.work_dir / "rejects"
-                    self.rejects.read_reject_files(stage, rejects_dir)
-                    return
-                except (json.JSONDecodeError, IndexError):
+                    candidate = line[brace_start:]
+                    summary = json.loads(candidate)
+                    # Check it has stage-like keys
+                    if any(k in summary for k in ("total", "total_processed",
+                                                   "total_generated",
+                                                   "api_calls", "scored",
+                                                   "valid", "passed")):
+                        self.rejects.note(stage, summary)
+                        rejects_dir = self.work_dir / "rejects"
+                        self.rejects.read_reject_files(stage, rejects_dir)
+                        return
+                except (json.JSONDecodeError, KeyError):
                     continue
 
         # Fallback: read summary file from disk
         summary_file = self.work_dir / self._stage_summary(stage)
-        if summary_file.exists():
+        if summary_file and summary_file.exists() and summary_file.is_file():
             try:
                 summary = json.loads(summary_file.read_text())
                 self.rejects.note(stage, summary)
+                # Also read reject files from disk for reason codes
+                rejects_dir = self.work_dir / "rejects"
+                self.rejects.read_reject_files(stage, rejects_dir)
             except (json.JSONDecodeError, KeyError):
                 pass
 
@@ -341,6 +351,7 @@ class PipelineRunner:
             "score": "03_summary.json",
             "simulate": "04_summary.json",
             "dedupe_moderate": "05_summary.json",
+            "art": "06_summary.json",
         }
         return summaries.get(stage, "")
 
@@ -662,7 +673,7 @@ def main(argv: list[str] | None = None) -> int:
 
     cost = CostTracker()
     rejects = RejectionTracker()
-    runner = PipelineRunner(work_dir, args.stratum, args.count, cost, rejects)
+    runner = PipelineRunner(work_dir, args.stratum, args.count, cost, rejects, model=args.model)
 
     # Create seed
     seed_path = create_seed(args.stratum, args.count)

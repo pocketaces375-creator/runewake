@@ -1,0 +1,9 @@
+{
+  "batch_id": "b_2026_ember_gemini",
+  "total": 20,
+  "processed": 20,
+  "api_calls": 20,
+  "api_failures": 0,
+  "fallbacks": 0,
+  "timestamp": "2026-08-05T06:29:16Z"
+}

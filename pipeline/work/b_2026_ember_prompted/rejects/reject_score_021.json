@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_u_stoke_the_coals",
+    "set": "buried_age",
+    "name": "Stoke the Coals",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A single breath can turn a dying ember into an inferno.",
+    "art": {
+      "prompt": "a wave of heat and light washes over a line of Ember warriors, making their weapons glow brighter",
+      "asset": "cdn://art/emb_u_stoke_the_coals.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.60 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

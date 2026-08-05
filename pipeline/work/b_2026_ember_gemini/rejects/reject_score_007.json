@@ -1,0 +1,25 @@
+{
+  "card": {
+    "id": "emb_c_blaze_dancer",
+    "set": "buried_age",
+    "name": "Blaze Dancer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "With every step, the air sizzles with fire and motion.",
+    "art": {
+      "prompt": "a dancer twirling gracefully among flames, trailing sparks and embers",
+      "asset": "cdn://art/emb_c_blaze_dancer.webp"
+    },
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.35 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

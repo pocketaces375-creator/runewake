@@ -1,0 +1,45 @@
+{
+  "card": {
+    "id": "emb_u_spear_of_the_forge",
+    "set": "buried_age",
+    "name": "Spear of the Forge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 4
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A message from the heart of the mountain, delivered at speed.",
+    "art": {
+      "prompt": "a spear made of pure, solidified lava flying through the air towards a target",
+      "asset": "cdn://art/emb_u_spear_of_the_forge.webp"
+    },
+    "power_score": 9.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.30 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

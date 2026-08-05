@@ -1,0 +1,50 @@
+{
+  "card": {
+    "id": "emb_c_tempered_steel",
+    "set": "buried_age",
+    "name": "Tempered Steel",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Strength isn't just about heat; it's about the cooling.",
+    "art": {
+      "prompt": "a glowing sword being plunged into a barrel of water, steam erupting violently",
+      "asset": "cdn://art/emb_c_tempered_steel.webp"
+    },
+    "power_score": 9.3,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.00 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,27 @@
+{
+  "card": {
+    "id": "emb_u_magma_born_rager",
+    "set": "buried_age",
+    "name": "Magma-Born Rager",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT",
+      "FRAGILE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "It lives in a constant state of eruption.",
+    "art": {
+      "prompt": "a humanoid figure made of cracked, glowing lava, charging forward with reckless abandon",
+      "asset": "cdn://art/emb_u_magma_born_rager.webp"
+    },
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.60 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

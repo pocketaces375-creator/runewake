@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_u_scorched_earth",
+    "set": "buried_age",
+    "name": "Scorched Earth",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Leave them nothing to stand on.",
+    "art": {
+      "prompt": "a battlefield covered in black, cracked earth, with smoke rising in the distance",
+      "asset": "cdn://art/emb_u_scorched_earth.webp"
+    },
+    "power_score": 14.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -14.35 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

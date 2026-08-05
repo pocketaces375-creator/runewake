@@ -1,0 +1,54 @@
+{
+  "card": {
+    "id": "emb_r_ignis_first_flame",
+    "set": "buried_age",
+    "name": "Ignis, First Flame",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "ritual_cost": -1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He remembers the first spark, and finds modern fires lacking.",
+    "art": {
+      "prompt": "a wise, ancient being made of living flame, seated on a throne of obsidian, judging the world with fiery eyes",
+      "asset": "cdn://art/emb_r_ignis_first_flame.webp"
+    },
+    "power_score": 13.75,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0]: Additional properties are not allowed ('ritual_cost' was unexpected)"
+}

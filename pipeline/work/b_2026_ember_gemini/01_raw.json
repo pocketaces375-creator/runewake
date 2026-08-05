@@ -1,0 +1,1715 @@
+[
+  {
+    "id": "emb_c_molten_scout",
+    "set": "buried_age",
+    "name": "Molten Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "In the cinders, they move lighter than ash.",
+    "art": {
+      "prompt": "a nimble figure cloaked in flowing embers, darting through a volcanic landscape",
+      "asset": "cdn://art/emb_c_molten_scout.webp"
+    },
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_iron_wielder",
+    "set": "buried_age",
+    "name": "Iron Wielder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "An artisan of battle and craft, wielding both hammer and flame.",
+    "art": {
+      "prompt": "a muscular figure in a forge apron, swinging a fiery hammer against an anvil",
+      "asset": "cdn://art/emb_c_iron_wielder.webp"
+    },
+    "power_score": 8.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_blazing_stalker",
+    "set": "buried_age",
+    "name": "Blazing Stalker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Silent in the smoldering dark, it strikes with the precision of a flame.",
+    "art": {
+      "prompt": "a fiery creature lurking behind a molten rock, eyes aglow with embers",
+      "asset": "cdn://art/emb_u_blazing_stalker.webp"
+    },
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_scorched_mason",
+    "set": "buried_age",
+    "name": "Scorched Mason",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Each strike of his hammer echoes the heart of the caldera.",
+    "art": {
+      "prompt": "a sturdy craftsman hammering a block of stone, dust and embers flying",
+      "asset": "cdn://art/emb_u_scorched_mason.webp"
+    },
+    "power_score": 6.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_fires_of_creation",
+    "set": "buried_age",
+    "name": "Fires of Creation",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 2,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_fire_elemental"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "From the depths, fire shapes the very essence of life.",
+    "art": {
+      "prompt": "a swirling mass of flames shaping into a creature, surrounded by a radiant glow",
+      "asset": "cdn://art/emb_r_fires_of_creation.webp"
+    },
+    "power_score": 5.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_emberstorm",
+    "set": "buried_age",
+    "name": "Emberstorm",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "A tempest of embers that reshapes the land and its fate.",
+    "art": {
+      "prompt": "a darkened sky ablaze with a whirl of fiery embers, casting a red glow over the terrain",
+      "asset": "cdn://art/emb_r_emberstorm.webp"
+    },
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ashborne_spirit",
+    "set": "buried_age",
+    "name": "Ashborne Spirit",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Formed from the remnants of forgotten flames.",
+    "art": {
+      "prompt": "a spectral figure rising from a pile of ash, flickering with firelight",
+      "asset": "cdn://art/emb_c_ashborne_spirit.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_flame_forger",
+    "set": "buried_age",
+    "name": "Flame Forger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "He shapes the fire into weapons sharper than swords.",
+    "art": {
+      "prompt": "a robust figure standing over a furnace, molten metal glowing in the background",
+      "asset": "cdn://art/emb_u_flame_forger.webp"
+    },
+    "power_score": 9.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_shaper",
+    "set": "buried_age",
+    "name": "Cinder Shaper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "What once was lost, now takes shape in the maker's hands.",
+    "art": {
+      "prompt": "a figure deftly sculpting glowing cinders into a new form, surrounded by flickering lights",
+      "asset": "cdn://art/emb_c_cinder_shaper.webp"
+    },
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_ember_wisp",
+    "set": "buried_age",
+    "name": "Ember Wisp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It flitters about, a flickering whisper of fire and air.",
+    "art": {
+      "prompt": "a small glowing wisp darting between the embers of a fire, trailing tiny sparks",
+      "asset": "cdn://art/emb_u_ember_wisp.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_forged_heart",
+    "set": "buried_age",
+    "name": "Forged Heart",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 3
+    },
+    "flavor": "It beats with the fury of the caldera, igniting the will of its wielders.",
+    "art": {
+      "prompt": "a radiant heart-shaped core, pulsing with heat, surrounded by intricate metalwork",
+      "asset": "cdn://art/emb_r_forged_heart.webp"
+    },
+    "power_score": 14.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_soul_of_the_forge",
+    "set": "buried_age",
+    "name": "Soul of the Forge",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 3,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 3
+    },
+    "flavor": "The echoes of creation, binding the flames in an everlasting dance.",
+    "art": {
+      "prompt": "a beautifully ornate forge tool, glowing with internal fire, surrounded by mist",
+      "asset": "cdn://art/emb_r_soul_of_the_forge.webp"
+    },
+    "power_score": 13.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ash_hunter",
+    "set": "buried_age",
+    "name": "Ash Hunter",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "From the ashes, they rise to hunt for the unseen.",
+    "art": {
+      "prompt": "a shadowy figure crouched in ash, poised to strike, eyes glowing with an ember hue",
+      "asset": "cdn://art/emb_c_ash_hunter.webp"
+    },
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinderblade_guardian",
+    "set": "buried_age",
+    "name": "Cinderblade Guardian",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The guardian stands firm, an embodiment of the forge's will.",
+    "art": {
+      "prompt": "a towering armored figure wielding a fiery sword, standing watch over the forge",
+      "asset": "cdn://art/emb_u_cinderblade_guardian.webp"
+    },
+    "power_score": 12.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_scorched_scout",
+    "set": "buried_age",
+    "name": "Scorched Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Forged in the flames, they scout the edges of peril.",
+    "art": {
+      "prompt": "a swift figure emblazoned with glowing patterns, racing through hot terrain",
+      "asset": "cdn://art/emb_c_scorched_scout.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_flickering_golem",
+    "set": "buried_age",
+    "name": "Flickering Golem",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "flavor": "Crafted from many embers, its form shifts like a flame.",
+    "art": {
+      "prompt": "a semi-transparent golem made of flickering flames, its shape inconstant",
+      "asset": "cdn://art/emb_u_flickering_golem.webp"
+    },
+    "power_score": 7.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_blaze_dancer",
+    "set": "buried_age",
+    "name": "Blaze Dancer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "With every step, the air sizzles with fire and motion.",
+    "art": {
+      "prompt": "a dancer twirling gracefully among flames, trailing sparks and embers",
+      "asset": "cdn://art/emb_c_blaze_dancer.webp"
+    },
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_cinder_summit",
+    "set": "buried_age",
+    "name": "Cinder Summit",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_volcanic_token"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "At its peak, the fire rages hottest, forging anew.",
+    "art": {
+      "prompt": "a volcanic summit surrounded by a halo of fire, with molten rock flowing",
+      "asset": "cdn://art/emb_r_cinder_summit.webp"
+    },
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_pillars_of_flame",
+    "set": "buried_age",
+    "name": "Pillars of Flame",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 5
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Flames that rise to the heavens in a brilliant display of power.",
+    "art": {
+      "prompt": "flames shooting up into the sky, creating towering pillars of fire",
+      "asset": "cdn://art/emb_r_pillars_of_flame.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_conduit",
+    "set": "buried_age",
+    "name": "Cinder Conduit",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The channel through which all flames pass.",
+    "art": {
+      "prompt": "a figure standing amidst swirling flames, channeling fire through them",
+      "asset": "cdn://art/emb_c_cinder_conduit.webp"
+    },
+    "power_score": 5.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_emberbeast",
+    "set": "buried_age",
+    "name": "Emberbeast",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It prowls the shadows of the hearth, a manifestation of fire.",
+    "art": {
+      "prompt": "a large beast formed from shifting embers, eyes glowing bright against the dark",
+      "asset": "cdn://art/emb_u_emberbeast.webp"
+    },
+    "power_score": 7.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_fallen_ember",
+    "set": "buried_age",
+    "name": "Fallen Ember",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "From the depths of the forge, it continues to burn.",
+    "art": {
+      "prompt": "a small ember glowing softly on the ground, surrounded by a faint aura",
+      "asset": "cdn://art/emb_c_fallen_ember.webp"
+    },
+    "power_score": 4.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_smelting_wraith",
+    "set": "buried_age",
+    "name": "Smelting Wraith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "A fleeting shadow that moves through the flames unseen.",
+    "art": {
+      "prompt": "a shadowy figure flickering in and out of view, cloaked in glowing embers",
+      "asset": "cdn://art/emb_u_smelting_wraith.webp"
+    },
+    "power_score": 5.7,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_spark_harrier",
+    "set": "buried_age",
+    "name": "Spark Harrier",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It dances through the sparks, a light in the dark.",
+    "art": {
+      "prompt": "a small creature darting between sparks, moving with a trail of fire",
+      "asset": "cdn://art/emb_c_spark_harrier.webp"
+    },
+    "power_score": 6.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_firenotch_fanatic",
+    "set": "buried_age",
+    "name": "Firenotch Fanatic",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Their minds consumed by the flame, they become part of the fire.",
+    "art": {
+      "prompt": "a wild-eyed figure dancing in flames, arms outstretched, surrounded by firelight",
+      "asset": "cdn://art/emb_u_firenotch_fanatic.webp"
+    },
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ashen_lure",
+    "set": "buried_age",
+    "name": "Ashen Lure",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_ash_token"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "An enticing warmth in the cold, drawing the unwary near.",
+    "art": {
+      "prompt": "embers swirling in a vortex, inviting figures closer with a subtle glow",
+      "asset": "cdn://art/emb_r_ashen_lure.webp"
+    },
+    "power_score": 7.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinderwolf",
+    "set": "buried_age",
+    "name": "Cinderwolf",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "A guardian of the forge, swift and silent.",
+    "art": {
+      "prompt": "a sleek wolf with glowing embers trailing from its fur, prowling stealthily",
+      "asset": "cdn://art/emb_u_cinderwolf.webp"
+    },
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinderflame",
+    "set": "buried_age",
+    "name": "Cinderflame",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "The flame that lives where ashes dwell.",
+    "art": {
+      "prompt": "a small flickering flame surrounded by ashes, warm and inviting",
+      "asset": "cdn://art/emb_c_cinderflame.webp"
+    },
+    "power_score": 5.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_hearthkeeper",
+    "set": "buried_age",
+    "name": "Hearthkeeper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It is the heart that nurtures the flame, keeping it alive.",
+    "art": {
+      "prompt": "a cozy figure tending to a fire, surrounded by warmth and light",
+      "asset": "cdn://art/emb_u_hearthkeeper.webp"
+    },
+    "power_score": 5.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_burnt_outcast",
+    "set": "buried_age",
+    "name": "Burnt Outcast",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The flames have consumed all; they wander seeking warmth.",
+    "art": {
+      "prompt": "a singed figure stumbling through a fiery wasteland, searching for shelter",
+      "asset": "cdn://art/emb_u_burnt_outcast.webp"
+    },
+    "power_score": 5.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_flameborn_wrecker",
+    "set": "buried_age",
+    "name": "Flameborn Wrecker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "With one mighty swing, they forge and break in equal measure.",
+    "art": {
+      "prompt": "a massive figure wielding a massive hammer engulfed in flames, striking down",
+      "asset": "cdn://art/emb_c_flameborn_wrecker.webp"
+    },
+    "power_score": 9.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_embers_of_creation",
+    "set": "buried_age",
+    "name": "Embers of Creation",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE"
+            },
+            "token_id": "emb_t_fire_token"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "With each ember, a world is born anew.",
+    "art": {
+      "prompt": "a swirl of embers taking shape into various objects, glowing with life",
+      "asset": "cdn://art/emb_r_embers_of_creation.webp"
+    },
+    "power_score": 6.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_molten_vanguard",
+    "set": "buried_age",
+    "name": "Molten Vanguard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ember_raptor",
+    "set": "buried_age",
+    "name": "Ember Raptor",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 5.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_un_lava_fissure",
+    "set": "buried_age",
+    "name": "Lava Fissure",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_scout",
+    "set": "buried_age",
+    "name": "Cinder Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 3.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_forge_light",
+    "set": "buried_age",
+    "name": "Forge Light",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_inferno_wing",
+    "set": "buried_age",
+    "name": "Inferno Wing",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [
+      "SWIFT",
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 11.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_fires_signature",
+    "set": "buried_age",
+    "name": "Fire's Signature",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 5
+    },
+    "power_score": 9.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_scorching_bard",
+    "set": "buried_age",
+    "name": "Scorching Bard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "power_score": 7.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinder_wellspring",
+    "set": "buried_age",
+    "name": "Cinder Wellspring",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_flame_ambush",
+    "set": "buried_age",
+    "name": "Flame Ambush",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 4
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_volcanic_armor",
+    "set": "buried_age",
+    "name": "Volcanic Armor",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinder_barrage",
+    "set": "buried_age",
+    "name": "Cinder Barrage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_hardened_noble",
+    "set": "buried_age",
+    "name": "Hardened Noble",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "power_score": 9.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ash_flicker",
+    "set": "buried_age",
+    "name": "Ash Flicker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 5.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_raging_flame",
+    "set": "buried_age",
+    "name": "Raging Flame",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_pyre_warden",
+    "set": "buried_age",
+    "name": "Pyre Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.7,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_flame_signature",
+    "set": "buried_age",
+    "name": "Flame Signature",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 5.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_forged_victory",
+    "set": "buried_age",
+    "name": "Forged Victory",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 11.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinder_blast",
+    "set": "buried_age",
+    "name": "Cinder Blast",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_embers_cover",
+    "set": "buried_age",
+    "name": "Ember's Cover",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 4
+    },
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_furnace_giant",
+    "set": "buried_age",
+    "name": "Furnace Giant",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 7,
+    "vigor": 5,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "power_score": 12.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_hound",
+    "set": "buried_age",
+    "name": "Cinder Hound",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_scout",
+    "set": "buried_age",
+    "name": "Cinder Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 5.5,
+    "content_version": 1
+  }
+]

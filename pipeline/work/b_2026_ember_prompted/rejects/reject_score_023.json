@@ -1,0 +1,44 @@
+{
+  "card": {
+    "id": "emb_u_immolation_ritual",
+    "set": "buried_age",
+    "name": "Immolation Ritual",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            }
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Ash to ash, a little faster than nature intended.",
+    "art": {
+      "prompt": "a monster wreathed in magical fire, dissolving into ash before it can strike",
+      "asset": "cdn://art/emb_u_immolation_ritual.webp"
+    },
+    "power_score": 12.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -10.00 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_c_soot_smudge",
+    "set": "buried_age",
+    "name": "Soot Smudge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "attack": -2,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A well-placed bit of grime in the eye can fell a giant.",
+    "art": {
+      "prompt": "a black handprint of soot materializing over a monstrous creature's eye",
+      "asset": "cdn://art/emb_c_soot_smudge.webp"
+    },
+    "power_score": 5.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -7.60 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

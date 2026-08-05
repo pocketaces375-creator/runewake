@@ -1,0 +1,44 @@
+{
+  "card": {
+    "id": "emb_r_soul_of_cinder",
+    "set": "buried_age",
+    "name": "Soul of Cinder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "SELF"
+            }
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It cannot be destroyed. Only postponed.",
+    "art": {
+      "prompt": "a knight made of glowing embers and swirling ash, disintegrating but with a single, burning coal at its heart",
+      "asset": "cdn://art/emb_r_soul_of_cinder.webp"
+    },
+    "power_score": 12.25,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.65 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

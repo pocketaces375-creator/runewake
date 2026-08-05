@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_u_hearthkeeper",
+    "set": "buried_age",
+    "name": "Hearthkeeper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It is the heart that nurtures the flame, keeping it alive.",
+    "art": {
+      "prompt": "a cozy figure tending to a fire, surrounded by warmth and light",
+      "asset": "cdn://art/emb_u_hearthkeeper.webp"
+    },
+    "power_score": 5.3,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

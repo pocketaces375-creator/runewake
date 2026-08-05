@@ -1,0 +1,9 @@
+{
+  "batch_id": "02_valid",
+  "input_file": "work/b_2026_ember_prompted/02_valid.json",
+  "total_processed": 52,
+  "scored": 18,
+  "rejected": 34,
+  "auto_adjusted": 12,
+  "timestamp": "2026-08-05T06:57:39Z"
+}

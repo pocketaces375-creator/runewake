@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_blackiron_bully",
+    "set": "buried_age",
+    "name": "Blackiron Bully",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "He solves most of his problems by being bigger than them.",
+    "art": {
+      "prompt": "a broad-shouldered dwarf with fists like hammers, covered in soot and sneering",
+      "asset": "cdn://art/emb_c_blackiron_bully.webp"
+    },
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.65 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

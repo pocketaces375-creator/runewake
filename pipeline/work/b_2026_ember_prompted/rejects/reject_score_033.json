@@ -1,0 +1,57 @@
+{
+  "card": {
+    "id": "emb_x_sundering_stone",
+    "set": "buried_age",
+    "name": "Sundering Stone",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 3,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "PERMANENT"
+          }
+        ]
+      },
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "ALLY_COUNT_GTE",
+      "value": 5
+    },
+    "flavor": "A fragment of the first anvil, it remembers every shattering blow.",
+    "art": {
+      "prompt": "a jagged, black rock that glows with an inner fire, covered in hairline fractures",
+      "asset": "cdn://art/emb_x_sundering_stone.webp"
+    },
+    "power_score": 12.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.25 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

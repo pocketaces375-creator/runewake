@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_u_ash_sculptor",
+    "set": "buried_age",
+    "name": "Ash Sculptor",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ACTIVATED",
+        "cost": 2,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "She shapes what remains into what will be.",
+    "art": {
+      "prompt": "an artist carefully arranging grey ash on a black stone table, forming an intricate pattern",
+      "asset": "cdn://art/emb_u_ash_sculptor.webp"
+    },
+    "power_score": 9.1,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0]: Additional properties are not allowed ('cost' was unexpected)"
+}

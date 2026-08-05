@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_u_deep_forge_brute",
+    "set": "buried_age",
+    "name": "Deep-Forge Brute",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 7,
+    "vigor": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It was forged in a place with no room for finesse.",
+    "art": {
+      "prompt": "a colossal, crudely-shaped iron golem emerging from a pit of lava, chains dangling from its wrists",
+      "asset": "cdn://art/emb_u_deep_forge_brute.webp"
+    },
+    "power_score": 14.6,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.25 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

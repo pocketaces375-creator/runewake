@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_obsidian_skitterer",
+    "set": "buried_age",
+    "name": "Obsidian Skitterer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "It feeds on heat and echoes, leaving only cooled stone behind.",
+    "art": {
+      "prompt": "a spider-like creature made of sharp obsidian glass, crawling over cooling lava rock.",
+      "asset": "cdn://art/emb_c_obsidian_skitterer.webp"
+    },
+    "power_score": 5.4,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

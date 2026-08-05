@@ -1,0 +1,23 @@
+{
+  "card": {
+    "id": "emb_c_cinderflame",
+    "set": "buried_age",
+    "name": "Cinderflame",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "The flame that lives where ashes dwell.",
+    "art": {
+      "prompt": "a small flickering flame surrounded by ashes, warm and inviting",
+      "asset": "cdn://art/emb_c_cinderflame.webp"
+    },
+    "power_score": 5.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.05 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

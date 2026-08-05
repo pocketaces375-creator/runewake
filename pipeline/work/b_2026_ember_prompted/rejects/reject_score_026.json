@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_u_cinder_cataphract",
+    "set": "buried_age",
+    "name": "Cinder Cataphract",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "His charge announces itself with a wave of searing heat.",
+    "art": {
+      "prompt": "a heavily armored knight on a barded horse, both covered in plates of smoldering iron, crashing into a line of enemies",
+      "asset": "cdn://art/emb_u_cinder_cataphract.webp"
+    },
+    "power_score": 13.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.65 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

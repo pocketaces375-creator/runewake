@@ -1,0 +1,43 @@
+{
+  "card": {
+    "id": "emb_u_forged_in_secret",
+    "set": "buried_age",
+    "name": "Forged in Secret",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The best blades are tempered with knowledge best left buried.",
+    "art": {
+      "prompt": "a hooded figure quenching a dagger in a hidden spring deep within a volcanic cave",
+      "asset": "cdn://art/emb_u_forged_in_secret.webp"
+    },
+    "power_score": 8.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}
