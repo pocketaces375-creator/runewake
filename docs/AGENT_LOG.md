@@ -987,6 +987,66 @@ Built the APPROVE/REVIEW stage of the AI pipeline — a local FastAPI web UI (Ji
 - All 9 review-app endpoint tests pass
 - 331/331 C# tests still pass
 - 141/144 Python tests pass (3 pre-existing `test_generate.py` failures logged)
+
+---
+
+## P6-09 — Publish + content versioning + client hot-update
+
+**Status:** Complete
+
+**Summary:**
+Built the PUBLISH stage of the AI pipeline plus the client-side content hot-update
+flow with SHA-256 integrity verification. Approved cards are assembled into a
+versioned content pack with a signed hash. The client verifies the hash before
+swapping in a downloaded pack and falls back to its bundled pack on any
+mismatch, so the client never ends up with no playable content.
+
+**Key design decisions:**
+- **Canonical JSON hashing:** both the Python publisher and the C# client
+  canonicalise the pack payload (`{set_id, version, cards}`) with sorted keys,
+  compact separators, and no ASCII escaping — byte-identical on both sides. The
+  hash is computed over the RAW received JSON, never over deserialised C#
+  objects, so the exact bytes the server hashed are the exact bytes the client
+  re-hashes. Cross-language consistency is proven by a test that verifies a
+  pack emitted verbatim by Python (including its real SHA-256) on the C# side.
+- **Immutable identity:** a card already in a pack is never silently edited.
+  Publishing a card whose content changed forces a version bump and records a
+  changelog entry describing the change. Identical re-publishes are idempotent
+  no-ops.
+- **Fallback safety:** a pack that fails hash verification or JSON validation
+  falls back to the bundled pack (`.bundled.json`) rather than leaving the
+  client with no content. Version downgrades are also rejected.
+
+**Files created:**
+- `pipeline/modules/publish.py` — PUBLISH stage module with:
+  - `canonical_json()` / `sha256_hex()` — canonical JSON + SHA-256 helpers
+  - `make_pack()` / `verify_pack()` — signed pack manifest build/verify
+  - `publish()` — reads `07_decisions.json` approved cards, enforces immutable
+    identity, increments version, writes `<set_id>.json` + `.bundled.json` +
+    `.changelog.json`
+  - CLI: `--work-dir`, `--set-id`, `--content-dir`
+- `pipeline/tests/test_publish.py` — 27 Python tests
+- `engine/Cards/ContentManager.cs` — C# client content manager:
+  - `ContentPack` / `ContentPackResult` DTOs
+  - `LoadBundledPack()` — load trusted bundled pack
+  - `ApplyRemotePack()` — verify hash, reject downgrades, fall back to bundled
+  - `VerifyPackJson()` / `VerifyHash()` / `Canonicalize()` — hash verification
+- `tests/Cards/ContentManagerTests.cs` — 19 C# tests (incl. cross-language)
+- `tools/PackVerifier/` — standalone C# tool proving Python→C# verification
+- `tests/integration_publish_e2e.py` — end-to-end Python publish → C# verify
+
+**Files updated:**
+- `client/scripts/Main.cs` — replaced hard-coded pack loading with ContentManager:
+  loads versioned pack, falls back to bundled, then to legacy `content/cards/`
+  format. Godot console logs hash-verification failures and fallback reason.
+
+**Verification:**
+- All 27 Python publish tests pass
+- All 19 C# ContentManager tests pass
+- 350/350 C# tests pass (up from 331; +19 new)
+- 168/171 Python tests pass (up from 141; +27 new — 3 pre-existing `test_generate.py` failures logged in `docs/TECH_DEBT.md`)
+- End-to-end integration: Python publish → C# hash verify → tamper reject, all pass
 - 0 TODO, 0 NotImplementedException
 
-Next: **P6-09** — Publish + content versioning + client hot-update.
+Next: **P6-10** — Pipeline orchestration + one 60-card set end to end.
+
