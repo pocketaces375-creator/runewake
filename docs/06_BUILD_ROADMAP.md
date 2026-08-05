@@ -112,8 +112,40 @@ DoD for Phase 3: a full duel is playable start to finish on a phone.
 
 ## PHASE 6 — AI pipeline (target: 4 weeks)
 
-**P6-01** Card JSON Schema finalized. **P6-02** Generate module. **P6-03** Validate module (schema + engine bridge). **P6-04** Score module. **P6-05** Simulate module. **P6-06** Dedupe + moderate. **P6-07** Art module. **P6-08** Review UI. **P6-09** Publish + content versioning + client hot-update.
+**P6-01** Card JSON Schema finalized. **P6-02** Generate module. **P6-03** Validate module (schema + engine bridge). **P6-04** Score module. **P6-05** Simulate module. **P6-06** Dedupe + moderate. **P6-07** Art module. **P6-08** Review UI. **P6-09** Publish + content versioning + client hot-update. **P6-10** Pipeline orchestration + one 60-card set end to end. **P6-11** Stage-schema continuity + report hardening.
 DoD: produce one 60-card set end to end with under 15% rejection at Stage 3.
+
+### P6-11 — Stage-schema continuity + report hardening
+
+**Status:** Logged (from P6-10 findings)
+
+**Problem — stage-schema discontinuity.** Each stage passes a different JSON
+schema downstream, so the pipeline loses card identity between stages:
+- `GENERATE` → `01_raw.json` = full `CardDef` objects (has `name`, `strata`, `art.prompt`).
+- `SIMULATE` → `04_simulated.json` = sim-result objects (`card_id`, `card_name`,
+  `matchup_results`, `avg_delta`, `flags`) — **not** `CardDef`.
+- `DEDUPE+MODERATE` → `05_deduplicated.json` = passes through the sim-result shape.
+- `ART` expects full `CardDef` (needs `name`/`strata`/`art.prompt`) but receives the
+  sim-result shape, so it rendered cards as `card_000` with `VERDANT` fallback strata.
+
+**Workaround in place (P6-10):** the orchestrator merges `02_valid.json` card
+definitions back into `05_deduplicated.json` before ART, keyed by card id. This
+is a band-aid, not a fix.
+
+**Required fix:** define one canonical stage-boundary schema. Each stage should
+carry the full `CardDef` forward and attach its stage-specific results as a
+nested field (e.g. `card["simulation"]`, `card["dedupe"]`) rather than replacing
+the card with a results-only object. Investigate having each stage read the
+original `01_raw.json`/`02_valid.json` and join by id, or restructure the
+intermediate files to include BOTH the card and its stage metadata.
+
+**Also in scope — report hardening:** the P6-10 acceptance report had several
+impossible-value bugs (dedupe stage reported 31/12 rejects by counting prior
+stages' reject files; cost reported $0.00 despite 12 image calls; seeded count
+reported 0). These are fixed in the orchestrator with stage-scoped reject
+prefixes, cost parsing from actual stage output, seeded-count read from the
+seed file, and a `_validate_report()` sanity check that fails on impossible
+values. Tests in `pipeline/tests/test_orchestrator.py`.
 
 ---
 

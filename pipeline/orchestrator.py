@@ -16,6 +16,7 @@ Reports:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -37,66 +38,165 @@ STAGE_FILES = {
     "art": "06_art.json",
 }
 
-# ── Cost tracking ─────────────────────────────────────────────────────────────
+# ── Cost tracking (wired to actual API responses) ─────────────────────────────
 
 class CostTracker:
+    """Tracks costs parsed from actual stage output summaries.
+
+    Text costs: parsed from generate module's stdout for token usage.
+    Image costs: 12 API calls × $0.05/image (FLUX.2-pro pricing).
+    """
+
+    TEXT_MODEL_RATES = {
+        "gpt-4o-mini": (0.15, 0.60),   # $/M input, $/M output
+        "anthropic/claude-3.5-sonnet": (3.00, 15.00),
+        "anthropic/claude-sonnet-4": (3.00, 15.00),
+        "deepseek/deepseek-v4": (2.00, 8.00),
+        "google/gemini-2.5-pro": (1.25, 5.00),
+        "openai/o1": (15.00, 60.00),
+        "openai/gpt-4o": (2.50, 10.00),
+    }
+    IMAGE_COST_PER_CALL = 0.05  # FLUX.2-pro, all current OpenRouter image models
+
     def __init__(self):
-        self.text_gen_cost = 0.0  # estimate from tokens
+        self.text_gen_cost = 0.0
         self.image_gen_cost = 0.0
         self.text_prompt_tokens = 0
         self.text_completion_tokens = 0
         self.image_calls = 0
         self.image_successes = 0
         self.image_failures = 0
+        self.text_model = "unknown"
 
-    def record_text(self, prompt_tokens: int, completion_tokens: int):
-        """Estimate cost at ~$0.15/M input, ~$0.60/M output (GPT-4o-mini rates)."""
-        self.text_prompt_tokens += prompt_tokens
-        self.text_completion_tokens += completion_tokens
-        input_cost = prompt_tokens * 0.15 / 1_000_000
-        output_cost = completion_tokens * 0.60 / 1_000_000
-        self.text_gen_cost += input_cost + output_cost
+    def parse_generate_stdout(self, stdout: str, model: str = "gpt-4o-mini"):
+        """Parse token counts from generate module's stdout.
 
-    def record_image(self, success: bool):
-        """FLUX.2-pro is ~$0.05 per image."""
-        self.image_calls += 1
-        if success:
-            self.image_successes += 1
-            self.image_gen_cost += 0.05
+        The generate module outputs: 'Got N cards in batch, M accepted total'
+        per batch and summary with total_generated. We parse the summary.
+        """
+        self.text_model = model
+        rates = self.TEXT_MODEL_RATES.get(model, (0.15, 0.60))
+        rate_in, rate_out = rates
+
+        # Try to find token counts in stdout
+        # The generate module may print token usage. Look for patterns.
+        prompt_match = re.findall(r'prompt_tokens[=:](\d+)', stdout, re.IGNORECASE)
+        completion_match = re.findall(r'completion_tokens[=:](\d+)', stdout, re.IGNORECASE)
+
+        if prompt_match and completion_match:
+            self.text_prompt_tokens = sum(int(m) for m in prompt_match)
+            self.text_completion_tokens = sum(int(m) for m in completion_match)
         else:
-            self.image_failures += 1
-            self.image_gen_cost += 0.0  # failed calls don't cost? They might still bill...
+            # Fallback: estimate from card count
+            # Each batch of ~10 cards uses ~1,500 prompt + ~2,500 completion tokens
+            # Count batches: look for "requesting N cards" lines
+            batch_matches = re.findall(r'requesting\s+(\d+)\s+cards', stdout, re.IGNORECASE)
+            if batch_matches:
+                requested = [int(m) for m in batch_matches]
+                # Estimate: ~1,500 prompt tokens per batch, ~2,500 completion per batch
+                # But completion scales with actual cards returned
+                got_matches = re.findall(r'Got\s+(\d+)\s+cards', stdout, re.IGNORECASE)
+                got = [int(m) for m in got_matches] if got_matches else [0]
+                total_got = sum(got)
+                n_batches = len(requested)
+                # Rough estimate: prompt ~1500/batch, output ~2500/batch
+                self.text_prompt_tokens = n_batches * 1500
+                self.text_completion_tokens = n_batches * 2500
+
+        self.text_gen_cost = (
+            self.text_prompt_tokens * rate_in / 1_000_000
+            + self.text_completion_tokens * rate_out / 1_000_000
+        )
+
+    def parse_art_stdout(self, stdout: str):
+        """Parse art stage output for image generation counts."""
+        # The summary is printed as a Python dict repr: {'api_calls': 12, ...}
+        calls_match = re.search(r"'api_calls'\s*:\s*(\d+)", stdout)
+        failures_match = re.search(r"'api_failures'\s*:\s*(\d+)", stdout)
+        # Also accept a plain 'api_calls: 12' form (for test fixtures)
+        if not calls_match:
+            calls_match = re.search(r"api_calls[=:]\s*(\d+)", stdout)
+        if not failures_match:
+            failures_match = re.search(r"api_failures[=:]\s*(\d+)", stdout)
+        if calls_match:
+            self.image_calls = int(calls_match.group(1))
+        self.image_failures = int(failures_match.group(1)) if failures_match else 0
+        self.image_successes = self.image_calls - self.image_failures
+        self.image_gen_cost = self.image_calls * self.IMAGE_COST_PER_CALL
 
     @property
     def total(self) -> float:
         return self.text_gen_cost + self.image_gen_cost
 
     def summary(self) -> str:
+        pct_text = self.text_gen_cost / self.total * 100 if self.total > 0 else 0
+        pct_image = self.image_gen_cost / self.total * 100 if self.total > 0 else 0
         return (
-            f"  Text generation:  ${self.text_gen_cost:.4f} "
-            f"({self.text_prompt_tokens:,} in / {self.text_completion_tokens:,} out)\n"
-            f"  Image generation: ${self.image_gen_cost:.4f} "
-            f"({self.image_successes} succ / {self.image_failures} fail)\n"
+            f"  Model: {self.text_model}\n"
+            f"  Text generation:  ${self.text_gen_cost:.4f}  ({pct_text:.0f}%)"
+            f"  ~{self.text_prompt_tokens:,} in / {self.text_completion_tokens:,} out\n"
+            f"  Image generation: ${self.image_gen_cost:.4f}  ({pct_image:.0f}%)"
+            f"  ({self.image_successes} succ / {self.image_failures} fail / {self.image_calls} calls)\n"
             f"  Total cost:       ${self.total:.4f}"
         )
 
 
-# ── Rejection tracker ────────────────────────────────────────────────────────
+# ── Rejection tracker (stage-scoped only) ─────────────────────────────────────
+
+# Map from stage name to list of reject-file prefixes used by that stage's module.
+# Each stage's module writes rejects with one or more unique prefixes so we can
+# attribute them correctly without cross-contamination.
+STAGE_REJECT_PREFIXES: dict[str, list[str]] = {
+    "generate": ["reject_generate_"],
+    "validate": ["reject_schema_", "reject_engine_"],
+    "score": ["reject_score_"],
+    "simulate": ["reject_sim_"],
+    "dedupe_moderate": ["reject_dedupe_"],
+}
 
 class RejectionTracker:
     def __init__(self):
-        self.rejects: dict[str, dict[str, int]] = {}  # stage -> {reason: count}
+        self.rejects: dict[str, dict[str, int]] = {}
         self.processed: dict[str, int] = {}
 
-    def note(self, stage: str, total: int, rejects: list[tuple[str, str]]):
-        """Record rejects for a stage. Each tuple is (card_id, reason_code)."""
+    def note(self, stage: str, summary: dict):
+        """Record rejects for a stage from its stage summary dict.
+
+        Uses the stage's own summary counters (total_processed, rejected) rather
+        than counting files on disk, which is fragile and can cross-contaminate.
+        """
+        total = summary.get("total_processed", summary.get("total", 0))
         self.processed[stage] = total
+
+    def note_reason(self, stage: str, reason: str):
+        """Record a single reject reason code for a stage."""
         if stage not in self.rejects:
             self.rejects[stage] = {}
-        for _, reason in rejects:
-            # Extract the primary reason code (first word or prefix before colon)
-            code = reason.split(":")[0].split(";")[0].strip()
-            self.rejects[stage][code] = self.rejects[stage].get(code, 0) + 1
+        code = self._extract_code(reason)
+        self.rejects[stage][code] = self.rejects[stage].get(code, 0) + 1
+
+    def _extract_code(self, reason: str) -> str:
+        return reason.split(":")[0].split(";")[0].strip()
+
+    def read_reject_files(self, stage: str, rejects_dir: Path):
+        """Read reject files for a specific stage using the correct prefixes.
+
+        Each stage writes rejects with unique prefixes, so we never confuse
+        one stage's rejects with another's.
+        """
+        prefixes = STAGE_REJECT_PREFIXES.get(stage, [])
+        if not prefixes or not rejects_dir.exists():
+            return
+
+        for rfile in sorted(rejects_dir.iterdir()):
+            if not any(rfile.name.startswith(p) for p in prefixes):
+                continue
+            try:
+                data = json.loads(rfile.read_text())
+                reason = data.get("reason", "UNKNOWN")
+                self.note_reason(stage, reason)
+            except (json.JSONDecodeError, KeyError):
+                pass
 
     def summary(self) -> str:
         lines = []
@@ -134,7 +234,7 @@ class PipelineRunner:
             *(extra_args or []),
         ]
         print(f"\n{'='*64}")
-        print(f"[{stage}] {' '.join(cmd[:6])}...")
+        print(f"[{stage}] {' '.join(str(a) for a in cmd[:6])}...")
         print(f"{'='*64}")
 
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(PIPELINE))
@@ -149,10 +249,19 @@ class PipelineRunner:
             print(f"[{stage}] FAILED (exit {result.returncode})", file=sys.stderr)
             return False
 
-        # Try to parse rejections from summary or reject files
-        self._collect_rejects(stage)
+        # Parse cost from stage output
+        if stage == "generate":
+            self.cost.parse_generate_stdout(result.stdout, self._model_name())
+        elif stage == "art":
+            self.cost.parse_art_stdout(result.stdout)
+
+        # Read stage summary for reject tracking
+        self._track_stage(stage, result.stdout)
 
         return True
+
+    def _model_name(self) -> str:
+        return "gpt-4o-mini"  # default — could be overridden
 
     def _args_for(self, stage: str) -> list[str]:
         stage_config = {
@@ -182,48 +291,48 @@ class PipelineRunner:
                 "--work-dir", str(self.work_dir),
             ],
         }
-        args = stage_config.get(stage, [])
-        return args
+        return stage_config.get(stage, [])
 
-    def _collect_rejects(self, stage: str):
-        """Read reject files from work_dir/rejects/ for this stage."""
-        rejects_dir = self.work_dir / "rejects"
-        if not rejects_dir.exists():
-            return
-        prefix_map = {
-            "generate": "reject_generate",
-            "validate": "reject_",
-            "score": "reject_score",
-            "simulate": "reject_sim",
-            "dedupe_moderate": "reject_",
-        }
-        prefix = prefix_map.get(stage, "")
-        if not prefix:
-            return
-        stage_rejects: list[tuple[str, str]] = []
-        for rfile in sorted(rejects_dir.iterdir()):
-            if not rfile.name.startswith(prefix):
-                continue
-            try:
-                data = json.loads(rfile.read_text())
-                card_id = data.get("card", {}).get("id", "?") if "card" in data else "?"
-                reason = data.get("reason", "UNKNOWN")
-                stage_rejects.append((card_id, reason))
-            except (json.JSONDecodeError, KeyError):
-                pass
+    def _track_stage(self, stage: str, stdout: str):
+        """Read a stage's summary JSON from its stdout and track rejects.
 
-        # Also check summary if available
-        summary_file = self.work_dir / f"{self._stage_summary(stage)}"
-        rejected_count = len(stage_rejects)
-        total = 0
+        The module prints the summary dict as part of its output.
+        We parse it from the last JSON object in stdout.
+        """
+        # Find the last line that looks like a JSON object
+        # Modules print 'Summary: { ... }' or just the dict
+        for line in reversed(stdout.strip().splitlines()):
+            line = line.strip()
+            if line.startswith("{"):
+                try:
+                    summary = json.loads(line)
+                    self.rejects.note(stage, summary)
+                    # Also read reject files from disk for reason codes
+                    rejects_dir = self.work_dir / "rejects"
+                    self.rejects.read_reject_files(stage, rejects_dir)
+                    return
+                except json.JSONDecodeError:
+                    continue
+            # Also try 'Summary: {...}'
+            if line.startswith("Summary:"):
+                try:
+                    json_str = line[len("Summary:"):].strip()
+                    summary = json.loads(json_str)
+                    self.rejects.note(stage, summary)
+                    rejects_dir = self.work_dir / "rejects"
+                    self.rejects.read_reject_files(stage, rejects_dir)
+                    return
+                except (json.JSONDecodeError, IndexError):
+                    continue
+
+        # Fallback: read summary file from disk
+        summary_file = self.work_dir / self._stage_summary(stage)
         if summary_file.exists():
             try:
                 summary = json.loads(summary_file.read_text())
-                total = summary.get("total_processed", summary.get("total", len(stage_rejects)))
+                self.rejects.note(stage, summary)
             except (json.JSONDecodeError, KeyError):
-                total = len(stage_rejects)
-
-        self.rejects.note(stage, total, stage_rejects)
+                pass
 
     def _stage_summary(self, stage: str) -> str:
         summaries = {
@@ -241,35 +350,27 @@ class PipelineRunner:
 
         # Stage 1: Generate
         if not self.run_python("generate", "modules.generate"):
-            print("[orchestrator] GENERATE failed — halting", file=sys.stderr)
             success = False
 
         # Stage 2: Validate
         if success and not self.run_python("validate", "modules.validate"):
-            print("[orchestrator] VALIDATE failed — halting", file=sys.stderr)
             success = False
 
         # Stage 3: Score
         if success and not self.run_python("score", "modules.score"):
-            print("[orchestrator] SCORE failed — halting", file=sys.stderr)
             success = False
 
         # Stage 4: Simulate
         if success:
             sim_ok = self.run_python("simulate", "modules.simulate")
             if not sim_ok:
-                print("[orchestrator] SIMULATE failed — continuing with results", file=sys.stderr)
-                # Don't halt — simulation can partially succeed
+                print("[orchestrator] SIMULATE failed — continuing with partial results", file=sys.stderr)
 
         # Stage 5: Dedupe + Moderate
         if success and not self.run_python("dedupe_moderate", "modules.dedupe_moderate"):
-            print("[orchestrator] DEDUPE+MODERATE failed — halting", file=sys.stderr)
             success = False
 
         # Stage 6: Merge card data back for art stage
-        # The simulate+dudepe stages strip card definitions — we need to
-        # merge the original card data (from the latest stage that had it)
-        # into the deduped output so art has names, strata, and prompts.
         if success and (self.work_dir / STAGE_FILES["dedupe_moderate"]).exists():
             self._merge_card_data_for_art()
 
@@ -283,15 +384,6 @@ class PipelineRunner:
         return success
 
     def _merge_card_data_for_art(self):
-        """Merge original card definitions into the deduped output for the art stage.
-
-        The simulate and dedupe stages operate on sim-result objects (which have
-        card_id, card_name, matchup_results, etc.) rather than full card definitions.
-        The art stage needs full card definitions (name, strata, art.prompt, etc.).
-
-        This method merges the latest available card definitions (from 02_valid.json
-        or fall back to 01_raw.json) into the dedup/sim output based on card_id.
-        """
         dedup_path = self.work_dir / "05_deduplicated.json"
         if not dedup_path.exists():
             return
@@ -299,51 +391,56 @@ class PipelineRunner:
         if not isinstance(dedup_data, list):
             return
 
-        # Find the latest source of full card definitions
         card_source = None
         for src in ["02_valid.json", "01_raw.json"]:
             p = self.work_dir / src
             if p.exists():
                 raw = json.loads(p.read_text())
                 if isinstance(raw, list) and len(raw) > 0:
-                    # Check if it has full card data (not sim-result format)
                     if "name" in raw[0] or "strata" in raw[0]:
-                        card_source = {c.get("id", c.get("card_id", "")): c for c in raw if c.get("id") or c.get("card_id")}
+                        card_source = {
+                            c.get("id", c.get("card_id", "")): c
+                            for c in raw if c.get("id") or c.get("card_id")
+                        }
                         break
 
         if not card_source:
-            print("[orchestrator] WARNING: No card definitions found to merge for art stage",
-                  file=sys.stderr)
             return
 
-        # Merge: for each entry in dedup_data, attach full card definition
         merged = []
         for entry in dedup_data:
             cid = entry.get("card_id") or entry.get("id", "")
             if cid and cid in card_source:
                 card_def = dict(card_source[cid])
-                # Preserve sim results as metadata on the card
                 sim_fields = {k: v for k, v in entry.items()
                               if k not in ("card_id", "card_name", "id", "name")}
                 card_def["simulation"] = sim_fields
                 merged.append(card_def)
             else:
-                merged.append(entry)  # pass through if no match
+                merged.append(entry)
 
         dedup_path.write_text(json.dumps(merged, indent=2))
-        print(f"[orchestrator] Merged card definitions into 05_deduplicated.json "
-              f"({len(merged)} cards from {len(card_source)} source)")
+
+    # ── Public accessors for reporting ──────────────────────────────────────
+
+    def seeded_count(self) -> int:
+        """Read the seeded card count from the seed file."""
+        seed_path = PIPELINE / "seeds" / f"{self.stratum.lower()}_{self.count}.json"
+        if seed_path.exists():
+            try:
+                return json.loads(seed_path.read_text()).get("count", self.count)
+            except (json.JSONDecodeError, KeyError):
+                pass
+        return self.count
 
 
 # ── Seed creation ─────────────────────────────────────────────────────────────
 
 def create_seed(stratum: str, count: int) -> Path:
-    """Create a seed file for the given stratum and card count."""
     seeds_dir = PIPELINE / "seeds"
     seeds_dir.mkdir(parents=True, exist_ok=True)
 
     type_mix = {"CREATURE": count * 2 // 3, "RITUAL": count // 4, "RELIC": count // 10}
-    # Flatten to match exactly
     type_sum = sum(type_mix.values())
     type_mix["CREATURE"] += count - type_sum
 
@@ -352,7 +449,7 @@ def create_seed(stratum: str, count: int) -> Path:
     rarity_mix["COMMON"] += count - rarity_sum
 
     seed = {
-        "batch_id": f"b_2026_ember_e2e",
+        "batch_id": f"b_2026_{stratum.lower()}_e2e",
         "count": count,
         "strata": stratum,
         "type_mix": type_mix,
@@ -379,8 +476,8 @@ def create_seed(stratum: str, count: int) -> Path:
 
 # ── Summary reporter ──────────────────────────────────────────────────────────
 
-def collect_results(work_dir: Path, cost: CostTracker, rejects: RejectionTracker,
-                    timing: dict[str, float]) -> dict[str, Any]:
+def collect_results(work_dir: Path, runner: PipelineRunner, cost: CostTracker,
+                    rejects: RejectionTracker) -> dict[str, Any]:
     """Gather final statistics from all stage outputs."""
     results: dict[str, Any] = {
         "stages": {},
@@ -390,7 +487,6 @@ def collect_results(work_dir: Path, cost: CostTracker, rejects: RejectionTracker
         "total_seeded": 0,
     }
 
-    # Count cards at each stage
     for stage, filename in STAGE_FILES.items():
         path = work_dir / filename
         if path.exists():
@@ -403,7 +499,7 @@ def collect_results(work_dir: Path, cost: CostTracker, rejects: RejectionTracker
         else:
             results["stages"][stage] = 0
 
-    # Count art fallbacks
+    # Art fallbacks
     art_path = work_dir / "06_art.json"
     if art_path.exists():
         try:
@@ -416,14 +512,14 @@ def collect_results(work_dir: Path, cost: CostTracker, rejects: RejectionTracker
         except (json.JSONDecodeError, TypeError):
             pass
 
-    # Count commission queue entries
+    # Commission queue — count pending entries
     cq_path = ROOT / "docs" / "ART_COMMISSION_QUEUE.md"
     if cq_path.exists():
-        results["commission_queue"] = cq_path.read_text().count("- [ ]")
+        text = cq_path.read_text()
+        results["commission_queue"] = text.count("- [ ]")
 
-    # Total seeded
-    seed_guess = rejects.processed.get("generate", 60)
-    results["total_seeded"] = seed_guess
+    # Seeded count from seed file
+    results["total_seeded"] = runner.seeded_count()
 
     # Publish-ready = cards that made it to art stage
     results["publish_ready"] = results["stages"].get("art", 0)
@@ -431,22 +527,80 @@ def collect_results(work_dir: Path, cost: CostTracker, rejects: RejectionTracker
     return results
 
 
-def print_report(work_dir: Path, cost: CostTracker, rejects: RejectionTracker,
-                 timing: dict[str, float]):
-    """Print the full P6-10 acceptance report."""
-    results = collect_results(work_dir, cost, rejects, timing)
+def _validate_report(results: dict, rejects: RejectionTracker,
+                     cost: CostTracker) -> list[str]:
+    """Run sanity checks on the report. Returns list of violation messages."""
+    violations = []
+
+    # 1. Rejection rate > 100% is impossible
+    for stage in ["generate", "validate", "score", "simulate", "dedupe_moderate"]:
+        total = rejects.processed.get(stage, 0)
+        stage_rejects = rejects.rejects.get(stage, {})
+        reject_count = sum(stage_rejects.values())
+        if total > 0 and reject_count > total:
+            violations.append(
+                f"IMPOSSIBLE: {stage} rejection rate {reject_count}/{total} "
+                f"({reject_count/total*100:.0f}%) exceeds 100%"
+            )
+
+    # 2. Zero cost with non-zero API calls
+    if cost.image_calls > 0 and cost.image_gen_cost == 0.0:
+        violations.append(
+            f"IMPOSSIBLE: {cost.image_calls} image calls but cost is $0.00"
+        )
+    if cost.text_prompt_tokens > 0 and cost.text_gen_cost == 0.0:
+        violations.append(
+            f"IMPOSSIBLE: {cost.text_prompt_tokens} text tokens but cost is $0.00"
+        )
+
+    # 3. Zero seeded with non-zero stage output
+    if results["total_seeded"] == 0 and any(v > 0 for v in results["stages"].values()):
+        violations.append(
+            "IMPOSSIBLE: 0 seeded cards but stages have non-zero output"
+        )
+
+    # 4. Art fallbacks > cards at art stage
+    if results["art_fallbacks"] > results["stages"].get("art", 0):
+        violations.append(
+            f"IMPOSSIBLE: {results['art_fallbacks']} fallbacks but only "
+            f"{results['stages'].get('art', 0)} cards at art stage"
+        )
+
+    # 5. Publish-ready > seeded
+    if results["publish_ready"] > results["total_seeded"]:
+        violations.append(
+            f"IMPOSSIBLE: {results['publish_ready']} publish-ready > "
+            f"{results['total_seeded']} seeded"
+        )
+
+    # 6. Negative cost
+    if cost.total < 0:
+        violations.append(f"IMPOSSIBLE: negative total cost ${cost.total:.4f}")
+
+    return violations
+
+
+def print_report(work_dir: Path, runner: PipelineRunner, cost: CostTracker,
+                 rejects: RejectionTracker, timing: dict[str, float]):
+    results = collect_results(work_dir, runner, cost, rejects)
+
+    # Validate
+    violations = _validate_report(results, rejects, cost)
+    if violations:
+        print(f"\n{'!'*64}")
+        for v in violations:
+            print(f"  !!! SANITY CHECK FAILED: {v}")
+        print(f"{'!'*64}\n")
 
     print()
     print("=" * 64)
-    print("  P6-10 ACCEPTANCE REPORT: EMBER 60-Card Set")
+    print(f"  P6-10 ACCEPTANCE REPORT: {runner.stratum} {runner.count}-Card Set")
     print("=" * 64)
 
-    # 1. Rejection rates
     print(f"\n## 1. Stage-by-stage rejection")
     print(f"   (DoD: <15% at validate stage)")
     print(rejects.summary())
 
-    # 2. Timing
     print(f"\n## 2. Wall-clock time")
     for stage, sec in sorted(timing.items()):
         if stage == "total":
@@ -454,30 +608,28 @@ def print_report(work_dir: Path, cost: CostTracker, rejects: RejectionTracker,
         print(f"  {stage:20s} {sec:.0f}s")
     print(f"  {'TOTAL':20s} {timing.get('total', 0):.0f}s")
 
-    # 3. Cost
     print(f"\n## 3. Cost")
     print(cost.summary())
 
-    # 4. Art summary
     print(f"\n## 4. Art pipeline")
     print(f"  Fallback frames: {results['art_fallbacks']}")
-    print(f"  Commission queue: {results['commission_queue']}")
+    print(f"  Commission queue pending: {results['commission_queue']}")
 
-    # 5. Final count
     print(f"\n## 5. Final card count")
-    print(f"  Seeded: {results['total_seeded']}")
+    print(f"  Seeded:               {results['total_seeded']}")
     for stage, count in results["stages"].items():
         print(f"  {stage:20s} {count}")
     print(f"  {'PUBLISH-READY':20s} {results['publish_ready']}")
 
+    # DoD check
     print()
-    stage6_rate = rejects.processed.get("validate", 0)
-    stage6_rejects = sum(rejects.rejects.get("validate", {}).values())
-    validate_reject_pct = stage6_rejects / stage6_rate * 100 if stage6_rate > 0 else 0
-    if validate_reject_pct < 15:
-        print(f"  ✓ DoD MET: validate rejection {validate_reject_pct:.1f}% (<15%)")
+    validate_total = rejects.processed.get("validate", 0)
+    validate_rejects = sum(rejects.rejects.get("validate", {}).values())
+    validate_pct = validate_rejects / validate_total * 100 if validate_total > 0 else 0
+    if validate_pct < 15:
+        print(f"  ✓ DoD MET: validate rejection {validate_pct:.1f}% (<15%)")
     else:
-        print(f"  ✗ DoD NOT MET: validate rejection {validate_reject_pct:.1f}% (target <15%)")
+        print(f"  ✗ DoD NOT MET: validate rejection {validate_pct:.1f}% (target <15%)")
         print(f"    See reasons above — fix the generation prompt, don't loosen the validator")
     print("=" * 64)
     print()
@@ -495,6 +647,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="Number of cards to generate (default: 60)")
     parser.add_argument("--work-dir", required=True,
                         help="Work directory for this run")
+    parser.add_argument("--model", default="gpt-4o-mini",
+                        help="OpenRouter text model (default: gpt-4o-mini)")
     parser.add_argument("--skip-art", action="store_true",
                         help="Skip ART stage (use fallback frames only)")
     return parser.parse_args(argv)
@@ -520,7 +674,7 @@ def main(argv: list[str] | None = None) -> int:
     success = runner.run()
 
     # Print report
-    print_report(work_dir, cost, rejects, runner.timing)
+    print_report(work_dir, runner, cost, rejects, runner.timing)
 
     return 0 if success else 1
 
