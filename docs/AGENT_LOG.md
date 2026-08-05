@@ -950,4 +950,43 @@ Built the ART stage of the AI pipeline — on-demand image generation via OpenRo
 - 114/117 Python tests pass (3 pre-existing `test_generate.py` failures logged in `docs/TECH_DEBT.md`)
 - 0 TODO, 0 NotImplementedException
 
-Next: **P6-08** — Review UI.
+---
+
+## P6-08 — Review UI
+
+**Status:** Complete
+
+**Summary:**
+Built the APPROVE/REVIEW stage of the AI pipeline — a local FastAPI web UI (Jinja2 templates, no JavaScript framework) for reviewing pipeline output. The UI loads cards from `06_art.json`, joins them with simulation results from `04_simulated.json`, and presents each card with its rendered rules text, power score, sim matchups, and art side by side.
+
+**New features:**
+- **Commission-queue awareness:** cards whose art fell back to a fallback frame (`.art.fallback == True`) get a red "FALLBACK" badge and a red card border — visually obvious at a glance
+- **Reject captures reason code:** mandatory select-or-type dropdown with 8 common rejection reasons (BALANCE, QUALITY, DESIGN, STRATA) plus free-form detail. All decisions logged to `07_decisions.json` for reject-pile tuning
+- **Edit:** inline JSON editor with live validation; edits merge into the card preserving identity fields
+- **Art serving:** `/art/{filename}` route serves WebP files from the batch work dir
+- **Commission queue count:** shown in the stats bar when `docs/ART_COMMISSION_QUEUE.md` has pending items
+
+**Files created:**
+- `pipeline/review_app/app.py` — FastAPI app with:
+  - `GET /` — card grid overview (grouped, with badges)
+  - `GET /card/{id}` — card detail with rendered rules + sim matchups
+  - `POST /card/{id}/approve` / `reject` / `edit` — approval workflow
+  - `GET /edit-fetch/{id}` — returns card JSON for the editor
+  - `GET /art/{filename}` — serves generated art
+  - Decisions logged to `07_decisions.json`
+- `pipeline/review_app/__init__.py` — package marker
+- `pipeline/review_app/templates/review.html` — Jinja2 single-page template (dark theme, responsive grid)
+- `pipeline/modules/render_rules.py` — rules text renderer converting card JSON abilities + keywords into human-readable text (14 tests)
+- `pipeline/tests/test_render_rules.py` — 14 tests
+- `pipeline/tests/test_review_app.py` — 9 tests (smoke tests against live FastAPI)
+
+**Model choice:** N/A (no model call — human review UI)
+
+**Verification:**
+- All 14 rules-renderer tests pass
+- All 9 review-app endpoint tests pass
+- 331/331 C# tests still pass
+- 141/144 Python tests pass (3 pre-existing `test_generate.py` failures logged)
+- 0 TODO, 0 NotImplementedException
+
+Next: **P6-09** — Publish + content versioning + client hot-update.

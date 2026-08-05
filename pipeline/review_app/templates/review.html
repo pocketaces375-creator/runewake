@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Runewake Review — {{ work_dir_name }}</title>
+<style>
+  :root {
+    --bg: #0f0f12;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --text: #e0e0ea;
+    --text-dim: #9090a0;
+    --green: #3ccf6a;
+    --red: #e5534b;
+    --yellow: #e5c07b;
+    --blue: #5a9cf8;
+    --accent: #7c5cfc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 8px; }
+  .subtitle { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px; }
+  .stats-bar {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; font-size: 0.8rem;
+  }
+  .stat-chip.warn { border-color: var(--yellow); }
+  .stat-chip.danger { border-color: var(--red); }
+
+  /* Card grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+  .card-entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .card-entry:hover { border-color: var(--accent); }
+  .card-entry.flagged { border-color: var(--yellow); }
+  .card-entry.fallback { border-color: var(--red); }
+
+  .card-top {
+    display: flex; gap: 12px; padding: 12px;
+  }
+  .card-art-thumb {
+    width: 80px; height: 80px; border-radius: 6px;
+    object-fit: cover; flex-shrink: 0;
+    background: var(--surface2);
+  }
+  .card-info { flex: 1; min-width: 0; }
+  .card-name {
+    font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-meta { font-size: 0.78rem; color: var(--text-dim); }
+  .card-meta span + span::before { content: " · "; }
+  .card-stats { font-size: 0.82rem; margin-top: 4px; }
+  .card-stats .cost { color: var(--yellow); }
+  .card-stats .atk { color: var(--red); }
+  .card-stats .vig { color: var(--green); }
+  .card-stats .score { color: var(--blue); }
+
+  .card-badges {
+    display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;
+  }
+  .badge {
+    font-size: 0.7rem; padding: 2px 7px; border-radius: 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .badge.flag { background: #5a4a1a; border-color: var(--yellow); color: var(--yellow); }
+  .badge.fallback { background: #4a1a1a; border-color: var(--red); color: var(--red); }
+  .badge.commission { background: #2a1a4a; border-color: var(--accent); color: var(--accent); }
+
+  .card-actions {
+    display: flex; gap: 1px; border-top: 1px solid var(--border);
+  }
+  .card-actions button {
+    flex: 1; padding: 8px; border: none; font-size: 0.78rem;
+    cursor: pointer; font-weight: 500; transition: opacity 0.15s;
+  }
+  .card-actions button:hover { opacity: 0.85; }
+  .btn-approve { background: #1a3a1a; color: var(--green); }
+  .btn-reject { background: #3a1a1a; color: var(--red); }
+  .btn-edit { background: var(--surface2); color: var(--text); }
+
+  /* Overlay / detail modal */
+  .overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7);
+  }
+  .overlay.open { display: flex; align-items: center; justify-content: center; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; width: 90%; max-width: 800px; max-height: 90vh;
+    overflow-y: auto; padding: 24px; position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 12px; right: 16px;
+    background: none; border: none; color: var(--text-dim);
+    font-size: 1.4rem; cursor: pointer;
+  }
+  .modal h2 { margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<h1>🃏 Runewake Review — {{ work_dir_name }}</h1>
+<p class="subtitle">Pipeline review interface. Approve, reject (with reason), or edit cards.</p>
+
+<div class="stats-bar">
+  <div class="stat-chip">{{ cards|length }} cards</div>
+  <div class="stat-chip warn">{{ cards|selectattr("is_flagged")|list|length }} flagged</div>
+  {% if commission_pending > 0 %}
+  <div class="stat-chip danger">{{ commission_pending }} commission-pending</div>
+  {% endif %}
+  <div class="stat-chip">{{ cards|rejectattr("is_fallback")|list|length }} with art</div>
+  <div class="stat-chip">{{ cards|selectattr("is_fallback")|list|length }} fallback art</div>
+</div>
+
+<div class="card-grid">
+{% for c in cards %}
+<div class="card-entry{% if c.is_flagged %} flagged{% endif %}{% if c.is_fallback %} fallback{% endif %}" data-id="{{ c.id }}" data-strata="{{ c.strata }}">
+  <div class="card-top">
+    <div class="card-art-thumb" style="background:{% if c.is_fallback %}#4a1a1a{% else %}#1a1a2a{% endif %}; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">
+    {% if c.art_asset and not c.is_fallback %}
+      <img src="/art/{{ c.art_asset.split('/')[-1] }}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;" alt="{{ c.name }}" onerror="this.style.display='none';this.nextSibling.style.display=''"><span style="display:none">🖼</span>
+    {% else %}
+      <span style="opacity:0.5">🖼</span>
+    {% endif %}
+    </div>
+    <div class="card-info">
+      <div class="card-name" title="{{ c.name }}">{{ c.name }}</div>
+      <div class="card-meta">
+        <span class="stratum-{{ c.strata|lower }}">{{ c.strata }}</span>
+        <span>{{ c.type }}</span>
+        <span>{{ c.rarity }}</span>
+      </div>
+      <div class="card-stats">
+        <span class="cost">⚡{{ c.cost }}</span>
+        {% if c.attack != '-' %}<span class="atk"> ⚔{{ c.attack }}</span>{% endif %}
+        {% if c.vigor != '-' %}<span class="vig"> ❤{{ c.vigor }}</span>{% endif %}
+        <span class="score"> 📊{{ c.power_score }}</span>
+      </div>
+      {% if c.sim_avg_delta is not none %}
+      <div class="card-stats" style="font-size:0.72rem;color:var(--text-dim);margin-top:2px;">
+        Sim delta: <span style="color:{% if c.sim_avg_delta > 0.04 %}var(--red){% elif c.sim_avg_delta < -0.03 %}var(--yellow){% else %}var(--green){% endif %}">{{ "%.1f"|format(c.sim_avg_delta * 100) }}%</span>
+      </div>
+      {% endif %}
+      <div class="card-badges">
+        {% if c.is_flagged %}<span class="badge flag">⚠ FLAGGED</span>{% endif %}
+        {% if c.is_fallback %}<span class="badge fallback">🎨 FALLBACK</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="card-actions">
+    <button class="btn-approve" onclick="approve('{{ c.id }}')">✓ Approve</button>
+    <button class="btn-reject" onclick="reject('{{ c.id }}')">✗ Reject</button>
+    <button class="btn-edit" onclick="editCard('{{ c.id }}')">✎ Edit</button>
+  </div>
+</div>
+{% else %}
+<div style="padding: 40px; text-align: center; color: var(--text-dim);">
+  No cards loaded. Run the ART stage first, then point this UI at the work directory.
+</div>
+{% endfor %}
+</div>
+
+<!-- Reject modal -->
+<div id="rejectModal" class="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2>✗ Reject Card</h2>
+    <p style="color:var(--text-dim);margin-bottom:16px;">
+      Select or enter a rejection reason. This data feeds the reject-pile tuning pipeline.
+    </p>
+    <form id="rejectForm" method="post" onsubmit="return submitReject(event)">
+      <input type="hidden" name="card_id" id="rejectCardId" value="">
+      <div style="margin-bottom:12px;">
+        <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:var(--text-dim);">Reason code</label>
+        <select name="reason" id="rejectReason" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;">
+          <option value="">— Select or type below —</option>
+          <option value="BALANCE: too strong">Balance: too strong (sim flagged)</option>
+          <option value="BALANCE: too weak">Balance: too weak (sim flagged)</option>
+          <option value="QUALITY: bad flavor">Quality: flavor text doesn't fit</option>
+          <option value="QUALITY: bad name">Quality: name doesn't fit</option>
+          <option value="QUALITY: bad art">Quality: art doesn't match concept</option>
+          <option value="DESIGN: broken mechanic">Design: ability doesn't work as described</option>
+          <option value="DESIGN: boring">Design: card is uninteresting</option>
+          <option value="STRATA: wrong feel">Strata: card doesn't fit stratum identity</option>
+          <option value="OTHER">Other (type below)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:var(--text-dim);">Custom reason / detail</label>
+        <textarea name="detail" rows="2" style="width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.85rem;resize:vertical;" placeholder="Optional additional detail..."></textarea>
+      </div>
+      <div style="text-align:right;">
+        <button type="button" onclick="closeModal()" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;margin-right:8px;">Cancel</button>
+        <button type="submit" style="padding:8px 20px;background:var(--red);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;">Reject</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div id="editModal" class="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="max-width:900px;">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2>✎ Edit Card</h2>
+    <form id="editForm" method="post" onsubmit="return submitEdit(event)">
+      <input type="hidden" name="card_id" id="editCardId" value="">
+      <div style="margin-bottom:8px;">
+        <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:var(--text-dim);">Reason for edit (optional)</label>
+        <input type="text" name="reason" placeholder="e.g. Adjusted cost from 4 to 3" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.85rem;">
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="display:block;margin-bottom:4px;font-size:0.85rem;color:var(--text-dim);">Card JSON</label>
+        <textarea name="card_json" id="editCardJson" rows="16" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:0.78rem;resize:vertical;white-space:pre;overflow-x:auto;"></textarea>
+      </div>
+      <div style="text-align:right;">
+        <button type="button" onclick="closeModal()" style="padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;margin-right:8px;">Cancel</button>
+        <button type="submit" style="padding:8px 20px;background:var(--accent);border:none;border-radius:8px;color:white;font-weight:600;cursor:pointer;">Save Edit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" style="position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;color:white;font-size:0.85rem;display:none;z-index:200;"></div>
+
+<script>
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'ok' ? '#1a4a1a' : type === 'err' ? '#4a1a1a' : '#2a2a3a';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function apiPost(url, body) {
+  const f = new FormData();
+  for (const [k,v] of Object.entries(body)) f.append(k, v);
+  const r = await fetch(url, { method: 'POST', body: f });
+  return r.json();
+}
+
+async function approve(id) {
+  const r = await apiPost(`/card/${encodeURIComponent(id)}/approve`, {});
+  if (r.status === 'approved') {
+    showToast(`✓ Approved: ${id}`, 'ok');
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) { el.style.opacity = '0.5'; el.style.pointerEvents = 'none'; }
+  } else showToast(`✗ Error: ${r.error}`, 'err');
+}
+
+// Reject
+function reject(id) {
+  document.getElementById('rejectCardId').value = id;
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+async function submitReject(e) {
+  e.preventDefault();
+  const id = document.getElementById('rejectCardId').value;
+  const reason = document.getElementById('rejectReason').value;
+  const detail = document.getElementById('rejectForm').querySelector('textarea[name="detail"]').value;
+  if (!reason) { showToast('Please select or type a reason.', 'err'); return false; }
+  const data = { reason, detail };
+  const r = await apiPost(`/card/${encodeURIComponent(id)}/reject`, data);
+  if (r.status === 'rejected') {
+    showToast(`✗ Rejected: ${id} — ${reason}`, 'ok');
+    closeModal();
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) { el.style.opacity = '0.4'; el.style.pointerEvents = 'none'; }
+  } else showToast(`✗ Error: ${r.error}`, 'err');
+  return false;
+}
+
+// Edit
+async function editCard(id) {
+  showToast('Loading card data...', 'ok');
+  try {
+    const r = await fetch(`/edit-fetch/${encodeURIComponent(id)}`);
+    const data = await r.json();
+    document.getElementById('editCardId').value = id;
+    document.getElementById('editCardJson').value = JSON.stringify(data.card, null, 2);
+    document.getElementById('editModal').classList.add('open');
+  } catch(e) {
+    showToast(`Error loading card: ${e}`, 'err');
+  }
+}
+
+async function submitEdit(e) {
+  e.preventDefault();
+  const id = document.getElementById('editCardId').value;
+  const cardJson = document.getElementById('editCardJson').value;
+  try { JSON.parse(cardJson); } catch(_) { showToast('Invalid JSON!', 'err'); return false; }
+  const reason = document.getElementById('editForm').querySelector('input[name="reason"]').value;
+  const r = await apiPost(`/card/${encodeURIComponent(id)}/edit`, { card_json: cardJson, reason });
+  if (r.status === 'edited') {
+    showToast(`✎ Edited: ${id}`, 'ok');
+    closeModal();
+  } else showToast(`✗ Error: ${r.error}`, 'err');
+  return false;
+}
+
+function closeModal() {
+  document.querySelectorAll('.overlay').forEach(m => m.classList.remove('open'));
+}
+</script>
+</body>
+</html>
