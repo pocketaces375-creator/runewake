@@ -56,14 +56,23 @@ def load_baselines() -> dict[str, dict]:
 
 
 def write_deck_file(card_ids: list[str], registry: dict[str, dict],
-                    tmp_dir: Path, name: str) -> Path:
-    """Write a deck as a full CardDef JSON pack for the C# CLI."""
+                    tmp_dir: Path, name: str,
+                    extra_cards: dict[str, dict] | None = None) -> Path:
+    """Write a deck as a full CardDef JSON pack for the C# CLI.
+
+    Looks up each card ID first in the registry, then in extra_cards
+    (for AI-generated candidates not in the hand-authored registry).
+    """
+    if extra_cards is None:
+        extra_cards = {}
     cards = []
     for cid in card_ids:
         if cid in registry:
             cards.append(registry[cid])
+        elif cid in extra_cards:
+            cards.append(extra_cards[cid])
         else:
-            print(f"[simulate] WARNING: card '{cid}' not in registry, skipping", file=sys.stderr)
+            print(f"[simulate] WARNING: card '{cid}' not found, skipping", file=sys.stderr)
     path = tmp_dir / f"{name}.json"
     with open(path, "w") as f:
         json.dump(cards, f)
@@ -159,8 +168,10 @@ def substitute_and_simulate(
     # Write candidate's card def to registry temp + ensure it's available
     # (We need to patch the card into a temporary pack for the C# CLI)
     # Create a pack file containing just this card so the C# CLI can load it
+    extra_cards = {candidate.get("id", ""): candidate} if candidate.get("id") else {}
     modified_deck_path = write_deck_file(mod_ids, registry, tmp_dir,
-                                         f"candidate_{candidate_index}_{archetype_name}")
+                                         f"candidate_{candidate_index}_{archetype_name}",
+                                         extra_cards=extra_cards)
 
     results: dict[str, Any] = {}
     for opponent_name in baselines:

@@ -1,0 +1,14 @@
+{
+  "input_file": "work/b_2026_ember_e2e/03_scored.json",
+  "total_processed": 12,
+  "simulated": 12,
+  "rejected": 0,
+  "flagged": 0,
+  "games_per_matchup": 200,
+  "archetypes": [
+    "aggro",
+    "midrange",
+    "control"
+  ],
+  "timestamp": "2026-08-05T05:46:49Z"
+}

@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_c_cinder_guard",
+    "set": "buried_age",
+    "name": "Cinder Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

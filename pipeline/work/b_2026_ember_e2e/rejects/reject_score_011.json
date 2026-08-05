@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_c_cinder_assassin",
+    "set": "buried_age",
+    "name": "Cinder Assassin",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Striking swiftly, they leave only silence in their wake.",
+    "art": {
+      "prompt": "a shadowy figure with fiery eyes, poised to strike with a dagger",
+      "asset": "cdn://art/emb_c_cinder_assassin.webp"
+    },
+    "power_score": 7.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

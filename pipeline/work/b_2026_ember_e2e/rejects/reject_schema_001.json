@@ -1,0 +1,58 @@
+{
+  "card": {
+    "id": "emb_r_soulforge_amulet",
+    "set": "buried_age",
+    "name": "Soulforge Amulet",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GIVE_VIGOR",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 0,
+            "vigor": 2,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 7
+    },
+    "flavor": "Forged in the heart of fire, it binds the bearer to the flames.",
+    "art": {
+      "prompt": "an ornate amulet glowing with inner fire, adorned with intricate designs",
+      "asset": "cdn://art/emb_r_soulforge_amulet.webp"
+    },
+    "power_score": 11.3,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 op]: 'GIVE_VIGOR' is not one of ['DAMAGE', 'HEAL', 'BUFF', 'DEBUFF', 'DESTROY', 'DRAW', 'DISCARD', 'EXCAVATE', 'BURY', 'UNBURY', 'SUMMON', 'GRANT_KEY', 'REMOVE_KEY', 'SILENCE', 'BOUNCE', 'ATTUNE', 'MOVE_LANE', 'IDENTIFY', 'GAIN_VIGOR', 'LOSE_VIGOR', 'COPY', 'SET_STAT', 'REFRESH']"
+}

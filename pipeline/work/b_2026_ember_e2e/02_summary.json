@@ -1,0 +1,8 @@
+{
+  "batch_id": "",
+  "input_file": "01_raw.json",
+  "total_processed": 43,
+  "valid": 34,
+  "rejected": 9,
+  "timestamp": "2026-08-05T05:46:29Z"
+}

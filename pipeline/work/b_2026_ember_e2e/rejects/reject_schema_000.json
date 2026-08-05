@@ -1,0 +1,43 @@
+{
+  "card": {
+    "id": "emb_r_infernal_ritual",
+    "set": "buried_age",
+    "name": "Infernal Ritual",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GIVE_VIGOR",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "To commune with the flames is to embrace both power and sacrifice.",
+    "art": {
+      "prompt": "an ancient scroll surrounded by flickering flames, glyphs glowing in red",
+      "asset": "cdn://art/emb_r_infernal_ritual.webp"
+    },
+    "power_score": 9.7,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 op]: 'GIVE_VIGOR' is not one of ['DAMAGE', 'HEAL', 'BUFF', 'DEBUFF', 'DESTROY', 'DRAW', 'DISCARD', 'EXCAVATE', 'BURY', 'UNBURY', 'SUMMON', 'GRANT_KEY', 'REMOVE_KEY', 'SILENCE', 'BOUNCE', 'ATTUNE', 'MOVE_LANE', 'IDENTIFY', 'GAIN_VIGOR', 'LOSE_VIGOR', 'COPY', 'SET_STAT', 'REFRESH']"
+}

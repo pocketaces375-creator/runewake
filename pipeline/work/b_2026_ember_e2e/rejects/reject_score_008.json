@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_u_cindershade_wraith",
+    "set": "buried_age",
+    "name": "Cindershade Wraith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "In the twilight of embers, they emerge to claim their due.",
+    "art": {
+      "prompt": "a wraith with a body composed of swirling cinders, floating in the air",
+      "asset": "cdn://art/emb_u_cindershade_wraith.webp"
+    },
+    "power_score": 8.6,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.30 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

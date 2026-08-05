@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_u_windforged_silhouette",
+    "set": "buried_age",
+    "name": "Windforged Silhouette",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 6,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Forged by the winds of fate, they move like whispers.",
+    "art": {
+      "prompt": "a shadowy figure blurred by wind and fire, barely discernible",
+      "asset": "cdn://art/emb_u_windforged_silhouette.webp"
+    },
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.40 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_c_ashgolem_tide",
+    "set": "buried_age",
+    "name": "Ashgolem Tide",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "A tide of ash washes over all, claiming the remnants of the past.",
+    "art": {
+      "prompt": "a golem formed from swirling ash, moving like a wave",
+      "asset": "cdn://art/emb_c_ashgolem_tide.webp"
+    },
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.30 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_c_forge_marauder",
+    "set": "buried_age",
+    "name": "Forge Marauder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "In the heart of the forge, speed is as lethal as fire.",
+    "art": {
+      "prompt": "a lithe warrior with molten armor, racing through a fiery forge",
+      "asset": "cdn://art/emb_c_forge_marauder.webp"
+    },
+    "power_score": 7.2,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.35 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

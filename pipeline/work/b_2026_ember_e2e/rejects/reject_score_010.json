@@ -1,0 +1,24 @@
+{
+  "card": {
+    "id": "emb_u_scorched_mystic",
+    "set": "buried_age",
+    "name": "Scorched Mystic",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Bound to the flames, their wisdom burns bright.",
+    "art": {
+      "prompt": "a mystic shrouded in flames and ash, gazing into the distance",
+      "asset": "cdn://art/emb_u_scorched_mystic.webp"
+    },
+    "power_score": 9.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.25 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -39,3 +39,30 @@ vigor fields"` (uppercase CREATURE + includes "fields").
 
 **Fix:** Update the test assertion to match the actual text verbatim:
 `"CREATURE cards MUST have attack and vigor fields"`.
+
+---
+
+## API key resolution inconsistent across subprocess environments
+
+**Root cause:** The pipeline modules (generate.py, art.py) read `OPENROUTER_API_KEY`
+from `os.environ` or the `--api-key` argument. The Hermes agent runtime loads its
+env vars (including `OPENROUTER_API_KEY`) from `~/.hermes/.env`, but terminal
+subprocesses launched by `terminal()` tool calls do NOT inherit the agent's
+environment — they run in a separate shell context that doesn't source
+`~/.hermes/.env`.
+
+This means any `subprocess.run()` call to a pipeline module from within the
+agent's Python process (e.g. the orchestrator) will fail with 401 unless the
+env var is explicitly sourced by a wrapping shell script.
+
+**Fix:** Wrap pipeline runs in `pipeline/run_e2e.sh` which sources
+`~/.hermes/.env` before invoking the Python orchestrator.
+
+**Detection:** On failure, check if the error is `401 Missing Authentication
+header`. If yes, and you ran via `terminal()` directly, use the shell wrapper
+instead or source the env file first:
+```bash
+source ~/.hermes/.env && export OPENROUTER_API_KEY && python -m modules.generate ...
+```
+
+**Priority:** Medium — blocks every pipeline run that calls OpenRouter.

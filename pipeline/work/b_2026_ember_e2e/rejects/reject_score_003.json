@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_c_ashborne_giant",
+    "set": "buried_age",
+    "name": "Ashborne Giant",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 8,
+    "attack": 10,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1,
+            "duration": "NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "From the ashes, a titan rises, unwavering and strong.",
+    "art": {
+      "prompt": "a giant made of ash and cinders, looming over the battlefield",
+      "asset": "cdn://art/emb_c_ashborne_giant.webp"
+    },
+    "power_score": 10.8,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.20 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

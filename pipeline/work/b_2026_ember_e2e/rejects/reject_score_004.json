@@ -1,0 +1,44 @@
+{
+  "card": {
+    "id": "emb_u_flame_spirit",
+    "set": "buried_age",
+    "name": "Flame Spirit",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Wherever embers dance, the spirit follows.",
+    "art": {
+      "prompt": "a small, ethereal figure made of flames, flickering in the air",
+      "asset": "cdn://art/emb_u_flame_spirit.webp"
+    },
+    "power_score": 6.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.20 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

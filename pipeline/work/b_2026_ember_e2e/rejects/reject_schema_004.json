@@ -1,0 +1,44 @@
+{
+  "card": {
+    "id": "emb_r_fires_of_creation",
+    "set": "buried_age",
+    "name": "Fires of Creation",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE",
+              "filter": "TOKEN:cinder_blade",
+              "count": 2
+            }
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "From the heart of the forge, creation knows no bounds.",
+    "art": {
+      "prompt": "a vibrant swirl of flames forming into weapons and tools",
+      "asset": "cdn://art/emb_r_fires_of_creation.webp"
+    },
+    "power_score": 10.2,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 target \u2192 filter]: 'TOKEN:cinder_blade' does not match '^(ANY|ADJACENT|OPPOSING|SAME_LANE|EDGE_LANE|CENTER_LANE|RANDOM|LOWEST_VIGOR|HIGHEST_ATTACK|LOWEST_COST|HIGHEST_COST|DAMAGED|UNDAMAGED|CHOSEN|STRATA:(VERDANT|EMBER|TIDE|HOLLOW|DAWN)|KEYWORD:(GUARD|SWIFT|PIERCE|WARD|VENOM|REACH|ROOTED|UNEARTH|ECHO|FRAGILE|SEALED)|TYPE:(CREATURE|RITUAL|RELIC|CURSE|TOKEN))$'"
+}

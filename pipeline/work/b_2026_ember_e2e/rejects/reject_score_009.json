@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_u_cinder_wisp",
+    "set": "buried_age",
+    "name": "Cinder Wisp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Elusive as the ashes on the wind, flickering in the light.",
+    "art": {
+      "prompt": "a tiny wisp of flame floating softly above the ground",
+      "asset": "cdn://art/emb_u_cinder_wisp.webp"
+    },
+    "power_score": 4.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.35 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_c_ember_forger",
+    "set": "buried_age",
+    "name": "Ember Forger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The forger shapes not only steel but the fate of the city.",
+    "art": {
+      "prompt": "a blacksmith hammering molten metal, sparks flying in the air",
+      "asset": "cdn://art/emb_c_ember_forger.webp"
+    },
+    "power_score": 6.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.35 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

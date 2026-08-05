@@ -1,0 +1,43 @@
+{
+  "card": {
+    "id": "emb_r_cinderfire_barrage",
+    "set": "buried_age",
+    "name": "Cinderfire Barrage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 4
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A storm of cinders rains down, consuming all who dare to stand.",
+    "art": {
+      "prompt": "embers falling like rain over a battlefield, igniting everything in their path",
+      "asset": "cdn://art/emb_r_cinderfire_barrage.webp"
+    },
+    "power_score": 8.9,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.30 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

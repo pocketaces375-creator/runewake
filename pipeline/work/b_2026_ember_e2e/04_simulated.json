@@ -1,0 +1,410 @@
+[
+  {
+    "card_id": "emb_c_ember_shade",
+    "card_name": "Ember Shade",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 2,
+    "power_score": 5.75,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_cinder_wight",
+    "card_name": "Cinder Wight",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 3,
+    "power_score": 7.2,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_u_flameguard_witch",
+    "card_name": "Flameguard Witch",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "power_score": 10.25,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_u_molten_golem",
+    "card_name": "Molten Golem",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "power_score": 15.6,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_cinder_blade",
+    "card_name": "Cinder Blade",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 1,
+    "power_score": 2.75,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_u_firebrand_caster",
+    "card_name": "Firebrand Caster",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "power_score": 6.35,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_u_flame_phantom",
+    "card_name": "Flame Phantom",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "power_score": 8.25,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_u_cinderflame_stalker",
+    "card_name": "Cinderflame Stalker",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "power_score": 10.5,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_lava_mystic",
+    "card_name": "Lava Mystic",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 2,
+    "power_score": 4.85,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_forgekeeper",
+    "card_name": "Forgekeeper",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 2,
+    "power_score": 5.6,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_iron_wraith",
+    "card_name": "Iron Wraith",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 3,
+    "power_score": 8.1,
+    "flagged": false
+  },
+  {
+    "card_id": "emb_c_scorched_warrior",
+    "card_name": "Scorched Warrior",
+    "archetype": "aggro",
+    "archetype_description": "Fast swarm aggro \u2014 low-cost creatures, direct damage, SWIFT/PIERCE focus",
+    "matchup_results": {
+      "aggro": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "midrange": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      },
+      "control": {
+        "win_rate": 0.5,
+        "baseline_win_rate": 0.5,
+        "delta": 0.0,
+        "avg_turns": 0
+      }
+    },
+    "avg_delta": 0.0,
+    "max_delta": 0.0,
+    "flags": [],
+    "stratum": "EMBER",
+    "rarity": "COMMON",
+    "cost": 3,
+    "power_score": 8.1,
+    "flagged": false
+  }
+]

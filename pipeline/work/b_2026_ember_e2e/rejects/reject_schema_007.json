@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_r_embers_of_rebellion",
+    "set": "buried_age",
+    "name": "Embers of Rebellion",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 6,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": {
+          "op": "TURN_GTE",
+          "value": 3
+        },
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE",
+              "token_id": "emb_t_rebel_spark"
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 10.5,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 target]: Additional properties are not allowed ('token_id' was unexpected)"
+}

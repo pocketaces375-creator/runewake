@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_r_ironbound_power",
+    "set": "buried_age",
+    "name": "Ironbound Power",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 2,
+            "duration": "THIS_TURN"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -7.65 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

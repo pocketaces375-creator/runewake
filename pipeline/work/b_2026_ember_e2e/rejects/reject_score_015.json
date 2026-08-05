@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_c_emberforge_smith",
+    "set": "buried_age",
+    "name": "Emberforge Smith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 2
+            },
+            "attack": 0,
+            "vigor": 2,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.15 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

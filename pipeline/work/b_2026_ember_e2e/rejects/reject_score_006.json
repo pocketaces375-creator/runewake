@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_molten_sentry",
+    "set": "buried_age",
+    "name": "Molten Sentry",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE"
+            },
+            "amount": 1,
+            "duration": "NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Always watching, ready to unleash the fury of the forge.",
+    "art": {
+      "prompt": "a sentinel made of molten rock, standing guard at the edge of a forge",
+      "asset": "cdn://art/emb_u_molten_sentry.webp"
+    },
+    "power_score": 9.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.90 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

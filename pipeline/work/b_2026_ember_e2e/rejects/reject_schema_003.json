@@ -1,0 +1,43 @@
+{
+  "card": {
+    "id": "emb_r_blazing_spectrum",
+    "set": "buried_age",
+    "name": "Blazing Spectrum",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GIVE_VIGOR",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 5
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A display of fire, illuminating the path towards victory.",
+    "art": {
+      "prompt": "a brilliant array of colors from flames dancing in the air",
+      "asset": "cdn://art/emb_r_blazing_spectrum.webp"
+    },
+    "power_score": 9.8,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 op]: 'GIVE_VIGOR' is not one of ['DAMAGE', 'HEAL', 'BUFF', 'DEBUFF', 'DESTROY', 'DRAW', 'DISCARD', 'EXCAVATE', 'BURY', 'UNBURY', 'SUMMON', 'GRANT_KEY', 'REMOVE_KEY', 'SILENCE', 'BOUNCE', 'ATTUNE', 'MOVE_LANE', 'IDENTIFY', 'GAIN_VIGOR', 'LOSE_VIGOR', 'COPY', 'SET_STAT', 'REFRESH']"
+}
