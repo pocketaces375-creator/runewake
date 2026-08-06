@@ -91,23 +91,34 @@ public partial class LaneSlot : PanelContainer
     // ——— Animation effects ———
 
     /// <summary>
-    /// Play a summon animation: scale from 0 to 1.
+    /// Play a summon animation: scale from 0 to 1 with a brief strata-colored flash.
+    /// State update happens before this, so animations never block gameplay.
     /// </summary>
     public void PlaySummonEffect()
     {
         Scale = new Vector2(0, 0);
+        Modulate = new Color(2, 2, 2, 1); // brief bright flash
+
         var tween = CreateTween();
+        tween.SetParallel();
         tween.TweenProperty(this, "scale", new Vector2(1, 1), 0.3f)
             .SetEase(Tween.EaseType.Out)
             .SetTrans(Tween.TransitionType.Back);
+        tween.TweenProperty(this, "modulate", new Color(1, 1, 1, 1), 0.2f);
     }
 
     /// <summary>
-    /// Play a death animation: fade out and shrink, then reset.
+    /// Play a death animation: flash red, then fade out and shrink.
+    /// Resets scale and alpha for reuse when the lane slot is re-populated.
+    /// State update happens before this — the visual is purely cosmetic.
     /// </summary>
     public void PlayDeathEffect()
     {
+        // Flash red
+        Modulate = new Color(1, 0.2f, 0.2f, 1);
+
         var tween = CreateTween();
+        tween.TweenInterval(0.1f); // hold red flash
         tween.SetParallel();
         tween.TweenProperty(this, "modulate:a", 0.0f, 0.4f);
         tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.4f)
@@ -116,6 +127,7 @@ public partial class LaneSlot : PanelContainer
         tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() =>
         {
+            // Reset for reuse when a new creature is summoned
             Modulate = new Color(1, 1, 1, 1);
             Scale = new Vector2(1, 1);
         }));

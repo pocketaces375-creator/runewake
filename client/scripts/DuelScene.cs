@@ -343,26 +343,26 @@ public partial class DuelScene : Control
 
         Vector2 pos;
         Color color;
-        string prefix;
+        string prefixAndAmount;
 
         if (amount > 0) // damage
         {
-            color = new Color(1, 0.2f, 0.2f);
-            prefix = "-";
+            color = new Color(1, 0.15f, 0.15f);
+            prefixAndAmount = $"-{amount}";
         }
         else // heal
         {
-            color = new Color(0.2f, 1, 0.2f);
-            prefix = "+";
+            color = new Color(0.15f, 1, 0.15f);
+            prefixAndAmount = $"+{-amount}";
             amount = -amount;
         }
 
         if (isEnemy)
-            pos = _enemyVigorValue.GlobalPosition;
+            pos = _enemyVigorValue.GlobalPosition + new Vector2(40, -10);
         else
-            pos = _playerVigorValue.GlobalPosition;
+            pos = _playerVigorValue.GlobalPosition + new Vector2(40, -20);
 
-        ft.ShowAt($"{prefix}{amount}", color, pos);
+        ft.ShowLargeAt(prefixAndAmount, color, pos);
     }
 
     private void RenderHud()
