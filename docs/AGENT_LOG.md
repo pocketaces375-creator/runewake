@@ -1,6 +1,30 @@
 # AGENT_LOG
 
-## Session 25 — 2026-08-06
+## Session 26 — 2026-08-06
+
+### P3-05 — Animation and feedback layer
+
+Improved three visual feedback paths — all play over the already-updated state, never blocking gameplay:
+
+**Summon animation:** Scale 0→1 (Back.Out ease, 0.3s) with a brief white flash (Modulate 2→1 over 0.2s) to draw the eye to the lane where the creature appeared.
+
+**Death animation:** Red flash (0.1s hold at `Color(1, 0.2, 0.2, 1)`), then fade+shrink (0.4s). Resets scale/alpha after animation so the empty slot is immediately ready for a new creature. No visible pop-back.
+
+**Damage numbers:** `FloatingText` at 22px for lane-level damage, 28px for face damage. Text drifts upward 50px with 0.9s fade. Outline added for readability against any background. Face damage offset 40px right of the HUD value to avoid overlapping text.
+
+**Test hook verification (removed):**
+- Hook: summoned creature to lane 0 on turn 2, screenshot after 0.5s
+- Screenshot 1 confirmed: creature on board (2154 non-background pixels in lane 0, 5 cards in hand)
+- Then ended turn for bot combat, screenshot 0.3s after bot finished
+- Screenshot 2 vs Screenshot 1: 21,497 pixels changed across the frame — enemy lane area gained 464 px (bot creature appeared), player HUD changed 435 px (vigor decreased from face damage/combat), center area gained 894 px (damage numbers mid-flight)
+- Animations confirmed playing over the updated state (state renders first, diffs/anims second in OnStateChanged pipeline)
+- Hook removed, 369/369 tests passing (365 existing + 4 binding tests from P3-04)
+
+Screenshot: MEDIA:/home/fictive/runewake/duel_screenshot.png
+
+Next: **P3-06** — Bot opponent wired in with a small think-delay.
+
+---
 
 ### P3-03 — Input: tap/drag summon, tap-to-attack, rejection feedback
 
