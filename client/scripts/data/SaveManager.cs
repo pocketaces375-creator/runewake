@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using Microsoft.Data.Sqlite;
 
+using Runewake.Engine.Cards;
 using Runewake.Engine.State;
 
 namespace Runewake.Client;

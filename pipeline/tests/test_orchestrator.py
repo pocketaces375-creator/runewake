@@ -138,6 +138,49 @@ class TestImpossibleValues:
         violations = _validate_report(results, rejects, cost)
         assert len(violations) == 0, f"Should have no violations: {violations}"
 
+    def test_zero_publish_ready_doD_fails(self, capsys, tmp_path):
+        """DoD check must fail when validate passed but publish_ready == 0."""
+        from orchestrator import print_report
+
+        work_dir = tmp_path / "work"
+        work_dir.mkdir()
+
+        cost = make_cost(text_tokens=5000, text_cost=0.005)
+        rejects = make_rejects("validate", total=54, reject_count=0)
+        rejects.processed["score"] = 54
+        rejects.rejects["score"] = {"SCORE_FAIL": 54}
+
+        runner = PipelineRunner(
+            work_dir, "EMBER", 60,
+            cost, rejects,
+        )
+
+        # Call print_report and capture stdout
+        import io
+        import sys
+        from unittest.mock import patch
+
+        with patch.object(sys, "stdout", io.StringIO()) as mock_stdout:
+            print_report(work_dir, runner, cost, rejects, {"generate": 10, "validate": 5, "score": 5, "total": 20})
+            output = mock_stdout.getvalue()
+
+        # Should print DoD NOT MET with the publish_ready == 0 message
+        assert "✗ DoD NOT MET" in output, f"Expected DoD NOT MET, got:\n{output}"
+        assert "0 reached PUBLISH-READY" in output, f"Expected '0 reached PUBLISH-READY' in output:\n{output}"
+        assert "rejected by later stages" in output, f"Expected bottleneck message in output:\n{output}"
+
+    def test_zero_publish_ready_with_seeded_cards(self):
+        """Zero publish-ready when cards were seeded must be flagged."""
+        results = make_results(publish_ready=0, stages={
+            "generate": 0, "validate": 0, "score": 0,
+            "simulate": 0, "dedupe_moderate": 0, "art": 0,
+        })
+        rejects = make_rejects("validate", 0, 0)
+        cost = make_cost()
+        violations = _validate_report(results, rejects, cost)
+        assert any("IMPOSSIBLE" in v and "publish-ready" in v and "pipeline produced nothing" in v for v in violations), \
+            f"Should flag zero publish-ready with seeded cards: {violations}"
+
 
 # ── Score formula reconciliation tests ────────────────────────────────────────
 
@@ -157,10 +200,18 @@ class TestScoreFormulaReconciliation:
     # (We test them here to document the spec vs implementation contract)
 
     def test_expected_score_formula(self):
-        """expected(cost) must match 2.35*cost + 0.9 exactly."""
+        """expected(cost) must match the piecewise linear formula.
+
+        Cost ≤ 5: 2.35 × cost + 0.9
+        Cost > 5: 12.65 + 1.5 × (cost − 5)
+        """
         from modules.score import expected_score
-        for cost in range(0, 11):
+        for cost in range(0, 6):
             expected = 2.35 * cost + 0.9
+            actual = expected_score(cost)
+            assert actual == expected, f"cost={cost}: expected {expected}, got {actual}"
+        for cost in range(6, 11):
+            expected = 12.65 + 1.5 * (cost - 5)
             actual = expected_score(cost)
             assert actual == expected, f"cost={cost}: expected {expected}, got {actual}"
 
@@ -181,10 +232,11 @@ class TestScoreFormulaReconciliation:
 
         The LLM reported power_score 12.5, but the score module RECOMPUTES the
         score from stats via the formula. Computed score = 15.6.
-          - At cost 7: expected = 17.35, computed delta = -1.75 (outside UNCOMMON
-            band [-0.5, +0.9]) → rejected.
-          - Auto-adjust to cost 6: expected = 15.0, delta = +0.6 (in band) → passes.
-        The published card is cost 6, powered 15.6.
+          - At cost 7: expected = 15.65 (piecewise: 12.65 + 1.5×2), delta = -0.05
+            → within UNCOMMON band [-0.5, +0.9] → passes in-band at cost 7.
+        Under the OLD formula expected(7)=17.35 → delta -1.75 → rejected →
+        auto-adjusted to cost 6. The piecewise flattening at cost >5 now lets
+        the card stay at its natural cost 7.
         """
         from modules.score import compute_power_score, expected_score, check_rarity_band
 
@@ -201,22 +253,12 @@ class TestScoreFormulaReconciliation:
         score = compute_power_score(card)
         assert score == 15.6, f"Expected computed score 15.6, got {score}"
 
-        # At cost 7, delta is -1.75 → outside UNCOMMON band → reject
+        # At cost 7, delta is -0.05 → within UNCOMMON band → passes at natural cost
         e7 = expected_score(7)
         delta7 = score - e7
-        assert pytest.approx(delta7, abs=0.001) == -1.75, f"Expected delta -1.75 at cost 7, got {delta7}"
-        assert check_rarity_band(delta7, "UNCOMMON") is not None, \
-            "Should be rejected at cost 7"
-
-        # Auto-adjusted to cost 6 → delta +0.6 → in band → passes
-        card6 = dict(card)
-        card6["cost"] = 6
-        score6 = compute_power_score(card6)
-        e6 = expected_score(6)
-        delta6 = score6 - e6
-        assert pytest.approx(delta6, abs=0.001) == 0.6, f"Expected delta +0.6 at cost 6, got {delta6}"
-        assert check_rarity_band(delta6, "UNCOMMON") is None, \
-            f"Should pass at cost 6: {check_rarity_band(delta6, 'UNCOMMON')}"
+        assert pytest.approx(delta7, abs=0.001) == -0.05, f"Expected delta -0.05 at cost 7, got {delta7}"
+        assert check_rarity_band(delta7, "UNCOMMON") is None, \
+            f"Should pass at cost 7: {check_rarity_band(delta7, 'UNCOMMON')}"
 
     def test_molten_golem_llm_reported_score_is_not_used(self):
         """The LLM-reported power_score field must NOT drive the band check.

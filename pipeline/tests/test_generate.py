@@ -318,7 +318,7 @@ def test_main_retry_on_parse_failure(mock_call_llm):
 
 @patch("modules.generate.call_llm")
 def test_main_handles_empty_response(mock_call_llm):
-    """Should handle an empty array gracefully."""
+    """A zero-card response must fail loudly, not pass silently."""
     mock_call_llm.return_value = "[]"
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -343,7 +343,8 @@ def test_main_handles_empty_response(mock_call_llm):
             "--api-key", "test-key",
         ])
 
-        assert exit_code == 0
+        # A run producing zero cards MUST fail loudly, not pass.
+        assert exit_code == 2, f"Expected 2 (zero cards = failure), got {exit_code}"
         raw_file = work_dir / "output" / "01_raw.json"
         loaded = json.loads(raw_file.read_text())
         assert len(loaded) == 0

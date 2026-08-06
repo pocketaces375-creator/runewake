@@ -241,6 +241,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[validate] {len(all_rejects)} cards rejected total")
         return 2 if len(valid_cards) == 0 else 0
 
+    if len(valid_cards) == 0:
+        print("[validate] ❌ ZERO cards validated — pipeline produced nothing", file=sys.stderr)
+        return 2
+
     print(f"[validate] ✓ All {len(valid_cards)} cards validated successfully")
     return 0
 

@@ -2,7 +2,7 @@
 # All values can be overridden via CLI flags or environment variables.
 
 defaults:
-  model: "openai/gpt-4o-mini"
+  model: "google/gemini-2.5-pro"
   image_model: "black-forest-labs/flux.2-pro"
   temperature: 0.9
   max_retries: 1

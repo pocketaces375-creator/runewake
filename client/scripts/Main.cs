@@ -18,8 +18,39 @@ public partial class Main : Control
     private Label _statusLabel = default!;
     private bool _loading;
 
+    /// <summary>
+    /// Path to the crash log file under user://data/
+    /// </summary>
+    private static readonly string CrashLogPath = "user://data/crash_log.txt";
+
+    /// <summary>
+    /// Install global C# exception handlers so no client error goes silently invisible.
+    /// Catches unhandled exceptions, routes to GD.PrintErr (editor visible), and
+    /// writes a crash log file to user://data/crash_log.txt (retrievable from device).
+    /// </summary>
+    private static void InstallExceptionLogger()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            var ex = args.ExceptionObject as Exception;
+            string msg = $"[FATAL] Unhandled exception (terminating={args.IsTerminating}): {ex}";
+            GD.PrintErr(msg);
+            try
+            {
+                string path = ProjectSettings.GlobalizePath(CrashLogPath);
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                File.AppendAllText(path, $"{System.DateTime.UtcNow:O}\n{msg}\n---\n");
+            }
+            catch
+            {
+                // Can't log — nothing we can do
+            }
+        };
+    }
+
     public override void _Ready()
     {
+        InstallExceptionLogger();
         // Title label
         var title = new Label
         {

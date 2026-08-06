@@ -42,6 +42,19 @@ public partial class BotController : Node
         AddChild(_timer);
     }
 
+    public override void _ExitTree()
+    {
+        // Stop the timer and unsubscribe from all events to prevent
+        // the timer callback from firing after the bot is freed (signal 11).
+        _timer?.Stop();
+        _timer = null;
+        if (_gsm != null)
+        {
+            _gsm.StateChanged -= OnStateChanged;
+            _gsm = null;
+        }
+    }
+
     /// <summary>
     /// Initialize with a GameStateManager to dispatch actions through.
     /// </summary>

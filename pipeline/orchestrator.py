@@ -588,6 +588,13 @@ def _validate_report(results: dict, rejects: RejectionTracker,
     if cost.total < 0:
         violations.append(f"IMPOSSIBLE: negative total cost ${cost.total:.4f}")
 
+    # 7. Zero publish-ready when cards were seeded (run produced nothing)
+    if results["total_seeded"] > 0 and results["publish_ready"] == 0:
+        violations.append(
+            f"IMPOSSIBLE: 0 publish-ready cards from {results['total_seeded']} "
+            f"seeded — pipeline produced nothing"
+        )
+
     return violations
 
 
@@ -632,12 +639,19 @@ def print_report(work_dir: Path, runner: PipelineRunner, cost: CostTracker,
         print(f"  {stage:20s} {count}")
     print(f"  {'PUBLISH-READY':20s} {results['publish_ready']}")
 
-    # DoD check
+    # DoD check — must also fail when zero cards survived the full pipeline
     print()
     validate_total = rejects.processed.get("validate", 0)
     validate_rejects = sum(rejects.rejects.get("validate", {}).values())
     validate_pct = validate_rejects / validate_total * 100 if validate_total > 0 else 0
-    if validate_pct < 15:
+    if validate_total == 0:
+        print("  ✗ DoD NOT MET: 0 cards reached VALIDATE — pipeline produced nothing")
+        print("    A run with zero cards is a FAILURE, not a pass. Check the generate stage.")
+    elif results["publish_ready"] == 0:
+        print(f"  ✗ DoD NOT MET: {int(validate_total)} cards passed VALIDATE but 0 reached PUBLISH-READY")
+        print("    All cards were rejected by later stages (score/simulate/dedupe/art).")
+        print("    See stage-by-stage rejection above for the bottleneck.")
+    elif validate_pct < 15:
         print(f"  ✓ DoD MET: validate rejection {validate_pct:.1f}% (<15%)")
     else:
         print(f"  ✗ DoD NOT MET: validate rejection {validate_pct:.1f}% (target <15%)")
@@ -686,6 +700,12 @@ def main(argv: list[str] | None = None) -> int:
 
     # Print report
     print_report(work_dir, runner, cost, rejects, runner.timing)
+
+    # A run that produced zero publish-ready cards must fail loudly, not pass.
+    results = collect_results(work_dir, runner, cost, rejects)
+    if results["total_seeded"] > 0 and results["publish_ready"] == 0:
+        print("[orchestrator] ❌ Zero publish-ready cards — run FAILED", file=sys.stderr)
+        return 2
 
     return 0 if success else 1
 

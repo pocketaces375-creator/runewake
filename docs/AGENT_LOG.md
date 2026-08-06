@@ -1050,3 +1050,36 @@ mismatch, so the client never ends up with no playable content.
 
 Next: **P6-10** — Pipeline orchestration + one 60-card set end to end.
 
+---
+
+## Session — 2026-08-05
+
+### P0-02 — Godot .NET Android export confirmed working
+
+**Status:** Complete
+
+**Summary:**
+Successfully exported the Godot 4.3 .NET client to an Android APK (108 MB) and verified the desktop client renders the duel scene with lanes, HUD, and hand.
+
+**Key accomplishments:**
+- **Android export working:** Full `xvfb-run -a godot --editor --export-debug "Android"` produces a clean APK at `client/exports/Runewake.apk`
+- **Desktop client renders:** Fixed 4 `.tscn` files with sub-resource ordering, 3 scenes missing script references, broken `id="1]"` syntax, missing `icon.svg`, missing `import_etc2_astc` project setting, and missing Android build template. Duel scene now renders with enemy HUD, 5+5 lane rows, player HUD, and hand area.
+- **Flutter fallback permanently off the table:** The Godot .NET toolchain works end-to-end. No reason to consider Flutter per `00_MASTER_SPEC.md §3` fallback clause.
+
+**Signal 11 crash (fixed):**
+Root cause: `BotController` creates a `Godot.Timer` in `_Ready()` and subscribes to `_gsm.StateChanged` in `Initialize()`, but neither was ever unsubscribed. During shutdown, the timer callback would fire after the bot node was freed, accessing a dangling `_gsm` pointer → segfault.
+
+Fix:
+- `BotController._ExitTree()` — stops the timer, nulls it, unsubscribes from `_gsm.StateChanged`, nulls `_gsm`
+- `GameStateManager._ExitTree()` — clears `StateChanged` and `GameOver` event delegates so no freed subscriber is ever invoked during shutdown
+
+**APK sideloading:**
+```
+1. Enable Developer Options: Settings → About Phone → Tap "Build Number" 7 times
+2. Enable USB Debugging: Settings → Developer Options → USB Debugging → ON
+3. Connect phone via USB cable to mini PC
+4. Approve RSA key fingerprint on phone when prompted
+5. On mini PC: adb install /home/fictive/runewake/client/exports/Runewake.apk
+```
+If USB debugging is off and you can't enable it, copy the APK via USB flash drive or cloud storage, then install from the phone's file manager.
+

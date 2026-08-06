@@ -190,10 +190,12 @@ def test_compute_power_score_ritual():
 
 
 def test_expected_score():
-    """2.35*cost + 0.9."""
+    """Piecewise: cost ≤ 5 uses 2.35×cost+0.9; cost > 5 uses 12.65+1.5×(cost-5)."""
     assert expected_score(1) == 2.35 * 1 + 0.9
     assert expected_score(4) == 2.35 * 4 + 0.9
-    assert expected_score(10) == 2.35 * 10 + 0.9
+    assert expected_score(5) == 2.35 * 5 + 0.9
+    assert expected_score(6) == 2.35 * 5 + 0.9 + 1.5 * 1  # 12.65 + 1.5
+    assert expected_score(10) == 2.35 * 5 + 0.9 + 1.5 * 5  # 12.65 + 7.5
 
 
 def test_check_rarity_band_in_range():

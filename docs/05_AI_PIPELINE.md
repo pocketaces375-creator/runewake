@@ -42,7 +42,45 @@ Seeds are authored by a human (or by a template per region). **The model never d
 - **Executability check:** construct the card in the C# engine via a small CLI bridge (`Runewake.Sim validate-card`) and confirm it instantiates and its abilities bind to real handlers. If the engine can't build it, it doesn't ship.
 
 ### Stage 4 — SCORE
-Apply the power formula from `02_CARD_DSL.md` §4. Anything outside the rarity band is either auto-adjusted (nudge cost ±1 and re-score, once) or rejected.
+
+Apply the power formula from `02_CARD_DSL.md` §4. Anything outside the rarity band is either auto-adjusted (nudge cost ±2 and re-score) or rejected.
+
+**Tuned configuration (v0.2, calibrated 2026-08-05):**
+
+The expected score formula is **piecewise linear** — costs 0-5 use the original
+`2.35 × cost + 0.9` (proven in play), while costs 6-10 use the gentler
+`12.65 + 1.5 × (cost − 5)`. The flattening was necessary because the original
+single slope demanded near-maximum stats (attack 12 / vigor 14) at cost 9,
+leaving no design space for abilities. Cost 10 was mathematically impossible
+for any creature. See `02_CARD_DSL.md` §4 for the full reasoning.
+
+**RELIC-type base:** RELIC-type cards have no attack or vigor fields, so their
+stat base would be 0. To fix this (no RELIC could ever pass score), they get an
+effective base of `1.8 × cost`, replacing the missing stat contribution. This
+is deliberately below the creature curve (1.8 vs 2.35) — strong effects
+(DESTROY, mass buff) still push a relic out of band, so the base is not a
+rubber stamp.
+
+**CREATURE stat floor (hard constraint in the generation prompt):**
+```
+cost 1: ≥ 3   cost 2: ≥ 5   cost 3: ≥ 7   cost 4: ≥ 10
+cost 5: ≥ 13  cost 6: ≥ 15  cost 7: ≥ 17  cost 8: ≥ 19
+cost 9: ≥ 21  cost 10: ≥ 22
+```
+Cards below the floor cannot pass at any rarity. These are not targets — they
+are the absolute minimum for a creature to have any chance.
+
+**Realistic yield (critical):** The pipeline generates roughly **60% of a set**
+(36/60 cards in the best run), concentrated at **costs 1-4**. The model's
+training prior defaults to medium-stat creatures, and the prompt can correct
+for it up to about cost 4 (attack + vigor ≤ 10). Above that, the stat floor
+requires 13+ total stat points (e.g. 7/6 at cost 5), and the model
+**structurally cannot** produce cards at that density.
+
+This is not a failure — the pipeline handles bulk commons and uncommons where
+variety matters. **Costs 5+ creatures require hand-authoring.** Those are the
+memorable cards players build decks around, which is exactly what benefits
+from human judgment. Plan on hand-authoring ~15-20 cards per 60-card set.
 
 ### Stage 5 — SIMULATE
 This is what separates this project from every "AI makes cards" demo.

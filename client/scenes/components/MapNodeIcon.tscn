@@ -1,14 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://map_node_icon"]
+[gd_scene load_steps=3 format=3 uid="uid://map_node_icon"]
 
 [ext_resource type="Script" path="res://scripts/MapNodeIcon.cs" id="1_mni"]
-
-[node name="MapNodeIcon" type="Button"]
-anchors_preset = 0
-custom_minimum_size = Vector2(72, 72)
-script = ExtResource("1_mni")
-theme_override_styles/normal = SubResource("empty_style")
-theme_override_styles/hover = SubResource("hover_style")
-theme_override_styles/pressed = SubResource("pressed_style")
 
 [sub_resource type="StyleBoxEmpty" id="empty_style"]
 
@@ -27,6 +19,14 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
+
+[node name="MapNodeIcon" type="Button"]
+anchors_preset = 0
+custom_minimum_size = Vector2(72, 72)
+script = ExtResource("1_mni")
+theme_override_styles/normal = SubResource("empty_style")
+theme_override_styles/hover = SubResource("hover_style")
+theme_override_styles/pressed = SubResource("pressed_style")
 
 [node name="IconRect" type="ColorRect" parent="."]
 anchors_preset = 0

@@ -106,9 +106,44 @@ kw     = sum(KEYWORD_WEIGHT[k])
 abil   = sum(effect_weight(e) * trigger_multiplier(t) * condition_discount(c))
 score  = base + kw + abil
 
-expected(cost) = 2.35 * cost + 0.9
+expected(cost) = piecewise linear:
+    cost <= 5: 2.35 * cost + 0.9
+    cost >  5: 12.65 + 1.5 * (cost - 5)      # i.e. 2.35*5+0.9 + 1.5*(cost-5)
+
 delta = score - expected(cost)
 ```
+
+**RELIC-type base (v0.2 calibration, 2026-08-05):** RELIC-type cards carry no
+`attack` or `vigor` fields, so their stat base would be 0 and no RELIC could
+ever reach its band (a cost-5 relic with SEALED + two abilities scored ~4.2
+against expected 12.65 — short by 8.45, and unreachable at *any* cost). To fix
+this, RELIC-type cards get an effective base of `1.8 * cost`, replacing the
+missing stat contribution:
+
+```
+score_relic = 1.8 * cost + kw + abil
+```
+
+A cost-5 relic then scores 9.0 + abilities ≈ 13.2 vs expected 12.65 — in band.
+The base is deliberately below the creature curve (1.8 vs 2.35 slope): relics
+are tools, not bodies, and strong effects (DESTROY, mass buff) still push a
+relic out of band, so the base is not a rubber stamp.
+
+**Why the piecewise curve (v0.2 calibration, 2026-08-05):** the original single
+slope `2.35 * cost + 0.9` demands near-maximum stats at the top of the curve.
+At cost 9, expected(9) = 22.05 against a schema cap of attack 12 / vigor 14
+(max base 22.5) — a cost-9 card needs ~11/14 plus a keyword, leaving no design
+space for abilities; every big card looks like the same maxed-out body. Cost 10
+(24.40) was mathematically impossible for any creature. Calibration data from
+the first E2E runs (64.7% score rejection, all negative delta) confirmed the
+model produces conservative stats that the steep curve can't absorb.
+
+The piecewise curve keeps the validated low/mid curve identical (costs 0-5 are
+byte-identical to the original — zero churn in the bands already proven in
+play) and flattens the slope to 1.5 above cost 5. At cost 9, expected drops to
+18.65: a cost-9 card now needs ~11/10 plus one keyword, leaving room for a
+real ability. Cost 10 becomes reachable (19.5-20.2 minimum, within caps). A
+6/6 vanilla (score 10.5) still fails at cost 9, so the slope is not too flat.
 
 Acceptance bands by rarity (tune these after the first 10k sim games — treat the numbers here as a starting hypothesis, not truth):
 

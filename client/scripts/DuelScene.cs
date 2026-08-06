@@ -357,9 +357,11 @@ public partial class DuelScene : Control
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
-            card.SetCard(info.CardDefId, info.Name, info.Cost);
-            card.Pressed += () => OnHandCardPressed(card);
             _handArea.AddChild(card);
+            // AddChild triggers _Ready, so GetNode inside HandCard._Ready() works
+            card.SetCard(info.CardDefId, info.Name, info.Cost);
+            var capturedCard = card;
+            card.Pressed += () => OnHandCardPressed(capturedCard);
             _handCards.Add(card);
         }
     }

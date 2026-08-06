@@ -66,3 +66,26 @@ source ~/.hermes/.env && export OPENROUTER_API_KEY && python -m modules.generate
 ```
 
 **Priority:** Medium — blocks every pipeline run that calls OpenRouter.
+
+---
+
+## Cost 10 — reachable but never tested in play
+
+**Date flagged:** 2026-08-05
+**Root cause:** The original expected formula (2.35×cost+0.9) made cost 10
+mathematically impossible for any creature (expected(10)=24.40 > max base 22.50).
+The v0.2 piecewise calibration (flattened slope 1.5 above cost 5) lowers
+expected(10) to 20.15, making cost 10 reachable for the first time.
+
+**What to watch:** Cost 10 cards have never been generated, played, or
+simulated. The balance implications are unknown — a cost-10 card should be
+game-ending, but the formula may not correctly value that. The auto-adjust
+±2 cap can produce a cost-10 card (from a cost-8 or cost-9 original that was
+overpowered and moved up). Monitor the simulation bridge (`pipeline/modules/
+simulate.py`) for any cost-10 cards that pass score and flag them for manual
+review until the first full set with a cost-10 card exists.
+
+**Resolution path:** Once a full set with ≥1 cost-10 card exists, run 10k+ sim
+games and check win-rate deltas for those cards. If they're under- or over-
+performing, adjust the cost 10 expected value (currently 20.15) or the RELIC
+band upper bound for high-cost cards.

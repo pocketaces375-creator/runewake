@@ -37,6 +37,15 @@ public partial class GameStateManager : Node
     /// <summary>Raised when the game ends, with the winner's index.</summary>
     public event Action<int>? GameOver;
 
+    public override void _ExitTree()
+    {
+        // Clear event delegates so no freed subscriber is ever invoked during
+        // shutdown (signal 11 protection). Godot frees children in tree order,
+        // but a timer or tween callback may fire during cleanup.
+        StateChanged = null;
+        GameOver = null;
+    }
+
     // ——— Initialization ———
 
     /// <summary>

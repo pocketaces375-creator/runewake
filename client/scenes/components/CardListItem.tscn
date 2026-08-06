@@ -1,15 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://card_list_item"]
+[gd_scene load_steps=4 format=3 uid="uid://card_list_item"]
 
 [ext_resource type="Script" path="res://scripts/CardListItem.cs" id="1_cli"]
-
-[node name="CardListItem" type="Button"]
-anchors_preset = 0
-custom_minimum_size = Vector2(0, 32)
-size_flags_horizontal = 3
-script = ExtResource("1_cli")
-theme_override_styles/normal = SubResource("norm")
-theme_override_styles/hover = SubResource("hov")
-theme_override_styles/pressed = SubResource("prsd")
 
 [sub_resource type="StyleBoxEmpty" id="norm"]
 
@@ -28,6 +19,15 @@ border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
+
+[node name="CardListItem" type="Button"]
+anchors_preset = 0
+custom_minimum_size = Vector2(0, 32)
+size_flags_horizontal = 3
+script = ExtResource("1_cli")
+theme_override_styles/normal = SubResource("norm")
+theme_override_styles/hover = SubResource("hov")
+theme_override_styles/pressed = SubResource("prsd")
 
 [node name="StrataColor" type="ColorRect" parent="."]
 anchors_preset = 0

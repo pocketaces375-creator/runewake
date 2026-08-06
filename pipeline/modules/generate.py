@@ -69,18 +69,159 @@ KEYWORDS: GUARD | SWIFT | PIERCE | WARD | VENOM | REACH | ROOTED | UNEARTH | ECH
     (e.g., "vrd_c_root_warden", "emb_r_magma_forger", "hlo_x_shadow_veil")
     Rare card prefix: r. Relic card prefix: x.
 12. COMMON rarity is the most frequent in a set (roughly 47%).
-13. POWER SCORE TARGETS per rarity at their assigned cost:
-    COMMON:   score 4.0–6.0  (expected ~2.35*cost + 0.9, delta −0.8 to +0.4)
-    UNCOMMON: score 6.0–10.0 (delta −0.5 to +0.9)
-    RARE:     score 8.0–14.0 (delta −0.3 to +1.5)
-    RELIC:    score 12.0–18.0 (delta 0.0 to +2.5)
-    Do NOT systematically under-tune cards. Aim for the middle of each band. A
-    cost-3 COMMON creature with no abilities should have roughly 4-5 total stat
-    points; one with keyword(s) slightly fewer. Rituals and Relics should achieve
-    their score through effects that match their cost."""
+13. CREATURE STAT FLOOR (HARD CONSTRAINT — enforced by scorer):
+    A CREATURE's attack + vigor MUST meet or exceed this floor. CARDS BELOW THE
+    FLOOR WILL BE REJECTED — do not test this boundary.
+      cost 1:  attack + vigor ≥ 3   (e.g. 2/1 = 3)
+      cost 2:  attack + vigor ≥ 5   (e.g. 3/2 = 5; needs a keyword or ability)
+      cost 3:  attack + vigor ≥ 7   (e.g. 4/3 = 7)
+      cost 4:  attack + vigor ≥ 10  (e.g. 5/5 = 10)
+      cost 5:  attack + vigor ≥ 13  (e.g. 7/6 = 13)
+      cost 6:  attack + vigor ≥ 15  (e.g. 8/7 = 15)
+      cost 7:  attack + vigor ≥ 17  (e.g. 10/7 = 17)
+      cost 8:  attack + vigor ≥ 19  (e.g. 11/8 = 19)
+      cost 9:  attack + vigor ≥ 21  (e.g. 12/9 = 21)
+      cost 10: attack + vigor ≥ 22  (e.g. 12/10 = 22)
+    Keywords and abilities add power on top of this stat floor. A card at the
+    floor will need keywords/abilities to pass; one below it cannot pass at any
+    rarity.
+14. RITUAL MINIMUM EFFECTS (HARD CONSTRAINT):
+    cost 1-3: at least 1 effect
+    cost 4-5: at least 2 effects
+    cost 6+:  at least 2 effects AND at least one effect has amount ≥ 3
+              or op = DESTROY
+    A single-small-effect ritual at high cost always fails the scorer.
+15. RELIC-TYPE CARD MINIMUM ABILITIES (HARD CONSTRAINT):
+    cost 1-3: at least 1 ability beyond the identify condition
+    cost 4+:  at least 2 abilities (SEALED keyword alone plus identify
+              condition is not enough — the abilities must create value)"""
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
+
+# Worked score examples — one per rarity tier, showing the actual stat
+# breakdown and computed score arithmetic (NOT just target ranges). Each card
+# is verified to land in its rarity band by the real score formula. The render
+# function recomputes every number from the actual weights so the math shown
+# here is exactly what the SCORE stage validates.
+WORKED_EXAMPLES: list[dict] = [
+    # ── LOW-COST EXAMPLES (basic arithmetic) ─────────────────────────────────
+    {
+        "name": "Cinder Runner", "rarity": "COMMON", "type": "CREATURE",
+        "cost": 2, "attack": 3, "vigor": 1,
+        "keywords": ["SWIFT"],
+        "abilities": [],
+    },
+    {
+        "name": "Basalt Bulwark", "rarity": "COMMON", "type": "CREATURE",
+        "cost": 3, "attack": 3, "vigor": 5,
+        "keywords": ["GUARD"],
+        "abilities": [],
+    },
+    {
+        "name": "Slagsteel Reaver", "rarity": "UNCOMMON", "type": "CREATURE",
+        "cost": 3, "attack": 5, "vigor": 3,
+        "keywords": ["PIERCE"],
+        "abilities": [],
+    },
+    {
+        "name": "Ironheart Artificer", "rarity": "RARE", "type": "CREATURE",
+        "cost": 3, "attack": 2, "vigor": 3,
+        "keywords": [],
+        "abilities": [{
+            "trigger": "ON_SUMMON", "condition": None,
+            "effects": [{"op": "SUMMON", "target": {"scope": "LANE", "filter": "SAME_LANE"},
+                         "token_id": "emb_t_ashborn_thrall", "attack": 1, "vigor": 1, "amount": 2}],
+        }],
+    },
+    # ── HIGH-COST EXAMPLES (big creatures reaching high scores) ──────────────
+    {
+        "name": "Cinder Colossus", "rarity": "UNCOMMON", "type": "CREATURE",
+        "cost": 5, "attack": 7, "vigor": 6,
+        "keywords": ["SWIFT"],
+        "abilities": [],
+    },
+    {
+        "name": "Magma Behemoth", "rarity": "RARE", "type": "CREATURE",
+        "cost": 7, "attack": 10, "vigor": 10,
+        "keywords": [],
+        "abilities": [],
+    },
+    {
+        "name": "Obsidian Leviathan", "rarity": "RELIC", "type": "CREATURE",
+        "cost": 5, "attack": 8, "vigor": 6,
+        "keywords": ["VENOM"],
+        "abilities": [],
+    },
+    {
+        "name": "Worldheart Golem", "rarity": "RELIC", "type": "CREATURE",
+        "cost": 9, "attack": 11, "vigor": 14,
+        "keywords": ["VENOM", "WARD"],
+        "abilities": [],
+    },
+]
+
+
+def render_worked_example(card: dict) -> str:
+    """Render a card with its full score arithmetic, line by line.
+
+    Numbers are recomputed from modules.score so the example matches exactly
+    what the SCORE stage will validate against.
+    """
+    from modules.score import (
+        compute_base, compute_keywords, compute_abilities,
+        compute_power_score, expected_score, check_rarity_band, RARITY_BANDS,
+    )
+
+    base = compute_base(card)
+    kw = compute_keywords(card)
+    abil = compute_abilities(card)
+    total = compute_power_score(card)
+    exp = expected_score(card["cost"])
+    delta = total - exp
+    band = RARITY_BANDS.get(card["rarity"], (0.0, 0.0))
+    verdict = "IN BAND" if check_rarity_band(delta, card["rarity"]) is None else "OUT OF BAND"
+
+    lines = []
+    lines.append(f"### {card['name']}  ({card['rarity']} {card['type']}, cost {card['cost']})")
+    atk = card.get("attack", 0)
+    vig = card.get("vigor", 0)
+    lines.append(f"  base  = attack {atk} * 1.0 + vigor {vig} * 0.75 = {base:.2f}")
+    if card.get("keywords"):
+        kw_detail = " + ".join(f"{k}({_kw_weight(k):.2f})" for k in card["keywords"])
+        lines.append(f"  kw    = {kw_detail} = {kw:.2f}")
+    else:
+        lines.append(f"  kw    = (no keywords) = 0.00")
+    if card.get("abilities"):
+        lines.append(f"  abil  = {_abil_detail(card):s} = {abil:.2f}")
+    else:
+        lines.append(f"  abil  = (no abilities) = 0.00")
+    lines.append(f"  score = base + kw + abil = {total:.2f}")
+    lines.append(f"  expected({card['cost']}) = 2.35 * {card['cost']} + 0.9 = {exp:.2f}")
+    lines.append(f"  delta = score - expected = {delta:+.2f}")
+    lines.append(f"  {card['rarity']} band [{band[0]:+.2f}, {band[1]:+.2f}] -> {verdict}")
+    return "\n".join(lines)
+
+
+def _kw_weight(kw: str) -> float:
+    from modules.score import KEYWORD_WEIGHTS
+    return KEYWORD_WEIGHTS.get(kw, 0.0)
+
+
+def _abil_detail(card: dict) -> str:
+    """Human-readable effect summaries for the abilities line."""
+    parts = []
+    for ab in card.get("abilities", []):
+        trig = ab.get("trigger", "?")
+        for eff in ab.get("effects", []):
+            op = eff.get("op", "?")
+            amt = eff.get("amount")
+            if amt is not None:
+                parts.append(f"{trig}:{op} {amt}")
+            else:
+                parts.append(f"{trig}:{op}")
+    return " + ".join(parts)
+
 
 def load_config(config_path: Path) -> dict:
     with open(config_path) as f:
@@ -147,6 +288,14 @@ def build_prompt(seed: dict, examples: list, existing_names: list[str]) -> str:
     for i, ex in enumerate(examples, 1):
         parts.append(f"--- Example {i} ---")
         parts.append(json.dumps(ex, indent=2))
+        parts.append("")
+
+    # Worked score examples — show the math, not just target ranges
+    parts.append("## WORKED SCORE EXAMPLES (study the exact arithmetic)\n")
+    parts.append("Each of these cards lands IN its rarity band. Read how the score is computed from the stats, keywords, and abilities — replicate this arithmetic so your cards pass the SCORE stage.")
+    for i, ex in enumerate(WORKED_EXAMPLES, 1):
+        parts.append(f"--- Worked Example {i} ---")
+        parts.append(render_worked_example(ex))
         parts.append("")
 
     # Output instruction
@@ -382,6 +531,10 @@ def main(argv: list[str] | None = None) -> int:
     if rejects:
         print(f"[generate] {len(rejects)} cards rejected (see work dir for details)")
         return 2 if len(all_cards) == 0 else 0
+
+    if len(all_cards) == 0:
+        print("[generate] ❌ ZERO cards generated — run FAILED", file=sys.stderr)
+        return 2
 
     print(f"[generate] ✓ {len(all_cards)} cards generated successfully")
     return 0

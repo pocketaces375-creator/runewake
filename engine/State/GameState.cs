@@ -105,6 +105,8 @@ public sealed class GameState
                         TokenId = e.TokenId, Duration = e.Duration
                     }).ToList()
                 }));
+
+                player.Deck.Add(instance);
             }
 
             // Shuffle deck using seeded RNG (Fisher-Yates)

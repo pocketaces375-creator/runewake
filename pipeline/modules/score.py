@@ -189,16 +189,33 @@ def compute_abilities(card: dict) -> float:
 
 
 def compute_power_score(card: dict) -> float:
-    """Compute the full power score for a card."""
+    """Compute the full power score for a card.
+
+    RELIC-type cards have no attack or vigor. Their effective base is
+    1.8 × cost (replacing missing stat contribution), so they can compete
+    with creatures of the same cost. See docs/02_CARD_DSL.md §4.
+    """
     base = compute_base(card)
+    # RELIC-type cards: replace zero stat base with 1.8 × cost
+    if card.get("type") == "RELIC" and "attack" not in card:
+        base = 1.8 * card.get("cost", 0)
     kw = compute_keywords(card)
     abil = compute_abilities(card)
     return base + kw + abil
 
 
 def expected_score(cost: int) -> float:
-    """Expected score for a given cost: 2.35 * cost + 0.9."""
-    return 2.35 * cost + 0.9
+    """Expected score for a given cost.
+
+    Piecewise linear formula (see docs/02_CARD_DSL.md §4):
+      cost ≤ 5: 2.35 × cost + 0.9       (same as original — validated low/mid curve)
+      cost > 5: 12.65 + 1.5 × (cost − 5)  (gentler slope — opens design space at high
+                costs where the original 2.35× slope pushed cards to the stat cap)
+    """
+    if cost <= 5:
+        return 2.35 * cost + 0.9
+    else:
+        return 12.65 + 1.5 * (cost - 5)
 
 
 def check_rarity_band(delta: float, rarity: str) -> str | None:
@@ -215,25 +232,38 @@ def check_rarity_band(delta: float, rarity: str) -> str | None:
 # ── Auto-adjustment ──────────────────────────────────────────────────────────
 
 def auto_adjust(card: dict) -> tuple[dict, str | None]:
-    """Attempt to auto-adjust cost by ±1 and re-score. Returns (adjusted_card, error)."""
-    cost = card["cost"]
+    """Search cost ±2 of the original for a cost that lands the card in its rarity band.
 
-    # Try cost+1 first (weaker card), then cost-1 (stronger card)
-    for new_cost in (cost + 1, cost - 1):
-        if new_cost < 0 or new_cost > 10:
+    Capped at ±2 to prevent absurd cost swings (e.g. a cost-8 ritual becoming
+    cost-1). Score does not depend on cost (only on stats/abilities), so this is
+    a pure search over expected = 2.35*cost + 0.9. We prefer the cost nearest
+    the original (smallest re-balance) and, among ties, the lower cost.
+
+    Returns (adjusted_card, None) on success, or (card, error) if no cost in
+    [original-2, original+2] ∩ [0, 10] lands in band.
+    """
+    score = compute_power_score(card)
+    original = card["cost"]
+    candidates = []
+    for new_cost in range(max(0, original - 2), min(11, original + 3)):
+        if new_cost == original:
             continue
-        adjusted = dict(card)
-        adjusted["cost"] = new_cost
-        score = compute_power_score(adjusted)
         exp = expected_score(new_cost)
         delta = score - exp
         error = check_rarity_band(delta, card["rarity"])
         if error is None:
-            adjusted["power_score"] = round(score, 2)
-            return adjusted, None
+            candidates.append(new_cost)
 
-    # Could not adjust
-    return card, "Auto-adjust failed (cost ±1 still out of band)"
+    if not candidates:
+        return card, "Auto-adjust failed (no cost ±2 lands in band)"
+
+    # Prefer smallest |new_cost - original|, then lowest cost on ties.
+    best = min(candidates, key=lambda c: (abs(c - original), c))
+
+    adjusted = dict(card)
+    adjusted["cost"] = best
+    adjusted["power_score"] = round(score, 2)
+    return adjusted, None
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
@@ -320,7 +350,7 @@ def main(argv: list[str] | None = None) -> int:
         adj_path = work_dir / "03_adjusted.json"
         with open(adj_path, "w") as f:
             json.dump(auto_adjusted, f, indent=2)
-        print(f"[score] {len(auto_adjusted)} cards auto-adjusted (cost ±1)")
+        print(f"[score] {len(auto_adjusted)} cards auto-adjusted (cost re-balanced ±2)")
 
     # Summary
     total_rejected = len(rejects)
@@ -342,6 +372,10 @@ def main(argv: list[str] | None = None) -> int:
     if total_rejected:
         print(f"[score] {total_rejected} cards rejected")
         return 2 if len(scored) == 0 else 0
+
+    if len(scored) == 0:
+        print("[score] ❌ ZERO cards scored — pipeline produced nothing", file=sys.stderr)
+        return 2
 
     print(f"[score] ✓ All {len(scored)} cards scored successfully")
     return 0
