@@ -1,0 +1,9 @@
+{
+  "batch_id": "02_valid",
+  "input_file": "work/b_test_highcost/02_valid.json",
+  "total_processed": 16,
+  "scored": 6,
+  "rejected": 10,
+  "auto_adjusted": 6,
+  "timestamp": "2026-08-05T13:00:07Z"
+}

@@ -1,0 +1,56 @@
+{
+  "card": {
+    "id": "emb_x_volcanic_shard",
+    "set": "buried_age",
+    "name": "Volcanic Shard",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 6,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "REMOVE_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "keyword": "GUARD"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 4
+    },
+    "flavor": "It gleams with the heat of a thousand eruptions, binding the earth beneath.",
+    "art": {
+      "prompt": "a jagged shard of obsidian glowing red hot, set on a stone pedestal",
+      "asset": "cdn://art/emb_x_volcanic_shard.webp"
+    },
+    "power_score": 15.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -12.45 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

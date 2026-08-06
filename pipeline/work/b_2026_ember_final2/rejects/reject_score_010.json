@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_r_scorching_gale",
+    "set": "buried_age",
+    "name": "Scorching Gale",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -9.15 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

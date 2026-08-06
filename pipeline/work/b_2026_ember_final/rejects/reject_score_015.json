@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_u_scorched_bard",
+    "set": "buried_age",
+    "name": "Scorched Bard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.35 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

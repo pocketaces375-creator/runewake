@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_u_forgemaster",
+    "set": "buried_age",
+    "name": "Forgemaster",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "power_score": 11.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.45 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

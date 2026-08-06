@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_emberguard_golem",
+    "set": "buried_age",
+    "name": "Emberguard Golem",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "SELF"
+            },
+            "keyword": "GUARD",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A sentinel forged from the very ashes of the earth, ever vigilant.",
+    "art": {
+      "prompt": "a stone golem with a body of embers, standing tall as a guardian in a volcanic landscape",
+      "asset": "cdn://art/emb_u_emberguard_golem.webp"
+    },
+    "power_score": 8.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.45 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

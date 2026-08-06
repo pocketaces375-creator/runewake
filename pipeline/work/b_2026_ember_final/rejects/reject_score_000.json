@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_c_lava_sentry",
+    "set": "buried_age",
+    "name": "Lava Sentry",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.20 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -25,7 +25,8 @@ public partial class DuelScene : Control
     private Label _turnLabel;
     private HBoxContainer _enemyLanes;
     private HBoxContainer _playerLanes;
-    private HFlowContainer _handArea;
+    private CenterContainer _handArea;
+    private HBoxContainer _handFlow;
 
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
@@ -34,6 +35,8 @@ public partial class DuelScene : Control
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
     private BotController _bot = default!;
+    private CardView _cardDetail = default!;
+    private bool _cardDetailVisible;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -61,7 +64,8 @@ public partial class DuelScene : Control
         _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerVigorValue");
         _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerAttuneValue");
         _turnLabel = GetNode<Label>("TurnLabel");
-        _handArea = GetNode<HFlowContainer>("HandArea");
+        _handArea = GetNode<CenterContainer>("HandArea");
+        _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
         var board = GetNode("Board");
         _enemyLanes = board.GetNode<HBoxContainer>("EnemyLanes");
@@ -92,6 +96,15 @@ public partial class DuelScene : Control
         // Load card packs
         LoadCardPacks();
         _bot.Initialize(_gsm);
+
+        // Create card detail popup (hidden until tapped)
+        var cardViewScene = GD.Load<PackedScene>("res://scenes/components/CardView.tscn");
+        _cardDetail = cardViewScene.Instantiate<CardView>();
+        _cardDetail.Visible = false;
+        _cardDetailVisible = false;
+        AddChild(_cardDetail);
+        // Center the detail view on screen
+        _cardDetail.SetAnchorsPreset(LayoutPreset.Center);
 
         // Check if this is a campaign encounter or test game
         var encounter = CampaignContext.CurrentEncounter;
@@ -173,6 +186,13 @@ public partial class DuelScene : Control
     /// </summary>
     private void OnStateChanged()
     {
+        // Dismiss card detail popup on state change
+        if (_cardDetailVisible)
+        {
+            _cardDetail.Visible = false;
+            _cardDetailVisible = false;
+        }
+
         // Capture the new state for comparison
         var newEnemyBoard = CaptureBoard(1);
         var newPlayerBoard = CaptureBoard(0);
@@ -357,9 +377,9 @@ public partial class DuelScene : Control
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
-            _handArea.AddChild(card);
+            _handFlow.AddChild(card);
             // AddChild triggers _Ready, so GetNode inside HandCard._Ready() works
-            card.SetCard(info.CardDefId, info.Name, info.Cost);
+            card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
             var capturedCard = card;
             card.Pressed += () => OnHandCardPressed(capturedCard);
             _handCards.Add(card);
@@ -419,9 +439,29 @@ public partial class DuelScene : Control
     private void OnHandCardPressed(HandCard card)
     {
         if (_bot.IsThinking) return;
+
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
             _input.CancelSelection();
+        }
+
+        // Toggle card detail popup
+        if (_cardDetailVisible && _cardDetail.CurrentCard?.Name == card.CardName)
+        {
+            // Same card tapped again — dismiss
+            _cardDetail.Visible = false;
+            _cardDetailVisible = false;
+        }
+        else
+        {
+            // Show this card's detail view
+            var def = CardRegistry.Get(card.CardId);
+            if (def != null)
+            {
+                _cardDetail.SetCard(def);
+                _cardDetail.Visible = true;
+                _cardDetailVisible = true;
+            }
         }
     }
 

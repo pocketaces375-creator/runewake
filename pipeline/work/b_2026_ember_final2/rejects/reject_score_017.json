@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_blastfire_elemental",
+    "set": "buried_age",
+    "name": "Blastfire Elemental",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 11.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.40 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

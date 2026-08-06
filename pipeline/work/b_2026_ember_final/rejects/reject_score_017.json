@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_u_forgeflame_sorcerer",
+    "set": "buried_age",
+    "name": "Forgeflame Sorcerer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 11.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.40 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

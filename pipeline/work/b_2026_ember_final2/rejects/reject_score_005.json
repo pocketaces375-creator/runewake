@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_r_ember_ritual",
+    "set": "buried_age",
+    "name": "Ember Ritual",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -10.15 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

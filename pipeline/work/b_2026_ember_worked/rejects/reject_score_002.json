@@ -1,0 +1,20 @@
+{
+  "card": {
+    "id": "emb_u_ash_colossus",
+    "set": "buried_age",
+    "name": "Ash Colossus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "power_score": 9.3,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.05 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

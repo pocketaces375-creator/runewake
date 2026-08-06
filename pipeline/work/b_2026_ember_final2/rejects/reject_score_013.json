@@ -1,0 +1,33 @@
+{
+  "card": {
+    "id": "emb_u_molten_ambassador",
+    "set": "buried_age",
+    "name": "Molten Ambassador",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "LOWEST_VIGOR"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 11.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.15 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

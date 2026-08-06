@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_u_spark_of_creation",
+    "set": "buried_age",
+    "name": "Spark of Creation",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 5.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.60 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

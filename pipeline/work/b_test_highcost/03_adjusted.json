@@ -1,0 +1,219 @@
+[
+  {
+    "id": "emb_r_forge_warden",
+    "set": "buried_age",
+    "name": "Forge Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 7,
+    "vigor": 10,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "He watches over the embers, protecting them from the encroaching cold.",
+    "art": {
+      "prompt": "a heavily armored guardian standing in front of a forge, with sparks flying in the background",
+      "asset": "cdn://art/emb_r_forge_warden.webp"
+    },
+    "power_score": 18.28,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_iron_colossus",
+    "set": "buried_age",
+    "name": "Iron Colossus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 9,
+    "vigor": 10,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": -2,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Once protectors of the forge, they now guard their secrets fiercely.",
+    "art": {
+      "prompt": "a massive iron golem with glowing seams, standing watch over a fiery forge",
+      "asset": "cdn://art/emb_r_iron_colossus.webp"
+    },
+    "power_score": 15.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_molten_colossus",
+    "set": "buried_age",
+    "name": "Molten Colossus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 8,
+    "attack": 10,
+    "vigor": 8,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "From the heart of the caldera, it exudes a deadly warmth.",
+    "art": {
+      "prompt": "a towering molten giant, glowing with heat and adorned with obsidian armor, amidst flowing lava",
+      "asset": "cdn://art/emb_r_molten_colossus.webp"
+    },
+    "power_score": 21.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_gilded_warrior",
+    "set": "buried_age",
+    "name": "Gilded Warrior",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "Clad in armor forged from the very heart of the volcano, they stand vigilant.",
+    "art": {
+      "prompt": "a sturdy warrior in gilded armor standing guard over a lava pit, shield raised",
+      "asset": "cdn://art/emb_c_gilded_warrior.webp"
+    },
+    "power_score": 9.65,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_magma_champion",
+    "set": "buried_age",
+    "name": "Magma Champion",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 5,
+    "attack": 7,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "keyword": "VENOM",
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Forged in the fires of the deepest caldera, it knows only victory.",
+    "art": {
+      "prompt": "a fierce warrior with magma glowing beneath their armor, standing triumphant on a rock outcrop",
+      "asset": "cdn://art/emb_c_magma_champion.webp"
+    },
+    "power_score": 12.3,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_inferno_golem",
+    "set": "buried_age",
+    "name": "Inferno Golem",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 10,
+    "attack": 11,
+    "vigor": 12,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 5
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "An embodiment of destruction, it leaves only ash in its wake.",
+    "art": {
+      "prompt": "an imposing golem with flames raging across its form, amidst a landscape scorched by heat",
+      "asset": "cdn://art/emb_r_inferno_golem.webp"
+    },
+    "power_score": 24.9,
+    "content_version": 1
+  }
+]

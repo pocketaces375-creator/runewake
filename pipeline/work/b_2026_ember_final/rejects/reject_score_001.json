@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_u_molten_mage",
+    "set": "buried_age",
+    "name": "Molten Mage",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 9.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

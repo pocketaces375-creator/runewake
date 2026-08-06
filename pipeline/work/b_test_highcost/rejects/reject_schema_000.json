@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_u_inferno_mount",
+    "set": "buried_age",
+    "name": "Inferno Mount",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "MOVE_LANE",
+            "target": {
+              "scope": "SELF"
+            },
+            "lane": "CENTER_LANE"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Swift as wildfire, it gallops through the ashes of the past.",
+    "art": {
+      "prompt": "a blazing steed, its mane of flames flowing as it races across a charred battlefield",
+      "asset": "cdn://art/emb_u_inferno_mount.webp"
+    },
+    "power_score": 9.7,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0]: Additional properties are not allowed ('lane' was unexpected)"
+}

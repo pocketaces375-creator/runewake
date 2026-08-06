@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_flaming_demon",
+    "set": "buried_age",
+    "name": "Flaming Demon",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 4.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.60 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

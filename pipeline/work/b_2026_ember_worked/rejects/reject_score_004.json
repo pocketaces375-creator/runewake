@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_u_firescale_worm",
+    "set": "buried_age",
+    "name": "Firescale Worm",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 5.35,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.10 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

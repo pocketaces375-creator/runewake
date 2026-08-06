@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_black_embers",
+    "set": "buried_age",
+    "name": "Black Embers",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 4.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.50 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

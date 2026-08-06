@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_u_forger_guardian",
+    "set": "buried_age",
+    "name": "Forger Guardian",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 9,
+    "attack": 10,
+    "vigor": 8,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Protecting the forges that shaped their existence, they stand resolute.",
+    "art": {
+      "prompt": "a giant armoured figure with fiery motifs, guarding the entrance to an ancient forge",
+      "asset": "cdn://art/emb_u_forger_guardian.webp"
+    },
+    "power_score": 16.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.31 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

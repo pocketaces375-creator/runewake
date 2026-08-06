@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_flameforged_wielder",
+    "set": "buried_age",
+    "name": "Flameforged Wielder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 7.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.80 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

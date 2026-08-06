@@ -1,0 +1,40 @@
+{
+  "card": {
+    "id": "emb_u_cinder_strider",
+    "set": "buried_age",
+    "name": "Cinder Strider",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 7,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "NONE",
+              "token_id": "emb_t_scorchling"
+            }
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "With each step, it leaves a trail of sparks and embers in its wake.",
+    "art": {
+      "prompt": "a sleek creature made of cinders, racing over molten rocks with speed and grace",
+      "asset": "cdn://art/emb_u_cinder_strider.webp"
+    },
+    "power_score": 10.2,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 effects \u2192 0 \u2192 target]: Additional properties are not allowed ('token_id' was unexpected)"
+}

@@ -1,0 +1,20 @@
+{
+  "card": {
+    "id": "emb_u_ember_fleet",
+    "set": "buried_age",
+    "name": "Ember Fleet",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 9.1,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.95 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

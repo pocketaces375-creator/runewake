@@ -1,0 +1,59 @@
+{
+  "card": {
+    "id": "emb_x_embersoul_relic",
+    "set": "buried_age",
+    "name": "Embersoul Relic",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 5,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "VENOM",
+            "duration": "PERMANENT"
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 3
+    },
+    "flavor": "Forged in the heart of the volcano, it echoes the souls of the lost.",
+    "art": {
+      "prompt": "an ancient, glowing relic shaped like a heart, surrounded by swirling embers",
+      "asset": "cdn://art/emb_x_embersoul_relic.webp"
+    },
+    "power_score": 14.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -9.97 outside rarity band [+0.00, +2.50] (auto-adjust attempted and failed)"
+}

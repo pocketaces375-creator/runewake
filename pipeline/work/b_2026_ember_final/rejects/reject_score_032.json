@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_cinderbeast",
+    "set": "buried_age",
+    "name": "Cinderbeast",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.55 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

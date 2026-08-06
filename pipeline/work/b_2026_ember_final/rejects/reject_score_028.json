@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_u_emberwild_magus",
+    "set": "buried_age",
+    "name": "Emberwild Magus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.65 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

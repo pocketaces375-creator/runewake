@@ -1,0 +1,20 @@
+{
+  "card": {
+    "id": "emb_c_ashthorn_huntress",
+    "set": "buried_age",
+    "name": "Ashthorn Huntress",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

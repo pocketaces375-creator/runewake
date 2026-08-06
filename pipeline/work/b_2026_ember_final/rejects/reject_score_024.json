@@ -1,0 +1,20 @@
+{
+  "card": {
+    "id": "emb_u_scorched_sentinel",
+    "set": "buried_age",
+    "name": "Scorched Sentinel",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "power_score": 7.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.85 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_r_cinder_elemental",
+    "set": "buried_age",
+    "name": "Cinder Elemental",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 9,
+    "attack": 10,
+    "vigor": 12,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "A manifestation of baleful heat, leaving a trail of venomous ash.",
+    "art": {
+      "prompt": "a swirling mass of embers and ash forming a humanoid figure, surrounded by smoke",
+      "asset": "cdn://art/emb_r_cinder_elemental.webp"
+    },
+    "power_score": 16.0,
+    "content_version": 1
+  },
+  "reason": "SCHEMA_FAIL: JSON Schema [0 \u2192 abilities \u2192 0 \u2192 trigger]: 'ON_DAMAGE' is not one of ['ON_SUMMON', 'ON_DEATH', 'ON_ATTACK', 'ON_DAMAGED', 'ON_TURN_START', 'ON_TURN_END', 'ON_CAST_RITUAL', 'ON_EXCAVATE', 'ON_RELIC_IDENTIFY', 'ON_ALLY_DEATH', 'ON_LANE_VACATED', 'PASSIVE', 'ACTIVATED', 'RESOLVE']"
+}

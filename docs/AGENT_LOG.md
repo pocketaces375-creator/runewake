@@ -1,5 +1,26 @@
 # AGENT_LOG
 
+## Session 24 — 2026-08-06
+
+### P3-02 — Card view component for phone screen
+
+Fixed hand card layout and sized all card views for phone legibility:
+
+- **HandCard.tscn** — resized from 48×68 to 80×112 with 11px card name, 12px cost badge, added strata-colored bottom strip (5px) identifying each card's stratum
+- **HandCard.cs** — accepts `Strata` parameter, renders colored strip via `GetStrataColor()`
+- **HandCardInfo** — added `Strata` field, populated from `CardRegistry.Get()` in `GetHand()`
+- **DuelScene.tscn** — HandArea layout: `CenterContainer` > `HBoxContainer` (alignment=center, 6px spacing). Cards are centered horizontally with proper spacing instead of bunching bottom-left. Board/PlayerHUD/HandArea offsets adjusted for 120px hand area (up from 80px) to accommodate taller cards.
+- **CardView.tscn** — resized from 180×280 to 280×400 with phone-grade fonts: header 18px, type line 12px, rules text 11px, flavor 10px, stats 18px. Art rect increased to 140px min height.
+- **DuelScene.cs** — wired `CardView` detail popup on hand card tap: instantiated once in `_Ready()`, hidden/shown in `OnHandCardPressed()`. Looks up `CardDef` from `CardRegistry` via `CardId` and calls `SetCard()`. Dismissed automatically on state change.
+
+**Screenshot:** 4 hand cards centered with spacing, 79px wide each, Verdant (green) and Ember (red) strata strips visible. All 365 engine tests pass.
+
+Screenshot: MEDIA:/home/fictive/runewake/duel_screenshot.png
+
+Next: **P3-03** — Input: drag card to lane, tap creature to attack.
+
+---
+
 ## Session 1 — 2026-08-04
 ### P0-01 — Repo init
 ### P0-02 — Godot .NET mobile smoke test (scaffolding complete)

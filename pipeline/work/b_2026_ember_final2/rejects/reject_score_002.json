@@ -1,0 +1,39 @@
+{
+  "card": {
+    "id": "emb_u_cinder_backlash",
+    "set": "buried_age",
+    "name": "Cinder Backlash",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 8.2,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.15 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

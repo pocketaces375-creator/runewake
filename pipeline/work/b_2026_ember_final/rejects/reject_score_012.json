@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_r_embers_wrath",
+    "set": "buried_age",
+    "name": "Ember's Wrath",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 6
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 14.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -7.15 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

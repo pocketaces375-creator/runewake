@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_forge_mender",
+    "set": "buried_age",
+    "name": "Forge Mender",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 5.25,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.45 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

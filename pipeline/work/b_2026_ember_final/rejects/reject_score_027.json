@@ -1,0 +1,38 @@
+{
+  "card": {
+    "id": "emb_r_ember_intensity",
+    "set": "buried_age",
+    "name": "Ember Intensity",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "attack": 0,
+            "vigor": 3,
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 12.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.20 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

@@ -67,7 +67,7 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 40.0
-offset_bottom = -140.0
+offset_bottom = -120.0
 theme_override_constants/separation = 4
 
 [node name="EnemyLanes" type="HBoxContainer" parent="Board"]
@@ -87,11 +87,11 @@ size_flags_vertical = 3
 [node name="PlayerHUD" type="HBoxContainer" parent="."]
 anchors_preset = 14
 anchor_left = 0.0
-anchor_top = 0.0
+anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 0.0
-offset_top = -100.0
-offset_bottom = -50.0
+anchor_bottom = 1.0
+offset_top = -120.0
+offset_bottom = -100.0
 
 [node name="PlayerVigorLabel" type="Label" parent="PlayerHUD"]
 size_flags_horizontal = 0
@@ -117,12 +117,18 @@ vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = "0"
 
-[node name="HandArea" type="HFlowContainer" parent="."]
+[node name="HandArea" type="CenterContainer" parent="."]
 anchors_preset = 14
 anchor_left = 0.0
-anchor_top = 0.0
+anchor_top = 1.0
 anchor_right = 1.0
-anchor_bottom = 0.0
-offset_top = -50.0
+anchor_bottom = 1.0
+offset_top = -120.0
 offset_bottom = 0.0
-theme_override_constants/hseparation = 2
+
+[node name="HandFlow" type="HBoxContainer" parent="HandArea"]
+anchors_preset = 0
+size_flags_horizontal = 0
+size_flags_vertical = 3
+alignment = 1
+theme_override_constants/separation = 6

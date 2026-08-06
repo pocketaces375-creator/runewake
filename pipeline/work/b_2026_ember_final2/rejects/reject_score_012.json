@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_u_flame_warden",
+    "set": "buried_age",
+    "name": "Flame Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 10.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.65 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

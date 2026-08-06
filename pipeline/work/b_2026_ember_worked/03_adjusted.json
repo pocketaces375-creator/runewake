@@ -1,0 +1,668 @@
+[
+  {
+    "id": "emb_c_ember_spark",
+    "set": "buried_age",
+    "name": "Ember Spark",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 3.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_flare_watcher",
+    "set": "buried_age",
+    "name": "Flare Watcher",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_forge_keeper",
+    "set": "buried_age",
+    "name": "Forge Keeper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_ember_initiate",
+    "set": "buried_age",
+    "name": "Ember Initiate",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 6.35,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ashbringer",
+    "set": "buried_age",
+    "name": "Ashbringer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 11.8,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_firesoul_summit",
+    "set": "buried_age",
+    "name": "Firesoul Summit",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 0,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 1.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_brimstone_exile",
+    "set": "buried_age",
+    "name": "Brimstone Exile",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 1,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 5
+    },
+    "power_score": 4.88,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_molten_shield",
+    "set": "buried_age",
+    "name": "Molten Shield",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 1,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 4
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 3
+    },
+    "power_score": 5.08,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_ember_conduit",
+    "set": "buried_age",
+    "name": "Ember Conduit",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_scorched_warden",
+    "set": "buried_age",
+    "name": "Scorched Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_cinder_warden",
+    "set": "buried_age",
+    "name": "Cinder Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_burning_golem",
+    "set": "buried_age",
+    "name": "Burning Golem",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "power_score": 11.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_crawler",
+    "set": "buried_age",
+    "name": "Cinder Crawler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 5.35,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_scout",
+    "set": "buried_age",
+    "name": "Cinder Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 3.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ash_slinger",
+    "set": "buried_age",
+    "name": "Ash Slinger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 5.25,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_sculpted_flame",
+    "set": "buried_age",
+    "name": "Sculpted Flame",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 7.85,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_blacksmith_adept",
+    "set": "buried_age",
+    "name": "Blacksmith Adept",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 6.25,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_fiery_conclave",
+    "set": "buried_age",
+    "name": "Fiery Conclave",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 4,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "power_score": 8.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_infernal_weaver",
+    "set": "buried_age",
+    "name": "Infernal Weaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 10.85,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_lava_reaver",
+    "set": "buried_age",
+    "name": "Lava Reaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "power_score": 8.1,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_scorching_warden",
+    "set": "buried_age",
+    "name": "Scorching Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 9.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_brazen_forge",
+    "set": "buried_age",
+    "name": "Brazen Forge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 0,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 1.0,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_embers_forging",
+    "set": "buried_age",
+    "name": "Embers Forging",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 0,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "power_score": 1.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_fires_of_rebirth",
+    "set": "buried_age",
+    "name": "Fires of Rebirth",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "power_score": 4.2,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_forge_of_embers",
+    "set": "buried_age",
+    "name": "Forge of Embers",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 0,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 3
+    },
+    "power_score": 3.17,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_molten_relic",
+    "set": "buried_age",
+    "name": "Molten Relic",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 0,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 4
+    },
+    "power_score": 2.88,
+    "content_version": 1
+  },
+  {
+    "id": "emb_x_soulforge",
+    "set": "buried_age",
+    "name": "Soulforge",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 1,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "ALLY_COUNT_GTE",
+      "value": 3
+    },
+    "power_score": 3.7,
+    "content_version": 1
+  }
+]

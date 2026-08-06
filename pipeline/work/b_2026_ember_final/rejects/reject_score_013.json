@@ -1,0 +1,32 @@
+{
+  "card": {
+    "id": "emb_c_ember_tide",
+    "set": "buried_age",
+    "name": "Ember Tide",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.25 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

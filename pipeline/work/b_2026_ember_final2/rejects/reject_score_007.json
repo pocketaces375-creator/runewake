@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_r_molten_form",
+    "set": "buried_age",
+    "name": "Molten Form",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ANY_CREATURE"
+            },
+            "keyword": "SWIFT",
+            "duration": "THIS_TURN"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -12.35 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

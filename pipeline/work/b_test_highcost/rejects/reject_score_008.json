@@ -1,0 +1,27 @@
+{
+  "card": {
+    "id": "emb_u_cinder_guardian",
+    "set": "buried_age",
+    "name": "Cinder Guardian",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 9,
+    "attack": 12,
+    "vigor": 10,
+    "keywords": [
+      "GUARD",
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "They move with the swiftness of flames, guarding their territory fiercely.",
+    "art": {
+      "prompt": "a blazing figure radiating heat, standing guard in a molten field with swift movements",
+      "asset": "cdn://art/emb_u_cinder_guardian.webp"
+    },
+    "power_score": 18.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -0.55 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

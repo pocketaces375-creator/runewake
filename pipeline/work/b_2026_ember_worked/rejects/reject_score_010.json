@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_r_molten_rampart",
+    "set": "buried_age",
+    "name": "Molten Rampart",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 9.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.15 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

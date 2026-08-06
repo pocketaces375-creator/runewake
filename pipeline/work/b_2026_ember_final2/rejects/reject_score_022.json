@@ -1,0 +1,58 @@
+{
+  "card": {
+    "id": "emb_r_ember_sculpture",
+    "set": "buried_age",
+    "name": "Ember Sculpture",
+    "strata": "EMBER",
+    "type": "RELIC",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_RELIC_IDENTIFY",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "PASSIVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "STRATA:EMBER",
+              "count": "ALL"
+            },
+            "attack": 2,
+            "vigor": 0,
+            "duration": "WHILE_PRESENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 2
+    },
+    "flavor": "A masterpiece forged from the heart of the fire.",
+    "art": {
+      "prompt": "an intricately designed sculpture made of glowing embers",
+      "asset": "cdn://art/emb_r_ember_sculpture.webp"
+    },
+    "power_score": 11.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta +2.00 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

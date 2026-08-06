@@ -1,0 +1,37 @@
+{
+  "card": {
+    "id": "emb_r_smoldering_ascendancy",
+    "set": "buried_age",
+    "name": "Smoldering Ascendancy",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 8
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "power_score": 15.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.15 outside rarity band [-0.30, +1.50] (auto-adjust attempted and failed)"
+}

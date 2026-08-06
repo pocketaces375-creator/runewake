@@ -1,0 +1,43 @@
+{
+  "card": {
+    "id": "emb_u_cinder_harvest",
+    "set": "buried_age",
+    "name": "Cinder Harvest",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The ashes hold a power that rejuvenates.",
+    "art": {
+      "prompt": "a field of cinders being harvested by hand",
+      "asset": "cdn://art/emb_u_cinder_harvest.webp"
+    },
+    "power_score": 9.25,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.90 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

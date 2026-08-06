@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_u_embersworn_guard",
+    "set": "buried_age",
+    "name": "Embersworn Guard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 10.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.40 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

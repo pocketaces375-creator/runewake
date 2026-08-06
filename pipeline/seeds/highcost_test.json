@@ -1,0 +1,30 @@
+{
+  "batch_id": "b_test_highcost",
+  "count": 12,
+  "strata": "EMBER",
+  "type_mix": {
+    "CREATURE": 12
+  },
+  "cost_curve": {
+    "6": 4,
+    "7": 4,
+    "8": 2,
+    "9": 2
+  },
+  "rarity_mix": {
+    "UNCOMMON": 4,
+    "RARE": 5,
+    "RELIC": 3
+  },
+  "theme": "Cinderhold \u2014 forge city, volcanic caldera, ancient stone colossi awakened from the deep",
+  "mechanic_emphasis": [
+    "VENOM",
+    "GUARD",
+    "WARD",
+    "SWIFT"
+  ],
+  "forbidden_mechanics": [
+    "EXCAVATE",
+    "BURY"
+  ]
+}

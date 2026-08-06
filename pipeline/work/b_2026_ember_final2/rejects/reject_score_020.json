@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_c_scorched_interloper",
+    "set": "buried_age",
+    "name": "Scorched Interloper",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "A presence that slides through the flames.",
+    "art": {
+      "prompt": "a figure darting among the flickering embers",
+      "asset": "cdn://art/emb_c_scorched_interloper.webp"
+    },
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.00 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,36 @@
+{
+  "card": {
+    "id": "emb_r_cinder_bowl",
+    "set": "buried_age",
+    "name": "Cinder Bowl",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.60 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,44 @@
+{
+  "card": {
+    "id": "emb_u_cinder_colossus",
+    "set": "buried_age",
+    "name": "Cinder Colossus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "SAME_LANE",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Awakened by the heat of the forge, the colossus rises once more.",
+    "art": {
+      "prompt": "a massive stone giant, covered in molten rock, standing tall in a volcanic landscape",
+      "asset": "cdn://art/emb_u_cinder_colossus.webp"
+    },
+    "power_score": 6.7,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -5.35 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

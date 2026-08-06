@@ -1,0 +1,26 @@
+{
+  "card": {
+    "id": "emb_u_scorched_wraith",
+    "set": "buried_age",
+    "name": "Scorched Wraith",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "identify_condition": null,
+    "flavor": "A fleeting shadow among the embers.",
+    "art": {
+      "prompt": "a ghostly figure momentarily illuminated by firelight",
+      "asset": "cdn://art/emb_u_scorched_wraith.webp"
+    },
+    "power_score": 6.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -6.30 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_u_fissured_golem",
+    "set": "buried_age",
+    "name": "Fissured Golem",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 10.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -2.90 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_c_ember_warden",
+    "set": "buried_age",
+    "name": "Ember Warden",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 7,
+    "attack": 6,
+    "vigor": 7,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "condition": null,
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "The embers of its heart long to protect all from the coming darkness.",
+    "art": {
+      "prompt": "a noble guardian with glowing embers surrounding them, staff in hand, in a volcanic landscape",
+      "asset": "cdn://art/emb_c_ember_warden.webp"
+    },
+    "power_score": 10.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.82 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

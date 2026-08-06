@@ -1,0 +1,18 @@
+{
+  "card": {
+    "id": "emb_c_molten_shard",
+    "set": "buried_age",
+    "name": "Molten Shard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": [],
+    "abilities": [],
+    "power_score": 4.75,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -1.85 outside rarity band [-0.80, +0.40] (auto-adjust attempted and failed)"
+}

@@ -227,7 +227,8 @@ public partial class GameStateManager : Node
                 CardDefId = ci.CardDefId,
                 InstanceId = ci.InstanceId,
                 Name = def?.Name ?? ci.CardDefId,
-                Cost = ci.Cost
+                Cost = ci.Cost,
+                Strata = def?.Strata ?? Strata.VERDANT
             });
         }
         return infos;
@@ -301,6 +302,7 @@ public struct HandCardInfo
     public int InstanceId;
     public string Name;
     public int Cost;
+    public Strata Strata;
 }
 
 public struct LaneInfo

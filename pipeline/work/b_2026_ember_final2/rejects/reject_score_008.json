@@ -1,0 +1,33 @@
+{
+  "card": {
+    "id": "emb_u_forge_tender",
+    "set": "buried_age",
+    "name": "Forge Tender",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "UNDAMAGED"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "power_score": 10.5,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -4.90 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

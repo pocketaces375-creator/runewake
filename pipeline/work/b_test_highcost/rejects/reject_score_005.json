@@ -1,0 +1,42 @@
+{
+  "card": {
+    "id": "emb_c_forged_giant",
+    "set": "buried_age",
+    "name": "Forged Giant",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 6,
+    "attack": 7,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "condition": null,
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "identify_condition": null,
+    "flavor": "Awakened from slumber, the giants rise with molten hearts.",
+    "art": {
+      "prompt": "a colossal figure forged from stone and metal, towering above a molten landscape",
+      "asset": "cdn://art/emb_c_forged_giant.webp"
+    },
+    "power_score": 9.25,
+    "content_version": 1
+  },
+  "reason": "SCORE_FAIL: Delta -3.25 outside rarity band [-0.50, +0.90] (auto-adjust attempted and failed)"
+}

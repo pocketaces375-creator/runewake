@@ -20,6 +20,13 @@ config/icon="res://icon.svg"
 
 project/assembly_name="Runewake.Client"
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/size/mode=0
+window/size/always_on_top=false
+
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true
