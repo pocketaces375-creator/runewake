@@ -70,7 +70,13 @@ offset_top = 40.0
 offset_bottom = -120.0
 theme_override_constants/separation = 4
 
-[node name="EnemyLanes" type="HBoxContainer" parent="Board"]
+[node name="EnemyLaneMargin" type="MarginContainer" parent="Board"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+
+[node name="EnemyLanes" type="HBoxContainer" parent="Board/EnemyLaneMargin"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -80,11 +86,17 @@ size_flags_vertical = 0
 custom_minimum_size = Vector2(0, 4)
 color = Color(0.3, 0.3, 0.35, 1)
 
-[node name="PlayerLanes" type="HBoxContainer" parent="Board"]
+[node name="PlayerLaneMargin" type="MarginContainer" parent="Board"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+
+[node name="PlayerLanes" type="HBoxContainer" parent="Board/PlayerLaneMargin"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="PlayerHUD" type="HBoxContainer" parent="."]
+[node name="PlayerHUD" type="CenterContainer" parent="."]
 anchors_preset = 14
 anchor_left = 0.0
 anchor_top = 1.0
@@ -93,25 +105,30 @@ anchor_bottom = 1.0
 offset_top = -120.0
 offset_bottom = -100.0
 
-[node name="PlayerVigorLabel" type="Label" parent="PlayerHUD"]
+[node name="PlayerHudRow" type="HBoxContainer" parent="PlayerHUD"]
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_constants/separation = 12
+
+[node name="PlayerVigorLabel" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = "Vigor:"
 
-[node name="PlayerVigorValue" type="Label" parent="PlayerHUD"]
+[node name="PlayerVigorValue" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = "25"
 
-[node name="PlayerAttuneLabel" type="Label" parent="PlayerHUD"]
+[node name="PlayerAttuneLabel" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = "Attune:"
 
-[node name="PlayerAttuneValue" type="Label" parent="PlayerHUD"]
+[node name="PlayerAttuneValue" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14

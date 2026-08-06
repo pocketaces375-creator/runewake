@@ -61,15 +61,15 @@ public partial class DuelScene : Control
         _enemyName = GetNode<Label>("EnemyHUD/EnemyName");
         _enemyVigorValue = GetNode<Label>("EnemyHUD/EnemyVigorValue");
         _enemyAttuneValue = GetNode<Label>("EnemyHUD/EnemyAttuneValue");
-        _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerVigorValue");
-        _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerAttuneValue");
+        _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerVigorValue");
+        _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerAttuneValue");
         _turnLabel = GetNode<Label>("TurnLabel");
         _handArea = GetNode<CenterContainer>("HandArea");
         _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
         var board = GetNode("Board");
-        _enemyLanes = board.GetNode<HBoxContainer>("EnemyLanes");
-        _playerLanes = board.GetNode<HBoxContainer>("PlayerLanes");
+        _enemyLanes = board.GetNode<HBoxContainer>("EnemyLaneMargin/EnemyLanes");
+        _playerLanes = board.GetNode<HBoxContainer>("PlayerLaneMargin/PlayerLanes");
 
         // Create input controller
         _input = new InputController();
@@ -103,8 +103,12 @@ public partial class DuelScene : Control
         _cardDetail.Visible = false;
         _cardDetailVisible = false;
         AddChild(_cardDetail);
-        // Center the detail view on screen
-        _cardDetail.SetAnchorsPreset(LayoutPreset.Center);
+
+        // Position the card detail centered
+        _cardDetail.Position = new Vector2(
+            (GetViewportRect().Size.X - 280) / 2f,
+            (GetViewportRect().Size.Y - 400) / 2f
+        );
 
         // Check if this is a campaign encounter or test game
         var encounter = CampaignContext.CurrentEncounter;

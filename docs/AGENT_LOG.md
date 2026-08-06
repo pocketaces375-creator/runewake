@@ -9,11 +9,28 @@ Fixed hand card layout and sized all card views for phone legibility:
 - **HandCard.tscn** — resized from 48×68 to 80×112 with 11px card name, 12px cost badge, added strata-colored bottom strip (5px) identifying each card's stratum
 - **HandCard.cs** — accepts `Strata` parameter, renders colored strip via `GetStrataColor()`
 - **HandCardInfo** — added `Strata` field, populated from `CardRegistry.Get()` in `GetHand()`
-- **DuelScene.tscn** — HandArea layout: `CenterContainer` > `HBoxContainer` (alignment=center, 6px spacing). Cards are centered horizontally with proper spacing instead of bunching bottom-left. Board/PlayerHUD/HandArea offsets adjusted for 120px hand area (up from 80px) to accommodate taller cards.
-- **CardView.tscn** — resized from 180×280 to 280×400 with phone-grade fonts: header 18px, type line 12px, rules text 11px, flavor 10px, stats 18px. Art rect increased to 140px min height.
-- **DuelScene.cs** — wired `CardView` detail popup on hand card tap: instantiated once in `_Ready()`, hidden/shown in `OnHandCardPressed()`. Looks up `CardDef` from `CardRegistry` via `CardId` and calls `SetCard()`. Dismissed automatically on state change.
+- **CardView.tscn** — resized from 180×280 to 280×400 with phone-grade fonts: header 18px, type line 12px, rules text 11px, flavor 10px, stats 18px. Art rect increased to 140px min height. Anchor preset set to center with offset (-140, -200) for proper positioning in parent.
+- **DuelScene.cs** — wired `CardView` detail popup on hand card tap: instantiated once in `_Ready()`, hidden/shown in `OnHandCardPressed()`. Looks up `CardDef` from `CardRegistry` via `CardId` and calls `SetCard()`. Dismissed automatically on state change. CardView positioned at center via `Position = (ViewportSize - CardSize) / 2`.
 
-**Screenshot:** 4 hand cards centered with spacing, 79px wide each, Verdant (green) and Ember (red) strata strips visible. All 365 engine tests pass.
+### P3-02 layout fixes (second pass)
+
+Two layout issues from screenshot analysis:
+
+**1. Fifth lane clipped at right edge:**
+- Root cause: lane rows filled full 1152px width with no margins
+- Fix: wrapped `EnemyLanes` and `PlayerLanes` in `MarginContainer` nodes with 16px left/right margins
+- Verified at 1152×648 and 800×600 — all 5 lanes fit with symmetric margins at both aspect ratios
+
+**2. Hand cards read as misaligned:**
+- Root cause: `PlayerHUD` was left-aligned (x=0–684) while hand cards were centered (x=407–744), creating a 407px visual disconnect
+- Fix: restructured `PlayerHUD` as `CenterContainer > HBoxContainer` so HUD labels ("Vigor: 25 Attune: 1") are centered at x=412–684, matching the hand cards' visual center within 26px
+
+**3. CardView detail popup (test hook):**
+- Added temporary `Callable.Deferred` trigger in `_Ready()` that programmatically opens the popup on hand card 0
+- Screenshot verified: CardView renders centered with green (Verdant) strata border RGB(51,178,76), header text ("Root Warden" + cost 3), type line ("Creature · Verdant · Common"), keyword ("GUARD"), rules text ("On Summon: Give adjacent creatures +1 Vigor."), flavor, and stats (2/4)
+- Test hook removed before commit
+
+**Screenshot:** 4 hand cards centered with spacing, lane rows with 16px side margins, PlayerHUD centered. All 365 engine tests pass.
 
 Screenshot: MEDIA:/home/fictive/runewake/duel_screenshot.png
 
