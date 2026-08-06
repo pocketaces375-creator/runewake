@@ -26,6 +26,25 @@ public partial class BotController : Node
     /// <summary>True while the bot is actively taking its turn.</summary>
     public bool IsThinking { get; private set; }
 
+    /// <summary>
+    /// Suspends the bot's turn processing. Stops any pending timer and prevents
+    /// the bot from reacting to StateChanged. Call Resume() to re-enable.
+    /// </summary>
+    public void Suspend()
+    {
+        IsThinking = true;
+        _pendingAction = false;
+        _timer?.Stop();
+    }
+
+    /// <summary>
+    /// Resumes normal bot turn processing.
+    /// </summary>
+    public void Resume()
+    {
+        IsThinking = false;
+    }
+
     private bool _pendingAction;
 
     /// <summary>Raised when the bot's turn begins.</summary>

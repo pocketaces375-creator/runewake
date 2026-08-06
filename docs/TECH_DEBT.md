@@ -118,3 +118,23 @@ from the implementation — treat it as suspect.
 **Priority:** Medium — until this is fixed, a test that passes can coexist with
 a bug that matches it. The `GameStateInitTests` in `tests/State/` are the first
 tests written with doc-section citations. Future tests should follow that pattern.
+
+---
+
+## Bot-vs-bot: P0 always wins (first-player advantage suspected)
+
+**Date flagged:** 2026-08-06
+**Root cause:** 3/3 batch-sim games and the full client render all ended with
+Player 0 winning (P0 vigor ~24-25, P1 vigor -3). Both sides use GreedyBot with
+identical 30-card decks. P0 always goes first in Initialize.
+
+**What to watch:** The GreedyBot is deterministic (same seed → same actions) and
+has no concept of tempo or card advantage — it picks the highest-scoring immediate
+action. Pure first-player advantage from the Attunement compensation (+1 attune
+for P1 on turn one) may not be enough to overcome the extra turn P0 gets.
+
+**Resolution path:** Not a blocker. Flag for the balance pass once real curated
+decks exist (Phase 4+). At that point run 10k+ games with variance in deck
+composition to measure the real first-player win rate. If it exceeds 55%, add
+a second attunement compensation for P1, or give P1 an extra card on the
+opening draw. The fix goes in `docs/01_GAME_RULES.md` §1, then `GameState.Initialize`.

@@ -336,6 +336,18 @@ public partial class GameStateManager : Node
 
     public int CurrentPlayerIndex => _state.CurrentPlayerIndex;
     public int TurnNumber => _state.TurnNumber;
+
+    /// <summary>
+    /// Replaces the internal state wholesale and fires StateChanged.
+    /// Used by the test hook to render the final frame of a batch-completed game.
+    /// </summary>
+    public void SetState(GameState state)
+    {
+        _state = state;
+        IsInitialized = true;
+        StateChanged?.Invoke();
+        CheckGameOver();
+    }
 }
 
 // ——— Data transfer types for UI ———

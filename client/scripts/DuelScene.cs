@@ -700,8 +700,9 @@ public partial class DuelScene : Control
             ? new Color(1, 0.8f, 0.4f)
             : new Color(1, 0.3f, 0.3f);
 
-        if (!_isCampaignEncounter || _isGameOverHandled) return;
-        _isGameOverHandled = true;
+        if (_isCampaignEncounter && !_isGameOverHandled)
+        {
+            _isGameOverHandled = true;
 
         if (winnerIndex == 0 && CampaignContext.CurrentEncounter != null)
         {
@@ -799,6 +800,80 @@ public partial class DuelScene : Control
         timer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
         AddChild(timer);
         timer.Start();
+        }
+        else
+        {
+            // Non-campaign (test/free-play) — show game-over overlay
+            ShowGameOverOverlay(winnerIndex);
+        }
+    }
+
+    private void ShowGameOverOverlay(int winnerIndex)
+    {
+        var panel = new Panel();
+        panel.AnchorLeft = 0.2f;
+        panel.AnchorRight = 0.8f;
+        panel.AnchorTop = 0.25f;
+        panel.AnchorBottom = 0.55f;
+
+        var style = new StyleBoxFlat();
+        style.BgColor = new Color(0.06f, 0.06f, 0.1f, 0.95f);
+        style.BorderColor = winnerIndex == 0 ? new Color(1, 0.8f, 0.4f) : new Color(1, 0.3f, 0.3f);
+        style.BorderWidthLeft = 2;
+        style.BorderWidthTop = 2;
+        style.BorderWidthRight = 2;
+        style.BorderWidthBottom = 2;
+        style.CornerRadiusTopLeft = 8;
+        style.CornerRadiusTopRight = 8;
+        style.CornerRadiusBottomLeft = 8;
+        style.CornerRadiusBottomRight = 8;
+        panel.AddThemeStyleboxOverride("panel", style);
+        AddChild(panel);
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        vbox.AnchorLeft = 0.1f;
+        vbox.AnchorRight = 0.9f;
+        vbox.AnchorTop = 0.1f;
+        vbox.AnchorBottom = 0.9f;
+        panel.AddChild(vbox);
+
+        var title = new Label();
+        title.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
+        title.HorizontalAlignment = HorizontalAlignment.Center;
+        title.AddThemeFontSizeOverride("font_size", 28);
+        title.Modulate = winnerIndex == 0 ? new Color(1, 0.8f, 0.4f) : new Color(1, 0.3f, 0.3f);
+        vbox.AddChild(title);
+
+        vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 }); // Spacer
+
+        var turnInfo = new Label();
+        turnInfo.Text = $"Game ended on turn {_gsm.TurnNumber}";
+        turnInfo.HorizontalAlignment = HorizontalAlignment.Center;
+        turnInfo.AddThemeFontSizeOverride("font_size", 16);
+        vbox.AddChild(turnInfo);
+
+        vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 }); // Spacer
+
+        var btnHBox = new HBoxContainer();
+        btnHBox.Alignment = BoxContainer.AlignmentMode.Center;
+        btnHBox.SizeFlagsHorizontal = (Control.SizeFlags)3;
+        vbox.AddChild(btnHBox);
+
+        var playAgain = new Button();
+        playAgain.Text = "Play Again";
+        playAgain.CustomMinimumSize = new Vector2(130, 40);
+        playAgain.Pressed += () => GetTree().ReloadCurrentScene();
+        btnHBox.AddChild(playAgain);
+
+        // Spacer between buttons
+        btnHBox.AddChild(new Control { CustomMinimumSize = new Vector2(20, 0) });
+
+        var backToTitle = new Button();
+        backToTitle.Text = "Back to Title";
+        backToTitle.CustomMinimumSize = new Vector2(130, 40);
+        backToTitle.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+        btnHBox.AddChild(backToTitle);
     }
 
     // ——— Public update methods ———
