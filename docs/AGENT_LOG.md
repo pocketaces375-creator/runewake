@@ -1,6 +1,44 @@
 # AGENT_LOG
 
-## Session 24 — 2026-08-06
+## Session 25 — 2026-08-06
+
+### P3-03 — Input: tap/drag summon, tap-to-attack, rejection feedback
+
+Full input system for the duel scene with engine-authority validation:
+
+**Engine-side validation (GameStateManager):**
+- Added `ActionResult` struct with `Success` bool and `ErrorMessage` string
+- `TryPlayCard` now returns specific reasons: "Not enough attunement", "Lane N is already occupied", "Card not found in hand"
+- `TryAttack` returns: "This creature is exhausted", "This creature has already attacked", "No creature in lane N"
+- Both methods validate `CurrentPlayerIndex` first — wrong-turn actions get their own error
+- Illegal actions are rejected by the engine, not prevented by the client
+
+**InputController state machine (3 states):**
+- `Idle` → `SelectingLane` (tap card in hand, then tap empty lane to summon via `SelectTargetLane`)
+- `Idle` → `SelectingAttacker` (tap friendly creature, then tap enemy lane to attack via `SelectAttackTarget`)
+- Drag-and-drop from HandCard to LaneSlot also works (triggers `TryPlayCard` directly)
+
+**DuelScene wiring:**
+- `ShowToast()` displays rejection reasons as floating text (auto-fades after 1.2s)
+- `UpdateAttackHighlights()` highlights selected attacker and all enemy lanes when in attack mode
+- `UpdatePlayHighlights()` highlights empty player lanes when in tap-to-summon mode
+- Background tap (`OnBackgroundGuiInput`) cancels selection and resets input state
+- Lane taps dismiss card detail popup
+- End Turn button created programmatically if not in scene
+- Card selection shows toast: "Select a lane to summon [CardName] (cost N)"
+
+**Test hook verification (removed):**
+- Hook: EndTurn → wait for bot → summon Wildfire Adept (cost 2) to lane 0 on turn 2
+- Screenshot 1: creature name + stats text visible at lane 0 position (x=71-139, rows 112-136)
+- Attack attempt: engine returned `Success=False, Error="This creature is exhausted."`
+- Screenshot 2: 1680 redder pixels in center toast area vs summon frame — rejection toast visible
+- Hook removed, clean build + 365/365 tests passing
+
+Screenshot: MEDIA:/home/fictive/runewake/duel_screenshot.png
+
+Next: **P3-04** — Engine binding: client holds GameState, sends actions, re-renders.
+
+---
 
 ### P3-02 — Card view component for phone screen
 
