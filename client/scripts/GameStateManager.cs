@@ -114,15 +114,34 @@ public partial class GameStateManager : Node
 
     /// <summary>
     /// Play a card from the player's hand to a lane.
-    /// Returns true if the action was valid and applied.
+    /// Returns ActionResult with success flag and error reason on failure.
     /// </summary>
-    public bool TryPlayCard(int playerIndex, string cardDefId, int laneIndex)
+    public ActionResult TryPlayCard(int playerIndex, string cardDefId, int laneIndex)
     {
-        if (_state.IsGameOver) return false;
+        if (_state.IsGameOver)
+            return Error("Game is already over.");
+
+        if (_state.CurrentPlayerIndex != playerIndex)
+            return Error("It's not your turn.");
 
         var player = _state.Players[playerIndex];
         var card = player.Hand.FirstOrDefault(c => c.CardDefId == cardDefId);
-        if (card == null) return false;
+        if (card == null)
+            return Error("Card not found in hand.");
+
+        var def = CardRegistry.Get(cardDefId);
+        if (def == null)
+            return Error($"Card definition not found: {cardDefId}.");
+
+        if (player.Attunement < card.Cost)
+            return Error($"Not enough attunement: have {player.Attunement}, need {card.Cost}.");
+
+        if (laneIndex < 0 || laneIndex > 4)
+            return Error($"Invalid lane index: {laneIndex}.");
+
+        var lane = player.Lanes[laneIndex];
+        if (lane.Occupant is not null)
+            return Error($"Lane {laneIndex + 1} is already occupied.");
 
         var action = new PlayCardAction
         {
@@ -137,21 +156,40 @@ public partial class GameStateManager : Node
             _state = DuelEngine.Apply(_state, action);
             StateChanged?.Invoke();
             CheckGameOver();
-            return true;
+            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] PlayCard failed: {ex.Message}");
-            return false;
+            return Error(ex.Message);
         }
     }
 
     /// <summary>
-    /// Attack with a creature from sourceLaneIndex, targeting the opposing lane.
+    /// Attack with a creature from sourceLaneIndex, targeting the given lane.
     /// </summary>
-    public bool TryAttack(int playerIndex, int sourceLaneIndex, int targetLaneIndex)
+    public ActionResult TryAttack(int playerIndex, int sourceLaneIndex, int targetLaneIndex)
     {
-        if (_state.IsGameOver) return false;
+        if (_state.IsGameOver)
+            return Error("Game is already over.");
+
+        if (_state.CurrentPlayerIndex != playerIndex)
+            return Error("It's not your turn.");
+
+        var player = _state.Players[playerIndex];
+        var sourceLane = player.Lanes[sourceLaneIndex];
+        var attacker = sourceLane.Occupant;
+        if (attacker == null)
+            return Error($"No creature in lane {sourceLaneIndex + 1} to attack with.");
+
+        if (attacker.IsExhausted)
+            return Error("This creature is exhausted.");
+
+        if (attacker.HasAttackedThisTurn)
+            return Error("This creature has already attacked this turn.");
+
+        if (sourceLaneIndex < 0 || sourceLaneIndex > 4 || targetLaneIndex < 0 || targetLaneIndex > 4)
+            return Error("Invalid lane index.");
 
         var action = new AttackAction
         {
@@ -165,21 +203,22 @@ public partial class GameStateManager : Node
             _state = DuelEngine.Apply(_state, action);
             StateChanged?.Invoke();
             CheckGameOver();
-            return true;
+            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] Attack failed: {ex.Message}");
-            return false;
+            return Error(ex.Message);
         }
     }
 
     /// <summary>
     /// End the current player's turn.
     /// </summary>
-    public bool TryEndTurn()
+    public ActionResult TryEndTurn()
     {
-        if (_state.IsGameOver) return false;
+        if (_state.IsGameOver)
+            return Error("Game is already over.");
 
         var action = new EndTurnAction
         {
@@ -191,14 +230,19 @@ public partial class GameStateManager : Node
             _state = DuelEngine.Apply(_state, action);
             StateChanged?.Invoke();
             CheckGameOver();
-            return true;
+            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] EndTurn failed: {ex.Message}");
-            return false;
+            return Error(ex.Message);
         }
     }
+
+    // ——— Helpers ———
+
+    private static ActionResult Success() => new() { Success = true };
+    private static ActionResult Error(string message) => new() { Success = false, ErrorMessage = message };
 
     // ——— Game over check ———
 
@@ -327,4 +371,14 @@ public struct PlayerHudInfo
     public int AttunementMax;
     public int DeckCount;
     public int HandCount;
+}
+
+/// <summary>
+/// Result of an action attempt. Success indicates the action was applied;
+/// ErrorMessage provides a human-readable reason for failure.
+/// </summary>
+public struct ActionResult
+{
+    public bool Success;
+    public string? ErrorMessage;
 }

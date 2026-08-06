@@ -27,6 +27,7 @@ public partial class DuelScene : Control
     private HBoxContainer _playerLanes;
     private CenterContainer _handArea;
     private HBoxContainer _handFlow;
+    private Button? _endTurnButton;
 
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
@@ -104,11 +105,22 @@ public partial class DuelScene : Control
         _cardDetailVisible = false;
         AddChild(_cardDetail);
 
-        // Position the card detail centered
-        _cardDetail.Position = new Vector2(
-            (GetViewportRect().Size.X - 280) / 2f,
-            (GetViewportRect().Size.Y - 400) / 2f
-        );
+        // Create End Turn button if not in scene
+        var existingEndBtn = GetNodeOrNull<Button>("EndTurnButton");
+        if (existingEndBtn != null)
+        {
+            _endTurnButton = existingEndBtn;
+        }
+        else
+        {
+            _endTurnButton = new Button();
+            _endTurnButton.Text = "End Turn";
+            _endTurnButton.Position = new Vector2(GetViewportRect().Size.X - 100, GetViewportRect().Size.Y - 60);
+            _endTurnButton.Size = new Vector2(90, 36);
+            _endTurnButton.AddThemeFontSizeOverride("font_size", 14);
+            AddChild(_endTurnButton);
+        }
+        _endTurnButton.Pressed += OnEndTurnPressed;
 
         // Check if this is a campaign encounter or test game
         var encounter = CampaignContext.CurrentEncounter;
@@ -131,6 +143,33 @@ public partial class DuelScene : Control
         else
         {
             _gsm.InitializeTestGame();
+        }
+
+        // Position card detail centered using CallDeferred (direct SetPosition post-tree-attach)
+        Callable.From(() =>
+        {
+            _cardDetail.Position = new Vector2(
+                (GetViewportRect().Size.X - 280) / 2f,
+                (GetViewportRect().Size.Y - 400) / 2f
+            );
+        }).CallDeferred();
+
+        // Enable background tap to cancel selection
+        GuiInput += OnBackgroundGuiInput;
+    }
+
+    /// <summary>
+    /// Handle taps on the background (empty space) to cancel selection.
+    /// </summary>
+    private void OnBackgroundGuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        {
+            if (_input.State != InputController.InputState.Idle)
+            {
+                _input.CancelSelection();
+                GetViewport().SetInputAsHandled();
+            }
         }
     }
 
@@ -407,10 +446,36 @@ public partial class DuelScene : Control
     {
         if (_bot.IsThinking) return;
 
+        // Dismiss card detail popup on any lane interaction
+        if (_cardDetailVisible)
+        {
+            _cardDetail.Visible = false;
+            _cardDetailVisible = false;
+        }
+
         bool isPlayerLane = _playerSlots.Exists(s => s.LaneIndex == laneIndex);
         bool isEnemyLane = _enemySlots.Exists(s => s.LaneIndex == laneIndex);
 
-        if (_input.State == InputController.InputState.SelectingAttacker)
+        if (_input.State == InputController.InputState.SelectingLane)
+        {
+            // Tap-to-summon: player tapped a lane after selecting a card
+            if (isPlayerLane && isEmpty)
+            {
+                _input.SelectTargetLane(laneIndex);
+            }
+            else if (isPlayerLane && !isEmpty)
+            {
+                // Tapped occupied lane while selecting a card — cancel and show feedback
+                ShowToast("That lane is already occupied.", new Color(1, 0.7f, 0.2f));
+                _input.CancelSelection();
+            }
+            else
+            {
+                // Tapped enemy lane or empty space — cancel
+                _input.CancelSelection();
+            }
+        }
+        else if (_input.State == InputController.InputState.SelectingAttacker)
         {
             if (isEnemyLane)
             {
@@ -418,18 +483,23 @@ public partial class DuelScene : Control
             }
             else if (isPlayerLane && isEmpty)
             {
+                // Tapped own empty lane while selecting attacker — cancel
                 _input.CancelSelection();
             }
             else if (isPlayerLane && !isEmpty)
             {
+                // Switch attacker to this creature instead
                 _input.SelectAttacker(laneIndex);
+                UpdateAttackHighlights();
             }
         }
         else
         {
+            // Idle state
             if (isPlayerLane && !isEmpty)
             {
                 _input.SelectAttacker(laneIndex);
+                UpdateAttackHighlights();
             }
         }
     }
@@ -437,7 +507,8 @@ public partial class DuelScene : Control
     private void OnCardDropped(string cardId, int laneIndex)
     {
         if (_bot.IsThinking) return;
-        _input.TryPlayCard(cardId, laneIndex);
+        var result = _input.TryPlayCard(cardId, laneIndex);
+        // The TryPlayCard emits PlayCardRequested, which is handled in OnPlayCardRequested
     }
 
     private void OnHandCardPressed(HandCard card)
@@ -446,9 +517,36 @@ public partial class DuelScene : Control
 
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
+            // Cancel attacker selection and show this card's detail
             _input.CancelSelection();
+            ShowCardDetail(card);
         }
+        else if (_input.State == InputController.InputState.SelectingLane)
+        {
+            // Already in lane-selection mode — switch to this card
+            _input.CancelSelection();
+            _input.SelectCardForPlay(card.CardId);
+            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
+                new Color(0.5f, 1, 0.5f));
+            UpdatePlayHighlights();
+            ShowCardDetail(card);
+        }
+        else
+        {
+            // Idle — show detail and enter lane-selection mode (tap-to-summon)
+            _input.SelectCardForPlay(card.CardId);
+            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
+                new Color(0.5f, 1, 0.5f));
+            UpdatePlayHighlights();
+            ShowCardDetail(card);
+        }
+    }
 
+    /// <summary>
+    /// Show the card detail popup for a hand card.
+    /// </summary>
+    private void ShowCardDetail(HandCard card)
+    {
         // Toggle card detail popup
         if (_cardDetailVisible && _cardDetail.CurrentCard?.Name == card.CardName)
         {
@@ -473,18 +571,126 @@ public partial class DuelScene : Control
 
     private void OnPlayCardRequested(string cardId, int laneIndex)
     {
-        _gsm.TryPlayCard(0, cardId, laneIndex);
+        var result = _gsm.TryPlayCard(0, cardId, laneIndex);
+        if (!result.Success)
+        {
+            ShowToast(result.ErrorMessage ?? "Cannot play that card.",
+                new Color(1, 0.7f, 0.2f));
+        }
     }
 
     private void OnAttackRequested(int attackerLane, int targetLane)
     {
-        _gsm.TryAttack(0, attackerLane, targetLane);
+        var result = _gsm.TryAttack(0, attackerLane, targetLane);
+        if (!result.Success)
+        {
+            ShowToast(result.ErrorMessage ?? "Cannot attack.",
+                new Color(1, 0.3f, 0.3f));
+        }
     }
 
     private void OnSelectionCancelled()
     {
         foreach (var slot in _enemySlots) slot.Unhighlight();
         foreach (var slot in _playerSlots) slot.Unhighlight();
+    }
+
+    /// <summary>
+    /// Highlight friendly occupied lanes (attackers available) when in selecting-attacker mode.
+    /// </summary>
+    private void UpdateAttackHighlights()
+    {
+        foreach (var slot in _playerSlots)
+        {
+            if (slot.Row == 1 && slot.LaneIndex == _input.SelectedAttackerLane)
+                slot.Highlight();
+            else
+                slot.Unhighlight();
+        }
+
+        // Highlight all enemy lanes as potential targets when attacker is selected
+        if (_input.State == InputController.InputState.SelectingAttacker)
+        {
+            foreach (var slot in _enemySlots)
+                slot.Highlight();
+        }
+        else
+        {
+            foreach (var slot in _enemySlots)
+                slot.Unhighlight();
+        }
+    }
+
+    /// <summary>
+    /// Highlight empty player lanes when in lane-selection mode (tap-to-summon).
+    /// </summary>
+    private void UpdatePlayHighlights()
+    {
+        if (_input.State == InputController.InputState.SelectingLane)
+        {
+            // Highlight all empty player lanes as valid summon targets
+            foreach (var slot in _playerSlots)
+            {
+                if (slot.LaneIndex < 5)
+                {
+                    // Check if lane is empty via GSM
+                    var lanes = _gsm.GetLanes(0);
+                    var info = lanes[slot.LaneIndex];
+                    if (info.IsEmpty)
+                        slot.Highlight();
+                    else
+                        slot.Unhighlight();
+                }
+            }
+        }
+        else
+        {
+            foreach (var slot in _playerSlots)
+                slot.Unhighlight();
+        }
+    }
+
+    /// <summary>
+    /// Handle End Turn button press.
+    /// </summary>
+    private void OnEndTurnPressed()
+    {
+        if (_bot.IsThinking) return;
+        if (_gsm.CurrentPlayerIndex != 0) return;
+
+        var result = _gsm.TryEndTurn();
+        if (!result.Success)
+        {
+            ShowToast(result.ErrorMessage ?? "Cannot end turn.", new Color(1, 0.7f, 0.2f));
+        }
+    }
+
+    /// <summary>
+    /// Show a floating toast message near the center of the screen.
+    /// Auto-fades and removes itself. Used for rejection feedback.
+    /// </summary>
+    private void ShowToast(string message, Color color)
+    {
+        var toast = new Label();
+        toast.Text = message;
+        toast.HorizontalAlignment = HorizontalAlignment.Center;
+        toast.VerticalAlignment = VerticalAlignment.Center;
+        toast.AddThemeFontSizeOverride("font_size", 16);
+        toast.Modulate = color;
+        toast.AutowrapMode = TextServer.AutowrapMode.Word;
+        toast.Position = new Vector2(
+            GetViewportRect().Size.X / 2f - 150,
+            GetViewportRect().Size.Y / 2f - 30
+        );
+        toast.Size = new Vector2(300, 60);
+        AddChild(toast);
+
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(toast, "position", toast.Position + new Vector2(0, -30), 1.2f);
+        tween.TweenProperty(toast, "modulate:a", 0.0f, 1.2f);
+        tween.SetParallel(false);
+        tween.TweenCallback(Callable.From(toast.QueueFree));
     }
 
     private void OnGameOver(int winnerIndex)
