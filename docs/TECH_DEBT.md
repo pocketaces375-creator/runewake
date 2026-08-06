@@ -89,3 +89,32 @@ review until the first full set with a cost-10 card exists.
 games and check win-rate deltas for those cards. If they're under- or over-
 performing, adjust the cost 10 expected value (currently 20.15) or the RELIC
 band upper bound for high-cost cards.
+
+---
+
+## Engine tests encode implementation, not specification
+
+**Date flagged:** 2026-08-05
+**Root cause:** The engine tests (`TurnLoopTests.cs`, `GameState.Initialize`)
+were written by reading the implementation code rather than the rule docs
+(`docs/01_GAME_RULES.md`). When the code had a bug (P1 compensation applied
+at Initialize AND via the normal Attune step, giving P1=2 on their first turn),
+the tests asserted the wrong value because they'd been written using the same
+mental model.
+
+**Concrete examples:**
+- `TurnLoopTests.AttunementRampsUpEachTurn` asserted P1 went 1→2 (wrong per
+  §1: "starts with +1 Attunement on turn one" — the normal Attune step IS the
+  compensation, giving P1=1 on their first turn)
+- `TurnLoopTests.CreateGameState` manually set `P1.AttunementMax=1, P1.Attunement=1`
+  to match the buggy Initialize, rather than testing Initialize's actual output
+- `GameStateInitTests.Initialize_PlayerState_HasCorrectInitialValues` originally
+  asserted P0=0, P1=1 (copying the old code)
+
+**Fix:** Every test that covers a documented rule should cite the doc section it
+tests in its doc comment. If a test doesn't have a doc reference, it was written
+from the implementation — treat it as suspect.
+
+**Priority:** Medium — until this is fixed, a test that passes can coexist with
+a bug that matches it. The `GameStateInitTests` in `tests/State/` are the first
+tests written with doc-section citations. Future tests should follow that pattern.

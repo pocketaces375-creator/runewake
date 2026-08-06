@@ -121,14 +121,17 @@ public sealed class GameState
                 card.Zone = Zone.Hand;
                 player.Hand.Add(card);
             }
-
-            // P1 starts with +1 Attunement (Second Delver compensation)
-            if (p == 1)
-            {
-                player.AttunementMax = 1;
-                player.Attunement = 1;
-            }
         }
+
+        // Run the first player's Attune step (Turn 1, current player = P0).
+        // The Attune phase in ApplyEndTurn only runs for the *next* player, so
+        // P0's first turn never gets one unless we do it here.
+        int p0Max = Math.Min(state.Players[0].AttunementMax + state.Players[0].AttunementPerTurn, 10);
+        state.Players[0].AttunementMax = p0Max;
+        state.Players[0].Attunement = p0Max;
+
+        // P1 gets no compensation at Initialize — the normal Attune step on
+        // their first turn (when P0's EndTurn switches to P1) gives them +1.
 
         // Inject runes for player 0 if a rune page is configured
         if (config.RunePage != null)

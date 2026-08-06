@@ -1,4 +1,5 @@
 using Runewake.Engine.Cards;
+using Runewake.Engine.Engine;
 using Runewake.Engine.State;
 using Xunit;
 
@@ -281,11 +282,13 @@ public class GameStateInitTests
         Assert.Equal(25, state.Players[0].MaxVigor);
         Assert.Equal(25, state.Players[1].MaxVigor);
 
-        // P0 starts with 0 attunement, P1 starts with 1 (Second Delver)
-        Assert.Equal(0, state.Players[0].Attunement);
-        Assert.Equal(0, state.Players[0].AttunementMax);
-        Assert.Equal(1, state.Players[1].Attunement);
-        Assert.Equal(1, state.Players[1].AttunementMax);
+        // P0 gets +1 from the Attune step at Initialize (Turn 1, first player).
+        // P1 gets 0 until their own first turn, when the Attune step gives +1
+        // (that IS the Second Delver compensation — second player attunes later).
+        Assert.Equal(1, state.Players[0].Attunement);
+        Assert.Equal(1, state.Players[0].AttunementMax);
+        Assert.Equal(0, state.Players[1].Attunement);
+        Assert.Equal(0, state.Players[1].AttunementMax);
 
         // Turn starts at 1, P0 goes first
         Assert.Equal(1, state.TurnNumber);
@@ -339,5 +342,34 @@ public class GameStateInitTests
         var hand0a = state1.Players[0].Hand.Select(c => c.CardDefId).ToList();
         var hand0b = state2.Players[0].Hand.Select(c => c.CardDefId).ToList();
         Assert.NotEqual(hand0a, hand0b);
+    }
+
+    [Fact]
+    public void AttuneTimeline_P0AttunesAtInitialize_P1AttunesOnFirstTurn()
+    {
+        // Verifies the correct attunement timeline:
+        //   - P0 has 1 at Initialize (Turn 1, first player, Attune step ran)
+        //   - P1 has 0 at Initialize (no compensation yet)
+        //   - After P0 ends their turn, P1 attunes to 1 (normal Attune step)
+        var config = MakeConfig();
+        var state = GameState.Initialize(config);
+
+        // P0 attuned at Initialize
+        Assert.Equal(1, state.Players[0].Attunement);
+        Assert.Equal(1, state.Players[0].AttunementMax);
+
+        // P1 has not attuned yet
+        Assert.Equal(0, state.Players[1].Attunement);
+        Assert.Equal(0, state.Players[1].AttunementMax);
+
+        // Simulate P0 ending their turn — P1's Attune step runs
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+
+        // P1 now attuned
+        Assert.Equal(1, state.Players[1].Attunement);
+        Assert.Equal(1, state.Players[1].AttunementMax);
+
+        // P0's value unchanged (their turn ended, no new attune)
+        Assert.Equal(1, state.Players[0].Attunement);
     }
 }

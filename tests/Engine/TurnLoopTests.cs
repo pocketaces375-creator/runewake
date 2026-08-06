@@ -36,10 +36,8 @@ public class TurnLoopTests
         for (int i = 0; i < 5; i++)
             DrawTopCard(state.Players[1], state);
 
-        // P1 starts with +1 Attunement (Second Delver compensation)
-        state.Players[1].AttunementMax = 1;
-        state.Players[1].Attunement = 1;
-
+        // Both players start at 0 Attunement — the Attune phase in ApplyEndTurn
+        // gives each player +1 at the start of their first turn.
         return state;
     }
 
@@ -68,13 +66,13 @@ public class TurnLoopTests
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
 
-        // P0: started at 0, 1 attune → 1
+        // P0: 0 at Initialize, attuned from EndTurn(P1) → 1
         Assert.Equal(1, state.Players[0].AttunementMax);
         Assert.Equal(1, state.Players[0].Attunement);
 
-        // P1: started at 1, 1 attune → 2
-        Assert.Equal(2, state.Players[1].AttunementMax);
-        Assert.Equal(2, state.Players[1].Attunement);
+        // P1: 0 at Initialize, attuned from EndTurn(P0) → 1
+        Assert.Equal(1, state.Players[1].AttunementMax);
+        Assert.Equal(1, state.Players[1].Attunement);
     }
 
     [Fact]
@@ -130,13 +128,10 @@ public class TurnLoopTests
         Assert.Equal(4, state.Players[0].Hand.Count);
         Assert.Equal(5, state.Players[1].Hand.Count);
 
-        // P0's first turn: attune, NO draw (first player skip)
-        // Note: EndTurn(P0) ends P0's turn and STARTS P1's turn.
-        // P0's own attune already happened — wait, no.
-        // Actually: when P0's turn begins (via EndTurn from P1), P0 is attuned.
-        // EndTurn(P0) means P0 called "end turn" during their Main phase.
-        // So the attune/draw phases for P0 already happened at the start of P0's turn.
-        // Those phases were triggered by the PREVIOUS EndTurn(P1).
+        // P0's first turn: NO draw (first player skip), hand stays at 4.
+        // EndTurn(P0) ends P0's turn and starts P1's turn. This is the test
+        // scaffold (CreateGameState), which doesn't run the Initialize Attune
+        // step, so P0 hasn't attuned yet.
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
 
         // P0 has NOT been attuned yet by this call — this call attunes P1.
