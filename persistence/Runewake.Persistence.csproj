@@ -1,19 +1,18 @@
-<Project Sdk="Godot.NET.Sdk/4.3.0">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Runewake.Client</RootNamespace>
-    <ImplicitUsings>true</ImplicitUsings>
+    <RootNamespace>Runewake.Persistence</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\engine\Runewake.Engine.csproj" />
-    <ProjectReference Include="..\persistence\Runewake.Persistence.csproj" />
-    <ProjectReference Include="..\sim\Runewake.Sim.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
   </ItemGroup>
+
 </Project>

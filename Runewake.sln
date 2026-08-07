@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Sim", "sim\Runewak
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Tests", "tests\Runewake.Tests.csproj", "{45322F57-8E8A-47B2-8177-C4A7BA30A96F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runewake.Persistence", "persistence\Runewake.Persistence.csproj", "{7804E60B-FA4D-4133-82C6-89B7EB28D202}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45322F57-8E8A-47B2-8177-C4A7BA30A96F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7804E60B-FA4D-4133-82C6-89B7EB28D202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7804E60B-FA4D-4133-82C6-89B7EB28D202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7804E60B-FA4D-4133-82C6-89B7EB28D202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7804E60B-FA4D-4133-82C6-89B7EB28D202}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

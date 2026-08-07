@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\engine\Runewake.Engine.csproj" />
+    <ProjectReference Include="..\persistence\Runewake.Persistence.csproj" />
+    <ProjectReference Include="..\sim\Runewake.Sim.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="xunit" Version="2.4.2" />
@@ -21,11 +27,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\engine\Runewake.Engine.csproj" />
-    <ProjectReference Include="..\sim\Runewake.Sim.csproj" />
   </ItemGroup>
 
 </Project>

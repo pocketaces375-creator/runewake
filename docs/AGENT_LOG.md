@@ -1279,3 +1279,34 @@ Engine unlock evaluation moved out of the client, tested with 9 new transition-f
 - Warden Aelin: Dawn order/defensive
 - Aelin (boss): heavier Dawn, double copies of rares
 
+
+---
+
+## Session — 2026-08-07 (cont.)
+
+### P4-04 — Progression save: SQLite, node clears, collection, shards, dig charges
+
+**Status:** Complete
+
+**Summary:**
+Extracted SQLite persistence into a pure-.NET `Runewake.Persistence` project so the real save/load code (not a test copy) is directly testable, added explicit schema-version enforcement with a future-version guard, and proved crash-safety: a mid-write process kill leaves the prior committed state intact. Deleted the P4-02 seeded save DB. Verified the save path resolves to `user://` (sandboxed) in an exported build.
+
+**Key accomplishments:**
+- **New `Runewake.Persistence` project** (pure .NET, references engine + Microsoft.Data.Sqlite): `SaveRepository` owns the schema, `CurrentSchemaVersion = 1`, version validation, and the atomic save/load transaction. The client no longer contains any SQL. This follows the same pattern as `MapUnlockEvaluator` — moving logic engine-adjacent so it's testable without the Godot client.
+- **Engine owns progression semantics; client only reads/writes.** `ProgressionState` (engine) unchanged — all mutation rules live there. `SaveManager` (client) is now a thin Godot wrapper that resolves only the `user://` path and delegates to `SaveRepository`.
+- **Schema version enforcement:** `ValidateVersion()` rejects a save from a newer build (refusing to load it and corrupt it) and rejects version 0. `Load()` throws `InvalidOperationException` on a future-version save. Version is written on every save; missing version normalizes to current.
+- **Crash-safety proven by test, not assertion-inspection:** `Save_SurvivesMidWriteKill_PriorCommittedStateIntact` opens a raw connection, begins a transaction, deletes + writes partial data, then abandons it WITHOUT commit (simulating process death). Asserts the DB re-opens, the corrupted node is absent, prior committed data is intact, and `PRAGMA integrity_check = ok`. A second test covers the collection table the same way.
+- **Deleted the P4-02 seeded save DB** from `user://` (runtime artifact, never in the repo). Confirmed no test or code reads a checked-in save file — no `.db` files in the tree, all tests construct their own state via the evaluator / `ProgressionState`.
+- **Old tests replaced, not duplicated:** the previous `SaveManagerTests` re-implemented the SQL in test helpers (`SaveViaConnection`/`LoadViaConnection`) — they'd pass even if the real save logic were broken. Replaced with `SaveRepositoryTests` that exercise the actual `SaveRepository` against temp-file databases.
+
+**Crash-safety design note:**
+`Save()` runs inside a single SQLite transaction (`BeginTransaction` → writes → `Commit`, with `Rollback` on exception). SQLite's atomicity guarantees that a process killed between `BeginTransaction` and `Commit` rolls back to the last committed state on next open. The tests simulate exactly that kill and assert the rollback.
+
+**Evidence:**
+- 387/387 engine tests green (+6 from P4-03 baseline: 4 version tests, 2 crash-safety tests, plus roundtrip/twice-save/empty-db)
+- Client builds clean (0 errors)
+- Exported Linux build (`--headless --export-debug`): ran under Xvfb with MapScene as main, confirmed `runewake_save.db` created at `~/.local/share/godot/app_userdata/Runewake/` (the `user://` target) with all 7 tables and `integrity_check = ok`. Path is `user://`, not `res://`, not an absolute path.
+- Android APK export: `Runewake.Persistence.dll`, `Microsoft.Data.Sqlite.dll`, and native `libe_sqlite3.so` (arm64) all confirmed bundled — SQLite stack works on device.
+- project.godot `[display]` section restored after editor export (stripped on exit).
+
+**What's next:** P4-05 — Deck builder screen with collection filtering.
