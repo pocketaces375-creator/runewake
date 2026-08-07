@@ -41,6 +41,23 @@ public partial class LaneSlot : PanelContainer
         _cardName = GetNode<Label>("VBox/CardName");
         _stats = GetNode<Label>("VBox/Stats");
         SetEmpty();
+
+        // Connect touch area (expanded hit region) for touch input
+        var touchArea = GetNodeOrNull<Control>("TouchArea");
+        if (touchArea != null)
+            touchArea.GuiInput += OnTouchAreaInput;
+    }
+
+    /// <summary>
+    /// Handle taps from the expanded touch area overlay.
+    /// </summary>
+    private void OnTouchAreaInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        {
+            EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
+            GetViewport().SetInputAsHandled();
+        }
     }
 
     /// <summary>

@@ -94,7 +94,7 @@ public partial class DeckBuilderScene : Control
     {
         _allCards.Clear();
         // Load from all 5 pack files
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/cards";
+        string contentDir = ProjectSettings.GlobalizePath("res://content/cards");
         var packs = new[]
         {
             "verdant.json", "ember.json", "tide.json", "hollow.json", "dawn.json"

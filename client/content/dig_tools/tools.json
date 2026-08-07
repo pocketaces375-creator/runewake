@@ -1,0 +1,36 @@
+{
+  "tools": [
+    {
+      "id": "tool_brush",
+      "name": "Brush",
+      "description": "A fine-bristled brush for clearing loose soil. Gives you an extra strike at every dig site.",
+      "effect": "EXTRA_STRIKE",
+      "value": 1,
+      "strata": null
+    },
+    {
+      "id": "tool_iron_spade",
+      "name": "Iron Spade",
+      "description": "A sturdy spade that can break through compacted earth. Gives two extra strikes at every dig site.",
+      "effect": "EXTRA_STRIKE",
+      "value": 2,
+      "strata": null
+    },
+    {
+      "id": "tool_loadstone_rod",
+      "name": "Loadstone Rod",
+      "description": "A divining rod attuned to buried relics. Reveals all tiles adjacent to any tile you strike.",
+      "effect": "REVEAL_RADIUS",
+      "value": 1,
+      "strata": "DAWN"
+    },
+    {
+      "id": "tool_seers_lens",
+      "name": "Seer's Lens",
+      "description": "A ground lens that catches a glint from valuable deposits. Lowers the headline threshold by 1 at every dig site.",
+      "effect": "LOWER_THRESHOLD",
+      "value": 1,
+      "strata": "TIDE"
+    }
+  ]
+}

@@ -12,7 +12,7 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
-custom_minimum_size = Vector2(280, 400)
+custom_minimum_size = Vector2(320, 480)
 size_flags_horizontal = 0
 size_flags_vertical = 0
 script = ExtResource("1_cv")
@@ -39,46 +39,46 @@ size_flags_vertical = 0
 [node name="CostLabel" type="Label" parent="Margin/VBox/Header"]
 size_flags_horizontal = 0
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "0"
 
 [node name="NameLabel" type="Label" parent="Margin/VBox/Header"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "Card Name"
 
 [node name="ArtRect" type="TextureRect" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 140)
+custom_minimum_size = Vector2(0, 180)
 expand_mode = 1
 stretch_mode = 0
 
 [node name="TypeLine" type="Label" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "TYPE · STRATA · RARITY"
 
 [node name="KeywordLine" type="Label" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = ""
 
 [node name="RulesLabel" type="Label" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 13
 autowrap_mode = 2
 text = ""
 
 [node name="FlavorLabel" type="Label" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 12
 autowrap_mode = 2
 text = ""
 
@@ -89,11 +89,11 @@ size_flags_vertical = 0
 [node name="AttackLabel" type="Label" parent="Margin/VBox/StatsPanel"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "0"
 
 [node name="VigorLabel" type="Label" parent="Margin/VBox/StatsPanel"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 22
 text = "0"

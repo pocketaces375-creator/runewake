@@ -20,9 +20,9 @@ corner_radius_bottom_right = 4
 
 [node name="LaneSlot" type="PanelContainer"]
 anchors_preset = 0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(140, 100)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+custom_minimum_size = Vector2(160, 100)
 script = ExtResource("1_xyz")
 theme_override_styles/panel = SubResource(1)
 
@@ -33,13 +33,24 @@ size_flags_vertical = 3
 alignment = 1
 theme_override_constants/separation = 3
 
+[node name="TouchArea" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 0
+
 [node name="CardName" type="Label" parent="VBox"]
 anchors_preset = 0
 size_flags_horizontal = 4
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = ""
+autowrap_mode = 2
 
 [node name="Stats" type="Label" parent="VBox"]
 anchors_preset = 0

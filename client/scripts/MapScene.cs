@@ -134,9 +134,8 @@ public partial class MapScene : Control
 
     private void BuildMap()
     {
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/map";
-        string path = $"{contentDir}/region_01.json";
-        _region = MapLoader.LoadRegion(path);
+        string json = Godot.FileAccess.GetFileAsString("res://content/map/region_01.json");
+        _region = MapLoader.LoadRegionFromString(json);
         if (_region == null) return;
 
         var iconScene = GD.Load<PackedScene>("res://scenes/components/MapNodeIcon.tscn");

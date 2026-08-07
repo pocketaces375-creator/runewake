@@ -25,7 +25,7 @@ public partial class DuelScene : Control
     private Label _turnLabel;
     private HBoxContainer _enemyLanes;
     private HBoxContainer _playerLanes;
-    private CenterContainer _handArea;
+    private MarginContainer _handArea;
     private HBoxContainer _handFlow;
     private Button? _endTurnButton;
 
@@ -65,7 +65,7 @@ public partial class DuelScene : Control
         _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerVigorValue");
         _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerAttuneValue");
         _turnLabel = GetNode<Label>("TurnLabel");
-        _handArea = GetNode<CenterContainer>("HandArea");
+        _handArea = GetNode<MarginContainer>("HandArea");
         _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
         var board = GetNode("Board");
@@ -115,9 +115,13 @@ public partial class DuelScene : Control
         {
             _endTurnButton = new Button();
             _endTurnButton.Text = "End Turn";
-            _endTurnButton.Position = new Vector2(GetViewportRect().Size.X - 100, GetViewportRect().Size.Y - 60);
-            _endTurnButton.Size = new Vector2(90, 36);
+            _endTurnButton.ActionMode = Button.ActionModeEnum.Press;
             _endTurnButton.AddThemeFontSizeOverride("font_size", 14);
+            _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+            _endTurnButton.OffsetRight = -10;
+            _endTurnButton.OffsetLeft = -100;
+            _endTurnButton.OffsetBottom = -70;
+            _endTurnButton.OffsetTop = -106;
             AddChild(_endTurnButton);
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
@@ -177,23 +181,24 @@ public partial class DuelScene : Control
     /// Load all card packs into the global CardRegistry.
     /// </summary>
     private static void LoadCardPacks()
-    {
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/cards";
-        var packs = new[]
         {
-            $"{contentDir}/verdant.json",
-            $"{contentDir}/ember.json",
-            $"{contentDir}/tide.json",
-            $"{contentDir}/hollow.json",
-            $"{contentDir}/dawn.json"
-        };
+            // Use Godot's FileAccess to read from the embedded PCK (works in both editor and export)
+            var packs = new[]
+            {
+                "res://content/cards/verdant.json",
+                "res://content/cards/ember.json",
+                "res://content/cards/tide.json",
+                "res://content/cards/hollow.json",
+                "res://content/cards/dawn.json"
+            };
 
-        foreach (var pack in packs)
-        {
-            var cards = CardLoader.LoadPack(pack);
-            CardRegistry.RegisterRange(cards);
+            foreach (var pack in packs)
+            {
+                string json = Godot.FileAccess.GetFileAsString(pack);
+                var cards = CardLoader.LoadPackFromString(json);
+                CardRegistry.RegisterRange(cards);
+            }
         }
-    }
 
     /// <summary>
     /// Create 5 lane slot instances for each row.
@@ -881,7 +886,11 @@ public partial class DuelScene : Control
     public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = vigor.ToString();
     public void SetEnemyAttunement(int attune) => _enemyAttuneValue.Text = attune.ToString();
     public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = vigor.ToString();
-    public void SetPlayerAttunement(int attune) => _playerAttuneValue.Text = attune.ToString();
+    public void SetPlayerAttunement(int attune)
+    {
+        GD.Print($"SetPlayerAttunement({attune}) — assigning to _playerAttuneValue.Text");
+        _playerAttuneValue.Text = attune.ToString();
+    }
 
     public void ClearBoard()
     {

@@ -41,7 +41,7 @@ public partial class ForgeScene : Control
 
     private void LoadRecipes()
     {
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/forge";
+        string contentDir = ProjectSettings.GlobalizePath("res://content/forge");
         var path = $"{contentDir}/recipes.json";
         try
         {

@@ -54,18 +54,18 @@ public static class CampaignContext
     public static void LoadEncounters()
     {
         EncounterIndex.Clear();
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/encounters";
-        var packPaths = new[]
+        var packs = new[]
         {
-            $"{contentDir}/region_01_early.json",
-            $"{contentDir}/region_01_mid.json",
-            $"{contentDir}/region_01_late.json",
-            $"{contentDir}/region_01_boss.json"
+            "res://content/encounters/region_01_early.json",
+            "res://content/encounters/region_01_mid.json",
+            "res://content/encounters/region_01_late.json",
+            "res://content/encounters/region_01_boss.json"
         };
 
-        foreach (var path in packPaths)
+        foreach (var resPath in packs)
         {
-            var pack = EncounterLoader.LoadPack(path);
+            string json = Godot.FileAccess.GetFileAsString(resPath);
+            var pack = EncounterLoader.LoadPackFromString(json);
             foreach (var enc in pack.Encounters)
                 EncounterIndex[enc.Id] = enc;
         }
@@ -76,61 +76,58 @@ public static class CampaignContext
     /// Call once at title screen after card packs are loaded.
     /// </summary>
     public static void LoadRunes()
-    {
-        RuneIndex.Clear();
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/runes";
-        var path = $"{contentDir}/starter_runes.json";
-        var pack = RuneLoader.LoadPack(path);
-        foreach (var rune in pack.Runes)
-            RuneIndex[rune.Id] = rune;
-    }
+        {
+            RuneIndex.Clear();
+            string json = Godot.FileAccess.GetFileAsString("res://content/runes/starter_runes.json");
+            var pack = RuneLoader.LoadPackFromString(json);
+            foreach (var rune in pack.Runes)
+                RuneIndex[rune.Id] = rune;
+        }
 
     /// <summary>
     /// Load all dig site definitions from the content directory.
     /// Call once at title screen.
     /// </summary>
     public static void LoadDigSites()
-    {
-        DigSiteIndex.Clear();
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/dig_sites";
-        var paths = new[]
         {
-            $"{contentDir}/region_01_dig.json"
-        };
+            DigSiteIndex.Clear();
+            var paths = new[]
+            {
+                "res://content/dig_sites/region_01_dig.json"
+            };
 
-        foreach (var path in paths)
-        {
-            var pack = DigSiteLoader.LoadPack(path);
-            foreach (var site in pack.DigSites)
-                DigSiteIndex[site.Id] = site;
+            foreach (var resPath in paths)
+            {
+                string json = Godot.FileAccess.GetFileAsString(resPath);
+                var pack = DigSiteLoader.LoadPackFromString(json);
+                foreach (var site in pack.DigSites)
+                    DigSiteIndex[site.Id] = site;
+            }
         }
-    }
 
     /// <summary>
     /// Load all dig tool definitions from the content directory.
     /// Call once at title screen.
     /// </summary>
     public static void LoadDigTools()
-    {
-        DigToolIndex.Clear();
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/dig_tools";
-        var path = $"{contentDir}/tools.json";
-        var pack = DigToolLoader.LoadPack(path);
-        foreach (var tool in pack.Tools)
-            DigToolIndex[tool.Id] = tool;
-    }
+        {
+            DigToolIndex.Clear();
+            string json = Godot.FileAccess.GetFileAsString("res://content/dig_tools/tools.json");
+            var pack = DigToolLoader.LoadPackFromString(json);
+            foreach (var tool in pack.Tools)
+                DigToolIndex[tool.Id] = tool;
+        }
 
     /// <summary>
     /// Load all Lost Relic definitions from the content directory.
     /// Call once at title screen.
     /// </summary>
     public static void LoadLostRelics()
-    {
-        LostRelicIndex.Clear();
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content/relics";
-        var path = $"{contentDir}/relic_defs.json";
-        var pack = LostRelicLoader.LoadPack(path);
-        foreach (var relic in pack.Relics)
-            LostRelicIndex[relic.EncounterId] = relic;
-    }
+        {
+            LostRelicIndex.Clear();
+            string json = Godot.FileAccess.GetFileAsString("res://content/relics/relic_defs.json");
+            var pack = LostRelicLoader.LoadPackFromString(json);
+            foreach (var relic in pack.Relics)
+                LostRelicIndex[relic.EncounterId] = relic;
+        }
 }

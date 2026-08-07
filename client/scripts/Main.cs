@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
@@ -147,82 +148,30 @@ public partial class Main : Control
     {
         _statusLabel.Text = "Loading content packs...";
 
-        // Load card packs using ContentManager (versioned packs with hash verification)
-        string contentDir = ProjectSettings.GlobalizePath("res://") + "../content";
-        string packsDir = Path.Combine(contentDir, "packs");
-        string cardsDir = Path.Combine(contentDir, "cards");
-
+        // Load card packs via Godot FileAccess (works in editor AND exported builds)
         var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn" };
         int loadedPacks = 0;
-        int fallbacks = 0;
 
         foreach (var setId in setIds)
         {
-            string packPath = Path.Combine(packsDir, $"{setId}.json");
-            string bundledPath = Path.Combine(packsDir, $"{setId}.bundled.json");
-            string legacyPath = Path.Combine(cardsDir, $"{setId}.json");
-
-            List<CardDef>? cards = null;
-
-            // Strategy 1: Try versioned pack (simulates a "downloaded" remote pack)
-            if (File.Exists(packPath))
+            string resPath = $"res://content/cards/{setId}.json";
+            try
             {
-                string remoteJson = File.ReadAllText(packPath);
-                // If a bundled fallback exists, use it as the fallback for hash verification
-                string fallbackForVerification = File.Exists(bundledPath) ? bundledPath : packPath;
-                var result = ContentManager.ApplyRemotePack(remoteJson, fallbackForVerification);
-                if (result.Success && !result.UsedFallback)
-                {
-                    cards = result.Cards;
-                    loadedPacks++;
-                }
-                else if (result.Success && result.UsedFallback)
-                {
-                    // Hash mismatch — used fallback
-                    cards = result.Cards;
-                    fallbacks++;
-                    GD.Print($"Content pack {setId}: hash verification failed, using fallback. Reason: {result.Reason}");
-                }
-            }
-
-            // Strategy 2: No versioned pack, try bundled fallback directly
-            if (cards == null && File.Exists(bundledPath))
-            {
-                try
-                {
-                    var bundled = ContentManager.LoadBundledPack(bundledPath);
-                    cards = bundled.Cards;
-                    loadedPacks++;
-                }
-                catch (Exception ex)
-                {
-                    GD.Print($"Failed to load bundled pack {setId}: {ex.Message}");
-                }
-            }
-
-            // Strategy 3: Legacy format (plain JSON array from content/cards/)
-            if (cards == null && File.Exists(legacyPath))
-            {
-                try
-                {
-                    cards = CardLoader.LoadPack(legacyPath);
-                    loadedPacks++;
-                }
-                catch (Exception ex)
-                {
-                    GD.Print($"Failed to load legacy pack {setId}: {ex.Message}");
-                }
-            }
-
-            if (cards != null)
-            {
+                string json = Godot.FileAccess.GetFileAsString(resPath);
+                var cards = CardLoader.LoadPackFromString(json);
                 CardRegistry.RegisterRange(cards);
+                loadedPacks++;
                 GD.Print($"Loaded {cards.Count} cards from {setId}");
             }
-            else
+            catch (Exception ex)
             {
-                GD.PrintErr($"No card pack found for {setId}");
+                GD.PrintErr($"Failed to load card pack {setId}: {ex.Message}");
             }
+        }
+
+        if (loadedPacks == 0)
+        {
+            GD.PrintErr("No card packs loaded — game cannot function.");
         }
 
         _statusLabel.Text = "Loading encounters...";

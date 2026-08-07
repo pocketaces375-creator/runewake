@@ -20,9 +20,10 @@ corner_radius_bottom_right = 3
 
 [node name="HandCard" type="Button"]
 anchors_preset = 0
-custom_minimum_size = Vector2(130, 105)
+custom_minimum_size = Vector2(160, 140)
 size_flags_horizontal = 3
 size_flags_vertical = 3
+action_mode = 0
 script = ExtResource("1_hand")
 
 [node name="CardBg" type="ColorRect" parent="."]
@@ -63,7 +64,7 @@ theme_override_styles/panel = SubResource("cost_badge")
 size_flags_horizontal = 0
 size_flags_vertical = 0
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 20
 text = "0"
 
 [node name="HeaderSpacer" type="Control" parent="Margin/VBox/Header"]
@@ -75,7 +76,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 18
 text = ""
 autowrap_mode = 0
 max_lines_visible = 2
@@ -83,5 +84,5 @@ max_lines_visible = 2
 [node name="StrataStrip" type="ColorRect" parent="Margin/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-custom_minimum_size = Vector2(0, 5)
+custom_minimum_size = Vector2(0, 8)
 color = Color(0.5, 0.5, 0.5, 1)

@@ -1,0 +1,11 @@
+{
+  "relics": [
+    {
+      "card_id": "dwn_c_aelins_seal",
+      "name": "Aelin's Seal",
+      "encounter_id": "r1_warden_boss",
+      "site": "The Fallow Reach — Steward's Barrow",
+      "engraving_style": "verdant_gold"
+    }
+  ]
+}

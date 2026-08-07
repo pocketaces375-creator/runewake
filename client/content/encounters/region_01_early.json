@@ -1,0 +1,58 @@
+{
+  "encounters": [
+    {
+      "id": "r1_duel_wayfarer",
+      "name": "The Wayfarer",
+      "deck": [
+        "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
+        "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_c_wildwood_stalker",
+        "vrd_c_wildwood_stalker", "vrd_u_grove_healer", "vrd_u_canopy_archer",
+        "vrd_u_saphoof_charger", "vrd_u_grove_healer", "vrd_r_natures_renewal",
+        "emb_c_cinder_runner", "emb_c_ember_hound", "emb_c_flame_javelin",
+        "emb_c_flame_javelin", "emb_c_forgeguard_berserker", "emb_u_lava_serpent",
+        "dwn_c_sunblade_recruit", "dwn_c_sunblade_recruit", "dwn_c_dawn_warder",
+        "dwn_c_dawn_warder", "dwn_u_steadfast_bulwark", "dwn_u_morning_herald",
+        "dwn_c_golden_retainer", "dwn_c_golden_retainer", "dwn_c_dawnbreaker_charger",
+        "dwn_u_purifying_light", "dwn_u_steadfast_bulwark", "dwn_r_radiant_prophet"
+      ],
+      "dialogue_intro": [
+        "The road ahead is choked with briars and silence.",
+        "A figure stands where the path splits. They do not speak — they simply raise a hand, and the thorns begin to move.",
+        "\"Turn back, or grow where you fall.\""
+      ],
+      "dialogue_outro": [
+        "The Wayfarer lowers their hand. The thorns recede just enough to let you pass.",
+        "\"The Reach does not forgive easily. Remember that.\""
+      ],
+      "shard_reward": 30,
+      "dig_charge_reward": 0
+    },
+    {
+      "id": "r1_duel_thornbark",
+      "name": "Thornbark",
+      "deck": [
+        "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
+        "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_c_thornbark_defender",
+        "vrd_c_wildwood_stalker", "vrd_c_wildwood_stalker", "vrd_u_grove_healer",
+        "vrd_u_elder_treant", "vrd_u_saphoof_charger", "vrd_u_canopy_archer",
+        "vrd_r_bloomweaver", "vrd_r_undergrowth_eruption", "vrd_r_natures_renewal",
+        "vrd_u_elder_treant", "vrd_u_canopy_archer", "vrd_x_heartwood_relic",
+        "vrd_c_root_warden", "vrd_c_verdant_sproutling", "vrd_c_wildwood_stalker",
+        "vrd_u_grove_healer", "vrd_u_saphoof_charger", "vrd_u_saphoof_charger",
+        "vrd_u_elder_treant", "vrd_r_bloomweaver", "vrd_r_natures_renewal",
+        "vrd_r_undergrowth_eruption", "emb_c_ember_hound", "emb_c_flame_javelin"
+      ],
+      "dialogue_intro": [
+        "The undergrowth grows thicker. You hear something dragging through the brush — something with roots for limbs.",
+        "A massive form peels itself from the trunk of a fallen oak. Its voice is the sound of wood splitting.",
+        "\"You tread on graves, little delver. The Reach remembers every footfall.\""
+      ],
+      "dialogue_outro": [
+        "Thornbark crumbles into loam and twisted root. The forest floor steams where he fell.",
+        "A path opens to the east, where the soil smells faintly of iron."
+      ],
+      "shard_reward": 40,
+      "dig_charge_reward": 1
+    }
+  ]
+}

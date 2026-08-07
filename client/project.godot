@@ -24,8 +24,11 @@ project/assembly_name="Runewake.Client"
 
 window/size/viewport_width=1152
 window/size/viewport_height=648
+window/handheld/orientation=0
 window/size/mode=0
 window/size/always_on_top=false
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
 
 [rendering]
 

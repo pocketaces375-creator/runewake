@@ -1,6 +1,33 @@
 # AGENT_LOG
 
-## Session 26 — 2026-08-06
+## Session 27 — 2026-08-07
+
+### Phase 3 — Complete (device-verified)
+
+**P3-02 (overflow fix + phone-sizing):**
+- Board VBoxContainer alignment=1 (center) prevents lane overflow at 1152px
+- Lane margins increased 16→24px; lane HBox containers get alignment=1 (center)
+- HandArea CenterContainer→MarginContainer so hand cards fill full width
+- HandCard 120×95→160×140; fonts 16→20/15→18; strata strip 5→8px
+- CardView 280×400→320×480; all fonts +2-4px; art min 140→180
+- PlayerHUD repositioned (offset_top=-36, fits above hand area)
+- Verified at 1152×648 and 2316×1080 via Xvfb capture — no overflow, content fits with margins
+
+**P3-03 — Input (re-verified on device):**
+Tapping a hand card selects it, tapping a lane summons, tap creature then enemy lane to attack, End Turn button works, bot takes its turn. Touch input functions correctly on Android hardware.
+
+**P3-06 — Bot opponent:**
+GreedyBot wired with 1.5s think-delay, 0.6s action interval. Full game-over overlay with Play Again and Back to Title buttons.
+
+Ongoing known issue: all pacing values (think-delay, action interval, animation durations) are provisional — see TECH_DEBT.md.
+
+Screenshot: MEDIA:/home/fictive/runewake/screenshots/p3_complete_2316.png
+
+Next: **P4-01** — Map data format + loader.
+
+---
+
+### Session 26 — 2026-08-06
 
 ### P3-05 — Animation and feedback layer
 

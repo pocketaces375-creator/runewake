@@ -1,0 +1,62 @@
+{
+  "encounters": [
+    {
+      "id": "r1_elite_rootbinder",
+      "name": "The Root-Binder",
+      "portrait": "res://art/portraits/rootbinder.png",
+      "deck": [
+        "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_root_warden",
+        "vrd_c_verdant_sproutling", "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender",
+        "vrd_c_thornbark_defender", "vrd_c_wildwood_stalker", "vrd_u_elder_treant",
+        "vrd_u_elder_treant", "vrd_u_grove_healer", "vrd_u_canopy_archer",
+        "vrd_u_saphoof_charger", "vrd_u_saphoof_charger", "vrd_r_bloomweaver",
+        "vrd_r_bloomweaver", "vrd_r_undergrowth_eruption", "vrd_r_natures_renewal",
+        "vrd_u_grove_healer", "vrd_u_canopy_archer", "vrd_u_canopy_archer",
+        "vrd_x_heartwood_relic", "vrd_c_root_warden", "vrd_c_thornbark_defender",
+        "vrd_u_saphoof_charger", "vrd_r_undergrowth_eruption", "vrd_x_heartwood_relic",
+        "dwn_u_steadfast_bulwark", "dwn_c_dawn_warder", "dwn_c_golden_retainer"
+      ],
+      "modifier": "Starts with a GUARD token",
+      "dialogue_intro": [
+        "The grove falls silent. Birds, insects, even the wind — gone.",
+        "An old woman sits on a throne of woven roots. She does not rise.",
+        "\"The seal beneath this reach was placed by hands older than mine. But I keep it. And you will not break it.\"",
+        "She snaps her fingers. The earth lurches."
+      ],
+      "dialogue_outro": [
+        "The Root-Binder's throne splinters. She regards you with something that might be respect.",
+        "\"You fight like someone who has already lost everything. That makes you dangerous.\"",
+        "She presses a sliver of green stone into your palm. \"The Warden's path opens beyond the ridge. But choose your next step carefully.\""
+      ],
+      "shard_reward": 80,
+      "dig_charge_reward": 1,
+      "fragment_reward": "verdant:2"
+    },
+    {
+      "id": "r1_duel_wildwood",
+      "name": "Wildwood Stalker",
+      "deck": [
+        "vrd_c_wildwood_stalker", "vrd_c_wildwood_stalker", "vrd_c_verdant_sproutling",
+        "vrd_c_verdant_sproutling", "vrd_c_root_warden", "vrd_c_thornbark_defender",
+        "vrd_u_canopy_archer", "vrd_u_canopy_archer", "vrd_u_saphoof_charger",
+        "vrd_u_grove_healer", "vrd_u_elder_treant", "vrd_u_elder_treant",
+        "vrd_r_bloomweaver", "vrd_r_undergrowth_eruption", "vrd_u_saphoof_charger",
+        "dwn_c_dawnbreaker_charger", "dwn_c_dawnbreaker_charger", "dwn_c_sunblade_recruit",
+        "dwn_c_sunblade_recruit", "dwn_c_dawn_warder", "dwn_u_steadfast_bulwark",
+        "dwn_u_morning_herald", "dwn_c_golden_retainer", "dwn_u_purifying_light",
+        "dwn_u_steadfast_bulwark", "dwn_x_dawn_relic", "vrd_x_heartwood_relic",
+        "vrd_c_root_warden", "vrd_r_natures_renewal", "dwn_r_radiant_prophet"
+      ],
+      "dialogue_intro": [
+        "A lithe figure drops from the canopy, landing silently on the forest floor. Twin blades catch the dappled light.",
+        "\"You're loud. The whole Reach can hear you coming.\""
+      ],
+      "dialogue_outro": [
+        "The Stalker vanishes into the undergrowth as quickly as they appeared.",
+        "From the shadows: \"You're less loud now. Maybe you'll make it after all.\""
+      ],
+      "shard_reward": 50,
+      "dig_charge_reward": 0
+    }
+  ]
+}

@@ -138,3 +138,65 @@ decks exist (Phase 4+). At that point run 10k+ games with variance in deck
 composition to measure the real first-player win rate. If it exceeds 55%, add
 a second attunement compensation for P1, or give P1 an extra card on the
 opening draw. The fix goes in `docs/01_GAME_RULES.md` §1, then `GameState.Initialize`.
+
+---
+
+## Exported builds crash on filesystem path I/O
+
+**Date flagged:** 2026-08-06
+**Root cause:** `ProjectSettings.GlobalizePath("res://...")` returns an absolute
+filesystem path that only exists in the editor. In exported builds, `res://`
+resides inside the embedded PCK and is not accessible via `System.IO.File.*`
+(`File.ReadAllText`, `File.Exists`, etc.). The engine `CardLoader.LoadPack(path)`,
+`EncounterLoader.LoadPack(path)`, and all other `*Loader.LoadPack(path)` methods
+use `File.ReadAllText(path)` — pure .NET, correct — but the client was passing
+GlobalizePath'd paths to them.
+
+All content loading from `res://content/` must go through `Godot.FileAccess.GetFileAsString("res://...")`,
+then call `*Loader.LoadPackFromString(json)`. The `FromString` variants exist
+for every loader.
+
+**Files fixed in P3-02:**
+- `scripts/DuelScene.cs` — `LoadCardPacks()` uses Godot FileAccess directly
+- `scripts/Main.cs` — `LoadGameData()` replaced ContentManager strategies with
+  Godot FileAccess
+- `scripts/CampaignContext.cs` — all 5 methods switched to Godot FileAccess
+- `scripts/MapScene.cs` — `BuildMap()` switched to Godot FileAccess
+
+**Detection gap:** Nothing in the test suite catches this because tests run
+against the source tree where `GlobalizePath` works. A proper smoke test would
+build an export, run it headlessly, and fail if `_Ready()` throws an exception.
+
+**Fix needed:** A startup smoke test (`Makefile` target or GitHub Actions job)
+that builds the export and verifies it reaches the title screen without
+crashing.
+
+**Priority:** High — every exported build was broken before P3-02.
+
+---
+
+## Pacing values are provisional until card art lands
+
+**Date flagged:** 2026-08-07
+
+All timing values in the client are placeholders tuned against grey rectangle
+placeholders:
+
+| Value | Current | Context |
+|---|---|---|
+| Bot think-delay | 1.5s | How long the bot waits before starting its turn |
+| Bot action interval | 0.6s | Delay between each bot action |
+| Summon animation | 0.3s | Scale 0→1 |
+| Death animation | 0.4s | Fade + shrink |
+| Damage float duration | 0.9s | Floating text lifetime |
+
+**Do NOT tune these until Phase 6 art lands on real cards.** Timing judged
+against placeholder rectangles will be wrong — art changes how long a beat
+feels. A summon animation that feels snappy with a grey box will feel rushed
+with a card that has art, a name plate, and a strata glow.
+
+**Resolution path:** After Phase 6, playtest the full pipeline on a real
+device with art assets. Record timing pain points. Tune as a batch pass in
+a dedicated ticket. Do not tune piecemeal — the rhythms are interdependent
+(bot delay + animation duration + response expectation form a single
+cadence).
