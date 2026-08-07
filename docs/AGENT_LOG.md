@@ -1243,3 +1243,39 @@ Campaign map screen rendering a node graph from `region_01.json` with 12 nodes, 
 - Editor export (`--editor --export-debug`) strips `display` section from `project.godot` on exit — APK gets correct settings because the manifest is generated at export time, but the on-disk file must be restored after export or the repo loses settings
 - `--headless --export-release` fails on Android keystore resolution; `--editor --export-debug` works for signing but requires Xvfb
 
+---
+
+## Session — 2026-08-07 (cont.)
+
+### P4-03 — Encounter definitions + unlock evaluator
+
+**Status:** Complete
+
+**Summary:**
+Engine unlock evaluation moved out of the client, tested with 9 new transition-flow tests, and encounter definitions completed with portrait slots on all 9 wielders. All 381 tests green (12 new). Verified against exported build.
+
+**Key accomplishments:**
+
+- **MapUnlockEvaluator** (engine/): `IsUnlocked(MapNode, IReadOnlySet<string> cleared)` and `GetUnlockedNodes(MapRegion, ...)` — null-unlock = unlocked, NODES_CLEARED = all prereqs cleared, unknown op = locked. Now testable without Godot dependencies.
+- **MapScene.IsNodeUnlocked** delegates to the engine evaluator: 16 lines of duplicated client logic replaced with a 3-line call. Removes the hardcoded `r1_n01` special case (handled by null-unlock semantics). Behavior identical for region_01.
+- **9 unlock transition tests**: initial state, clear-connector-unlocks, chain unlock, multi-prereq (r1_n07 needs both r1_n04 and r1_n05), full-chain-to-boss, and the transition mechanic asserted node-by-node.
+- **Portrait slots**: Added `"portrait"` to the 4 encounters missing it (wayfarer, thornbark, wildwood_stalker, silt_reader). All 9 encounters now have portrait paths. Synced client/content/ copies.
+- **Encounter resolution test**: every combat map node's encounter reference resolves to a defined EncounterDef (r1_n01→r1_duel_wayfarer, etc.). Dig nodes (region_01_dig) excluded — they reference dig site content, validated by DigSiteTests.
+- **Deck validation test**: all 270 encounter deck card IDs (9 encounters × 30) exist in the 5 card packs. This is the mechanical guarantee that decks are playable and archetypes are coherent.
+
+**Evidence:**
+- 381/381 engine tests green (+12 from P4-02 baseline)
+- Exported Linux build verified: map loads with encounter data, r1_n04 transitions to available when its prereq r1_n02 is cleared (347 orange pixels confirmed)
+- Committed: `e39e489` (+ AGENT_LOG)
+
+**Decks per archetype (legible):**
+- Wayfarer: mixed splash (starter)
+- Thornbark: heavy Verdant go-wide
+- Root-Binder (Elite): Verdant wide + relic
+- Wildwood Stalker: Swift Verdant-Dawn
+- Grove Warden: Verdant-Dawn defensive
+- Ashkeeper (Elite): Ember burn + Hollow splash
+- Silt-Reader: Tide control + Hollow
+- Warden Aelin: Dawn order/defensive
+- Aelin (boss): heavier Dawn, double copies of rares
+
