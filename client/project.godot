@@ -16,10 +16,6 @@ run/main_scene="res://scenes/duel/DuelScene.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
 
-[dotnet]
-
-project/assembly_name="Runewake.Client"
-
 [display]
 
 window/size/viewport_width=1152
@@ -29,6 +25,10 @@ window/size/mode=0
 window/size/always_on_top=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
+
+[dotnet]
+
+project/assembly_name="Runewake.Client"
 
 [rendering]
 

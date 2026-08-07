@@ -5,13 +5,23 @@ namespace Runewake.Client;
 /// <summary>
 /// A single icon on the campaign map. Shows node type, lock state, and name.
 /// Clickable — emits NodeSelected when tapped.
+/// Three distinct visual states: locked (dark grey + lock icon),
+/// available (full color + glow), cleared (faded + checkmark).
 /// </summary>
 public partial class MapNodeIcon : Button
 {
     private Label _nameLabel;
-    private ColorRect _iconRect;
-    private Label _typeLabel;
+    private ColorRect _iconCircle;
+    private Label _typeChar;
+    private ColorRect _glowBorder;
     private ColorRect _lockOverlay;
+    private Label _clearMark;
+
+    // Padlock parts (drawn in code to avoid font dependency)
+    private ColorRect _lockShackleTop;
+    private ColorRect _lockShackleLeft;
+    private ColorRect _lockShackleRight;
+    private ColorRect _lockBody;
 
     /// <summary>Node ID from the map region JSON.</summary>
     public string NodeId { get; private set; } = string.Empty;
@@ -28,13 +38,71 @@ public partial class MapNodeIcon : Button
     [Signal]
     public delegate void NodeSelectedEventHandler(string nodeId);
 
+    private static readonly Dictionary<string, (string symbol, Color color)> TypeConfig = new()
+    {
+        ["Duel"] = ("\u2694", new Color(0.3f, 0.6f, 0.3f)),       // crossed swords
+        ["Elite"] = ("\u26A1", new Color(0.8f, 0.4f, 0.2f)),      // lightning
+        ["Warden"] = ("\u265B", new Color(0.9f, 0.7f, 0.1f)),     // chess queen (crown)
+        ["WardenBoss"] = ("\u2620", new Color(0.9f, 0.2f, 0.1f)), // skull
+        ["Dig"] = ("\u26CF", new Color(0.5f, 0.3f, 0.1f)),        // pick
+        ["Shrine"] = ("\u2726", new Color(0.3f, 0.5f, 0.8f)),     // four-pointed star
+        ["Cache"] = ("?", new Color(0.7f, 0.4f, 0.7f)),           // question mark
+        ["Merchant"] = ("$", new Color(0.8f, 0.7f, 0.3f)),        // dollar sign
+    };
+
     public override void _Ready()
     {
-        CustomMinimumSize = new Vector2(72, 72);
+        CustomMinimumSize = new Vector2(96, 96);
         _nameLabel = GetNode<Label>("NameLabel");
-        _iconRect = GetNode<ColorRect>("IconRect");
-        _typeLabel = GetNode<Label>("TypeLabel");
+        _iconCircle = GetNode<ColorRect>("IconCircle");
+        _typeChar = GetNode<Label>("TypeChar");
+        _glowBorder = GetNode<ColorRect>("GlowBorder");
         _lockOverlay = GetNode<ColorRect>("LockOverlay");
+        _clearMark = GetNode<Label>("ClearMark");
+
+        // Build padlock from ColorRects (reliable, no font dependency)
+        Color lockColor = new Color(1, 1, 1, 0.9f);
+        _lockShackleTop = new ColorRect
+        {
+            Color = lockColor,
+            Position = new Vector2(43, 24),
+            Size = new Vector2(10, 4),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _lockShackleLeft = new ColorRect
+        {
+            Color = lockColor,
+            Position = new Vector2(43, 24),
+            Size = new Vector2(3, 12),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _lockShackleRight = new ColorRect
+        {
+            Color = lockColor,
+            Position = new Vector2(50, 24),
+            Size = new Vector2(3, 12),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _lockBody = new ColorRect
+        {
+            Color = lockColor,
+            Position = new Vector2(41, 36),
+            Size = new Vector2(14, 12),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+
+        // Group padlock parts under a hidden container (shown when locked)
+        var lockGroup = new Control();
+        lockGroup.Name = "LockGroup";
+        lockGroup.AddChild(_lockShackleTop);
+        lockGroup.AddChild(_lockShackleLeft);
+        lockGroup.AddChild(_lockShackleRight);
+        lockGroup.AddChild(_lockBody);
+        AddChild(lockGroup);
+
+        // Hide lock group initially (will be shown by ApplyLockState)
+        lockGroup.Hide();
+
         Pressed += () => EmitSignal(SignalName.NodeSelected, NodeId);
     }
 
@@ -46,35 +114,21 @@ public partial class MapNodeIcon : Button
         NodeId = nodeId;
         NodeName = displayName;
         IsLocked = locked;
-        _nameLabel.Text = displayName;
-        _typeLabel.Text = nodeType;
+        _nameLabel.Text = TruncateName(displayName);
 
-        // Color by type
-        Color baseColor = nodeType switch
+        // Look up type config
+        if (TypeConfig.TryGetValue(nodeType, out var cfg))
         {
-            "Duel" => new Color(0.3f, 0.6f, 0.3f),
-            "Elite" => new Color(0.8f, 0.4f, 0.2f),
-            "Warden" => new Color(0.9f, 0.7f, 0.1f),
-            "WardenBoss" => new Color(0.9f, 0.2f, 0.1f),
-            "Dig" => new Color(0.5f, 0.3f, 0.1f),
-            "Shrine" => new Color(0.3f, 0.5f, 0.8f),
-            "Cache" => new Color(0.7f, 0.4f, 0.7f),
-            "Merchant" => new Color(0.8f, 0.7f, 0.3f),
-            _ => new Color(0.5f, 0.5f, 0.5f)
-        };
-        _iconRect.Color = baseColor;
-
-        // Lock state
-        if (locked)
-        {
-            Modulate = new Color(0.4f, 0.4f, 0.4f, 0.7f);
-            _lockOverlay.Show();
+            _typeChar.Text = cfg.symbol;
+            _iconCircle.Color = cfg.color;
         }
         else
         {
-            Modulate = new Color(1, 1, 1, 1);
-            _lockOverlay.Hide();
+            _typeChar.Text = "?";
+            _iconCircle.Color = new Color(0.5f, 0.5f, 0.5f);
         }
+
+        ApplyLockState(locked);
     }
 
     /// <summary>
@@ -83,29 +137,84 @@ public partial class MapNodeIcon : Button
     public void SetLocked(bool locked)
     {
         IsLocked = locked;
-        if (locked)
-        {
-            Modulate = new Color(0.4f, 0.4f, 0.4f, 0.7f);
-            _lockOverlay.Show();
-        }
-        else
-        {
-            Modulate = new Color(1, 1, 1, 1);
-            _lockOverlay.Hide();
-        }
+        ApplyLockState(locked);
     }
 
     /// <summary>
-    /// Mark this node as cleared (completed). Shows a checkmark overlay.
+    /// Mark this node as cleared (completed). Shows a green checkmark.
     /// </summary>
     public void SetCleared()
     {
         _isCleared = true;
         IsLocked = false;
-        Modulate = new Color(0.5f, 0.5f, 0.5f, 1);
-        _lockOverlay.Hide();
 
-        // Add a subtle check indicator — tint the icon green-tinted gray
-        _iconRect.Color = _iconRect.Color.Lerp(new Color(0, 0.8f, 0.2f), 0.15f);
+        // Desaturate the icon circle
+        Color baseColor = _iconCircle.Color;
+        float gray = baseColor.R * 0.3f + baseColor.G * 0.59f + baseColor.B * 0.11f;
+        _iconCircle.Color = new Color(gray, gray, gray, 0.6f);
+
+        // Hide lock overlay
+        _lockOverlay.Hide();
+        HideLockGroup();
+
+        // Show checkmark
+        _clearMark.Show();
+
+        // Remove glow border
+        _glowBorder.Color = new Color(0, 0, 0, 0);
+        _glowBorder.Modulate = new Color(1, 1, 1, 0.2f);
+
+        // Dim name label
+        _nameLabel.Modulate = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+
+        // Dim type char
+        _typeChar.Modulate = new Color(1, 1, 1, 0.4f);
+    }
+
+    private void ApplyLockState(bool locked)
+    {
+        if (locked)
+        {
+            // Locked state: dark grey, padlock icon, no glow
+            _iconCircle.Modulate = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+            _typeChar.Modulate = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            _lockOverlay.Show();
+            ShowLockGroup();
+            _clearMark.Hide();
+            _glowBorder.Color = new Color(0, 0, 0, 0);
+            _nameLabel.Modulate = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+        }
+        else
+        {
+            // Available state: full color, white glow border
+            _iconCircle.Modulate = new Color(1, 1, 1, 1);
+            _typeChar.Modulate = new Color(1, 1, 1, 1);
+            _lockOverlay.Hide();
+            HideLockGroup();
+            _clearMark.Hide();
+            _glowBorder.Color = new Color(1, 1, 1, 0.3f);
+            _nameLabel.Modulate = new Color(0.85f, 0.85f, 0.9f, 1);
+        }
+    }
+
+    private void ShowLockGroup()
+    {
+        var g = GetNodeOrNull<Control>("LockGroup");
+        if (g != null) g.Show();
+    }
+
+    private void HideLockGroup()
+    {
+        var g = GetNodeOrNull<Control>("LockGroup");
+        if (g != null) g.Hide();
+    }
+
+    /// <summary>
+    /// Truncate a name to fit the icon width, adding ellipsis if needed.
+    /// </summary>
+    private static string TruncateName(string name, int maxLen = 10)
+    {
+        if (name.Length <= maxLen) return name;
+        return name[..(maxLen - 1)] + "\u2026";
     }
 }

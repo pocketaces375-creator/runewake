@@ -41,18 +41,44 @@ public partial class MapScene : Control
 
     // Zoom
     private float _zoom = 1.0f;
-    private const float MinZoom = 0.4f;
-    private const float MaxZoom = 2.5f;
+    private const float MinZoom = 0.35f;
+    private const float MaxZoom = 3.0f;
     private const float ZoomStep = 0.1f;
+
+    // Touch pan state
+    private int _touchDragId = -1;
+    private Vector2 _touchDragStart;
+    private bool _touchDragging;
 
     // Map center offset
     private Vector2 _mapOffset;
 
     public override void _Ready()
     {
+        EnsureCampaignContext();
         BuildUI();
         BuildMap();
         UpdateAllLockStates();
+    }
+
+    /// <summary>
+    /// Ensure campaign data (encounters, save manager) is loaded.
+    /// In normal flow this is already done by the title screen; this guard
+    /// makes the map screen standalone-capable (e.g. for testing/export of the
+    /// scene directly) without double-initializing the save manager.
+    /// </summary>
+    private void EnsureCampaignContext()
+    {
+        if (!CampaignContext.SaveManager.IsLoaded)
+        {
+            CampaignContext.SaveManager.Initialize();
+        }
+
+        if (CampaignContext.EncounterIndex.Count == 0)
+        {
+            CampaignContext.LoadEncounters();
+            CampaignContext.LoadDigSites();
+        }
     }
 
     private void BuildUI()
@@ -168,25 +194,32 @@ public partial class MapScene : Control
             else
                 displayName = mapNode.Type.ToString();
 
-            // Default all nodes locked; UpdateAllLockStates will fix
-            icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked: true);
-
             float x = mapNode.Position[0] - centerX;
             float y = mapNode.Position[1] - centerY;
             icon.Position = new Vector2(x, y);
 
             icon.NodeSelected += OnNodeSelected;
             _mapContainer.AddChild(icon);
+
+            // Setup after AddChild so _Ready has run (child node refs are valid)
+            icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked: true);
             _nodeIcons[mapNode.Id] = icon;
         }
 
         _lineDrawer.SetNodes(_region.Nodes, centerX, centerY);
+
+        // Auto-frame: zoom to fit the whole map in the viewport with padding
+        Vector2 viewport = GetViewportRect().Size;
+        float fitZoomW = (viewport.X - 80f) / mapWidth;
+        float fitZoomH = (viewport.Y - 120f) / mapHeight;
+        _zoom = Mathf.Clamp(Mathf.Min(fitZoomW, fitZoomH), MinZoom, MaxZoom);
 
         _mapOffset = new Vector2(
             GetViewportRect().Size.X / 2f,
             GetViewportRect().Size.Y / 2f
         );
         _mapContainer.Position = _mapOffset;
+        _mapContainer.Scale = new Vector2(_zoom, _zoom);
     }
 
     private void UpdateAllLockStates()
@@ -315,49 +348,39 @@ public partial class MapScene : Control
         GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }
 
-    // ——— Input: pan and zoom ———
+    // ——— Input: pan and zoom (mouse + touch) ———
 
     public override void _Input(InputEvent @event)
     {
+        // Mouse wheel zoom
         if (@event is InputEventMouseButton mouse && mouse.Pressed)
         {
             if (mouse.ButtonIndex == MouseButton.WheelUp)
             {
                 SetZoom(_zoom + ZoomStep, mouse.Position);
                 GetViewport().SetInputAsHandled();
+                return;
             }
-            else if (mouse.ButtonIndex == MouseButton.WheelDown)
+            if (mouse.ButtonIndex == MouseButton.WheelDown)
             {
                 SetZoom(_zoom - ZoomStep, mouse.Position);
                 GetViewport().SetInputAsHandled();
+                return;
             }
         }
 
+        // Mouse drag pan (middle or right button)
         if (@event is InputEventMouseButton mouseBtn)
         {
-            if (mouseBtn.ButtonIndex == MouseButton.Middle && mouseBtn.Pressed)
+            bool panButton = mouseBtn.ButtonIndex == MouseButton.Middle || mouseBtn.ButtonIndex == MouseButton.Right;
+            if (panButton && mouseBtn.Pressed && !_infoPanel.GetGlobalRect().HasPoint(mouseBtn.Position))
             {
                 _dragStart = mouseBtn.Position;
                 _containerStartPos = _mapContainer.Position;
                 _isDragging = true;
                 GetViewport().SetInputAsHandled();
             }
-            else if (mouseBtn.ButtonIndex == MouseButton.Middle && !mouseBtn.Pressed)
-            {
-                _isDragging = false;
-            }
-        }
-
-        if (@event is InputEventMouseButton rmb && rmb.ButtonIndex == MouseButton.Right)
-        {
-            if (rmb.Pressed && !_infoPanel.GetGlobalRect().HasPoint(rmb.Position))
-            {
-                _dragStart = rmb.Position;
-                _containerStartPos = _mapContainer.Position;
-                _isDragging = true;
-                GetViewport().SetInputAsHandled();
-            }
-            else
+            else if (panButton && !mouseBtn.Pressed)
             {
                 _isDragging = false;
             }
@@ -367,6 +390,37 @@ public partial class MapScene : Control
         {
             Vector2 delta = motion.Position - _dragStart;
             _mapContainer.Position = _containerStartPos + delta;
+        }
+
+        // ——— Touch input ———
+        // Single-finger drag to pan
+        if (@event is InputEventScreenTouch touch)
+        {
+            if (touch.Pressed && _touchDragId == -1)
+            {
+                _touchDragId = touch.Index;
+                _touchDragStart = touch.Position;
+                _containerStartPos = _mapContainer.Position;
+                _touchDragging = true;
+            }
+            else if (!touch.Pressed && touch.Index == _touchDragId)
+            {
+                _touchDragId = -1;
+                _touchDragging = false;
+            }
+        }
+        else if (@event is InputEventScreenDrag drag && drag.Index == _touchDragId && _touchDragging)
+        {
+            Vector2 delta = drag.Position - _touchDragStart;
+            _mapContainer.Position = _containerStartPos + delta;
+        }
+
+        // Pinch to zoom
+        if (@event is InputEventMagnifyGesture magnify)
+        {
+            float newZoom = _zoom * magnify.Factor;
+            SetZoom(newZoom, magnify.Position);
+            GetViewport().SetInputAsHandled();
         }
     }
 
