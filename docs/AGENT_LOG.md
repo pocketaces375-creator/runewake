@@ -1210,3 +1210,36 @@ Fix:
 ```
 If USB debugging is off and you can't enable it, copy the APK via USB flash drive or cloud storage, then install from the phone's file manager.
 
+---
+
+## Session — 2026-08-07
+
+### P4-02 — Map screen: pan/zoom node graph, distinct lock states, touch input
+
+**Status:** Complete
+
+**Summary:**
+Campaign map screen rendering a node graph from `region_01.json` with 12 nodes, all 16 connections, three distinct lock states, and touch-aware pan/zoom.
+
+**Key accomplishments:**
+- **MapNodeIcon redesigned for phone readability:** 96×96 touch target, 64×64 colored circle with Unicode type symbols (⚔ Duel, ⚡ Elite, ♛ Warden, ☠ WardenBoss, ⛏ Dig, ✦ Shrine, ? Cache, $ Merchant), name label at 11pt
+- **Three distinct lock states:** Available = full color + white glow border; Locked = dark grey circle + black overlay + code-drawn white padlock; Cleared = desaturated grey circle + green checkmark (✓)
+- **Touch pan/zoom:** single-finger drag to pan, pinch-to-zoom via `InputEventMagnifyGesture`, kept mouse wheel zoom + middle/right-click drag for desktop
+- **Auto-framing:** zoom-to-fit computed from map bounds vs viewport, initial zoom 0.587
+- **Bug fix:** `Setup()` was called before `AddChild()` — `_Ready` had not run, so all child node references were null. Fixed by calling `Setup` after `AddChild`.
+- **Standalone-capable:** `EnsureCampaignContext()` guard in `_Ready` so map loads correctly even when exported as the main scene (loads SaveManager + encounters if not already initialized)
+
+**Evidence:**
+- Capture at 2316×1080: `client/exports/map_capture_2316x1080.png`
+- Pixel analysis confirms: 12 nodes at correct JSON positions, r1_n03 (Shrine) available with 965 blue pixels, r1_n01/r1_n02 cleared with green checkmarks, remaining 9 locked with white padlocks, all 16 connection lines visible, "Shards: 150" label at top-right
+- Android APK SHA-256: `0ac760ac433d42cc1de86bb3e767191d64123f86205c60f8225f73b41d267b76`
+
+**APK links:**
+- temp.sh: `https://temp.sh/nthUI/Runewake.apk`
+- GoFile: `https://gofile.io/d/5enB78`
+
+**Lessons for Phase 4:**
+- `Setup-after-AddChild` is a recurring Godot C# pattern — always `AddChild` before configuring a scene instance
+- Editor export (`--editor --export-debug`) strips `display` section from `project.godot` on exit — APK gets correct settings because the manifest is generated at export time, but the on-disk file must be restored after export or the repo loses settings
+- `--headless --export-release` fails on Android keystore resolution; `--editor --export-debug` works for signing but requires Xvfb
+
