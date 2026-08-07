@@ -148,4 +148,66 @@ public class EncounterLoaderTests
         Assert.Equal(50, pack.Encounters[0].ShardReward);
         Assert.Equal(1, pack.Encounters[0].DigChargeReward);
     }
+
+    [Fact]
+    public void AllMapNodeEncounters_ResolveToDefinedEncounters()
+    {
+        // Every combat map node (Duel/Elite/Warden/WardenBoss) that references an
+        // encounter must have a matching definition. This proves the wiring between
+        // map layout and encounter data. Dig/Shrine/Merchant/Cache nodes reference
+        // other content types (dig sites, etc.) and are validated separately.
+        var encounterIds = AllEncounters.Select(e => e.Id).ToHashSet();
+
+        var combatNodes = Region.Nodes.Where(n =>
+            n.Type is MapNodeType.Duel or MapNodeType.Elite
+                or MapNodeType.Warden or MapNodeType.WardenBoss);
+
+        Assert.NotEmpty(combatNodes); // guard: the map must actually have combat nodes
+        foreach (var node in combatNodes)
+        {
+            Assert.NotNull(node.Encounter);
+            Assert.True(encounterIds.Contains(node.Encounter),
+                $"Map node {node.Id} references encounter '{node.Encounter}' which is not defined. "
+                + $"Check content/encounters/ for the missing definition.");
+        }
+    }
+
+    [Fact]
+    public void AllEncounters_HavePortraitSlot()
+    {
+        // Portrait paths are nullable; the slot must exist so art drops in without a refactor.
+        foreach (var e in AllEncounters)
+        {
+            Assert.NotNull(e.Portrait);
+            Assert.NotEmpty(e.Portrait);
+        }
+    }
+
+    private static readonly MapRegion Region = MapLoader.LoadRegion(
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "content", "map", "region_01.json"));
+
+    [Fact]
+    public void AllEncounterDeckCards_ExistInCardRegistry()
+    {
+        // Register every card pack (no Clear — other tests may have registered their
+        // own fixtures in the shared static registry). Then validate that every deck
+        // reference resolves. This is the mechanical guarantee behind "legible per
+        // archetype" — a deck referencing missing cards can never be played.
+        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn" };
+        foreach (var setId in setIds)
+        {
+            var pack = CardLoader.LoadPack(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "content", "cards", $"{setId}.json"));
+            CardRegistry.RegisterRange(pack);
+        }
+
+        foreach (var e in AllEncounters)
+        {
+            foreach (var cardId in e.Deck)
+            {
+                Assert.True(CardRegistry.Get(cardId) != null,
+                    $"Encounter {e.Id} deck references '{cardId}' which is not in any card pack.");
+            }
+        }
+    }
 }

@@ -248,19 +248,9 @@ public partial class MapScene : Control
 
     private bool IsNodeUnlocked(MapNode node)
     {
-        // First node starts unlocked
-        if (node.Id == "r1_n01") return true;
-
-        // No unlock condition = locked
-        if (node.Unlock == null) return false;
-
-        // NODES_CLEARED: all prerequisite nodes must be cleared
-        if (node.Unlock.Op == "NODES_CLEARED" && node.Unlock.Value is { Count: > 0 })
-        {
-            return node.Unlock.Value.All(p => CampaignContext.Progression.IsNodeCleared(p));
-        }
-
-        return false;
+        // Delegate to the engine evaluator so the UI and the tests share one source of truth.
+        // Progression.ClearedNodes is the set of cleared node IDs.
+        return MapUnlockEvaluator.IsUnlocked(node, CampaignContext.Progression.ClearedNodes);
     }
 
     private void OnNodeSelected(string nodeId)

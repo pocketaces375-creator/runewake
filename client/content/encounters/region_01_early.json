@@ -3,6 +3,7 @@
     {
       "id": "r1_duel_wayfarer",
       "name": "The Wayfarer",
+      "portrait": "res://art/portraits/wayfarer.png",
       "deck": [
         "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
         "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_c_wildwood_stalker",
@@ -30,6 +31,7 @@
     {
       "id": "r1_duel_thornbark",
       "name": "Thornbark",
+      "portrait": "res://art/portraits/thornbark.png",
       "deck": [
         "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
         "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_c_thornbark_defender",

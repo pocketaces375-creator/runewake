@@ -35,6 +35,7 @@
     {
       "id": "r1_duel_wildwood",
       "name": "Wildwood Stalker",
+      "portrait": "res://art/portraits/wildwood_stalker.png",
       "deck": [
         "vrd_c_wildwood_stalker", "vrd_c_wildwood_stalker", "vrd_c_verdant_sproutling",
         "vrd_c_verdant_sproutling", "vrd_c_root_warden", "vrd_c_thornbark_defender",

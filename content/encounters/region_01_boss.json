@@ -3,6 +3,7 @@
     {
       "id": "r1_duel_silt_reader",
       "name": "Silt-Reader Maren",
+      "portrait": "res://art/portraits/silt_reader.png",
       "deck": [
         "tid_c_silt_reader", "tid_c_silt_reader", "tid_c_tidal_scholar",
         "tid_c_tidal_scholar", "tid_c_deep_one", "tid_c_deep_one",
