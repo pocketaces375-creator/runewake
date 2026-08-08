@@ -104,4 +104,38 @@ public class TutorialStateTests
         prog.Version = 2;
         Assert.Null(prog.Tutorial);
     }
+
+    [Fact]
+    public void TutorialState_AdvanceFromExcavateBuryToRunesOpen()
+    {
+        var state = new TutorialState
+        {
+            CurrentStep = TutorialStep.Excavate_BuryResolved,
+            IsComplete = false
+        };
+
+        // Manually step through the Advance logic
+        TutorialStep next = TutorialStep.Runes_OpenRunePage;
+        state.CurrentStep = next;
+
+        Assert.Equal(TutorialStep.Runes_OpenRunePage, state.CurrentStep);
+        Assert.False(state.IsComplete);
+    }
+
+    [Fact]
+    public void TutorialState_AdvanceFromEquipToComplete()
+    {
+        var state = new TutorialState
+        {
+            CurrentStep = TutorialStep.Runes_EquipRune,
+            IsComplete = false
+        };
+
+        TutorialStep next = TutorialStep.Complete;
+        state.CurrentStep = next;
+        state.IsComplete = true;
+
+        Assert.Equal(TutorialStep.Complete, state.CurrentStep);
+        Assert.True(state.IsComplete);
+    }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
+using Runewake.Engine.State;
 
 namespace Runewake.Client;
 
@@ -59,6 +60,9 @@ public partial class MapScene : Control
         BuildUI();
         BuildMap();
         UpdateAllLockStates();
+
+        // Tutorial: if at Runes_OpenRunePage step, show a rune page button
+        CheckTutorialRuneStep();
     }
 
     /// <summary>
@@ -423,5 +427,35 @@ public partial class MapScene : Control
         Vector2 newOffset = offset * (_zoom / oldZoom);
         _mapContainer.Position = mousePos - newOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
+    }
+
+    /// <summary>
+    /// If the tutorial is at Runes_OpenRunePage, add a rune page button to the map.
+    /// </summary>
+    private void CheckTutorialRuneStep()
+    {
+        if (CampaignContext.Tutorial?.CurrentStep == TutorialStep.Runes_OpenRunePage
+            && !CampaignContext.Tutorial.IsComplete)
+        {
+            // Add a rune page button that advances the tutorial
+            var runeBtn = new Button
+            {
+                Text = "Rune Page (Tutorial)",
+                AnchorLeft = 0.3f, AnchorRight = 0.7f,
+                AnchorTop = 0.5f, AnchorBottom = 0.6f,
+            };
+            runeBtn.Pressed += () =>
+            {
+                CampaignContext.Tutorial.CurrentStep = TutorialStep.Runes_EquipRune;
+                // Fire StepChanged on the TutorialController
+                var ctrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
+                if (ctrl != null)
+                {
+                    ctrl.Advance();
+                }
+                GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
+            };
+            AddChild(runeBtn);
+        }
     }
 }

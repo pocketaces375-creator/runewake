@@ -57,6 +57,7 @@ public partial class DuelScene : Control
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
     private int _prevBuryCount;
+    private int _prevExcavateCardCount;
 
     public override void _Ready()
     {
@@ -262,6 +263,20 @@ public partial class DuelScene : Control
     // ——— State-driven rendering ———
 
     /// <summary>
+    /// Count cards in a player's hand that have at least one EXCAVATE effect.
+    /// </summary>
+    private static int CountExcavateCards(GameState state, int playerIndex)
+    {
+        if (state == null || state.Players.Length <= playerIndex)
+            return 0;
+        return state.Players[playerIndex].Hand.Count(c =>
+        {
+            var def = CardRegistry.Get(c.CardDefId);
+            return def != null && def.Abilities.Any(a => a.Effects.Any(e => e.Op == Op.EXCAVATE));
+        });
+    }
+
+    /// <summary>
     /// Called whenever the GameState changes. Snapshot old state, render new,
     /// then compute diffs and trigger animations.
     /// </summary>
@@ -273,6 +288,14 @@ public partial class DuelScene : Control
             _cardDetail.Visible = false;
             _cardDetailVisible = false;
         }
+
+        // Get the current state from GSM
+        var state = _gsm.State;
+
+        // Compute excavate card count BEFORE render (hand state before update)
+        int excavateCount = 0;
+        if (state != null && state.Players.Length > 0)
+            excavateCount = CountExcavateCards(state, 0);
 
         // Capture the new state for comparison
         var newEnemyBoard = CaptureBoard(1);
@@ -289,9 +312,27 @@ public partial class DuelScene : Control
             AnimateVigorDiffs();
         }
 
+        // Tutorial auto-advance: Excavate card played (hand lost an excavate card)
+        if (_tutorialCtrl != null && _tutorialCtrl.CurrentStep == TutorialStep.Excavate_PlayExcavate
+            && excavateCount < _prevExcavateCardCount)
+        {
+            _tutorialCtrl.Advance();
+        }
+
+        // Tutorial auto-advance: barrow count increased
+        if (_tutorialCtrl != null && _tutorialCtrl.CurrentStep == TutorialStep.Excavate_BuryResolved
+            && state != null && state.Players.Length > 0
+            && state.Players[0].Barrow.Count > _prevBuryCount)
+        {
+            _tutorialCtrl.Advance();
+        }
+
         // Save for next render
         _prevEnemyBoard = newEnemyBoard;
         _prevPlayerBoard = newPlayerBoard;
+        _prevExcavateCardCount = excavateCount;
+        if (state != null && state.Players.Length > 0)
+            _prevBuryCount = state.Players[0].Barrow.Count;
         _firstRender = false;
     }
 

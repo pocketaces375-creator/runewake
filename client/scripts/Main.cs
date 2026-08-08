@@ -199,6 +199,13 @@ public partial class Main : Control
         // Load Lost Relic definitions
         CampaignContext.LoadLostRelics();
 
+        _statusLabel.Text = "Loading tutorial...";
+
+        // Load tutorial step definitions
+        var tutorialJson = Godot.FileAccess.GetFileAsString("res://content/tutorial/tutorial_steps.json");
+        if (!string.IsNullOrEmpty(tutorialJson))
+            CampaignContext.TutorialSteps = TutorialLoader.LoadStepsFromString(tutorialJson);
+
         _statusLabel.Text = "Loading save data...";
 
         // Initialize save manager — loads saved deck from persistence

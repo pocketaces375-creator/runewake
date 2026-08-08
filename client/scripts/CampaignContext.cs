@@ -47,6 +47,12 @@ public static class CampaignContext
     /// <summary>The current rune page configuration.</summary>
     public static RunePage CurrentRunePage { get; set; } = new();
 
+    /// <summary>Shortcut to the tutorial state from progression.</summary>
+    public static TutorialState? Tutorial => Progression?.Tutorial;
+
+    /// <summary>Loaded tutorial step definitions (from tutorial_steps.json).</summary>
+    public static List<TutorialStepDef> TutorialSteps { get; set; } = new();
+
     /// <summary>
     /// Load all encounter packs from the content directory.
     /// Call once at title screen.

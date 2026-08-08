@@ -317,6 +317,16 @@ public partial class RunePageScene : Control
         {
             RefreshAll();
             ShowFeedback($"Equipped {rune.Name}");
+
+            // Tutorial auto-advance: successfully equipped a rune
+            if (CampaignContext.Tutorial?.CurrentStep == TutorialStep.Runes_EquipRune
+                && !CampaignContext.Tutorial.IsComplete)
+            {
+                var ctrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
+                if (ctrl != null)
+                    ctrl.Advance();
+                CampaignContext.SaveManager.Save();
+            }
         }
         else
         {
