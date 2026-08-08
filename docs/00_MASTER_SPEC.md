@@ -64,6 +64,12 @@ Progression lives in local SQLite, syncing to Supabase when available. This mean
 | `schema/card.schema.json` | Machine-readable card schema. |
 | `schema/example_cards.json` | Six hand-authored reference cards. |
 
+|---|
+
+**P6 — Scenes with dynamic layouts are code-constructed; static scenes stay .tscn.**
+
+Scenes that build their layout at runtime from dynamic data (MapScene, DeckBuilderScene) are constructed entirely in C# via `_Ready()` — no `.tscn` file beyond a root `Control` + script reference. Static or component scenes that never change layout (widget templates, simple overlays) remain `.tscn` files. Reason: `.tscn` anchoring and node path resolution break in exported builds when layouts are constructed from dynamic data, producing different results in-editor vs on-device. Code-constructed layouts eliminate this export-vs-editor divergence entirely. This rule is not negotiable.
+
 ---
 
 ## 5. The core loop

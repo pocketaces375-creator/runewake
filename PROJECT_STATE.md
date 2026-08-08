@@ -1,14 +1,13 @@
 CURRENT PHASE: P7
-LAST COMPLETED TICKET: P7-01 (Onboarding tutorial) — commit 51b6296, 407/407 C# tests, 221/221 Python tests — NOTE: has 3 wiring gaps being closed by P7-01b patch
-IN PROGRESS: P7-01b (Wire Excavate/Barrow and Rune step auto-advance — P7-01 gap closure)
+LAST COMPLETED TICKET: P7-01b (Tutorial gap closure — all 8 steps auto-wired) — commit bb41f5b, 409/409 C# tests
+IN PROGRESS: P7-02 (Supabase account + relic ledger sync)
 
 KNOWN TEST COUNTS (last confirmed):
-  C#: 407/407
+  C#: 409/409
   Python: 221/221
 
 PHASE 7 REMAINING TICKETS:
-  P7-01b — P7-01 gap closure: Excavate/Barrow auto-advance + Rune step wiring (IN PROGRESS)
-  P7-02 — Supabase account + relic ledger sync
+  P7-02 — Supabase account + relic ledger sync (IN PROGRESS)
   P7-03 — Telemetry
   P7-04 — Settings/accessibility
   P7-05 — App Store and Play listings, privacy policy, age rating
@@ -16,7 +15,7 @@ PHASE 7 REMAINING TICKETS:
   P7-07 — Crash reporting
   P7-08 — Launch
 
-CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete.
+CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial (P7-01/P7-01b) complete.
 
 OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking P7.
 
@@ -28,14 +27,9 @@ TECH DEBT:
 OPEN ITEMS:
 [
   {
-    "id": "P7-01b",
-    "title": "P7-01 gap closure: Excavate/Barrow and Rune step auto-advance wiring",
-    "status": "in_progress"
-  },
-  {
     "id": "P7-02",
     "title": "Supabase account + relic ledger sync",
-    "status": "open"
+    "status": "in_progress"
   },
   {
     "id": "P7-03",
