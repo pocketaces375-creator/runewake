@@ -1,0 +1,42 @@
+[
+  {
+    "step": "Lanes_SummonCreature",
+    "highlight": "hand",
+    "message": "Tap a card in your hand, then tap an empty lane to summon a creature."
+  },
+  {
+    "step": "Lanes_Attack",
+    "highlight": "lane",
+    "message": "Tap your creature, then tap the enemy lane to attack."
+  },
+  {
+    "step": "Lanes_EndTurn",
+    "highlight": "endturn",
+    "message": "Tap End Turn to pass."
+  },
+  {
+    "step": "Excavate_PlayExcavate",
+    "highlight": "hand",
+    "message": "This card has Excavate — play it to look at the top of your deck."
+  },
+  {
+    "step": "Excavate_BuryResolved",
+    "highlight": "barrow",
+    "message": "Cards you don't take are Buried. Your Barrow count grows."
+  },
+  {
+    "step": "Runes_OpenRunePage",
+    "highlight": "runebtn",
+    "message": "Before a duel, open your Rune Page to equip runes that change how you play."
+  },
+  {
+    "step": "Runes_EquipRune",
+    "highlight": "runeslot",
+    "message": "Equip a rune into an empty slot. Runes are earned from excavation, never purchased."
+  },
+  {
+    "step": "Complete",
+    "highlight": "none",
+    "message": "You know enough to begin. Good luck, Delver."
+  }
+]

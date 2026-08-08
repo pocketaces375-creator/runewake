@@ -51,6 +51,9 @@ public class ProgressionState
     /// <summary>Whether the player has completed the first-run tutorial/intro duel.</summary>
     public bool HasCompletedTutorial { get; set; }
 
+    /// <summary>Tutorial state (null for existing saves — treated as None).</summary>
+    public TutorialState? Tutorial { get; set; }
+
     /// <summary>Add shards (positive) or spend (negative). Returns false if insufficient.</summary>
     public bool SpendShards(int amount)
     {

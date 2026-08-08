@@ -257,6 +257,14 @@ public partial class Main : Control
         _startButton.Disabled = false;
         _runeButton.Disabled = false;
         _forgeButton.Disabled = false;
+
+        // Check if tutorial should run
+        var tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
+        if (tutorialCtrl != null && tutorialCtrl.ShouldRunTutorial())
+        {
+            GD.Print("[Main] Tutorial needed — routing to tutorial.");
+            tutorialCtrl.StartTutorial();
+        }
     }
 
     private void OnStartCampaign()

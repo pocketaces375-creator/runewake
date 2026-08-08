@@ -16,6 +16,10 @@ run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
 
+[autoload]
+
+TutorialController="*res://scripts/TutorialController.cs"
+
 [display]
 
 window/stretch/mode="canvas_items"

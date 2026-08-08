@@ -157,6 +157,17 @@ public sealed class SaveRepository
                     case "shards": state.Shards = int.Parse(value); break;
                     case "dig_charges": state.DigCharges = int.Parse(value); break;
                     case "tutorial_done": state.HasCompletedTutorial = value == "1"; break;
+                    case "tutorial_step":
+                        if (Enum.TryParse<TutorialStep>(value, out var ts))
+                        {
+                            state.Tutorial ??= new TutorialState();
+                            state.Tutorial.CurrentStep = ts;
+                        }
+                        break;
+                    case "tutorial_complete":
+                        if (state.Tutorial != null)
+                            state.Tutorial.IsComplete = value == "1";
+                        break;
                     case "global_discovery_index": state.GlobalDiscoveryIndex = int.Parse(value); break;
                 }
             }
@@ -231,7 +242,13 @@ public sealed class SaveRepository
         }
 
         // Version not present (fresh DB or pre-versioning save) → normalize to current
-        if (state.Version == 0) state.Version = CurrentSchemaVersion;
+        if (state.Version == 0)
+        {
+            state.Version = CurrentSchemaVersion;
+            // Fresh save — start tutorial
+            if (state.Tutorial == null)
+                state.Tutorial = new TutorialState { CurrentStep = TutorialStep.Lanes_SummonCreature };
+        }
 
         var validity = ValidateVersion(state.Version);
         if (!validity.ok)
@@ -250,6 +267,8 @@ public sealed class SaveRepository
             InsertMeta(conn, "shards", state.Shards.ToString());
             InsertMeta(conn, "dig_charges", state.DigCharges.ToString());
             InsertMeta(conn, "tutorial_done", state.HasCompletedTutorial ? "1" : "0");
+            InsertMeta(conn, "tutorial_step", state.Tutorial?.CurrentStep.ToString() ?? "");
+            InsertMeta(conn, "tutorial_complete", state.Tutorial?.IsComplete == true ? "1" : "0");
             InsertMeta(conn, "global_discovery_index", state.GlobalDiscoveryIndex.ToString());
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }

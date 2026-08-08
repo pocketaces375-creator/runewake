@@ -55,6 +55,8 @@ public partial class DuelScene : Control
 
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
+    private TutorialController? _tutorialCtrl;
+    private int _prevBuryCount;
 
     public override void _Ready()
     {
@@ -130,7 +132,18 @@ public partial class DuelScene : Control
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
 
-        if (_isCampaignEncounter && encounter != null)
+        // Check for tutorial override
+        var tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
+        var tutorialConfig = tutorialCtrl?.GetCurrentTutorialConfig();
+        if (tutorialConfig != null)
+        {
+            _isCampaignEncounter = false;
+            GD.Print("[DuelScene] Tutorial duel — using tutorial config.");
+            _gsm.Initialize(tutorialConfig);
+            // Suspend bot during tutorial duels — player doesn't face an opponent
+            _bot.Suspend();
+        }
+        else if (_isCampaignEncounter && encounter != null)
         {
             // Campaign mode: enemy uses encounter deck, player uses saved deck
             _enemyName.Text = encounter.Name;
@@ -147,6 +160,26 @@ public partial class DuelScene : Control
         else
         {
             _gsm.InitializeTestGame();
+        }
+
+        // Initialize tutorial controller if this is a tutorial duel
+        _tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
+        {
+            var step = _tutorialCtrl.CurrentStep;
+            bool isTutorialDuel = step == Engine.State.TutorialStep.Lanes_SummonCreature
+                || step == Engine.State.TutorialStep.Lanes_Attack
+                || step == Engine.State.TutorialStep.Lanes_EndTurn
+                || step == Engine.State.TutorialStep.Excavate_PlayExcavate
+                || step == Engine.State.TutorialStep.Excavate_BuryResolved;
+
+            if (isTutorialDuel)
+            {
+                // Add tutorial overlay
+                var overlay = new TutorialOverlay();
+                AddChild(overlay);
+                GD.Print($"[DuelScene] Tutorial duel active, step={step}");
+            }
         }
 
         // Position card detail centered using CallDeferred (direct SetPosition post-tree-attach)
@@ -582,6 +615,12 @@ public partial class DuelScene : Control
             ShowToast(result.ErrorMessage ?? "Cannot play that card.",
                 new Color(1, 0.7f, 0.2f));
         }
+        else
+        {
+            // Advance tutorial if waiting for summon
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
+                _tutorialCtrl.Advance();
+        }
     }
 
     private void OnAttackRequested(int attackerLane, int targetLane)
@@ -591,6 +630,12 @@ public partial class DuelScene : Control
         {
             ShowToast(result.ErrorMessage ?? "Cannot attack.",
                 new Color(1, 0.3f, 0.3f));
+        }
+        else
+        {
+            // Advance tutorial if waiting for attack
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
+                _tutorialCtrl.Advance();
         }
     }
 
@@ -666,7 +711,14 @@ public partial class DuelScene : Control
         var result = _gsm.TryEndTurn();
         if (!result.Success)
         {
-            ShowToast(result.ErrorMessage ?? "Cannot end turn.", new Color(1, 0.7f, 0.2f));
+            ShowToast(result.ErrorMessage ?? "Cannot end turn.",
+                new Color(1, 0.3f, 0.3f));
+        }
+        else
+        {
+            // Advance tutorial if waiting for end turn
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_EndTurn)
+                _tutorialCtrl.Advance();
         }
     }
 
