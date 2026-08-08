@@ -79,7 +79,7 @@ public partial class TelemetryService : Node
 
             var body = System.Text.Json.JsonSerializer.Serialize(rows);
             var url = $"{_config!.Url}/rest/v1/telemetry_events";
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
             var req = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(body, Encoding.UTF8, "application/json")

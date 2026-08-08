@@ -54,7 +54,7 @@ public partial class SettingsScene : Control
         AddChild(vbox);
 
         // ——— Volume section ———
-        var volHeader = new Label { Text = "Volume", AddThemeFontSizeOverride = { } };
+        var volHeader = new Label { Text = "Volume" };
         volHeader.AddThemeFontSizeOverride("font_size", 18);
         vbox.AddChild(volHeader);
 
@@ -102,7 +102,7 @@ public partial class SettingsScene : Control
         btnHbox.AddChild(backBtn);
     }
 
-    private static void AddSlider(VBoxContainer parent, string label, out HSlider slider, Action handler)
+    private static void AddSlider(VBoxContainer parent, string label, out HSlider slider, Action<double> handler)
     {
         var hbox = new HBoxContainer();
         var lbl = new Label { Text = label, CustomMinimumSize = new Vector2(140, 0) };
@@ -113,7 +113,7 @@ public partial class SettingsScene : Control
             MinValue = 0, MaxValue = 1.0, Step = 0.05f,
             SizeFlagsHorizontal = (Control.SizeFlags)3
         };
-        slider.ValueChanged += handler;
+        slider.ValueChanged += v => handler(v);
         hbox.AddChild(slider);
 
         var valLabel = new Label { Text = "1.00", CustomMinimumSize = new Vector2(40, 0) };
@@ -172,14 +172,14 @@ public partial class SettingsScene : Control
         // Apply volume levels to Godot audio buses
         int masterIdx = AudioServer.GetBusIndex("Master");
         if (masterIdx >= 0)
-            AudioServer.SetBusVolumeDb(masterIdx, GD.LinearToDb(s.MasterVolume));
+            AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
 
         int musicIdx = AudioServer.GetBusIndex("Music");
         if (musicIdx >= 0)
-            AudioServer.SetBusVolumeDb(musicIdx, GD.LinearToDb(s.MusicVolume));
+            AudioServer.SetBusVolumeDb(musicIdx, Mathf.LinearToDb(s.MusicVolume));
 
         int sfxIdx = AudioServer.GetBusIndex("SFX");
         if (sfxIdx >= 0)
-            AudioServer.SetBusVolumeDb(sfxIdx, GD.LinearToDb(s.SfxVolume));
+            AudioServer.SetBusVolumeDb(sfxIdx, Mathf.LinearToDb(s.SfxVolume));
     }
 }

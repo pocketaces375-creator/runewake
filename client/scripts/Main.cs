@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
@@ -20,39 +19,10 @@ public partial class Main : Control
     private Label _statusLabel = default!;
     private bool _loading;
 
-    /// <summary>
-    /// Path to the crash log file under user://data/
-    /// </summary>
-    private static readonly string CrashLogPath = "user://data/crash_log.txt";
-
-    /// <summary>
-    /// Install global C# exception handlers so no client error goes silently invisible.
-    /// Catches unhandled exceptions, routes to GD.PrintErr (editor visible), and
-    /// writes a crash log file to user://data/crash_log.txt (retrievable from device).
-    /// </summary>
-    private static void InstallExceptionLogger()
-    {
-        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
-        {
-            var ex = args.ExceptionObject as Exception;
-            string msg = $"[FATAL] Unhandled exception (terminating={args.IsTerminating}): {ex}";
-            GD.PrintErr(msg);
-            try
-            {
-                string path = ProjectSettings.GlobalizePath(CrashLogPath);
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                File.AppendAllText(path, $"{System.DateTime.UtcNow:O}\n{msg}\n---\n");
-            }
-            catch
-            {
-                // Can't log — nothing we can do
-            }
-        };
-    }
-
     public override void _Ready()
     {
-        InstallExceptionLogger();
+        // Install crash reporter before any scene code runs
+        CrashReporter.Install();
         // Title label
         var title = new Label
         {
@@ -335,15 +305,15 @@ public partial class Main : Control
     {
         int masterIdx = AudioServer.GetBusIndex("Master");
         if (masterIdx >= 0)
-            AudioServer.SetBusVolumeDb(masterIdx, GD.LinearToDb(s.MasterVolume));
+            AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
 
         int musicIdx = AudioServer.GetBusIndex("Music");
         if (musicIdx >= 0)
-            AudioServer.SetBusVolumeDb(musicIdx, GD.LinearToDb(s.MusicVolume));
+            AudioServer.SetBusVolumeDb(musicIdx, Mathf.LinearToDb(s.MusicVolume));
 
         int sfxIdx = AudioServer.GetBusIndex("SFX");
         if (sfxIdx >= 0)
-            AudioServer.SetBusVolumeDb(sfxIdx, GD.LinearToDb(s.SfxVolume));
+            AudioServer.SetBusVolumeDb(sfxIdx, Mathf.LinearToDb(s.SfxVolume));
     }
 
     private void OnOpenRunePage()

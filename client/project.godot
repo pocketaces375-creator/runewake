@@ -12,6 +12,7 @@ config_version=5
 
 config/name="Runewake"
 config/description="RUNEWAKE: The Buried Age — a fantasy TCG"
+config/version="0.1.0"
 run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
@@ -19,6 +20,10 @@ config/icon="res://icon.svg"
 [autoload]
 
 TutorialController="*res://scripts/TutorialController.cs"
+
+[crash_reporter]
+
+endpoint=""
 
 [display]
 
