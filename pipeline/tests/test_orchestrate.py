@@ -15,6 +15,7 @@ from modules.orchestrate import (
     StageRunner,
     build_report,
     _validate_report,
+    _merge_card_defs,
     STAGE_ORDER,
     STAGE_FILES,
     main,
@@ -64,7 +65,7 @@ class TestValidateReport:
     def test_valid_report_passes(self):
         """Valid monotonic counts should not raise."""
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 55,
             "scored_count": 40,
             "simulated_count": 40,
@@ -76,7 +77,7 @@ class TestValidateReport:
 
     def test_valid_count_exceeds_seed(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 70,
             "scored_count": 40,
             "simulated_count": 40,
@@ -84,12 +85,12 @@ class TestValidateReport:
             "approved_count": 35,
             "reject_count": 25,
         }
-        with pytest.raises(ValueError, match="valid_count.*>.*seed_count"):
+        with pytest.raises(ValueError, match="valid_count.*>.*seeded_count"):
             _validate_report(report)
 
     def test_scored_exceeds_valid(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 40,
             "scored_count": 50,
             "simulated_count": 50,
@@ -102,7 +103,7 @@ class TestValidateReport:
 
     def test_simulated_exceeds_scored(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 40,
             "scored_count": 30,
             "simulated_count": 35,
@@ -115,7 +116,7 @@ class TestValidateReport:
 
     def test_dedupe_exceeds_simulated(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 40,
             "scored_count": 30,
             "simulated_count": 30,
@@ -128,7 +129,7 @@ class TestValidateReport:
 
     def test_approved_exceeds_dedupe(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 40,
             "scored_count": 30,
             "simulated_count": 30,
@@ -141,7 +142,7 @@ class TestValidateReport:
 
     def test_reject_negative(self):
         report = {
-            "seed_count": 60,
+            "seeded_count": 60,
             "valid_count": 55,
             "scored_count": 40,
             "simulated_count": 40,
@@ -162,7 +163,7 @@ class TestStageRunner:
         runner = StageRunner(mock_work_dir, mock_seed, skip_api=True)
         assert STAGE_ORDER == [
             "generate", "validate", "score", "simulate",
-            "dedupe", "moderate", "art", "publish",
+            "dedupe", "moderate", "merge", "art", "publish",
         ]
 
     def test_failure_halts_pipeline(self, mock_work_dir, mock_seed):
@@ -201,7 +202,7 @@ class TestBuildReport:
         report = build_report(mock_work_dir, runner)
 
         expected_keys = [
-            "batch_id", "seed_count", "valid_count", "scored_count",
+            "batch_id", "seeded_count", "valid_count", "scored_count",
             "simulated_count", "dedupe_count", "approved_count",
             "reject_count", "cost_usd", "duration_seconds",
             "stages_run", "failed_stage",
@@ -210,7 +211,7 @@ class TestBuildReport:
             assert key in report, f"Missing report key: {key}"
 
         assert report["batch_id"] == "b_test_orchestrate"
-        assert report["seed_count"] == 10
+        assert report["seeded_count"] == 10
 
     def test_empty_work_dir(self, mock_work_dir, mock_seed):
         runner = StageRunner(mock_work_dir, mock_seed)
@@ -245,7 +246,7 @@ class TestBuildReport:
         runner = StageRunner(mock_work_dir, mock_seed, skip_api=True)
         report = build_report(mock_work_dir, runner)
 
-        assert report["valid_count"] <= report["seed_count"]
+        assert report["valid_count"] <= report["seeded_count"]
         assert report["scored_count"] <= report["valid_count"]
         assert report["simulated_count"] <= report["scored_count"]
         assert report["dedupe_count"] <= report["simulated_count"]
@@ -289,7 +290,14 @@ class TestMainIntegration:
 
             if found:
                 out_file = STAGE_FILES.get(found)
-                if out_file:
+                if found == "publish":
+                    out_path = mock_work_dir / out_file
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    out_path.write_text(json.dumps({
+                        "version": 1, "hash": "abc123",
+                        "cards": [{"id": "publish_card"}]
+                    }))
+                elif out_file:
                     out_path = mock_work_dir / out_file
                     out_path.parent.mkdir(parents=True, exist_ok=True)
                     out_path.write_text(json.dumps([{"id": f"{found}_card"}]))
@@ -314,7 +322,7 @@ class TestMainIntegration:
         report = json.loads(report_path.read_text())
 
         expected_keys = [
-            "batch_id", "seed_count", "valid_count", "scored_count",
+            "batch_id", "seeded_count", "valid_count", "scored_count",
             "simulated_count", "dedupe_count", "approved_count",
             "reject_count", "cost_usd",
         ]
@@ -322,7 +330,7 @@ class TestMainIntegration:
             assert key in report, f"Missing key in report.json: {key}"
 
         assert report["batch_id"] == "b_test_orchestrate"
-        assert report["seed_count"] == 10
+        assert report["seeded_count"] == 10
 
     def test_failure_exit_code(self, mock_work_dir, mock_seed, tmp_path):
         seed_path = tmp_path / "seed.json"
@@ -376,3 +384,134 @@ def test_validate_report_with_monotonic_violation(mock_seed, mock_work_dir):
 
     with pytest.raises(ValueError, match="dedupe_count.*>.*simulated_count"):
         _validate_report(report)
+
+
+# ── Schema continuity tests (P6-11) ──────────────────────────────────────────
+
+
+class TestSchemaContinuity:
+    """Stage-schema continuity: merge CardDef back into dedupe output."""
+
+    def test_merge_card_defs_attaches_full_carddef(self, tmp_path):
+        """Merge should attach full CardDef fields and simulation/dedupe metadata."""
+        td = tmp_path / "work"
+        td.mkdir()
+        (td / "02_valid.json").write_text(json.dumps([
+            {"id": "a", "name": "Arcane Bolt", "strata": "EMBER",
+             "cost": 3, "type": "RITUAL", "rarity": "COMMON",
+             "art": {"prompt": "a bolt of fire"}},
+            {"id": "b", "name": "Fire Wall", "strata": "EMBER",
+             "cost": 4, "type": "RITUAL", "rarity": "UNCOMMON",
+             "art": {"prompt": "a wall of fire"}},
+        ]))
+        (td / "05_deduplicated.json").write_text(json.dumps([
+            {"card_id": "a", "avg_delta": 1.2, "flags": [], "matchup_results": {}},
+            {"card_id": "b", "avg_delta": -0.5, "flags": ["weak"]},
+        ]))
+
+        _merge_card_defs(td)
+
+        merged = json.loads((td / "05_deduplicated.json").read_text())
+        assert len(merged) == 2
+
+        # First card: full CardDef preserved
+        assert merged[0]["name"] == "Arcane Bolt"
+        assert merged[0]["strata"] == "EMBER"
+        assert merged[0]["cost"] == 3
+        assert merged[0]["art"]["prompt"] == "a bolt of fire"
+
+        # Simulation metadata attached
+        assert merged[0]["simulation"]["avg_delta"] == 1.2
+        assert merged[0]["simulation"]["flags"] == []
+
+        # Dedupe metadata attached
+        assert merged[0]["dedupe"]["passed"] is True
+
+        # Second card
+        assert merged[1]["name"] == "Fire Wall"
+        assert merged[1]["simulation"]["avg_delta"] == -0.5
+        assert merged[1]["simulation"]["flags"] == ["weak"]
+        assert merged[1]["dedupe"]["passed"] is True
+
+    def test_merge_card_defs_unknown_id_passes_through(self, tmp_path):
+        """Cards with IDs not in 02_valid.json should pass through unchanged."""
+        td = tmp_path / "work"
+        td.mkdir()
+        (td / "02_valid.json").write_text(json.dumps([
+            {"id": "a", "name": "Known Card", "strata": "EMBER"},
+        ]))
+        (td / "05_deduplicated.json").write_text(json.dumps([
+            {"card_id": "unknown_01", "avg_delta": 0.5},
+            {"card_id": "a", "avg_delta": 1.0},
+        ]))
+
+        _merge_card_defs(td)
+
+        merged = json.loads((td / "05_deduplicated.json").read_text())
+        assert len(merged) == 2
+        # Unknown card passes through untouched
+        assert merged[0] == {"card_id": "unknown_01", "avg_delta": 0.5}
+        # Known card gets merged
+        assert merged[1]["name"] == "Known Card"
+        assert merged[1]["simulation"]["avg_delta"] == 1.0
+
+    def test_merge_card_defs_missing_files_is_noop(self, tmp_path):
+        """Calling _merge_card_defs with no valid files should not raise."""
+        td = tmp_path / "work"
+        td.mkdir()
+        # No files exist at all
+        _merge_card_defs(td)  # should not raise
+
+        # Only one file exists
+        (td / "02_valid.json").write_text(json.dumps([{"id": "a"}]))
+        _merge_card_defs(td)  # should not raise, other file missing
+
+        # Now with both files but one is invalid JSON
+        (td / "05_deduplicated.json").write_text("not json")
+        _merge_card_defs(td)  # should not raise
+
+    def test_validate_report_passes_with_pack_fields(self):
+        """Report with valid pack_version and pack_hash should pass."""
+        report = {
+            "seeded_count": 60,
+            "valid_count": 55,
+            "scored_count": 40,
+            "simulated_count": 40,
+            "dedupe_count": 38,
+            "approved_count": 35,
+            "reject_count": 25,
+            "cost_usd": 0.50,
+            "pack_version": 2,
+            "pack_hash": "a" * 64,
+        }
+        _validate_report(report)  # should not raise
+
+    def test_validate_report_fails_bad_pack_hash(self):
+        """Non-hex pack_hash should raise ValueError."""
+        report = {
+            "seeded_count": 60,
+            "valid_count": 55,
+            "scored_count": 40,
+            "simulated_count": 40,
+            "dedupe_count": 38,
+            "approved_count": 35,
+            "reject_count": 25,
+            "pack_hash": "not_a_valid_hex_string",
+        }
+        with pytest.raises(ValueError, match="pack_hash"):
+            _validate_report(report)
+
+    def test_validate_report_fails_pack_version_zero(self):
+        """pack_version=0 should raise ValueError."""
+        report = {
+            "seeded_count": 60,
+            "valid_count": 55,
+            "scored_count": 40,
+            "simulated_count": 40,
+            "dedupe_count": 38,
+            "approved_count": 35,
+            "reject_count": 25,
+            "pack_version": 0,
+        }
+        with pytest.raises(ValueError, match="pack_version"):
+            _validate_report(report)
