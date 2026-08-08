@@ -8,7 +8,7 @@ KNOWN TEST COUNTS (last confirmed):
   Python: 221/221
 
 PHASE 7 REMAINING TICKETS:
-  P7-07 — Crash reporting (IN PROGRESS — code ticket)
+  P7-07 — Crash reporting (IN PROGRESS — started this session)
   P7-06 — TestFlight/closed beta with 50+ players (human-action ticket, after P7-07)
   P7-08 — Launch
 
