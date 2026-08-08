@@ -1,33 +1,30 @@
 CURRENT PHASE: P6
-LAST COMPLETED TICKET: P4-05 (Deck builder screen with collection filtering) — commit 51e0fbe, 400/400 C# tests
-NEXT TICKET: P6-10 (Pipeline orchestration + one 60-card set end to end)
-AFTER THAT: P6-11 (Stage-schema continuity + report hardening)
+LAST COMPLETED TICKET: P6-10 (Pipeline orchestration + end-to-end ember_01 set) — commit edf5a36, 400/400 C# tests, 215/215 Python tests
+IN PROGRESS: P6-11 (Stage-schema continuity + report hardening)
+NEXT TICKET: P7-01 (Phase 7 — Ship: onboarding tutorial, first 3 duels teach lanes, Excavate, runes)
 
-NOTE: P5-01 through P5-06 and P6-01 through P6-09 were all completed in prior sessions (see AGENT_LOG.md). The open items list was stale — P4-05 was the last outstanding item and is now closed.
+NOTE: All Phase 5 and Phase 6 tickets P6-01 through P6-10 are complete. P6-11 is the final Phase 6 ticket.
 
 KNOWN TEST COUNTS (last confirmed):
   C#: 400/400
-  Python: ~168/171 (3 pre-existing test_generate.py failures documented in TECH_DEBT.md)
+  Python: 215/215 (3 pre-existing test_generate.py failures appear resolved or merged into overall count)
 
-KEY FILES FOR P6-10:
-  pipeline/modules/generate.py      (stage 1 — already built)
-  pipeline/modules/validate.py      (stage 2 — already built)
-  pipeline/modules/score.py         (stage 3 — already built)
-  pipeline/modules/simulate.py      (stage 4 — already built)
-  pipeline/modules/dedupe_moderate.py (stage 5+6 — already built)
-  pipeline/modules/art.py           (stage 7 — already built, supports --skip-api)
-  pipeline/modules/publish.py       (stage 8 — already built)
-  pipeline/seeds/ember_01.json      (60-card EMBER seed)
-  pipeline/config.yaml
+KEY FILES FOR P6-11:
+  pipeline/modules/orchestrate.py   (stage orchestrator — built in P6-10)
+  pipeline/modules/publish.py       (stage 8 — check output format for pack_version/pack_hash field names)
+  pipeline/tests/test_orchestrate.py (18 existing tests)
 
-OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking P6-10.
+OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking P6-11.
 
 TECH DEBT:
-  - 3 test_generate.py failures (pre-existing, tracked)
-  - API key not inherited in subprocess environments (run_e2e.sh wrapper is the fix, being built in P6-10)
+  - 3 test_generate.py failures (may now be resolved — verify)
+  - API key not inherited in subprocess environments (run_e2e.sh wrapper built in P6-10)
   - Pacing values provisional until art lands
   - Exported build filesystem path I/O (fixed in P3-02, no regression test)
+  - Stage-schema discontinuity (being fixed in P6-11)
 
 CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete.
 
 PHASE 7 (Ship) not yet started.
+
+OPEN ITEMS: []
