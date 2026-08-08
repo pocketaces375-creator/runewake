@@ -134,16 +134,13 @@ class StageRunner:
     def _stage_input(self, stage: str) -> Path:
         """Determine the input file for a given stage."""
         if stage == "generate":
-            # Generate reads from seed file directly
-            return Path("__seed__")  # special marker
+            return Path("__seed__")
         if stage in DEDUPE_MODERATE_INPUTS:
             return self.work_dir / DEDUPE_MODERATE_INPUTS[stage]
-        # Default: previous stage's output
         idx = STAGE_ORDER.index(stage)
         if idx == 0:
             return Path("__seed__")
         prev_stage = STAGE_ORDER[idx - 1]
-        # For dedupe and moderate, use the mapped input
         if stage in DEDUPE_MODERATE_INPUTS:
             return self.work_dir / DEDUPE_MODERATE_INPUTS[stage]
         prev_file = STAGE_FILES.get(prev_stage)
@@ -153,7 +150,6 @@ class StageRunner:
         """Build CLI arguments for a stage module."""
         cmd = [sys.executable, "-m", STAGE_MODULES[stage]]
         if stage == "generate":
-            # Write seed to a temp file for the generate module
             seed_path = self.work_dir / "_seed.json"
             self.work_dir.mkdir(parents=True, exist_ok=True)
             with open(seed_path, "w") as f:
@@ -184,7 +180,6 @@ class StageRunner:
                 "--work-dir", str(self.work_dir),
             ])
         elif stage == "moderate":
-            # moderate uses the same module as dedupe but operates on deduped output
             cmd.extend([
                 "--input", str(self.work_dir / "05_deduplicated.json"),
                 "--work-dir", str(self.work_dir),
@@ -218,7 +213,6 @@ class StageRunner:
         elapsed = time.monotonic() - start
         self.timing[stage] = elapsed
 
-        # Print stdout (up to 50 lines)
         stdout_lines = result.stdout.strip().splitlines()
         for line in stdout_lines[-50:]:
             print(f"  {line}")
@@ -290,7 +284,7 @@ def build_report(work_dir: Path, runner: StageRunner) -> dict:
         "dedupe_count": _load_cards(work_dir / "05_deduplicated.json"),
         "approved_count": _load_cards(work_dir / "06_art.json"),
         "reject_count": _load_rejects(work_dir),
-        "cost_usd": 0.0,  # estimated from API usage, 0 for dry-run
+        "cost_usd": 0.0,
         "duration_seconds": runner.timing.get("total", sum(runner.timing.values())),
         "stages_run": list(runner.timing.keys()),
         "failed_stage": runner.failed_stage,

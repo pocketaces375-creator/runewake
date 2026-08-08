@@ -6,7 +6,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELINE_DIR="$SCRIPT_DIR"
 
-# Source environment for OPENROUTER_API_KEY
 if [ -f "$HOME/.hermes/.env" ]; then
     set -a
     source "$HOME/.hermes/.env"
@@ -20,7 +19,6 @@ fi
 
 export OPENROUTER_API_KEY
 
-# Generate a batch ID with timestamp
 BATCH_ID="b_e2e_$(date +%Y%m%d_%H%M%S)"
 WORK_DIR="$PIPELINE_DIR/work/$BATCH_ID"
 
