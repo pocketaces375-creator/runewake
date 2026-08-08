@@ -1,30 +1,37 @@
 #!/usr/bin/env bash
-# Pipeline runner that sources the Hermes .env for API keys,
-# then delegates to the Python orchestrator.
-# Usage: bash pipeline/run_e2e.sh [--stratum EMBER] [--count 60] [--skip-art]
-#   Must be run from the runewake project root.
+# P6-10: Run full pipeline end-to-end for the ember_01 seed.
+# Sources the Hermes .env for OPENROUTER_API_KEY.
+set -euo pipefail
 
-set -e
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$SCRIPT_DIR"
 
-# Source the Hermes environment file for API keys
-ENV_FILE="$HOME/.hermes/.env"
-if [ -f "$ENV_FILE" ]; then
-    # shellcheck disable=SC1090
-    source "$ENV_FILE"
-    echo "[run_e2e] Sourced API keys from $ENV_FILE" >&2
-else
-    echo "[run_e2e] WARNING: $ENV_FILE not found — API calls will fail" >&2
+# Source environment for OPENROUTER_API_KEY
+if [ -f "$HOME/.hermes/.env" ]; then
+    set -a
+    source "$HOME/.hermes/.env"
+    set +a
+fi
+
+if [ -z "${OPENROUTER_API_KEY:-}" ]; then
+    echo "ERROR: OPENROUTER_API_KEY is not set. Source your .env or export it."
+    exit 1
 fi
 
 export OPENROUTER_API_KEY
 
-# Ensure the C# Sim binary is built
-if [ ! -f "$PROJECT_ROOT/sim/bin/Debug/net8.0/Runewake.Sim" ]; then
-    echo "[run_e2e] Building C# Sim..." >&2
-    dotnet build "$PROJECT_ROOT/sim/Runewake.Sim.csproj" -q
-fi
+# Generate a batch ID with timestamp
+BATCH_ID="b_e2e_$(date +%Y%m%d_%H%M%S)"
+WORK_DIR="$PIPELINE_DIR/work/$BATCH_ID"
 
-# Run the orchestrator from the pipeline directory
-cd "$PROJECT_ROOT/pipeline"
-PYTHONPATH=. python -m orchestrator "$@"
+echo "[run_e2e] Starting pipeline for ember_01 seed"
+echo "[run_e2e] Batch:     $BATCH_ID"
+echo "[run_e2e] Work dir:  $WORK_DIR"
+echo "[run_e2e] API key:   ${OPENROUTER_API_KEY:0:8}..."
+
+mkdir -p "$WORK_DIR"
+
+exec python -m modules.orchestrate \
+    --seed "$PIPELINE_DIR/seeds/ember_01.json" \
+    --work-dir "$WORK_DIR" \
+    "$@"

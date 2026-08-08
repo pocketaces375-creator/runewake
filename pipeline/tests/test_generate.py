@@ -57,7 +57,7 @@ def test_build_prompt_contains_seed_fields():
     names = load_existing_names("EMBER")
     prompt = build_prompt(seed, examples, names)
 
-    assert "batch_id" in prompt
+    assert "Batch:" in prompt
     assert "b_test_01" in prompt
     assert "EMBER" in prompt
     assert "Test theme" in prompt
@@ -257,7 +257,7 @@ def test_main_rejects_wrong_strata(mock_call_llm):
         loaded = json.loads(raw_file.read_text())
         assert len(loaded) == 0, "No cards should be accepted"
         rej_files = list((work_dir / "output" / "rejects").glob("*.json"))
-        assert len(rej_files) == 1
+        assert len(rej_files) == 2, f"Expected 2 rejects (retry), got {len(rej_files)}"
 
 
 @patch("modules.generate.call_llm")
@@ -373,6 +373,6 @@ def test_system_rules_contains_closed_vocabulary():
 def test_system_rules_contains_constraints():
     """System rules should document all hard constraints."""
     assert "Max 2 abilities" in SYSTEM_RULES
-    assert "Creature cards MUST have attack and vigor" in SYSTEM_RULES
+    assert "CREATURE cards MUST have attack and vigor fields" in SYSTEM_RULES
     assert "RELIC type cards may have identify_condition" in SYSTEM_RULES
     assert "Costs: 0-10" in SYSTEM_RULES
