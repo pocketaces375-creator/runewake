@@ -1,21 +1,19 @@
 CURRENT PHASE: P7
-LAST COMPLETED TICKET: P7-01b (Tutorial gap closure — all 8 steps auto-wired) — commit bb41f5b, 409/409 C# tests
-IN PROGRESS: P7-02 (Supabase account + relic ledger sync)
+LAST COMPLETED TICKET: P7-02 (Supabase relic ledger sync) — commit 9eb0f4d, 431/431 C# tests
+IN PROGRESS: P7-03/P7-04 (Telemetry + settings/accessibility)
 
 KNOWN TEST COUNTS (last confirmed):
-  C#: 409/409
+  C#: 431/431
   Python: 221/221
 
 PHASE 7 REMAINING TICKETS:
-  P7-02 — Supabase account + relic ledger sync (IN PROGRESS)
-  P7-03 — Telemetry
-  P7-04 — Settings/accessibility
+  P7-03/P7-04 — Telemetry + settings/accessibility (IN PROGRESS)
   P7-05 — App Store and Play listings, privacy policy, age rating
   P7-06 — TestFlight/closed beta with 50+ players
   P7-07 — Crash reporting
   P7-08 — Launch
 
-CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial (P7-01/P7-01b) complete.
+CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete.
 
 OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking P7.
 
@@ -27,19 +25,9 @@ TECH DEBT:
 OPEN ITEMS:
 [
   {
-    "id": "P7-02",
-    "title": "Supabase account + relic ledger sync",
+    "id": "P7-03-04",
+    "title": "Telemetry + settings/accessibility",
     "status": "in_progress"
-  },
-  {
-    "id": "P7-03",
-    "title": "Telemetry",
-    "status": "open"
-  },
-  {
-    "id": "P7-04",
-    "title": "Settings/accessibility",
-    "status": "open"
   },
   {
     "id": "P7-05",
