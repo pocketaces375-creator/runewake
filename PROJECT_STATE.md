@@ -1,6 +1,7 @@
+CURRENT STATE:
 CURRENT PHASE: P7
 LAST COMPLETED TICKET: P7-05 (Store listings, privacy policy, age rating) — commit d426cda, 443/443 C# tests
-IN PROGRESS: P7-07 (Crash reporting — sequenced before P7-06 beta which is human-action)
+IN PROGRESS: P7-07 (Crash reporting)
 
 KNOWN TEST COUNTS (last confirmed):
   C#: 443/443

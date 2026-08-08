@@ -72,3 +72,20 @@ create table if not exists telemetry_events (
   occurred_at   timestamptz not null,
   props         jsonb
 );
+
+-- ===================================================================
+-- Crash reports
+-- Operational data, not personal. No RLS — used for debugging.
+-- ===================================================================
+create table if not exists crash_reports (
+  report_id     uuid primary key,
+  account_id    uuid,
+  occurred_at   timestamptz not null,
+  app_version   text not null,
+  platform      text not null,
+  exception_type text not null,
+  message       text not null,
+  stack_trace   text not null,
+  game_phase    text not null,
+  context       jsonb
+);
