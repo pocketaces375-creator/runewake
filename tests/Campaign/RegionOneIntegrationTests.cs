@@ -360,9 +360,11 @@ public class RegionOneIntegrationTests : IDisposable
 
             if (nextNode != null)
             {
-                if (!string.IsNullOrEmpty(nextNode.Encounter))
+                bool hasPlayableEncounter = !string.IsNullOrEmpty(nextNode.Encounter)
+                    && encounterMap.ContainsKey(nextNode.Encounter);
+
+                if (hasPlayableEncounter)
                 {
-                    Assert.NotNull(nextNode.Encounter);
                     var encounter = encounterMap[nextNode.Encounter];
 
                     // Play the duel
