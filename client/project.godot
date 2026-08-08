@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 TutorialController="*res://scripts/TutorialController.cs"
+CrashReporter="*res://scripts/CrashReporter.cs"
 
 [crash_reporter]
 

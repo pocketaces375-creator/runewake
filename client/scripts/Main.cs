@@ -21,8 +21,6 @@ public partial class Main : Control
 
     public override void _Ready()
     {
-        // Install crash reporter before any scene code runs
-        CrashReporter.Install();
         // Title label
         var title = new Label
         {
@@ -261,6 +259,11 @@ public partial class Main : Control
         AddChild(telemetry);
         telemetry.Initialize(supabaseConfig, null); // accountId resolved lazily by SyncManager
         CampaignContext.Telemetry = telemetry;
+
+        // Upload any pending crash reports (fire-and-forget, no-op if not configured)
+        const string supabaseUrl = "https://placeholder.supabase.co";
+        const string supabaseKey = "placeholder-anon-key";
+        CrashReporter.UploadPendingReports(supabaseUrl, supabaseKey);
     }
 
     /// <summary>

@@ -1,40 +1,55 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using Godot;
+using Runewake.Engine.Diagnostics;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// Lightweight unhandled-exception reporter for exported builds.
+/// Godot Node singleton (autoload) that handles unhandled exceptions.
 ///
-/// Hooks <see cref="AppDomain.CurrentDomain.UnhandledException"/> before any
-/// scene code runs and writes a per-crash file to user://crashes/ containing:
-///   - UTC ISO-8601 timestamp
-///   - Exception type and message
-///   - Full stack trace
-///   - OS name (via <see cref="OS.GetName"/>)
-///   - App version (via ProjectSettings "application/config/version")
+/// On <see cref="AppDomain.CurrentDomain.UnhandledException"/>: builds a
+/// JSON crash report via <see cref="CrashReportBuilder"/> and writes it to
+/// <c>user://crash_reports/&lt;timestamp&gt;_crash.json</c>.
 ///
-/// Each crash gets its own file so repeated crashes don't overwrite prior logs.
+/// On startup (call <see cref="UploadPendingReports"/>), POSTs any unsent
+/// reports to Supabase using Godot's <see cref="HttpRequest"/> node (works
+/// in exported builds on Android/iOS). Each file gets its own one-shot
+/// HttpRequest child; on 2xx the local file is deleted.
+///
+/// The crash handler itself never throws.
 /// </summary>
-public static class CrashReporter
+public partial class CrashReporter : Node
 {
-    private static readonly string CrashDir = "user://crashes";
-    private static bool _installed;
+    private static CrashReporter? _instance;
+    private static bool _hookInstalled;
+
+    private const string CrashDir = "user://crash_reports";
+
+    // ——— Singleton lifecycle ———
+
+    public override void _Ready()
+    {
+        _instance = this;
+        InstallGlobalHook();
+        GD.Print("[CrashReporter] Autoload ready.");
+    }
 
     /// <summary>
-    /// Install the global exception handler. Safe to call multiple times —
-    /// only the first call installs the handler.
+    /// Install the global AppDomain unhandled-exception hook.
+    /// Idempotent — safe to call multiple times.
     /// </summary>
-    public static void Install()
+    private static void InstallGlobalHook()
     {
-        if (_installed)
+        if (_hookInstalled)
             return;
-        _installed = true;
+        _hookInstalled = true;
 
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-        GD.Print("[CrashReporter] Installed.");
+        GD.Print("[CrashReporter] Global hook installed.");
     }
+
+    // ——— Crash handler ———
 
     private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
     {
@@ -42,50 +57,145 @@ public static class CrashReporter
         if (ex == null)
             return;
 
-        string? osName = null;
-        string? appVersion = null;
+        string appVersion = "dev";
+        string platform = "unknown";
+        string godotVersion = "unknown";
 
-        try { osName = OS.GetName(); }
-        catch { /* best-effort */ }
+        try { appVersion = ProjectSettings.GetSetting("application/config/version", "dev").AsString(); }
+        catch { }
 
-        try { appVersion = ProjectSettings.GetSetting("application/config/version", "0.0.0").AsString(); }
-        catch { /* best-effort */ }
-
-        string timestamp = DateTime.UtcNow.ToString("O");
-        string fileTimestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff");
-        string fileName = $"crash_{fileTimestamp}.log";
-
-        var lines = new[]
-        {
-            $"timestamp: {timestamp}",
-            $"os: {osName ?? "unknown"}",
-            $"app_version: {appVersion ?? "0.0.0"}",
-            $"terminating: {args.IsTerminating}",
-            $"exception_type: {ex.GetType().FullName}",
-            $"message: {ex.Message}",
-            string.Empty,
-            "stack_trace:",
-            ex.ToString(),
-            string.Empty,
-            "--- end ---",
-        };
-
-        string text = string.Join(System.Environment.NewLine, lines);
-
-        // Always print to the editor/output log
-        GD.PrintErr($"[CrashReporter] FATAL: {ex.GetType().Name}: {ex.Message}");
+        try { platform = OS.GetName(); }
+        catch { }
 
         try
         {
-            string dir = ProjectSettings.GlobalizePath(CrashDir);
-            Directory.CreateDirectory(dir);
-            string path = Path.Combine(dir, fileName);
-            File.WriteAllText(path, text);
-            GD.PrintErr($"[CrashReporter] Crash log written to {path}");
+            var vi = Godot.Engine.GetVersionInfo();
+            if (vi.TryGetValue("string", out var v))
+                godotVersion = v.AsString();
         }
-        catch (Exception inner)
+        catch { }
+
+        var report = CrashReportBuilder.BuildReport(ex, appVersion, platform, godotVersion);
+        string json = CrashReportBuilder.SerializeReport(report);
+        string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff");
+        string fileName = $"{timestamp}_crash.json";
+
+        string? absPath = null;
+        try
         {
-            GD.PrintErr($"[CrashReporter] Failed to write crash log: {inner.Message}");
+            string dir = ProjectSettings.GlobalizePath(CrashDir);
+            string filePath = System.IO.Path.Combine(dir, fileName);
+            CrashReportBuilder.WriteReportFile(filePath, json);
+            absPath = filePath;
+        }
+        catch
+        {
+            // Best-effort path resolution
+        }
+
+        GD.PrintErr($"[CrashReporter] FATAL: {ex.GetType().Name}: {ex.Message}");
+        if (absPath != null)
+            GD.PrintErr($"[CrashReporter] Report written to {absPath}");
+    }
+
+    // ——— Pending report upload ———
+
+    /// <summary>
+    /// Upload all pending crash report JSON files to Supabase.
+    /// Call once from Main._Ready() after save loading.
+    /// Spawns one-shot HttpRequest children — fires and forgets.
+    /// On 2xx response, the local file is deleted.
+    /// Reports with errors are left on disk for the next session.
+    /// </summary>
+    public static void UploadPendingReports(string supabaseUrl, string anonKey)
+    {
+        if (_instance == null)
+        {
+            GD.PrintErr("[CrashReporter] Cannot upload — autoload not yet ready.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(supabaseUrl) || string.IsNullOrWhiteSpace(anonKey))
+        {
+            GD.Print("[CrashReporter] UploadPendingReports: no credentials configured.");
+            return;
+        }
+
+        string? dir = null;
+        try
+        {
+            dir = ProjectSettings.GlobalizePath(CrashDir);
+        }
+        catch
+        {
+            return;
+        }
+
+        var files = CrashReportBuilder.ListPendingReports(dir);
+        if (files.Count == 0)
+        {
+            GD.Print("[CrashReporter] No pending reports to upload.");
+            return;
+        }
+
+        GD.Print($"[CrashReporter] Uploading {files.Count} pending crash report(s)...");
+
+        foreach (var filePath in files)
+        {
+            string json;
+            try
+            {
+                json = System.IO.File.ReadAllText(filePath);
+                if (string.IsNullOrEmpty(json))
+                    continue;
+            }
+            catch
+            {
+                continue;
+            }
+
+            var http = new HttpRequest();
+            http.UseThreads = true;
+            http.Timeout = 10;
+
+            string url = $"{supabaseUrl.TrimEnd('/')}/rest/v1/crash_reports";
+            string[] headers = new[]
+            {
+                $"apikey: {anonKey}",
+                $"Authorization: Bearer {anonKey}",
+                "Content-Type: application/json",
+                "Accept: application/json"
+            };
+
+            // Capture filePath in closure for the response handler
+            string capturedPath = filePath;
+
+            http.RequestCompleted += (long result, long responseCode, string[] responseHeaders, byte[] body) =>
+            {
+                if (responseCode == 200 || responseCode == 201)
+                {
+                    CrashReportBuilder.DeleteReportFile(capturedPath);
+                    GD.Print($"[CrashReporter] Uploaded and removed: {capturedPath}");
+                }
+                else
+                {
+                    GD.PrintErr($"[CrashReporter] Upload failed (HTTP {responseCode}): {capturedPath}");
+                }
+
+                // Cleanup the temporary node
+                if (_instance != null && http.GetParent() != null)
+                    _instance.RemoveChild(http);
+                http.QueueFree();
+            };
+
+            _instance.AddChild(http);
+            Error err = http.Request(url, headers, Godot.HttpClient.Method.Post, json);
+            if (err != Error.Ok)
+            {
+                GD.PrintErr($"[CrashReporter] Request error {err} for {filePath}");
+                _instance.RemoveChild(http);
+                http.QueueFree();
+            }
         }
     }
 }
