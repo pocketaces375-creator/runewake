@@ -132,7 +132,7 @@ public partial class MapScene : Control
             AnchorLeft = 0f, AnchorRight = 0.14f,
             AnchorTop = 0.93f, AnchorBottom = 1f
         };
-        settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://client/scenes/settings/SettingsScene.tscn");
+        settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
         AddChild(settingsBtn);
 
         // Info panel

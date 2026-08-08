@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d1q5xt0lvqfg2"]
 
-[ext_resource type="Script" path="res://client/scripts/settings/SettingsScene.cs" id="1_q7y5e"]
+[ext_resource type="Script" path="res://scripts/settings/SettingsScene.cs" id="1_q7y5e"]
 
 [node name="SettingsScene" type="Control"]
 anchors_preset = 15
