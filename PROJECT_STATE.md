@@ -1,18 +1,17 @@
 CURRENT PHASE: P7
-LAST COMPLETED TICKET: P7-03/P7-04 (Telemetry + settings/accessibility) — commit 1ae058d, 443/443 C# tests
-IN PROGRESS: P7-05 (App Store and Play listings, privacy policy, age rating)
+LAST COMPLETED TICKET: P7-05 (Store listings, privacy policy, age rating) — commit d426cda, 443/443 C# tests
+IN PROGRESS: P7-07 (Crash reporting — sequenced before P7-06 beta which is human-action)
 
 KNOWN TEST COUNTS (last confirmed):
   C#: 443/443
   Python: 221/221
 
 PHASE 7 REMAINING TICKETS:
-  P7-05 — App Store and Play listings, privacy policy, age rating (IN PROGRESS)
-  P7-06 — TestFlight/closed beta with 50+ players
-  P7-07 — Crash reporting
+  P7-07 — Crash reporting (IN PROGRESS — code ticket)
+  P7-06 — TestFlight/closed beta with 50+ players (human-action ticket, after P7-07)
   P7-08 — Launch
 
-CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete.
+CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete. Store listings complete.
 
 OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking P7.
 
@@ -24,19 +23,14 @@ TECH DEBT:
 OPEN ITEMS:
 [
   {
-    "id": "P7-05",
-    "title": "App Store and Play listings + privacy policy + age rating",
+    "id": "P7-07",
+    "title": "Crash reporting",
     "status": "in_progress"
   },
   {
     "id": "P7-06",
     "title": "TestFlight/closed beta with 50+ players",
-    "status": "open"
-  },
-  {
-    "id": "P7-07",
-    "title": "Crash reporting",
-    "status": "open"
+    "status": "open — requires human action after P7-07"
   },
   {
     "id": "P7-08",
