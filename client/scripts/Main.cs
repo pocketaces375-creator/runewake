@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
+using Runewake.Engine.Supabase;
 
 namespace Runewake.Client;
 
@@ -272,6 +273,43 @@ public partial class Main : Control
             GD.Print("[Main] Tutorial needed — routing to tutorial.");
             tutorialCtrl.StartTutorial();
         }
+
+        // Initialize Supabase sync (offline-first — no-op when not configured)
+        var supabaseConfig = LoadSupabaseConfig();
+        var syncManager = new SyncManager();
+        AddChild(syncManager);
+        syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
+        CampaignContext.SyncManager = syncManager;
+        _ = syncManager.RunStartupSync(); // fire and forget
+    }
+
+    /// <summary>
+    /// Load Supabase config from user://supabase_config.json.
+    /// Returns empty config (IsConfigured=false) if file missing or unreadable.
+    /// </summary>
+    private static SupabaseConfig LoadSupabaseConfig()
+    {
+        const string path = "user://supabase_config.json";
+        try
+        {
+            if (Godot.FileAccess.FileExists(path))
+            {
+                string json = Godot.FileAccess.GetFileAsString(path);
+                var config = System.Text.Json.JsonSerializer.Deserialize<SupabaseConfig>(json);
+                if (config != null)
+                {
+                    GD.Print($"[Main] Loaded Supabase config (url={config.Url})");
+                    return config;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[Main] Failed to load Supabase config: {ex.Message}");
+        }
+
+        GD.Print("[Main] No Supabase config found — sync disabled.");
+        return new SupabaseConfig();
     }
 
     private void OnStartCampaign()

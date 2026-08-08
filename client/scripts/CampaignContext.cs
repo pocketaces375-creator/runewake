@@ -54,6 +54,13 @@ public static class CampaignContext
     public static List<TutorialStepDef> TutorialSteps { get; set; } = new();
 
     /// <summary>
+    /// Supabase relic ledger sync manager.
+    /// Set by Main.cs after LoadGameData().
+    /// Null when not configured — check before use.
+    /// </summary>
+    public static SyncManager? SyncManager { get; set; }
+
+    /// <summary>
     /// Load all encounter packs from the content directory.
     /// Call once at title screen.
     /// </summary>

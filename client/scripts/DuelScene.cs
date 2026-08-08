@@ -837,6 +837,10 @@ public partial class DuelScene : Control
                         {
                             prog.AddRelic(relic);
                             prog.AddCard(relic.CardId);
+
+                            // Sync the newly minted relic to Supabase (fire-and-forget)
+                            if (CampaignContext.SyncManager != null)
+                                _ = CampaignContext.SyncManager.SyncOnRelicMint(relic);
                         }
                     }
                 }
