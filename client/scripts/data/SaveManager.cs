@@ -79,5 +79,8 @@ public class SaveManager
 
         to.DiscoveredRelics.Clear();
         to.DiscoveredRelics.AddRange(from.DiscoveredRelics);
+
+        to.DeckCardIds.Clear();
+        to.DeckCardIds.AddRange(from.DeckCardIds);
     }
 }

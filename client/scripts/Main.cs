@@ -201,39 +201,56 @@ public partial class Main : Control
 
         _statusLabel.Text = "Loading save data...";
 
-        // Initialize save manager
+        // Initialize save manager — loads saved deck from persistence
         CampaignContext.SaveManager.Initialize();
 
-        // Build a default player deck from the full card pool (all cards × 1 copy)
-        if (CampaignContext.Progression.Collection.Count > 0)
+        // Use the saved deck if it exists and is valid; otherwise rebuild from collection
+        var savedDeck = CampaignContext.Progression.DeckCardIds;
+        if (savedDeck.Count == 30)
         {
-            // Use the player's collection to build a deck
-            var deck = new List<string>();
-            foreach (var (cardId, count) in CampaignContext.Progression.Collection)
+            // Validate the saved deck; if valid, use it directly
+            var validation = DeckValidator.Validate(savedDeck, id => CardRegistry.Get(id));
+            if (validation.IsValid)
             {
-                for (int i = 0; i < count && deck.Count < 30; i++)
-                    deck.Add(cardId);
+                CampaignContext.PlayerDeckIds = new List<string>(savedDeck);
             }
-            // Pad with known cards if collection is small
-            while (deck.Count < 30)
-                deck.Add("vrd_c_root_warden");
-            CampaignContext.PlayerDeckIds = deck;
+            else
+            {
+                // Saved deck is invalid — clear it and rebuild
+                savedDeck.Clear();
+            }
         }
-        else
+
+        if (CampaignContext.PlayerDeckIds.Count == 0)
         {
-            // First run — give a starter deck of the first 30 available cards
-            var allCards = CardRegistry.GetAll();
-            var deck = new List<string>();
-            foreach (var card in allCards)
+            // Build deck from collection or give a starter deck
+            if (CampaignContext.Progression.Collection.Count > 0)
             {
-                if (deck.Count >= 30) break;
-                deck.Add(card.Id);
+                var deck = new List<string>();
+                foreach (var (cardId, count) in CampaignContext.Progression.Collection)
+                {
+                    for (int i = 0; i < count && deck.Count < 30; i++)
+                        deck.Add(cardId);
+                }
+                while (deck.Count < 30)
+                    deck.Add("vrd_c_root_warden");
+                CampaignContext.PlayerDeckIds = deck;
             }
-            CampaignContext.PlayerDeckIds = deck;
-            // Also grant the player 1 copy of each card for collection
-            foreach (var card in allCards)
-                CampaignContext.Progression.AddCard(card.Id);
-            CampaignContext.SaveManager.Save();
+            else
+            {
+                // First run — starter deck
+                var allCards = CardRegistry.GetAll();
+                var deck = new List<string>();
+                foreach (var card in allCards)
+                {
+                    if (deck.Count >= 30) break;
+                    deck.Add(card.Id);
+                }
+                CampaignContext.PlayerDeckIds = deck;
+                foreach (var card in allCards)
+                    CampaignContext.Progression.AddCard(card.Id);
+                CampaignContext.SaveManager.Save();
+            }
         }
 
         _statusLabel.Text = "";

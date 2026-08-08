@@ -37,7 +37,13 @@ public class ProgressionState
     public List<LostRelicInstance> DiscoveredRelics { get; } = new();
 
     /// <summary>
-    /// Global discovery index counter. Incremented each time a relic is minted
+    /// The player's saved 30-card deck. Populated by the deck builder;
+    /// loaded on next startup. Empty if no custom deck has been saved yet.
+    /// </summary>
+    public List<string> DeckCardIds { get; } = new();
+
+    /// <summary>
+    /// Global discovery index counter. Incremented each time a relic is minted.
     /// per card_id. The discovery_index on a relic is the value at mint time.
     /// </summary>
     public int GlobalDiscoveryIndex { get; set; }

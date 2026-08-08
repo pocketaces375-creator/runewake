@@ -128,6 +128,12 @@ public sealed class SaveRepository
                 discovery_index INTEGER NOT NULL,
                 engraving_style TEXT NOT NULL DEFAULT 'default'
             );
+
+            CREATE TABLE IF NOT EXISTS saved_deck (
+                position INTEGER NOT NULL,
+                card_id TEXT NOT NULL,
+                PRIMARY KEY (position)
+            );
         """;
         cmd.ExecuteNonQuery();
     }
@@ -216,6 +222,14 @@ public sealed class SaveRepository
             }
         }
 
+        // Saved deck
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "SELECT card_id FROM saved_deck ORDER BY position";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read()) state.DeckCardIds.Add(reader.GetString(0));
+        }
+
         // Version not present (fresh DB or pre-versioning save) → normalize to current
         if (state.Version == 0) state.Version = CurrentSchemaVersion;
 
@@ -301,6 +315,17 @@ public sealed class SaveRepository
                 cmd.Parameters.AddWithValue("@site", relic.Site);
                 cmd.Parameters.AddWithValue("@idx", relic.DiscoveryIndex);
                 cmd.Parameters.AddWithValue("@style", relic.EngravingStyle);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Saved deck: clear + re-insert
+            using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM saved_deck"; cmd.ExecuteNonQuery(); }
+            for (int i = 0; i < state.DeckCardIds.Count; i++)
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "INSERT INTO saved_deck (position, card_id) VALUES (@pos, @id)";
+                cmd.Parameters.AddWithValue("@pos", i);
+                cmd.Parameters.AddWithValue("@id", state.DeckCardIds[i]);
                 cmd.ExecuteNonQuery();
             }
 

@@ -60,6 +60,13 @@ size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 9
 text = "CREATURE"
 
+[node name="RarityLabel" type="Label" parent="HBox"]
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(14, 0)
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+text = "C"
+
 [node name="CountLabel" type="Label" parent="."]
 anchors_preset = 0
 anchor_left = 1.0
