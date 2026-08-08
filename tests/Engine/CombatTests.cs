@@ -448,4 +448,52 @@ public class CombatTests
 
         Assert.False(state.Players[0].Lanes[4].Occupant!.IsExhausted);
     }
+
+    [Fact]
+    public void Creature_RefreshesAfterTurnPasses()
+    {
+        // Per rules §5-6: a creature summoned on a previous turn should be
+        // Ready at the start of your next turn (not exhausted, can attack).
+        // This test verifies the turn-start refresh in ApplyEndTurn.
+        var state = CreateCombatState(p0HandSize: 1, p1HandSize: 1);
+
+        // P0 plays a creature to lane 0
+        state = PlayFirst(state, 0, 0);
+        var creature = state.Players[0].Lanes[0].Occupant!;
+        Assert.True(creature.IsExhausted);  // summoned this turn = exhausted
+        Assert.False(creature.HasAttackedThisTurn);
+
+        // P0 ends turn → P1's turn begins (refresh happens for P1, not P0 yet)
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+        Assert.Equal(1, state.CurrentPlayerIndex); // P1's turn
+        // Re-grab creature reference after clone
+        creature = state.Players[0].Lanes[0].Occupant!;
+        // P1's turn — P0's creature still exhausted (only current player gets refreshed)
+        Assert.True(creature.IsExhausted);
+
+        // P1 plays a creature to a different lane so P0's lane 0 faces empty
+        state = PlayFirst(state, 1, 2);
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
+
+        // Re-grab creature reference after clone
+        creature = state.Players[0].Lanes[0].Occupant!;
+
+        // Now P0's turn again — creature should be refreshed
+        Assert.Equal(0, state.CurrentPlayerIndex);
+        Assert.Equal(2, state.TurnNumber);
+        Assert.False(creature.IsExhausted, "Creature should be Ready at start of owner's next turn");
+        Assert.False(creature.HasAttackedThisTurn, "Attack flag should reset at start of owner's next turn");
+
+        // Creature can now attack
+        state = DuelEngine.Apply(state, new AttackAction
+        {
+            PlayerIndex = 0,
+            SourceLane = 0
+        });
+        // Re-grab creature reference after clone
+        creature = state.Players[0].Lanes[0].Occupant!;
+        // P1 face took 3 damage (empty opposing lane)
+        Assert.Equal(22, state.Players[1].Vigor); // 25 - 3
+        Assert.True(creature.HasAttackedThisTurn);
+    }
 }

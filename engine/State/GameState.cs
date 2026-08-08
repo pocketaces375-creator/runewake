@@ -142,7 +142,10 @@ public sealed class GameState
         return state;
     }
 
-    private static void Shuffle(List<CardInstance> list, SeededRng rng, int count)
+    /// <summary>
+    /// Fisher-Yates shuffle using the given seeded RNG.
+    /// </summary>
+    public static void Shuffle(List<CardInstance> list, SeededRng rng, int count)
     {
         // Fisher-Yates shuffle using the seeded RNG
         for (int i = count - 1; i > 0; i--)

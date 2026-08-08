@@ -160,7 +160,7 @@ public partial class GameStateManager : Node
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[GameStateManager] PlayCard failed: {ex.Message}");
+            GD.PrintErr($"[GameStateManager] PlayCard failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
     }
@@ -207,9 +207,75 @@ public partial class GameStateManager : Node
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[GameStateManager] Attack failed: {ex.Message}");
+            GD.PrintErr($"[GameStateManager] Attack failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Perform a mulligan for a player. Selected hand cards (by index in the
+    /// player's hand list) are shuffled back into the deck and replacements
+    /// are drawn. Passing an empty list declines the mulligan. Only one
+    /// mulligan per player per game is permitted.
+    /// </summary>
+    public ActionResult PerformMulligan(int playerIndex, List<int> redrawIndices)
+    {
+        if (_state.IsGameOver)
+            return Error("Game is already over.");
+
+        var player = _state.Players[playerIndex];
+        if (player.HasMulliganed)
+            return Error("Already mulliganed.");
+
+        // Sort descending so removal doesn't shift remaining indices
+        var sorted = redrawIndices.OrderByDescending(i => i).ToList();
+
+        // Validate indices
+        if (sorted.Count > 0 && (sorted[0] >= player.Hand.Count || sorted[^1] < 0))
+            return Error("Invalid hand index.");
+
+        // Collect cards to redraw (by position in hand)
+        var toRedraw = new List<CardInstance>();
+        foreach (var idx in sorted)
+        {
+            if (idx < 0 || idx >= player.Hand.Count) continue;
+            toRedraw.Add(player.Hand[idx]);
+        }
+
+        if (toRedraw.Count == 0)
+        {
+            // Declined mulligan — just mark it used
+            player.HasMulliganed = true;
+            StateChanged?.Invoke();
+            return Success();
+        }
+
+        // Remove from hand (descending keeps earlier indices valid)
+        foreach (var idx in sorted)
+        {
+            if (idx >= 0 && idx < player.Hand.Count)
+            {
+                player.Hand[idx].Zone = Zone.Deck;
+                player.Hand.RemoveAt(idx);
+            }
+        }
+
+        // Add back to deck and shuffle
+        player.Deck.AddRange(toRedraw);
+        GameState.Shuffle(player.Deck, _state.Rng, player.Deck.Count);
+
+        // Draw replacements
+        for (int i = 0; i < toRedraw.Count && player.Deck.Count > 0; i++)
+        {
+            var card = player.Deck[0];
+            player.Deck.RemoveAt(0);
+            card.Zone = Zone.Hand;
+            player.Hand.Add(card);
+        }
+
+        player.HasMulliganed = true;
+        StateChanged?.Invoke();
+        return Success();
     }
 
     /// <summary>
@@ -227,14 +293,21 @@ public partial class GameStateManager : Node
 
         try
         {
+            // Log exhaustion BEFORE the turn end
+            LogExhaustState("Before TryEndTurn");
+
             _state = DuelEngine.Apply(_state, action);
+
+            // Log exhaustion AFTER the turn end (should show refresh)
+            LogExhaustState("After TryEndTurn");
+
             StateChanged?.Invoke();
             CheckGameOver();
             return Success();
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"[GameStateManager] EndTurn failed: {ex.Message}");
+            GD.PrintErr($"[GameStateManager] EndTurn failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
     }
@@ -347,6 +420,28 @@ public partial class GameStateManager : Node
         IsInitialized = true;
         StateChanged?.Invoke();
         CheckGameOver();
+    }
+
+    /// <summary>
+    /// Log all creatures' exhaustion state for debugging.
+    /// </summary>
+    private void LogExhaustState(string prefix)
+    {
+        if (_state == null) return;
+        GD.Print($"=== {prefix} (Turn {_state.TurnNumber}, P{_state.CurrentPlayerIndex}) ===");
+        for (int p = 0; p <= 1; p++)
+        {
+            var player = _state.Players[p];
+            GD.Print($"  P{p} (Vigor={player.Vigor}, Attune={player.Attunement}/{player.AttunementMax}):");
+            for (int i = 0; i < 5; i++)
+            {
+                var occ = player.Lanes[i].Occupant;
+                if (occ != null)
+                    GD.Print($"    Lane[{i}] {occ.CardDefId} A={occ.CurrentAttack} V={occ.CurrentVigor} Exh={occ.IsExhausted} Atk={occ.HasAttackedThisTurn} Sum={occ.SummonedThisTurn}");
+                else
+                    GD.Print($"    Lane[{i}] empty");
+            }
+        }
     }
 }
 

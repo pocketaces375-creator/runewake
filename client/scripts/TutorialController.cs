@@ -1,174 +1,176 @@
 using System;
 using System.Collections.Generic;
 using Godot;
-using Runewake.Engine.Cards;
 using Runewake.Engine.State;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// Godot Node that drives tutorial flow.
-/// Wraps TutorialState and TutorialStepDefs, fires signals on step changes.
+/// Autoload controller for the tutorial system.
+/// Manages the current tutorial step, provides tutorial game configs,
+/// and handles step advancement.
 /// </summary>
 public partial class TutorialController : Node
 {
-    private ProgressionState _prog = default!;
-    private List<TutorialStepDef> _steps = new();
-    private bool _initialized;
+    /// <summary>Current tutorial step. None = not in tutorial.</summary>
+    public TutorialStep CurrentStep { get; private set; } = TutorialStep.None;
+
+    /// <summary>True if the tutorial has been fully completed.</summary>
+    public bool IsCompleted { get; private set; }
+
+    /// <summary>True if a tutorial is active.</summary>
+    public bool IsActive => CurrentStep > TutorialStep.None && CurrentStep < TutorialStep.Complete;
+
+    /// <summary>Raised when the tutorial step changes. UI should re-render.</summary>
+    public event Action<TutorialStep>? StepChanged;
 
     /// <summary>
-    /// Fired when the current step definition changes.
-    /// The parameter is true if the step changed (not null; use GetCurrentDef() to read it).
+    /// Raised when the tutorial is completed (all steps done).
     /// </summary>
-    [Signal]
-    public delegate void StepChangedEventHandler();
+    public event Action? Completed;
 
-    /// <summary>
-    /// Whether the tutorial should run on this session.
-    /// </summary>
-    public bool ShouldRunTutorial()
+    public override void _Ready()
     {
-        return _prog?.Tutorial != null
-            && _prog.Tutorial.CurrentStep == TutorialStep.Lanes_SummonCreature
-            && !_prog.Tutorial.IsComplete;
+        Name = "TutorialController";
+
+        // Check if tutorial was already completed via save data
+        var prog = CampaignContext.Progression;
+        if (prog != null)
+            IsCompleted = prog.Tutorial?.IsComplete ?? false;
     }
 
     /// <summary>
-    /// Start the tutorial by emitting the first step signal.
+    /// Returns true if the tutorial has not been completed yet.
+    /// </summary>
+    public bool ShouldRunTutorial() => !IsCompleted;
+
+    /// <summary>
+    /// Start the tutorial by setting the first step and navigating to the duel scene.
     /// </summary>
     public void StartTutorial()
     {
-        if (IsActive)
-        {
-            EmitSignal(SignalName.StepChanged);
-        }
+        StartFirstDuel();
+        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }
 
     /// <summary>
-    /// Returns the tutorial config for the current step, or null if not in a tutorial duel.
-    /// DuelScene checks this to override normal encounter-based initialization.
+    /// Start the first tutorial duel (lanes basics).
     /// </summary>
-    public GameConfig? GetCurrentTutorialConfig()
+    public void StartFirstDuel()
     {
-        if (!IsActive) return null;
-        var step = CurrentStep;
-        if (step != TutorialStep.Lanes_SummonCreature
-            && step != TutorialStep.Lanes_Attack
-            && step != TutorialStep.Lanes_EndTurn
-            && step != TutorialStep.Excavate_PlayExcavate
-            && step != TutorialStep.Excavate_BuryResolved)
-            return null;
-        return GetConfigForStep(step);
+        CurrentStep = TutorialStep.Lanes_SummonCreature;
     }
 
     /// <summary>
-    /// Initialize with progression state and step definitions.
+    /// Force the tutorial to complete (skip). Sets step to Complete and
+    /// marks IsCompleted so subsequent game starts skip the tutorial.
     /// </summary>
-    public void Initialize(ProgressionState prog, List<TutorialStepDef> steps)
+    public void ForceComplete()
     {
-        _prog = prog;
-        _steps = steps;
-        _initialized = true;
-
-        if (IsActive)
-        {
-            EmitSignal(SignalName.StepChanged);
-        }
+        CurrentStep = TutorialStep.Complete;
+        IsCompleted = true;
+        Completed?.Invoke();
+        GD.Print("[TutorialController] Tutorial force-completed (skip).");
     }
 
     /// <summary>
-    /// Whether the tutorial is currently active (not None and not Complete).
-    /// </summary>
-    public bool IsActive => _initialized
-        && _prog.Tutorial != null
-        && _prog.Tutorial.CurrentStep != TutorialStep.None
-        && _prog.Tutorial.CurrentStep != TutorialStep.Complete
-        && !_prog.Tutorial.IsComplete;
-
-    /// <summary>
-    /// Current step enum value.
-    /// </summary>
-    public TutorialStep CurrentStep => _prog?.Tutorial?.CurrentStep ?? TutorialStep.None;
-
-    /// <summary>
-    /// Get the TutorialStepDef for the current step.
-    /// </summary>
-    public TutorialStepDef? GetCurrentDef()
-    {
-        if (_prog?.Tutorial == null) return null;
-        return _steps.Find(s => s.Step == _prog.Tutorial.CurrentStep);
-    }
-
-    /// <summary>
-    /// Advance to the next step. Fires StepChanged.
-    /// If advancing to Complete, marks IsComplete and fires StepChanged(null).
+    /// Advance to the next logical step. Called by DuelScene when
+    /// the player performs the prompted action.
     /// </summary>
     public void Advance()
     {
-        if (_prog?.Tutorial == null) return;
-
-        var current = _prog.Tutorial.CurrentStep;
-        var next = current switch
+        var next = CurrentStep switch
         {
-            TutorialStep.None => TutorialStep.Lanes_SummonCreature,
             TutorialStep.Lanes_SummonCreature => TutorialStep.Lanes_Attack,
             TutorialStep.Lanes_Attack => TutorialStep.Lanes_EndTurn,
-            TutorialStep.Lanes_EndTurn => TutorialStep.Excavate_PlayExcavate,
+            TutorialStep.Lanes_EndTurn => TutorialStep.Complete,
             TutorialStep.Excavate_PlayExcavate => TutorialStep.Excavate_BuryResolved,
             TutorialStep.Excavate_BuryResolved => TutorialStep.Runes_OpenRunePage,
             TutorialStep.Runes_OpenRunePage => TutorialStep.Runes_EquipRune,
             TutorialStep.Runes_EquipRune => TutorialStep.Complete,
-            TutorialStep.Complete => TutorialStep.Complete,
-            _ => TutorialStep.Complete,
+            _ => TutorialStep.Complete
         };
 
-        _prog.Tutorial.CurrentStep = next;
+        CurrentStep = next;
+        GD.Print($"[TutorialController] Advanced: {CurrentStep}");
 
         if (next == TutorialStep.Complete)
         {
-            _prog.Tutorial.IsComplete = true;
             GD.Print("[TutorialController] Tutorial complete!");
-        }
-        else
-        {
-            var def = GetCurrentDef();
-            GD.Print($"[TutorialController] Advanced to {next}");
+            Completed?.Invoke();
         }
 
-        // Record telemetry for tutorial step
-        CampaignContext.Telemetry?.RecordTutorialStepReached(next.ToString());
-
-        EmitSignal(SignalName.StepChanged);
+        StepChanged?.Invoke(next);
     }
 
     /// <summary>
-    /// Get a GameConfig for a tutorial step duel.
-    /// These are hard-coded minimal duels, not encounter-based.
+    /// Get the tutorial hint text for the current step.
     /// </summary>
-    public GameConfig GetConfigForStep(TutorialStep step)
+    public string GetCurrentHint()
     {
-        var playerDeck = new System.Collections.Generic.List<string>();
-        var botDeck = new System.Collections.Generic.List<string>();
-
-        // Use vrd_c_root_warden as the simplest existing card (1-cost 2/2 with GUARD)
-        for (int i = 0; i < 30; i++)
-            playerDeck.Add("vrd_c_root_warden");
-        for (int i = 0; i < 30; i++)
-            botDeck.Add("vrd_c_root_warden");
-
-        if (step == TutorialStep.Excavate_PlayExcavate || step == TutorialStep.Excavate_BuryResolved)
+        return CurrentStep switch
         {
-            // Place silt seeker at index 0 for the excavate duel
-            if (playerDeck.Count > 0)
-                playerDeck[0] = "tid_c_silt_seeker";
-        }
+            TutorialStep.Lanes_SummonCreature =>
+                "Tap a card in your hand, then tap an empty lane to summon it to the board.",
+            TutorialStep.Lanes_Attack =>
+                "Tap one of your creatures, then tap an enemy lane to attack. Empty lanes deal damage to the enemy's face!",
+            TutorialStep.Lanes_EndTurn =>
+                "Tap the 'End Turn' button in the bottom-right corner to pass to the enemy.",
+            TutorialStep.Excavate_PlayExcavate =>
+                "Excavate cards let you dig into the earth. Tap your Excavate card, then tap a lane to play it.",
+            TutorialStep.Excavate_BuryResolved =>
+                "The Excavate card buried a token! Tap a card with a Bury effect to resolve it.",
+            TutorialStep.Runes_OpenRunePage =>
+                "Open the rune page to equip runes to your creatures.",
+            TutorialStep.Runes_EquipRune =>
+                "Select a rune from your collection and equip it to a creature on the board.",
+            _ => ""
+        };
+    }
+
+    /// <summary>
+    /// Get the GameConfig for the current tutorial duel.
+    /// Returns null if not in a tutorial duel step.
+    /// </summary>
+    public GameConfig? GetCurrentTutorialConfig()
+    {
+        if (!IsActive) return null;
+        return CurrentStep switch
+        {
+            TutorialStep.Lanes_SummonCreature or
+            TutorialStep.Lanes_Attack or
+            TutorialStep.Lanes_EndTurn => GetFirstDuelConfig(),
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Create a GameConfig for the first tutorial duel.
+    /// Uses a small, curated deck with low-cost playable cards.
+    /// </summary>
+    private static GameConfig GetFirstDuelConfig()
+    {
+        // Curated 15-card deck with cheap, playable cards for the tutorial
+        var deck = new List<string>
+        {
+            "vrd_c_root_warden",     // Cost 2, 3/4 — solid blocker
+            "vrd_c_verdant_sproutling", // Cost 1, 2/2 — cheap summon
+            "vrd_c_thornbark_defender", // Cost 2, 2/5
+            "vrd_u_grove_healer",    // Cost 3, 3/3
+            "emb_c_cinder_runner",   // Cost 1, 2/1 — cheap attacker
+            "emb_c_ember_hound",     // Cost 2, 3/2
+            "tid_c_silt_reader",     // Cost 1, 1/3
+            "tid_c_tidal_scholar",   // Cost 2, 2/3
+            "vrd_c_root_warden",     // Duplicate so hand has options
+            "emb_c_ember_hound",     // Duplicate
+        };
 
         return new GameConfig
         {
             Seed = 42,
             ContentVersion = 1,
-            Player0DeckIds = playerDeck,
-            Player1DeckIds = botDeck,
+            Player0DeckIds = deck,
+            Player1DeckIds = deck
         };
     }
 }

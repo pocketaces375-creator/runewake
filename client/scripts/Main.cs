@@ -10,6 +10,8 @@ namespace Runewake.Client;
 /// <summary>
 /// Title screen — entry point for the Runewake client.
 /// Loads card packs, encounters, and save data on start.
+/// Save failures are always non-fatal: the game continues with a fresh
+/// in-memory profile and displays a persistent warning on screen.
 /// </summary>
 public partial class Main : Control
 {
@@ -17,6 +19,9 @@ public partial class Main : Control
     private Button _runeButton = default!;
     private Button _forgeButton = default!;
     private Label _statusLabel = default!;
+    private Label _saveWarningLabel = default!;
+    private Button _diagButton = default!;
+    private Panel? _diagPanel;
     private bool _loading;
 
     public override void _Ready()
@@ -60,7 +65,7 @@ public partial class Main : Control
             AnchorLeft = 0f,
             AnchorRight = 1f,
             AnchorTop = 0.6f,
-            AnchorBottom = 0.75f
+            AnchorBottom = 0.7f
         };
         _statusLabel.AddThemeFontSizeOverride("font_size", 16);
         _statusLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
@@ -72,8 +77,8 @@ public partial class Main : Control
             Text = "Start Campaign",
             AnchorLeft = 0.35f,
             AnchorRight = 0.65f,
-            AnchorTop = 0.75f,
-            AnchorBottom = 0.85f,
+            AnchorTop = 0.72f,
+            AnchorBottom = 0.80f,
             Disabled = true
         };
         _startButton.Pressed += OnStartCampaign;
@@ -85,12 +90,13 @@ public partial class Main : Control
             Text = "Rune Page",
             AnchorLeft = 0.35f,
             AnchorRight = 0.65f,
-            AnchorTop = 0.87f,
-            AnchorBottom = 0.92f,
+            AnchorTop = 0.82f,
+            AnchorBottom = 0.87f,
             Disabled = true
         };
         runeButton.Pressed += OnOpenRunePage;
         AddChild(runeButton);
+        _runeButton = runeButton;
 
         // Forge button
         var forgeButton = new Button
@@ -98,13 +104,39 @@ public partial class Main : Control
             Text = "Rune Forge",
             AnchorLeft = 0.35f,
             AnchorRight = 0.65f,
-            AnchorTop = 0.93f,
-            AnchorBottom = 0.98f,
+            AnchorTop = 0.88f,
+            AnchorBottom = 0.93f,
             Disabled = true
         };
         forgeButton.Pressed += OnOpenForge;
         AddChild(forgeButton);
         _forgeButton = forgeButton;
+
+        // Persistent save warning label (hidden until/unless a save error occurs)
+        _saveWarningLabel = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorLeft = 0f,
+            AnchorRight = 1f,
+            AnchorTop = 0.935f,
+            AnchorBottom = 0.97f,
+            Visible = false,
+            AutowrapMode = TextServer.AutowrapMode.Word
+        };
+        _saveWarningLabel.AddThemeFontSizeOverride("font_size", 12);
+        AddChild(_saveWarningLabel);
+
+        // Diagnostics button (always available, even during loading)
+        _diagButton = new Button
+        {
+            Text = "Diag",
+            Position = new Vector2(8, 8),
+            Size = new Vector2(60, 32)
+        };
+        _diagButton.Pressed += OnDiagnosticsPressed;
+        AddChild(_diagButton);
 
         // Begin loading
         Callable.From(LoadGameData).CallDeferred();
@@ -177,8 +209,19 @@ public partial class Main : Control
 
         _statusLabel.Text = "Loading save data...";
 
-        // Initialize save manager — loads saved deck from persistence
+        // Initialize save manager — this is now always safe (returns fresh profile on error)
         CampaignContext.SaveManager.Initialize();
+
+        // Check for save errors and show persistent warning if DB is not functional
+        if (!CampaignContext.SaveManager.IsFunctional)
+        {
+            string warn = "⚠ Save unavailable — progress won't be saved this session";
+            _saveWarningLabel.Text = warn;
+            _saveWarningLabel.Modulate = new Color(1f, 0.6f, 0.1f); // orange
+            _saveWarningLabel.Visible = true;
+            _statusLabel.Text = "Save error — see warning below";
+            _statusLabel.Modulate = new Color(1f, 0.5f, 0.2f);
+        }
 
         // Use the saved deck if it exists and is valid; otherwise rebuild from collection
         var savedDeck = CampaignContext.Progression.DeckCardIds;
@@ -214,22 +257,64 @@ public partial class Main : Control
             }
             else
             {
-                // First run — starter deck
-                var allCards = CardRegistry.GetAll();
-                var deck = new List<string>();
-                foreach (var card in allCards)
+                // First run — starter deck with curated curve
+                // Breakdown: ~1/3 cost 1-2, ~1/3 cost 3-4, ~1/3 cost 5+
+                // Ensures playable turns 1-3
+                var deck = new List<string>
                 {
-                    if (deck.Count >= 30) break;
-                    deck.Add(card.Id);
-                }
+                    // Cost-1 plays (6 cards, 20%)
+                    "vrd_c_verdant_sproutling",
+                    "vrd_c_verdant_sproutling",
+                    "emb_c_ember_hound",
+                    "emb_c_flame_javelin",
+                    "hol_c_skeletal_reaver",
+                    "dwn_u_purifying_light",
+
+                    // Cost-2 plays (8 cards, 27%)
+                    "vrd_c_wildwood_stalker",
+                    "vrd_c_wildwood_stalker",
+                    "emb_c_cinder_runner",
+                    "emb_c_cinder_runner",
+                    "tid_c_tidal_scholar",
+                    "hol_c_ossuary_guard",
+                    "dwn_c_dawn_warder",
+                    "dwn_c_dawn_warder",
+
+                    // Cost-3 plays (8 cards, 27%)
+                    "vrd_c_root_warden",
+                    "vrd_u_grove_healer",
+                    "emb_c_forgeguard_berserker",
+                    "emb_c_forgeguard_berserker",
+                    "tid_c_deep_one",
+                    "hol_c_gravewrit_thrall",
+                    "dwn_c_sunblade_recruit",
+                    "dwn_c_sunblade_recruit",
+
+                    // Cost-4 plays (5 cards, 17%)
+                    "vrd_c_thornbark_defender",
+                    "vrd_u_canopy_archer",
+                    "tid_c_silt_reader",
+                    "dwn_c_golden_retainer",
+                    "dwn_c_dawnbreaker_charger",
+
+                    // Cost 5+ bombs (3 cards, 10%)
+                    "vrd_u_saphoof_charger",
+                    "dwn_u_steadfast_bulwark",
+                    "vrd_u_elder_treant",
+                };
                 CampaignContext.PlayerDeckIds = deck;
+                // Add all cards to collection (deck cards + extras) for later deck building
+                var allCards = CardRegistry.GetAll();
                 foreach (var card in allCards)
                     CampaignContext.Progression.AddCard(card.Id);
+
+                // Attempt to save the fresh profile — non-fatal if it fails
                 CampaignContext.SaveManager.Save();
             }
         }
 
         _statusLabel.Text = "";
+        _statusLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
         _startButton.Disabled = false;
         _runeButton.Disabled = false;
         _forgeButton.Disabled = false;
@@ -293,6 +378,173 @@ public partial class Main : Control
 
         GD.Print("[Main] No Supabase config found — sync disabled.");
         return new SupabaseConfig();
+    }
+
+    /// <summary>
+    /// Run a diagnostic write+read-back test on the save database and display results.
+    /// </summary>
+    private void OnDiagnosticsPressed()
+    {
+        if (_diagPanel != null)
+        {
+            // Toggle off if already showing
+            _diagPanel.QueueFree();
+            _diagPanel = null;
+            return;
+        }
+
+        _diagButton.Text = "Diag...";
+        _diagButton.Disabled = true;
+
+        // Run test on a short delay so the UI updates
+        Callable.From(() =>
+        {
+            var (success, error) = CampaignContext.SaveManager.TestReadWrite();
+            ShowDiagResult(success, error);
+            _diagButton.Text = "Diag";
+            _diagButton.Disabled = false;
+        }).CallDeferred();
+    }
+
+    private void ShowDiagResult(bool success, string? error)
+    {
+        // Remove previous panel if any
+        if (_diagPanel != null) { _diagPanel.QueueFree(); _diagPanel = null; }
+
+        var panel = new Panel();
+        panel.AnchorLeft = 0.05f;
+        panel.AnchorRight = 0.95f;
+        panel.AnchorTop = 0.1f;
+        panel.AnchorBottom = 0.9f;
+
+        var style = new StyleBoxFlat();
+        style.BgColor = new Color(0.06f, 0.06f, 0.1f, 0.97f);
+        style.BorderColor = new Color(0.3f, 0.3f, 0.5f);
+        style.BorderWidthLeft = 2;
+        style.BorderWidthTop = 2;
+        style.BorderWidthRight = 2;
+        style.BorderWidthBottom = 2;
+        panel.AddThemeStyleboxOverride("panel", style);
+
+        AddChild(panel);
+        _diagPanel = panel;
+
+        // Scroll container for long error messages
+        var scroll = new ScrollContainer();
+        scroll.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        scroll.AnchorLeft = 0.03f;
+        scroll.AnchorRight = 0.97f;
+        scroll.AnchorTop = 0.03f;
+        scroll.AnchorBottom = 0.85f;
+        scroll.SizeFlagsVertical = (Control.SizeFlags)7; // expand + fill
+        panel.AddChild(scroll);
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        vbox.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
+        scroll.AddChild(vbox);
+
+        // Title
+        var title = new Label
+        {
+            Text = "Save Diagnostics",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutoTranslate = false
+        };
+        title.AddThemeFontSizeOverride("font_size", 20);
+        vbox.AddChild(title);
+
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 12) });
+
+        // Result line
+        var resultLabel = new Label
+        {
+            Text = success ? "✅ PASS — Database read/write OK" : "❌ FAIL — Database error",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutoTranslate = false
+        };
+        resultLabel.AddThemeFontSizeOverride("font_size", 16);
+        resultLabel.Modulate = success ? new Color(0.3f, 1f, 0.3f) : new Color(1f, 0.3f, 0.3f);
+        vbox.AddChild(resultLabel);
+
+        // Save status summary
+        var statusLabel = new Label
+        {
+            Text = $"Save system: {(CampaignContext.SaveManager.IsFunctional ? "functional" : "NOT functional")}",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutoTranslate = false
+        };
+        statusLabel.AddThemeFontSizeOverride("font_size", 13);
+        statusLabel.Modulate = CampaignContext.SaveManager.IsFunctional
+            ? new Color(0.5f, 0.8f, 0.5f) : new Color(1f, 0.6f, 0.2f);
+        vbox.AddChild(statusLabel);
+
+        // Last error from load, if any
+        if (CampaignContext.SaveManager.LastError != null)
+        {
+            var loadErrLabel = new Label
+            {
+                Text = $"Load error: {CampaignContext.SaveManager.LastError}",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                AutoTranslate = false,
+                AutowrapMode = TextServer.AutowrapMode.Word
+            };
+            loadErrLabel.AddThemeFontSizeOverride("font_size", 12);
+            loadErrLabel.Modulate = new Color(1f, 0.7f, 0.3f);
+            vbox.AddChild(loadErrLabel);
+        }
+
+        // Error details
+        if (error != null)
+        {
+            vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
+
+            var errTitle = new Label
+            {
+                Text = "Exception Details:",
+                AutoTranslate = false
+            };
+            errTitle.AddThemeFontSizeOverride("font_size", 13);
+            vbox.AddChild(errTitle);
+
+            var errBox = new Label
+            {
+                Text = error,
+                AutoTranslate = false,
+                AutowrapMode = TextServer.AutowrapMode.Word
+            };
+            errBox.AddThemeFontSizeOverride("font_size", 11);
+            errBox.Modulate = new Color(0.8f, 0.5f, 0.5f);
+            vbox.AddChild(errBox);
+        }
+
+        // Path details
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
+        var pathLabel = new Label
+        {
+            Text = "DB path: user://runewake_save.db",
+            AutoTranslate = false,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        pathLabel.AddThemeFontSizeOverride("font_size", 11);
+        pathLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
+        vbox.AddChild(pathLabel);
+
+        // Close button at bottom of panel
+        var closeBtn = new Button
+        {
+            Text = "Close",
+            AnchorLeft = 0.3f,
+            AnchorRight = 0.7f,
+            AnchorTop = 0.88f,
+            AnchorBottom = 0.97f
+        };
+        closeBtn.Pressed += () =>
+        {
+            panel.QueueFree();
+            _diagPanel = null;
+        };
+        panel.AddChild(closeBtn);
     }
 
     private void OnStartCampaign()

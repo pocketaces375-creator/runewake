@@ -53,6 +53,9 @@ public sealed class PlayerState
     /// <summary>IDs of curse instances attached to this player.</summary>
     public List<int> AttachedCurseIds { get; } = new();
 
+    /// <summary>True after this player has exercised or declined their one mulligan.</summary>
+    public bool HasMulliganed { get; set; }
+
     /// <summary>
     /// Cards pending Unearth return. At the start of this player's turn,
     /// they pay the cost and these return to hand.

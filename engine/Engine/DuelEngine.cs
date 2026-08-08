@@ -49,8 +49,23 @@ public static partial class DuelEngine
         if (state.CurrentPlayerIndex == 0)
             state.TurnNumber++;
 
-        // 3. Attune phase — increase attunement and refill
+        // 2.5 Refresh phase — ready all of the next player's creatures
+        // Per rules §5-6: creatures summoned on a previous turn are Ready
+        // at the start of your turn. Clear exhaustion, attack flags,
+        // and summoned-this-turn markers.
         var nextPlayer = state.CurrentPlayer;
+        foreach (var lane in nextPlayer.Lanes)
+        {
+            if (lane.Occupant is CardInstance creature)
+            {
+                creature.IsExhausted = false;
+                creature.HasAttackedThisTurn = false;
+                creature.SummonedThisTurn = false;
+            }
+        }
+
+        // 3. Attune phase — increase attunement and refill
+        nextPlayer = state.CurrentPlayer;
         int newMax = Math.Min(
             nextPlayer.AttunementMax + nextPlayer.AttunementPerTurn,
             10);

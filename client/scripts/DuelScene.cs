@@ -29,6 +29,10 @@ public partial class DuelScene : Control
     private HBoxContainer _handFlow;
     private Button? _endTurnButton;
 
+    // Health bar ColorRects
+    private ColorRect _enemyHealthBar = default!;
+    private ColorRect _playerHealthBar = default!;
+
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
     private readonly List<HandCard> _handCards = new();
@@ -53,11 +57,19 @@ public partial class DuelScene : Control
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
+    // Debug: on-screen exhaustion status
+    private Label _debugExhaustLabel = default!;
+
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
+    private TutorialOverlay? _tutorialOverlay;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
+
+    // Mulligan state
+    private Control? _mulliganPanel;
+    private readonly HashSet<int> _mulliganSelection = new();
 
     public override void _Ready()
     {
@@ -72,6 +84,42 @@ public partial class DuelScene : Control
         _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
         var board = GetNode("Board");
+
+        // Create health bar ColorRects (behind HUD text, full-width)
+        _enemyHealthBar = new ColorRect
+        {
+            Name = "EnemyHealthBar",
+            Color = new Color(0.3f, 0.8f, 0.3f, 0.5f),
+            AnchorLeft = 0.0f,
+            AnchorRight = 1.0f,
+            AnchorTop = 0.0f,
+            AnchorBottom = 0.0f
+        };
+        _enemyHealthBar.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+        AddChild(_enemyHealthBar);
+        // Move EnemyHUD in front of health bar
+        var enemyHud = GetNode<HBoxContainer>("EnemyHUD");
+        RemoveChild(enemyHud);
+        AddChild(enemyHud);
+
+        _playerHealthBar = new ColorRect
+        {
+            Name = "PlayerHealthBar",
+            Color = new Color(0.3f, 0.8f, 0.3f, 0.5f),
+            AnchorLeft = 0.0f,
+            AnchorRight = 1.0f,
+            AnchorTop = 0.0f,
+            AnchorBottom = 0.0f
+        };
+        _playerHealthBar.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
+        _playerHealthBar.Size = new Vector2(GetViewportRect().Size.X, 36);
+        _playerHealthBar.Position = new Vector2(0, GetViewportRect().Size.Y - 40);
+        AddChild(_playerHealthBar);
+        // Move PlayerHUD in front of health bar
+        var playerHud = GetNode<CenterContainer>("PlayerHUD");
+        RemoveChild(playerHud);
+        AddChild(playerHud);
+
         _enemyLanes = board.GetNode<HBoxContainer>("EnemyLaneMargin/EnemyLanes");
         _playerLanes = board.GetNode<HBoxContainer>("PlayerLaneMargin/PlayerLanes");
 
@@ -129,6 +177,18 @@ public partial class DuelScene : Control
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
 
+        // Create debug exhaustion label (top-left, semi-transparent, small font)
+        _debugExhaustLabel = new Label
+        {
+            Name = "DebugExhaustLabel",
+            AnchorLeft = 0.01f,
+            AnchorTop = 0.01f,
+            Modulate = new Color(0.6f, 0.6f, 0.8f, 0.85f)
+        };
+        _debugExhaustLabel.AddThemeFontSizeOverride("font_size", 10);
+        _debugExhaustLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+        AddChild(_debugExhaustLabel);
+
         // Check if this is a campaign encounter or test game
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
@@ -148,8 +208,9 @@ public partial class DuelScene : Control
             _isCampaignEncounter = false;
             GD.Print("[DuelScene] Tutorial duel — using tutorial config.");
             _gsm.Initialize(tutorialConfig);
-            // Suspend bot during tutorial duels — player doesn't face an opponent
-            _bot.Suspend();
+            // Speed up bot during tutorial so enemy turns are near-instant
+            _bot.ThinkDelay = 0.1f;
+            _bot.ActionInterval = 0.1f;
         }
         else if (_isCampaignEncounter && encounter != null)
         {
@@ -181,13 +242,23 @@ public partial class DuelScene : Control
                 || step == Engine.State.TutorialStep.Excavate_PlayExcavate
                 || step == Engine.State.TutorialStep.Excavate_BuryResolved;
 
-            if (isTutorialDuel)
+            if (isTutorialDuel && _tutorialCtrl != null)
             {
-                // Add tutorial overlay
+                // Add tutorial overlay with current hint
                 var overlay = new TutorialOverlay();
+                overlay.SetHint(_tutorialCtrl.GetCurrentHint());
+                overlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
+                overlay.SkipRequested += SkipTutorial;
                 AddChild(overlay);
+                _tutorialOverlay = overlay;
                 GD.Print($"[DuelScene] Tutorial duel active, step={step}");
             }
+        }
+
+        // Show mulligan overlay if not in tutorial mode
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive)
+        {
+            Callable.From(ShowMulliganIfNeeded).CallDeferred();
         }
 
         // Position card detail centered using CallDeferred (direct SetPosition post-tree-attach)
@@ -198,6 +269,10 @@ public partial class DuelScene : Control
                 (GetViewportRect().Size.Y - 400) / 2f
             );
         }).CallDeferred();
+
+        // Style the turn label for readability
+        _turnLabel.AddThemeFontSizeOverride("font_size", 16);
+        _turnLabel.AddThemeColorOverride("font_color", new Color(1, 1, 0.8f));
 
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
@@ -341,6 +416,32 @@ public partial class DuelScene : Control
         if (state != null && state.Players.Length > 0)
             _prevBuryCount = state.Players[0].Barrow.Count;
         _firstRender = false;
+
+        // Update debug exhaustion label
+        UpdateDebugExhaustLabel(state);
+    }
+
+    private void UpdateDebugExhaustLabel(GameState state)
+    {
+        if (_debugExhaustLabel == null || state == null) return;
+        var lines = new System.Collections.Generic.List<string>
+        {
+            $"Turn {state.TurnNumber} | CurPlayer={state.CurrentPlayerIndex}",
+        };
+        for (int p = 0; p <= 1; p++)
+        {
+            var player = state.Players[p];
+            lines.Add($"P{p} lanes:");
+            for (int i = 0; i < 5; i++)
+            {
+                var occ = player.Lanes[i].Occupant;
+                if (occ != null)
+                    lines.Add($"  [{i}] {occ.CardDefId.Split('_')[^1]} A:{occ.CurrentAttack} V:{occ.CurrentVigor} Exh:{occ.IsExhausted} Atk:{occ.HasAttackedThisTurn}");
+                else
+                    lines.Add($"  [{i}] empty");
+            }
+        }
+        _debugExhaustLabel.Text = string.Join("\n", lines);
     }
 
     private BoardSnapshot[] CaptureBoard(int playerIndex)
@@ -423,6 +524,8 @@ public partial class DuelScene : Control
 
     private void ShowFaceDamage(bool isEnemy, int amount)
     {
+        if (amount <= 0) return;
+
         var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
         var ft = ftScene.Instantiate<FloatingText>();
         AddChild(ft);
@@ -431,16 +534,20 @@ public partial class DuelScene : Control
         Color color;
         string prefixAndAmount;
 
-        if (amount > 0) // damage
+        // damage
+        color = new Color(1, 0.15f, 0.15f);
+        prefixAndAmount = $"-{amount}";
+
+        // Shake the health bar
+        var bar = isEnemy ? _enemyHealthBar : _playerHealthBar;
+        if (bar != null && IsInsideTree())
         {
-            color = new Color(1, 0.15f, 0.15f);
-            prefixAndAmount = $"-{amount}";
-        }
-        else // heal
-        {
-            color = new Color(0.15f, 1, 0.15f);
-            prefixAndAmount = $"+{-amount}";
-            amount = -amount;
+            var origPos = bar.Position;
+            var shake = CreateTween();
+            shake.TweenProperty(bar, "position", origPos + new Vector2(8, 0), 0.04f);
+            shake.TweenProperty(bar, "position", origPos - new Vector2(8, 0), 0.04f);
+            shake.TweenProperty(bar, "position", origPos + new Vector2(4, 0), 0.04f);
+            shake.TweenProperty(bar, "position", origPos, 0.04f);
         }
 
         if (isEnemy)
@@ -459,13 +566,37 @@ public partial class DuelScene : Control
         var enemyHud = _gsm.GetPlayerHud(1);
         var playerHud = _gsm.GetPlayerHud(0);
 
-        SetEnemyVigor(enemyHud.Vigor);
-        SetEnemyAttunement(enemyHud.Attunement);
-        SetPlayerVigor(playerHud.Vigor);
-        SetPlayerAttunement(playerHud.Attunement);
+        // Health bars — width ratio = vigor / maxVigor
+        float enemyRatio = (float)enemyHud.Vigor / enemyHud.MaxVigor;
+        float playerRatio = (float)playerHud.Vigor / playerHud.MaxVigor;
+        float fullWidth = GetViewportRect().Size.X;
+        _enemyHealthBar.Size = new Vector2(fullWidth * Math.Clamp(enemyRatio, 0, 1), 40);
+        _enemyHealthBar.Color = HealthBarColor(enemyRatio);
+        _playerHealthBar.Size = new Vector2(fullWidth * Math.Clamp(playerRatio, 0, 1), 36);
+        _playerHealthBar.Color = HealthBarColor(playerRatio);
 
-        _turnLabel.Text = $"Turn {_gsm.TurnNumber} — {( _gsm.CurrentPlayerIndex == 0 ? "Your" : "Enemy" )} Turn";
+        SetEnemyVigor(enemyHud.Vigor);
+        SetEnemyAttunement($"{enemyHud.Attunement}/{enemyHud.AttunementMax}");
+        SetPlayerVigor(playerHud.Vigor);
+        SetPlayerAttunement($"{playerHud.Attunement}/{playerHud.AttunementMax}");
+
+        // Turn indicator
+        bool isMyTurn = _gsm.CurrentPlayerIndex == 0;
+        _turnLabel.Text = isMyTurn
+            ? $"YOUR TURN {_gsm.TurnNumber}"
+            : $"ENEMY TURN {_gsm.TurnNumber}";
+        _turnLabel.Modulate = isMyTurn
+            ? new Color(0.3f, 1, 0.4f)
+            : new Color(1, 0.3f, 0.3f);
     }
+
+    /// <summary>Health bar color: green > yellow > red as vigor drops.</summary>
+    private static Color HealthBarColor(float ratio) => ratio switch
+    {
+        > 0.6f => new Color(0.2f, 0.7f, 0.2f, 0.5f),
+        > 0.3f => new Color(0.8f, 0.7f, 0.15f, 0.5f),
+        _ => new Color(0.8f, 0.2f, 0.15f, 0.5f)
+    };
 
     private void RenderBoard()
     {
@@ -477,7 +608,7 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _enemySlots[i].SetEmpty();
             else
-                _enemySlots[i].SetCard(info.Name, info.Attack, info.Vigor);
+                _enemySlots[i].SetCard(info.Name, info.Attack, info.Vigor, info.IsExhausted);
         }
 
         // Player lanes
@@ -488,7 +619,7 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _playerSlots[i].SetEmpty();
             else
-                _playerSlots[i].SetCard(info.Name, info.Attack, info.Vigor);
+                _playerSlots[i].SetCard(info.Name, info.Attack, info.Vigor, info.IsExhausted);
         }
     }
 
@@ -502,6 +633,7 @@ public partial class DuelScene : Control
         // Rebuild from state
         var handScene = GD.Load<PackedScene>("res://scenes/components/HandCard.tscn");
         var hand = _gsm.GetHand(0); // Current player is always human for now
+        int currentAttune = _gsm.GetPlayerHud(0).Attunement;
 
         foreach (var info in hand)
         {
@@ -509,6 +641,12 @@ public partial class DuelScene : Control
             _handFlow.AddChild(card);
             // AddChild triggers _Ready, so GetNode inside HandCard._Ready() works
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
+
+            // Grey out cards the player can't afford
+            card.Modulate = info.Cost > currentAttune
+                ? new Color(0.4f, 0.4f, 0.4f, 0.6f)
+                : Colors.White;
+
             var capturedCard = card;
             card.Pressed += () => OnHandCardPressed(capturedCard);
             _handCards.Add(card);
@@ -520,10 +658,14 @@ public partial class DuelScene : Control
     private void OnBotTurnStarted()
     {
         _turnLabel.Text = $"Turn {_gsm.TurnNumber} — Enemy Thinking...";
+        if (_debugExhaustLabel != null)
+            _debugExhaustLabel.Text = $"[BOT TURN STARTED at Turn {_gsm.TurnNumber}]";
     }
 
     private void OnBotTurnEnded()
     {
+        if (_debugExhaustLabel != null)
+            _debugExhaustLabel.Text = $"[BOT TURN ENDED at Turn {_gsm.TurnNumber}]";
     }
 
     // ——— Input event handlers ———
@@ -662,12 +804,17 @@ public partial class DuelScene : Control
         {
             ShowToast(result.ErrorMessage ?? "Cannot play that card.",
                 new Color(1, 0.7f, 0.2f));
+            UpdateTutorialDebug("PLAY_CARD_FAILED", false);
         }
         else
         {
             // Advance tutorial if waiting for summon
             if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
+            {
                 _tutorialCtrl.Advance();
+                UpdateTutorialOverlay();
+            }
+            UpdateTutorialDebug("PLAY_CARD", true);
         }
     }
 
@@ -678,12 +825,17 @@ public partial class DuelScene : Control
         {
             ShowToast(result.ErrorMessage ?? "Cannot attack.",
                 new Color(1, 0.3f, 0.3f));
+            UpdateTutorialDebug("ATTACK_FAILED", false);
         }
         else
         {
             // Advance tutorial if waiting for attack
             if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
+            {
                 _tutorialCtrl.Advance();
+                UpdateTutorialOverlay();
+            }
+            UpdateTutorialDebug("ATTACK", true);
         }
     }
 
@@ -695,6 +847,7 @@ public partial class DuelScene : Control
 
     /// <summary>
     /// Highlight friendly occupied lanes (attackers available) when in selecting-attacker mode.
+    /// Empty enemy lanes show "→ FACE" as valid targets.
     /// </summary>
     private void UpdateAttackHighlights()
     {
@@ -706,11 +859,18 @@ public partial class DuelScene : Control
                 slot.Unhighlight();
         }
 
-        // Highlight all enemy lanes as potential targets when attacker is selected
+        // Highlight enemy lanes as potential targets when attacker is selected
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
+            var enemyLanes = _gsm.GetLanes(1);
             foreach (var slot in _enemySlots)
-                slot.Highlight();
+            {
+                var info = enemyLanes[slot.LaneIndex];
+                if (info.IsEmpty)
+                    slot.HighlightAsFaceTarget(); // empty lane = attack face
+                else
+                    slot.Highlight(); // occupied lane = fight creature
+            }
         }
         else
         {
@@ -761,18 +921,23 @@ public partial class DuelScene : Control
         {
             ShowToast(result.ErrorMessage ?? "Cannot end turn.",
                 new Color(1, 0.3f, 0.3f));
+            UpdateTutorialDebug("END_TURN_FAILED", false);
         }
         else
         {
             // Advance tutorial if waiting for end turn
             if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_EndTurn)
+            {
                 _tutorialCtrl.Advance();
+                UpdateTutorialOverlay();
+            }
+            UpdateTutorialDebug("END_TURN", true);
         }
     }
 
     /// <summary>
     /// Show a floating toast message near the center of the screen.
-    /// Auto-fades and removes itself. Used for rejection feedback.
+    /// Persists for 4s visible, then fades over 1s — readable on a phone.
     /// </summary>
     private void ShowToast(string message, Color color)
     {
@@ -790,12 +955,190 @@ public partial class DuelScene : Control
         toast.Size = new Vector2(300, 60);
         AddChild(toast);
 
+        // Hold visible for 4s, then fade over 1s
         var tween = CreateTween();
-        tween.SetParallel();
-        tween.TweenProperty(toast, "position", toast.Position + new Vector2(0, -30), 1.2f);
-        tween.TweenProperty(toast, "modulate:a", 0.0f, 1.2f);
-        tween.SetParallel(false);
+        tween.TweenInterval(4.0);
+        tween.TweenProperty(toast, "modulate:a", 0.0f, 1.0f);
         tween.TweenCallback(Callable.From(toast.QueueFree));
+    }
+
+    // ——— Mulligan phase ———
+
+    /// <summary>
+    /// Show the mulligan overlay if neither player has mulliganed yet.
+    /// The overlay displays the player's opening hand and lets them select
+    /// cards to shuffle back and redraw. The bot auto-mulligans.
+    /// </summary>
+    private void ShowMulliganIfNeeded()
+    {
+        if (_gsm == null || !_gsm.IsInitialized) return;
+        if (_gsm.State.Players[0].HasMulliganed) return;
+
+        _mulliganSelection.Clear();
+        _mulliganPanel = BuildMulliganOverlay();
+        AddChild(_mulliganPanel);
+
+        // Bot auto-mulligan: redraw any card costing 4 or more
+        var botHand = _gsm.GetHand(1);
+        var botRedraw = new List<int>();
+        for (int i = 0; i < botHand.Count; i++)
+        {
+            if (botHand[i].Cost >= 4)
+                botRedraw.Add(i);
+        }
+        if (botRedraw.Count > 0)
+        {
+            _gsm.PerformMulligan(1, botRedraw);
+            GD.Print($"[DuelScene] Bot mulliganed {botRedraw.Count} card(s)");
+        }
+    }
+
+    private Control BuildMulliganOverlay()
+    {
+        var panel = new Panel();
+        panel.AnchorLeft = 0.02f;
+        panel.AnchorRight = 0.98f;
+        panel.AnchorTop = 0.1f;
+        panel.AnchorBottom = 0.9f;
+
+        var style = new StyleBoxFlat();
+        style.BgColor = new Color(0.06f, 0.06f, 0.12f, 0.98f);
+        style.BorderColor = new Color(0.4f, 0.4f, 0.6f);
+        style.BorderWidthLeft = 2;
+        style.BorderWidthTop = 2;
+        style.BorderWidthRight = 2;
+        style.BorderWidthBottom = 2;
+        panel.AddThemeStyleboxOverride("panel", style);
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        vbox.AnchorLeft = 0.03f;
+        vbox.AnchorRight = 0.97f;
+        vbox.AnchorTop = 0.03f;
+        vbox.AnchorBottom = 0.85f;
+        panel.AddChild(vbox);
+
+        // Title
+        var title = new Label
+        {
+            Text = "Mulligan — Tap cards to redraw",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutoTranslate = false
+        };
+        title.AddThemeFontSizeOverride("font_size", 18);
+        vbox.AddChild(title);
+
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
+
+        // Hand cards in a horizontal row
+        var handRow = new HFlowContainer();
+        handRow.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
+        vbox.AddChild(handRow);
+
+        // Card label
+        var hint = new Label
+        {
+            Text = "Your Hand:",
+            AutoTranslate = false
+        };
+        hint.AddThemeFontSizeOverride("font_size", 13);
+        hint.Modulate = new Color(0.6f, 0.6f, 0.7f);
+        vbox.AddChild(hint);
+
+        var handInfo = _gsm.GetHand(0);
+        for (int i = 0; i < handInfo.Count; i++)
+        {
+            int idx = i;
+            var info = handInfo[i];
+
+            var cardBtn = new Button
+            {
+                Text = $"[{info.Cost}] {info.Name}",
+                CustomMinimumSize = new Vector2(120, 40),
+                SizeFlagsHorizontal = (Control.SizeFlags)3
+            };
+            cardBtn.AddThemeFontSizeOverride("font_size", 13);
+
+            // Toggle selection
+            cardBtn.Pressed += () => ToggleMulliganCard(idx, cardBtn);
+            handRow.AddChild(cardBtn);
+        }
+
+        // Bottom buttons
+        var btnRow = new HBoxContainer();
+        btnRow.Alignment = BoxContainer.AlignmentMode.Center;
+        btnRow.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
+        btnRow.CustomMinimumSize = new Vector2(0, 50);
+        vbox.AddChild(btnRow);
+
+        var confirmBtn = new Button
+        {
+            Text = "Confirm Redraw",
+            CustomMinimumSize = new Vector2(140, 44)
+        };
+        confirmBtn.Pressed += OnMulliganConfirm;
+        btnRow.AddChild(confirmBtn);
+
+        btnRow.AddChild(new Control { CustomMinimumSize = new Vector2(16, 0) });
+
+        var keepBtn = new Button
+        {
+            Text = "Keep Hand",
+            CustomMinimumSize = new Vector2(140, 44)
+        };
+        keepBtn.Pressed += OnMulliganKeep;
+        btnRow.AddChild(keepBtn);
+
+        return panel;
+    }
+
+    private void ToggleMulliganCard(int index, Button btn)
+    {
+        if (_mulliganSelection.Contains(index))
+        {
+            _mulliganSelection.Remove(index);
+            btn.Modulate = new Color(1, 1, 1);
+        }
+        else
+        {
+            _mulliganSelection.Add(index);
+            btn.Modulate = new Color(1, 0.6f, 0.2f); // orange highlight
+        }
+    }
+
+    private void OnMulliganConfirm()
+    {
+        var indices = _mulliganSelection.OrderBy(i => i).ToList();
+        var result = _gsm.PerformMulligan(0, indices);
+        if (result.Success)
+        {
+            var count = indices.Count;
+            ShowToast(count > 0
+                ? $"Mulligan: redrew {count} card(s)"
+                : "No cards redrawn — hand kept", new Color(0.4f, 1, 0.4f));
+        }
+        else
+        {
+            ShowToast(result.ErrorMessage ?? "Mulligan failed", new Color(1, 0.5f, 0.2f));
+        }
+
+        DismissMulligan();
+    }
+
+    private void OnMulliganKeep()
+    {
+        _gsm.PerformMulligan(0, new List<int>()); // decline, just mark used
+        ShowToast("Hand kept — good luck!", new Color(0.5f, 0.8f, 1f));
+        DismissMulligan();
+    }
+
+    private void DismissMulligan()
+    {
+        if (_mulliganPanel != null)
+        {
+            _mulliganPanel.QueueFree();
+            _mulliganPanel = null;
+        }
     }
 
     private void OnGameOver(int winnerIndex)
@@ -998,16 +1341,71 @@ public partial class DuelScene : Control
         btnHBox.AddChild(backToTitle);
     }
 
-    // ——— Public update methods ———
+    // ——— Tutorial helpers ———
+
+        /// <summary>
+        /// Skip the tutorial: force-complete it and start a normal game.
+        /// </summary>
+        private void SkipTutorial()
+        {
+            GD.Print("[DuelScene] Skip Tutorial requested.");
+            if (_tutorialCtrl == null) return;
+
+            // Mark tutorial complete so it never runs again
+            _tutorialCtrl.ForceComplete();
+
+            // Remove the overlay
+            if (_tutorialOverlay != null)
+            {
+                _tutorialOverlay.QueueFree();
+                _tutorialOverlay = null;
+            }
+
+            // Resume bot at normal speed and restart with a test game
+            _bot.Resume();
+            _bot.ThinkDelay = 1.5f;
+            _bot.ActionInterval = 0.6f;
+
+            // Clear tutorial field so we don't act on it anymore
+            _tutorialCtrl = null;
+
+            // Start a fresh normal game (triggers OnStateChanged → full re-render)
+            _gsm.InitializeTestGame();
+            ShowToast("Tutorial skipped — game restarted.", new Color(0.5f, 1, 0.5f));
+        }
+
+        /// <summary>
+        /// Update the tutorial overlay's hint and step info after a step advance.
+        /// </summary>
+        private void UpdateTutorialOverlay()
+        {
+            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+            if (!_tutorialCtrl.IsActive)
+            {
+                // Tutorial completed — remove overlay
+                _tutorialOverlay.QueueFree();
+                _tutorialOverlay = null;
+                return;
+            }
+            _tutorialOverlay.SetHint(_tutorialCtrl.GetCurrentHint());
+            _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
+        }
+
+        /// <summary>
+        /// Update the overlay debug line with the last action taken.
+        /// </summary>
+        private void UpdateTutorialDebug(string lastAction, bool matched)
+        {
+            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+            _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), lastAction, matched);
+        }
+
+        // ——— Public update methods ———
 
     public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = vigor.ToString();
-    public void SetEnemyAttunement(int attune) => _enemyAttuneValue.Text = attune.ToString();
-    public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = vigor.ToString();
-    public void SetPlayerAttunement(int attune)
-    {
-        GD.Print($"SetPlayerAttunement({attune}) — assigning to _playerAttuneValue.Text");
-        _playerAttuneValue.Text = attune.ToString();
-    }
+        public void SetEnemyAttunement(string text) => _enemyAttuneValue.Text = text;
+        public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = vigor.ToString();
+        public void SetPlayerAttunement(string text) => _playerAttuneValue.Text = text;
 
     public void ClearBoard()
     {

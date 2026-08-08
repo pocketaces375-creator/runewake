@@ -45,24 +45,89 @@ public sealed class SaveRepository
     /// <summary>
     /// Load progression state from the database file. Creates the file and
     /// tables if they do not exist, applying version migration as needed.
+    /// Returns a fresh state on failure — save errors never block the game.
     /// </summary>
     public ProgressionState Load()
     {
-        using var conn = OpenConnection();
-        EnsureSchema(conn);
-        return LoadFrom(conn);
+        try
+        {
+            using var conn = OpenConnection();
+            EnsureSchema(conn);
+            return LoadFrom(conn);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Load failed: {ex.GetType().Name}: {ex.Message}");
+            var fresh = new ProgressionState { Version = CurrentSchemaVersion };
+            return fresh;
+        }
     }
 
     /// <summary>
     /// Persist the given progression state atomically. All writes happen inside
     /// a single transaction so a process kill mid-write leaves the previous
     /// committed state intact (SQLite rolls back the uncommitted transaction).
+    /// Returns true on success, false on failure (logs the error internally).
     /// </summary>
-    public void Save(ProgressionState state)
+    public bool Save(ProgressionState state)
     {
-        using var conn = OpenConnection();
-        EnsureSchema(conn);
-        SaveTo(conn, state);
+        try
+        {
+            using var conn = OpenConnection();
+            EnsureSchema(conn);
+            SaveTo(conn, state);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save failed: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Test that the database can be opened, written to, and read from.
+    /// Returns (success, errorMessage). Used by the on-device diagnostics
+    /// button to surface SQLite errors to the player.
+    /// </summary>
+    public (bool Success, string? ErrorMessage) TestReadWrite()
+    {
+        try
+        {
+            using var conn = OpenConnection();
+            EnsureSchema(conn);
+
+            // Write a diagnostic marker
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "INSERT INTO meta (key, value) VALUES (@key, @val)";
+                cmd.Parameters.AddWithValue("@key", "_diag_test");
+                cmd.Parameters.AddWithValue("@val", "ok");
+                cmd.ExecuteNonQuery();
+            }
+
+            // Read it back
+            string? readBack;
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT value FROM meta WHERE key = '_diag_test'";
+                readBack = cmd.ExecuteScalar() as string;
+            }
+
+            // Clean up
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM meta WHERE key = '_diag_test'";
+                cmd.ExecuteNonQuery();
+            }
+
+            bool ok = readBack == "ok";
+            return (ok, ok ? null : $"Read-back mismatch: got '{readBack}' expected 'ok'");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"{ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -145,11 +210,36 @@ public sealed class SaveRepository
     {
         var conn = new SqliteConnection($"Data Source={_dbPath}");
         conn.Open();
-        using (var pragma = conn.CreateCommand())
+        try
         {
-            pragma.CommandText = "PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;";
-            pragma.ExecuteNonQuery();
+            // WAL-mode: faster reads, supports concurrent readers — but not all
+            // Android filesystems support it (F2FS, some /data partitions reject it).
+            using (var pragma = conn.CreateCommand())
+            {
+                pragma.CommandText = "PRAGMA journal_mode=WAL";
+                pragma.ExecuteNonQuery();
+            }
         }
+        catch
+        {
+            // WAL not supported — fall back to DELETE journal mode
+            try
+            {
+                using var pragma = conn.CreateCommand();
+                pragma.CommandText = "PRAGMA journal_mode=DELETE";
+                pragma.ExecuteNonQuery();
+            }
+            catch { /* best effort */ }
+        }
+        try
+        {
+            using (var pragma = conn.CreateCommand())
+            {
+                pragma.CommandText = "PRAGMA foreign_keys=ON";
+                pragma.ExecuteNonQuery();
+            }
+        }
+        catch { /* best effort */ }
         return conn;
     }
 

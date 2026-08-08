@@ -195,14 +195,26 @@ public class ReplayDeterminismTests
                 var occ = player.Lanes[l].Occupant;
                 if (occ is not null && !occ.IsExhausted && !occ.HasAttackedThisTurn && occ.CurrentAttack > 0)
                 {
-                    var opponent = state.Player(state.OpponentIndex(state.CurrentPlayerIndex));
-                    for (int tl = 0; tl < 5; tl++)
+                    bool hasReach = occ.EffectiveKeywords.Contains("REACH");
+                    if (hasReach)
                     {
+                        // Reach: can attack lanes l-1, l, l+1
+                        for (int tl = Math.Max(0, l - 1); tl <= Math.Min(4, l + 1); tl++)
+                            validActions.Add(new AttackAction
+                            {
+                                PlayerIndex = state.CurrentPlayerIndex,
+                                SourceLane = l,
+                                TargetLane = tl,
+                            });
+                    }
+                    else
+                    {
+                        // No Reach: only the opposing lane
                         validActions.Add(new AttackAction
                         {
                             PlayerIndex = state.CurrentPlayerIndex,
                             SourceLane = l,
-                            TargetLane = tl,
+                            TargetLane = l,
                         });
                     }
                 }

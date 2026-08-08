@@ -11,6 +11,7 @@ public partial class LaneSlot : PanelContainer
 {
     private Label _cardName;
     private Label _stats;
+    private Label _faceLabel;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
 
@@ -42,6 +43,18 @@ public partial class LaneSlot : PanelContainer
         _stats = GetNode<Label>("VBox/Stats");
         SetEmpty();
 
+        // Create the FACE attack target label (hidden by default)
+        _faceLabel = new Label
+        {
+            Text = "→ FACE",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visible = false,
+            Modulate = new Color(1, 0.85f, 0.2f, 1)
+        };
+        _faceLabel.AddThemeFontSizeOverride("font_size", 14);
+        GetNode("VBox").AddChild(_faceLabel);
+
         // Connect touch area (expanded hit region) for touch input
         var touchArea = GetNodeOrNull<Control>("TouchArea");
         if (touchArea != null)
@@ -63,13 +76,15 @@ public partial class LaneSlot : PanelContainer
     /// <summary>
     /// Set this lane slot to show card info.
     /// </summary>
-    public void SetCard(string name, int attack, int vigor)
+    public void SetCard(string name, int attack, int vigor, bool isExhausted = false)
     {
         _cardName.Text = name;
         _stats.Text = $"{attack}/{vigor}";
         _state = NodeState.Occupied;
         _cardName.Show();
         _stats.Show();
+        // Visual: exhausted creatures are grayed out, ready creatures are full color
+        Modulate = isExhausted ? Colors.Gray : Colors.White;
     }
 
     /// <summary>
@@ -94,7 +109,18 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void Highlight()
     {
+        _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 0.8f, 1);
+    }
+
+    /// <summary>
+    /// Show that this empty lane is a valid face-attack target.
+    /// Displays a → FACE label with gold highlight.
+    /// </summary>
+    public void HighlightAsFaceTarget()
+    {
+        Modulate = new Color(1, 0.9f, 0.4f, 1);
+        _faceLabel.Visible = true;
     }
 
     /// <summary>
@@ -102,6 +128,7 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void Unhighlight()
     {
+        _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 1, 1);
     }
 

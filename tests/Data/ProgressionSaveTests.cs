@@ -315,6 +315,11 @@ public class SaveRepositoryTests : IDisposable
             cmd.ExecuteNonQuery();
         }
 
-        Assert.Throws<InvalidOperationException>(() => repo.Load());
+        var result = repo.Load();
+
+        // Load is now always safe — returns fresh state instead of throwing
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, result.Version);
+        Assert.Empty(result.ClearedNodes);
+        Assert.Empty(result.Collection);
     }
 }
