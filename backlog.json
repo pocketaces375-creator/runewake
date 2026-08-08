@@ -1,3 +1,60 @@
 [
-  {"id": "P4-05", "title": "Deck builder screen with collection filtering", "status": "open"}
+  {"id": "P0-01", "title": "Repo init", "status": "done"},
+  {"id": "P0-02", "title": "Godot .NET mobile smoke test", "status": "done"},
+  {"id": "P0-03", "title": "Core state types", "status": "done"},
+
+  {"id": "P1-01", "title": "Card definition model + JSON loader", "status": "done"},
+  {"id": "P1-02", "title": "Turn loop", "status": "done"},
+  {"id": "P1-03", "title": "Lane placement and combat", "status": "done"},
+  {"id": "P1-04", "title": "Keyword handlers", "status": "done"},
+  {"id": "P1-05", "title": "Effect executor", "status": "done"},
+  {"id": "P1-06", "title": "Trigger bus", "status": "done"},
+  {"id": "P1-07", "title": "Barrow, Excavate, Bury, Relic identification", "status": "done"},
+  {"id": "P1-08", "title": "Replay determinism", "status": "done"},
+
+  {"id": "P2-01", "title": "Greedy heuristic bot", "status": "done"},
+  {"id": "P2-02", "title": "Batch runner", "status": "done"},
+  {"id": "P2-03", "title": "Card validator CLI", "status": "done"},
+  {"id": "P2-04", "title": "60 hand-authored cards", "status": "done"},
+  {"id": "P2-05", "title": "Rules text renderer", "status": "done"},
+
+  {"id": "P3-01", "title": "Duel scene layout", "status": "done"},
+  {"id": "P3-02", "title": "Card view component", "status": "done"},
+  {"id": "P3-03", "title": "Input: drag/tap summon, tap-to-attack", "status": "done"},
+  {"id": "P3-04", "title": "Engine binding: GameState lifecycle", "status": "done"},
+  {"id": "P3-05", "title": "Animation and feedback layer", "status": "done"},
+  {"id": "P3-06", "title": "Bot opponent wired in with think-delay", "status": "done"},
+
+  {"id": "P4-01", "title": "Map data format + loader", "status": "done"},
+  {"id": "P4-02", "title": "Map screen: pan/zoom node graph", "status": "done"},
+  {"id": "P4-03", "title": "Encounter definitions", "status": "done"},
+  {"id": "P4-04", "title": "Progression save: SQLite", "status": "done"},
+  {"id": "P4-05", "title": "Deck builder screen with collection filtering", "status": "done"},
+  {"id": "P4-06", "title": "Campaign flow: map → encounter → duel → reward loop", "status": "done"},
+
+  {"id": "P5-01", "title": "Rune definitions + RP budget validation", "status": "done"},
+  {"id": "P5-02", "title": "Rune page editor UI", "status": "done"},
+  {"id": "P5-03", "title": "Runes injected at match start", "status": "done"},
+  {"id": "P5-04", "title": "Dig site interaction", "status": "done"},
+  {"id": "P5-05", "title": "Fragment → rune forging", "status": "done"},
+  {"id": "P5-06", "title": "Lost Relic minting", "status": "done"},
+
+  {"id": "P6-01", "title": "Card JSON Schema finalized", "status": "done"},
+  {"id": "P6-02", "title": "Generate module", "status": "done"},
+  {"id": "P6-03", "title": "Validate module", "status": "done"},
+  {"id": "P6-04", "title": "Score module", "status": "done"},
+  {"id": "P6-05", "title": "Simulate module", "status": "done"},
+  {"id": "P6-06", "title": "Dedupe + moderate", "status": "done"},
+  {"id": "P6-07", "title": "Art module", "status": "done"},
+  {"id": "P6-08", "title": "Review UI", "status": "done"},
+  {"id": "P6-09", "title": "Publish + content versioning + client hot-update", "status": "done"},
+  {"id": "P6-10", "title": "Pipeline orchestration + 60-card set end to end", "status": "done"},
+  {"id": "P6-11", "title": "Stage-schema continuity + report hardening", "status": "done"},
+
+  {"id": "P7-01", "title": "Onboarding tutorial (first 3 duels)", "status": "open"},
+  {"id": "P7-02", "title": "Supabase account + relic ledger sync", "status": "open"},
+  {"id": "P7-03", "title": "Telemetry + settings/accessibility", "status": "open"},
+  {"id": "P7-04", "title": "App Store and Play listings + privacy policy + age rating", "status": "open"},
+  {"id": "P7-05", "title": "TestFlight/closed beta with 50+ players", "status": "open"},
+  {"id": "P7-06", "title": "Crash reporting + launch", "status": "open"}
 ]
