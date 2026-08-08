@@ -125,6 +125,16 @@ public partial class MapScene : Control
         _shardLabel.AddThemeFontSizeOverride("font_size", 18);
         AddChild(_shardLabel);
 
+        // Settings button (bottom-left corner)
+        var settingsBtn = new Button
+        {
+            Text = "Settings",
+            AnchorLeft = 0f, AnchorRight = 0.14f,
+            AnchorTop = 0.93f, AnchorBottom = 1f
+        };
+        settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://client/scenes/settings/SettingsScene.tscn");
+        AddChild(settingsBtn);
+
         // Info panel
         _infoPanel = new Panel();
         _infoPanel.AnchorLeft = 0.1f;

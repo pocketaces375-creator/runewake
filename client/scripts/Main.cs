@@ -281,6 +281,16 @@ public partial class Main : Control
         syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
         CampaignContext.SyncManager = syncManager;
         _ = syncManager.RunStartupSync(); // fire and forget
+
+        // Load and apply settings
+        CampaignContext.Settings = CampaignContext.SaveManager!.LoadSettings();
+        ApplyAudioSettings(CampaignContext.Settings);
+
+        // Initialize telemetry service
+        var telemetry = new TelemetryService();
+        AddChild(telemetry);
+        telemetry.Initialize(supabaseConfig, null); // accountId resolved lazily by SyncManager
+        CampaignContext.Telemetry = telemetry;
     }
 
     /// <summary>
@@ -315,6 +325,25 @@ public partial class Main : Control
     private void OnStartCampaign()
     {
         GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+    }
+
+    /// <summary>
+    /// Apply volume settings to Godot audio buses.
+    /// Safe to call even if buses don't exist (buses are created by AudioServer on startup).
+    /// </summary>
+    private static void ApplyAudioSettings(SettingsState s)
+    {
+        int masterIdx = AudioServer.GetBusIndex("Master");
+        if (masterIdx >= 0)
+            AudioServer.SetBusVolumeDb(masterIdx, GD.LinearToDb(s.MasterVolume));
+
+        int musicIdx = AudioServer.GetBusIndex("Music");
+        if (musicIdx >= 0)
+            AudioServer.SetBusVolumeDb(musicIdx, GD.LinearToDb(s.MusicVolume));
+
+        int sfxIdx = AudioServer.GetBusIndex("SFX");
+        if (sfxIdx >= 0)
+            AudioServer.SetBusVolumeDb(sfxIdx, GD.LinearToDb(s.SfxVolume));
     }
 
     private void OnOpenRunePage()

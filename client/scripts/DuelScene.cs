@@ -133,6 +133,13 @@ public partial class DuelScene : Control
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
 
+        // Record duel start for telemetry
+        if (encounter != null)
+        {
+            CampaignContext.Telemetry?.RecordDuelStart(
+                encounter.Id, CampaignContext.PlayerDeckIds.Count);
+        }
+
         // Check for tutorial override
         var tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
         var tutorialConfig = tutorialCtrl?.GetCurrentTutorialConfig();
@@ -369,8 +376,8 @@ public partial class DuelScene : Control
             else if (!prev.IsEmpty && !cur.IsEmpty)
             {
                 int dmg = prev.Vigor - cur.Vigor;
-                if (dmg > 0) slot.ShowDamageNumber(dmg);
-                else if (dmg < 0) slot.ShowHealNumber(-dmg);
+                if (dmg > 0 && !CampaignContext.ReduceMotion) slot.ShowDamageNumber(dmg);
+                else if (dmg < 0 && !CampaignContext.ReduceMotion) slot.ShowHealNumber(-dmg);
             }
         }
 
@@ -387,8 +394,8 @@ public partial class DuelScene : Control
             else if (!prev.IsEmpty && !cur.IsEmpty)
             {
                 int dmg = prev.Vigor - cur.Vigor;
-                if (dmg > 0) slot.ShowDamageNumber(dmg);
-                else if (dmg < 0) slot.ShowHealNumber(-dmg);
+                if (dmg > 0 && !CampaignContext.ReduceMotion) slot.ShowDamageNumber(dmg);
+                else if (dmg < 0 && !CampaignContext.ReduceMotion) slot.ShowHealNumber(-dmg);
             }
         }
     }
@@ -802,6 +809,12 @@ public partial class DuelScene : Control
         {
             _isGameOverHandled = true;
 
+            // Record duel end for telemetry
+            CampaignContext.Telemetry?.RecordDuelEnd(
+                CampaignContext.CurrentEncounter?.Id ?? "unknown",
+                winnerIndex == 0,
+                _gsm.TurnNumber);
+
         if (winnerIndex == 0 && CampaignContext.CurrentEncounter != null)
         {
             // Player won — apply rewards
@@ -841,6 +854,9 @@ public partial class DuelScene : Control
                             // Sync the newly minted relic to Supabase (fire-and-forget)
                             if (CampaignContext.SyncManager != null)
                                 _ = CampaignContext.SyncManager.SyncOnRelicMint(relic);
+
+                            // Record telemetry for relic mint
+                            CampaignContext.Telemetry?.RecordRelicMinted(relic.CardId);
                         }
                     }
                 }
@@ -849,6 +865,10 @@ public partial class DuelScene : Control
             // Mark node cleared
             if (CampaignContext.CurrentNodeId != null)
                 prog.MarkNodeCleared(CampaignContext.CurrentNodeId);
+
+            // Record telemetry for node clear
+            CampaignContext.Telemetry?.RecordNodeCleared(
+                CampaignContext.CurrentNodeId ?? "unknown");
 
             // Grant the player one copy of each card in the encounter deck
             // that they don't already own

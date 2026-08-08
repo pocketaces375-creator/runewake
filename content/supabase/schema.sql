@@ -60,3 +60,15 @@ create policy relic_insert_all on relic_instances
 
 create policy relic_update_all on relic_instances
   for update using (true);
+
+-- ===================================================================
+-- Telemetry
+-- Appends-only, no personal data. No RLS — telemetry is anonymous.
+-- ===================================================================
+create table if not exists telemetry_events (
+  id            bigserial primary key,
+  event_name    text not null,
+  account_id    uuid,
+  occurred_at   timestamptz not null,
+  props         jsonb
+);

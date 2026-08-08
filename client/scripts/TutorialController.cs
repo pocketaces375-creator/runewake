@@ -134,6 +134,10 @@ public partial class TutorialController : Node
             var def = GetCurrentDef();
             GD.Print($"[TutorialController] Advanced to {next}");
         }
+
+        // Record telemetry for tutorial step
+        CampaignContext.Telemetry?.RecordTutorialStepReached(next.ToString());
+
         EmitSignal(SignalName.StepChanged);
     }
 

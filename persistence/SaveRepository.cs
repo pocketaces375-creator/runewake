@@ -65,6 +65,71 @@ public sealed class SaveRepository
         SaveTo(conn, state);
     }
 
+    /// <summary>
+    /// Save settings to a key/value table.
+    /// </summary>
+    public void SaveSettings(SettingsState settings)
+    {
+        using var conn = OpenConnection();
+        EnsureSchema(conn);
+
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)";
+        cmd.ExecuteNonQuery();
+
+        using (var clear = conn.CreateCommand()) { clear.CommandText = "DELETE FROM settings"; clear.ExecuteNonQuery(); }
+
+        InsertSetting(conn, "master_volume", settings.MasterVolume.ToString());
+        InsertSetting(conn, "music_volume", settings.MusicVolume.ToString());
+        InsertSetting(conn, "sfx_volume", settings.SfxVolume.ToString());
+        InsertSetting(conn, "reduce_motion", settings.ReduceMotion ? "1" : "0");
+        InsertSetting(conn, "large_text", settings.LargeText ? "1" : "0");
+        InsertSetting(conn, "high_contrast", settings.HighContrast ? "1" : "0");
+        InsertSetting(conn, "language", settings.Language);
+    }
+
+    /// <summary>
+    /// Load settings from the key/value table.
+    /// Returns default settings if table empty or missing.
+    /// Missing keys get default values.
+    /// </summary>
+    public SettingsState LoadSettings()
+    {
+        var s = new SettingsState();
+        try
+        {
+            using var conn = OpenConnection();
+            EnsureSchema(conn);
+
+            // Ensure settings table exists
+            using var createCmd = conn.CreateCommand();
+            createCmd.CommandText = "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)";
+            createCmd.ExecuteNonQuery();
+
+            var dict = new Dictionary<string, string>();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT key, value FROM settings";
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                    dict[reader.GetString(0)] = reader.GetString(1);
+            }
+
+            if (dict.TryGetValue("master_volume", out var mv) && float.TryParse(mv, out var mvf)) s.MasterVolume = mvf;
+            if (dict.TryGetValue("music_volume", out var musv) && float.TryParse(musv, out var musf)) s.MusicVolume = musf;
+            if (dict.TryGetValue("sfx_volume", out var sfx) && float.TryParse(sfx, out var sfxf)) s.SfxVolume = sfxf;
+            if (dict.TryGetValue("reduce_motion", out var rm)) s.ReduceMotion = rm == "1";
+            if (dict.TryGetValue("large_text", out var lt)) s.LargeText = lt == "1";
+            if (dict.TryGetValue("high_contrast", out var hc)) s.HighContrast = hc == "1";
+            if (dict.TryGetValue("language", out var lang)) s.Language = lang;
+        }
+        catch
+        {
+            // Return defaults on any failure
+        }
+        return s;
+    }
+
     /// <summary>Read the current schema version stored in the database (0 if none).</summary>
     public int ReadStoredVersion()
     {
@@ -361,6 +426,15 @@ public sealed class SaveRepository
     {
         using var cmd = conn.CreateCommand();
         cmd.CommandText = "INSERT INTO meta (key, value) VALUES (@k, @v)";
+        cmd.Parameters.AddWithValue("@k", key);
+        cmd.Parameters.AddWithValue("@v", value);
+        cmd.ExecuteNonQuery();
+    }
+
+    private static void InsertSetting(SqliteConnection conn, string key, string value)
+    {
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "INSERT INTO settings (key, value) VALUES (@k, @v)";
         cmd.Parameters.AddWithValue("@k", key);
         cmd.Parameters.AddWithValue("@v", value);
         cmd.ExecuteNonQuery();

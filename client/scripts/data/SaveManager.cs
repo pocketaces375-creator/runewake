@@ -53,6 +53,22 @@ public class SaveManager
         IsLoaded = false;
     }
 
+    /// <summary>
+    /// Load settings from the repository.
+    /// </summary>
+    public SettingsState LoadSettings()
+    {
+        return _repository.LoadSettings();
+    }
+
+    /// <summary>
+    /// Save settings to the repository.
+    /// </summary>
+    public void SaveSettings(SettingsState settings)
+    {
+        _repository.SaveSettings(settings);
+    }
+
     /// <summary>Copy a freshly-loaded state into the live mutable state object.</summary>
     private static void CopyInto(ProgressionState from, ProgressionState to)
     {

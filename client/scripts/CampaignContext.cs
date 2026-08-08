@@ -61,6 +61,24 @@ public static class CampaignContext
     public static SyncManager? SyncManager { get; set; }
 
     /// <summary>
+    /// Telemetry service for recording gameplay events.
+    /// Set by Main.cs after LoadGameData().
+    /// Null when not configured — check before use.
+    /// </summary>
+    public static TelemetryService? Telemetry { get; set; }
+
+    /// <summary>
+    /// Current settings/accessibility state.
+    /// Loaded from SQLite by Main.cs after save init.
+    /// </summary>
+    public static SettingsState Settings { get; set; } = new();
+
+    /// <summary>
+    /// Convenience shortcut — true when ReduceMotion is enabled.
+    /// </summary>
+    public static bool ReduceMotion => Settings.ReduceMotion;
+
+    /// <summary>
     /// Load all encounter packs from the content directory.
     /// Call once at title screen.
     /// </summary>
