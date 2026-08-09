@@ -151,6 +151,44 @@ values. Tests in `pipeline/tests/test_orchestrator.py`.
 
 ## PHASE 7 — Ship (target: 4 weeks)
 
+### P7-01 — Onboarding tutorial (first duel: Attunement → Face hit → End turn)
+
+**Teaching philosophy:** Each concept is introduced at the moment it becomes relevant — consequence first, label second. The player can always act; the tutorial never freezes the board. It only fails to advance until the right action is taken.
+
+**The three beats of Duel 1 (Lanes):**
+
+**Beat 1 — Attunement (consequence-first).** The player's opening hand has cards they can afford (cost 1-2) and at least one they can't (cost 3+). When they tap a greyed-out card, the overlay appears:
+> "This card costs 3, but you have 1 Attunement. You gain 1 more each turn."
+Highlight the attunement display AND the greyed card. The player then taps an affordable card and summons it normally. (If they go directly to an affordable card, the attunement beat is skipped — don't force exposition they don't need.)
+
+**Beat 2 — Face damage (the most important beat).** After the player attacks an empty enemy lane and the opponent's Vigor drops, pause. The overlay appears:
+> "Direct hit! You dealt 4 damage to the enemy. Their Vigor is now 21. Reduce it to 0 to win."
+Highlight the enemy Vigor bar and the floating number. This single beat is where the win condition clicks. Give it more screen weight than the other beats — larger text, longer visible duration, a pulsing highlight on the enemy bar.
+
+**Beat 3 — End turn (capstone).** The player is prompted to end their turn. The overlay says:
+> "Tap End Turn to pass to the enemy."
+No new concepts — just close the loop so the tutorial can complete and the game flows into the normal duel loop.
+
+**Visual requirements:**
+- Each beat is ONE sentence. Large font (18pt+), high contrast, legible at phone distance.
+- Skip button always visible in the top-right corner.
+- Each beat highlights the relevant UI element (attunement label, enemy health bar, or end turn button) with a colored glow/border.
+
+**Implementation files:**
+- `client/scripts/TutorialOverlay.cs` — add `HighlightElement(Rect2, Color)` method using a positioned ColorRect
+- `client/scripts/DuelScene.cs` — detect greyed-card taps in `OnHandCardPressed`, detect face damage in `OnStateChanged`, pass element positions to overlay
+- `client/scripts/TutorialController.cs` — may need additional step granularity
+
+**Definition of Done:** A new player who has never seen the game can install the APK, play through the tutorial duel, and correctly answer: "What is Vigor?", "What is Attunement?", "How do you reduce the enemy's Vigor?"
+
+(Skipping Excavate and Runes tutorial duels for P7-01 — they share the same teaching structure and will be built in P7-02/P7-03.)
+
+---
+
+**P7-02** Onboarding tutorial duels 2 and 3 (Excavate, Runes).
+
+---
+
 Onboarding tutorial (first 3 duels teach lanes, then Excavate, then runes), Supabase account + relic ledger sync, telemetry, settings/accessibility, App Store and Play listings, privacy policy, age rating, TestFlight/closed beta with 50+ players, crash reporting, launch.
 
 ---

@@ -64,6 +64,7 @@ public partial class DuelScene : Control
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
     private TutorialOverlay? _tutorialOverlay;
+    private bool _pendingFaceHitBeat;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
 
@@ -407,6 +408,19 @@ public partial class DuelScene : Control
             && state.Players[0].Barrow.Count > _prevBuryCount)
         {
             _tutorialCtrl.Advance();
+        }
+
+        // Beat 2: Face hit explanation — most important tutorial moment
+        if (_pendingFaceHitBeat && _tutorialCtrl?.CurrentStep == TutorialStep.Lanes_Attack)
+        {
+            _pendingFaceHitBeat = false;
+            if (state != null && _prevEnemyVigor >= 0)
+            {
+                int currentEnemyVigor = state.Players[1].Vigor;
+                int damage = _prevEnemyVigor - currentEnemyVigor;
+                if (damage > 0)
+                    ShowTutorialFaceHit(damage, currentEnemyVigor);
+            }
         }
 
         // Save for next render
@@ -762,6 +776,18 @@ public partial class DuelScene : Control
         else
         {
             // Idle — show detail and enter lane-selection mode (tap-to-summon)
+            // During tutorial, check if card is affordable first
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
+            {
+                int currentAttune = _gsm.GetPlayerHud(0).Attunement;
+                if (card.CardCost > currentAttune)
+                {
+                    // Beat 1: explain attunement — don't enter selection mode
+                    ShowTutorialAttunement(card.CardCost, currentAttune);
+                    return;
+                }
+            }
+
             _input.SelectCardForPlay(card.CardId);
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 new Color(0.5f, 1, 0.5f));
@@ -829,7 +855,20 @@ public partial class DuelScene : Control
         }
         else
         {
-            // Advance tutorial if waiting for attack
+            // Check if this was a face hit during tutorial
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
+            {
+                var enemyLanes = _gsm.GetLanes(1);
+                if (enemyLanes[targetLane].IsEmpty)
+                {
+                    // Face hit! Don't advance yet — show explanation after state update
+                    _pendingFaceHitBeat = true;
+                    UpdateTutorialDebug("ATTACK_FACE", true);
+                    return; // Skip the normal advance
+                }
+            }
+
+            // Advance tutorial if waiting for attack (creature hit)
             if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
             {
                 _tutorialCtrl.Advance();
@@ -1372,6 +1411,64 @@ public partial class DuelScene : Control
             // Start a fresh normal game (triggers OnStateChanged → full re-render)
             _gsm.InitializeTestGame();
             ShowToast("Tutorial skipped — game restarted.", new Color(0.5f, 1, 0.5f));
+        }
+
+        /// <summary>
+        /// Beat 1: Player tapped an unaffordable card. Explain attunement.
+        /// </summary>
+        private void ShowTutorialAttunement(int cardCost, int currentAttune)
+        {
+            if (_tutorialOverlay == null) return;
+            string msg = $"This card costs {cardCost}, but you have {currentAttune} Attunement. You gain 1 more each turn.";
+            _tutorialOverlay.SetHint(msg);
+
+            // Highlight the attunement display
+            var attuneRect = _playerAttuneValue.GetGlobalRect();
+            _tutorialOverlay.HighlightElement(attuneRect);
+
+            UpdateTutorialDebug("CARD_TOO_EXPENSIVE", false);
+            GD.Print($"[DuelScene] Attunement tutorial: card cost={cardCost}, have={currentAttune}");
+        }
+
+        /// <summary>
+        /// Beat 2: Player hit the enemy's face. Explain vigor/win condition.
+        /// This is the most important tutorial moment.
+        /// Shows explanation, then advances to end-turn step after a pause.
+        /// </summary>
+        private void ShowTutorialFaceHit(int damage, int currentEnemyVigor)
+        {
+            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+
+            string msg = $"Direct hit! You dealt {damage} damage to the enemy. Their Vigor is now {currentEnemyVigor}. Reduce it to 0 to win.";
+            _tutorialOverlay.SetHint(msg);
+
+            // Highlight the enemy vigor bar
+            var enemyVigorRect = _enemyVigorValue.GetGlobalRect();
+            _tutorialOverlay.HighlightElement(enemyVigorRect);
+            GD.Print($"[DuelScene] Face hit tutorial: damage={damage}, vigor now={currentEnemyVigor}");
+
+            // After a brief pause, advance to end-turn step
+            var timer = new Godot.Timer();
+            timer.OneShot = true;
+            timer.WaitTime = 2.5f;
+            timer.Timeout += () =>
+            {
+                if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
+                _tutorialCtrl.Advance();
+                UpdateTutorialOverlay();
+                if (_tutorialOverlay != null)
+                {
+                    _tutorialOverlay.ClearHighlight();
+                    // Highlight the End Turn button
+                    if (_endTurnButton != null)
+                        _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
+                }
+                _tutorialOverlay?.SetDebugInfo(
+                    _tutorialCtrl?.CurrentStep.ToString() ?? "?",
+                    "ATTACK_FACE", true);
+            };
+            AddChild(timer);
+            timer.Start();
         }
 
         /// <summary>

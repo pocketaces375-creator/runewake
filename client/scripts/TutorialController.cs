@@ -111,19 +111,19 @@ public partial class TutorialController : Node
         return CurrentStep switch
         {
             TutorialStep.Lanes_SummonCreature =>
-                "Tap a card in your hand, then tap an empty lane to summon it to the board.",
+                "Tap a card you can afford, then tap an empty lane to summon it.",
             TutorialStep.Lanes_Attack =>
-                "Tap one of your creatures, then tap an enemy lane to attack. Empty lanes deal damage to the enemy's face!",
+                "Tap your creature, then tap an enemy lane to attack.",
             TutorialStep.Lanes_EndTurn =>
-                "Tap the 'End Turn' button in the bottom-right corner to pass to the enemy.",
+                "Tap End Turn to pass to the enemy.",
             TutorialStep.Excavate_PlayExcavate =>
-                "Excavate cards let you dig into the earth. Tap your Excavate card, then tap a lane to play it.",
+                "Tap your Excavate card, then tap a lane to play it.",
             TutorialStep.Excavate_BuryResolved =>
-                "The Excavate card buried a token! Tap a card with a Bury effect to resolve it.",
+                "Tap a card with a Bury effect to resolve it.",
             TutorialStep.Runes_OpenRunePage =>
                 "Open the rune page to equip runes to your creatures.",
             TutorialStep.Runes_EquipRune =>
-                "Select a rune from your collection and equip it to a creature on the board.",
+                "Select a rune and equip it to a creature on the board.",
             _ => ""
         };
     }
