@@ -151,35 +151,54 @@ values. Tests in `pipeline/tests/test_orchestrator.py`.
 
 ## PHASE 7 — Ship (target: 4 weeks)
 
-### P7-01 — Onboarding tutorial (first duel: Attunement → Face hit → End turn)
+### P7-01 — Onboarding tutorial (first duel: guided hand-hold through lanes)
 
-**Teaching philosophy:** Each concept is introduced at the moment it becomes relevant — consequence first, label second. The player can always act; the tutorial never freezes the board. It only fails to advance until the right action is taken.
+**Teaching philosophy:** The tutorial explicitly tells the player what to tap and highlights the target. Every beat is an instruction, not a post-hoc explanation. Explanation follows action, not precedes it. The board is never frozen — the player can always act independently — but the overlay only advances when the prompted action is taken.
 
-**The three beats of Duel 1 (Lanes):**
+**The player deck is curated so turn 1 always has at least one playable (cost ≤ 1) card**, and at least one of those has SWIFT so same-turn attacking is possible. This guarantees no dead draws at the first beat.
 
-**Beat 1 — Attunement (consequence-first).** The player's opening hand has cards they can afford (cost 1-2) and at least one they can't (cost 3+). When they tap a greyed-out card, the overlay appears:
-> "This card costs 3, but you have 1 Attunement. You gain 1 more each turn."
-Highlight the attunement display AND the greyed card. The player then taps an affordable card and summons it normally. (If they go directly to an affordable card, the attunement beat is skipped — don't force exposition they don't need.)
+**Beat-by-beat flow:**
 
-**Beat 2 — Face damage (the most important beat).** After the player attacks an empty enemy lane and the opponent's Vigor drops, pause. The overlay appears:
-> "Direct hit! You dealt 4 damage to the enemy. Their Vigor is now 21. Reduce it to 0 to win."
-Highlight the enemy Vigor bar and the floating number. This single beat is where the win condition clicks. Give it more screen weight than the other beats — larger text, longer visible duration, a pulsing highlight on the enemy bar.
+**1. Select then Summon (Lanes_SummonCreature)**
+   - Overlay shows: *"Tap a playable card to select it."*  
+     — Playable cards in hand get a golden glow highlight.
+   - After the player selects a card (enters lane-selection mode), overlay updates to: *"Now tap an empty lane on your side."*  
+     — Empty lanes get highlighted.
+   - On successful summon → advance to Beat 2.
 
-**Beat 3 — End turn (capstone).** The player is prompted to end their turn. The overlay says:
-> "Tap End Turn to pass to the enemy."
-No new concepts — just close the loop so the tutorial can complete and the game flows into the normal duel loop.
+**2. Attack face (Lanes_Attack) — survives across turn boundaries**
+   - Check creature readiness each render:
+     - **No creature on board** → *"Summon a creature first, then attack."*
+     - **Creature exists but exhausted (summoned this turn)** → *"Your creature is resting. End your turn — it'll be ready next turn."*  
+       — Highlights End Turn button.
+     - **Creature is ready** → *"Tap your creature, then tap an empty enemy lane to attack!"*  
+       — Highlights creature + empty enemy lanes with "→ FACE" markers.
+   - Attacking a creature (not empty lane) during this step doesn't advance — shows a toast: "Attack empty lanes for direct damage!"
+   - Attacking an empty lane (face hit) → shows the **most important beat with extra weight**:
+     - *"Direct hit! You dealt X damage. Their Vigor is now Y. Reduce it to 0 to win."*
+     - Enemy vigor bar pulses with a golden glow for 2.5 seconds.
+     - Auto-advances to Beat 3 after the pause.
+
+**3. End turn (Lanes_EndTurn)**
+   - Overlay says: *"Tap End Turn to pass. You'll gain more Attunement each turn."*
+   - End Turn button highlighted with a green pulsing glow.
+   - On end turn → tutorial complete, overlay fades out.
 
 **Visual requirements:**
-- Each beat is ONE sentence. Large font (18pt+), high contrast, legible at phone distance.
-- Skip button always visible in the top-right corner.
-- Each beat highlights the relevant UI element (attunement label, enemy health bar, or end turn button) with a colored glow/border.
+- Each beat is ONE sentence. 18pt white on dark panel, legible at phone distance.
+- Skip button always visible top-right (red "✕ Skip Tutorial").
+- Each beat highlights the relevant UI element with a golden pulsing border (via `HighlightElement(Rect2)` on the overlay).
+
+**Critical bugfixes from P3-01:**
+- `_pendingFaceHitBeat` race condition: flag is cleared after single consumption. Timer guards check `_tutorialCtrl != null && _tutorialCtrl.IsActive` before advancing. End-of-lifecycle `_tutorialOverlay` null checks added.
+- Tutorial step advances ONLY on the prompted action — attacking a creature during face step doesn't advance, ending turn during attack step doesn't advance.
 
 **Implementation files:**
-- `client/scripts/TutorialOverlay.cs` — add `HighlightElement(Rect2, Color)` method using a positioned ColorRect
-- `client/scripts/DuelScene.cs` — detect greyed-card taps in `OnHandCardPressed`, detect face damage in `OnStateChanged`, pass element positions to overlay
-- `client/scripts/TutorialController.cs` — may need additional step granularity
+- `client/scripts/TutorialController.cs` — rewrite hints as instructions, fix tutorial deck to guarantee playable turn 1
+- `client/scripts/DuelScene.cs` — replace `_pendingFaceHitBeat` with lifecycle-safe flag, dynamic hints in `UpdateTutorialOverlay`, creature-readiness checks, safe timer gating
+- `client/scripts/TutorialOverlay.cs` — no changes needed (already supports highlights + skip)
 
-**Definition of Done:** A new player who has never seen the game can install the APK, play through the tutorial duel, and correctly answer: "What is Vigor?", "What is Attunement?", "How do you reduce the enemy's Vigor?"
+**Definition of Done:** A new player can install the APK, play through the tutorial duel without reading more than 3 sentences total, and correctly answer: *"What is Vigor?"* (enemy health, zero = win), *"What is Attunement?"* (resource to play cards, grows each turn), *"How do you reduce the enemy's Vigor?"* (attack empty lanes / attack with creatures). The tutorial does NOT skip beats due to race conditions — the most important face-hit beat always fires.
 
 (Skipping Excavate and Runes tutorial duels for P7-01 — they share the same teaching structure and will be built in P7-02/P7-03.)
 

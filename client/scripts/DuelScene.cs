@@ -64,7 +64,8 @@ public partial class DuelScene : Control
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
     private TutorialOverlay? _tutorialOverlay;
-    private bool _pendingFaceHitBeat;
+    private bool _tutorialJustAttackedFace;
+    private Godot.Timer? _tutorialFaceTimer;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
 
@@ -411,9 +412,9 @@ public partial class DuelScene : Control
         }
 
         // Beat 2: Face hit explanation — most important tutorial moment
-        if (_pendingFaceHitBeat && _tutorialCtrl?.CurrentStep == TutorialStep.Lanes_Attack)
+        if (_tutorialJustAttackedFace && _tutorialCtrl?.CurrentStep == TutorialStep.Lanes_Attack)
         {
-            _pendingFaceHitBeat = false;
+            _tutorialJustAttackedFace = false; // Consume flag — one shot
             if (state != null && _prevEnemyVigor >= 0)
             {
                 int currentEnemyVigor = state.Players[1].Vigor;
@@ -776,23 +777,22 @@ public partial class DuelScene : Control
         else
         {
             // Idle — show detail and enter lane-selection mode (tap-to-summon)
-            // During tutorial, check if card is affordable first
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
-            {
-                int currentAttune = _gsm.GetPlayerHud(0).Attunement;
-                if (card.CardCost > currentAttune)
-                {
-                    // Beat 1: explain attunement — don't enter selection mode
-                    ShowTutorialAttunement(card.CardCost, currentAttune);
-                    return;
-                }
-            }
-
+            // During tutorial step 1, update the overlay hint after card selection
             _input.SelectCardForPlay(card.CardId);
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 new Color(0.5f, 1, 0.5f));
             UpdatePlayHighlights();
             ShowCardDetail(card);
+
+            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
+            {
+                if (_tutorialOverlay != null)
+                {
+                    _tutorialOverlay.SetHint("Now tap an empty lane on your side.");
+                    _tutorialOverlay.ClearHighlight();
+                }
+                UpdateTutorialDebug("CARD_SELECTED", true);
+            }
         }
     }
 
@@ -862,18 +862,21 @@ public partial class DuelScene : Control
                 if (enemyLanes[targetLane].IsEmpty)
                 {
                     // Face hit! Don't advance yet — show explanation after state update
-                    _pendingFaceHitBeat = true;
+                    _tutorialJustAttackedFace = true;
                     UpdateTutorialDebug("ATTACK_FACE", true);
-                    return; // Skip the normal advance
+                    return; // Skip the normal advance — OnStateChanged handles it
+                }
+                else
+                {
+                    // Creature hit — don't advance, guide toward face damage
+                    ShowToast("Attack empty lanes for direct damage!",
+                        new Color(0.5f, 1, 0.5f));
+                    UpdateTutorialDebug("ATTACK_CREATURE", false);
+                    return;
                 }
             }
 
-            // Advance tutorial if waiting for attack (creature hit)
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
-            {
-                _tutorialCtrl.Advance();
-                UpdateTutorialOverlay();
-            }
+            // Normal advance for non-tutorial or non-Lanes_Attack step
             UpdateTutorialDebug("ATTACK", true);
         }
     }
@@ -1382,120 +1385,166 @@ public partial class DuelScene : Control
 
     // ——— Tutorial helpers ———
 
-        /// <summary>
-        /// Skip the tutorial: force-complete it and start a normal game.
-        /// </summary>
-        private void SkipTutorial()
+    /// <summary>
+    /// Skip the tutorial: force-complete it and start a normal game.
+    /// </summary>
+    private void SkipTutorial()
+    {
+        GD.Print("[DuelScene] Skip Tutorial requested.");
+        if (_tutorialCtrl == null) return;
+
+        // Kill any pending face-hit timer
+        if (_tutorialFaceTimer != null)
         {
-            GD.Print("[DuelScene] Skip Tutorial requested.");
-            if (_tutorialCtrl == null) return;
+            _tutorialFaceTimer.QueueFree();
+            _tutorialFaceTimer = null;
+        }
+        _tutorialJustAttackedFace = false;
 
-            // Mark tutorial complete so it never runs again
-            _tutorialCtrl.ForceComplete();
+        // Mark tutorial complete so it never runs again
+        _tutorialCtrl.ForceComplete();
 
-            // Remove the overlay
+        // Remove the overlay
+        if (_tutorialOverlay != null)
+        {
+            _tutorialOverlay.QueueFree();
+            _tutorialOverlay = null;
+        }
+
+        // Resume bot at normal speed and restart with a test game
+        _bot.Resume();
+        _bot.ThinkDelay = 1.5f;
+        _bot.ActionInterval = 0.6f;
+
+        // Clear tutorial field so we don't act on it anymore
+        _tutorialCtrl = null;
+
+        // Start a fresh normal game (triggers OnStateChanged → full re-render)
+        _gsm.InitializeTestGame();
+        ShowToast("Tutorial skipped — game restarted.", new Color(0.5f, 1, 0.5f));
+    }
+
+    /// <summary>
+    /// Beat 2: Player hit the enemy's face. Explain vigor/win condition.
+    /// This is the most important tutorial moment — extra weight, longer display.
+    /// Uses a lifecycle-safe timer that can be killed if the tutorial is skipped.
+    /// </summary>
+    private void ShowTutorialFaceHit(int damage, int currentEnemyVigor)
+    {
+        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+
+        string msg = $"Direct hit! You dealt {damage} damage. Their Vigor is now {currentEnemyVigor}. Reduce it to 0 to win.";
+        _tutorialOverlay.SetHint(msg);
+
+        // Highlight the enemy vigor bar — pulsing golden glow for the full 2.5s
+        var enemyVigorRect = _enemyVigorValue.GetGlobalRect();
+        _tutorialOverlay.HighlightElement(enemyVigorRect);
+        GD.Print($"[DuelScene] Face hit tutorial: damage={damage}, vigor now={currentEnemyVigor}");
+
+        // Kill any existing timer before creating a new one
+        if (_tutorialFaceTimer != null)
+        {
+            _tutorialFaceTimer.QueueFree();
+            _tutorialFaceTimer = null;
+        }
+
+        // After a brief pause, advance to end-turn step
+        var timer = new Godot.Timer();
+        timer.OneShot = true;
+        timer.WaitTime = 2.5f;
+        timer.Timeout += () =>
+        {
+            // Lifecycle guard — tutorial could have been skipped while timer was running
+            if (!IsInsideTree() || _tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
+            if (_tutorialCtrl.CurrentStep != TutorialStep.Lanes_Attack) return; // Already advanced
+
+            _tutorialCtrl.Advance();
+            UpdateTutorialOverlay();
             if (_tutorialOverlay != null)
             {
-                _tutorialOverlay.QueueFree();
-                _tutorialOverlay = null;
+                _tutorialOverlay.ClearHighlight();
+                // Highlight the End Turn button
+                if (_endTurnButton != null)
+                    _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
             }
+            _tutorialOverlay?.SetDebugInfo(
+                _tutorialCtrl?.CurrentStep.ToString() ?? "?",
+                "ATTACK_FACE", true);
+        };
+        AddChild(timer);
+        timer.Start();
+        _tutorialFaceTimer = timer;
+    }
 
-            // Resume bot at normal speed and restart with a test game
-            _bot.Resume();
-            _bot.ThinkDelay = 1.5f;
-            _bot.ActionInterval = 0.6f;
-
-            // Clear tutorial field so we don't act on it anymore
-            _tutorialCtrl = null;
-
-            // Start a fresh normal game (triggers OnStateChanged → full re-render)
-            _gsm.InitializeTestGame();
-            ShowToast("Tutorial skipped — game restarted.", new Color(0.5f, 1, 0.5f));
+    /// <summary>
+    /// Update the tutorial overlay's hint and step info after a step advance.
+    /// For Lanes_Attack, dynamically chooses hint based on creature readiness.
+    /// </summary>
+    private void UpdateTutorialOverlay()
+    {
+        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+        if (!_tutorialCtrl.IsActive)
+        {
+            // Tutorial completed — remove overlay
+            _tutorialOverlay.QueueFree();
+            _tutorialOverlay = null;
+            return;
         }
 
-        /// <summary>
-        /// Beat 1: Player tapped an unaffordable card. Explain attunement.
-        /// </summary>
-        private void ShowTutorialAttunement(int cardCost, int currentAttune)
+        // Dynamic hint for Lanes_Attack based on board state
+        if (_tutorialCtrl.CurrentStep == TutorialStep.Lanes_Attack)
         {
-            if (_tutorialOverlay == null) return;
-            string msg = $"This card costs {cardCost}, but you have {currentAttune} Attunement. You gain 1 more each turn.";
-            _tutorialOverlay.SetHint(msg);
-
-            // Highlight the attunement display
-            var attuneRect = _playerAttuneValue.GetGlobalRect();
-            _tutorialOverlay.HighlightElement(attuneRect);
-
-            UpdateTutorialDebug("CARD_TOO_EXPENSIVE", false);
-            GD.Print($"[DuelScene] Attunement tutorial: card cost={cardCost}, have={currentAttune}");
-        }
-
-        /// <summary>
-        /// Beat 2: Player hit the enemy's face. Explain vigor/win condition.
-        /// This is the most important tutorial moment.
-        /// Shows explanation, then advances to end-turn step after a pause.
-        /// </summary>
-        private void ShowTutorialFaceHit(int damage, int currentEnemyVigor)
-        {
-            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-
-            string msg = $"Direct hit! You dealt {damage} damage to the enemy. Their Vigor is now {currentEnemyVigor}. Reduce it to 0 to win.";
-            _tutorialOverlay.SetHint(msg);
-
-            // Highlight the enemy vigor bar
-            var enemyVigorRect = _enemyVigorValue.GetGlobalRect();
-            _tutorialOverlay.HighlightElement(enemyVigorRect);
-            GD.Print($"[DuelScene] Face hit tutorial: damage={damage}, vigor now={currentEnemyVigor}");
-
-            // After a brief pause, advance to end-turn step
-            var timer = new Godot.Timer();
-            timer.OneShot = true;
-            timer.WaitTime = 2.5f;
-            timer.Timeout += () =>
+            var state = _gsm.State;
+            bool hasCreature = false;
+            bool hasReadyCreature = false;
+            if (state != null && state.Players.Length > 0)
             {
-                if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
-                _tutorialCtrl.Advance();
-                UpdateTutorialOverlay();
-                if (_tutorialOverlay != null)
+                for (int i = 0; i < 5; i++)
                 {
-                    _tutorialOverlay.ClearHighlight();
-                    // Highlight the End Turn button
-                    if (_endTurnButton != null)
-                        _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
+                    var occ = state.Players[0].Lanes[i].Occupant;
+                    if (occ != null)
+                    {
+                        hasCreature = true;
+                        if (!occ.IsExhausted)
+                        {
+                            hasReadyCreature = true;
+                            break;
+                        }
+                    }
                 }
-                _tutorialOverlay?.SetDebugInfo(
-                    _tutorialCtrl?.CurrentStep.ToString() ?? "?",
-                    "ATTACK_FACE", true);
-            };
-            AddChild(timer);
-            timer.Start();
-        }
-
-        /// <summary>
-        /// Update the tutorial overlay's hint and step info after a step advance.
-        /// </summary>
-        private void UpdateTutorialOverlay()
-        {
-            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-            if (!_tutorialCtrl.IsActive)
-            {
-                // Tutorial completed — remove overlay
-                _tutorialOverlay.QueueFree();
-                _tutorialOverlay = null;
-                return;
             }
+
+            if (!hasCreature)
+            {
+                _tutorialOverlay.SetHint("Summon a creature first, then attack.");
+            }
+            else if (!hasReadyCreature)
+            {
+                _tutorialOverlay.SetHint("Your creature is resting. End your turn — it'll be ready next turn.");
+                if (_endTurnButton != null)
+                    _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
+            }
+            else
+            {
+                _tutorialOverlay.SetHint("Tap your creature, then tap an empty enemy lane to attack!");
+            }
+        }
+        else
+        {
             _tutorialOverlay.SetHint(_tutorialCtrl.GetCurrentHint());
-            _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
         }
 
-        /// <summary>
-        /// Update the overlay debug line with the last action taken.
-        /// </summary>
-        private void UpdateTutorialDebug(string lastAction, bool matched)
-        {
-            if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-            _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), lastAction, matched);
-        }
+        _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
+    }
+
+    /// <summary>
+    /// Update the overlay debug line with the last action taken.
+    /// </summary>
+    private void UpdateTutorialDebug(string lastAction, bool matched)
+    {
+        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
+        _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), lastAction, matched);
+    }
 
         // ——— Public update methods ———
 

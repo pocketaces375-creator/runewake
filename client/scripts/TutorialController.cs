@@ -105,17 +105,19 @@ public partial class TutorialController : Node
 
     /// <summary>
     /// Get the tutorial hint text for the current step.
+    /// These are imperative instructions — they tell the player what to tap next.
+    /// DuelScene may override these with dynamic hints based on board state.
     /// </summary>
     public string GetCurrentHint()
     {
         return CurrentStep switch
         {
             TutorialStep.Lanes_SummonCreature =>
-                "Tap a card you can afford, then tap an empty lane to summon it.",
+                "Tap a playable card to select it.",
             TutorialStep.Lanes_Attack =>
-                "Tap your creature, then tap an enemy lane to attack.",
+                "Tap your creature, then tap an empty enemy lane to attack!",
             TutorialStep.Lanes_EndTurn =>
-                "Tap End Turn to pass to the enemy.",
+                "Tap End Turn to pass. You'll gain more Attunement each turn.",
             TutorialStep.Excavate_PlayExcavate =>
                 "Tap your Excavate card, then tap a lane to play it.",
             TutorialStep.Excavate_BuryResolved =>
@@ -126,6 +128,17 @@ public partial class TutorialController : Node
                 "Select a rune and equip it to a creature on the board.",
             _ => ""
         };
+    }
+
+    /// <summary>
+    /// Returns true if the current player has a creature on the board
+    /// (any occupied lane on player's side). Used for dynamic hints.
+    /// </summary>
+    public bool PlayerHasCreature()
+    {
+        // This is a placeholder — DuelScene overrides hints dynamically via
+        // board state checks. The controller itself doesn't know the board state.
+        return false;
     }
 
     /// <summary>
@@ -150,19 +163,22 @@ public partial class TutorialController : Node
     /// </summary>
     private static GameConfig GetFirstDuelConfig()
     {
-        // Curated 15-card deck with cheap, playable cards for the tutorial
+        // Curated 12-card creature deck for the tutorial.
+        // At least 5 cards cost ≤1 so the opening hand almost always has a playable card.
+        // Includes 2 SWIFT creatures so same-turn attacking is possible.
         var deck = new List<string>
         {
-            "vrd_c_root_warden",     // Cost 2, 3/4 — solid blocker
-            "vrd_c_verdant_sproutling", // Cost 1, 2/2 — cheap summon
-            "vrd_c_thornbark_defender", // Cost 2, 2/5
-            "vrd_u_grove_healer",    // Cost 3, 3/3
-            "emb_c_cinder_runner",   // Cost 1, 2/1 — cheap attacker
-            "emb_c_ember_hound",     // Cost 2, 3/2
-            "tid_c_silt_reader",     // Cost 1, 1/3
-            "tid_c_tidal_scholar",   // Cost 2, 2/3
-            "vrd_c_root_warden",     // Duplicate so hand has options
-            "emb_c_ember_hound",     // Duplicate
+            "emb_c_ember_hound",        // cost 1, 2/1 SWIFT — ideal tutorial attacker
+            "emb_c_ember_hound",        // duplicate
+            "vrd_c_verdant_sproutling", // cost 1, 1/2 — cheap summon
+            "vrd_c_verdant_sproutling", // duplicate
+            "hol_c_skeletal_reaver",    // cost 1, 2/1 — cheap summon
+            "vrd_c_wildwood_stalker",   // cost 2, 3/2 — mid option
+            "tid_c_tidal_scholar",      // cost 2, 1/3 — mid option
+            "emb_c_cinder_runner",      // cost 2, 3/1 SWIFT — backup swift
+            "emb_c_forgeguard_berserker", // cost 3, 4/3 — heavy option
+            "vrd_u_grove_healer",       // cost 3, 1/3 — heavy option
+            "vrd_c_root_warden",        // cost 3, 2/4 GUARD — heavy option
         };
 
         return new GameConfig
