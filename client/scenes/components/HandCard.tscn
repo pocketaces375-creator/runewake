@@ -5,9 +5,6 @@
 
 [sub_resource type="ShaderMaterial" id="1"]
 shader = ExtResource("2_inset")
-shader_param/highlight_strength = 0.15
-shader_param/shadow_strength = 0.20
-shader_param/edge_width = 0.03
 
 [node name="HandCard" type="Button"]
 anchors_preset = 0
@@ -18,28 +15,23 @@ action_mode = 0
 mouse_default_cursor_shape = 2
 script = ExtResource("1_hand")
 
-[node name="CardFrame" type="PanelContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 clip_contents = true
+theme_override_constants/separation = 3
 material = SubResource(1)
 
-[node name="VBox" type="VBoxContainer" parent="CardFrame"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-theme_override_constants/separation = 3
-
-[node name="ArtRect" type="TextureRect" parent="CardFrame/VBox"]
-size_flags_horizontal = 0
+[node name="ArtRect" type="TextureRect" parent="VBox"]
+size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(100, 70)
 stretch_mode = 4
 mouse_filter = 2
 
-[node name="CardName" type="Label" parent="CardFrame/VBox"]
+[node name="CardName" type="Label" parent="VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 horizontal_alignment = 1
@@ -50,16 +42,16 @@ autowrap_mode = 2
 max_lines_visible = 2
 mouse_filter = 2
 
-[node name="BottomRow" type="HBoxContainer" parent="CardFrame/VBox"]
+[node name="BottomRow" type="HBoxContainer" parent="VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
-[node name="BottomSpacer" type="Control" parent="CardFrame/VBox/BottomRow"]
+[node name="BottomSpacer" type="Control" parent="VBox/BottomRow"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 mouse_filter = 2
 
-[node name="StatsLabel" type="Label" parent="CardFrame/VBox/BottomRow"]
+[node name="StatsLabel" type="Label" parent="VBox/BottomRow"]
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 11

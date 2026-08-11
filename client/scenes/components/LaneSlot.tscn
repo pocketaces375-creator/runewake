@@ -49,7 +49,7 @@ alignment = 1
 theme_override_constants/separation = 3
 
 [node name="ArtRect" type="TextureRect" parent="VBox"]
-size_flags_horizontal = 0
+size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(100, 60)
 stretch_mode = 4

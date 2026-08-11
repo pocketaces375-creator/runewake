@@ -1,0 +1,8 @@
+ATTENTION: default value of option vblank_mode overridden by environment.
+ATTENTION: default value of option vblank_mode overridden by environment.
+ATTENTION: default value of option vblank_mode overridden by environment.
+WARNING: Could not set V-Sync mode, as changing V-Sync mode is not supported by the graphics driver.
+     at: set_use_vsync (platform/linuxbsd/x11/gl_manager_x11.cpp:360)
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+ATTENTION: default value of option vblank_mode overridden by environment.
