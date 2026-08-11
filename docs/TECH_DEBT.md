@@ -5,6 +5,25 @@ ticket but should be tracked for later resolution.
 
 ---
 
+## Dev menu — REMOVE BEFORE RELEASE
+
+**Date added:** 2026-08-08
+**Location:** `client/scripts/DevMenu.cs`, triggered from "DEV" button on title screen (`client/scripts/Main.cs`)
+
+**What to remove:**
+- Delete `client/scripts/DevMenu.cs`
+- Remove the "DEV" button block from `Main.cs._Ready()` (search for `REMOVE BEFORE RELEASE`)
+- Remove the `ValidateContentIds()` method from `Main.cs` (or keep it — it's a safety check that doesn't expose anything)
+- Remove `DeleteSave()` from `client/scripts/data/SaveManager.cs` (exposed via dev menu only)
+
+**How to verify:**
+- Search for `REMOVE BEFORE RELEASE` in all `.cs` files — should find 0 results after cleanup
+- The dev menu grants: jump to Warden Boss, +10 dig charges, +20 fragments per strata, unlock all nodes, clear save
+
+**Priority:** Pre-release gate. Ship-blocker if present.
+
+---
+
 ## Python `test_generate.py` — 3 pre-existing failures
 
 **Root cause:** Tests were written alongside P6-02 (Generate module) and the
@@ -141,6 +160,22 @@ opening draw. The fix goes in `docs/01_GAME_RULES.md` §1, then `GameState.Initi
 
 ---
 
+## Android export silently swallows dotnet publish failures
+
+**Date flagged:** 2026-08-08
+**Root cause:** Godot 4.3's Android export runs `dotnet publish` internally during the Gradle build step. If publish fails (compilation error, missing method, stale reference), Godot continues the export and Gradle packages **whatever DLLs were in the cache from the last successful build**. The export reports success. The installed APK contains old assemblies.
+
+**Detection:** APK size drops significantly. A healthy debug APK with fresh C# assemblies is 90-120 MB. A stale-assembly APK is ~75 MB and may crash on launch or at any point where old code paths intersect new content packs.
+
+**Fix:** Use `client/export_apk.sh` instead of calling `godot --headless --editor --export-debug Android` directly. The script:
+  1. Compares the newest `.cs` file timestamp against the newest `.dll` in `.godot/mono/temp/bin/` — fails loudly if DLL is stale
+  2. Runs `dotnet build` if needed, then re-verifies the DLL is actually newer (not just silently copied)
+  3. After export, unzips the APK and checks that `.dll` files are present and the total size isn't suspiciously small
+
+**Priority:** Critical — cost us several wasted APK builds and debugging cycles.
+
+---
+
 ## Exported builds crash on filesystem path I/O
 
 **Date flagged:** 2026-08-06
@@ -200,3 +235,99 @@ device with art assets. Record timing pain points. Tune as a batch pass in
 a dedicated ticket. Do not tune piecemeal — the rhythms are interdependent
 (bot delay + animation duration + response expectation form a single
 cadence).
+
+---
+
+## Tutorial architecture: instruction-before-action is a memory test
+
+**Date flagged:** 2026-08-09
+**Root cause:** Three successive tutorial implementations (timed banners, modal popups on a separate mode, modal popups on r1_n01) all failed because the teaching model was wrong at the architectural level.
+
+**The failure mode (common to all three versions):**
+
+Every version presented instructions *before* the player could act — read about Attunement, then read about Summoning, then read about Attacking, then the game unfroze and expected the player to *execute* from memory. The player consumed 6+ sentences of abstract rules over 60+ seconds before performing a single action. They were simultaneously learning vocabulary (Vigor, Attunement, Summon, Lane, Face, Target) and controls (tap card → tap lane, tap creature → tap enemy lane) with no practice between concepts.
+
+On top of that, popup-firing was gated on conditional player-action detection (summon detected → Popup A → player must tap Continue before next detection window → Popup B). If the player acted before a deferred callback ran, the chain broke silently and later popups never fired.
+
+**Popup condition-chain breakdown (v3 — the version on r1_n01):**
+
+| Popup | Trigger | Fails if... |
+|---|---|---|
+| 1-3 (Goal, Attunement, Summoning) | `CallDeferred` from `_Ready` — unconditional ✅ | Never |
+| 4a (Attacking — Your Turn) | `OnStateChanged`: checks `!_tutorialSummonedThisDuel` AND player lane has occupant | Player can't afford a card, taps wrong card, or creature dies before state-check runs |
+| 4b (Choosing a Target) | `OnCreatureSelectedForAttack`: checks `_tutorialAwaitingCreatureSelect == true` (set by 4a's onContinue) | 4a never fired, or creature died while 4a was up |
+| 5 (Face Hit) | `OnStateChanged`: enemy Vigor drops between snapshots | Player attacks occupied lane instead of empty one |
+| 6 (Turn Cycle) | Chained off 5's `onContinue` | 5 never fired |
+
+The cascade means a player who summons, attacks an occupied lane, and sees their creature die in the trade — a completely natural new-player sequence — gets popups 1-3 then silence. The tutorial controller stays "active" showing nothing. The player doesn't know the tutorial is over or what they were supposed to learn. ~60% of the tutorial content is never delivered.
+
+**The fix (consequence-first model):**
+
+Instead of read-then-do, the teaching beat fires *after* the player acts, explaining what just happened. The sequence is: do → see what happened → understand why it matters. A player who summons and then sees "You spent Attunement — that's the resource you earned last turn" internalizes it instantly because it references an experience they just had. A player who reads about Attunement 60 seconds before summoning forgets it.
+
+**Three design rules for the rebuild:**
+
+1. **No chained conditions.** Each popup fires independently on its own trigger. If one is missed (player never summons, never attacks face), the remaining popups still fire off their own triggers. No single breakpoint kills 60% of the content.
+
+2. **The bot pauses while a popup is open.** Freeze the whole game, not just player input. The current implementation blocks input via `MouseFilter.Stop` on the dim overlay, but the bot controller's timer keeps running. A popup explaining "now attack with this creature" can be dismissed to find the creature already dead — killed by the bot while the player was reading. This guarantees the player learns nothing from that beat.
+
+3. **Highlight the next action, not just the thing being described.** The current highlight system pulses a golden border on the element being explained (the enemy Vigor number, the player's Attunement value). After dismissing a popup, the player should see where to tap *next* — not the thing they just read about.
+
+**Concrete implementation notes:**
+- Every tutorial beat MUST be triggered by a real player action (summoned a card, attacked, ended turn) as a *reactive* explanation of what just happened.
+- No abstract concept introduction. Every explanation starts with "When you did X..." or "That happened because Y..."
+- Popups reference screen elements the player can see right now (their freshly summoned creature, the Attunement value that just decreased).
+- Popups are modal (continue button only, no timers) and short (1-2 sentences max).
+- No condition chains between popups — each popup is self-contained and fires independently from its action trigger.
+
+**Priority:** High — the next tutorial rebuild uses this model or we don't attempt a fourth version. The art direction pass must land first so the teaching UI feels like the real game.
+
+---
+
+## Combat design gap: attacking has no meaningful cost or choice
+
+**Date flagged:** 2026-08-09
+
+**Problem:** There is currently no reason to NOT attack with a creature on your turn. Every creature that can attack should attack, because:
+- Nothing blocks a lane — creatures don't occupy space in a way that prevents the opponent from playing into it
+- There are no bad trades — the attacker chooses targets, so you never lose a creature to a bad attack
+- There's no wait-to-buff incentive — no combat tricks, no pump spells, no "this creature gets +X if it didn't attack" effects exist yet
+- Exhaustion is the only gate, and it resets every turn, so it's not a decision
+
+If attacking is always correct, the game has no combat decisions. The fix is mechanical, not UI: introduce blocking, guard that forces trades, combat tricks, or a "vigor cost to attack" mechanic that makes holding back a creature a legitimate strategic choice.
+
+**Not currently scoped:** This belongs after the art direction pass and card pool expansion. Noting it here so combat design is evaluated as a system, not patched incrementally.
+
+**Priority:** Medium — not blocking, but the game won't have real depth until addressed.
+
+---
+
+## Anchor vs. offset confusion: two invisible-layout bugs
+
+**Date flagged:** 2026-08-10
+
+**The pattern:** When modifying a Control node's anchors or position/size in a `.tscn` file, it's easy to write an anchor value where an offset belongs (or vice versa). Godot silently applies the result — the element positions itself off-screen or with zero size.
+
+**Two instances:**
+1. **P3-02 tutorial overlay skip button** — `AnchorLeft=1, AnchorRight=0` (zero width) instead of `SetAnchorsPreset(TopRight)` with offsets. Skip button invisible on device.
+2. **P3-02 BoardWrap removal (2026-08-10)** — `anchor_top=40.0` written instead of `offset_top=40.0` when flattening BoardWrap's children to direct-parent. Board and BoardBg positioned at y=648 (off-screen) and zero height respectively.
+
+**Fix:** Always prefer `SetAnchorsPreset()` + `Offset*` in code, and use `anchors_preset = 15` (Full Rect) with explicit `offset_*` values in `.tscn` for size-constrained panels. Never write anchor values directly as integers — if the value looks like a pixel offset (40, -160, etc.) it belongs in `offset_*`, not `anchor_*`.
+
+**Detection:** Whenever a Control is invisible at runtime, log its `Position`, `Size`, and `GlobalPosition` to distinguish off-screen layout from alpha/visibility issues.
+
+**Priority:** Medium
+
+---
+
+## Project settings silently dropped from committed project.godot
+
+**Date flagged:** 2026-08-10
+
+**Root cause:** `window/size/viewport_width`, `window/size/viewport_height`, `window/handheld/orientation`, and `window/stretch/aspect` were all committed in `cc76e76` (P4-04) but vanished from the committed file between `51e0fbe` and `51b6296`. They remained missing through multiple builds where device layout was broken.
+
+**How it happened:** Unknown — possibly an editor save that didn't include the display section, or a git merge/rebase that picked the wrong side. The settings are not auto-generated by Godot on every export; they must be explicitly set in the editor or written to project.godot.
+
+**Safeguard:** A startup assertion (`Main.cs.AssertProjectSettings()`) now checks all 5 critical settings (main_scene, stretch mode, stretch aspect, orientation, viewport dimensions) at launch and logs `GD.PrintErr` on any mismatch. This catches silent config regressions on the very next build.
+
+**Priority:** High — caused weeks of misdiagnosed layout bugs.

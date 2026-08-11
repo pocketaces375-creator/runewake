@@ -48,6 +48,10 @@ public class EncounterDef
     /// <summary>Optional difficulty modifier for ELITE and WARDEN encounters.</summary>
     [JsonPropertyName("modifier")]
     public string? Modifier { get; set; }
+
+    /// <summary>If true, this encounter fires tutorial popups instead of playing normally.</summary>
+    [JsonPropertyName("is_tutorial")]
+    public bool IsTutorial { get; set; }
 }
 
 /// <summary>

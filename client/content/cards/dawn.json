@@ -18,6 +18,7 @@
       }
     ],
     "flavor": "The wardens did not build doors. They built reasons not to open them.",
+    "art": { "prompt": "a shaft of pale gold light striking a carved seal on a temple floor, dust hanging in the beam", "asset": "res://content/art/dwn_r_sealing_light.webp" },
     "power_score": 5.6,
     "content_version": 1
   },

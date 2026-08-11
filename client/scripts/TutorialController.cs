@@ -1,192 +1,184 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Godot;
-using Runewake.Engine.State;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// Autoload controller for the tutorial system.
-/// Manages the current tutorial step, provides tutorial game configs,
-/// and handles step advancement.
+/// JSON wrapper for the tutorial content file.
+/// </summary>
+public class TutorialContentPack
+{
+    [JsonPropertyName("popups")]
+    public List<TutorialContent> Popups { get; set; } = new();
+}
+
+/// <summary>
+/// Manages tutorial content for the current encounter.
+/// Separates the teaching content (loaded from JSON) from its
+/// visual presentation (handled by an ITutorialPresenter).
+///
+/// A new profile starts at r1_n01 which is flagged IsTutorial=true.
+/// Popups are shown once and persisted so replays skip already-seen popups.
 /// </summary>
 public partial class TutorialController : Node
 {
-    /// <summary>Current tutorial step. None = not in tutorial.</summary>
-    public TutorialStep CurrentStep { get; private set; } = TutorialStep.None;
+    /// <summary>Path to the tutorial popup content JSON, relative to res://.</summary>
+    private const string ContentPath = "res://content/tutorial/tutorial_popups.json";
 
-    /// <summary>True if the tutorial has been fully completed.</summary>
-    public bool IsCompleted { get; private set; }
+    /// <summary>True if the current encounter has tutorial popups available.</summary>
+    public bool IsActive { get; private set; }
 
-    /// <summary>True if a tutorial is active.</summary>
-    public bool IsActive => CurrentStep > TutorialStep.None && CurrentStep < TutorialStep.Complete;
+    /// <summary>The presenter responsible for visual display.</summary>
+    public ITutorialPresenter? Presenter { get; private set; }
 
-    /// <summary>Raised when the tutorial step changes. UI should re-render.</summary>
-    public event Action<TutorialStep>? StepChanged;
+    /// <summary>Set of popup IDs already shown this session.</summary>
+    private readonly HashSet<string> _shownPopups = new();
+
+    /// <summary>Lookup from popup ID to content.</summary>
+    private Dictionary<string, TutorialContent> _contentMap = new();
+
+    /// <summary>Callbacks for each popup: (onContinue, onSkip).</summary>
+    private readonly Dictionary<string, (System.Action? onContinue, System.Action? onSkip)> _callbacks = new();
+
+    // ── Initialization ──
 
     /// <summary>
-    /// Raised when the tutorial is completed (all steps done).
+    /// Initialize the controller for a tutorial encounter.
+    /// Loads content from the tutorial JSON file and wires the presenter.
     /// </summary>
-    public event Action? Completed;
-
-    public override void _Ready()
+    public void Initialize(Control owner, ITutorialPresenter presenter)
     {
-        Name = "TutorialController";
+        Presenter = presenter;
+        IsActive = true;
 
-        // Check if tutorial was already completed via save data
-        var prog = CampaignContext.Progression;
-        if (prog != null)
-            IsCompleted = prog.Tutorial?.IsComplete ?? false;
+        // Load content from JSON (Godot FileAccess works in exports)
+        LoadContent();
+
+        // Wire presenter dismissal
+        presenter.Dismissed += OnPresenterDismissed;
     }
 
-    /// <summary>
-    /// Returns true if the tutorial has not been completed yet.
-    /// </summary>
-    public bool ShouldRunTutorial() => !IsCompleted;
-
-    /// <summary>
-    /// Start the tutorial by setting the first step and navigating to the duel scene.
-    /// </summary>
-    public void StartTutorial()
+    private void LoadContent()
     {
-        StartFirstDuel();
-        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-    }
-
-    /// <summary>
-    /// Start the first tutorial duel (lanes basics).
-    /// </summary>
-    public void StartFirstDuel()
-    {
-        CurrentStep = TutorialStep.Lanes_SummonCreature;
-    }
-
-    /// <summary>
-    /// Force the tutorial to complete (skip). Sets step to Complete and
-    /// marks IsCompleted so subsequent game starts skip the tutorial.
-    /// </summary>
-    public void ForceComplete()
-    {
-        CurrentStep = TutorialStep.Complete;
-        IsCompleted = true;
-        Completed?.Invoke();
-        GD.Print("[TutorialController] Tutorial force-completed (skip).");
-    }
-
-    /// <summary>
-    /// Advance to the next logical step. Called by DuelScene when
-    /// the player performs the prompted action.
-    /// </summary>
-    public void Advance()
-    {
-        var next = CurrentStep switch
+        try
         {
-            TutorialStep.Lanes_SummonCreature => TutorialStep.Lanes_Attack,
-            TutorialStep.Lanes_Attack => TutorialStep.Lanes_EndTurn,
-            TutorialStep.Lanes_EndTurn => TutorialStep.Complete,
-            TutorialStep.Excavate_PlayExcavate => TutorialStep.Excavate_BuryResolved,
-            TutorialStep.Excavate_BuryResolved => TutorialStep.Runes_OpenRunePage,
-            TutorialStep.Runes_OpenRunePage => TutorialStep.Runes_EquipRune,
-            TutorialStep.Runes_EquipRune => TutorialStep.Complete,
-            _ => TutorialStep.Complete
-        };
+            string json = Godot.FileAccess.GetFileAsString(ContentPath);
+            if (string.IsNullOrEmpty(json))
+            {
+                GD.PrintErr($"[TutorialController] No content at {ContentPath}");
+                return;
+            }
 
-        CurrentStep = next;
-        GD.Print($"[TutorialController] Advanced: {CurrentStep}");
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
 
-        if (next == TutorialStep.Complete)
+            var pack = JsonSerializer.Deserialize<TutorialContentPack>(json, options);
+            if (pack == null || pack.Popups.Count == 0)
+            {
+                GD.PrintErr($"[TutorialController] Content file empty or invalid: {ContentPath}");
+                return;
+            }
+
+            _contentMap = pack.Popups.ToDictionary(p => p.PopupId);
+            GD.Print($"[TutorialController] Loaded {_contentMap.Count} popup content entries.");
+        }
+        catch (System.Exception ex)
         {
-            GD.Print("[TutorialController] Tutorial complete!");
-            Completed?.Invoke();
+            GD.PrintErr($"[TutorialController] Failed to load content: {ex.Message}");
+        }
+    }
+
+    // ── Showing popups ──
+
+    /// <summary>
+    /// Show a tutorial popup. Looks up content by ID from the loaded JSON.
+    /// If already shown this session, fires onContinue immediately (skip).
+    /// </summary>
+    /// <param name="popupId">Unique ID matching a popup in tutorial_popups.json.</param>
+    /// <param name="onContinue">Called when the player taps Continue.</param>
+    /// <param name="onSkip">Called when the player taps Skip.</param>
+    public void ShowPopup(
+        string popupId,
+        System.Action? onContinue = null,
+        System.Action? onSkip = null)
+    {
+        if (!IsActive || Presenter == null) return;
+
+        // If already shown this session, skip immediately
+        if (_shownPopups.Contains(popupId))
+        {
+            onContinue?.Invoke();
+            return;
         }
 
-        StepChanged?.Invoke(next);
+        // Look up content
+        if (!_contentMap.TryGetValue(popupId, out var content))
+        {
+            GD.PrintErr($"[TutorialController] Unknown popup ID: {popupId}");
+            onContinue?.Invoke(); // Skip unknown popups gracefully
+            return;
+        }
+
+        // Mark shown
+        _shownPopups.Add(popupId);
+
+        // Store callbacks for this popup (retrieved on Dismissed)
+        _callbacks[popupId] = (onContinue, onSkip);
+
+        // Show via presenter
+        Presenter.Show(content);
     }
 
     /// <summary>
-    /// Get the tutorial hint text for the current step.
-    /// These are imperative instructions — they tell the player what to tap next.
-    /// DuelScene may override these with dynamic hints based on board state.
+    /// Called when the presenter fires Dismissed.
+    /// Routes to the correct callback based on whether the popup was skipped.
     /// </summary>
-    public string GetCurrentHint()
+    private void OnPresenterDismissed()
     {
-        return CurrentStep switch
+        // Determine which popup was just dismissed
+        // Since Show only allows one at a time, we look at the last shown
+        if (_shownPopups.Count == 0) return;
+
+        string lastPopupId = _shownPopups.Last();
+
+        if (_callbacks.TryGetValue(lastPopupId, out var callbacks))
         {
-            TutorialStep.Lanes_SummonCreature =>
-                "Tap a playable card to select it.",
-            TutorialStep.Lanes_Attack =>
-                "Tap your creature, then tap an empty enemy lane to attack!",
-            TutorialStep.Lanes_EndTurn =>
-                "Tap End Turn to pass. You'll gain more Attunement each turn.",
-            TutorialStep.Excavate_PlayExcavate =>
-                "Tap your Excavate card, then tap a lane to play it.",
-            TutorialStep.Excavate_BuryResolved =>
-                "Tap a card with a Bury effect to resolve it.",
-            TutorialStep.Runes_OpenRunePage =>
-                "Open the rune page to equip runes to your creatures.",
-            TutorialStep.Runes_EquipRune =>
-                "Select a rune and equip it to a creature on the board.",
-            _ => ""
-        };
+            bool wasSkipped = Presenter is TutorialPopup popup && popup.WasSkipped;
+
+            if (wasSkipped)
+                callbacks.onSkip?.Invoke();
+            else
+                callbacks.onContinue?.Invoke();
+
+            _callbacks.Remove(lastPopupId);
+        }
     }
 
-    /// <summary>
-    /// Returns true if the current player has a creature on the board
-    /// (any occupied lane on player's side). Used for dynamic hints.
-    /// </summary>
-    public bool PlayerHasCreature()
-    {
-        // This is a placeholder — DuelScene overrides hints dynamically via
-        // board state checks. The controller itself doesn't know the board state.
-        return false;
-    }
+    // ── State ──
 
     /// <summary>
-    /// Get the GameConfig for the current tutorial duel.
-    /// Returns null if not in a tutorial duel step.
+    /// True if a popup is currently visible (board should be paused).
     /// </summary>
-    public GameConfig? GetCurrentTutorialConfig()
-    {
-        if (!IsActive) return null;
-        return CurrentStep switch
-        {
-            TutorialStep.Lanes_SummonCreature or
-            TutorialStep.Lanes_Attack or
-            TutorialStep.Lanes_EndTurn => GetFirstDuelConfig(),
-            _ => null
-        };
-    }
+    public bool IsPopupOpen => Presenter != null && IsInstanceValid(Presenter as Godot.Node);
 
     /// <summary>
-    /// Create a GameConfig for the first tutorial duel.
-    /// Uses a small, curated deck with low-cost playable cards.
+    /// End the tutorial session. Unsubscribes from the presenter.
     /// </summary>
-    private static GameConfig GetFirstDuelConfig()
+    public void EndTutorial()
     {
-        // Curated 12-card creature deck for the tutorial.
-        // At least 5 cards cost ≤1 so the opening hand almost always has a playable card.
-        // Includes 2 SWIFT creatures so same-turn attacking is possible.
-        var deck = new List<string>
+        IsActive = false;
+        if (Presenter != null)
         {
-            "emb_c_ember_hound",        // cost 1, 2/1 SWIFT — ideal tutorial attacker
-            "emb_c_ember_hound",        // duplicate
-            "vrd_c_verdant_sproutling", // cost 1, 1/2 — cheap summon
-            "vrd_c_verdant_sproutling", // duplicate
-            "hol_c_skeletal_reaver",    // cost 1, 2/1 — cheap summon
-            "vrd_c_wildwood_stalker",   // cost 2, 3/2 — mid option
-            "tid_c_tidal_scholar",      // cost 2, 1/3 — mid option
-            "emb_c_cinder_runner",      // cost 2, 3/1 SWIFT — backup swift
-            "emb_c_forgeguard_berserker", // cost 3, 4/3 — heavy option
-            "vrd_u_grove_healer",       // cost 3, 1/3 — heavy option
-            "vrd_c_root_warden",        // cost 3, 2/4 GUARD — heavy option
-        };
-
-        return new GameConfig
-        {
-            Seed = 42,
-            ContentVersion = 1,
-            Player0DeckIds = deck,
-            Player1DeckIds = deck
-        };
+            Presenter.Dismissed -= OnPresenterDismissed;
+        }
+        _callbacks.Clear();
     }
 }

@@ -8,56 +8,49 @@ using Runewake.Engine.State;
 namespace Runewake.Client;
 
 /// <summary>
-/// Rune Forge scene — spend 4 fragments to forge an unowned rune.
-/// Shows fragment counts per strata, available rune pool, and forge results.
+/// Forge scene — convert rune fragments into runes.
+/// Each strata has a set of forgeable runes. 4 fragments of a strata forge 1 rune.
 /// </summary>
 public partial class ForgeScene : Control
 {
-    private static readonly Color[] StrataColors = new[]
-    {
-        new Color(0.2f, 0.7f, 0.2f),   // VERDANT
-        new Color(0.8f, 0.3f, 0.1f),   // EMBER
-        new Color(0.2f, 0.5f, 0.8f),   // TIDE
-        new Color(0.6f, 0.2f, 0.6f),   // HOLLOW
-        new Color(0.9f, 0.8f, 0.2f),   // DAWN
-    };
-
-    private static readonly string[] StrataNames = { "verdant", "ember", "tide", "hollow", "dawn" };
-
-    private Label _fragmentsLabel = default!;
-    private Label _resultLabel = default!;
-    private Button _backButton = default!;
-    private readonly List<Button> _forgeButtons = new();
-
-    // Current forge recipes: strata → list of forgeable rune IDs
-    private Dictionary<string, List<string>> _forgeRecipes = new();
+    private ForgeRecipeBook _recipes = new();
+    private readonly List<(string strata, int count)> _fragmentList = new();
+    private Label _fragmentLabel = default!;
+    private VBoxContainer _runeList = default!;
 
     public override void _Ready()
     {
-        BuildUI();
+        AnchorLeft = 0; AnchorRight = 1;
+        AnchorTop = 0; AnchorBottom = 1;
+
         LoadRecipes();
-        UpdateDisplay();
+        GatherFragments();
+        BuildUI();
     }
 
     private void LoadRecipes()
     {
-        string contentDir = ProjectSettings.GlobalizePath("res://content/forge");
-        var path = $"{contentDir}/recipes.json";
         try
         {
-            var json = System.IO.File.ReadAllText(path);
-            var doc = System.Text.Json.JsonDocument.Parse(json);
-            var root = doc.RootElement.GetProperty("recipes");
-            _forgeRecipes = new Dictionary<string, List<string>>();
-            foreach (var prop in root.EnumerateObject())
-            {
-                var ids = prop.Value.EnumerateArray().Select(e => e.GetString()!).ToList();
-                _forgeRecipes[prop.Name] = ids;
-            }
+            string json = Godot.FileAccess.GetFileAsString("res://content/forge/recipes.json");
+            if (!string.IsNullOrEmpty(json))
+                _recipes = ForgeLoader.LoadPackFromString(json);
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[ForgeScene] Failed to load recipes: {ex.Message}");
+        }
+    }
+
+    private void GatherFragments()
+    {
+        var prog = CampaignContext.Progression;
+        if (prog?.Fragments == null) return;
+
+        foreach (var kv in prog.Fragments)
+        {
+            if (kv.Value > 0)
+                _fragmentList.Add((kv.Key, kv.Value));
         }
     }
 
@@ -66,174 +59,150 @@ public partial class ForgeScene : Control
         // Background
         var bg = new ColorRect
         {
-            Color = new Color(0.08f, 0.06f, 0.1f),
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 1f
+            Color = new Color(0.06f, 0.06f, 0.15f),
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0, AnchorBottom = 1
         };
         AddChild(bg);
 
         // Title
         var title = new Label
         {
-            Text = "Rune Forge",
+            Text = "FORGE",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 0.08f
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.02f, AnchorBottom = 0.08f
         };
-        title.AddThemeFontSizeOverride("font_size", 28);
-        title.Modulate = new Color(0.9f, 0.85f, 0.7f);
+        title.AddThemeFontSizeOverride("font_size", 22);
+        title.AddThemeColorOverride("font_color", new Color(0.9f, 0.75f, 0.3f));
         AddChild(title);
 
-        // Instructions
-        var instructions = new Label
+        // Fragment display
+        _fragmentLabel = new Label
         {
-            Text = "Spend 4 fragments to forge a random unowned rune of that strata.",
+            Text = "Fragments: " + string.Join(", ", _fragmentList.Select(f => $"{f.strata}: {f.count}")),
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.Word,
             AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.08f, AnchorBottom = 0.14f
+            AnchorTop = 0.08f, AnchorBottom = 0.12f,
+            AutowrapMode = TextServer.AutowrapMode.Word
         };
-        instructions.AddThemeFontSizeOverride("font_size", 14);
-        instructions.Modulate = new Color(0.6f, 0.55f, 0.5f);
-        AddChild(instructions);
-
-        // Fragment counts + forge buttons (one per strata)
-        float startY = 0.16f;
-        float rowHeight = 0.13f;
-
-        for (int i = 0; i < StrataNames.Length; i++)
-        {
-            int index = i; // capture for lambda
-            string strata = StrataNames[i];
-            float top = startY + i * rowHeight;
-            float bottom = top + rowHeight;
-
-            // Color bar
-            var bar = new ColorRect
-            {
-                Color = StrataColors[i],
-                Size = new Vector2(8, 0),
-                AnchorLeft = 0.03f, AnchorRight = 0.07f,
-                AnchorTop = top + 0.02f, AnchorBottom = bottom - 0.02f
-            };
-            AddChild(bar);
-
-            // Strata name
-            var nameLabel = new Label
-            {
-                Text = strata.ToUpper(),
-                AnchorLeft = 0.09f, AnchorRight = 0.45f,
-                AnchorTop = top, AnchorBottom = top + 0.05f
-            };
-            nameLabel.AddThemeFontSizeOverride("font_size", 16);
-            nameLabel.Modulate = new Color(0.8f, 0.8f, 0.9f);
-            AddChild(nameLabel);
-
-            // Fragment count label (updated in UpdateDisplay)
-            var fragLabel = new Label
-            {
-                Name = $"frag_{strata}",
-                Text = "0 fragments",
-                AnchorLeft = 0.09f, AnchorRight = 0.45f,
-                AnchorTop = top + 0.05f, AnchorBottom = bottom
-            };
-            fragLabel.AddThemeFontSizeOverride("font_size", 13);
-            fragLabel.Modulate = new Color(0.6f, 0.6f, 0.7f);
-            AddChild(fragLabel);
-
-            // Forge button
-            var forgeBtn = new Button
-            {
-                Text = "Forge",
-                AnchorLeft = 0.55f, AnchorRight = 0.85f,
-                AnchorTop = top + 0.02f, AnchorBottom = bottom - 0.02f
-            };
-            forgeBtn.Pressed += () => OnForgePressed(strata);
-            AddChild(forgeBtn);
-            _forgeButtons.Add(forgeBtn);
-        }
-
-        // Result label
-        _resultLabel = new Label
-        {
-            Text = "",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.82f, AnchorBottom = 0.9f
-        };
-        _resultLabel.AddThemeFontSizeOverride("font_size", 16);
-        _resultLabel.Modulate = new Color(0.9f, 0.85f, 0.8f);
-        AddChild(_resultLabel);
+        _fragmentLabel.AddThemeFontSizeOverride("font_size", 12);
+        _fragmentLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.8f));
+        AddChild(_fragmentLabel);
 
         // Back button
-        _backButton = new Button
+        var backBtn = new Button
         {
             Text = "Back",
-            AnchorLeft = 0.35f, AnchorRight = 0.65f,
-            AnchorTop = 0.92f, AnchorBottom = 0.98f
+            AnchorLeft = 0.02f, AnchorRight = 0.12f,
+            AnchorTop = 0.02f, AnchorBottom = 0.07f
         };
-        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
-        AddChild(_backButton);
+        backBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        AddChild(backBtn);
+
+        // Scrollable rune list
+        var scroll = new ScrollContainer
+        {
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.14f, AnchorBottom = 0.92f
+        };
+        AddChild(scroll);
+
+        _runeList = new VBoxContainer();
+        _runeList.SizeFlagsHorizontal = (Control.SizeFlags)3;
+        scroll.AddChild(_runeList);
+
+        PopulateRuneList();
     }
 
-    private void UpdateDisplay()
+    private void PopulateRuneList()
     {
+        foreach (var child in _runeList.GetChildren())
+            child.QueueFree();
+
         var prog = CampaignContext.Progression;
+        if (prog == null) return;
 
-        foreach (var strata in StrataNames)
+        foreach (var kv in _recipes.Recipes)
         {
-            int frags = prog.Fragments.TryGetValue(strata, out var f) ? f : 0;
-            var fragLabel = GetNodeOrNull<Label>($"frag_{strata}");
-            if (fragLabel != null)
-                fragLabel.Text = $"{frags} fragments";
-        }
+            string strata = kv.Key;
+            var runeIds = kv.Value;
+            int fragCount = prog.Fragments.GetValueOrDefault(strata, 0);
 
-        // Update forge button states
-        for (int i = 0; i < StrataNames.Length; i++)
-        {
-            if (i < _forgeButtons.Count)
+            // Section header
+            var header = new Label
             {
-                var btn = _forgeButtons[i];
-                int frags = prog.Fragments.TryGetValue(StrataNames[i], out var f) ? f : 0;
-                btn.Disabled = frags < ForgeSystem.FragmentsPerForge
-                    || !ForgeSystem.CanForge(StrataNames[i], prog, _forgeRecipes);
+                Text = $"{strata.ToUpper()} ({fragCount}/4 fragments)",
+                AnchorLeft = 0, AnchorRight = 1
+            };
+            header.AddThemeFontSizeOverride("font_size", 14);
+            header.AddThemeColorOverride("font_color", strata switch
+            {
+                "verdant" => new Color(0.3f, 0.9f, 0.3f),
+                "ember" => new Color(0.9f, 0.4f, 0.2f),
+                "tide" => new Color(0.3f, 0.5f, 0.9f),
+                "hollow" => new Color(0.6f, 0.3f, 0.7f),
+                "dawn" => new Color(0.9f, 0.8f, 0.3f),
+                _ => new Color(0.7f, 0.7f, 0.8f)
+            });
+            _runeList.AddChild(header);
+
+            bool canForge = fragCount >= 4;
+
+            foreach (var runeId in runeIds)
+            {
+                var rune = FindRuneDef(runeId);
+                if (rune == null) continue;
+
+                bool alreadyOwned = prog.OwnedRuneIds.Contains(runeId);
+                bool available = canForge && !alreadyOwned;
+
+                var btn = new Button
+                {
+                    Text = $"[{rune.RpCost}RP] {rune.Name} — {rune.Description}" +
+                           (alreadyOwned ? " (OWNED)" : ""),
+                    CustomMinimumSize = new Vector2(0, 36),
+                    SizeFlagsHorizontal = (Control.SizeFlags)3,
+                    Disabled = !available
+                };
+                btn.AddThemeFontSizeOverride("font_size", 11);
+
+                if (available)
+                {
+                    var capturedRuneId = runeId;
+                    var capturedStrata = strata;
+                    btn.Pressed += () =>
+                    {
+                        // Forge the rune: spend 4 fragments, add to owned
+                        prog.AddFragments(capturedStrata, -4);
+                        prog.AddOwnedRune(capturedRuneId);
+                        CampaignContext.SaveManager.Save();
+                        // Refresh
+                        GatherFragments();
+                        PopulateRuneList();
+                        _fragmentLabel.Text = "Fragments: " + string.Join(", ",
+                            _fragmentList.Select(f => $"{f.strata}: {f.count}"));
+                    };
+                }
+
+                _runeList.AddChild(btn);
             }
         }
     }
 
-    private void OnForgePressed(string strata)
+    private RuneDef? FindRuneDef(string runeId)
     {
-        var prog = CampaignContext.Progression;
-
-        var (result, runeId) = ForgeSystem.Forge(strata, prog, CampaignContext.RuneIndex, _forgeRecipes);
-
-        switch (result)
+        // Try loading from starter_runes.json embedded
+        try
         {
-            case ForgeResult.Success:
-                string runeName = "Unknown Rune";
-                if (runeId != null && CampaignContext.RuneIndex.TryGetValue(runeId, out var runeDef))
-                    runeName = runeDef.Name;
-                _resultLabel.Text = $"Forged: {runeName}! {StrataNames.First(s => s == strata)} fragments: {prog.Fragments[strata]}";
-                // Also equip it to the current rune page if there's room
-                if (runeId != null && CampaignContext.RuneIndex.TryGetValue(runeId, out var rune))
-                    CampaignContext.CurrentRunePage.Equip(rune);
-                break;
-
-            case ForgeResult.InsufficientFragments:
-                _resultLabel.Text = "Not enough fragments. You need 4.";
-                break;
-
-            case ForgeResult.AllRunesOwned:
-                _resultLabel.Text = "You already own all runes of this strata!";
-                break;
-
-            case ForgeResult.InvalidStrata:
-                _resultLabel.Text = "Cannot forge runes of this type.";
-                break;
+            string json = Godot.FileAccess.GetFileAsString("res://content/runes/starter_runes.json");
+            if (!string.IsNullOrEmpty(json))
+            {
+                var pack = RuneLoader.LoadPackFromString(json);
+                return pack.Runes.FirstOrDefault(r => r.Id == runeId);
+            }
         }
-
-        CampaignContext.SaveManager.Save();
-        UpdateDisplay();
+        catch { }
+        return null;
     }
 }

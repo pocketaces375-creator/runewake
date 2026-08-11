@@ -324,6 +324,7 @@ public sealed class SaveRepository
                             state.Tutorial.IsComplete = value == "1";
                         break;
                     case "global_discovery_index": state.GlobalDiscoveryIndex = int.Parse(value); break;
+                    case "rune_page": state.SavedRunePageJson = value; break;
                 }
             }
         }
@@ -425,6 +426,7 @@ public sealed class SaveRepository
             InsertMeta(conn, "tutorial_step", state.Tutorial?.CurrentStep.ToString() ?? "");
             InsertMeta(conn, "tutorial_complete", state.Tutorial?.IsComplete == true ? "1" : "0");
             InsertMeta(conn, "global_discovery_index", state.GlobalDiscoveryIndex.ToString());
+            InsertMeta(conn, "rune_page", state.SavedRunePageJson ?? "");
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)

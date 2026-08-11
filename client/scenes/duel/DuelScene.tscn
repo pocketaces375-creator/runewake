@@ -1,6 +1,30 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4m3x1duelscene"]
+[gd_scene load_steps=4 format=3 uid="uid://b4m3x1duelscene"]
 
 [ext_resource type="Script" path="res://scripts/DuelScene.cs" id="1_duel"]
+
+[sub_resource type="StyleBoxFlat" id="1"]
+bg_color = Color(0.10, 0.09, 0.07, 0.85)
+border_color = Color(0.20, 0.18, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="2"]
+bg_color = Color(0.12, 0.11, 0.09, 0.75)
+border_color = Color(0.22, 0.19, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
 
 [node name="DuelScene" type="Control"]
 anchors_preset = 15
@@ -29,6 +53,7 @@ anchor_bottom = 0.0
 offset_right = 0.0
 offset_bottom = 40.0
 theme_override_constants/separation = 16
+theme_override_styles/panel = SubResource(1)
 
 [node name="EnemyName" type="Label" parent="EnemyHUD"]
 size_flags_horizontal = 3
@@ -60,16 +85,21 @@ vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = "0"
 
-[node name="Board" type="VBoxContainer" parent="."]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
+[node name="BoardBg" type="TextureRect" parent="."]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = 40.0
 offset_bottom = -160.0
-alignment = 1
-theme_override_constants/separation = 4
+mouse_filter = 2
+stretch_mode = 1
+
+[node name="Board" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 40.0
+offset_bottom = -160.0
 
 [node name="EnemyLaneMargin" type="MarginContainer" parent="Board"]
 size_flags_horizontal = 3
@@ -153,4 +183,4 @@ anchors_preset = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 1
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16

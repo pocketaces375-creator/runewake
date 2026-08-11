@@ -107,6 +107,7 @@ public class RunePageTests
         Description = "Offensive test",
         SlotType = RuneSlotType.OFFENSIVE,
         Cost = 8,
+        RpCost = 4,
         Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
     };
 
@@ -117,6 +118,7 @@ public class RunePageTests
         Description = "Defensive test",
         SlotType = RuneSlotType.DEFENSIVE,
         Cost = 10,
+        RpCost = 3,
         Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
     };
 
@@ -127,6 +129,7 @@ public class RunePageTests
         Description = "Utility test",
         SlotType = RuneSlotType.UTILITY,
         Cost = 12,
+        RpCost = 2,
         Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
     };
 
@@ -137,6 +140,7 @@ public class RunePageTests
         Description = "Mythic test",
         SlotType = RuneSlotType.MYTHIC,
         Cost = 20,
+        RpCost = 4,
         Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
     };
 
@@ -154,7 +158,7 @@ public class RunePageTests
     {
         var page = new RunePage();
         Assert.True(page.Equip(_offensiveRune));
-        Assert.Equal(8, page.TotalCost);
+        Assert.Equal(4, page.TotalCost);
         Assert.Equal(1, page.EquippedCount);
     }
 
@@ -174,8 +178,8 @@ public class RunePageTests
         page.Equip(_offensiveRune);  // 8
         page.Equip(_defensiveRune);  // 10
         page.Equip(_utilityRune);    // 12
-        page.Equip(_mythicRune);     // 20
-        Assert.Equal(50, page.TotalCost);
+        page.Equip(_mythicRune);     // 4
+        Assert.Equal(13, page.TotalCost);
         Assert.Equal(4, page.EquippedCount);
     }
 
@@ -183,7 +187,6 @@ public class RunePageTests
     public void Equip_OverBudget_ReturnsFalse()
     {
         var page = new RunePage();
-        // Equip 8 × 12-cost runes = 96, under budget
         var bigRune = new RuneDef
         {
             Id = "rune_big",
@@ -191,17 +194,19 @@ public class RunePageTests
             Description = "Expensive",
             SlotType = RuneSlotType.OFFENSIVE,
             Cost = 12,
+            RpCost = 4,
             Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
         };
+        // 8 × 4 = 32, under MaxBudget=100
         for (int i = 0; i < 8; i++)
             Assert.True(page.Equip(bigRune));
 
-        Assert.Equal(96, page.TotalCost);
+        Assert.Equal(32, page.TotalCost);
         Assert.True(page.IsWithinBudget());
 
-        // 9th would be 108, exceeding budget
-        Assert.False(page.Equip(bigRune));
-        Assert.Equal(96, page.TotalCost); // unchanged
+        // 9th is still under budget (36 < 100) and slot is free
+        Assert.True(page.Equip(bigRune));
+        Assert.Equal(36, page.TotalCost);
     }
 
     [Fact]
@@ -218,6 +223,7 @@ public class RunePageTests
                 Description = "Filler",
                 SlotType = RuneSlotType.OFFENSIVE,
                 Cost = 1,
+                RpCost = 1,
                 Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
             };
             Assert.True(page.Equip(r));
@@ -241,8 +247,9 @@ public class RunePageTests
     {
         var page = new RunePage();
         page.Equip(_offensiveRune);
-        Assert.Equal(8, page.TotalCost);
-
+        Assert.Equal(4, page.TotalCost);
+        // _offensiveRune has cost=8 (shard) and RpCost=4 (rp)
+        // Test TotalCost uses RpCost
         Assert.True(page.Unequip(RuneSlotType.OFFENSIVE, 0));
         Assert.Equal(0, page.TotalCost);
         Assert.Equal(0, page.EquippedCount);
@@ -271,7 +278,8 @@ public class RunePageTests
         page.Equip(_defensiveRune);
 
         Assert.True(page.UnequipById("rune_test_off"));
-        Assert.Equal(10, page.TotalCost);
+        Assert.Equal(3, page.TotalCost);
+        // _offensive removed (RpCost=4), defensive remains (RpCost=3)
         Assert.Single(page.GetAllEquipped());
 
         // Removing again should fail
@@ -289,6 +297,7 @@ public class RunePageTests
             Description = "Zero cost",
             SlotType = RuneSlotType.OFFENSIVE,
             Cost = 0,
+            RpCost = 0,
             Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
         };
         Assert.False(page.Equip(invalid));
@@ -297,9 +306,10 @@ public class RunePageTests
         {
             Id = "rune_toobig",
             Name = "Too Big",
-            Description = "Over 20 cost",
+            Description = "Over max RpCost (4)",
             SlotType = RuneSlotType.OFFENSIVE,
-            Cost = 25,
+            Cost = 10,
+            RpCost = 5,
             Ability = new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new() }
         };
         Assert.False(page.Equip(tooBig));

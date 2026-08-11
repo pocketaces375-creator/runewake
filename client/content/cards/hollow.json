@@ -20,6 +20,7 @@
       }
     ],
     "flavor": "Its name was scraped off the stone. It came anyway.",
+    "art": { "prompt": "a bound figure wrapped in inscribed stone tablets, one arm reaching from the earth", "asset": "res://content/art/hol_c_gravewrit_thrall.webp" },
     "power_score": 8.2,
     "content_version": 1
   },

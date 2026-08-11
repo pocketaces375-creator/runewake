@@ -7,6 +7,7 @@
       "strata": "VERDANT",
       "slot_type": "OFFENSIVE",
       "cost": 8,
+      "rp_cost": 3,
       "ability": {
         "trigger": "PASSIVE",
         "effects": [
@@ -26,6 +27,7 @@
       "strata": "VERDANT",
       "slot_type": "DEFENSIVE",
       "cost": 8,
+      "rp_cost": 3,
       "ability": {
         "trigger": "PASSIVE",
         "effects": [
@@ -45,6 +47,7 @@
       "strata": "VERDANT",
       "slot_type": "UTILITY",
       "cost": 10,
+      "rp_cost": 3,
       "ability": {
         "trigger": "ON_TURN_START",
         "effects": [
@@ -58,6 +61,7 @@
     },
     {
       "id": "rune_emb_kindling",
+      "rp_cost": 2,
       "name": "Kindling",
       "description": "When you summon a creature, deal 1 damage to the enemy hero.",
       "strata": "EMBER",
@@ -76,6 +80,7 @@
     },
     {
       "id": "rune_emb_cinder_cloak",
+      "rp_cost": 4,
       "name": "Cinder Cloak",
       "description": "Your creatures have Ward.",
       "strata": "EMBER",
@@ -95,6 +100,7 @@
     },
     {
       "id": "rune_ember_draw",
+      "rp_cost": 3,
       "name": "Ember Draw",
       "description": "At the start of your turn, draw a card.",
       "strata": "EMBER",
@@ -113,6 +119,7 @@
     },
     {
       "id": "rune_tid_tidal_barrier",
+      "rp_cost": 2,
       "name": "Tidal Barrier",
       "description": "Your hero has +5 vigor.",
       "strata": "TIDE",
@@ -131,6 +138,7 @@
     },
     {
       "id": "rune_tid_memory_tides",
+      "rp_cost": 2,
       "name": "Memory Tides",
       "description": "When you excavate, excavate one additional card.",
       "strata": "TIDE",
@@ -149,6 +157,7 @@
     },
     {
       "id": "rune_hol_barrow_strength",
+      "rp_cost": 2,
       "name": "Barrow Strength",
       "description": "Your creatures have +2 attack while damaged.",
       "strata": "HOLLOW",
@@ -171,6 +180,7 @@
     },
     {
       "id": "rune_hol_soul_shield",
+      "rp_cost": 2,
       "name": "Soul Shield",
       "description": "When an ally dies, gain 2 vigor.",
       "strata": "HOLLOW",
@@ -189,6 +199,7 @@
     },
     {
       "id": "rune_dwn_radiant_strike",
+      "rp_cost": 3,
       "name": "Radiant Strike",
       "description": "Your creatures have Swift.",
       "strata": "DAWN",
@@ -208,6 +219,7 @@
     },
     {
       "id": "rune_dwn_holy_ward",
+      "rp_cost": 2,
       "name": "Holy Ward",
       "description": "When you summon a creature, it gains Ward.",
       "strata": "DAWN",
@@ -227,6 +239,7 @@
     },
     {
       "id": "rune_dwn_prophecy",
+      "rp_cost": 4,
       "name": "Prophecy",
       "description": "Look at the top 3 cards of your deck and arrange them in any order.",
       "strata": "DAWN",
@@ -249,6 +262,7 @@
     },
     {
       "id": "rune_mythic_overgrowth",
+      "rp_cost": 4,
       "name": "Overgrowth",
       "description": "At the start of the game, summon a 3/3 Verdant Sproutling in a random lane.",
       "slot_type": "MYTHIC",
@@ -270,6 +284,7 @@
     },
     {
       "id": "rune_mythic_phoenix_ash",
+      "rp_cost": 4,
       "name": "Phoenix Ash",
       "description": "The first time you would lose the game, instead restore 10 vigor.",
       "slot_type": "MYTHIC",
@@ -291,6 +306,7 @@
     },
     {
       "id": "rune_mythic_seal_of_order",
+      "rp_cost": 4,
       "name": "Seal of Order",
       "description": "All creatures lose all keywords.",
       "slot_type": "MYTHIC",

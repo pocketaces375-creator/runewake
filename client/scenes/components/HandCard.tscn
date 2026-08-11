@@ -1,88 +1,90 @@
 [gd_scene load_steps=3 format=3 uid="uid://hand_card_component"]
 
 [ext_resource type="Script" path="res://scripts/HandCard.cs" id="1_hand"]
+[ext_resource type="Shader" path="res://shaders/lane_inset.gdshader" id="2_inset"]
 
-[sub_resource type="StyleBoxFlat" id="cost_badge"]
-content_margin_left = 4
-content_margin_top = 1
-content_margin_right = 4
-content_margin_bottom = 1
-bg_color = Color(0.1, 0.1, 0.14, 1)
-border_color = Color(0.9, 0.85, 0.4, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
+[sub_resource type="ShaderMaterial" id="1"]
+shader = ExtResource("2_inset")
+shader_param/highlight_strength = 0.15
+shader_param/shadow_strength = 0.20
+shader_param/edge_width = 0.03
 
 [node name="HandCard" type="Button"]
 anchors_preset = 0
-custom_minimum_size = Vector2(160, 140)
-size_flags_horizontal = 3
+custom_minimum_size = Vector2(110, 130)
+size_flags_horizontal = 0
 size_flags_vertical = 3
 action_mode = 0
+mouse_default_cursor_shape = 2
 script = ExtResource("1_hand")
 
-[node name="CardBg" type="ColorRect" parent="."]
+[node name="CardFrame" type="PanelContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.16, 0.16, 0.22, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_left = 6
-corner_radius_bottom_right = 6
+mouse_filter = 2
+clip_contents = true
+material = SubResource(1)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="CardFrame"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 5
-
-[node name="VBox" type="VBoxContainer" parent="Margin"]
-anchors_preset = 0
-size_flags_horizontal = 3
-size_flags_vertical = 3
 theme_override_constants/separation = 3
 
-[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
-size_flags_horizontal = 3
-size_flags_vertical = 0
-
-[node name="CostBadge" type="PanelContainer" parent="Margin/VBox/Header"]
+[node name="ArtRect" type="TextureRect" parent="CardFrame/VBox"]
 size_flags_horizontal = 0
 size_flags_vertical = 0
-theme_override_styles/panel = SubResource("cost_badge")
+custom_minimum_size = Vector2(100, 70)
+stretch_mode = 4
+mouse_filter = 2
 
-[node name="CostLabel" type="Label" parent="Margin/VBox/Header/CostBadge"]
-size_flags_horizontal = 0
-size_flags_vertical = 0
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 20
-text = "0"
-
-[node name="HeaderSpacer" type="Control" parent="Margin/VBox/Header"]
+[node name="CardName" type="Label" parent="CardFrame/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-
-[node name="CardName" type="Label" parent="Margin/VBox"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 11
 text = ""
-autowrap_mode = 0
+autowrap_mode = 2
 max_lines_visible = 2
+mouse_filter = 2
 
-[node name="StrataStrip" type="ColorRect" parent="Margin/VBox"]
+[node name="BottomRow" type="HBoxContainer" parent="CardFrame/VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-custom_minimum_size = Vector2(0, 8)
-color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="BottomSpacer" type="Control" parent="CardFrame/VBox/BottomRow"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="StatsLabel" type="Label" parent="CardFrame/VBox/BottomRow"]
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 11
+text = ""
+mouse_filter = 2
+
+[node name="CostBadge" type="PanelContainer" parent="."]
+anchors_preset = 12
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0
+offset_top = 0
+offset_right = 22
+offset_bottom = 20
+mouse_filter = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 1
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 1
+
+[node name="CostLabel" type="Label" parent="CostBadge"]
+size_flags_horizontal = 0
+size_flags_vertical = 0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "0"

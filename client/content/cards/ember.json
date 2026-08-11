@@ -12,6 +12,7 @@
     "keywords": ["SWIFT"],
     "abilities": [],
     "flavor": "Forge-children learned to run before they learned to breathe.",
+    "art": { "prompt": "a soot-streaked young courier sprinting through a molten foundry, trailing sparks", "asset": "res://content/art/emb_c_cinder_runner.webp" },
     "power_score": 4.85,
     "content_version": 1
   },

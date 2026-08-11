@@ -79,6 +79,12 @@ public static class CampaignContext
     public static bool ReduceMotion => Settings.ReduceMotion;
 
     /// <summary>
+    /// Test hook: auto-navigate to duel scene and capture screenshot after render.
+    /// Set by Main.LoadGameData before switching to DuelScene.
+    /// </summary>
+    public static bool AutoCaptureScreenshot { get; set; }
+
+    /// <summary>
     /// Load all encounter packs from the content directory.
     /// Call once at title screen.
     /// </summary>
@@ -114,6 +120,75 @@ public static class CampaignContext
             foreach (var rune in pack.Runes)
                 RuneIndex[rune.Id] = rune;
         }
+
+    /// <summary>
+    /// Deserialize the saved rune page from ProgressionState into CurrentRunePage.
+    /// Call after LoadRunes() so the rune index is populated.
+    /// </summary>
+    public static void LoadSavedRunePage()
+    {
+        CurrentRunePage = new RunePage();
+        if (Progression?.SavedRunePageJson == null || Progression.SavedRunePageJson.Length < 2)
+            return;
+
+        try
+        {
+            var savedData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string?>>>(Progression.SavedRunePageJson);
+            if (savedData == null) return;
+
+            var page = new RunePage();
+            foreach (var (slotTypeKey, slotIds) in savedData)
+            {
+                var slotType = slotTypeKey switch
+                {
+                    "offensive" => RuneSlotType.OFFENSIVE,
+                    "defensive" => RuneSlotType.DEFENSIVE,
+                    "utility" => RuneSlotType.UTILITY,
+                    "mythic" => RuneSlotType.MYTHIC,
+                    _ => (RuneSlotType?)null
+                };
+                if (slotType == null) continue;
+
+                var slots = slotType.Value switch
+                {
+                    RuneSlotType.OFFENSIVE => page.OffensiveSlots,
+                    RuneSlotType.DEFENSIVE => page.DefensiveSlots,
+                    RuneSlotType.UTILITY => page.UtilitySlots,
+                    RuneSlotType.MYTHIC => page.MythicSlots,
+                    _ => null
+                };
+                if (slots == null) continue;
+
+                for (int i = 0; i < slots.Length && i < slotIds.Count; i++)
+                {
+                    if (slotIds[i] != null && RuneIndex.TryGetValue(slotIds[i]!, out var runeDef))
+                        slots[i] = runeDef;
+                }
+            }
+            CurrentRunePage = page;
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"[CampaignContext] Failed to load saved rune page: {ex.Message}");
+            CurrentRunePage = new RunePage();
+        }
+    }
+
+    /// <summary>
+    /// Serialize the current rune page into ProgressionState for saving.
+    /// </summary>
+    public static void SaveCurrentRunePage()
+    {
+        if (Progression == null) return;
+        var data = new Dictionary<string, List<string?>>
+        {
+            ["offensive"] = CurrentRunePage.OffensiveSlots.Select(s => s?.Id).ToList(),
+            ["defensive"] = CurrentRunePage.DefensiveSlots.Select(s => s?.Id).ToList(),
+            ["utility"] = CurrentRunePage.UtilitySlots.Select(s => s?.Id).ToList(),
+            ["mythic"] = CurrentRunePage.MythicSlots.Select(s => s?.Id).ToList()
+        };
+        Progression.SavedRunePageJson = System.Text.Json.JsonSerializer.Serialize(data);
+    }
 
     /// <summary>
     /// Load all dig site definitions from the content directory.

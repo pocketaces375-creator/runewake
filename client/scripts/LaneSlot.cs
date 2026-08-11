@@ -1,4 +1,5 @@
 using Godot;
+using static ThemeTokens;
 
 namespace Runewake.Client;
 
@@ -12,6 +13,7 @@ public partial class LaneSlot : PanelContainer
     private Label _cardName;
     private Label _stats;
     private Label _faceLabel;
+    private TextureRect _artRect;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
 
@@ -41,7 +43,11 @@ public partial class LaneSlot : PanelContainer
     {
         _cardName = GetNode<Label>("VBox/CardName");
         _stats = GetNode<Label>("VBox/Stats");
+        _artRect = GetNode<TextureRect>("VBox/ArtRect");
         SetEmpty();
+
+        // Apply header font to creature name
+        ApplyHeaderFont(_cardName, FontLargeBody);
 
         // Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
@@ -59,6 +65,15 @@ public partial class LaneSlot : PanelContainer
         var touchArea = GetNodeOrNull<Control>("TouchArea");
         if (touchArea != null)
             touchArea.GuiInput += OnTouchAreaInput;
+
+        // Load the stone texture for the lane slot background
+        var slotBg = GetNodeOrNull<TextureRect>("SlotBg");
+        if (slotBg != null)
+        {
+            var stoneTex = GD.Load<Texture2D>("res://assets/stone_board.png");
+            if (stoneTex != null)
+                slotBg.Texture = stoneTex;
+        }
     }
 
     /// <summary>
@@ -76,15 +91,35 @@ public partial class LaneSlot : PanelContainer
     /// <summary>
     /// Set this lane slot to show card info.
     /// </summary>
-    public void SetCard(string name, int attack, int vigor, bool isExhausted = false)
+    public void SetCard(string cardDefId, string name, int attack, int vigor, bool isExhausted = false)
     {
         _cardName.Text = name;
         _stats.Text = $"{attack}/{vigor}";
         _state = NodeState.Occupied;
+
         _cardName.Show();
         _stats.Show();
+
+        // Load card art
+        LoadArt(cardDefId);
+
         // Visual: exhausted creatures are grayed out, ready creatures are full color
         Modulate = isExhausted ? Colors.Gray : Colors.White;
+    }
+
+    private void LoadArt(string cardDefId)
+    {
+        string artPath = $"res://content/art/{cardDefId}.webp";
+        if (ResourceLoader.Exists(artPath))
+        {
+            var texture = ResourceLoader.Load<Texture2D>(artPath);
+            if (texture != null)
+            {
+                _artRect.Texture = texture;
+                return;
+            }
+        }
+        _artRect.Texture = null;
     }
 
     /// <summary>
@@ -94,9 +129,14 @@ public partial class LaneSlot : PanelContainer
     {
         _cardName.Text = "";
         _stats.Text = "";
-        _state = NodeState.Empty;
+
         _cardName.Hide();
         _stats.Hide();
+        _artRect.Texture = null;
+        if (_faceLabel != null)
+            _faceLabel.Visible = false;
+        _state = NodeState.Empty;
+        Modulate = Colors.White;
     }
 
     /// <summary>

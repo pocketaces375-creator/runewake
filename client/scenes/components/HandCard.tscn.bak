@@ -1,0 +1,144 @@
+[gd_scene load_steps=3 format=3 uid="uid://hand_card_component"]
+
+[ext_resource type="Script" path="res://scripts/HandCard.cs" id="1_hand"]
+
+[sub_resource type="StyleBoxFlat" id="cost_badge"]
+content_margin_left = 3
+content_margin_top = 1
+content_margin_right = 3
+content_margin_bottom = 1
+bg_color = Color(0.1, 0.09, 0.07, 1)
+border_color = Color(0.79, 0.66, 0.3, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[node name="HandCard" type="Button"]
+anchors_preset = 0
+custom_minimum_size = Vector2(75, 130)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+action_mode = 0
+mouse_filter = 0
+script = ExtResource("1_hand")
+
+[node name="CardBorder" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.23, 0.21, 0.18, 1)
+show_behind_parent = true
+
+[node name="CardBg" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
+color = Color(0.16, 0.15, 0.13, 1)
+
+[node name="ArtRect" type="ColorRect" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = 0.0
+custom_minimum_size = Vector2(0, 55)
+size_flags_horizontal = 0
+size_flags_vertical = 0
+color = Color(0.13, 0.12, 0.1, 1)
+
+[node name="ArtSwatch" type="ColorRect" parent="ArtRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+color = Color(0.2, 0.19, 0.17, 0.5)
+
+[node name="CostBadge" type="PanelContainer" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+offset_left = 2.0
+offset_top = 2.0
+theme_override_styles/panel = SubResource("cost_badge")
+
+[node name="CostLabel" type="Label" parent="CostBadge"]
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.79, 0.66, 0.3, 1)
+text = "3"
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 58.0
+offset_right = -2.0
+offset_bottom = -2.0
+alignment = 2
+
+[node name="CardName" type="Label" parent="VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_alignment = 1
+vertical_alignment = 2
+theme_override_font_sizes/font_size = 9
+theme_override_colors/font_color = Color(0.91, 0.86, 0.78, 1)
+text = ""
+autowrap_mode = 0
+max_lines_visible = 2
+
+[node name="StatsRow" type="HBoxContainer" parent="VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+alignment = 1
+theme_override_constants/separation = 0
+
+[node name="AttackLabel" type="Label" parent="VBox/StatsRow"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.66, 0.28, 0.16, 1)
+text = ""
+
+[node name="Spacer" type="Control" parent="VBox/StatsRow"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="HealthLabel" type="Label" parent="VBox/StatsRow"]
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.35, 0.54, 0.29, 1)
+text = ""
+
+[node name="StrataStrip" type="ColorRect" parent="."]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
+offset_top = 0.0
+custom_minimum_size = Vector2(0, 2)
+color = Color(0.5, 0.5, 0.5, 1)

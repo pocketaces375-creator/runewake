@@ -96,7 +96,11 @@ public partial class GameStateManager : Node
             "tid_c_deep_one",
             "tid_c_abyssal_gaze",
             "tid_u_brine_witch",
-            "tid_u_coral_guardian"
+            "tid_u_coral_guardian",
+            "hol_c_gravewrit_thrall",
+            "dwn_r_sealing_light",
+            "dwn_c_dawn_warder",
+            "hol_c_skeletal_reaver"
         };
 
         var config = new GameConfig

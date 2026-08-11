@@ -1,0 +1,104 @@
+[gd_scene load_steps=3 format=3 uid="uid://lane_slot_component"]
+
+[ext_resource type="Script" path="res://scripts/LaneSlot.cs" id="1_xyz"]
+
+[sub_resource type="StyleBoxFlat" id="slot_bg"]
+content_margin_left = 6
+content_margin_top = 6
+content_margin_right = 6
+content_margin_bottom = 6
+bg_color = Color(0.1, 0.09, 0.08, 1)
+border_color = Color(0.23, 0.21, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+draw_center = true
+shadow_color = Color(0.06, 0.05, 0.04, 1)
+shadow_size = 2
+
+[node name="LaneSlot" type="PanelContainer"]
+anchors_preset = 0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+custom_minimum_size = Vector2(80, 85)
+script = ExtResource("1_xyz")
+theme_override_styles/panel = SubResource("slot_bg")
+
+[node name="TouchArea" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 0
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="OccupantRoot" type="Control" parent="VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="OccName" type="Label" parent="VBox/OccupantRoot"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 4
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.91, 0.86, 0.78, 1)
+text = ""
+autowrap_mode = 2
+
+[node name="OccHealthBg" type="ColorRect" parent="VBox/OccupantRoot"]
+anchors_preset = 6
+anchor_left = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_right = -2.0
+offset_bottom = 0.0
+offset_top = -6.0
+custom_minimum_size = Vector2(0, 4)
+color = Color(0.06, 0.05, 0.04, 1)
+
+[node name="OccHealthFill" type="ColorRect" parent="VBox/OccupantRoot/OccHealthBg"]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.35, 0.54, 0.29, 1)
+
+[node name="Stats" type="Label" parent="VBox/OccupantRoot"]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_bottom = 1.0
+offset_top = 2.0
+offset_bottom = 0.0
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.72, 0.66, 0.54, 1)
+text = ""
+
+[node name="EmptyHint" type="Label" parent="VBox"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 9
+theme_override_colors/font_color = Color(0.35, 0.33, 0.28, 1)
+text = ""
+mouse_filter = 2

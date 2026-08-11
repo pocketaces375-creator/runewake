@@ -26,6 +26,7 @@
       }
     ],
     "flavor": "She read the riverbed the way her mother read faces.",
+    "art": { "prompt": "a robed scholar kneeling in shallow grey water, sifting silt through a bronze sieve", "asset": "res://content/art/tid_c_silt_reader.webp" },
     "power_score": 10.4,
     "content_version": 1
   },

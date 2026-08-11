@@ -193,7 +193,7 @@ public class EncounterLoaderTests
         // own fixtures in the shared static registry). Then validate that every deck
         // reference resolves. This is the mechanical guarantee behind "legible per
         // archetype" — a deck referencing missing cards can never be played.
-        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn" };
+        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn", "tutorial_pack" };
         foreach (var setId in setIds)
         {
             var pack = CardLoader.LoadPack(

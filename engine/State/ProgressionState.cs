@@ -51,6 +51,15 @@ public class ProgressionState
     /// <summary>Whether the player has completed the first-run tutorial/intro duel.</summary>
     public bool HasCompletedTutorial { get; set; }
 
+    /// <summary>Current Delver Level (1-20). Starts at 1.</summary>
+    public int DelverLevel { get; set; } = 1;
+
+    /// <summary>Cumulative XP earned toward next Delver Level.</summary>
+    public int DelverXp { get; set; }
+
+    /// <summary>Serialized rune page slot data (JSON). Loaded on startup into CampaignContext.CurrentRunePage.</summary>
+    public string? SavedRunePageJson { get; set; }
+
     /// <summary>Tutorial state (null for existing saves — treated as None).</summary>
     public TutorialState? Tutorial { get; set; }
 

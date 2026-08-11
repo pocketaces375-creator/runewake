@@ -117,6 +117,27 @@ public class SaveManager
         return _repository.TestReadWrite();
     }
 
+    /// <summary>
+    /// Delete the save file and create a fresh progression state.
+    /// </summary>
+    public void DeleteSave()
+    {
+        try
+        {
+            string dataDir = ProjectSettings.GlobalizePath("user://");
+            string dbPath = System.IO.Path.Combine(dataDir, "runewake_save.db");
+            if (System.IO.File.Exists(dbPath))
+                System.IO.File.Delete(dbPath);
+            var fresh = new ProgressionState { Version = SaveRepository.CurrentSchemaVersion };
+            fresh.Tutorial = new TutorialState();
+            CopyInto(fresh, State);
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"[SaveManager] DeleteSave failed: {ex.Message}");
+        }
+    }
+
     /// <summary>Copy a freshly-loaded state into the live mutable state object.</summary>
     private static void CopyInto(ProgressionState from, ProgressionState to)
     {

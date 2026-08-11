@@ -20,9 +20,13 @@ public partial class CardView : PanelContainer
     private Label _attackLabel;
     private Label _vigorLabel;
     private Control _statsPanel;
+    private Button _closeBtn;
 
     /// <summary>The CardDef this view currently displays, or null.</summary>
     public CardDef? CurrentCard { get; private set; }
+
+    /// <summary>Fired when the user clicks the close button.</summary>
+    public event Action? Dismissed;
 
     public override void _Ready()
     {
@@ -36,6 +40,11 @@ public partial class CardView : PanelContainer
         _attackLabel = GetNode<Label>("Margin/VBox/StatsPanel/AttackLabel");
         _vigorLabel = GetNode<Label>("Margin/VBox/StatsPanel/VigorLabel");
         _statsPanel = GetNode<Control>("Margin/VBox/StatsPanel");
+        _closeBtn = GetNode<Button>("CloseBtn");
+
+        // Style the close button
+        _closeBtn.AddThemeColorOverride("font_color", new Color(0.8f, 0.7f, 0.5f));
+        _closeBtn.Pressed += OnClosePressed;
 
         Clear();
     }
@@ -104,6 +113,12 @@ public partial class CardView : PanelContainer
         _statsPanel.Visible = false;
         ClearArt();
         SetStrataStyle(Strata.VERDANT);
+    }
+
+    private void OnClosePressed()
+    {
+        Visible = false;
+        Dismissed?.Invoke();
     }
 
     // ——— Private helpers ———

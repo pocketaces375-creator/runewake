@@ -12,10 +12,23 @@ offset_left = 0.0
 offset_top = 0.0
 offset_right = 0.0
 offset_bottom = 0.0
-custom_minimum_size = Vector2(320, 480)
+custom_minimum_size = Vector2(240, 340)
 size_flags_horizontal = 0
 size_flags_vertical = 0
 script = ExtResource("1_cv")
+
+[node name="CloseBtn" type="Button" parent="."]
+anchors_preset = 6
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -30
+offset_top = 2
+offset_right = -2
+offset_bottom = 26
+text = "✕"
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
 
 [node name="Margin" type="MarginContainer" parent="."]
 anchors_preset = 15

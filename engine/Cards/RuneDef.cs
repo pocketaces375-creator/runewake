@@ -41,7 +41,11 @@ public sealed class RuneDef
     [JsonPropertyName("slot_type")]
     public RuneSlotType SlotType { get; set; }
 
-    /// <summary>Rune Point cost (1–20). Counts toward the rune page budget.</summary>
+    /// <summary>Rune Point cost (1–4). Counts toward the rune page budget.</summary>
+    [JsonPropertyName("rp_cost")]
+    public int RpCost { get; set; } = 1;
+
+    /// <summary>Shard/forge unlock cost (separate from RP budget).</summary>
     [JsonPropertyName("cost")]
     public int Cost { get; set; }
 

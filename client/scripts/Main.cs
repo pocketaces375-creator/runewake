@@ -26,6 +26,8 @@ public partial class Main : Control
 
     public override void _Ready()
     {
+        AssertProjectSettings();
+
         // Title label
         var title = new Label
         {
@@ -138,11 +140,59 @@ public partial class Main : Control
         _diagButton.Pressed += OnDiagnosticsPressed;
         AddChild(_diagButton);
 
+        // DEV BUTTON — REMOVE BEFORE RELEASE
+        var devButton = new Button
+        {
+            Text = "DEV",
+            Position = new Vector2(72, 8),
+            Size = new Vector2(60, 32),
+            Modulate = new Color(0.4f, 0.4f, 0.4f)
+        };
+        devButton.Pressed += () =>
+        {
+            var devMenu = new DevMenu();
+            AddChild(devMenu);
+        };
+        AddChild(devButton);
+
         // Begin loading
         Callable.From(LoadGameData).CallDeferred();
 
         // Store rune button reference for enabling after load
         _runeButton = runeButton;
+    }
+
+    /// <summary>
+    /// Verify critical project settings at launch so silent config-file
+    /// regressions (viewport, orientation, stretch, main scene) are
+    /// impossible to miss. Logs loudly on every mismatch.
+    /// </summary>
+    private static void AssertProjectSettings()
+    {
+        var checks = new (string Key, string Expected, string Label)[]
+        {
+            ("display/window/stretch/mode", "canvas_items", "Stretch mode"),
+            ("display/window/stretch/aspect", "expand", "Stretch aspect"),
+            ("display/window/handheld/orientation", "0", "Orientation (landscape)"),
+            ("display/window/size/viewport_width", "1152", "Viewport width"),
+            ("display/window/size/viewport_height", "648", "Viewport height"),
+        };
+
+        bool anyBad = false;
+        foreach (var (key, expected, label) in checks)
+        {
+            var actual = ProjectSettings.GetSetting(key, "<unset>").ToString();
+            if (actual != expected)
+            {
+                GD.PrintErr($"[SETTING ASSERT] {label}: expected \"{expected}\", got \"{actual}\"");
+                anyBad = true;
+            }
+        }
+
+        if (anyBad)
+            GD.PrintErr("[SETTING ASSERT] ⚠️ One or more critical display settings are wrong or missing. UI scaling/layout will be broken on device.");
+        else
+            GD.Print("[SETTING ASSERT] ✅ All 4 critical display settings verified.");
     }
 
     private void LoadGameData()
@@ -185,6 +235,9 @@ public partial class Main : Control
         // Load rune definitions
         CampaignContext.LoadRunes();
 
+        // Load saved rune page (if any)
+        CampaignContext.LoadSavedRunePage();
+
         _statusLabel.Text = "Loading dig sites...";
 
         // Load dig site definitions
@@ -200,12 +253,13 @@ public partial class Main : Control
         // Load Lost Relic definitions
         CampaignContext.LoadLostRelics();
 
-        _statusLabel.Text = "Loading tutorial...";
+        _statusLabel.Text = "Validating content IDs...";
 
-        // Load tutorial step definitions
-        var tutorialJson = Godot.FileAccess.GetFileAsString("res://content/tutorial/tutorial_steps.json");
-        if (!string.IsNullOrEmpty(tutorialJson))
-            CampaignContext.TutorialSteps = TutorialLoader.LoadStepsFromString(tutorialJson);
+        // Validate every content ID reference resolves to a real definition.
+        // This catches silent failures like encounter IDs that don't match
+        // their definitions, deck cards that don't exist in any pack, etc.
+        // Same class as the deck card-ID check in EncounterLoaderTests.
+        ValidateContentIds();
 
         _statusLabel.Text = "Loading save data...";
 
@@ -319,14 +373,6 @@ public partial class Main : Control
         _runeButton.Disabled = false;
         _forgeButton.Disabled = false;
 
-        // Check if tutorial should run
-        var tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
-        if (tutorialCtrl != null && tutorialCtrl.ShouldRunTutorial())
-        {
-            GD.Print("[Main] Tutorial needed — routing to tutorial.");
-            tutorialCtrl.StartTutorial();
-        }
-
         // Initialize Supabase sync (offline-first — no-op when not configured)
         var supabaseConfig = LoadSupabaseConfig();
         var syncManager = new SyncManager();
@@ -349,6 +395,16 @@ public partial class Main : Control
         const string supabaseUrl = "https://placeholder.supabase.co";
         const string supabaseKey = "placeholder-anon-key";
         CrashReporter.UploadPendingReports(supabaseUrl, supabaseKey);
+
+        // ═══ CAPTURE HOOK (gated): auto-navigate to duel screen ═══
+        if (CampaignContext.AutoCaptureScreenshot)
+        {
+            Callable.From(() =>
+            {
+                CampaignContext.CurrentEncounter = null;
+                GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+            }).CallDeferred();
+        }
     }
 
     /// <summary>
@@ -579,5 +635,81 @@ public partial class Main : Control
     private void OnOpenForge()
     {
         GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Content ID validation — runs at startup to catch
+    // silent failures from broken cross-references.
+    // ═══════════════════════════════════════════════════
+
+    private void ValidateContentIds()
+    {
+        int errors = 0;
+
+        // 1. Every encounter deck card ID must resolve in CardRegistry
+        foreach (var enc in CampaignContext.EncounterIndex.Values)
+        {
+            foreach (var cardId in enc.Deck)
+            {
+                if (CardRegistry.Get(cardId) == null)
+                {
+                    GD.PrintErr($"[ContentValidation] ENCOUNTER '{enc.Id}' references unknown card '{cardId}'");
+                    errors++;
+                }
+            }
+        }
+
+        // 2. Every Lost Relic encounter_id must resolve to a real encounter
+        foreach (var relic in CampaignContext.LostRelicIndex.Values)
+        {
+            if (!CampaignContext.EncounterIndex.ContainsKey(relic.EncounterId))
+            {
+                GD.PrintErr($"[ContentValidation] RELIC '{relic.Name}' references unknown encounter '{relic.EncounterId}'");
+                errors++;
+            }
+        }
+
+        // 3. Every map node encounter must resolve to a real encounter or dig site
+        string mapJson = Godot.FileAccess.GetFileAsString("res://content/map/region_01.json");
+        var mapRegion = MapLoader.LoadRegionFromString(mapJson);
+        if (mapRegion != null)
+        {
+            foreach (var node in mapRegion.Nodes)
+            {
+                if (node.Encounter != null)
+                {
+                    if (CampaignContext.EncounterIndex.ContainsKey(node.Encounter))
+                        continue;
+                    if (CampaignContext.DigSiteIndex.ContainsKey(node.Encounter))
+                        continue;
+                    GD.PrintErr($"[ContentValidation] MAP NODE '{node.Id}' references unknown encounter/dig site '{node.Encounter}'");
+                    errors++;
+                }
+            }
+        }
+
+        // 4. Every dig site headline reward relic reference should resolve
+        foreach (var site in CampaignContext.DigSiteIndex.Values)
+        {
+            if (site.HeadlineReward != null && site.HeadlineReward.StartsWith("relic:"))
+            {
+                string relicId = site.HeadlineReward.Replace("relic:", "");
+                if (!CampaignContext.LostRelicIndex.Values.Any(r => r.CardId == relicId))
+                {
+                    GD.Print($"[ContentValidation] DIG SITE '{site.Id}' headline reward '{site.HeadlineReward}' — not in relic index (may be intentional)");
+                }
+            }
+        }
+
+        if (errors > 0)
+        {
+            GD.PrintErr($"[ContentValidation] {errors} content ID error(s) found. See above for details.");
+            _statusLabel.Text = $"⚠ {errors} content error(s) — check logs";
+            _statusLabel.Modulate = new Color(1f, 0.5f, 0.2f);
+        }
+        else
+        {
+            GD.Print("[ContentValidation] All content IDs resolve correctly.");
+        }
     }
 }

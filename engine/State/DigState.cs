@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Runewake.Engine.Cards;
@@ -5,115 +6,107 @@ using Runewake.Engine.Cards;
 namespace Runewake.Engine.State;
 
 /// <summary>
-/// A reward earned from a dig tile reveal.
-/// </summary>
-public class DigRewardEntry
-{
-    /// <summary>Type of reward.</summary>
-    public DigRewardType Type { get; set; }
-
-    /// <summary>Value string (same semantics as DigTileDef.Value).</summary>
-    public string? Value { get; set; }
-}
-
-/// <summary>
-/// Runtime state for an in-progress dig session.
-/// Tracks which tiles have been revealed, strikes remaining, and rewards earned.
+/// Runtime state for a dig site interaction — tracks which tiles have been
+/// struck, rewards earned, and completion status.
 /// </summary>
 public class DigState
 {
-    /// <summary>Which dig site definition this session is using.</summary>
-    public string DigSiteId { get; set; } = string.Empty;
+    /// <summary>ID of the dig site this state belongs to.</summary>
+    public string DigSiteId { get; }
 
-    /// <summary>Number of strikes remaining (decremented per reveal).</summary>
-    public int StrikesRemaining { get; set; }
+    /// <summary>How many strikes the player has left.</summary>
+    public int StrikesRemaining { get; private set; }
 
-    /// <summary>Revealed state for each tile, row-major order.</summary>
-    public bool[] TilesRevealed { get; set; } = System.Array.Empty<bool>();
+    /// <summary>Boolean array tracking which tiles have been revealed (indexed by tile position).</summary>
+    public bool[] TilesRevealed { get; }
 
-    /// <summary>Total number of tiles revealed so far.</summary>
-    public int TilesCleared { get; set; }
+    /// <summary>Number of tiles revealed so far.</summary>
+    public int TilesCleared { get; private set; }
 
     /// <summary>Whether the headline find has been claimed.</summary>
-    public bool HeadlineClaimed { get; set; }
+    public bool HeadlineClaimed { get; private set; }
 
-    /// <summary>Rewards earned from reveals during this dig session.</summary>
-    public List<DigRewardEntry> RewardsEarned { get; set; } = new();
+    /// <summary>Rewards earned so far (tile rewards + headline reward).</summary>
+    public List<DigRewardEntry> RewardsEarned { get; } = new();
 
-    /// <summary>True when no more strikes remain or headline has been claimed.</summary>
-    public bool IsComplete => StrikesRemaining <= 0 || HeadlineClaimed;
+    /// <summary>Whether the dig is complete (no strikes left or all tiles revealed).</summary>
+    public bool IsComplete => StrikesRemaining <= 0 || TilesCleared >= TilesRevealed.Length;
+
+    private readonly int _headlineThreshold;
+
+    private DigState(string siteId, int strikes, int totalTiles, int headlineThreshold)
+    {
+        DigSiteId = siteId;
+        StrikesRemaining = strikes;
+        TilesRevealed = new bool[totalTiles];
+        _headlineThreshold = headlineThreshold;
+    }
+
+    // Private constructor for cloning
+    private DigState(DigState other)
+    {
+        DigSiteId = other.DigSiteId;
+        StrikesRemaining = other.StrikesRemaining;
+        TilesRevealed = (bool[])other.TilesRevealed.Clone();
+        TilesCleared = other.TilesCleared;
+        HeadlineClaimed = other.HeadlineClaimed;
+        _headlineThreshold = other._headlineThreshold;
+        RewardsEarned = new List<DigRewardEntry>(other.RewardsEarned);
+    }
 
     /// <summary>
-    /// Apply a strike at the given tile index.
-    /// Returns the reward entry if the tile was newly revealed, null if already revealed.
+    /// Create a dig state from a site definition.
     /// </summary>
-    public DigRewardEntry? ApplyStrike(int tileIndex, DigSiteDef siteDef)
+    public static DigState FromDef(DigSiteDef site)
+    {
+        return new DigState(site.Id, site.Strikes, site.Tiles.Count, site.HeadlineThreshold);
+    }
+
+    /// <summary>
+    /// Apply a strike at the given tile index. Returns the reward, or null if
+    /// the tile was already revealed or strikes are exhausted.
+    /// </summary>
+    public DigRewardEntry? ApplyStrike(int tileIndex, DigSiteDef site)
     {
         if (IsComplete) return null;
         if (tileIndex < 0 || tileIndex >= TilesRevealed.Length) return null;
         if (TilesRevealed[tileIndex]) return null;
 
-        // Reveal the tile
+        StrikesRemaining--;
         TilesRevealed[tileIndex] = true;
         TilesCleared++;
-        StrikesRemaining--;
 
-        // Get the reward from site definition
-        var tileDef = siteDef.Tiles[tileIndex];
-        var reward = new DigRewardEntry
-        {
-            Type = tileDef.Type,
-            Value = tileDef.Value
-        };
+        var tileDef = site.Tiles[tileIndex];
+        var reward = new DigRewardEntry(tileDef.Type, tileDef.Value);
         RewardsEarned.Add(reward);
 
-        // Check headline threshold
-        if (TilesCleared >= siteDef.HeadlineThreshold && siteDef.HeadlineReward != null && !HeadlineClaimed)
+        // Check headline threshold — add headline reward as an extra entry
+        if (!HeadlineClaimed && TilesCleared >= _headlineThreshold && site.HeadlineReward != null)
         {
             HeadlineClaimed = true;
-            RewardsEarned.Add(new DigRewardEntry
-            {
-                Type = DigRewardType.RELIC,
-                Value = siteDef.HeadlineReward
-            });
+            RewardsEarned.Add(new DigRewardEntry(DigRewardType.RELIC, site.HeadlineReward));
         }
 
         return reward;
     }
 
     /// <summary>
-    /// Factory method: create a fresh DigState from a DigSiteDef.
+    /// Creates a deep copy of this dig state.
     /// </summary>
-    public static DigState FromDef(DigSiteDef siteDef)
-    {
-        return new DigState
-        {
-            DigSiteId = siteDef.Id,
-            StrikesRemaining = siteDef.Strikes,
-            TilesRevealed = new bool[siteDef.Rows * siteDef.Cols],
-            TilesCleared = 0,
-            HeadlineClaimed = false,
-            RewardsEarned = new List<DigRewardEntry>()
-        };
-    }
+    public DigState Clone() => new(this);
+}
 
-    /// <summary>
-    /// Create a deep clone for replay or snapshot purposes.
-    /// </summary>
-    public DigState Clone()
+/// <summary>
+/// A reward entry earned from a dig strike.
+/// </summary>
+public class DigRewardEntry
+{
+    public DigRewardType Type { get; }
+    public string? Value { get; }
+
+    public DigRewardEntry(DigRewardType type, string? value)
     {
-        return new DigState
-        {
-            DigSiteId = DigSiteId,
-            StrikesRemaining = StrikesRemaining,
-            TilesRevealed = (bool[])TilesRevealed.Clone(),
-            TilesCleared = TilesCleared,
-            HeadlineClaimed = HeadlineClaimed,
-            RewardsEarned = RewardsEarned.Select(r => new DigRewardEntry
-            {
-                Type = r.Type,
-                Value = r.Value
-            }).ToList()
-        };
+        Type = type;
+        Value = value;
     }
 }

@@ -12,7 +12,20 @@ namespace Runewake.Engine.State;
 public sealed class RunePage
 {
     /// <summary>Maximum total RP allowed on one page.</summary>
+    [Obsolete("Use GetBudgetForLevel(int) instead")]
     public const int MaxBudget = 100;
+
+    /// <summary>
+    /// Returns the RP budget for a given Delver Level, per docs/03_RUNE_SYSTEM.md §2.
+    /// </summary>
+    public static int GetBudgetForLevel(int delverLevel) => delverLevel switch
+    {
+        >= 20 => 48,
+        >= 15 => 40,
+        >= 10 => 30,
+        >= 5 => 20,
+        _ => 12 // Level 1-4
+    };
 
     /// <summary>Offensive rune slots (9).</summary>
     public RuneDef?[] OffensiveSlots { get; } = new RuneDef?[9];
@@ -26,12 +39,12 @@ public sealed class RunePage
     /// <summary>Mythic rune slots (3).</summary>
     public RuneDef?[] MythicSlots { get; } = new RuneDef?[3];
 
-    /// <summary>Total RP cost of all equipped runes.</summary>
+    /// <summary>Total RP cost of all equipped runes (based on RpCost).</summary>
     public int TotalCost =>
-        OffensiveSlots.Sum(s => s?.Cost ?? 0) +
-        DefensiveSlots.Sum(s => s?.Cost ?? 0) +
-        UtilitySlots.Sum(s => s?.Cost ?? 0) +
-        MythicSlots.Sum(s => s?.Cost ?? 0);
+        OffensiveSlots.Sum(s => s?.RpCost ?? 0) +
+        DefensiveSlots.Sum(s => s?.RpCost ?? 0) +
+        UtilitySlots.Sum(s => s?.RpCost ?? 0) +
+        MythicSlots.Sum(s => s?.RpCost ?? 0);
 
     /// <summary>Number of runes currently equipped (across all slot types).</summary>
     public int EquippedCount =>
@@ -46,8 +59,8 @@ public sealed class RunePage
     /// </summary>
     public bool Equip(RuneDef rune)
     {
-        if (rune.Cost < 1 || rune.Cost > 20) return false;
-        if (TotalCost + rune.Cost > MaxBudget) return false;
+        if (rune.RpCost < 1 || rune.RpCost > 4) return false;
+        if (TotalCost + rune.RpCost > MaxBudget) return false;
 
         var slots = GetSlots(rune.SlotType);
         for (int i = 0; i < slots.Length; i++)

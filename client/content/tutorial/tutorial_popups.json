@@ -1,0 +1,46 @@
+{
+  "popups": [
+    {
+      "id": "p1_goal",
+      "title": "YOUR GOAL",
+      "text": "The enemy has 25 Vigor (health). Your creatures attack to reduce it. When their Vigor reaches 0, you win. Your own Vigor is on the left — protect yours while reducing theirs.",
+      "show_skip": true
+    },
+    {
+      "id": "p2_attunement",
+      "title": "ATTUNEMENT",
+      "text": "Every card costs Attunement to play. Look at your hand: cards with a white border cost 1 — you can play those right now. Cards that are greyed out cost 2 or 3. You gain 1 more Attunement at the start of each of your turns.",
+      "show_skip": false
+    },
+    {
+      "id": "p3_summoning",
+      "title": "SUMMONING",
+      "text": "Tap a card in your hand to select it. Then tap an empty lane on your side of the board to summon that creature there. Creatures live in lanes and fight from them — each lane holds one creature.",
+      "show_skip": false
+    },
+    {
+      "id": "p4a_attacking",
+      "title": "ATTACKING",
+      "text": "A creature that was on your board at the start of your turn is ready to attack. Tap your creature to select it — its lane will glow. Then tap an enemy lane to choose your target.",
+      "show_skip": false
+    },
+    {
+      "id": "p4b_choosing",
+      "title": "ATTACKING",
+      "text": "You selected your creature. Now choose a target lane on the enemy side. If the lane is empty, your creature hits the enemy directly — this is called a face attack and damages their Vigor. If the lane has an enemy creature, your creature fights that creature instead.",
+      "show_skip": false
+    },
+    {
+      "id": "p5_facehit",
+      "title": "FACE HIT",
+      "text": "Direct hit! Your creature's attack value goes straight to the enemy's Vigor. Notice their Vigor number dropped. Keep attacking empty lanes to reduce it to 0. If an enemy creature is in your way, you'll have to destroy it first or choose a different lane.",
+      "show_skip": false
+    },
+    {
+      "id": "p6_turncycle",
+      "title": "THE TURN CYCLE",
+      "text": "Each of your turns goes like this: gain 1 Attunement, draw 1 card, take your actions (summon, attack, use abilities), then tap End Turn to pass. Your creature that just attacked is now spent for this turn. End your turn so it can rest and be ready again.",
+      "show_skip": false
+    }
+  ]
+}

@@ -1,30 +1,45 @@
-[gd_scene load_steps=2 format=3 uid="uid://lane_slot_component"]
+[gd_scene load_steps=4 format=3 uid="uid://lane_slot_component"]
 
 [ext_resource type="Script" path="res://scripts/LaneSlot.cs" id="1_xyz"]
+[ext_resource type="Shader" path="res://shaders/lane_inset.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="2"]
+shader = ExtResource("2_shader")
 
 [sub_resource type="StyleBoxFlat" id="1"]
-content_margin_left = 4
-content_margin_top = 4
-content_margin_right = 4
-content_margin_bottom = 4
-bg_color = Color(0.12, 0.12, 0.16, 1)
-border_color = Color(0.3, 0.3, 0.35, 1)
+content_margin_left = 6
+content_margin_top = 6
+content_margin_right = 6
+content_margin_bottom = 6
+bg_color = Color(0.18, 0.16, 0.14, 1)
+border_color = Color(0.10, 0.09, 0.07, 1)
 border_width_left = 2
 border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_left = 4
-corner_radius_bottom_right = 4
+border_width_right = 3
+border_width_bottom = 3
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+draw_center = true
 
 [node name="LaneSlot" type="PanelContainer"]
 anchors_preset = 0
 size_flags_horizontal = 0
 size_flags_vertical = 0
-custom_minimum_size = Vector2(160, 100)
+custom_minimum_size = Vector2(160, 120)
 script = ExtResource("1_xyz")
 theme_override_styles/panel = SubResource(1)
+material = SubResource(2)
+
+[node name="SlotBg" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 1
+modulate = Color(1, 1, 1, 0.25)
 
 [node name="VBox" type="VBoxContainer" parent="."]
 anchors_preset = 0
@@ -33,15 +48,12 @@ size_flags_vertical = 3
 alignment = 1
 theme_override_constants/separation = 3
 
-[node name="TouchArea" type="Control" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 10.0
-offset_bottom = 10.0
-mouse_filter = 0
+[node name="ArtRect" type="TextureRect" parent="VBox"]
+size_flags_horizontal = 0
+size_flags_vertical = 0
+custom_minimum_size = Vector2(100, 60)
+stretch_mode = 4
+mouse_filter = 2
 
 [node name="CardName" type="Label" parent="VBox"]
 anchors_preset = 0
@@ -59,3 +71,13 @@ horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 14
 text = ""
+
+[node name="TouchArea" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+mouse_filter = 0

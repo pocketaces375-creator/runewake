@@ -5,6 +5,7 @@ using Godot;
 using Runewake.Engine.Cards;
 using Runewake.Engine.Engine;
 using Runewake.Engine.State;
+using static ThemeTokens;
 
 namespace Runewake.Client;
 
@@ -57,15 +58,12 @@ public partial class DuelScene : Control
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
-    // Debug: on-screen exhaustion status
-    private Label _debugExhaustLabel = default!;
-
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
-    private TutorialOverlay? _tutorialOverlay;
-    private bool _tutorialJustAttackedFace;
-    private Godot.Timer? _tutorialFaceTimer;
+    private TutorialPopup? _tutorialPopup;
+    private bool _tutorialSummonedThisDuel;
+    private bool _tutorialAwaitingCreatureSelect;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
 
@@ -85,39 +83,55 @@ public partial class DuelScene : Control
         _handArea = GetNode<MarginContainer>("HandArea");
         _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
+        // Step 1: Typography — apply display font (Cinzel) to headers, body font (Inter) to data
+        ApplyHeaderFont(_enemyName, FontTitle);
+        ApplyHeaderFont(_turnLabel, FontSmall);
+        ApplyBodyFont(_enemyVigorValue, FontLargeBody);
+        ApplyBodyFont(_enemyAttuneValue, FontLargeBody);
+        ApplyBodyFont(_playerVigorValue, FontLargeBody);
+        ApplyBodyFont(_playerAttuneValue, FontLargeBody);
+
         var board = GetNode("Board");
 
-        // Create health bar ColorRects (behind HUD text, full-width)
-        _enemyHealthBar = new ColorRect
+        // ── Stone-slab board surface ──
+        // Seamless tileable stone texture behind the board lanes
+        var boardBg = GetNode<TextureRect>("BoardBg");
+        var stoneTex = GD.Load<Texture2D>("res://assets/stone_board.png");
+        if (stoneTex != null)
         {
-            Name = "EnemyHealthBar",
-            Color = new Color(0.3f, 0.8f, 0.3f, 0.5f),
-            AnchorLeft = 0.0f,
-            AnchorRight = 1.0f,
-            AnchorTop = 0.0f,
-            AnchorBottom = 0.0f
-        };
+            boardBg.Texture = stoneTex;
+            boardBg.Modulate = new Color(0.38f, 0.36f, 0.33f, 1.0f); // darkened, desaturated — recedes behind cards
+        }
+        else
+        {
+            GD.PrintErr("[DuelScene] Failed to load stone_board.png — board background will be empty.");
+        }
+
+        // Health bar tracks (dark background)
+        var enemyTrack = new ColorRect { Name = "EnemyHealthTrack", Color = new Color(0.06f, 0.05f, 0.04f, 0.6f), MouseFilter = MouseFilterEnum.Ignore };
+        enemyTrack.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+        enemyTrack.Size = new Vector2(0, 40);
+        AddChild(enemyTrack);
+
+        // Health bar ColorRects (the fill, resized by RenderHud)
+        _enemyHealthBar = new ColorRect { Name = "EnemyHealthBar", Color = Colors.Transparent, MouseFilter = MouseFilterEnum.Ignore };
         _enemyHealthBar.SetAnchorsPreset(Control.LayoutPreset.TopWide);
         AddChild(_enemyHealthBar);
-        // Move EnemyHUD in front of health bar
+
+        var playerTrack = new ColorRect { Name = "PlayerHealthTrack", Color = new Color(0.06f, 0.05f, 0.04f, 0.6f), MouseFilter = MouseFilterEnum.Ignore };
+        playerTrack.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
+        playerTrack.OffsetTop = -36;
+        AddChild(playerTrack);
+
+        _playerHealthBar = new ColorRect { Name = "PlayerHealthBar", Color = Colors.Transparent, MouseFilter = MouseFilterEnum.Ignore };
+        _playerHealthBar.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
+        _playerHealthBar.OffsetTop = -36;
+        AddChild(_playerHealthBar);
+
+        // Move HUD text nodes in front of health bars
         var enemyHud = GetNode<HBoxContainer>("EnemyHUD");
         RemoveChild(enemyHud);
         AddChild(enemyHud);
-
-        _playerHealthBar = new ColorRect
-        {
-            Name = "PlayerHealthBar",
-            Color = new Color(0.3f, 0.8f, 0.3f, 0.5f),
-            AnchorLeft = 0.0f,
-            AnchorRight = 1.0f,
-            AnchorTop = 0.0f,
-            AnchorBottom = 0.0f
-        };
-        _playerHealthBar.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
-        _playerHealthBar.Size = new Vector2(GetViewportRect().Size.X, 36);
-        _playerHealthBar.Position = new Vector2(0, GetViewportRect().Size.Y - 40);
-        AddChild(_playerHealthBar);
-        // Move PlayerHUD in front of health bar
         var playerHud = GetNode<CenterContainer>("PlayerHUD");
         RemoveChild(playerHud);
         AddChild(playerHud);
@@ -130,6 +144,7 @@ public partial class DuelScene : Control
         AddChild(_input);
         _input.PlayCardRequested += OnPlayCardRequested;
         _input.AttackRequested += OnAttackRequested;
+        _input.CreatureSelectedForAttack += OnCreatureSelectedForAttack;
         _input.SelectionCancelled += OnSelectionCancelled;
 
         // Create game state manager
@@ -156,6 +171,7 @@ public partial class DuelScene : Control
         _cardDetail = cardViewScene.Instantiate<CardView>();
         _cardDetail.Visible = false;
         _cardDetailVisible = false;
+        _cardDetail.Dismissed += () => { _cardDetailVisible = false; };
         AddChild(_cardDetail);
 
         // Create End Turn button if not in scene
@@ -169,7 +185,8 @@ public partial class DuelScene : Control
             _endTurnButton = new Button();
             _endTurnButton.Text = "End Turn";
             _endTurnButton.ActionMode = Button.ActionModeEnum.Press;
-            _endTurnButton.AddThemeFontSizeOverride("font_size", 14);
+            _endTurnButton.AddThemeFontSizeOverride("font_size", FontLargeBody);
+            _endTurnButton.AddThemeColorOverride("font_color", TextPrimary);
             _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
             _endTurnButton.OffsetRight = -10;
             _endTurnButton.OffsetLeft = -100;
@@ -179,19 +196,6 @@ public partial class DuelScene : Control
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
 
-        // Create debug exhaustion label (top-left, semi-transparent, small font)
-        _debugExhaustLabel = new Label
-        {
-            Name = "DebugExhaustLabel",
-            AnchorLeft = 0.01f,
-            AnchorTop = 0.01f,
-            Modulate = new Color(0.6f, 0.6f, 0.8f, 0.85f)
-        };
-        _debugExhaustLabel.AddThemeFontSizeOverride("font_size", 10);
-        _debugExhaustLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-        AddChild(_debugExhaustLabel);
-
-        // Check if this is a campaign encounter or test game
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
 
@@ -202,19 +206,19 @@ public partial class DuelScene : Control
                 encounter.Id, CampaignContext.PlayerDeckIds.Count);
         }
 
-        // Check for tutorial override
-        var tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
-        var tutorialConfig = tutorialCtrl?.GetCurrentTutorialConfig();
-        if (tutorialConfig != null)
+        // Check if this is a tutorial encounter (uses campaign encounter with is_tutorial flag)
+        bool isTutorialEncounter = _isCampaignEncounter && encounter != null && encounter.IsTutorial;
+        if (isTutorialEncounter)
         {
-            _isCampaignEncounter = false;
-            GD.Print("[DuelScene] Tutorial duel — using tutorial config.");
-            _gsm.Initialize(tutorialConfig);
-            // Speed up bot during tutorial so enemy turns are near-instant
-            _bot.ThinkDelay = 0.1f;
-            _bot.ActionInterval = 0.1f;
+            _tutorialPopup = new TutorialPopup();
+            AddChild(_tutorialPopup);
+            _tutorialCtrl = new TutorialController();
+            AddChild(_tutorialCtrl);
+            _tutorialCtrl.Initialize(this, _tutorialPopup);
+            GD.Print("[DuelScene] Tutorial encounter detected — activating popup system.");
         }
-        else if (_isCampaignEncounter && encounter != null)
+
+        if (_isCampaignEncounter && encounter != null)
         {
             // Campaign mode: enemy uses encounter deck, player uses saved deck
             _enemyName.Text = encounter.Name;
@@ -224,7 +228,8 @@ public partial class DuelScene : Control
                 Seed = (ulong)GD.Randi(),
                 ContentVersion = 1,
                 Player0DeckIds = CampaignContext.PlayerDeckIds,
-                Player1DeckIds = encounter.Deck
+                Player1DeckIds = encounter.Deck,
+                RunePage = CampaignContext.CurrentRunePage
             };
             _gsm.Initialize(config);
         }
@@ -233,28 +238,11 @@ public partial class DuelScene : Control
             _gsm.InitializeTestGame();
         }
 
-        // Initialize tutorial controller if this is a tutorial duel
-        _tutorialCtrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
-        if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
+        // Speed up bot during tutorial so enemy turns are near-instant
+        if (isTutorialEncounter)
         {
-            var step = _tutorialCtrl.CurrentStep;
-            bool isTutorialDuel = step == Engine.State.TutorialStep.Lanes_SummonCreature
-                || step == Engine.State.TutorialStep.Lanes_Attack
-                || step == Engine.State.TutorialStep.Lanes_EndTurn
-                || step == Engine.State.TutorialStep.Excavate_PlayExcavate
-                || step == Engine.State.TutorialStep.Excavate_BuryResolved;
-
-            if (isTutorialDuel && _tutorialCtrl != null)
-            {
-                // Add tutorial overlay with current hint
-                var overlay = new TutorialOverlay();
-                overlay.SetHint(_tutorialCtrl.GetCurrentHint());
-                overlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
-                overlay.SkipRequested += SkipTutorial;
-                AddChild(overlay);
-                _tutorialOverlay = overlay;
-                GD.Print($"[DuelScene] Tutorial duel active, step={step}");
-            }
+            _bot.ThinkDelay = 0.1f;
+            _bot.ActionInterval = 0.1f;
         }
 
         // Show mulligan overlay if not in tutorial mode
@@ -273,11 +261,163 @@ public partial class DuelScene : Control
         }).CallDeferred();
 
         // Style the turn label for readability
-        _turnLabel.AddThemeFontSizeOverride("font_size", 16);
-        _turnLabel.AddThemeColorOverride("font_color", new Color(1, 1, 0.8f));
+        _turnLabel.AddThemeFontSizeOverride("font_size", FontSmall);
+        _turnLabel.AddThemeColorOverride("font_color", TextSecondary);
 
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
+
+        // Start tutorial popup sequence if this is a tutorial encounter
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
+        {
+            Callable.From(ShowPopup1_Goal).CallDeferred();
+        }
+
+        // ═══ CAPTURE HOOK: auto-dismiss mulligan, wait, capture ═══
+        if (CampaignContext.AutoCaptureScreenshot)
+        {
+            var capTimer = new Godot.Timer();
+            capTimer.OneShot = true;
+            capTimer.WaitTime = 1.0f; // wait for _Ready + mulligan overlay to render
+            capTimer.Timeout += () =>
+            {
+                // Skip mulligan for both players
+                if (_gsm != null && _gsm.State != null && !_gsm.State.Players[0].HasMulliganed)
+                {
+                    _gsm.PerformMulligan(0, new System.Collections.Generic.List<int>());
+                    _gsm.PerformMulligan(1, new System.Collections.Generic.List<int>());
+                    DismissMulligan();
+                    // Force render of the board
+                    Callable.From(OnStateChanged).CallDeferred();
+                }
+
+                // Capture after board renders
+                var snapTimer = new Godot.Timer();
+                snapTimer.OneShot = true;
+                snapTimer.WaitTime = 1.0f;
+                snapTimer.Timeout += () =>
+                {
+                    var img = GetViewport().GetTexture().GetImage();
+                    if (img != null)
+                        img.SavePng("/home/fictive/runewake/screenshots/board_art_v2.png");
+                    GD.Print("[CAPTURE] board_art_v2.png saved");
+                };
+                AddChild(snapTimer);
+                snapTimer.Start();
+            };
+            AddChild(capTimer);
+            capTimer.Start();
+        }
+        // ═══ END CAPTURE HOOK ═══
+    }
+
+    // ═══════════════════════════════════════════════════
+    // Tutorial popup sequence — content loaded from JSON,
+    // presenter handles visual form. This class only
+    // decides when to show and what to highlight.
+    // ═══════════════════════════════════════════════════
+
+    /// <summary>Popup 1: YOUR GOAL</summary>
+    private void ShowPopup1_Goal()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+
+        _tutorialPopup.HighlightTarget = _enemyVigorValue;
+        _tutorialCtrl.ShowPopup("p1_goal",
+            onContinue: ShowPopup2_Attunement,
+            onSkip: () =>
+            {
+                _tutorialCtrl?.EndTutorial();
+            }
+        );
+    }
+
+    /// <summary>Popup 2: ATTUNEMENT</summary>
+    private void ShowPopup2_Attunement()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+
+        _tutorialPopup.HighlightTarget = _playerAttuneValue;
+        _tutorialCtrl.ShowPopup("p2_attunement",
+            onContinue: ShowPopup3_Summoning
+        );
+    }
+
+    /// <summary>Popup 3: SUMMONING</summary>
+    private void ShowPopup3_Summoning()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
+
+        _tutorialCtrl.ShowPopup("p3_summoning",
+            onContinue: () => { _tutorialSummonedThisDuel = false; }
+        );
+    }
+
+    /// <summary>Popup 4a: ATTACKING — YOUR TURN (fires after creature summoned)</summary>
+    private void ShowPopup4a_AttackingYourTurn()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+
+        _tutorialPopup.HighlightTarget = FindPlayerCreatureNode() as Control;
+        _tutorialCtrl.ShowPopup("p4a_attacking",
+            onContinue: () => { _tutorialAwaitingCreatureSelect = true; }
+        );
+    }
+
+    /// <summary>Popup 4b: ATTACKING — CHOOSING A TARGET (fires when player selects creature)</summary>
+    private void ShowPopup4b_ChoosingTarget()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
+
+        _tutorialCtrl.ShowPopup("p4b_choosing",
+            onContinue: () => { _tutorialAwaitingCreatureSelect = false; }
+        );
+    }
+
+    /// <summary>Popup 5: FACE HIT (fires after attack resolves)</summary>
+    private void ShowPopup5_FaceHit()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+
+        _tutorialPopup.HighlightTarget = _enemyVigorValue;
+        _tutorialCtrl.ShowPopup("p5_facehit",
+            onContinue: ShowPopup6_TurnCycle
+        );
+    }
+
+    /// <summary>Popup 6: THE TURN CYCLE (final popup — end tutorial)</summary>
+    private void ShowPopup6_TurnCycle()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+
+        _tutorialPopup.HighlightTarget = _endTurnButton;
+        _tutorialCtrl.ShowPopup("p6_turncycle",
+            onContinue: () =>
+            {
+                _tutorialCtrl?.EndTutorial();
+                GD.Print("[DuelScene] Tutorial popup sequence complete — free play.");
+            }
+        );
+    }
+
+    /// <summary>
+    /// Find a player creature node on the board for highlight purposes.
+    /// Returns the first occupied player lane slot.
+    /// </summary>
+    private Node? FindPlayerCreatureNode()
+    {
+        foreach (var slot in _playerSlots)
+        {
+            if (slot.GetChildCount() > 0)
+            {
+                foreach (var child in slot.GetChildren())
+                {
+                    if (child is Control c)
+                        return c;
+                }
+            }
+        }
+        return null;
     }
 
     /// <summary>
@@ -307,7 +447,8 @@ public partial class DuelScene : Control
                 "res://content/cards/ember.json",
                 "res://content/cards/tide.json",
                 "res://content/cards/hollow.json",
-                "res://content/cards/dawn.json"
+                "res://content/cards/dawn.json",
+                "res://content/cards/tutorial_pack.json"
             };
 
             foreach (var pack in packs)
@@ -396,31 +537,36 @@ public partial class DuelScene : Control
             AnimateVigorDiffs();
         }
 
-        // Tutorial auto-advance: Excavate card played (hand lost an excavate card)
-        if (_tutorialCtrl != null && _tutorialCtrl.CurrentStep == TutorialStep.Excavate_PlayExcavate
-            && excavateCount < _prevExcavateCardCount)
+        // Tutorial: detect first summon to trigger Popup 4a
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive
+            && !_tutorialSummonedThisDuel && state != null && state.Players.Length > 0)
         {
-            _tutorialCtrl.Advance();
-        }
-
-        // Tutorial auto-advance: barrow count increased
-        if (_tutorialCtrl != null && _tutorialCtrl.CurrentStep == TutorialStep.Excavate_BuryResolved
-            && state != null && state.Players.Length > 0
-            && state.Players[0].Barrow.Count > _prevBuryCount)
-        {
-            _tutorialCtrl.Advance();
-        }
-
-        // Beat 2: Face hit explanation — most important tutorial moment
-        if (_tutorialJustAttackedFace && _tutorialCtrl?.CurrentStep == TutorialStep.Lanes_Attack)
-        {
-            _tutorialJustAttackedFace = false; // Consume flag — one shot
-            if (state != null && _prevEnemyVigor >= 0)
+            // Check if any player lane is now occupied (first summon of the duel)
+            for (int i = 0; i < 5; i++)
             {
-                int currentEnemyVigor = state.Players[1].Vigor;
+                if (state.Players[0].Lanes[i].Occupant != null)
+                {
+                    _tutorialSummonedThisDuel = true;
+                    GD.Print("[DuelScene] Player summoned creature — triggering Popup 4a.");
+                    Callable.From(ShowPopup4a_AttackingYourTurn).CallDeferred();
+                    break;
+                }
+            }
+        }
+
+        // Tutorial: detect face hit to trigger Popup 5
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive
+            && _tutorialSummonedThisDuel && state != null && _prevEnemyVigor >= 0)
+        {
+            int currentEnemyVigor = state.Players[1].Vigor;
+            if (currentEnemyVigor < _prevEnemyVigor)
+            {
                 int damage = _prevEnemyVigor - currentEnemyVigor;
                 if (damage > 0)
-                    ShowTutorialFaceHit(damage, currentEnemyVigor);
+                {
+                    GD.Print($"[DuelScene] Face hit detected ({damage} dmg) — triggering Popup 5.");
+                    Callable.From(ShowPopup5_FaceHit).CallDeferred();
+                }
             }
         }
 
@@ -430,33 +576,8 @@ public partial class DuelScene : Control
         _prevExcavateCardCount = excavateCount;
         if (state != null && state.Players.Length > 0)
             _prevBuryCount = state.Players[0].Barrow.Count;
+
         _firstRender = false;
-
-        // Update debug exhaustion label
-        UpdateDebugExhaustLabel(state);
-    }
-
-    private void UpdateDebugExhaustLabel(GameState state)
-    {
-        if (_debugExhaustLabel == null || state == null) return;
-        var lines = new System.Collections.Generic.List<string>
-        {
-            $"Turn {state.TurnNumber} | CurPlayer={state.CurrentPlayerIndex}",
-        };
-        for (int p = 0; p <= 1; p++)
-        {
-            var player = state.Players[p];
-            lines.Add($"P{p} lanes:");
-            for (int i = 0; i < 5; i++)
-            {
-                var occ = player.Lanes[i].Occupant;
-                if (occ != null)
-                    lines.Add($"  [{i}] {occ.CardDefId.Split('_')[^1]} A:{occ.CurrentAttack} V:{occ.CurrentVigor} Exh:{occ.IsExhausted} Atk:{occ.HasAttackedThisTurn}");
-                else
-                    lines.Add($"  [{i}] empty");
-            }
-        }
-        _debugExhaustLabel.Text = string.Join("\n", lines);
     }
 
     private BoardSnapshot[] CaptureBoard(int playerIndex)
@@ -550,10 +671,10 @@ public partial class DuelScene : Control
         string prefixAndAmount;
 
         // damage
-        color = new Color(1, 0.15f, 0.15f);
+        color = Ember;
         prefixAndAmount = $"-{amount}";
 
-        // Shake the health bar
+        // Shake the health bar track
         var bar = isEnemy ? _enemyHealthBar : _playerHealthBar;
         if (bar != null && IsInsideTree())
         {
@@ -581,7 +702,7 @@ public partial class DuelScene : Control
         var enemyHud = _gsm.GetPlayerHud(1);
         var playerHud = _gsm.GetPlayerHud(0);
 
-        // Health bars — width ratio = vigor / maxVigor
+        // Health bars — full-width bar behind HUD
         float enemyRatio = (float)enemyHud.Vigor / enemyHud.MaxVigor;
         float playerRatio = (float)playerHud.Vigor / playerHud.MaxVigor;
         float fullWidth = GetViewportRect().Size.X;
@@ -601,16 +722,16 @@ public partial class DuelScene : Control
             ? $"YOUR TURN {_gsm.TurnNumber}"
             : $"ENEMY TURN {_gsm.TurnNumber}";
         _turnLabel.Modulate = isMyTurn
-            ? new Color(0.3f, 1, 0.4f)
-            : new Color(1, 0.3f, 0.3f);
+            ? Gold
+            : Ember;
     }
 
-    /// <summary>Health bar color: green > yellow > red as vigor drops.</summary>
+    /// <summary>Health bar color: moss > gold > ember as vigor drops.</summary>
     private static Color HealthBarColor(float ratio) => ratio switch
     {
-        > 0.6f => new Color(0.2f, 0.7f, 0.2f, 0.5f),
-        > 0.3f => new Color(0.8f, 0.7f, 0.15f, 0.5f),
-        _ => new Color(0.8f, 0.2f, 0.15f, 0.5f)
+        > 0.6f => new Color(Moss.R, Moss.G, Moss.B, 0.4f),
+        > 0.3f => new Color(Gold.R, Gold.G, Gold.B, 0.4f),
+        _ => new Color(Ember.R, Ember.G, Ember.B, 0.4f)
     };
 
     private void RenderBoard()
@@ -623,7 +744,7 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _enemySlots[i].SetEmpty();
             else
-                _enemySlots[i].SetCard(info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                _enemySlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
         }
 
         // Player lanes
@@ -634,7 +755,7 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _playerSlots[i].SetEmpty();
             else
-                _playerSlots[i].SetCard(info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                _playerSlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
         }
     }
 
@@ -645,21 +766,20 @@ public partial class DuelScene : Control
             card.QueueFree();
         _handCards.Clear();
 
-        // Rebuild from state
+        // Rebuild from state using HBoxContainer layout
         var handScene = GD.Load<PackedScene>("res://scenes/components/HandCard.tscn");
-        var hand = _gsm.GetHand(0); // Current player is always human for now
+        var hand = _gsm.GetHand(0);
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
 
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
             _handFlow.AddChild(card);
-            // AddChild triggers _Ready, so GetNode inside HandCard._Ready() works
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
 
             // Grey out cards the player can't afford
             card.Modulate = info.Cost > currentAttune
-                ? new Color(0.4f, 0.4f, 0.4f, 0.6f)
+                ? new Color(TextInactive.R, TextInactive.G, TextInactive.B, 0.6f)
                 : Colors.White;
 
             var capturedCard = card;
@@ -673,14 +793,11 @@ public partial class DuelScene : Control
     private void OnBotTurnStarted()
     {
         _turnLabel.Text = $"Turn {_gsm.TurnNumber} — Enemy Thinking...";
-        if (_debugExhaustLabel != null)
-            _debugExhaustLabel.Text = $"[BOT TURN STARTED at Turn {_gsm.TurnNumber}]";
     }
 
     private void OnBotTurnEnded()
     {
-        if (_debugExhaustLabel != null)
-            _debugExhaustLabel.Text = $"[BOT TURN ENDED at Turn {_gsm.TurnNumber}]";
+        // No-op — bot turn completion is visually silent
     }
 
     // ——— Input event handlers ———
@@ -709,7 +826,7 @@ public partial class DuelScene : Control
             else if (isPlayerLane && !isEmpty)
             {
                 // Tapped occupied lane while selecting a card — cancel and show feedback
-                ShowToast("That lane is already occupied.", new Color(1, 0.7f, 0.2f));
+                ShowToast("That lane is already occupied.", Gold);
                 _input.CancelSelection();
             }
             else
@@ -760,9 +877,12 @@ public partial class DuelScene : Control
 
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
-            // Cancel attacker selection and show this card's detail
+            // Cancel attacker selection and start playing this card instead
             _input.CancelSelection();
-            ShowCardDetail(card);
+            _input.SelectCardForPlay(card.CardId);
+            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
+                Moss);
+            UpdatePlayHighlights();
         }
         else if (_input.State == InputController.InputState.SelectingLane)
         {
@@ -770,29 +890,16 @@ public partial class DuelScene : Control
             _input.CancelSelection();
             _input.SelectCardForPlay(card.CardId);
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
-                new Color(0.5f, 1, 0.5f));
+                Moss);
             UpdatePlayHighlights();
-            ShowCardDetail(card);
         }
         else
         {
-            // Idle — show detail and enter lane-selection mode (tap-to-summon)
-            // During tutorial step 1, update the overlay hint after card selection
+            // Idle — enter lane-selection mode (tap-to-summon), no detail popup
             _input.SelectCardForPlay(card.CardId);
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
-                new Color(0.5f, 1, 0.5f));
+                Moss);
             UpdatePlayHighlights();
-            ShowCardDetail(card);
-
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
-            {
-                if (_tutorialOverlay != null)
-                {
-                    _tutorialOverlay.SetHint("Now tap an empty lane on your side.");
-                    _tutorialOverlay.ClearHighlight();
-                }
-                UpdateTutorialDebug("CARD_SELECTED", true);
-            }
         }
     }
 
@@ -829,18 +936,16 @@ public partial class DuelScene : Control
         if (!result.Success)
         {
             ShowToast(result.ErrorMessage ?? "Cannot play that card.",
-                new Color(1, 0.7f, 0.2f));
-            UpdateTutorialDebug("PLAY_CARD_FAILED", false);
+                Gold);
         }
-        else
+    }
+
+    private void OnCreatureSelectedForAttack(int attackerLane)
+    {
+        // Fire Popup 4b if we're waiting for it (after Popup 4a was dismissed)
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive && _tutorialAwaitingCreatureSelect)
         {
-            // Advance tutorial if waiting for summon
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_SummonCreature)
-            {
-                _tutorialCtrl.Advance();
-                UpdateTutorialOverlay();
-            }
-            UpdateTutorialDebug("PLAY_CARD", true);
+            Callable.From(ShowPopup4b_ChoosingTarget).CallDeferred();
         }
     }
 
@@ -850,35 +955,9 @@ public partial class DuelScene : Control
         if (!result.Success)
         {
             ShowToast(result.ErrorMessage ?? "Cannot attack.",
-                new Color(1, 0.3f, 0.3f));
-            UpdateTutorialDebug("ATTACK_FAILED", false);
+                Ember);
         }
-        else
-        {
-            // Check if this was a face hit during tutorial
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_Attack)
-            {
-                var enemyLanes = _gsm.GetLanes(1);
-                if (enemyLanes[targetLane].IsEmpty)
-                {
-                    // Face hit! Don't advance yet — show explanation after state update
-                    _tutorialJustAttackedFace = true;
-                    UpdateTutorialDebug("ATTACK_FACE", true);
-                    return; // Skip the normal advance — OnStateChanged handles it
-                }
-                else
-                {
-                    // Creature hit — don't advance, guide toward face damage
-                    ShowToast("Attack empty lanes for direct damage!",
-                        new Color(0.5f, 1, 0.5f));
-                    UpdateTutorialDebug("ATTACK_CREATURE", false);
-                    return;
-                }
-            }
-
-            // Normal advance for non-tutorial or non-Lanes_Attack step
-            UpdateTutorialDebug("ATTACK", true);
-        }
+        // Success — face hit detection happens in OnStateChanged
     }
 
     private void OnSelectionCancelled()
@@ -962,46 +1041,49 @@ public partial class DuelScene : Control
         if (!result.Success)
         {
             ShowToast(result.ErrorMessage ?? "Cannot end turn.",
-                new Color(1, 0.3f, 0.3f));
-            UpdateTutorialDebug("END_TURN_FAILED", false);
+                Ember);
         }
-        else
-        {
-            // Advance tutorial if waiting for end turn
-            if (_tutorialCtrl?.CurrentStep == Engine.State.TutorialStep.Lanes_EndTurn)
-            {
-                _tutorialCtrl.Advance();
-                UpdateTutorialOverlay();
-            }
-            UpdateTutorialDebug("END_TURN", true);
-        }
+        // Success — nothing special needed for new tutorial system
     }
+
+    private Label _toastLabel = default!;
 
     /// <summary>
     /// Show a floating toast message near the center of the screen.
     /// Persists for 4s visible, then fades over 1s — readable on a phone.
+    /// Replaces any existing toast so they never overlap.
     /// </summary>
     private void ShowToast(string message, Color color)
     {
-        var toast = new Label();
-        toast.Text = message;
-        toast.HorizontalAlignment = HorizontalAlignment.Center;
-        toast.VerticalAlignment = VerticalAlignment.Center;
-        toast.AddThemeFontSizeOverride("font_size", 16);
-        toast.Modulate = color;
-        toast.AutowrapMode = TextServer.AutowrapMode.Word;
-        toast.Position = new Vector2(
+        // Remove any existing toast before creating a new one
+        if (_toastLabel != null && IsInstanceValid(_toastLabel))
+        {
+            _toastLabel.QueueFree();
+        }
+
+        _toastLabel = new Label();
+        _toastLabel.Text = message;
+        _toastLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        _toastLabel.VerticalAlignment = VerticalAlignment.Center;
+        _toastLabel.AddThemeFontSizeOverride("font_size", 16);
+        _toastLabel.Modulate = color;
+        _toastLabel.AutowrapMode = TextServer.AutowrapMode.Word;
+        _toastLabel.Position = new Vector2(
             GetViewportRect().Size.X / 2f - 150,
             GetViewportRect().Size.Y / 2f - 30
         );
-        toast.Size = new Vector2(300, 60);
-        AddChild(toast);
+        _toastLabel.Size = new Vector2(300, 60);
+        AddChild(_toastLabel);
 
         // Hold visible for 4s, then fade over 1s
         var tween = CreateTween();
         tween.TweenInterval(4.0);
-        tween.TweenProperty(toast, "modulate:a", 0.0f, 1.0f);
-        tween.TweenCallback(Callable.From(toast.QueueFree));
+        tween.TweenProperty(_toastLabel, "modulate:a", 0.0f, 1.0f);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            if (_toastLabel != null && IsInstanceValid(_toastLabel))
+                _toastLabel.QueueFree();
+        }));
     }
 
     // ——— Mulligan phase ———
@@ -1044,8 +1126,8 @@ public partial class DuelScene : Control
         panel.AnchorBottom = 0.9f;
 
         var style = new StyleBoxFlat();
-        style.BgColor = new Color(0.06f, 0.06f, 0.12f, 0.98f);
-        style.BorderColor = new Color(0.4f, 0.4f, 0.6f);
+        style.BgColor = new Color(BgDark.R, BgDark.G, BgDark.B, 0.98f);
+        style.BorderColor = BorderStandard;
         style.BorderWidthLeft = 2;
         style.BorderWidthTop = 2;
         style.BorderWidthRight = 2;
@@ -1084,7 +1166,7 @@ public partial class DuelScene : Control
             AutoTranslate = false
         };
         hint.AddThemeFontSizeOverride("font_size", 13);
-        hint.Modulate = new Color(0.6f, 0.6f, 0.7f);
+        hint.Modulate = TextMuted;
         vbox.AddChild(hint);
 
         var handInfo = _gsm.GetHand(0);
@@ -1139,12 +1221,12 @@ public partial class DuelScene : Control
         if (_mulliganSelection.Contains(index))
         {
             _mulliganSelection.Remove(index);
-            btn.Modulate = new Color(1, 1, 1);
+            btn.Modulate = TextPrimary;
         }
         else
         {
             _mulliganSelection.Add(index);
-            btn.Modulate = new Color(1, 0.6f, 0.2f); // orange highlight
+            btn.Modulate = Gold; // selected highlight
         }
     }
 
@@ -1157,11 +1239,11 @@ public partial class DuelScene : Control
             var count = indices.Count;
             ShowToast(count > 0
                 ? $"Mulligan: redrew {count} card(s)"
-                : "No cards redrawn — hand kept", new Color(0.4f, 1, 0.4f));
+                : "No cards redrawn — hand kept", Moss);
         }
         else
         {
-            ShowToast(result.ErrorMessage ?? "Mulligan failed", new Color(1, 0.5f, 0.2f));
+            ShowToast(result.ErrorMessage ?? "Mulligan failed", Gold);
         }
 
         DismissMulligan();
@@ -1170,7 +1252,7 @@ public partial class DuelScene : Control
     private void OnMulliganKeep()
     {
         _gsm.PerformMulligan(0, new List<int>()); // decline, just mark used
-        ShowToast("Hand kept — good luck!", new Color(0.5f, 0.8f, 1f));
+        ShowToast("Hand kept — good luck!", TextSecondary);
         DismissMulligan();
     }
 
@@ -1187,8 +1269,8 @@ public partial class DuelScene : Control
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
         _turnLabel.Modulate = winnerIndex == 0
-            ? new Color(1, 0.8f, 0.4f)
-            : new Color(1, 0.3f, 0.3f);
+            ? Gold
+            : Ember;
 
         if (_isCampaignEncounter && !_isGameOverHandled)
         {
@@ -1278,7 +1360,7 @@ public partial class DuelScene : Control
                     AutowrapMode = TextServer.AutowrapMode.Word
                 };
                 outroLabel.AddThemeFontSizeOverride("font_size", 16);
-                outroLabel.Modulate = new Color(1, 1, 1, 0.95f);
+                outroLabel.Modulate = new Color(TextPrimary.R, TextPrimary.G, TextPrimary.B, 0.95f);
                 AddChild(outroLabel);
             }
 
@@ -1296,7 +1378,7 @@ public partial class DuelScene : Control
                 AutowrapMode = TextServer.AutowrapMode.Word
             };
             rewardLabel.AddThemeFontSizeOverride("font_size", 14);
-            rewardLabel.Modulate = new Color(0.4f, 1, 0.4f);
+            rewardLabel.Modulate = Moss;
             AddChild(rewardLabel);
         }
 
@@ -1324,8 +1406,8 @@ public partial class DuelScene : Control
         panel.AnchorBottom = 0.55f;
 
         var style = new StyleBoxFlat();
-        style.BgColor = new Color(0.06f, 0.06f, 0.1f, 0.95f);
-        style.BorderColor = winnerIndex == 0 ? new Color(1, 0.8f, 0.4f) : new Color(1, 0.3f, 0.3f);
+        style.BgColor = new Color(BgDark.R, BgDark.G, BgDark.B, 0.95f);
+        style.BorderColor = winnerIndex == 0 ? Gold : Ember;
         style.BorderWidthLeft = 2;
         style.BorderWidthTop = 2;
         style.BorderWidthRight = 2;
@@ -1349,7 +1431,7 @@ public partial class DuelScene : Control
         title.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
         title.HorizontalAlignment = HorizontalAlignment.Center;
         title.AddThemeFontSizeOverride("font_size", 28);
-        title.Modulate = winnerIndex == 0 ? new Color(1, 0.8f, 0.4f) : new Color(1, 0.3f, 0.3f);
+        title.Modulate = winnerIndex == 0 ? Gold : Ember;
         vbox.AddChild(title);
 
         vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 }); // Spacer
@@ -1385,168 +1467,7 @@ public partial class DuelScene : Control
 
     // ——— Tutorial helpers ———
 
-    /// <summary>
-    /// Skip the tutorial: force-complete it and start a normal game.
-    /// </summary>
-    private void SkipTutorial()
-    {
-        GD.Print("[DuelScene] Skip Tutorial requested.");
-        if (_tutorialCtrl == null) return;
-
-        // Kill any pending face-hit timer
-        if (_tutorialFaceTimer != null)
-        {
-            _tutorialFaceTimer.QueueFree();
-            _tutorialFaceTimer = null;
-        }
-        _tutorialJustAttackedFace = false;
-
-        // Mark tutorial complete so it never runs again
-        _tutorialCtrl.ForceComplete();
-
-        // Remove the overlay
-        if (_tutorialOverlay != null)
-        {
-            _tutorialOverlay.QueueFree();
-            _tutorialOverlay = null;
-        }
-
-        // Resume bot at normal speed and restart with a test game
-        _bot.Resume();
-        _bot.ThinkDelay = 1.5f;
-        _bot.ActionInterval = 0.6f;
-
-        // Clear tutorial field so we don't act on it anymore
-        _tutorialCtrl = null;
-
-        // Start a fresh normal game (triggers OnStateChanged → full re-render)
-        _gsm.InitializeTestGame();
-        ShowToast("Tutorial skipped — game restarted.", new Color(0.5f, 1, 0.5f));
-    }
-
-    /// <summary>
-    /// Beat 2: Player hit the enemy's face. Explain vigor/win condition.
-    /// This is the most important tutorial moment — extra weight, longer display.
-    /// Uses a lifecycle-safe timer that can be killed if the tutorial is skipped.
-    /// </summary>
-    private void ShowTutorialFaceHit(int damage, int currentEnemyVigor)
-    {
-        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-
-        string msg = $"Direct hit! You dealt {damage} damage. Their Vigor is now {currentEnemyVigor}. Reduce it to 0 to win.";
-        _tutorialOverlay.SetHint(msg);
-
-        // Highlight the enemy vigor bar — pulsing golden glow for the full 2.5s
-        var enemyVigorRect = _enemyVigorValue.GetGlobalRect();
-        _tutorialOverlay.HighlightElement(enemyVigorRect);
-        GD.Print($"[DuelScene] Face hit tutorial: damage={damage}, vigor now={currentEnemyVigor}");
-
-        // Kill any existing timer before creating a new one
-        if (_tutorialFaceTimer != null)
-        {
-            _tutorialFaceTimer.QueueFree();
-            _tutorialFaceTimer = null;
-        }
-
-        // After a brief pause, advance to end-turn step
-        var timer = new Godot.Timer();
-        timer.OneShot = true;
-        timer.WaitTime = 2.5f;
-        timer.Timeout += () =>
-        {
-            // Lifecycle guard — tutorial could have been skipped while timer was running
-            if (!IsInsideTree() || _tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
-            if (_tutorialCtrl.CurrentStep != TutorialStep.Lanes_Attack) return; // Already advanced
-
-            _tutorialCtrl.Advance();
-            UpdateTutorialOverlay();
-            if (_tutorialOverlay != null)
-            {
-                _tutorialOverlay.ClearHighlight();
-                // Highlight the End Turn button
-                if (_endTurnButton != null)
-                    _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
-            }
-            _tutorialOverlay?.SetDebugInfo(
-                _tutorialCtrl?.CurrentStep.ToString() ?? "?",
-                "ATTACK_FACE", true);
-        };
-        AddChild(timer);
-        timer.Start();
-        _tutorialFaceTimer = timer;
-    }
-
-    /// <summary>
-    /// Update the tutorial overlay's hint and step info after a step advance.
-    /// For Lanes_Attack, dynamically chooses hint based on creature readiness.
-    /// </summary>
-    private void UpdateTutorialOverlay()
-    {
-        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-        if (!_tutorialCtrl.IsActive)
-        {
-            // Tutorial completed — remove overlay
-            _tutorialOverlay.QueueFree();
-            _tutorialOverlay = null;
-            return;
-        }
-
-        // Dynamic hint for Lanes_Attack based on board state
-        if (_tutorialCtrl.CurrentStep == TutorialStep.Lanes_Attack)
-        {
-            var state = _gsm.State;
-            bool hasCreature = false;
-            bool hasReadyCreature = false;
-            if (state != null && state.Players.Length > 0)
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    var occ = state.Players[0].Lanes[i].Occupant;
-                    if (occ != null)
-                    {
-                        hasCreature = true;
-                        if (!occ.IsExhausted)
-                        {
-                            hasReadyCreature = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!hasCreature)
-            {
-                _tutorialOverlay.SetHint("Summon a creature first, then attack.");
-            }
-            else if (!hasReadyCreature)
-            {
-                _tutorialOverlay.SetHint("Your creature is resting. End your turn — it'll be ready next turn.");
-                if (_endTurnButton != null)
-                    _tutorialOverlay.HighlightElement(_endTurnButton.GetGlobalRect());
-            }
-            else
-            {
-                _tutorialOverlay.SetHint("Tap your creature, then tap an empty enemy lane to attack!");
-            }
-        }
-        else
-        {
-            _tutorialOverlay.SetHint(_tutorialCtrl.GetCurrentHint());
-        }
-
-        _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), "—", false);
-    }
-
-    /// <summary>
-    /// Update the overlay debug line with the last action taken.
-    /// </summary>
-    private void UpdateTutorialDebug(string lastAction, bool matched)
-    {
-        if (_tutorialOverlay == null || _tutorialCtrl == null) return;
-        _tutorialOverlay.SetDebugInfo(_tutorialCtrl.CurrentStep.ToString(), lastAction, matched);
-    }
-
-        // ——— Public update methods ———
+    // ——— Public update methods ———
 
     public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = vigor.ToString();
         public void SetEnemyAttunement(string text) => _enemyAttuneValue.Text = text;

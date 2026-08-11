@@ -60,9 +60,6 @@ public partial class MapScene : Control
         BuildUI();
         BuildMap();
         UpdateAllLockStates();
-
-        // Tutorial: if at Runes_OpenRunePage step, show a rune page button
-        CheckTutorialRuneStep();
     }
 
     /// <summary>
@@ -134,6 +131,26 @@ public partial class MapScene : Control
         };
         settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
         AddChild(settingsBtn);
+
+        // Rune Page button (bottom-left, above settings)
+        var runePageBtn = new Button
+        {
+            Text = "Rune Page",
+            AnchorLeft = 0f, AnchorRight = 0.14f,
+            AnchorTop = 0.86f, AnchorBottom = 0.93f
+        };
+        runePageBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
+        AddChild(runePageBtn);
+
+        // Forge button (bottom-left, above Rune Page)
+        var forgeBtn = new Button
+        {
+            Text = "Forge",
+            AnchorLeft = 0f, AnchorRight = 0.14f,
+            AnchorTop = 0.79f, AnchorBottom = 0.86f
+        };
+        forgeBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+        AddChild(forgeBtn);
 
         // Info panel
         _infoPanel = new Panel();
@@ -437,35 +454,5 @@ public partial class MapScene : Control
         Vector2 newOffset = offset * (_zoom / oldZoom);
         _mapContainer.Position = mousePos - newOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
-    }
-
-    /// <summary>
-    /// If the tutorial is at Runes_OpenRunePage, add a rune page button to the map.
-    /// </summary>
-    private void CheckTutorialRuneStep()
-    {
-        if (CampaignContext.Tutorial?.CurrentStep == TutorialStep.Runes_OpenRunePage
-            && !CampaignContext.Tutorial.IsComplete)
-        {
-            // Add a rune page button that advances the tutorial
-            var runeBtn = new Button
-            {
-                Text = "Rune Page (Tutorial)",
-                AnchorLeft = 0.3f, AnchorRight = 0.7f,
-                AnchorTop = 0.5f, AnchorBottom = 0.6f,
-            };
-            runeBtn.Pressed += () =>
-            {
-                CampaignContext.Tutorial.CurrentStep = TutorialStep.Runes_EquipRune;
-                // Fire StepChanged on the TutorialController
-                var ctrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
-                if (ctrl != null)
-                {
-                    ctrl.Advance();
-                }
-                GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
-            };
-            AddChild(runeBtn);
-        }
     }
 }

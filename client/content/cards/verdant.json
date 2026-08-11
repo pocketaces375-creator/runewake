@@ -19,6 +19,7 @@
       }
     ],
     "flavor": "The grove keeps its own ledgers, and it does not forgive debts.",
+    "art": { "prompt": "a moss-armored sentinel of woven roots standing in a ruined stone doorway", "asset": "res://content/art/vrd_c_root_warden.webp" },
     "power_score": 7.1,
     "content_version": 1
   },

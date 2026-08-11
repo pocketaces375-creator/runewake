@@ -4,17 +4,18 @@
       "id": "r1_duel_wayfarer",
       "name": "The Wayfarer",
       "portrait": "res://art/portraits/wayfarer.png",
+      "is_tutorial": true,
       "deck": [
-        "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_verdant_sproutling",
-        "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_c_wildwood_stalker",
-        "vrd_c_wildwood_stalker", "vrd_u_grove_healer", "vrd_u_canopy_archer",
-        "vrd_u_saphoof_charger", "vrd_u_grove_healer", "vrd_r_natures_renewal",
-        "emb_c_cinder_runner", "emb_c_ember_hound", "emb_c_flame_javelin",
-        "emb_c_flame_javelin", "emb_c_forgeguard_berserker", "emb_u_lava_serpent",
-        "dwn_c_sunblade_recruit", "dwn_c_sunblade_recruit", "dwn_c_dawn_warder",
-        "dwn_c_dawn_warder", "dwn_u_steadfast_bulwark", "dwn_u_morning_herald",
-        "dwn_c_golden_retainer", "dwn_c_golden_retainer", "dwn_c_dawnbreaker_charger",
-        "dwn_u_purifying_light", "dwn_u_steadfast_bulwark", "dwn_r_radiant_prophet"
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token",
+        "tut_opponent_token", "tut_opponent_token", "tut_opponent_token"
       ],
       "dialogue_intro": [
         "The road ahead is choked with briars and silence.",

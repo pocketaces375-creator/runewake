@@ -1,0 +1,156 @@
+using Godot;
+using Runewake.Engine.Cards;
+using static ThemeTokens;
+
+namespace Runewake.Client;
+
+/// <summary>
+/// A compact card in the player's hand. Designed to fit 10 cards overlapping
+/// on a phone screen (~75px wide each, 38px overlap).
+/// Shows: cost badge (top-left), art placeholder, name, attack/vigor stats,
+/// and a strata-colored bottom strip. Tapped card lifts up for readability.
+/// </summary>
+public partial class HandCard : Button
+{
+    private Label _cardName;
+    private Label _costLabel;
+    private Label _attackLabel;
+    private Label _healthLabel;
+    private ColorRect _strataStrip;
+    private ColorRect _cardBg;
+    private ColorRect _artSwatch;
+
+    /// <summary>Card's unique identifier from the engine.</summary>
+    public string CardId { get; private set; } = "";
+
+    /// <summary>Card's display name.</summary>
+    public string CardName { get; private set; } = "";
+
+    /// <summary>Attunement cost to play this card.</summary>
+    public int CardCost { get; private set; }
+
+    /// <summary>Card's strata for color coding.</summary>
+    public Strata CardStrata { get; private set; }
+
+    /// <summary>Current attack value (shown in hand if available).</summary>
+    public int CardAttack { get; private set; }
+
+    /// <summary>Current vigor/health value.</summary>
+    public int CardVigor { get; private set; }
+
+    /// <summary>Whether this card is currently selected (lifted).</summary>
+    public bool IsSelected { get; private set; }
+
+    /// <summary>The card's original Y position for lift animation.</summary>
+    private float _baseY;
+
+    public override void _Ready()
+    {
+        _cardName = GetNode<Label>("VBox/CardName");
+        _costLabel = GetNode<Label>("CostBadge/CostLabel");
+        _attackLabel = GetNode<Label>("VBox/StatsRow/AttackLabel");
+        _healthLabel = GetNode<Label>("VBox/StatsRow/HealthLabel");
+        _strataStrip = GetNode<ColorRect>("StrataStrip");
+        _cardBg = GetNode<ColorRect>("CardBg");
+        _artSwatch = GetNode<ColorRect>("ArtRect/ArtSwatch");
+
+        CustomMinimumSize = new Vector2(CardWidth, CardHeight);
+        _baseY = Position.Y;
+    }
+
+    /// <summary>
+    /// Configure this hand card widget with card data.
+    /// </summary>
+    public void SetCard(string cardId, string name, int cost, Strata strata, int attack = 0, int vigor = 0)
+    {
+        CardId = cardId;
+        CardName = name;
+        CardCost = cost;
+        CardStrata = strata;
+        CardAttack = attack;
+        CardVigor = vigor;
+
+        _cardName.Text = TruncateName(name, 16);
+        _costLabel.Text = cost.ToString();
+
+        // Show stats if creature
+        if (attack > 0 || vigor > 0)
+        {
+            _attackLabel.Text = attack.ToString();
+            _healthLabel.Text = vigor.ToString();
+            _attackLabel.Visible = true;
+            _healthLabel.Visible = true;
+        }
+        else
+        {
+            _attackLabel.Visible = false;
+            _healthLabel.Visible = false;
+        }
+
+        // Strata color for art swatch and bottom strip
+        var color = GetStrataColor(strata);
+        _strataStrip.Color = color;
+        _artSwatch.Color = new Color(color.R, color.G, color.B, 0.3f);
+    }
+
+    /// <summary>
+    /// Toggle the lifted/selected visual state.
+    /// </summary>
+    public void SetSelected(bool selected)
+    {
+        IsSelected = selected;
+        if (selected)
+        {
+            Position = new Vector2(Position.X, _baseY + CardLiftY);
+            Scale = new Vector2(1.15f, 1.15f);
+            ZIndex = 10;
+        }
+        else
+        {
+            Position = new Vector2(Position.X, _baseY);
+            Scale = Vector2.One;
+            ZIndex = 0;
+        }
+    }
+
+    /// <summary>
+    /// Get the strata color for display.
+    /// </summary>
+    private static Color GetStrataColor(Strata strata) => strata switch
+    {
+        Strata.VERDANT => StrataVerdant,
+        Strata.EMBER => StrataEmber,
+        Strata.TIDE => StrataTide,
+        Strata.HOLLOW => StrataHollow,
+        Strata.DAWN => StrataDawn,
+        _ => TextMuted
+    };
+
+    /// <summary>Truncate long names with ellipsis.</summary>
+    private static string TruncateName(string name, int maxLen)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length <= maxLen)
+            return name;
+        return name[..(maxLen - 1)] + "…";
+    }
+
+    // ——— Drag-and-drop support ———
+
+    public override Variant _GetDragData(Vector2 atPosition)
+    {
+        var preview = new Label();
+        preview.Text = CardName;
+        preview.Size = new Vector2(80, 24);
+        preview.Modulate = new Color(1, 1, 1, 0.7f);
+        SetDragPreview(preview);
+
+        var data = new Godot.Collections.Dictionary
+        {
+            ["type"] = "hand_card",
+            ["card_id"] = CardId,
+            ["card_name"] = CardName,
+            ["card_cost"] = CardCost
+        };
+        return data;
+    }
+}

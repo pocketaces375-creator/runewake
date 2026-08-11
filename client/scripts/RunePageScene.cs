@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -7,476 +8,403 @@ using Runewake.Engine.State;
 namespace Runewake.Client;
 
 /// <summary>
-/// Rune page editor screen — equips runes into 9/9/9/3 slots with RP budget bar.
-/// Programmatic UI (no .tscn dependencies).
+/// Rune page editor — view and edit a rune page before a duel.
+/// Shows 9/9/9/3 slot layout with a budget bar.
+/// Tap an empty slot to browse available runes, tap an equipped rune to unequip.
 /// </summary>
 public partial class RunePageScene : Control
 {
-    private Button _backButton = default!;
-    private Button _saveButton = default!;
+    private RunePage _page = new();
+    private List<RuneDef> _availableRunes = new();
+    private int _delverLevel = 1;
+
+    // UI
+    private Label _titleLabel = default!;
     private Label _budgetLabel = default!;
-    private ProgressBar _budgetBar = default!;
-    private VBoxContainer _slotsArea = default!;
-    private Panel _detailPanel = default!;
-    private Label _detailName = default!;
-    private Label _detailDesc = default!;
-    private Label _detailEffect = default!;
-    private Label _detailCost = default!;
-    private Button _detailUnequip = default!;
-    private Label _feedbackLabel = default!;
+    private ColorRect _budgetFill = default!;
+    private ColorRect _budgetBack = default!;
+    private GridContainer _offensiveGrid = default!;
+    private GridContainer _defensiveGrid = default!;
+    private GridContainer _utilityGrid = default!;
+    private GridContainer _mythicGrid = default!;
+    private Button _backButton = default!;
+    private Control _runePicker = default!;
+    private List<RuneDef> _pickerRunes = new();
+    private RuneSlotType _pickerSlotType;
 
-    // Picker overlay
-    private Panel _pickerOverlay = default!;
-    private VBoxContainer _pickerList = default!;
-    private LineEdit _pickerSearch = default!;
-
-    private RuneSlotType _selectedSlotType;
-    private int _selectedSlotIndex = -1;
-    private RuneDef? _selectedRune;
-
-    private static readonly (RuneSlotType type, string label, int count)[] SlotGroups = new[]
-    {
-        (RuneSlotType.OFFENSIVE, "Offensive", 9),
-        (RuneSlotType.DEFENSIVE, "Defensive", 9),
-        (RuneSlotType.UTILITY, "Utility", 9),
-        (RuneSlotType.MYTHIC, "Mythic", 3)
-    };
-
-    private readonly Dictionary<(RuneSlotType, int), Button> _slotButtons = new();
+    // Constants
+    private static readonly Color SlotFillColor = new(0.08f, 0.08f, 0.18f);
+    private static readonly Color SlotEmptyColor = new(0.12f, 0.12f, 0.25f);
+    private static readonly Color SlotBorderColor = new(0.3f, 0.3f, 0.5f);
+    private static readonly Color BudgetGreen = new(0.2f, 0.8f, 0.2f);
+    private static readonly Color BudgetYellow = new(0.9f, 0.8f, 0.2f);
+    private static readonly Color BudgetRed = new(0.9f, 0.3f, 0.2f);
 
     public override void _Ready()
     {
+        AnchorLeft = 0; AnchorRight = 1;
+        AnchorTop = 0; AnchorBottom = 1;
+        MouseFilter = MouseFilterEnum.Ignore;
+
+        // Load available runes from the registry or campaign context
+        LoadAvailableRunes();
+
+        // Try to load existing page from campaign context
+        if (CampaignContext.CurrentRunePage != null)
+        {
+            _page = CampaignContext.CurrentRunePage;
+        }
+
+        _delverLevel = CampaignContext.Progression?.DelverLevel ?? 1;
+
         BuildUI();
-        RefreshAll();
+        RefreshUI();
+    }
+
+    private void LoadAvailableRunes()
+    {
+        // Load from the starter runes file (via CampaignContext or direct load)
+        // For now, load from the embedded file
+        try
+        {
+            string json = Godot.FileAccess.GetFileAsString("res://content/runes/starter_runes.json");
+            if (!string.IsNullOrEmpty(json))
+            {
+                var pack = RuneLoader.LoadPackFromString(json);
+                _availableRunes = pack.Runes;
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[RunePageScene] Failed to load runes: {ex.Message}");
+        }
     }
 
     private void BuildUI()
     {
-        // Background
+        // ── Background ──
         var bg = new ColorRect
         {
-            Color = new Color(0.08f, 0.08f, 0.12f),
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 1f
+            Color = new Color(0.08f, 0.06f, 0.12f),
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0, AnchorBottom = 1
         };
         AddChild(bg);
 
-        // Top bar
-        _backButton = new Button
+        // ── Title ──
+        _titleLabel = new Label
         {
-            Text = "< Title",
-            AnchorLeft = 0f, AnchorRight = 0.1f,
-            AnchorTop = 0f, AnchorBottom = 0.05f
-        };
-        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
-        AddChild(_backButton);
-
-        _saveButton = new Button
-        {
-            Text = "Save",
-            AnchorLeft = 0.7f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 0.05f
-        };
-        _saveButton.Pressed += OnSave;
-        AddChild(_saveButton);
-
-        var title = new Label
-        {
-            Text = "Rune Page",
+            Text = "RUNE PAGE",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AnchorLeft = 0.2f, AnchorRight = 0.7f,
-            AnchorTop = 0f, AnchorBottom = 0.05f,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        title.AddThemeFontSizeOverride("font_size", 22);
-        AddChild(title);
-
-        // Feedback label
-        _feedbackLabel = new Label
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AnchorLeft = 0.2f, AnchorRight = 0.7f,
-            AnchorTop = 0.05f, AnchorBottom = 0.08f
-        };
-        _feedbackLabel.AddThemeFontSizeOverride("font_size", 12);
-        _feedbackLabel.Modulate = new Color(0.4f, 1, 0.4f);
-        AddChild(_feedbackLabel);
-
-        // Slots area (left 60%)
-        _slotsArea = new VBoxContainer
-        {
-            AnchorLeft = 0.02f, AnchorRight = 0.6f,
-            AnchorTop = 0.09f, AnchorBottom = 0.85f
-        };
-        AddChild(_slotsArea);
-
-        // Detail panel (right 38%)
-        _detailPanel = new Panel();
-        _detailPanel.AnchorLeft = 0.62f;
-        _detailPanel.AnchorRight = 0.98f;
-        _detailPanel.AnchorTop = 0.09f;
-        _detailPanel.AnchorBottom = 0.85f;
-        AddChild(_detailPanel);
-
-        var detailVbox = new VBoxContainer();
-        detailVbox.AnchorLeft = 0f; detailVbox.AnchorRight = 1f;
-        detailVbox.AnchorTop = 0f; detailVbox.AnchorBottom = 1f;
-        detailVbox.AddThemeConstantOverride("separation", 6);
-        _detailPanel.AddChild(detailVbox);
-
-        _detailName = new Label();
-        _detailName.AddThemeFontSizeOverride("font_size", 18);
-        detailVbox.AddChild(_detailName);
-
-        _detailDesc = new Label { Modulate = new Color(0.7f, 0.7f, 0.8f), AutowrapMode = TextServer.AutowrapMode.Word };
-        _detailDesc.AddThemeFontSizeOverride("font_size", 12);
-        detailVbox.AddChild(_detailDesc);
-
-        _detailEffect = new Label { AutowrapMode = TextServer.AutowrapMode.Word };
-        _detailEffect.AddThemeFontSizeOverride("font_size", 11);
-        detailVbox.AddChild(_detailEffect);
-
-        _detailCost = new Label();
-        _detailCost.AddThemeFontSizeOverride("font_size", 14);
-        _detailCost.Modulate = new Color(1, 0.8f, 0.4f);
-        detailVbox.AddChild(_detailCost);
-
-        _detailUnequip = new Button { Text = "Unequip" };
-        _detailUnequip.Pressed += OnUnequipDetail;
-        detailVbox.AddChild(_detailUnequip);
-
-        detailVbox.AddChild(new Control()); // spacer
-
-        // Budget bar (bottom)
-        _budgetBar = new ProgressBar
-        {
             AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.87f, AnchorBottom = 0.91f,
-            ShowPercentage = false
+            AnchorTop = 0.02f, AnchorBottom = 0.08f
         };
-        AddChild(_budgetBar);
+        _titleLabel.AddThemeFontSizeOverride("font_size", 22);
+        _titleLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.75f, 0.3f));
+        AddChild(_titleLabel);
+
+        // ── Budget bar ──
+        var budgetLabel = new Label
+        {
+            Text = "RP Budget",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            AnchorLeft = 0.05f, AnchorRight = 0.45f,
+            AnchorTop = 0.09f, AnchorBottom = 0.13f
+        };
+        budgetLabel.AddThemeFontSizeOverride("font_size", 14);
+        budgetLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.8f));
+        AddChild(budgetLabel);
+
+        _budgetBack = new ColorRect
+        {
+            Color = new Color(0.15f, 0.15f, 0.25f),
+            AnchorLeft = 0.05f, AnchorRight = 0.75f,
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
+        };
+        AddChild(_budgetBack);
+
+        _budgetFill = new ColorRect
+        {
+            Color = BudgetGreen,
+            AnchorLeft = 0.05f, AnchorRight = 0.05f, // starts at zero — updated in RefreshUI
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
+        };
+        AddChild(_budgetFill);
 
         _budgetLabel = new Label
         {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.91f, AnchorBottom = 0.94f,
-            VerticalAlignment = VerticalAlignment.Center
+            Text = "0 / 12",
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AnchorLeft = 0.75f, AnchorRight = 0.95f,
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
-        _budgetLabel.AddThemeFontSizeOverride("font_size", 14);
+        _budgetLabel.AddThemeFontSizeOverride("font_size", 12);
+        _budgetLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         AddChild(_budgetLabel);
 
-        // Build slot buttons
-        foreach (var (type, label, count) in SlotGroups)
+        // ── Section headers and grids ──
+        float sectionTop = 0.2f;
+        float sectionHeight = 0.18f;
+        float gap = 0.02f;
+
+        AddSection("OFFENSIVE (Marks)", 0, sectionTop, ref _offensiveGrid);
+        AddSection("DEFENSIVE (Seals)", 1, sectionTop + sectionHeight + gap, ref _defensiveGrid);
+        AddSection("UTILITY (Glyphs)", 2, sectionTop + (sectionHeight + gap) * 2, ref _utilityGrid);
+        AddSection("MYTHIC (Sigils)", 3, sectionTop + (sectionHeight + gap) * 3, ref _mythicGrid);
+
+        // ── Delver Level info ──
+        var levelLabel = new Label
         {
-            var sectionLabel = new Label
-            {
-                Text = $"{label} ({count})",
-                ThemeTypeVariation = "HeaderLabel",
-                SizeFlagsVertical = SizeFlags.ShrinkCenter
-            };
-            sectionLabel.AddThemeFontSizeOverride("font_size", 14);
-            sectionLabel.Modulate = new Color(0.8f, 0.8f, 0.9f);
-            _slotsArea.AddChild(sectionLabel);
-
-            var grid = new GridContainer
-            {
-                Columns = 3,
-                SizeFlagsHorizontal = SizeFlags.ExpandFill
-            };
-            for (int i = 0; i < count; i++)
-            {
-                int slotIdx = i;
-                var btn = new Button
-                {
-                    Text = "—",
-                    CustomMinimumSize = new Vector2(90, 36),
-                    SizeFlagsHorizontal = SizeFlags.ExpandFill,
-                    TooltipText = $"Slot {i + 1}"
-                };
-                btn.Pressed += () => OnSlotClicked(type, slotIdx);
-                grid.AddChild(btn);
-                _slotButtons[(type, i)] = btn;
-            }
-            _slotsArea.AddChild(grid);
-        }
-
-        // Picker overlay (hidden by default)
-        _pickerOverlay = new Panel();
-        _pickerOverlay.AnchorLeft = 0.1f; _pickerOverlay.AnchorRight = 0.9f;
-        _pickerOverlay.AnchorTop = 0.1f; _pickerOverlay.AnchorBottom = 0.9f;
-        _pickerOverlay.Hide();
-        AddChild(_pickerOverlay);
-
-        var pickerVbox = new VBoxContainer();
-        pickerVbox.AnchorLeft = 0f; pickerVbox.AnchorRight = 1f;
-        pickerVbox.AnchorTop = 0f; pickerVbox.AnchorBottom = 1f;
-        pickerVbox.AddThemeConstantOverride("separation", 4);
-        _pickerOverlay.AddChild(pickerVbox);
-
-        var pickerTitle = new Label
-        {
-            Text = "Select a Rune",
+            Text = $"Delver Level {_delverLevel} | Max Budget: {RunePage.GetBudgetForLevel(_delverLevel)} RP",
             HorizontalAlignment = HorizontalAlignment.Center,
-            SizeFlagsVertical = SizeFlags.ShrinkCenter
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.94f, AnchorBottom = 0.98f
         };
-        pickerTitle.AddThemeFontSizeOverride("font_size", 18);
-        pickerVbox.AddChild(pickerTitle);
+        levelLabel.AddThemeFontSizeOverride("font_size", 12);
+        levelLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.5f, 0.7f));
+        AddChild(levelLabel);
 
-        _pickerSearch = new LineEdit
+        // ── Back button ──
+        _backButton = new Button
         {
-            PlaceholderText = "Search runes...",
-            SizeFlagsVertical = SizeFlags.ShrinkCenter
+            Text = "Back",
+            AnchorLeft = 0.02f, AnchorRight = 0.12f,
+            AnchorTop = 0.02f, AnchorBottom = 0.07f
         };
-        _pickerSearch.TextChanged += _ => RebuildPickerList();
-        pickerVbox.AddChild(_pickerSearch);
+        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        AddChild(_backButton);
 
-        var pickerScroll = new ScrollContainer();
-        pickerScroll.SizeFlagsVertical = SizeFlags.ExpandFill;
-        pickerVbox.AddChild(pickerScroll);
-
-        _pickerList = new VBoxContainer();
-        _pickerList.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        pickerScroll.AddChild(_pickerList);
-
-        var closeButton = new Button
+        // ── Save button ──
+        var saveButton = new Button
         {
-            Text = "Cancel",
-            SizeFlagsVertical = SizeFlags.ShrinkCenter
+            Text = "Save & Close",
+            AnchorLeft = 0.8f, AnchorRight = 0.98f,
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
-        closeButton.Pressed += () => _pickerOverlay.Hide();
-        pickerVbox.AddChild(closeButton);
+        saveButton.Pressed += () =>
+        {
+            CampaignContext.SaveCurrentRunePage();
+            CampaignContext.SaveManager.Save();
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        };
+        AddChild(saveButton);
+
+        // ── Rune picker overlay (hidden initially) ──
+        BuildRunePicker();
     }
 
-    private void OnSlotClicked(RuneSlotType type, int slotIndex)
+    private void AddSection(string name, int index, float top, ref GridContainer grid)
     {
-        var rune = CampaignContext.CurrentRunePage.GetSlot(type, slotIndex);
-        if (rune != null)
+        var header = new Label
         {
-            // Already equipped — show detail
-            ShowRuneDetail(rune, type, slotIndex);
-        }
-        else
+            Text = name,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = top, AnchorBottom = top + 0.03f
+        };
+        header.AddThemeFontSizeOverride("font_size", 12);
+        header.AddThemeColorOverride("font_color", new Color(0.6f, 0.6f, 0.8f));
+        AddChild(header);
+
+        int cols = index == 3 ? 3 : 9; // Mythic has 3 slots per row, others 9
+        grid = new GridContainer
         {
-            // Empty slot — show picker
-            _selectedSlotType = type;
-            _selectedSlotIndex = slotIndex;
-            _pickerSearch.Text = "";
-            RebuildPickerList();
-            _pickerOverlay.Show();
-        }
+            Columns = cols,
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = top + 0.03f, AnchorBottom = top + 0.17f
+        };
+        AddChild(grid);
     }
 
-    private void RebuildPickerList()
+    private void RefreshUI()
     {
-        // Clear old items
-        foreach (var child in _pickerList.GetChildren())
+        int budget = RunePage.GetBudgetForLevel(_delverLevel);
+        int used = _page.TotalCost;
+        _budgetLabel.Text = $"{used} / {budget}";
+
+        // Update budget bar
+        float ratio = Math.Clamp((float)used / budget, 0f, 1f);
+        float fullWidth = GetViewportRect().Size.X * 0.7f;
+        _budgetFill.AnchorRight = 0.05f + ratio * 0.7f;
+        _budgetFill.Color = ratio switch
+        {
+            > 0.85f => BudgetRed,
+            > 0.65f => BudgetYellow,
+            _ => BudgetGreen
+        };
+
+        // Rebuild slot grids
+        RebuildGrid(_offensiveGrid, _page.OffensiveSlots, RuneSlotType.OFFENSIVE);
+        RebuildGrid(_defensiveGrid, _page.DefensiveSlots, RuneSlotType.DEFENSIVE);
+        RebuildGrid(_utilityGrid, _page.UtilitySlots, RuneSlotType.UTILITY);
+        RebuildGrid(_mythicGrid, _page.MythicSlots, RuneSlotType.MYTHIC);
+    }
+
+    private void RebuildGrid(GridContainer grid, RuneDef?[] slots, RuneSlotType slotType)
+    {
+        // Clear existing children
+        foreach (var child in grid.GetChildren())
             child.QueueFree();
 
-        string filter = _pickerSearch.Text.ToLowerInvariant();
-
-        // Get all runes of the selected slot type, filter by search
-        var candidates = CampaignContext.RuneIndex.Values
-            .Where(r => r.SlotType == _selectedSlotType)
-            .Where(r => r.Name.ToLowerInvariant().Contains(filter) || r.Id.ToLowerInvariant().Contains(filter))
-            .ToList();
-
-        if (candidates.Count == 0)
+        for (int i = 0; i < slots.Length; i++)
         {
-            var lbl = new Label { Text = "No runes found." };
-            _pickerList.AddChild(lbl);
-            return;
-        }
-
-        foreach (var rune in candidates)
-        {
-            var btn = new Button();
-            btn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-            string strataStr = rune.Strata?.ToString() ?? "";
-            string costStr = $"{rune.Cost} RP";
-            btn.Text = $"{rune.Name}  [{costStr}]  {strataStr}";
-            btn.TooltipText = rune.Description;
-
-            // Check if already equipped (grey out if so)
-            if (IsRuneEquipped(rune.Id))
-                btn.Modulate = new Color(0.5f, 0.5f, 0.5f);
-
-            btn.Pressed += () =>
+            int idx = i;
+            var slot = slots[i];
+            var btn = new Button
             {
-                OnPickerSelect(rune);
-                _pickerOverlay.Hide();
+                CustomMinimumSize = new Vector2(40, 36),
+                SizeFlagsHorizontal = (Control.SizeFlags)3 // expand
             };
-            _pickerList.AddChild(btn);
-        }
-    }
 
-    private void OnPickerSelect(RuneDef rune)
-    {
-        var page = CampaignContext.CurrentRunePage;
-        if (page.Equip(rune))
-        {
-            RefreshAll();
-            ShowFeedback($"Equipped {rune.Name}");
-
-            // Tutorial auto-advance: successfully equipped a rune
-            if (CampaignContext.Tutorial?.CurrentStep == TutorialStep.Runes_EquipRune
-                && !CampaignContext.Tutorial.IsComplete)
+            if (slot != null)
             {
-                var ctrl = GetNodeOrNull<TutorialController>("/root/TutorialController");
-                if (ctrl != null)
-                    ctrl.Advance();
-                CampaignContext.SaveManager.Save();
-            }
-        }
-        else
-        {
-            ShowFeedback($"Cannot equip {rune.Name} — budget or slot full", false);
-        }
-    }
-
-    private void OnUnequipDetail()
-    {
-        if (_selectedRune == null) return;
-        var page = CampaignContext.CurrentRunePage;
-        if (page.Unequip(_selectedSlotType, _selectedSlotIndex))
-        {
-            ShowFeedback($"Unequipped {_selectedRune.Name}");
-            _selectedRune = null;
-            ClearDetail();
-            RefreshAll();
-        }
-    }
-
-    private void ShowRuneDetail(RuneDef rune, RuneSlotType type, int slotIndex)
-    {
-        _selectedRune = rune;
-        _selectedSlotType = type;
-        _selectedSlotIndex = slotIndex;
-
-        _detailName.Text = rune.Name;
-        _detailDesc.Text = rune.Description;
-        _detailCost.Text = $"{rune.Cost} RP  |  {rune.SlotType}";
-
-        string effectStr = $"Trigger: {rune.Ability.Trigger}";
-        if (rune.Ability.Condition != null)
-            effectStr += $"\nCondition: {rune.Ability.Condition.Op}";
-        foreach (var eff in rune.Ability.Effects)
-        {
-            effectStr += $"\n  {eff.Op}";
-            if (eff.Amount.HasValue) effectStr += $" ({eff.Amount})";
-            if (eff.Target != null) effectStr += $" → {eff.Target.Scope}";
-        }
-        _detailEffect.Text = effectStr;
-
-        _detailUnequip.Show();
-    }
-
-    private void ClearDetail()
-    {
-        _detailName.Text = "";
-        _detailDesc.Text = "";
-        _detailEffect.Text = "";
-        _detailCost.Text = "";
-        _detailUnequip.Hide();
-    }
-
-    private void RefreshAll()
-    {
-        var page = CampaignContext.CurrentRunePage;
-
-        // Refresh slot buttons
-        foreach (var (type, _, _) in SlotGroups)
-        {
-            for (int i = 0; i < GetSlotCount(type); i++)
-            {
-                var rune = page.GetSlot(type, i);
-                if (_slotButtons.TryGetValue((type, i), out var btn))
+                btn.Text = $"{slot.Name}\n[{slot.RpCost} RP]";
+                btn.AddThemeFontSizeOverride("font_size", 9);
+                // Tapping an equipped rune unequips it
+                btn.Pressed += () =>
                 {
-                    if (rune != null)
-                    {
-                        btn.Text = $"{rune.Name}\n[{rune.Cost} RP]";
-                        btn.Modulate = new Color(0.8f, 0.9f, 1f);
-                    }
-                    else
-                    {
-                        btn.Text = "—";
-                        btn.Modulate = new Color(0.5f, 0.5f, 0.5f);
-                    }
+                    _page.Unequip(slotType, idx);
+                    RefreshUI();
+                };
+            }
+            else
+            {
+                btn.Text = "+";
+                btn.AddThemeFontSizeOverride("font_size", 14);
+                btn.Modulate = new Color(0.4f, 0.4f, 0.6f);
+                // Tapping an empty slot opens the rune picker
+                btn.Pressed += () => ShowRunePicker(slotType);
+            }
+
+            grid.AddChild(btn);
+        }
+    }
+
+    // ── Rune picker overlay ──
+
+    private void BuildRunePicker()
+    {
+        _runePicker = new Control
+        {
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0, AnchorBottom = 1,
+            Visible = false,
+            MouseFilter = MouseFilterEnum.Stop
+        };
+
+        var dim = new ColorRect
+        {
+            Color = new Color(0, 0, 0, 0.6f),
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0, AnchorBottom = 1
+        };
+        _runePicker.AddChild(dim);
+
+        var container = new Control
+        {
+            AnchorLeft = 0.1f, AnchorRight = 0.9f,
+            AnchorTop = 0.15f, AnchorBottom = 0.85f
+        };
+        _runePicker.AddChild(container);
+
+        var bg = new ColorRect
+        {
+            Color = new Color(0.06f, 0.06f, 0.15f, 0.95f),
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0, AnchorBottom = 1
+        };
+        container.AddChild(bg);
+
+        var title = new Label
+        {
+            Text = "SELECT RUNE",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.02f, AnchorBottom = 0.08f
+        };
+        title.AddThemeFontSizeOverride("font_size", 16);
+        title.AddThemeColorOverride("font_color", new Color(0.9f, 0.75f, 0.3f));
+        container.AddChild(title);
+
+        var closeBtn = new Button
+        {
+            Text = "Cancel",
+            AnchorLeft = 0.05f, AnchorRight = 0.3f,
+            AnchorTop = 0.02f, AnchorBottom = 0.08f
+        };
+        closeBtn.Pressed += () => _runePicker.Visible = false;
+        container.AddChild(closeBtn);
+
+        // Scrollable rune list
+        var scroll = new ScrollContainer
+        {
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.1f, AnchorBottom = 0.9f
+        };
+        container.AddChild(scroll);
+
+        var vbox = new VBoxContainer();
+        vbox.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
+        scroll.AddChild(vbox);
+
+        // Store reference to vbox for dynamic population
+        _runePicker.SetMeta("rune_list", vbox);
+
+        AddChild(_runePicker);
+    }
+
+    private void ShowRunePicker(RuneSlotType slotType)
+    {
+        _pickerSlotType = slotType;
+
+        var vbox = _runePicker.GetMeta("rune_list").As<Godot.Collections.Dictionary>() is null
+            ? null
+            : _runePicker.GetNodeOrNull<VBoxContainer>(_runePicker.GetMeta("rune_list").ToString() ?? ".");
+
+        // Find the vbox manually
+        var scrollContainer = _runePicker.GetNodeOrNull<ScrollContainer>(".");
+        VBoxContainer? listBox = null;
+        if (scrollContainer != null)
+        {
+            foreach (var child in scrollContainer.GetChildren())
+            {
+                if (child is VBoxContainer vb)
+                {
+                    listBox = vb;
+                    break;
                 }
             }
         }
+        if (listBox == null) return;
 
-        // Budget bar
-        int total = page.TotalCost;
-        _budgetBar.MaxValue = RunePage.MaxBudget;
-        _budgetBar.Value = total;
-        _budgetLabel.Text = $"RP: {total}/{RunePage.MaxBudget}";
+        // Clear existing items
+        foreach (var child in listBox.GetChildren())
+            child.QueueFree();
 
-        // Color budget bar
-        float ratio = (float)total / RunePage.MaxBudget;
-        _budgetBar.Modulate = ratio switch
+        // Filter runes by slot type
+        var filtered = _availableRunes.Where(r => r.SlotType == slotType).ToList();
+
+        foreach (var rune in filtered)
         {
-            < 0.5f => new Color(0.2f, 0.8f, 0.2f),    // green
-            < 0.8f => new Color(0.8f, 0.8f, 0.2f),    // yellow
-            _ => new Color(0.9f, 0.3f, 0.2f)          // red
-        };
+            var btn = new Button
+            {
+                Text = $"[{rune.RpCost}RP] {rune.Name} — {rune.Description}",
+                CustomMinimumSize = new Vector2(0, 32),
+                SizeFlagsHorizontal = (Control.SizeFlags)3
+            };
+            btn.AddThemeFontSizeOverride("font_size", 11);
+            btn.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.9f));
 
-        ClearDetail();
-    }
+            var captured = rune;
+            btn.Pressed += () =>
+            {
+                _page.Equip(captured);
+                _runePicker.Visible = false;
+                RefreshUI();
+            };
+            listBox.AddChild(btn);
+        }
 
-    private void OnSave()
-    {
-        CampaignContext.SaveManager.Save();
-        ShowFeedback("Rune page saved!");
-    }
-
-    private void ShowFeedback(string msg, bool success = true)
-    {
-        _feedbackLabel.Text = msg;
-        _feedbackLabel.Modulate = success
-            ? new Color(0.4f, 1, 0.4f)
-            : new Color(1, 0.4f, 0.4f);
-
-        // Auto-clear after 2 seconds
-        var timer = new Godot.Timer();
-        timer.OneShot = true;
-        timer.WaitTime = 2.0;
-        timer.Timeout += () => _feedbackLabel.Text = "";
-        AddChild(timer);
-        timer.Start();
-    }
-
-    private bool IsRuneEquipped(string runeId)
-    {
-        return CampaignContext.CurrentRunePage.GetAllEquipped().Any(r => r.Id == runeId);
-    }
-
-    private static int GetSlotCount(RuneSlotType type) => type switch
-    {
-        RuneSlotType.OFFENSIVE => 9,
-        RuneSlotType.DEFENSIVE => 9,
-        RuneSlotType.UTILITY => 9,
-        RuneSlotType.MYTHIC => 3,
-        _ => 0
-    };
-}
-
-/// <summary>
-/// Extension method to retrieve a rune from a specific slot.
-/// </summary>
-internal static class RunePageExtensions
-{
-    public static RuneDef? GetSlot(this RunePage page, RuneSlotType type, int index)
-    {
-        var slots = type switch
-        {
-            RuneSlotType.OFFENSIVE => page.OffensiveSlots,
-            RuneSlotType.DEFENSIVE => page.DefensiveSlots,
-            RuneSlotType.UTILITY => page.UtilitySlots,
-            RuneSlotType.MYTHIC => page.MythicSlots,
-            _ => null
-        };
-        if (slots == null || index < 0 || index >= slots.Length) return null;
-        return slots[index];
+        _runePicker.Visible = true;
     }
 }

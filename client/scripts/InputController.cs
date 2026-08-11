@@ -23,6 +23,9 @@ public partial class InputController : Node
     /// <summary>Raised when the player confirms an attack (attacker lane → target lane).</summary>
     public event Action<int, int>? AttackRequested; // attackerLaneIndex, targetLaneIndex
 
+    /// <summary>Raised when the player taps a friendly creature to select it for attack (before target chosen).</summary>
+    public event Action<int>? CreatureSelectedForAttack; // attackerLaneIndex
+
     /// <summary>Raised when the player cancels a pending selection.</summary>
     public event Action? SelectionCancelled;
 
@@ -98,6 +101,7 @@ public partial class InputController : Node
 
         State = InputState.SelectingAttacker;
         SelectedAttackerLane = laneIndex;
+        CreatureSelectedForAttack?.Invoke(laneIndex);
         return true;
     }
 

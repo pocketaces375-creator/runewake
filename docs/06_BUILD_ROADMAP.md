@@ -151,56 +151,203 @@ values. Tests in `pipeline/tests/test_orchestrator.py`.
 
 ## PHASE 7 — Ship (target: 4 weeks)
 
-### P7-01 — Onboarding tutorial (first duel: guided hand-hold through lanes)
+### P7-01 — First campaign node as teaching duel (r1_n01)
 
-**Teaching philosophy:** The tutorial explicitly tells the player what to tap and highlights the target. Every beat is an instruction, not a post-hoc explanation. Explanation follows action, not precedes it. The board is never frozen — the player can always act independently — but the overlay only advances when the prompted action is taken.
+The first campaign node (r1_n01) IS the tutorial. A new profile starts at r1_n01. No separate tutorial mode. The player selects the node on the map, enters a real duel, and learns by playing the actual first fight of the campaign — with real rewards on the line.
 
-**The player deck is curated so turn 1 always has at least one playable (cost ≤ 1) card**, and at least one of those has SWIFT so same-turn attacking is possible. This guarantees no dead draws at the first beat.
+**Design constraints (failures of the previous three iterations, resolved here):**
 
-**Beat-by-beat flow:**
+| Previous failure | This version |
+|---|---|
+| Separate mode — player knew it wasn't "real" | r1_n01 is the first campaign node. Real stakes, real rewards. |
+| Random deck + random opponent = teachable moments missable | Fully scripted: fixed opening hand, fixed opponent deck, opponent plays the same cards every time. |
+| Keywords (SWIFT) on tutorial cards with no explanation | Zero keywords in the teaching deck. Every card is a plain creature with attack + vigor only. |
+| Timed banners vanished while player was figuring out controls | Modal popups with dimmed background and **Continue button only** — nothing advances or vanishes until the player taps. |
+| "Tap the button" instructions with no why | Every popup explains the **concept** and then tells the player what to do. |
+| Bot could block the face-hit moment | Opponent deck is scripted to leave lane 2 empty on turn 1. The face-hit moment is guaranteed. |
+| Player could skip into a different game | Skip Tutorial on first popup only. If skipped, the player still has to beat r1_n01 to advance. |
 
-**1. Select then Summon (Lanes_SummonCreature)**
-   - Overlay shows: *"Tap a playable card to select it."*  
-     — Playable cards in hand get a golden glow highlight.
-   - After the player selects a card (enters lane-selection mode), overlay updates to: *"Now tap an empty lane on your side."*  
-     — Empty lanes get highlighted.
-   - On successful summon → advance to Beat 2.
+**The TutorialPopup component (reusable — all future systems use this):**
 
-**2. Attack face (Lanes_Attack) — survives across turn boundaries**
-   - Check creature readiness each render:
-     - **No creature on board** → *"Summon a creature first, then attack."*
-     - **Creature exists but exhausted (summoned this turn)** → *"Your creature is resting. End your turn — it'll be ready next turn."*  
-       — Highlights End Turn button.
-     - **Creature is ready** → *"Tap your creature, then tap an empty enemy lane to attack!"*  
-       — Highlights creature + empty enemy lanes with "→ FACE" markers.
-   - Attacking a creature (not empty lane) during this step doesn't advance — shows a toast: "Attack empty lanes for direct damage!"
-   - Attacking an empty lane (face hit) → shows the **most important beat with extra weight**:
-     - *"Direct hit! You dealt X damage. Their Vigor is now Y. Reduce it to 0 to win."*
-     - Enemy vigor bar pulses with a golden glow for 2.5 seconds.
-     - Auto-advances to Beat 3 after the pause.
+A `TutorialPopup` is a `Control` node overlay that:
 
-**3. End turn (Lanes_EndTurn)**
-   - Overlay says: *"Tap End Turn to pass. You'll gain more Attunement each turn."*
-   - End Turn button highlighted with a green pulsing glow.
-   - On end turn → tutorial complete, overlay fades out.
+- Centers itself on screen as a rounded rectangle (ColorRect-based, no Panel to avoid Godot theme issues)
+- Dims the entire board behind it (full-screen semi-transparent ColorRect)
+- Contains: one **concept title** (bold, 16pt), two to three **sentences of explanation text** (14pt, autowrap), and a single **Continue** button
+- Has an optional **Skip Tutorial** text link on the first popup only — opens a confirmation dialog
+- Does NOT vanish on any timer. Only the Continue button dismisses it.
+- **While the popup is open, the relevant UI element glows/points** to show where the concept lives on screen (arrow + pulsing border)
+- Emits an `OnDismissed` event so the caller can set up the next popup or advance game state
+- Accepts parameters: `popupId`, `title`, `text`, `highlightTarget` (optional node reference + rect), `showSkip` (bool)
+
+Stored at `client/scripts/TutorialPopup.cs` — one file, no scenes.
+
+**Beat-by-beat script — exact text of every popup:**
+
+---
+
+**POPUP 1: YOUR GOAL** (fires immediately when duel starts, before any card plays)
+
+*Title:* **YOUR GOAL**
+
+*Text:* "The enemy has 25 Vigor (health). Your creatures attack to reduce it. When their Vigor reaches 0, you win. Your own Vigor is on the left — protect yours while reducing theirs."
+
+*Highlight:* Enemy Vigor number pulses golden. Player Vigor number pulses blue briefly.
+
+*Skip Tutorial link:* Shown at bottom of this popup only. Reads "Skip Tutorial" in small grey text. Tapping it shows a confirmation: "Skip the tutorial? You'll still need to beat this duel."
+
+*Continue →*
+
+---
+
+**POPUP 2: ATTUNEMENT** (fires after popup 1 is dismissed)
+
+*Title:* **ATTUNEMENT**
+
+*Text:* "Every card costs Attunement to play. Look at your hand: cards with a white border cost 1 — you can play those right now. Cards that are greyed out cost 2 or 3. You gain 1 more Attunement at the start of each of your turns."
+
+*Highlight:* Cards in hand with cost 1 get a white border glow. Cards with cost >1 get a dim overlay. The Attunement counter (bottom center) pulses.
+
+*Continue →*
+
+---
+
+**POPUP 3: SUMMONING** (fires after popup 2 is dismissed)
+
+*Title:* **SUMMONING**
+
+*Text:* "Tap a card in your hand to select it. Then tap an empty lane on your side of the board to summon that creature there. Creatures live in lanes and fight from them — each lane holds one creature."
+
+*Highlight:* All cards in the hand glow (any can be tapped). The 5 empty player lanes flash white.
+
+*Continue →*
+
+---
+
+**POPUP 4a: ATTACKING — YOUR TURN** (fires after the player successfully summons a creature)
+
+*Title:* **ATTACKING**
+
+*Text:* "A creature that was on your board at the start of your turn is ready to attack. Tap your creature to select it — its lane will glow. Then tap an enemy lane to choose your target."
+
+*Highlight:* The player's creature on the board glows golden (ready to attack). Enemy lanes all flash briefly to show they're targetable.
+
+*Advance condition:* Popup dismissed when the player taps their creature (enters attack-targeting mode).
+
+*Continue →*
+
+---
+
+**POPUP 4b: ATTACKING — CHOOSING A TARGET** (fires when the player is in attack-targeting mode with a creature selected)
+
+*Title:* **ATTACKING**
+
+*Text:* "You selected your creature. Now choose a target lane on the enemy side. If the lane is empty, your creature hits the enemy directly — this is called a face attack and damages their Vigor. If the lane has an enemy creature, your creature fights that creature instead."
+
+*Highlight:* Lane 2 on the enemy side has a pulsing arrow pointing to the enemy portrait. Lane 0 (where the bot's token sits) has a crosshair icon showing a creature is there.
+
+*Continue →*
+
+---
+
+**POPUP 5: FACE HIT** (fires after the player attacks lane 2)
+
+*Title:* **FACE HIT**
+
+*Text:* "Direct hit! Your creature's attack value goes straight to the enemy's Vigor. Notice their Vigor number dropped. Keep attacking empty lanes to reduce it to 0. If an enemy creature is in your way, you'll have to destroy it first or choose a different lane."
+
+*Highlight:* The enemy Vigor number pulses yellow where it changed. The damage number still floats on screen.
+
+*Continue →*
+
+---
+
+**POPUP 6: THE TURN CYCLE** (fires after popup 5 is dismissed)
+
+*Title:* **THE TURN CYCLE**
+
+*Text:* "Each of your turns goes like this: gain 1 Attunement, draw 1 card, take your actions (summon, attack, use abilities), then tap End Turn to pass. Your creature that just attacked is now spent for this turn. End your turn so it can rest and be ready again."
+
+*Highlight:* The End Turn button glows green.
+
+*Continue →* — dismisses the tutorial overlay entirely. The player now plays the rest of the duel without guidance, winning by reducing enemy Vigor to 0.
+
+---
 
 **Visual requirements:**
-- Each beat is ONE sentence. 18pt white on dark panel, legible at phone distance.
-- Skip button always visible top-right (red "✕ Skip Tutorial").
-- Each beat highlights the relevant UI element with a golden pulsing border (via `HighlightElement(Rect2)` on the overlay).
+- Popup container: centered, 80% screen width max, 60% screen height max, rounded corners (ColorRect with modulatable background), dark navy (`0.06, 0.06, 0.15, 0.95`) with a thin gold border (`0.8, 0.6, 0.2, 0.6`).
+- Dim overlay: full-screen ColorRect, black at 0.55 alpha, blocks input behind popup.
+- Title: 16pt bold, gold color (`0.9, 0.75, 0.3`).
+- Body text: 14pt white, autowrap, generous line spacing 1.5.
+- Continue button: 14pt white, navy background with gold border, centered at bottom of popup, 60% width.
+- Skip Tutorial link: 12pt grey, below Continue, shows only on popup 1.
+- Highlight pointers: arrow sprites (pre-loaded or code-drawn) that animate from the popup edge toward the highlighted UI element. Also highlight borders on the target element.
 
-**Critical bugfixes from P3-01:**
-- `_pendingFaceHitBeat` race condition: flag is cleared after single consumption. Timer guards check `_tutorialCtrl != null && _tutorialCtrl.IsActive` before advancing. End-of-lifecycle `_tutorialOverlay` null checks added.
-- Tutorial step advances ONLY on the prompted action — attacking a creature during face step doesn't advance, ending turn during attack step doesn't advance.
+**Player deck — fully scripted, zero keywords:**
+
+All cards are plain creatures (no keywords) with attack and vigor only. The opening hand is fixed, not drawn.
+
+Opening hand (always these 4 cards, in this order):
+1. `tut_c_student_of_embers` — cost 1, 2/1 — card text: "A simple creature of fire."
+2. `tut_c_verdant_initiate` — cost 2, 2/3 — card text: "A sturdy forest follower."
+3. `tut_c_student_of_embers` — cost 1, 2/1 — second copy
+4. `tut_c_iron_apprentice` — cost 3, 3/3 — card text: "A slow but steady fighter."
+
+Rest of the deck (drawn normally after turn 1): 8 more plain creatures at costs 1–3, no keywords, no abilities.
+
+**Opponent deck — fully scripted, guarantees the teaching arc:**
+
+The opponent's turn-1 play is forced: summon a 1/1 token into lane 0. Lane 2 stays empty. This guarantees an empty lane for the face-hit moment when the player attacks on turn 2.
+
+After turn 1, the opponent plays normally (draws from a small deck of 1-cost plain creatures), but the opponent never fills more than 1 lane so at least one empty lane always remains for face damage.
+
+**Full concept inventory — everything that will eventually need a TutorialPopup:**
+
+| # | Concept | Doc reference | Status |
+|---|---|---|---|
+| 1 | Vigor / Win condition | `01_GAME_RULES.md` §7 | Defined |
+| 2 | Attunement (resource, ramp, loss on EoT) | `01_GAME_RULES.md` §3 | Defined |
+| 3 | Summoning to lanes | `01_GAME_RULES.md` §4 | Defined |
+| 4 | Attacking: creature vs empty lane (face) | `01_GAME_RULES.md` §6 | Defined |
+| 5 | Face hit (direct damage to Vigor) | `01_GAME_RULES.md` §6 | Defined |
+| 6 | Turn cycle (Attune → Draw → Main → End) | `01_GAME_RULES.md` §5 | Defined |
+| 7 | Exhaustion (creatures rest after summon/attack) | `01_GAME_RULES.md` §6 | Defined |
+| 8 | Card types (Creature, Ritual, Relic, Curse, Token) | `01_GAME_RULES.md` §10 | Defined |
+| 9 | Strata (the 5 colors — Verdant, Ember, Tide, Hollow, Dawn) | `01_GAME_RULES.md` §2 | Defined |
+| 10 | Keywords (Guard, Swift, Pierce, Ward, etc.) | `01_GAME_RULES.md` §8 | Defined |
+| 11 | Rune Pages (slots, RP budget, equipping) | `03_RUNE_SYSTEM.md` §1–3 | Defined |
+| 12 | Rune fragments and forging | `03_RUNE_SYSTEM.md` §5 | Defined |
+| 13 | Dig sites and excavation (grid, strikes, reveal) | `04_WORLD_AND_MAP.md` §4 | Defined |
+| 14 | Dig charges (earning, spending) | `04_WORLD_AND_MAP.md` §4 | Defined |
+| 15 | Barrow / Bury (third zone, inert cards) | `01_GAME_RULES.md` §9 | Defined |
+| 16 | Excavate keyword (look N, take 1, Bury rest) | `01_GAME_RULES.md` §9 | Defined |
+| 17 | Relics and Unidentified status (0/3 artifact, Identify condition) | `01_GAME_RULES.md` §9 | Defined |
+| 18 | Lost Relic minting (engraving, discovery index) | `04_WORLD_AND_MAP.md` §4 | Defined |
+| 19 | Campaign map (node graph, connections, lock states) | `04_WORLD_AND_MAP.md` §2 | Defined |
+| 20 | Node types (Duel, Elite, Warden, Dig, Shrine, Cache, Merchant) | `04_WORLD_AND_MAP.md` §2 | Defined |
+| 21 | Codex (lore entries, clue-gated CACHE nodes) | `04_WORLD_AND_MAP.md` §5 | Defined |
+| 22 | Trinkets (small passives on map layer) | `04_WORLD_AND_MAP.md` §6 | Defined |
+| 23 | Deck builder and collection | Roadmap P4-05 | Defined |
+| 24 | **The Tower** | **Not in any doc** | **UNDEFINED** |
+| 25 | **Delver Level** (XP, level thresholds, what unlocks) | `03_RUNE_SYSTEM.md` §2 references it but no XP table | **PARTIALLY DEFINED** |
+| 26 | **Dig tools** (Brush, Spade, Rod, Lens — sources, stacking) | `04_WORLD_AND_MAP.md` §4 mentions them but no spec | **PARTIALLY DEFINED** |
+| 27 | **Supabase account** (why link, what syncs, when prompted) | Master spec mentions auth only | **UNDEFINED** |
+
+*Items 24–27 flagged as not fully defined in current docs. The TutorialPopup component will handle all 27 when they're ready — no per-system code changes needed, just content (popupId, title, text, highlightTarget).*
 
 **Implementation files:**
-- `client/scripts/TutorialController.cs` — rewrite hints as instructions, fix tutorial deck to guarantee playable turn 1
-- `client/scripts/DuelScene.cs` — replace `_pendingFaceHitBeat` with lifecycle-safe flag, dynamic hints in `UpdateTutorialOverlay`, creature-readiness checks, safe timer gating
-- `client/scripts/TutorialOverlay.cs` — no changes needed (already supports highlights + skip)
+- `client/scripts/TutorialPopup.cs` — NEW reusable popup component. One file, no scenes. Accepts popupId/title/text/highlightTarget/showSkip. ColorRect-based. Skip on first popup only.
+- `client/scripts/TutorialController.cs` — rewrite: manage popup queue, track which popups have been shown, determine when to fire each popup based on game events (not step enum). Persist shown popups in save data so replayed duels don't re-teach.
+- `client/scripts/DuelScene.cs` — add tutorial popup queue management in _Ready and OnStateChanged. Instantiate TutorialPopup at the right moments. Release game state for free play after popup 6.
+- `client/content/encounters/region_01_early.json` — replace r1_duel_wayfarer deck with scripted opponent deck; add `"is_tutorial": true` flag
+- `engine/Cards/EncounterDef.cs` — add `IsTutorial` bool field
+- `client/content/cards/tutorial_pack.json` — new card pack containing the 4 plain tutorial creatures and the opponent's 1/1 token
+- `client/scripts/Main.cs` — remove `ShouldRunTutorial()` / `StartTutorial()` logic — campaign always starts at r1_n01
+- `client/scripts/MapScene.cs` — force r1_n01 as unlocked for new profiles; handle the case where the tutorial was skipped but r1_n01 must still be beaten
 
-**Definition of Done:** A new player can install the APK, play through the tutorial duel without reading more than 3 sentences total, and correctly answer: *"What is Vigor?"* (enemy health, zero = win), *"What is Attunement?"* (resource to play cards, grows each turn), *"How do you reduce the enemy's Vigor?"* (attack empty lanes / attack with creatures). The tutorial does NOT skip beats due to race conditions — the most important face-hit beat always fires.
+**Definition of Done:** A new player can start the game, navigate to the map, click r1_n01, see 7 modal popups in sequence with Continue-only advancement, correctly explain all 3 core concepts after finishing (Attunement resource, summon to lanes and attack empty lanes for face damage, win by reducing Vigor to 0), and beat the duel without further guidance. The TutorialPopup component accepts any (title, text, highlightTarget) triple and can be reused for future systems without code changes. Items 24–27 are flagged in this doc but not blocking P7-01.
 
-(Skipping Excavate and Runes tutorial duels for P7-01 — they share the same teaching structure and will be built in P7-02/P7-03.)
+(Skipping Excavate and Runes teaching duels for P7-01 — they share the same teaching structure and will be built in P7-02/P7-03.)
 
 ---
 

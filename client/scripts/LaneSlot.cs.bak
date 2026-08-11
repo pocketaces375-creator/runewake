@@ -1,0 +1,234 @@
+using Godot;
+using static ThemeTokens;
+
+namespace Runewake.Client;
+
+/// <summary>
+/// A single lane slot on the board, styled as a carved stone recess.
+/// Shows creature name, health bar, and attack/vigor stats when occupied.
+/// Empty slots show a subtle empty state.
+/// Supports tap selection for attack targeting and drag-and-drop for playing cards.
+/// </summary>
+public partial class LaneSlot : PanelContainer
+{
+    private Label _occName;
+    private Label _stats;
+    private Label _emptyHint;
+    private ColorRect _healthFill;
+    private Control _occupantRoot;
+    private NodeState _state = NodeState.Empty;
+
+    /// <summary>Previous vigor value for computing damage/heal diffs.</summary>
+    public int PreviousVigor { get; set; } = -1;
+
+    /// <summary>Emitted when a card is dropped onto this lane slot.</summary>
+    [Signal]
+    public delegate void CardDroppedEventHandler(string cardId, int laneIndex);
+
+    /// <summary>Emitted when the player taps this lane slot.</summary>
+    [Signal]
+    public delegate void LaneTappedEventHandler(int laneIndex, bool isEmpty);
+
+    public enum NodeState { Empty, Occupied }
+
+    /// <summary>Which row this lane belongs to: 0 = enemy, 1 = player.</summary>
+    public int Row { get; set; }
+
+    /// <summary>Lane index (0–4).</summary>
+    public int LaneIndex { get; set; }
+
+    public override void _Ready()
+    {
+        _occName = GetNode<Label>("VBox/OccupantRoot/OccName");
+        _stats = GetNode<Label>("VBox/OccupantRoot/Stats");
+        _healthFill = GetNode<ColorRect>("VBox/OccupantRoot/OccHealthBg/OccHealthFill");
+        _occupantRoot = GetNode<Control>("VBox/OccupantRoot");
+        _emptyHint = GetNode<Label>("VBox/EmptyHint");
+
+        SetEmpty();
+
+        var touchArea = GetNodeOrNull<Control>("TouchArea");
+        if (touchArea != null)
+            touchArea.GuiInput += OnTouchAreaInput;
+    }
+
+    private void OnTouchAreaInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        {
+            EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    /// <summary>
+    /// Set this lane slot to show card info with a health bar.
+    /// </summary>
+    public void SetCard(string name, int attack, int vigor, bool isExhausted = false)
+    {
+        _occName.Text = name;
+        _stats.Text = $"{attack} / {vigor}";
+        _state = NodeState.Occupied;
+
+        _occName.Show();
+        _stats.Show();
+        _occupantRoot.Show();
+        _emptyHint.Hide();
+
+        // Health bar fill — proportion of the track width
+        float healthRatio = System.Math.Clamp((float)vigor / (vigor + attack + 1), 0, 1);
+        var trackParent = (Control)_healthFill.GetParent();
+        _healthFill.Size = new Vector2(trackParent.GetRect().Size.X * healthRatio, 0);
+        // Color: yellow-green > gold > red
+        _healthFill.Color = healthRatio > 0.6f ? Moss
+            : healthRatio > 0.3f ? Gold
+            : Ember;
+
+        // Visual: exhausted creatures are greyed out
+        Modulate = isExhausted ? new Color(0.6f, 0.6f, 0.6f, 0.7f) : Colors.White;
+    }
+
+    /// <summary>
+    /// Clear this lane slot back to empty.
+    /// </summary>
+    public void SetEmpty()
+    {
+        _occName.Text = "";
+        _stats.Text = "";
+        _state = NodeState.Empty;
+        _occupantRoot.Hide();
+        _emptyHint.Show();
+        _emptyHint.Text = "";
+    }
+
+    /// <summary>Show visual feedback for being a valid target.</summary>
+    public void Highlight()
+    {
+        _emptyHint.Visible = false;
+        Modulate = new Color(TextPrimary.R, TextPrimary.G, TextPrimary.B, 1);
+        // Gold border highlight
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.1f, 0.09f, 0.08f, 1),
+            BorderColor = Gold,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 5,
+            CornerRadiusTopRight = 5,
+            CornerRadiusBottomLeft = 5,
+            CornerRadiusBottomRight = 5
+        };
+        AddThemeStyleboxOverride("panel", style);
+    }
+
+    /// <summary>Show that this empty lane is a valid face-attack target.</summary>
+    public void HighlightAsFaceTarget()
+    {
+        _emptyHint.Visible = true;
+        _emptyHint.Text = "→ FACE";
+        _emptyHint.Modulate = Gold;
+        Modulate = new Color(Gold.R, Gold.G, Gold.B, 1);
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.1f, 0.09f, 0.08f, 1),
+            BorderColor = Gold,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 5,
+            CornerRadiusTopRight = 5,
+            CornerRadiusBottomLeft = 5,
+            CornerRadiusBottomRight = 5
+        };
+        AddThemeStyleboxOverride("panel", style);
+    }
+
+    /// <summary>Remove highlight effect.</summary>
+    public void Unhighlight()
+    {
+        _emptyHint.Visible = false;
+        _emptyHint.Text = "";
+        Modulate = Colors.White;
+        RemoveThemeStyleboxOverride("panel");
+    }
+
+    // ——— Animation effects ———
+
+    public void PlaySummonEffect()
+    {
+        Scale = new Vector2(0, 0);
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(this, "scale", new Vector2(1, 1), 0.25f)
+            .SetEase(Tween.EaseType.Out)
+            .SetTrans(Tween.TransitionType.Back);
+        tween.TweenProperty(this, "modulate", Colors.White, 0.15f);
+    }
+
+    public void PlayDeathEffect()
+    {
+        Modulate = new Color(1, 0.2f, 0.2f, 1);
+        var tween = CreateTween();
+        tween.TweenInterval(0.1f);
+        tween.SetParallel();
+        tween.TweenProperty(this, "modulate:a", 0.0f, 0.35f);
+        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.35f)
+            .SetEase(Tween.EaseType.In)
+            .SetTrans(Tween.TransitionType.Back);
+        tween.SetParallel(false);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            Modulate = Colors.White;
+            Scale = Vector2.One;
+        }));
+    }
+
+    public void ShowDamageNumber(int amount)
+    {
+        if (amount <= 0) return;
+        var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
+        var ft = ftScene.Instantiate<FloatingText>();
+        GetParent().AddChild(ft);
+        ft.ShowAt($"-{amount}", Ember, GlobalPosition + new Vector2(24, 0));
+    }
+
+    public void ShowHealNumber(int amount)
+    {
+        if (amount <= 0) return;
+        var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
+        var ft = ftScene.Instantiate<FloatingText>();
+        GetParent().AddChild(ft);
+        ft.ShowAt($"+{amount}", Moss, GlobalPosition + new Vector2(24, 0));
+    }
+
+    // ——— Drag-and-drop target ———
+
+    public override bool _CanDropData(Vector2 atPosition, Variant data)
+    {
+        if (Row != 1 || _state == NodeState.Occupied)
+            return false;
+        if (data.VariantType != Variant.Type.Dictionary)
+            return false;
+        var dict = data.AsGodotDictionary();
+        return dict.ContainsKey("type") && dict["type"].AsString() == "hand_card";
+    }
+
+    public override void _DropData(Vector2 atPosition, Variant data)
+    {
+        var dict = data.AsGodotDictionary();
+        string cardId = dict["card_id"].AsString();
+        EmitSignal(SignalName.CardDropped, cardId, LaneIndex);
+    }
+
+    public override void _GuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        {
+            EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
+            GetViewport().SetInputAsHandled();
+        }
+    }
+}
