@@ -2,34 +2,34 @@
 
 [ext_resource type="Script" path="res://scripts/HandCard.cs" id="1_hand"]
 [ext_resource type="Shader" path="res://shaders/lane_inset.gdshader" id="2_inset"]
+[ext_resource type="Script" path="res://scripts/FixedArtRect.cs" id="3_art"]
 
 [sub_resource type="ShaderMaterial" id="1"]
 shader = ExtResource("2_inset")
 
-[node name="HandCard" type="Button"]
+[node name="HandCard" type="MarginContainer"]
 anchors_preset = 0
 custom_minimum_size = Vector2(110, 130)
 size_flags_horizontal = 0
 size_flags_vertical = 3
-action_mode = 0
-mouse_default_cursor_shape = 2
+mouse_filter = 0
 script = ExtResource("1_hand")
 
 [node name="VBox" type="VBoxContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 mouse_filter = 2
 clip_contents = true
 theme_override_constants/separation = 3
 material = SubResource(1)
 
-[node name="ArtRect" type="TextureRect" parent="VBox"]
+[node name="ArtRect" type="Control" parent="VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(100, 70)
-stretch_mode = 4
 mouse_filter = 2
+clip_contents = true
+script = ExtResource("3_art")
 
 [node name="CardName" type="Label" parent="VBox"]
 size_flags_horizontal = 3

@@ -13,7 +13,7 @@ public partial class LaneSlot : PanelContainer
     private Label _cardName;
     private Label _stats;
     private Label _faceLabel;
-    private TextureRect _artRect;
+    private FixedArtRect _artRect;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
 
@@ -43,7 +43,7 @@ public partial class LaneSlot : PanelContainer
     {
         _cardName = GetNode<Label>("VBox/CardName");
         _stats = GetNode<Label>("VBox/Stats");
-        _artRect = GetNode<TextureRect>("VBox/ArtRect");
+        _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
         SetEmpty();
 
         // Apply header font to creature name
@@ -148,7 +148,7 @@ public partial class LaneSlot : PanelContainer
 
         _cardName.Hide();
         _stats.Hide();
-        _artSprite.Texture = null;
+        _artRect.Texture = null;
         if (_faceLabel != null)
             _faceLabel.Visible = false;
         _state = NodeState.Empty;

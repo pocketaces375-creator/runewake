@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/LaneSlot.cs" id="1_xyz"]
 [ext_resource type="Shader" path="res://shaders/lane_inset.gdshader" id="2_shader"]
+[ext_resource type="Script" path="res://scripts/FixedArtRect.cs" id="3_art"]
 
 [sub_resource type="ShaderMaterial" id="2"]
 shader = ExtResource("2_shader")
@@ -48,12 +49,13 @@ size_flags_vertical = 3
 alignment = 1
 theme_override_constants/separation = 3
 
-[node name="ArtRect" type="TextureRect" parent="VBox"]
+[node name="ArtRect" type="Control" parent="VBox"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 custom_minimum_size = Vector2(100, 60)
-stretch_mode = 4
 mouse_filter = 2
+clip_contents = true
+script = ExtResource("3_art")
 
 [node name="CardName" type="Label" parent="VBox"]
 anchors_preset = 0
