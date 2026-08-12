@@ -9,18 +9,35 @@
     "cost": 3,
     "attack": 4,
     "vigor": 2,
-    "keywords": ["UNEARTH"],
+    "keywords": [
+      "UNEARTH"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 },
-          { "op": "BURY", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "Its name was scraped off the stone. It came anyway.",
-    "art": { "prompt": "a bound figure wrapped in inscribed stone tablets, one arm reaching from the earth", "asset": "res://content/art/hol_c_gravewrit_thrall.webp" },
+    "art": {
+      "prompt": "a bound figure wrapped in inscribed stone tablets, one arm reaching from the earth",
+      "asset": "res://content/art/hol_c_gravewrit_thrall.webp"
+    },
     "power_score": 8.2,
     "content_version": 1
   },
@@ -38,7 +55,11 @@
     "abilities": [],
     "flavor": "Bones that remember the sword.",
     "power_score": 2.2,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/hol_c_skeletal_reaver.webp",
+      "prompt": "A skeletal figure in tattered black cloth, wielding a scythe made of fused bone, standing in a misty graveyard under a sickly green moon"
+    }
   },
   {
     "id": "hol_c_deathspeaker",
@@ -55,7 +76,15 @@
       {
         "trigger": "ON_TURN_END",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "DAMAGED", "count": "ALL" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -76,7 +105,15 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 3 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 3
+          }
         ]
       }
     ],
@@ -99,7 +136,13 @@
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -120,8 +163,21 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DESTROY", "target": { "scope": "ALLY_CREATURE", "filter": "EXHAUSTED", "count": 1 } },
-          { "op": "ATTUNE", "target": { "scope": "PLAYER_SELF" }, "amount": 3 }
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EXHAUSTED",
+              "count": 1
+            }
+          },
+          {
+            "op": "ATTUNE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
         ]
       }
     ],
@@ -139,7 +195,9 @@
     "cost": 5,
     "attack": 5,
     "vigor": 5,
-    "keywords": ["UNEARTH"],
+    "keywords": [
+      "UNEARTH"
+    ],
     "abilities": [],
     "flavor": "It rose when the barrow was unsealed. It will not go back.",
     "power_score": 8.5,
@@ -155,7 +213,9 @@
     "cost": 2,
     "attack": 1,
     "vigor": 4,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "Bone-walls remember every siege.",
     "power_score": 4.0,
@@ -171,7 +231,10 @@
     "cost": 4,
     "attack": 3,
     "vigor": 2,
-    "keywords": ["VENOM", "UNEARTH"],
+    "keywords": [
+      "VENOM",
+      "UNEARTH"
+    ],
     "abilities": [],
     "flavor": "One touch is all it needs.",
     "power_score": 7.5,
@@ -190,14 +253,33 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "SILENCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 } },
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 2 }
+          {
+            "op": "SILENCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            }
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Words that bind the soul and break the will.",
     "power_score": 6.5,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/hol_r_curse_of_binding.webp",
+      "prompt": "Shadowy chains wrapping around a stone throne, each link inscribed with runes that glow with murky violet light, a lone figure bound in the center"
+    }
   },
   {
     "id": "hol_r_hollow_herald",
@@ -214,7 +296,13 @@
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "UNBURY", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -230,13 +318,26 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 4,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "BARROW_COUNT_GTE", "value": 3 },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 3
+    },
     "abilities": [
       {
         "trigger": "PASSIVE",
         "effects": [
-          { "op": "DEBUFF", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "attack": -1 }
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": -1
+          }
         ]
       }
     ],

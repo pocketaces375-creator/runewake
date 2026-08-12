@@ -9,10 +9,15 @@
     "cost": 2,
     "attack": 3,
     "vigor": 1,
-    "keywords": ["SWIFT"],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "Forge-children learned to run before they learned to breathe.",
-    "art": { "prompt": "a soot-streaked young courier sprinting through a molten foundry, trailing sparks", "asset": "res://content/art/emb_c_cinder_runner.webp" },
+    "art": {
+      "prompt": "a soot-streaked young courier sprinting through a molten foundry, trailing sparks",
+      "asset": "res://content/art/emb_c_cinder_runner.webp"
+    },
     "power_score": 4.85,
     "content_version": 1
   },
@@ -26,11 +31,17 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": ["SWIFT"],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "Pack-forged and flame-tempered.",
     "power_score": 3.2,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/emb_c_ember_hound.webp",
+      "prompt": "A lean hound with molten orange cracks running through its dark fur, embers drifting from its jaws, standing on volcanic rock at night"
+    }
   },
   {
     "id": "emb_c_flame_javelin",
@@ -45,7 +56,15 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 2 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -65,9 +84,13 @@
     "vigor": 3,
     "keywords": [],
     "abilities": [],
-    "flavor": "He fights like the fire — without mercy, without memory.",
+    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
     "power_score": 5.5,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/emb_c_forgeguard_berserker.webp",
+      "prompt": "A muscular warrior in blackened iron plate, a great hammer resting on one shoulder, forge-glow illuminating his face from below, sparks flying"
+    }
   },
   {
     "id": "emb_u_wildfire_adept",
@@ -84,7 +107,15 @@
       {
         "trigger": "ON_CAST_RITUAL",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -102,7 +133,10 @@
     "cost": 5,
     "attack": 5,
     "vigor": 3,
-    "keywords": ["PIERCE", "FRAGILE"],
+    "keywords": [
+      "PIERCE",
+      "FRAGILE"
+    ],
     "abilities": [],
     "flavor": "Molten blood and a temper to match.",
     "power_score": 7.2,
@@ -121,7 +155,13 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 4 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 4
+          }
         ]
       }
     ],
@@ -144,7 +184,15 @@
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 2 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -167,7 +215,15 @@
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "attack": 1 }
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
         ]
       }
     ],
@@ -188,8 +244,22 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 5 },
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 5
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -207,7 +277,10 @@
     "cost": 6,
     "attack": 4,
     "vigor": 4,
-    "keywords": ["UNEARTH", "ECHO"],
+    "keywords": [
+      "UNEARTH",
+      "ECHO"
+    ],
     "abilities": [],
     "flavor": "From ash, she rises. From ash, she burns again.",
     "power_score": 9.5,
@@ -221,13 +294,24 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 3,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "DAMAGED_THIS_TURN", "value": true },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "DAMAGED_THIS_TURN",
+      "value": true
+    },
     "abilities": [
       {
         "trigger": "ON_TURN_START",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
         ]
       }
     ],

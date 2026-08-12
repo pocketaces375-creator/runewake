@@ -14,19 +14,37 @@
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 3 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
         ]
       },
       {
         "trigger": "ON_TURN_START",
-        "condition": { "op": "BARROW_COUNT_GTE", "value": 4 },
+        "condition": {
+          "op": "BARROW_COUNT_GTE",
+          "value": 4
+        },
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "She read the riverbed the way her mother read faces.",
-    "art": { "prompt": "a robed scholar kneeling in shallow grey water, sifting silt through a bronze sieve", "asset": "res://content/art/tid_c_silt_reader.webp" },
+    "art": {
+      "prompt": "a robed scholar kneeling in shallow grey water, sifting silt through a bronze sieve",
+      "asset": "res://content/art/tid_c_silt_reader.webp"
+    },
     "power_score": 10.4,
     "content_version": 1
   },
@@ -45,13 +63,23 @@
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
-    "flavor": "Knowledge flows like water — endlessly, unstoppably.",
+    "flavor": "Knowledge flows like water \u2014 endlessly, unstoppably.",
     "power_score": 4.5,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/tid_c_tidal_scholar.webp",
+      "prompt": "A robed figure kneeling in shallow tide pools, reading from a weathered stone tablet, bioluminescent blue algae glowing around their feet"
+    }
   },
   {
     "id": "tid_c_deep_one",
@@ -82,13 +110,23 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "The depths see you as clearly as you see them.",
     "power_score": 2.0,
-    "content_version": 1
+    "content_version": 1,
+    "art": {
+      "asset": "res://content/art/tid_c_abyssal_gaze.webp",
+      "prompt": "A single enormous eye opening in the dark depths of the ocean, surrounded by drifting kelp and faint blue light, ancient and unknowable"
+    }
   },
   {
     "id": "tid_u_brine_witch",
@@ -105,7 +143,13 @@
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "BURY", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -123,7 +167,9 @@
     "cost": 5,
     "attack": 3,
     "vigor": 6,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "A living reef that remembers every ship that passed.",
     "power_score": 7.5,
@@ -142,8 +188,20 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
-          { "op": "DISCARD", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          },
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -166,7 +224,15 @@
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "BOUNCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 1 }
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -189,7 +255,13 @@
       {
         "trigger": "ON_ALLY_DEATH",
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -210,7 +282,13 @@
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DISCARD", "target": { "scope": "PLAYER_ENEMY" }, "amount": 2 }
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
@@ -242,13 +320,26 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 5,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "HAND_COUNT_GTE", "value": 8 },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 8
+    },
     "abilities": [
       {
         "trigger": "PASSIVE",
         "effects": [
-          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "vigor": 2 }
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "vigor": 2
+          }
         ]
       }
     ],
