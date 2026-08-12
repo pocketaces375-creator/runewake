@@ -41,8 +41,8 @@ public partial class LaneSlot : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("VBox/CardName");
-        _stats = GetNode<Label>("VBox/Stats");
+        _cardName = GetNode<Label>("CardName");
+        _stats = GetNode<Label>("Stats");
         _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
         SetEmpty();
 
@@ -121,8 +121,8 @@ public partial class LaneSlot : PanelContainer
             {
                 var tr = new TextureRect();
                 tr.Texture = texture;
-                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-                tr.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+                tr.ExpandMode = TextureRect.ExpandModeEnum.Fit;
                 tr.AnchorRight = 1.0f;
                 tr.AnchorBottom = 1.0f;
                 tr.MouseFilter = MouseFilterEnum.Ignore;

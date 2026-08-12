@@ -7,54 +7,78 @@
 [sub_resource type="ShaderMaterial" id="1"]
 shader = ExtResource("2_inset")
 
+[sub_resource type="StyleBoxFlat" id="2"]
+bg_color = Color(0, 0, 0, 0.5)
+content_margin_left = 3
+content_margin_top = 1
+content_margin_right = 3
+content_margin_bottom = 1
+
 [node name="HandCard" type="PanelContainer"]
 anchors_preset = 0
-custom_minimum_size = Vector2(110, 130)
+custom_minimum_size = Vector2(110, 168)
 size_flags_horizontal = 0
 size_flags_vertical = 3
 mouse_filter = 0
 script = ExtResource("1_hand")
 
 [node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 clip_contents = true
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 material = SubResource(1)
 
 [node name="ArtRect" type="Control" parent="VBox"]
 size_flags_horizontal = 3
-size_flags_vertical = 0
-custom_minimum_size = Vector2(100, 70)
+size_flags_vertical = 3
+custom_minimum_size = Vector2(100, 130)
 mouse_filter = 2
 clip_contents = true
 script = ExtResource("3_art")
 
-[node name="CardName" type="Label" parent="VBox"]
+[node name="CardName" type="Label" parent="."]
+anchors_preset = 0
+anchor_left = 0.04
+anchor_top = 0.71
+anchor_right = 0.96
+anchor_bottom = 0.86
 size_flags_horizontal = 3
 size_flags_vertical = 0
 horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
+theme_override_styles/normal = SubResource(2)
 text = ""
 autowrap_mode = 2
-max_lines_visible = 2
+max_lines_visible = 1
 mouse_filter = 2
 
-[node name="BottomRow" type="HBoxContainer" parent="VBox"]
+[node name="BottomRow" type="HBoxContainer" parent="."]
+anchors_preset = 0
+anchor_left = 0.04
+anchor_top = 0.86
+anchor_right = 0.96
+anchor_bottom = 0.98
 size_flags_horizontal = 3
 size_flags_vertical = 0
 
-[node name="BottomSpacer" type="Control" parent="VBox/BottomRow"]
+[node name="BottomSpacer" type="Control" parent="BottomRow"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
 mouse_filter = 2
 
-[node name="StatsLabel" type="Label" parent="VBox/BottomRow"]
+[node name="StatsLabel" type="Label" parent="BottomRow"]
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
 text = ""
 mouse_filter = 2
 

@@ -32,9 +32,9 @@ public partial class HandCard : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("VBox/CardName");
+        _cardName = GetNode<Label>("CardName");
         _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
-        _statsLabel = GetNode<Label>("VBox/BottomRow/StatsLabel");
+        _statsLabel = GetNode<Label>("BottomRow/StatsLabel");
         _costLabel = GetNode<Label>("CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
@@ -135,8 +135,8 @@ public partial class HandCard : PanelContainer
                 // TextureRect renders in Control layer (on top of card bg).
                 var tr = new TextureRect();
                 tr.Texture = texture;
-                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-                tr.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+                tr.ExpandMode = TextureRect.ExpandModeEnum.Fit;
                 tr.AnchorRight = 1.0f;
                 tr.AnchorBottom = 1.0f;
                 tr.MouseFilter = MouseFilterEnum.Ignore;
