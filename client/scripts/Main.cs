@@ -397,7 +397,6 @@ public partial class Main : Control
         CrashReporter.UploadPendingReports(supabaseUrl, supabaseKey);
 
         // ═══ CAPTURE HOOK (gated): auto-navigate to duel screen ═══
-        CampaignContext.AutoCaptureScreenshot = true;
         if (CampaignContext.AutoCaptureScreenshot)
         {
             Callable.From(() =>

@@ -24,6 +24,9 @@ public partial class HandCard : MarginContainer
     public int? CardAttack { get; private set; }
     public int? CardVigor { get; private set; }
 
+    /// <summary>ArtRect for verification.</summary>
+    public Control ArtRectNode => _artRect;
+
     [Signal]
     public delegate void PressedEventHandler();
 

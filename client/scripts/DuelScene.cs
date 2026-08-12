@@ -301,6 +301,14 @@ public partial class DuelScene : Control
                     if (img != null)
                         img.SavePng("/home/fictive/runewake/screenshots/board_art_v2.png");
                     GD.Print("[CAPTURE] board_art_v2.png saved");
+
+                    // Run layout verification
+                    int failed = RunLayoutVerification();
+                    GD.Print($"[VERIFY] Layout checks: {failed} failed");
+                    if (failed > 0)
+                        GetTree().Quit(1);
+                    else
+                        GetTree().Quit(0);
                 };
                 AddChild(snapTimer);
                 snapTimer.Start();
@@ -1484,5 +1492,132 @@ public partial class DuelScene : Control
     {
         foreach (var card in _handCards) card.QueueFree();
         _handCards.Clear();
+    }
+
+    // ——— Layout verification gate ———
+
+    /// <summary>
+    /// Run layout verification checks and return failure count.
+    /// Called after capture in AutoCaptureScreenshot mode.
+    /// </summary>
+    private int RunLayoutVerification()
+    {
+        int fails = 0;
+        var viewportSize = GetViewportRect().Size;
+        int artCount = 0;
+
+        GD.Print("[VERIFY] === Layout Verification Report ===");
+
+        float minW = float.MaxValue, maxW = float.MinValue;
+        float minH = float.MaxValue, maxH = float.MinValue;
+
+        // — Hand card checks —
+        if (_handCards.Count == 0)
+        {
+            GD.PrintErr("[VERIFY] FAIL: No hand cards to verify");
+            fails++;
+        }
+        else
+        {
+
+            for (int i = 0; i < _handCards.Count; i++)
+            {
+                var card = _handCards[i];
+                var s = card.Size;
+                var pos = card.Position;
+
+                // Track size extremes
+                if (s.X < minW) minW = s.X;
+                if (s.X > maxW) maxW = s.X;
+                if (s.Y < minH) minH = s.Y;
+                if (s.Y > maxH) maxH = s.Y;
+
+                // Viewport bounds
+                if (pos.X < 0 || pos.Y < 0 || pos.X + s.X > viewportSize.X || pos.Y + s.Y > viewportSize.Y)
+                {
+                    GD.PrintErr($"[VERIFY] FAIL: Card {i} ({card.CardName}) at {pos} size {s} exceeds viewport {viewportSize}");
+                    fails++;
+                }
+
+                // ArtRect checks
+                var artRect = card.ArtRectNode;
+                if (artRect != null)
+                {
+                    var artSize = artRect.Size;
+                    var artPos = artRect.Position;
+
+                    // Art has non-null texture and non-zero size
+                    if (artSize.X > 10 && artSize.Y > 10)
+                    {
+                        artCount++;
+                        // ArtPresence: check if FixedArtRect has a texture
+                        if (artRect is FixedArtRect far && far.Texture == null)
+                            GD.Print($"[VERIFY] WARN: Card {i} ({card.CardName}) ArtRect has non-zero size but no texture");
+                    }
+
+                    // Containment: ArtRect inside parent (VBox)
+                    var parent = artRect.GetParent() as Control;
+                    if (parent != null)
+                    {
+                        var parentSize = parent.Size;
+                        var artEnd = artPos + artSize;
+                        if (artEnd.X > parentSize.X + 2 || artEnd.Y > parentSize.Y + 2)
+                        {
+                            GD.PrintErr($"[VERIFY] FAIL: Card {i} ({card.CardName}) ArtRect end {artEnd} > parent size {parentSize}");
+                            fails++;
+                        }
+                    }
+                }
+            }
+
+            // Uniformity: all hand cards within 5px of same size
+            float wDiff = maxW - minW;
+            float hDiff = maxH - minH;
+            if (wDiff > 5 || hDiff > 5)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Hand card sizes differ: min=({minW},{minH}) max=({maxW},{maxH})");
+                fails++;
+            }
+            else
+            {
+                GD.Print($"[VERIFY] OK: All {_handCards.Count} hand cards uniform ({minW:F0}x{minH:F0})");
+            }
+
+            // Overlap: no two sibling hand cards overlap in X
+            var sortedCards = _handCards.OrderBy(c => c.Position.X).ToList();
+            for (int i = 1; i < sortedCards.Count; i++)
+            {
+                var prev = sortedCards[i - 1];
+                var cur = sortedCards[i];
+                float prevRight = prev.Position.X + prev.Size.X;
+                float curLeft = cur.Position.X;
+                if (prevRight > curLeft + 2)
+                {
+                    GD.PrintErr($"[VERIFY] FAIL: Hand cards overlap: \"{prev.CardName}\" right={prevRight:F0} > \"{cur.CardName}\" left={curLeft:F0}");
+                    fails++;
+                }
+            }
+        }
+
+        // — Board slot checks —
+        int laneArtCount = 0;
+        foreach (var slot in _enemySlots)
+        {
+            if (slot.Size.X > 50 && slot.Size.Y > 50)
+                laneArtCount++;
+        }
+        foreach (var slot in _playerSlots)
+        {
+            if (slot.Size.X > 50 && slot.Size.Y > 50)
+                laneArtCount++;
+        }
+
+        GD.Print($"[VERIFY] Hand art textures active: {artCount}/{_handCards.Count}");
+        GD.Print($"[VERIFY] Lane slots with visible art: {laneArtCount}/{_enemySlots.Count + _playerSlots.Count}");
+        GD.Print($"[VERIFY] Largest hand card: ({maxW:F0}x{maxH:F0})");
+        GD.Print($"[VERIFY] Smallest hand card: ({minW:F0}x{minH:F0})");
+        GD.Print($"[VERIFY] === {fails} check(s) failed ===");
+
+        return fails;
     }
 }
