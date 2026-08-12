@@ -90,32 +90,32 @@ public partial class MapScene : Control
 
     private StyleBoxFlat MakeBtnNormal() => new()
     {
-        BgColor = new Color(0.15f, 0.12f, 0.08f, 1f),
-        BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+        BgColor = new Color(0.2f, 0.15f, 0.1f, 1f),
+        BorderColor = new Color(0.7f, 0.6f, 0.3f, 1f),
         BorderWidthLeft = 1, BorderWidthTop = 1,
         BorderWidthRight = 1, BorderWidthBottom = 1,
         CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
         CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-        ContentMarginLeft = 8, ContentMarginTop = 3,
-        ContentMarginRight = 8, ContentMarginBottom = 3
+        ContentMarginLeft = 10, ContentMarginTop = 4,
+        ContentMarginRight = 10, ContentMarginBottom = 4
     };
 
     private StyleBoxFlat MakeBtnHover() => new()
     {
-        BgColor = new Color(0.2f, 0.16f, 0.1f, 1f),
-        BorderColor = new Color(0.8f, 0.68f, 0.35f, 0.8f),
+        BgColor = new Color(0.3f, 0.22f, 0.14f, 1f),
+        BorderColor = new Color(0.9f, 0.78f, 0.45f, 1f),
         BorderWidthLeft = 1, BorderWidthTop = 1,
         BorderWidthRight = 1, BorderWidthBottom = 1,
         CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
         CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-        ContentMarginLeft = 8, ContentMarginTop = 3,
-        ContentMarginRight = 8, ContentMarginBottom = 3
+        ContentMarginLeft = 10, ContentMarginTop = 4,
+        ContentMarginRight = 10, ContentMarginBottom = 4
     };
 
     private void StyleButton(Button btn, float fontSize = 12, bool goldText = true)
     {
         btn.AddThemeFontSizeOverride("font_size", (int)fontSize);
-        var fc = goldText ? new Color(0.85f, 0.78f, 0.6f, 1f) : new Color(0.7f, 0.65f, 0.5f, 1f);
+        var fc = goldText ? new Color(0.95f, 0.88f, 0.65f, 1f) : new Color(0.8f, 0.75f, 0.6f, 1f);
         var fd = new Color(0.4f, 0.35f, 0.25f, 0.5f);
         btn.AddThemeColorOverride("font_color", fc);
         btn.AddThemeColorOverride("font_disabled_color", fd);
@@ -157,8 +157,7 @@ public partial class MapScene : Control
         {
             var tex = ResourceLoader.Load<Texture2D>("res://content/map/map_background.png");
             _mapBackground.Texture = tex;
-            // Set moderate transparency so it doesn't wash out the nodes
-            _mapBackground.Modulate = new Color(1, 1, 1, 0.35f);
+            _mapBackground.Modulate = new Color(1, 1, 1, 0.6f); // 60% opacity — visible but subtle
         }
         _mapContainer.AddChild(_mapBackground);
 
@@ -500,43 +499,11 @@ public partial class MapScene : Control
     }
 
     // ——— Input: pan and zoom (mouse + touch) ———
-    // Touch targets are handled at container level (not on individual buttons)
-    // so that map zoom/pan doesn't break click areas.
+    // Map node click detection is in _unhandled_input so UI buttons
+    // (top bar, sidebar) get first dibs on click events.
 
     public override void _Input(InputEvent @event)
     {
-        // ——— Tap/click detection (container-level hit testing) ———
-        // Convert screen coords to map container coords and find nearest node
-        if (@event is InputEventMouseButton click && click.Pressed && click.ButtonIndex == MouseButton.Left)
-        {
-            // Don't intercept clicks on UI buttons (top bar, sidebar, info panel)
-            if (click.Position.Y < Size.Y * 0.06f || click.Position.X < Size.X * 0.14f ||
-                _infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(click.Position))
-            {
-                base._Input(@event); // let buttons handle their own clicks
-                return;
-            }
-            // Convert screen position to map container coordinates
-            Vector2 localPos = (_mapContainer.ToLocal(click.Position) - _mapContainer.Position) / _zoom;
-            // Find nearest node
-            string? nearestId = null;
-            float nearestDist = 50f; // max tap distance in map coords
-            foreach (var (id, icon) in _nodeIcons)
-            {
-                float dist = icon.Position.DistanceTo(localPos);
-                if (dist < nearestDist)
-                {
-                    nearestDist = dist;
-                    nearestId = id;
-                }
-            }
-            if (nearestId != null)
-            {
-                OnNodeSelected(nearestId);
-                GetViewport().SetInputAsHandled();
-                return;
-            }
-        }
         // Mouse wheel zoom
         if (@event is InputEventMouseButton mouse && mouse.Pressed)
         {
@@ -576,51 +543,6 @@ public partial class MapScene : Control
             Vector2 delta = motion.Position - _dragStart;
             _mapContainer.Position = _containerStartPos + delta;
         }
-        // ——— Touch input ———
-        // Tap detection (same container-level hit testing as mouse clicks)
-        if (@event is InputEventScreenTouch touchEvent && touchEvent.Pressed && _touchDragId == -1)
-        {
-            // Don't intercept touches on UI buttons
-            if (touchEvent.Position.Y < Size.Y * 0.06f || touchEvent.Position.X < Size.X * 0.14f ||
-                _infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(touchEvent.Position))
-            {
-                base._Input(@event);
-                return;
-            }
-            Vector2 localPos = (_mapContainer.ToLocal(touchEvent.Position) - _mapContainer.Position) / _zoom;
-            string? nearestId = null;
-            float nearestDist = 50f;
-            foreach (var (id, icon) in _nodeIcons)
-            {
-                float dist = icon.Position.DistanceTo(localPos);
-                if (dist < nearestDist)
-                {
-                    nearestDist = dist;
-                    nearestId = id;
-                }
-            }
-            if (nearestId != null)
-            {
-                OnNodeSelected(nearestId);
-                GetViewport().SetInputAsHandled();
-                return;
-            }
-            // Start pan
-            _touchDragId = touchEvent.Index;
-            _touchDragStart = touchEvent.Position;
-            _containerStartPos = _mapContainer.Position;
-            _touchDragging = true;
-        }
-        else if (@event is InputEventScreenTouch touchRelease && !touchRelease.Pressed && touchRelease.Index == _touchDragId)
-        {
-            _touchDragId = -1;
-            _touchDragging = false;
-        }
-        else if (@event is InputEventScreenDrag drag && drag.Index == _touchDragId && _touchDragging)
-        {
-            Vector2 delta = drag.Position - _touchDragStart;
-            _mapContainer.Position = _containerStartPos + delta;
-        }
 
         // Pinch to zoom
         if (@event is InputEventMagnifyGesture magnify)
@@ -631,6 +553,67 @@ public partial class MapScene : Control
         }
     }
 
+    /// <summary>
+    /// Handle click/tap on map nodes — only fires for events NOT consumed by
+    /// UI buttons (top bar, sidebar, info panel). This keeps button clicks working.
+    /// </summary>
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        // Map node selection and touch pan: left click or touch not on any UI element
+        bool isTap = false;
+        Vector2 screenPos = Vector2.Zero;
+
+        if (@event is InputEventMouseButton click && click.Pressed && click.ButtonIndex == MouseButton.Left)
+        {
+            isTap = true;
+            screenPos = click.Position;
+        }
+        else if (@event is InputEventScreenTouch touch && touch.Pressed && _touchDragId == -1)
+        {
+            isTap = true;
+            screenPos = touch.Position;
+        }
+        else if (@event is InputEventScreenTouch touchRelease && !touchRelease.Pressed && touchRelease.Index == _touchDragId)
+        {
+            _touchDragId = -1;
+            _touchDragging = false;
+            return;
+        }
+        else if (@event is InputEventScreenDrag drag && drag.Index == _touchDragId && _touchDragging)
+        {
+            Vector2 delta = drag.Position - _touchDragStart;
+            _mapContainer.Position = _containerStartPos + delta;
+            return;
+        }
+
+        if (!isTap) return;
+
+        // Don't handle taps on the info panel
+        if (_infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(screenPos))
+            return;
+
+        // Convert screen position to map container coordinates
+        Vector2 localPos = (_mapContainer.ToLocal(screenPos) - _mapContainer.Position) / _zoom;
+
+        // Find nearest node within tap distance
+        string? nearestId = null;
+        float nearestDist = 50f;
+        foreach (var (id, icon) in _nodeIcons)
+        {
+            float dist = icon.Position.DistanceTo(localPos);
+            if (dist < nearestDist)
+            {
+                nearestDist = dist;
+                nearestId = id;
+            }
+        }
+
+        if (nearestId != null)
+        {
+            OnNodeSelected(nearestId);
+            GetViewport().SetInputAsHandled();
+        }
+    }
     private void SetZoom(float newZoom, Vector2 mousePos)
     {
         float oldZoom = _zoom;
