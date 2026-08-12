@@ -1,17 +1,16 @@
 CURRENT PHASE: P7
-LAST COMPLETED TICKET: Python test fixes confirmed (221/221) — commit 630bd51, 463/463 C# tests green
+LAST COMPLETED TICKET: Art asset integration (15 cards, 5 strata) — APK SHA-256 2c18db007a188c324f45751f13cc8241adb4d619927b7b83f1628200f429581d
 
 KNOWN TEST COUNTS (last confirmed):
   C#: 463/463
   Python: 221/221 (all passing)
 
-PHASE 7 STATUS: All agent-executable feature tickets complete. Python test fixes complete. Smoke test in progress.
+PHASE 7 STATUS: All agent-executable feature tickets complete. Python test fixes complete. Art integration complete. Smoke test script — FINAL REMAINING AGENT ITEM.
 
-CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete. Store listings complete. Crash reporting complete. Pre-launch validation complete. Dev menu removed.
+CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete. Store listings complete. Crash reporting complete. Pre-launch validation complete. Dev menu removed. Art assets integrated (15 cards across all 5 strata).
 
 REMAINING AGENT ITEMS:
-  - [IN PROGRESS] Build client/smoke_test.sh — exported Linux build starts without crashing (TECH_DEBT.md priority: High)
-    Evidence: screenshot analysis confirmed hand area + board lanes visible at 1280x597
+  - [FINAL] Write, run, and commit client/smoke_test.sh — exported Linux build starts without crashing, pixel validation passes
 
 REMAINING HUMAN-ACTION ITEMS:
   P7-H1 — Install APK on physical device, play through full campaign loop, verify r1_n02 unlocks after r1_n01 clear
@@ -23,7 +22,6 @@ OPEN QUESTIONS: Q1 (HOLLOW moderation) — awaiting human decision, not blocking
 TECH DEBT:
   - API key not inherited in subprocess environments (run_e2e.sh wrapper exists)
   - Pacing values provisional until art lands
-  - Exported build smoke test — IN PROGRESS (client/smoke_test.sh)
   - Combat design gap: attacking has no meaningful cost (post-launch, not blocking)
 
 OPEN ITEMS:
