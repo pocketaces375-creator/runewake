@@ -6,10 +6,10 @@ namespace Runewake.Client;
 
 /// <summary>
 /// A card in the player's hand, rendered as a framed card thumbnail.
-/// Root is MarginContainer (Container) for proper child constraint.
+/// Root is PanelContainer — draws the "panel" theme style for card background and border.
 /// Click/tap via GuiInput override, drag via _GetDragData override.
 /// </summary>
-public partial class HandCard : MarginContainer
+public partial class HandCard : PanelContainer
 {
     private Label _cardName;
     private Label _costLabel;
@@ -121,31 +121,32 @@ public partial class HandCard : MarginContainer
 
     private void LoadArt(string cardId)
     {
+        // Remove any previous sprite child from FixedArtRect
+        foreach (var child in _artRect.GetChildren())
+            _artRect.RemoveChild(child);
+
         string artPath = $"res://content/art/{cardId}.webp";
         if (ResourceLoader.Exists(artPath))
         {
             var texture = ResourceLoader.Load<Texture2D>(artPath);
             if (texture != null)
             {
-                _artRect.Texture = texture;
+                // Use TextureRect — the FixedArtRect's clip_contents keeps it bounded.
+                // TextureRect renders in Control layer (on top of card bg).
+                var tr = new TextureRect();
+                tr.Texture = texture;
+                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+                tr.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                tr.AnchorRight = 1.0f;
+                tr.AnchorBottom = 1.0f;
+                tr.MouseFilter = MouseFilterEnum.Ignore;
+                _artRect.AddChild(tr);
 
-                GD.Print($"[HANDCARD DEBUG] {cardId} art loaded, texture={texture.GetSize()}");
-                Callable.From(() =>
-                {
-                    var artSize = _artRect.Size;
-                    var vboxSize = GetNode<Control>("VBox").Size;
-                    GD.Print($"[HANDCARD DEBUG] Card.Size={Size}");
-                    GD.Print($"[HANDCARD DEBUG] VBox.Size={vboxSize}");
-                    GD.Print($"[HANDCARD DEBUG] ArtRect.Size={artSize}");
-                    if (artSize.X > vboxSize.X || artSize.Y > vboxSize.Y)
-                        GD.PrintErr($"[HANDCARD DEBUG] *** OUT OF BOUNDS delta={artSize - vboxSize}");
-                    else
-                        GD.Print($"[HANDCARD DEBUG] *** ArtRect FITS inside VBox OK");
-                }).CallDeferred();
+                GD.Print($"[HANDCARD] {cardId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
-        _artRect.Texture = null;
+        GD.Print($"[HANDCARD] No art for {cardId}");
     }
 
     // ——— Click handling via GuiInput ———

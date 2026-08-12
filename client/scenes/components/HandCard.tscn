@@ -7,7 +7,7 @@
 [sub_resource type="ShaderMaterial" id="1"]
 shader = ExtResource("2_inset")
 
-[node name="HandCard" type="MarginContainer"]
+[node name="HandCard" type="PanelContainer"]
 anchors_preset = 0
 custom_minimum_size = Vector2(110, 130)
 size_flags_horizontal = 0

@@ -109,33 +109,30 @@ public partial class LaneSlot : PanelContainer
 
     private void LoadArt(string cardDefId)
     {
+        // Remove previous texture children
+        foreach (var child in _artRect.GetChildren())
+            _artRect.RemoveChild(child);
+
         string artPath = $"res://content/art/{cardDefId}.webp";
         if (ResourceLoader.Exists(artPath))
         {
             var texture = ResourceLoader.Load<Texture2D>(artPath);
             if (texture != null)
             {
-                _artRect.Texture = texture;
+                var tr = new TextureRect();
+                tr.Texture = texture;
+                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+                tr.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+                tr.AnchorRight = 1.0f;
+                tr.AnchorBottom = 1.0f;
+                tr.MouseFilter = MouseFilterEnum.Ignore;
+                _artRect.AddChild(tr);
 
-                // === DEBUG ===
-                GD.Print($"[LANESLOT DEBUG] {cardDefId} art loaded");
-                Callable.From(() =>
-                {
-                    var artSize = _artRect.Size;
-                    var artPos = _artRect.Position;
-                    var slotSize = Size;
-                    GD.Print($"[LANESLOT DEBUG] Slot.Size={slotSize}");
-                    GD.Print($"[LANESLOT DEBUG] ArtRect.Position={artPos} Size={artSize}");
-                    var artEnd = artPos + artSize;
-                    if (artEnd.X > slotSize.X || artEnd.Y > slotSize.Y)
-                        GD.PrintErr($"[LANESLOT DEBUG] *** OUT OF BOUNDS delta={artEnd - slotSize}");
-                    else
-                        GD.Print($"[LANESLOT DEBUG] *** ArtRect FITS inside slot OK");
-                }).CallDeferred();
-
+                GD.Print($"[LANESLOT] {cardDefId} art via TextureRect");
                 return;
             }
         }
+        GD.Print($"[LANESLOT] No art for {cardDefId}");
     }
 
     /// <summary>
