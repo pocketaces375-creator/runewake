@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runewake APK export — with DLL freshness guard.
+# Runewake APK export — with DLL freshness guard AND layout verification gate.
+# The layout gate runs BEFORE export and blocks on failure.
 #
 # Godot's Android export does NOT surface dotnet publish failures.
 # A build can report success while packaging stale assemblies.
@@ -93,7 +94,19 @@ SRC_HASH=$(find "$REPO_ROOT/client/scripts" "$REPO_ROOT/engine" -name '*.cs' -ty
   -exec md5sum {} + | md5sum | cut -c1-16)
 echo "  Source tree hash: $SRC_HASH" >&2
 
-# ── 5. Export ──────────────────────────────────────────────────────────────
+# ── 5. Layout verification gate ──────────────────────────────────────────
+echo "" >&2
+echo "=== Layout Verification Gate ===" >&2
+bash "$REPO_ROOT/client/verify_layout.sh" 2>&1
+VERIFY_EXIT=$?
+if [ "$VERIFY_EXIT" -ne 0 ]; then
+  echo "ERROR: Layout verification FAILED — aborting export." >&2
+  echo "  Fix the layout issues detected above and re-run." >&2
+  exit 1
+fi
+echo "  ✓ Layout verification passed" >&2
+
+# ── 6. Export ──────────────────────────────────────────────────────────────
 echo "" >&2
 echo "=== Exporting APK ===" >&2
 mkdir -p "$(dirname "$OUTPUT")"

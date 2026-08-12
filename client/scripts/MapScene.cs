@@ -128,10 +128,10 @@ public partial class MapScene : Control
 
     private void BuildBackground()
     {
-        // Deep warm brown background matching title screen
+        // Deep warm brown background — parchment-friendly backdrop
         _background = new ColorRect
         {
-            Color = new Color(0.07f, 0.06f, 0.05f, 1f),
+            Color = new Color(0.12f, 0.1f, 0.08f, 1f),
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f
         };
@@ -300,6 +300,7 @@ public partial class MapScene : Control
             icon.Position = new Vector2(x, y);
 
             icon.NodeSelected += OnNodeSelected;
+            icon.Pressed += () => OnNodeSelected(mapNode.Id);
             _mapContainer.AddChild(icon);
 
             icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked: true);
@@ -592,8 +593,9 @@ public partial class MapScene : Control
         if (_infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(screenPos))
             return;
 
-        // Convert screen position to map container coordinates
-        Vector2 localPos = (_mapContainer.ToLocal(screenPos) - _mapContainer.Position) / _zoom;
+        // Convert screen position to map container local coordinates
+        // ToLocal already accounts for the Node2D's position and scale
+        Vector2 localPos = _mapContainer.ToLocal(screenPos);
 
         // Find nearest node within tap distance
         string? nearestId = null;
