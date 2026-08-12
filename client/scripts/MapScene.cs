@@ -9,11 +9,13 @@ namespace Runewake.Client;
 /// <summary>
 /// Campaign map screen — renders a node graph from a MapRegion JSON file.
 /// Dark fantasy themed to match the title screen.
+/// Touch targets are handled at container level so scaling doesn't break them.
 /// </summary>
 public partial class MapScene : Control
 {
     // Map container (the pannable/zoomable surface)
     private Node2D _mapContainer;
+    private TextureRect _mapBackground;
     private ColorRect _background;
 
     // Node info panel
@@ -112,7 +114,7 @@ public partial class MapScene : Control
 
     private void StyleButton(Button btn, float fontSize = 12, bool goldText = true)
     {
-        btn.AddThemeFontSizeOverride("font_size", fontSize);
+        btn.AddThemeFontSizeOverride("font_size", (int)fontSize);
         var fc = goldText ? new Color(0.85f, 0.78f, 0.6f, 1f) : new Color(0.7f, 0.65f, 0.5f, 1f);
         var fd = new Color(0.4f, 0.35f, 0.25f, 0.5f);
         btn.AddThemeColorOverride("font_color", fc);
@@ -145,9 +147,20 @@ public partial class MapScene : Control
         };
         AddChild(vignette);
 
-        // Map container (pannable layer)
+        // Map container (pannable layer with background and nodes)
         _mapContainer = new Node2D();
         AddChild(_mapContainer);
+
+        // Map background texture (parchment-style map with towns and terrain)
+        _mapBackground = new TextureRect();
+        if (ResourceLoader.Exists("res://content/map/map_background.png"))
+        {
+            var tex = ResourceLoader.Load<Texture2D>("res://content/map/map_background.png");
+            _mapBackground.Texture = tex;
+            _mapBackground.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+            _mapBackground.MouseFilter = MouseFilterEnum.Ignore;
+        }
+        _mapContainer.AddChild(_mapBackground);
 
         // Line drawer (edges between nodes)
         _lineDrawer = new LineDrawer();
@@ -480,9 +493,41 @@ public partial class MapScene : Control
     }
 
     // ——— Input: pan and zoom (mouse + touch) ———
+    // Touch targets are handled at container level (not on individual buttons)
+    // so that map zoom/pan doesn't break click areas.
 
     public override void _Input(InputEvent @event)
     {
+        // ——— Tap/click detection (container-level hit testing) ———
+        // Convert screen coords to map container coords and find nearest node
+        if (@event is InputEventMouseButton click && click.Pressed && click.ButtonIndex == MouseButton.Left)
+        {
+            if (_infoPanel.GetGlobalRect().HasPoint(click.Position))
+            {
+                base._Input(@event); // let info panel handle its own clicks
+                return;
+            }
+            // Convert screen position to map container coordinates
+            Vector2 localPos = (_mapContainer.ToLocal(click.Position) - _mapContainer.Position) / _zoom;
+            // Find nearest node
+            string? nearestId = null;
+            float nearestDist = 50f; // max tap distance in map coords
+            foreach (var (id, icon) in _nodeIcons)
+            {
+                float dist = icon.Position.DistanceTo(localPos);
+                if (dist < nearestDist)
+                {
+                    nearestDist = dist;
+                    nearestId = id;
+                }
+            }
+            if (nearestId != null)
+            {
+                OnNodeSelected(nearestId);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+        }
         // Mouse wheel zoom
         if (@event is InputEventMouseButton mouse && mouse.Pressed)
         {
@@ -522,22 +567,43 @@ public partial class MapScene : Control
             Vector2 delta = motion.Position - _dragStart;
             _mapContainer.Position = _containerStartPos + delta;
         }
-
         // ——— Touch input ———
-        if (@event is InputEventScreenTouch touch)
+        // Tap detection (same container-level hit testing as mouse clicks)
+        if (@event is InputEventScreenTouch touchEvent && touchEvent.Pressed && _touchDragId == -1)
         {
-            if (touch.Pressed && _touchDragId == -1)
+            if (_infoPanel.GetGlobalRect().HasPoint(touchEvent.Position))
             {
-                _touchDragId = touch.Index;
-                _touchDragStart = touch.Position;
-                _containerStartPos = _mapContainer.Position;
-                _touchDragging = true;
+                base._Input(@event);
+                return;
             }
-            else if (!touch.Pressed && touch.Index == _touchDragId)
+            Vector2 localPos = (_mapContainer.ToLocal(touchEvent.Position) - _mapContainer.Position) / _zoom;
+            string? nearestId = null;
+            float nearestDist = 50f;
+            foreach (var (id, icon) in _nodeIcons)
             {
-                _touchDragId = -1;
-                _touchDragging = false;
+                float dist = icon.Position.DistanceTo(localPos);
+                if (dist < nearestDist)
+                {
+                    nearestDist = dist;
+                    nearestId = id;
+                }
             }
+            if (nearestId != null)
+            {
+                OnNodeSelected(nearestId);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            // Start pan
+            _touchDragId = touchEvent.Index;
+            _touchDragStart = touchEvent.Position;
+            _containerStartPos = _mapContainer.Position;
+            _touchDragging = true;
+        }
+        else if (@event is InputEventScreenTouch touchRelease && !touchRelease.Pressed && touchRelease.Index == _touchDragId)
+        {
+            _touchDragId = -1;
+            _touchDragging = false;
         }
         else if (@event is InputEventScreenDrag drag && drag.Index == _touchDragId && _touchDragging)
         {

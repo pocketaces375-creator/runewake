@@ -102,8 +102,20 @@ public partial class MapNodeIcon : Button
 
         // Hide lock group initially (will be shown by ApplyLockState)
         lockGroup.Hide();
+    }
 
-        Pressed += () => EmitSignal(SignalName.NodeSelected, NodeId);
+    /// <summary>
+    /// Suppress button-level click — map container handles all taps
+    /// to keep touch targets correct at any zoom level.
+    /// </summary>
+    public override void _GuiInput(InputEvent @event)
+    {
+        // Block button clicks (handled by MapScene._Input at container level)
+        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        {
+            GetViewport().SetInputAsHandled();
+            return;
+        }
     }
 
     /// <summary>
