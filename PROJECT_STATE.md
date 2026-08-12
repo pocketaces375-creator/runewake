@@ -11,6 +11,7 @@ CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Re
 
 REMAINING AGENT ITEMS:
   - [IN PROGRESS] Build client/smoke_test.sh — exported Linux build starts without crashing (TECH_DEBT.md priority: High)
+    Evidence: screenshot analysis confirmed hand area + board lanes visible at 1280x597
 
 REMAINING HUMAN-ACTION ITEMS:
   P7-H1 — Install APK on physical device, play through full campaign loop, verify r1_n02 unlocks after r1_n01 clear
