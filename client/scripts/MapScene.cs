@@ -15,7 +15,7 @@ public partial class MapScene : Control
 {
     // Map container (the pannable/zoomable surface)
     private Node2D _mapContainer;
-    private TextureRect _mapBackground;
+    private Sprite2D _mapBackground;
     private ColorRect _background;
 
     // Node info panel
@@ -152,13 +152,13 @@ public partial class MapScene : Control
         AddChild(_mapContainer);
 
         // Map background texture (parchment-style map with towns and terrain)
-        _mapBackground = new TextureRect();
+        _mapBackground = new Sprite2D();
         if (ResourceLoader.Exists("res://content/map/map_background.png"))
         {
             var tex = ResourceLoader.Load<Texture2D>("res://content/map/map_background.png");
             _mapBackground.Texture = tex;
-            _mapBackground.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-            _mapBackground.MouseFilter = MouseFilterEnum.Ignore;
+            // Set moderate transparency so it doesn't wash out the nodes
+            _mapBackground.Modulate = new Color(1, 1, 1, 0.35f);
         }
         _mapContainer.AddChild(_mapBackground);
 
@@ -277,6 +277,13 @@ public partial class MapScene : Control
         float mapHeight = maxY - minY + 200;
         float centerX = (minX + maxX) / 2f;
         float centerY = (minY + maxY) / 2f;
+
+        // Position background sprite at the map center
+        _mapBackground.Position = new Vector2(0, 0);
+        // Scale background to cover the node area with some margin
+        float bgScaleX = mapWidth / 1000f;
+        float bgScaleY = mapHeight / 800f;
+        _mapBackground.Scale = new Vector2(bgScaleX * 1.3f, bgScaleY * 1.3f);
 
         // Create node icons
         foreach (var mapNode in _region.Nodes)
@@ -502,9 +509,11 @@ public partial class MapScene : Control
         // Convert screen coords to map container coords and find nearest node
         if (@event is InputEventMouseButton click && click.Pressed && click.ButtonIndex == MouseButton.Left)
         {
-            if (_infoPanel.GetGlobalRect().HasPoint(click.Position))
+            // Don't intercept clicks on UI buttons (top bar, sidebar, info panel)
+            if (click.Position.Y < Size.Y * 0.06f || click.Position.X < Size.X * 0.14f ||
+                _infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(click.Position))
             {
-                base._Input(@event); // let info panel handle its own clicks
+                base._Input(@event); // let buttons handle their own clicks
                 return;
             }
             // Convert screen position to map container coordinates
@@ -571,7 +580,9 @@ public partial class MapScene : Control
         // Tap detection (same container-level hit testing as mouse clicks)
         if (@event is InputEventScreenTouch touchEvent && touchEvent.Pressed && _touchDragId == -1)
         {
-            if (_infoPanel.GetGlobalRect().HasPoint(touchEvent.Position))
+            // Don't intercept touches on UI buttons
+            if (touchEvent.Position.Y < Size.Y * 0.06f || touchEvent.Position.X < Size.X * 0.14f ||
+                _infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(touchEvent.Position))
             {
                 base._Input(@event);
                 return;
