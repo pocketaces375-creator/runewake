@@ -157,7 +157,7 @@ public partial class MapScene : Control
         {
             var tex = ResourceLoader.Load<Texture2D>("res://content/map/map_background.png");
             _mapBackground.Texture = tex;
-            _mapBackground.Modulate = new Color(1, 1, 1, 0.6f); // 60% opacity — visible but subtle
+            _mapBackground.Modulate = new Color(1, 1, 1, 0.85f); // 85% opacity — background should be visible
         }
         _mapContainer.AddChild(_mapBackground);
 

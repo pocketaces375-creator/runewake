@@ -187,25 +187,27 @@ public partial class MapNodeIcon : Button
     {
         if (locked)
         {
-            // Locked state: dark grey, padlock icon, no glow
-            _iconCircle.Modulate = new Color(0.4f, 0.4f, 0.4f, 0.8f);
-            _typeChar.Modulate = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            // Locked state: dimmed icon, strong dark overlay, padlock, very dim label
+            _iconCircle.Modulate = new Color(0.25f, 0.25f, 0.25f, 0.6f);
+            _typeChar.Modulate = new Color(0.4f, 0.4f, 0.4f, 0.3f);
             _lockOverlay.Show();
+            _lockOverlay.Color = new Color(0, 0, 0, 0.7f);
             ShowLockGroup();
             _clearMark.Hide();
             _glowBorder.Color = new Color(0, 0, 0, 0);
-            _nameLabel.Modulate = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+            _nameLabel.Modulate = new Color(0.4f, 0.38f, 0.35f, 0.5f);
         }
         else
         {
-            // Available state: full color, white glow border
+            // Available state: full saturated color, bright white glow, white type char
             _iconCircle.Modulate = new Color(1, 1, 1, 1);
             _typeChar.Modulate = new Color(1, 1, 1, 1);
             _lockOverlay.Hide();
             HideLockGroup();
             _clearMark.Hide();
-            _glowBorder.Color = new Color(1, 1, 1, 0.3f);
-            _nameLabel.Modulate = new Color(0.85f, 0.85f, 0.9f, 1);
+            _glowBorder.Color = new Color(1f, 0.85f, 0.3f, 0.4f); // gold glow
+            _glowBorder.Modulate = new Color(1, 1, 1, 1);
+            _nameLabel.Modulate = new Color(1, 1, 0.9f, 1); // bright white-gold text
         }
     }
 

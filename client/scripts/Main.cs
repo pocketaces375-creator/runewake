@@ -289,6 +289,20 @@ public partial class Main : Control
         AddChild(_diagButton);
 
         // Begin loading
+        // Check for --verify flag to enable layout verification gate
+        var cmdArgs = OS.GetCmdlineArgs();
+        if (cmdArgs != null)
+        {
+            foreach (var arg in cmdArgs)
+            {
+                if (arg == "--verify")
+                {
+                    CampaignContext.AutoCaptureScreenshot = true;
+                    GD.Print("[Main] Layout verification mode enabled (--verify flag)");
+                    break;
+                }
+            }
+        }
         Callable.From(LoadGameData).CallDeferred();
 
         // Store rune button reference for enabling after load
