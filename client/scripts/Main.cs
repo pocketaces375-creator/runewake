@@ -33,7 +33,7 @@ public partial class Main : Control
         {
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f,
-            Color = new Color(0.07f, 0.06f, 0.05f, 1f) // very dark brown
+            Color = new Color(0.07f, 0.06f, 0.05f, 1f)
         };
         AddChild(bg);
 
@@ -46,6 +46,43 @@ public partial class Main : Control
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(vignette);
+
+        // Decorative frame border (thin gold line around screen edge)
+        var frameTop = new ColorRect
+        {
+            AnchorLeft = 0.02f, AnchorRight = 0.98f,
+            AnchorTop = 0.01f, AnchorBottom = 0.012f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(frameTop);
+
+        var frameBottom = new ColorRect
+        {
+            AnchorLeft = 0.02f, AnchorRight = 0.98f,
+            AnchorTop = 0.988f, AnchorBottom = 0.99f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(frameBottom);
+
+        var frameLeft = new ColorRect
+        {
+            AnchorLeft = 0.01f, AnchorRight = 0.012f,
+            AnchorTop = 0.01f, AnchorBottom = 0.99f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.15f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(frameLeft);
+
+        var frameRight = new ColorRect
+        {
+            AnchorLeft = 0.988f, AnchorRight = 0.99f,
+            AnchorTop = 0.01f, AnchorBottom = 0.99f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.15f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(frameRight);
 
         // Decorative runic line at top
         var topLine = new ColorRect

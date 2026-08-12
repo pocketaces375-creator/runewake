@@ -8,8 +8,7 @@ namespace Runewake.Client;
 
 /// <summary>
 /// Campaign map screen — renders a node graph from a MapRegion JSON file.
-/// Uses CampaignContext.SaveManager for live lock/clear state from SQLite.
-/// "Go" button transitions to DuelScene with the encounter's config.
+/// Dark fantasy themed to match the title screen.
 /// </summary>
 public partial class MapScene : Control
 {
@@ -29,6 +28,11 @@ public partial class MapScene : Control
     private Button _backButton;
     private Label _shardLabel;
 
+    // Side buttons
+    private Button _settingsBtn;
+    private Button _runePageBtn;
+    private Button _forgeBtn;
+
     // Line drawing
     private LineDrawer _lineDrawer;
 
@@ -42,7 +46,7 @@ public partial class MapScene : Control
 
     // Zoom
     private float _zoom = 1.0f;
-    private const float MinZoom = 0.35f;
+    private const float MinZoom = 0.3f;
     private const float MaxZoom = 3.0f;
     private const float ZoomStep = 0.1f;
 
@@ -57,23 +61,21 @@ public partial class MapScene : Control
     public override void _Ready()
     {
         EnsureCampaignContext();
-        BuildUI();
+        BuildBackground();
+        BuildTopBar();
+        BuildSideButtons();
         BuildMap();
+        BuildInfoPanel();
         UpdateAllLockStates();
     }
 
     /// <summary>
     /// Ensure campaign data (encounters, save manager) is loaded.
-    /// In normal flow this is already done by the title screen; this guard
-    /// makes the map screen standalone-capable (e.g. for testing/export of the
-    /// scene directly) without double-initializing the save manager.
     /// </summary>
     private void EnsureCampaignContext()
     {
         if (!CampaignContext.SaveManager.IsLoaded)
-        {
             CampaignContext.SaveManager.Initialize();
-        }
 
         if (CampaignContext.EncounterIndex.Count == 0)
         {
@@ -82,32 +84,107 @@ public partial class MapScene : Control
         }
     }
 
-    private void BuildUI()
+    // ── Shared button styles ─────────────────────────────────────────────
+
+    private StyleBoxFlat MakeBtnNormal() => new()
     {
-        // Background
+        BgColor = new Color(0.15f, 0.12f, 0.08f, 1f),
+        BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+        BorderWidthLeft = 1, BorderWidthTop = 1,
+        BorderWidthRight = 1, BorderWidthBottom = 1,
+        CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+        CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+        ContentMarginLeft = 8, ContentMarginTop = 3,
+        ContentMarginRight = 8, ContentMarginBottom = 3
+    };
+
+    private StyleBoxFlat MakeBtnHover() => new()
+    {
+        BgColor = new Color(0.2f, 0.16f, 0.1f, 1f),
+        BorderColor = new Color(0.8f, 0.68f, 0.35f, 0.8f),
+        BorderWidthLeft = 1, BorderWidthTop = 1,
+        BorderWidthRight = 1, BorderWidthBottom = 1,
+        CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+        CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+        ContentMarginLeft = 8, ContentMarginTop = 3,
+        ContentMarginRight = 8, ContentMarginBottom = 3
+    };
+
+    private void StyleButton(Button btn, float fontSize = 12, bool goldText = true)
+    {
+        btn.AddThemeFontSizeOverride("font_size", fontSize);
+        var fc = goldText ? new Color(0.85f, 0.78f, 0.6f, 1f) : new Color(0.7f, 0.65f, 0.5f, 1f);
+        var fd = new Color(0.4f, 0.35f, 0.25f, 0.5f);
+        btn.AddThemeColorOverride("font_color", fc);
+        btn.AddThemeColorOverride("font_disabled_color", fd);
+        btn.AddThemeStyleboxOverride("normal", MakeBtnNormal());
+        btn.AddThemeStyleboxOverride("hover", MakeBtnHover());
+        btn.AddThemeStyleboxOverride("pressed", MakeBtnHover());
+    }
+
+    // ── Background ───────────────────────────────────────────────────────
+
+    private void BuildBackground()
+    {
+        // Deep warm brown background matching title screen
         _background = new ColorRect
         {
-            Color = new Color(0.08f, 0.08f, 0.12f),
+            Color = new Color(0.07f, 0.06f, 0.05f, 1f),
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f
         };
         AddChild(_background);
 
-        // Map container
+        // Vignette overlay
+        var vignette = new ColorRect
+        {
+            Color = new Color(0f, 0f, 0f, 0.3f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(vignette);
+
+        // Map container (pannable layer)
         _mapContainer = new Node2D();
         AddChild(_mapContainer);
 
-        // Line drawer
+        // Line drawer (edges between nodes)
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
+    }
 
-        // Back button (top-left)
+    // ── Top bar ──────────────────────────────────────────────────────────
+
+    private void BuildTopBar()
+    {
+        // Top bar background
+        var topBar = new ColorRect
+        {
+            Color = new Color(0.1f, 0.08f, 0.06f, 0.85f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 0.055f
+        };
+        AddChild(topBar);
+
+        // Bottom edge line for top bar
+        var barLine = new ColorRect
+        {
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.055f, AnchorBottom = 0.057f,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(barLine);
+
+        // Back button
         _backButton = new Button
         {
             Text = "< Title",
-            AnchorLeft = 0f, AnchorRight = 0.12f,
-            AnchorTop = 0f, AnchorBottom = 0.05f
+            AnchorLeft = 0.01f, AnchorRight = 0.12f,
+            AnchorTop = 0.002f, AnchorBottom = 0.053f
         };
+        StyleButton(_backButton, 11, goldText: true);
         _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
         AddChild(_backButton);
 
@@ -115,79 +192,54 @@ public partial class MapScene : Control
         _shardLabel = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Right,
-            AnchorLeft = 0.7f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 0.05f,
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorLeft = 0.7f, AnchorRight = 0.98f,
+            AnchorTop = 0.002f, AnchorBottom = 0.053f
         };
-        _shardLabel.AddThemeFontSizeOverride("font_size", 18);
+        _shardLabel.AddThemeFontSizeOverride("font_size", 14);
+        _shardLabel.Modulate = new Color(0.85f, 0.72f, 0.35f, 0.8f); // gold
         AddChild(_shardLabel);
+    }
 
-        // Settings button (bottom-left corner)
-        var settingsBtn = new Button
-        {
-            Text = "Settings",
-            AnchorLeft = 0f, AnchorRight = 0.14f,
-            AnchorTop = 0.93f, AnchorBottom = 1f
-        };
-        settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
-        AddChild(settingsBtn);
+    // ── Side buttons ─────────────────────────────────────────────────────
 
-        // Rune Page button (bottom-left, above settings)
-        var runePageBtn = new Button
-        {
-            Text = "Rune Page",
-            AnchorLeft = 0f, AnchorRight = 0.14f,
-            AnchorTop = 0.86f, AnchorBottom = 0.93f
-        };
-        runePageBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
-        AddChild(runePageBtn);
+    private void BuildSideButtons()
+    {
+        float btnW = 0.13f;
+        float xL = 0.01f;
 
-        // Forge button (bottom-left, above Rune Page)
-        var forgeBtn = new Button
+        _forgeBtn = new Button
         {
             Text = "Forge",
-            AnchorLeft = 0f, AnchorRight = 0.14f,
+            AnchorLeft = xL, AnchorRight = xL + btnW,
             AnchorTop = 0.79f, AnchorBottom = 0.86f
         };
-        forgeBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
-        AddChild(forgeBtn);
+        StyleButton(_forgeBtn, 11, goldText: false);
+        _forgeBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+        AddChild(_forgeBtn);
 
-        // Info panel
-        _infoPanel = new Panel();
-        _infoPanel.AnchorLeft = 0.1f;
-        _infoPanel.AnchorRight = 0.5f;
-        _infoPanel.AnchorTop = 0.7f;
-        _infoPanel.AnchorBottom = 0.95f;
-        AddChild(_infoPanel);
+        _runePageBtn = new Button
+        {
+            Text = "Rune Page",
+            AnchorLeft = xL, AnchorRight = xL + btnW,
+            AnchorTop = 0.86f, AnchorBottom = 0.93f
+        };
+        StyleButton(_runePageBtn, 11, goldText: false);
+        _runePageBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
+        AddChild(_runePageBtn);
 
-        var infoVbox = new VBoxContainer();
-        infoVbox.AnchorLeft = 0f; infoVbox.AnchorRight = 1f;
-        infoVbox.AnchorTop = 0f; infoVbox.AnchorBottom = 1f;
-        _infoPanel.AddChild(infoVbox);
-
-        _infoName = new Label();
-        _infoName.AddThemeFontSizeOverride("font_size", 22);
-        infoVbox.AddChild(_infoName);
-
-        _infoType = new Label { Modulate = new Color(0.6f, 0.6f, 0.7f) };
-        infoVbox.AddChild(_infoType);
-
-        _infoRewards = new Label { Modulate = new Color(0.5f, 0.6f, 0.5f) };
-        infoVbox.AddChild(_infoRewards);
-
-        var buttonRow = new HBoxContainer();
-        infoVbox.AddChild(buttonRow);
-
-        _infoGoButton = new Button { Text = "Go" };
-        _infoGoButton.Pressed += OnGoButtonPressed;
-        buttonRow.AddChild(_infoGoButton);
-
-        _infoCloseButton = new Button { Text = "Close" };
-        _infoCloseButton.Pressed += () => _infoPanel.Hide();
-        buttonRow.AddChild(_infoCloseButton);
-
-        _infoPanel.Hide();
+        _settingsBtn = new Button
+        {
+            Text = "Settings",
+            AnchorLeft = xL, AnchorRight = xL + btnW,
+            AnchorTop = 0.93f, AnchorBottom = 1f
+        };
+        StyleButton(_settingsBtn, 11, goldText: false);
+        _settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        AddChild(_settingsBtn);
     }
+
+    // ── Map graph ────────────────────────────────────────────────────────
 
     private void BuildMap()
     {
@@ -208,8 +260,8 @@ public partial class MapScene : Control
             if (node.Position[1] > maxY) maxY = node.Position[1];
         }
 
-        float mapWidth = maxX - minX + 160;
-        float mapHeight = maxY - minY + 160;
+        float mapWidth = maxX - minX + 200;
+        float mapHeight = maxY - minY + 200;
         float centerX = (minX + maxX) / 2f;
         float centerY = (minY + maxY) / 2f;
 
@@ -218,7 +270,6 @@ public partial class MapScene : Control
         {
             var icon = iconScene.Instantiate<MapNodeIcon>();
 
-            // Determine display name
             string displayName;
             if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
                 displayName = enc.Name;
@@ -232,17 +283,16 @@ public partial class MapScene : Control
             icon.NodeSelected += OnNodeSelected;
             _mapContainer.AddChild(icon);
 
-            // Setup after AddChild so _Ready has run (child node refs are valid)
             icon.Setup(mapNode.Id, displayName, mapNode.Type.ToString(), locked: true);
             _nodeIcons[mapNode.Id] = icon;
         }
 
         _lineDrawer.SetNodes(_region.Nodes, centerX, centerY);
 
-        // Auto-frame: zoom to fit the whole map in the viewport with padding
+        // Auto-frame: zoom to fit
         Vector2 viewport = GetViewportRect().Size;
-        float fitZoomW = (viewport.X - 80f) / mapWidth;
-        float fitZoomH = (viewport.Y - 120f) / mapHeight;
+        float fitZoomW = (viewport.X - 100f) / mapWidth;
+        float fitZoomH = (viewport.Y - 140f) / mapHeight;
         _zoom = Mathf.Clamp(Mathf.Min(fitZoomW, fitZoomH), MinZoom, MaxZoom);
 
         _mapOffset = new Vector2(
@@ -253,6 +303,75 @@ public partial class MapScene : Control
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
     }
 
+    // ── Info panel ───────────────────────────────────────────────────────
+
+    private void BuildInfoPanel()
+    {
+        _infoPanel = new Panel();
+        _infoPanel.AnchorLeft = 0.05f;
+        _infoPanel.AnchorRight = 0.55f;
+        _infoPanel.AnchorTop = 0.65f;
+        _infoPanel.AnchorBottom = 0.95f;
+
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.1f, 0.07f, 0.95f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 10, ContentMarginTop = 8,
+            ContentMarginRight = 10, ContentMarginBottom = 8
+        };
+        _infoPanel.AddThemeStyleboxOverride("panel", panelStyle);
+        AddChild(_infoPanel);
+
+        var infoVbox = new VBoxContainer();
+        infoVbox.AnchorLeft = 0f; infoVbox.AnchorRight = 1f;
+        infoVbox.AnchorTop = 0f; infoVbox.AnchorBottom = 1f;
+        _infoPanel.AddChild(infoVbox);
+
+        _infoName = new Label();
+        _infoName.AddThemeFontSizeOverride("font_size", 18);
+        _infoName.Modulate = new Color(0.9f, 0.82f, 0.55f, 1f); // gold
+        infoVbox.AddChild(_infoName);
+
+        _infoType = new Label();
+        _infoType.AddThemeFontSizeOverride("font_size", 13);
+        _infoType.Modulate = new Color(0.7f, 0.65f, 0.5f, 0.8f);
+        infoVbox.AddChild(_infoType);
+
+        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
+
+        _infoRewards = new Label();
+        _infoRewards.AddThemeFontSizeOverride("font_size", 12);
+        _infoRewards.Modulate = new Color(0.6f, 0.7f, 0.5f, 0.8f);
+        _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
+        infoVbox.AddChild(_infoRewards);
+
+        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+
+        var buttonRow = new HBoxContainer();
+        infoVbox.AddChild(buttonRow);
+
+        _infoGoButton = new Button { Text = "Go" };
+        StyleButton(_infoGoButton, 14);
+        _infoGoButton.Pressed += OnGoButtonPressed;
+        buttonRow.AddChild(_infoGoButton);
+
+        buttonRow.AddChild(new Control { CustomMinimumSize = new Vector2(8, 0) });
+
+        _infoCloseButton = new Button { Text = "Close" };
+        StyleButton(_infoCloseButton, 12, goldText: false);
+        _infoCloseButton.Pressed += () => _infoPanel.Hide();
+        buttonRow.AddChild(_infoCloseButton);
+
+        _infoPanel.Hide();
+    }
+
+    // ── State updates ────────────────────────────────────────────────────
+
     private void UpdateAllLockStates()
     {
         if (_region == null) return;
@@ -262,14 +381,12 @@ public partial class MapScene : Control
         {
             if (!_nodeIcons.TryGetValue(mapNode.Id, out var icon)) continue;
 
-            // Mark cleared
             if (prog.IsNodeCleared(mapNode.Id))
             {
                 icon.SetCleared();
                 continue;
             }
 
-            // Check unlock conditions
             bool unlocked = IsNodeUnlocked(mapNode);
             icon.SetLocked(!unlocked);
         }
@@ -279,8 +396,6 @@ public partial class MapScene : Control
 
     private bool IsNodeUnlocked(MapNode node)
     {
-        // Delegate to the engine evaluator so the UI and the tests share one source of truth.
-        // Progression.ClearedNodes is the set of cleared node IDs.
         return MapUnlockEvaluator.IsUnlocked(node, CampaignContext.Progression.ClearedNodes);
     }
 
@@ -305,11 +420,9 @@ public partial class MapScene : Control
             _ => mapNode.Type.ToString()
         };
 
-        string encounterStr = mapNode.Encounter ?? "—";
         string displayName;
         if (mapNode.Type == MapNodeType.Dig)
         {
-            // Show dig site name from the first dig site in the node's encounter field (or default label)
             if (mapNode.Encounter != null && CampaignContext.DigSiteIndex.TryGetValue(mapNode.Encounter, out var digSite))
                 displayName = digSite.Name;
             else
@@ -318,7 +431,7 @@ public partial class MapScene : Control
         else if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
             displayName = enc.Name;
         else
-            displayName = encounterStr.Replace("_", " ");
+            displayName = (mapNode.Encounter ?? mapNode.Type.ToString()).Replace("_", " ");
 
         _infoName.Text = displayName;
         _infoType.Text = typeStr;
@@ -328,7 +441,6 @@ public partial class MapScene : Control
             : "None";
         _infoRewards.Text = rewardsStr;
 
-        // Go button: disabled if node is cleared or locked
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
         bool isLocked = !IsNodeUnlocked(mapNode);
         bool isDig = mapNode.Type == MapNodeType.Dig;
@@ -350,7 +462,6 @@ public partial class MapScene : Control
 
         if (mapNode.Type == MapNodeType.Dig)
         {
-            // Navigate to dig scene
             CampaignContext.CurrentDigSiteId = mapNode.Encounter ?? "region_01_dig";
             GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
             return;
@@ -365,7 +476,6 @@ public partial class MapScene : Control
         }
 
         CampaignContext.CurrentEncounter = encounterDef;
-
         GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }
 
@@ -414,7 +524,6 @@ public partial class MapScene : Control
         }
 
         // ——— Touch input ———
-        // Single-finger drag to pan
         if (@event is InputEventScreenTouch touch)
         {
             if (touch.Pressed && _touchDragId == -1)

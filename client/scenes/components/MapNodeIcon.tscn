@@ -5,24 +5,32 @@
 [sub_resource type="StyleBoxEmpty" id="empty_style"]
 
 [sub_resource type="StyleBoxFlat" id="hover_style"]
-bg_color = Color(0.2, 0.2, 0.25, 1)
-border_color = Color(0.8, 0.8, 1, 1)
+bg_color = Color(0.2, 0.18, 0.12, 1)
+border_color = Color(0.8, 0.7, 0.35, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
 
 [sub_resource type="StyleBoxFlat" id="pressed_style"]
-bg_color = Color(0.15, 0.15, 0.2, 1)
-border_color = Color(1, 1, 1, 1)
+bg_color = Color(0.15, 0.13, 0.08, 1)
+border_color = Color(1, 0.9, 0.5, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
 
 [node name="MapNodeIcon" type="Button"]
 anchors_preset = 0
-custom_minimum_size = Vector2(96, 96)
+custom_minimum_size = Vector2(110, 120)
 script = ExtResource("1_mni")
 theme_override_styles/normal = SubResource("empty_style")
 theme_override_styles/hover = SubResource("hover_style")
@@ -30,71 +38,73 @@ theme_override_styles/pressed = SubResource("pressed_style")
 
 [node name="IconCircle" type="ColorRect" parent="."]
 anchors_preset = 0
-offset_left = 16
-offset_top = 10
-offset_right = 80
-offset_bottom = 74
+offset_left = 19
+offset_top = 8
+offset_right = 91
+offset_bottom = 80
 color = Color(0.3, 0.6, 0.3, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_left = 32
-corner_radius_bottom_right = 32
+corner_radius_top_left = 36
+corner_radius_top_right = 36
+corner_radius_bottom_left = 36
+corner_radius_bottom_right = 36
 
 [node name="TypeChar" type="Label" parent="."]
 anchors_preset = 0
-offset_left = 16
-offset_top = 10
-offset_right = 80
-offset_bottom = 74
+offset_left = 19
+offset_top = 8
+offset_right = 91
+offset_bottom = 80
 horizontal_alignment = 1
 vertical_alignment = 1
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 28
 text = "?"
 
 [node name="GlowBorder" type="ColorRect" parent="."]
 anchors_preset = 0
-offset_left = 14
-offset_top = 8
-offset_right = 82
-offset_bottom = 76
+offset_left = 17
+offset_top = 6
+offset_right = 93
+offset_bottom = 82
 color = Color(1, 1, 1, 0)
-corner_radius_top_left = 34
-corner_radius_top_right = 34
-corner_radius_bottom_left = 34
-corner_radius_bottom_right = 34
+corner_radius_top_left = 38
+corner_radius_top_right = 38
+corner_radius_bottom_left = 38
+corner_radius_bottom_right = 38
 
 [node name="NameLabel" type="Label" parent="."]
 anchors_preset = 0
 offset_left = 0
-offset_top = 78
-offset_right = 96
-offset_bottom = 96
+offset_top = 84
+offset_right = 110
+offset_bottom = 108
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.85, 0.82, 0.75, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_constants/line_spacing = 0
 text = ""
+autowrap_mode = 2
 
 [node name="LockOverlay" type="ColorRect" parent="."]
 anchors_preset = 0
-offset_left = 16
-offset_top = 10
-offset_right = 80
-offset_bottom = 74
-color = Color(0, 0, 0, 0.55)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_left = 32
-corner_radius_bottom_right = 32
+offset_left = 19
+offset_top = 8
+offset_right = 91
+offset_bottom = 80
+color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 36
+corner_radius_top_right = 36
+corner_radius_bottom_left = 36
+corner_radius_bottom_right = 36
 mouse_filter = 2
 
 [node name="ClearMark" type="Label" parent="."]
 anchors_preset = 0
-offset_left = 16
-offset_top = 10
-offset_right = 80
-offset_bottom = 74
+offset_left = 19
+offset_top = 8
+offset_right = 91
+offset_bottom = 80
 horizontal_alignment = 2
 vertical_alignment = 0
 theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
