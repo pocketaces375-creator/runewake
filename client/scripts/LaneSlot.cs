@@ -122,7 +122,7 @@ public partial class LaneSlot : PanelContainer
                 var tr = new TextureRect();
                 tr.Texture = texture;
                 tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                tr.ExpandMode = TextureRect.ExpandModeEnum.Fit;
+                tr.ExpandMode = TextureRect.ExpandModeEnum.KeepSize;
                 tr.AnchorRight = 1.0f;
                 tr.AnchorBottom = 1.0f;
                 tr.MouseFilter = MouseFilterEnum.Ignore;

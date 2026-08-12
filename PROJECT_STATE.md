@@ -1,13 +1,13 @@
 CURRENT PHASE: P7
-LAST COMPLETED TICKET: Art asset integration (15 cards, 5 strata) — APK SHA-256 2c18db007a188c324f45751f13cc8241adb4d619927b7b83f1628200f429581d
+LAST COMPLETED TICKET: Art direction — card art fills face with text overlays, atmospheric title screen — APK SHA-256 6a92d0db6c1d203d22f45d450fea7a2ec0e7e005d383903b234864a5426e0699
 
 KNOWN TEST COUNTS (last confirmed):
   C#: 463/463
   Python: 221/221 (all passing)
 
-PHASE 7 STATUS: All agent-executable feature tickets complete. Python test fixes complete. Art integration complete. Smoke test script — FINAL REMAINING AGENT ITEM.
+PHASE 7 STATUS: All agent-executable feature tickets complete. Python test fixes complete. Art integration complete. Art direction polish complete. Smoke test script — FINAL REMAINING AGENT ITEM.
 
-CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete. Store listings complete. Crash reporting complete. Pre-launch validation complete. Dev menu removed. Art assets integrated (15 cards across all 5 strata).
+CAMPAIGN STATUS: Complete through P5-06. Region 1 full content in place. Lost Relic minting working. Save/load persistence complete. Pipeline stages 1-11 complete. Tutorial complete. Supabase sync complete. Telemetry + settings complete. Store listings complete. Crash reporting complete. Dev menu removed. Art assets integrated (15 cards across all 5 strata). Card art fills face with overlays. Atmospheric title screen.
 
 REMAINING AGENT ITEMS:
   - [FINAL] Write, run, and commit client/smoke_test.sh — exported Linux build starts without crashing, pixel validation passes

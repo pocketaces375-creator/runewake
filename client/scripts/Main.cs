@@ -28,19 +28,76 @@ public partial class Main : Control
     {
         AssertProjectSettings();
 
-        // Title label
+        // ——— Atmospheric background ———
+        var bg = new ColorRect
+        {
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            Color = new Color(0.07f, 0.06f, 0.05f, 1f) // very dark brown
+        };
+        AddChild(bg);
+
+        // Subtle gradient overlay (darker edges)
+        var vignette = new ColorRect
+        {
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            Color = new Color(0f, 0f, 0f, 0.4f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(vignette);
+
+        // Decorative runic line at top
+        var topLine = new ColorRect
+        {
+            AnchorLeft = 0.3f, AnchorRight = 0.7f,
+            AnchorTop = 0.25f, AnchorBottom = 0.255f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.3f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(topLine);
+
+        // Decorative runic line at bottom
+        var bottomLine = new ColorRect
+        {
+            AnchorLeft = 0.3f, AnchorRight = 0.7f,
+            AnchorTop = 0.65f, AnchorBottom = 0.655f,
+            Color = new Color(0.6f, 0.5f, 0.25f, 0.3f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(bottomLine);
+
+        // ——— Title ———
         var title = new Label
         {
             Text = "RUNEWAKE",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0f,
-            AnchorRight = 1f,
-            AnchorTop = 0f,
-            AnchorBottom = 0.6f
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.28f, AnchorBottom = 0.50f,
+            AutoTranslate = false
         };
         title.AddThemeFontSizeOverride("font_size", 64);
+        title.Modulate = new Color(0.85f, 0.72f, 0.35f, 1f); // gold
         AddChild(title);
+
+        // Title glow (duplicate behind, slightly larger, transparent)
+        var titleGlow = new Label
+        {
+            Text = "RUNEWAKE",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.27f, AnchorBottom = 0.51f,
+            AutoTranslate = false
+        };
+        titleGlow.AddThemeFontSizeOverride("font_size", 66);
+        titleGlow.Modulate = new Color(0.6f, 0.5f, 0.2f, 0.2f);
+        AddChild(titleGlow);
+        // Move glow behind title
+        RemoveChild(titleGlow);
+        AddChild(titleGlow);
+        MoveChild(titleGlow, 0);
 
         // Subtitle
         var subtitle = new Label
@@ -48,14 +105,12 @@ public partial class Main : Control
             Text = "The Buried Age",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0f,
-            AnchorRight = 1f,
-            AnchorTop = 0.45f,
-            AnchorBottom = 0.55f,
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.50f, AnchorBottom = 0.62f,
             AutoTranslate = false
         };
-        subtitle.AddThemeFontSizeOverride("font_size", 24);
-        subtitle.Modulate = new Color(0.7f, 0.7f, 0.8f);
+        subtitle.AddThemeFontSizeOverride("font_size", 20);
+        subtitle.Modulate = new Color(0.6f, 0.55f, 0.4f, 0.7f);
         AddChild(subtitle);
 
         // Status label (loading feedback)
@@ -64,25 +119,64 @@ public partial class Main : Control
             Text = "",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0f,
-            AnchorRight = 1f,
-            AnchorTop = 0.6f,
-            AnchorBottom = 0.7f
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.66f, AnchorBottom = 0.72f
         };
-        _statusLabel.AddThemeFontSizeOverride("font_size", 16);
-        _statusLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
+        _statusLabel.AddThemeFontSizeOverride("font_size", 14);
+        _statusLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.6f);
         AddChild(_statusLabel);
+
+        // -- Styled buttons with shared StyleBox --
+
+        // Build a shared button style
+        var btnNormal = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.12f, 0.08f, 1f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 12, ContentMarginTop = 4,
+            ContentMarginRight = 12, ContentMarginBottom = 4
+        };
+        var btnHover = new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.16f, 0.1f, 1f),
+            BorderColor = new Color(0.8f, 0.68f, 0.35f, 0.8f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 12, ContentMarginTop = 4,
+            ContentMarginRight = 12, ContentMarginBottom = 4
+        };
+        var btnDisabled = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.06f, 0.04f, 1f),
+            BorderColor = new Color(0.3f, 0.25f, 0.15f, 0.3f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 12, ContentMarginTop = 4,
+            ContentMarginRight = 12, ContentMarginBottom = 4
+        };
 
         // Start Campaign button
         _startButton = new Button
         {
             Text = "Start Campaign",
-            AnchorLeft = 0.35f,
-            AnchorRight = 0.65f,
-            AnchorTop = 0.72f,
-            AnchorBottom = 0.80f,
+            AnchorLeft = 0.32f, AnchorRight = 0.68f,
+            AnchorTop = 0.74f, AnchorBottom = 0.80f,
             Disabled = true
         };
+        _startButton.AddThemeFontSizeOverride("font_size", 15);
+        _startButton.AddThemeColorOverride("font_color", new Color(0.85f, 0.78f, 0.6f, 1f));
+        _startButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+        _startButton.AddThemeStyleboxOverride("normal", btnNormal);
+        _startButton.AddThemeStyleboxOverride("hover", btnHover);
+        _startButton.AddThemeStyleboxOverride("disabled", btnDisabled);
         _startButton.Pressed += OnStartCampaign;
         AddChild(_startButton);
 
@@ -90,12 +184,16 @@ public partial class Main : Control
         var runeButton = new Button
         {
             Text = "Rune Page",
-            AnchorLeft = 0.35f,
-            AnchorRight = 0.65f,
-            AnchorTop = 0.82f,
-            AnchorBottom = 0.87f,
+            AnchorLeft = 0.32f, AnchorRight = 0.68f,
+            AnchorTop = 0.82f, AnchorBottom = 0.88f,
             Disabled = true
         };
+        runeButton.AddThemeFontSizeOverride("font_size", 13);
+        runeButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
+        runeButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+        runeButton.AddThemeStyleboxOverride("normal", btnNormal);
+        runeButton.AddThemeStyleboxOverride("hover", btnHover);
+        runeButton.AddThemeStyleboxOverride("disabled", btnDisabled);
         runeButton.Pressed += OnOpenRunePage;
         AddChild(runeButton);
         _runeButton = runeButton;
@@ -104,12 +202,16 @@ public partial class Main : Control
         var forgeButton = new Button
         {
             Text = "Rune Forge",
-            AnchorLeft = 0.35f,
-            AnchorRight = 0.65f,
-            AnchorTop = 0.88f,
-            AnchorBottom = 0.93f,
+            AnchorLeft = 0.32f, AnchorRight = 0.68f,
+            AnchorTop = 0.89f, AnchorBottom = 0.95f,
             Disabled = true
         };
+        forgeButton.AddThemeFontSizeOverride("font_size", 13);
+        forgeButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
+        forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+        forgeButton.AddThemeStyleboxOverride("normal", btnNormal);
+        forgeButton.AddThemeStyleboxOverride("hover", btnHover);
+        forgeButton.AddThemeStyleboxOverride("disabled", btnDisabled);
         forgeButton.Pressed += OnOpenForge;
         AddChild(forgeButton);
         _forgeButton = forgeButton;
@@ -120,10 +222,8 @@ public partial class Main : Control
             Text = "",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0f,
-            AnchorRight = 1f,
-            AnchorTop = 0.935f,
-            AnchorBottom = 0.97f,
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0.935f, AnchorBottom = 0.97f,
             Visible = false,
             AutowrapMode = TextServer.AutowrapMode.Word
         };
@@ -137,6 +237,17 @@ public partial class Main : Control
             Position = new Vector2(8, 8),
             Size = new Vector2(60, 32)
         };
+        _diagButton.AddThemeFontSizeOverride("font_size", 10);
+        _diagButton.AddThemeColorOverride("font_color", new Color(0.5f, 0.45f, 0.35f, 0.6f));
+        _diagButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.1f, 0.08f, 0.06f, 0.5f),
+            BorderColor = new Color(0.3f, 0.25f, 0.15f, 0.3f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
+        });
         _diagButton.Pressed += OnDiagnosticsPressed;
         AddChild(_diagButton);
 
