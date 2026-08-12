@@ -140,21 +140,6 @@ public partial class Main : Control
         _diagButton.Pressed += OnDiagnosticsPressed;
         AddChild(_diagButton);
 
-        // DEV BUTTON — REMOVE BEFORE RELEASE
-        var devButton = new Button
-        {
-            Text = "DEV",
-            Position = new Vector2(72, 8),
-            Size = new Vector2(60, 32),
-            Modulate = new Color(0.4f, 0.4f, 0.4f)
-        };
-        devButton.Pressed += () =>
-        {
-            var devMenu = new DevMenu();
-            AddChild(devMenu);
-        };
-        AddChild(devButton);
-
         // Begin loading
         Callable.From(LoadGameData).CallDeferred();
 
