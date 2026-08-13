@@ -13,7 +13,6 @@ public partial class HandCard : PanelContainer
 {
     private Label _cardName;
     private Label _costLabel;
-    private Label _statsLabel;
     private TextureRect _artRect;
     private PanelContainer _badgePanel;
     private ColorRect _desatOverlay;
@@ -40,12 +39,10 @@ public partial class HandCard : PanelContainer
         _cardName = GetNode<Label>("CardName");
         _artRect = GetNode<TextureRect>("VBox/ArtTexture");
         _noArtLabel = GetNode<Label>("VBox/NoArtLabel");
-        _statsLabel = GetNode<Label>("BottomRow/StatsLabel");
         _costLabel = GetNode<Label>("CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
         _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-        ApplyBodyFont(_statsLabel, FontSmall);
         ApplyBodyFont(_costLabel, FontLargeBody);
 
         _badgePanel = GetNode<PanelContainer>("CostBadge");
@@ -108,10 +105,6 @@ public partial class HandCard : PanelContainer
         var def = CardRegistry.Get(cardId);
         CardAttack = def?.Attack;
         CardVigor = def?.Vigor;
-
-        bool isCreature = CardAttack.HasValue && CardVigor.HasValue;
-        _statsLabel.Text = isCreature ? $"{CardAttack}/{CardVigor}" : "";
-        _statsLabel.Visible = false; // hide old text — corner badges used instead
 
         // Strata border
         var strataColor = StrataColor(strata);
@@ -196,10 +189,8 @@ public partial class HandCard : PanelContainer
         // Scale fonts proportionally from the base 168px design
         float scale = targetHeight / 168f;
         int nameSize = Mathf.Max(11, Mathf.RoundToInt(13 * scale));
-        int statSize = Mathf.Max(16, Mathf.RoundToInt(17 * scale));
         int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
-        _statsLabel.AddThemeFontSizeOverride("font_size", statSize);
         _costLabel.AddThemeFontSizeOverride("font_size", costSize);
 
         // Hover pivot: bottom-center so card enlarges upward, not off-screen bottom

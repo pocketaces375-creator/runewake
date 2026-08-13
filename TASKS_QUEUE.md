@@ -9,7 +9,7 @@
 
 ## Queue
 
-- [ ] TASK-B — Hand-card green center bar. If already done via relay instructions, mark [x] with a note and move on. Otherwise: identify what the bar's number is (NAME it in your DONE line), move attack to bottom-left badge / vigor to bottom-right badge matching board cards, delete the bar. If the number is neither attack nor vigor and appears in no spec: do not restyle, describe and stop.
+- [x] TASK-B — Hand-card green center bar. If already done via relay instructions, mark [x] with a note and move on. Otherwise: identify what the bar's number is (NAME it in your DONE line), move attack to bottom-left badge / vigor to bottom-right badge matching board cards, delete the bar. If the number is neither attack nor vigor and appears in no spec: do not restyle, describe and stop.
   Acceptance: harness capture committed, bar gone, badges visible in the PNG.
 
 - [ ] TASK-R1 — Turn the pixel gate green. FIX-2/3 (playable-dim root cause, sizing, badges) are done per HERMES_STATUS, so the gate's 25 failures should now mostly clear. Run harness + gate. Fix any REMAINING legitimate failures (e.g., name-strip contrast on placeholder cards). If a gate threshold is wrong rather than the game (e.g., unplayable cards at 30% desaturation legitimately read darker), tune the threshold and justify the number in your DONE line.

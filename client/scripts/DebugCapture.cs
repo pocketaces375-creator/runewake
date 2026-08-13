@@ -31,6 +31,16 @@ public partial class DebugCapture : Node
     {
         GD.Print("[DebugCapture] _Ready called");
         var args = OS.GetCmdlineArgs();
+        // Godot 4.3: args after "--" separator are user args, not visible via GetCmdlineArgs.
+        // Merge both sources so --capture=duel_test works with or without the separator.
+        var userArgs = OS.GetCmdlineUserArgs();
+        if (userArgs != null && userArgs.Length > 0)
+        {
+            var combined = new string[args.Length + userArgs.Length];
+            System.Array.Copy(args, combined, args.Length);
+            System.Array.Copy(userArgs, 0, combined, args.Length, userArgs.Length);
+            args = combined;
+        }
         GD.Print($"[DebugCapture] Cmdline args: {string.Join(", ", args)}");
         foreach (var arg in args)
         {

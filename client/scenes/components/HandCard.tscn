@@ -98,28 +98,6 @@ max_lines_visible = 1
 clip_text = true
 mouse_filter = 2
 
-[node name="BottomRow" type="HBoxContainer" parent="."]
-anchors_preset = 0
-anchor_left = 0.04
-anchor_top = 0.86
-anchor_right = 0.96
-anchor_bottom = 0.98
-size_flags_horizontal = 3
-size_flags_vertical = 0
-
-[node name="BottomSpacer" type="Control" parent="BottomRow"]
-size_flags_horizontal = 3
-size_flags_vertical = 0
-mouse_filter = 2
-
-[node name="StatsLabel" type="Label" parent="BottomRow"]
-size_flags_horizontal = 0
-size_flags_vertical = 0
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
-text = ""
-mouse_filter = 2
-
 [node name="CostBadge" type="PanelContainer" parent="."]
 anchors_preset = 12
 anchor_left = 0.0

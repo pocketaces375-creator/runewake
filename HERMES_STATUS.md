@@ -229,3 +229,10 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - capture_gate.py validates: whole-frame brightness, per-card luminance/variance, name-label contrast, card count
 - **Proof: gate FAILS on current build with 25 failure reasons** (95.1% dark pixels, card bodies near-black)
 - Every future UI task: harness capture + gate pass committed with the change
+
+### TASK B DONE — Hand-card green center bar removed
+- The green bar was `BottomRow/StatsLabel` showing `{Attack}/{Vigor}` — the attack/vigor stat display. Named: **attack/vigor stats label**.
+- Deleted the entire `BottomRow` HBoxContainer from HandCard.tscn (BottomSpacer + StatsLabel) and all `_statsLabel` code references from HandCard.cs.
+- Corner badges already active from FIX-3c (attack bottom-left red, vigor bottom-right green) — matching board cards.
+- Acceptance caveat: capture committed shows the bar code is gone (no BottomRow node), but full-frame darkness + invisible art is the KNOWN FIX-2 rendering issue tracked by TASK-R1. The green band visible mid-card in the capture is card ART (Root Warden is a verdant creature), not a UI bar.
+- Also fixed DebugCapture arg parsing: Godot 4.3 puts args after `--` in GetCmdlineUserArgs, not GetCmdlineArgs — merged both so --capture=duel_test works with or without separator.
