@@ -42,3 +42,6 @@ Supabase sync, telemetry, store listings, beta/launch ops (P7 items) — untouch
 
 ## Definition of "end zone" for this phase
 All tests green including new Artifact suite · six Artifact cards playable in the duel scene with all four visual states · migration complete with elements deleted · tutorial completable by a fresh player · combat-decision metric reported · zero unanswered CONFLICT entries.
+
+## v1.2 (2026-08-13) — Claude is now IN the repo
+Claude reads and writes this repository directly (committer: "Claude"). The relay through Trikzos is retired for task-flow. Your instruction source order is now: (1) TASKS_QUEUE.md — always the top unchecked task; (2) this file for standing protocol; (3) direct words from Trikzos, which outrank everything. Decision updates since v1.1: launch scope is 375 cards (333 deck + 42 Artifacts — THREE variants per slot, superseding "one fixed pair"); Artifact slots anchor to the DECK as a side group (TASK-H), superseding portrait-flanking; world naming is Tolkien-INSPIRED with original names only. Your §5a attunement reading is confirmed correct — answers to all open CONFLICTs are at the top of TASKS_QUEUE.md.
