@@ -219,6 +219,9 @@ Proceeding to G1: deploy key for Claude.
 Repo SSH URL: git@github.com:pocketaces375-creator/runewake.git
 Key pair deleted from disk.
 
+### TASK G2 DONE — Deploy key rotated
+G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key only, held by Claude).
+
 ### TASK V DONE — Capture harness + pixel gate
 - DebugCapture autoload: sets up deterministic test state (seed=42, 4 hand cards, 30-card deck, partial attune)
 - Runs under xvfb-run with OpenGL3 (llvmpipe) renderer — real GPU rendering
