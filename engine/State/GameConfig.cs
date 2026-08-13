@@ -22,4 +22,18 @@ public sealed class GameConfig
 
     /// <summary>Optional rune page for player 0 (human). Runes are injected at match start.</summary>
     public RunePage? RunePage { get; init; }
+
+    // ——— Artifact system ———
+
+    /// <summary>Artifact definition IDs for player 0 (array length = slot count, 2 for launch).</summary>
+    public string[] Player0ArtifactIds { get; init; } = Array.Empty<string>();
+
+    /// <summary>Artifact definition IDs for player 1.</summary>
+    public string[] Player1ArtifactIds { get; init; } = Array.Empty<string>();
+
+    /// <summary>Class name for player 0 (e.g. "warrior"). Empty = no Artifacts.</summary>
+    public string Player0Class { get; init; } = string.Empty;
+
+    /// <summary>Class name for player 1.</summary>
+    public string Player1Class { get; init; } = string.Empty;
 }

@@ -299,7 +299,12 @@ public partial class Main : Control
                 {
                     CampaignContext.AutoCaptureScreenshot = true;
                     GD.Print("[Main] Layout verification mode enabled (--verify flag)");
-                    break;
+                }
+                else if (arg == "--capture-map")
+                {
+                    CampaignContext.CaptureMapScreenshot = true;
+                    CampaignContext.AutoCaptureScreenshot = true;
+                    GD.Print("[Main] Map capture mode enabled (--capture-map flag)");
                 }
             }
         }
@@ -347,7 +352,7 @@ public partial class Main : Control
         _statusLabel.Text = "Loading content packs...";
 
         // Load card packs via Godot FileAccess (works in editor AND exported builds)
-        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn" };
+        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn", "tutorial_pack" };
         int loadedPacks = 0;
 
         foreach (var setId in setIds)
@@ -546,11 +551,28 @@ public partial class Main : Control
         // ═══ CAPTURE HOOK (gated): auto-navigate to duel screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
         {
-            Callable.From(() =>
+            if (CampaignContext.CaptureMapScreenshot)
             {
-                CampaignContext.CurrentEncounter = null;
-                GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-            }).CallDeferred();
+                // Navigate to map for map capture
+                Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
+            }
+            else
+            {
+                // Navigate to duel for duel capture
+                Callable.From(() =>
+                {
+                    // If DebugCapture set a test encounter, use it; otherwise null
+                    if (CampaignContext.CurrentEncounter == null || CampaignContext.CurrentEncounter.Id == "debug_test")
+                    {
+                        // Keep test encounter if set
+                    }
+                    else
+                    {
+                        CampaignContext.CurrentEncounter = null;
+                    }
+                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+                }).CallDeferred();
+            }
         }
     }
 

@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 
 TutorialController="*res://scripts/TutorialController.cs"
 CrashReporter="*res://scripts/CrashReporter.cs"
+DebugCapture="*res://scripts/DebugCapture.cs"
 
 [crash_reporter]
 
@@ -41,3 +42,4 @@ project/assembly_name="Runewake.Client"
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.075, 0.065, 0.05, 1)

@@ -48,7 +48,7 @@ public partial class MapScene : Control
 
     // Zoom
     private float _zoom = 1.0f;
-    private const float MinZoom = 0.3f;
+    private const float MinZoom = 0.6f;
     private const float MaxZoom = 3.0f;
     private const float ZoomStep = 0.1f;
 
@@ -69,6 +69,51 @@ public partial class MapScene : Control
         BuildMap();
         BuildInfoPanel();
         UpdateAllLockStates();
+
+        // ═══ MAP CAPTURE HOOK (--capture-map): select first unlocked node, capture, quit ═══
+        if (CampaignContext.CaptureMapScreenshot)
+        {
+            var capTimer = new Godot.Timer();
+            capTimer.OneShot = true;
+            capTimer.WaitTime = 1.2f; // let map + icons render
+            capTimer.Timeout += () =>
+            {
+                // Select the first unlocked, non-cleared node with an encounter
+                string? targetId = null;
+                if (_region != null)
+                {
+                    foreach (var mapNode in _region.Nodes)
+                    {
+                        if (CampaignContext.Progression.IsNodeCleared(mapNode.Id)) continue;
+                        if (!IsNodeUnlocked(mapNode)) continue;
+                        targetId = mapNode.Id;
+                        break;
+                    }
+                    // Fallback: first node at all (so the capture shows a selection)
+                    targetId ??= _region.Nodes.Count > 0 ? _region.Nodes[0].Id : null;
+                }
+
+                if (targetId != null)
+                    OnNodeSelected(targetId);
+
+                var snapTimer = new Godot.Timer();
+                snapTimer.OneShot = true;
+                snapTimer.WaitTime = 0.8f; // let info panel + selection ring render
+                snapTimer.Timeout += () =>
+                {
+                    var img = GetViewport().GetTexture().GetImage();
+                    if (img != null)
+                        img.SavePng("/home/fictive/runewake/screenshots/map_selected_v2.png");
+                    GD.Print("[MAPCAPTURE] map_selected_v2.png saved");
+                    GetTree().Quit(0);
+                };
+                AddChild(snapTimer);
+                snapTimer.Start();
+            };
+            AddChild(capTimer);
+            capTimer.Start();
+        }
+        // ═══ END MAP CAPTURE HOOK ═══
     }
 
     /// <summary>
@@ -133,7 +178,8 @@ public partial class MapScene : Control
         {
             Color = new Color(0.12f, 0.1f, 0.08f, 1f),
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 1f
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(_background);
 
@@ -175,7 +221,8 @@ public partial class MapScene : Control
         {
             Color = new Color(0.1f, 0.08f, 0.06f, 0.85f),
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 0.055f
+            AnchorTop = 0f, AnchorBottom = 0.055f,
+            MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(topBar);
 
@@ -422,7 +469,16 @@ public partial class MapScene : Control
     private void OnNodeSelected(string nodeId)
     {
         if (_region == null) return;
+
+        // Deselect previous node
+        if (_selectedNodeId != null && _nodeIcons.TryGetValue(_selectedNodeId, out var prevIcon))
+            prevIcon.SetSelected(false);
+
         _selectedNodeId = nodeId;
+
+        // Select new node
+        if (_nodeIcons.TryGetValue(nodeId, out var icon))
+            icon.SetSelected(true);
 
         var mapNode = _region.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (mapNode == null) return;
@@ -464,11 +520,23 @@ public partial class MapScene : Control
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
         bool isLocked = !IsNodeUnlocked(mapNode);
         bool isDig = mapNode.Type == MapNodeType.Dig;
+        bool isDuel = mapNode.Type is MapNodeType.Duel or MapNodeType.Elite or MapNodeType.Warden or MapNodeType.WardenBoss;
         bool hasEncounter = mapNode.Encounter != null && CampaignContext.EncounterIndex.ContainsKey(mapNode.Encounter);
+
         _infoGoButton.Disabled = isCleared || isLocked || (!isDig && !hasEncounter);
-        _infoGoButton.Text = isCleared ? "Done" : "Go";
+
+        if (isCleared && isDuel)
+            _infoGoButton.Text = "Done";
+        else if (isDig)
+            _infoGoButton.Text = "Dig";
+        else if (isDuel)
+            _infoGoButton.Text = "Challenge";
+        else
+            _infoGoButton.Text = "Go";
 
         _infoPanel.Show();
+
+        GD.Print($"[MAP] Selected node {nodeId} ({displayName}) — type={mapNode.Type} cleared={isCleared} locked={isLocked} button={_infoGoButton.Text}");
     }
 
     private void OnGoButtonPressed()
@@ -597,11 +665,25 @@ public partial class MapScene : Control
         // ToLocal already accounts for the Node2D's position and scale
         Vector2 localPos = _mapContainer.ToLocal(screenPos);
 
-        // Find nearest node within tap distance
+        // Find nearest node — use full icon rect (including label) for hit test,
+        // not just a radius from origin. This ensures the label area and edges
+        // are clickable on every tap.
         string? nearestId = null;
-        float nearestDist = 50f;
+        float nearestDist = 120f; // generous fallback radius for the nearest edge
         foreach (var (id, icon) in _nodeIcons)
         {
+            // Rect-based hit test: the icon's full button rect (140×150) in local space
+            var iconRect = new Rect2(icon.Position, icon.Size);
+            bool hit = iconRect.Grow(8).HasPoint(localPos);
+
+            if (hit)
+            {
+                nearestId = id;
+                nearestDist = 0; // direct hit, no distance tiebreaker needed
+                break;
+            }
+
+            // Fallback: distance to nearest edge (for very small icons at far zoom)
             float dist = icon.Position.DistanceTo(localPos);
             if (dist < nearestDist)
             {
@@ -609,6 +691,8 @@ public partial class MapScene : Control
                 nearestId = id;
             }
         }
+
+        GD.Print($"[MAP] Click at screen=({screenPos.X:F0},{screenPos.Y:F0}) local=({localPos.X:F0},{localPos.Y:F0}) nearest={nearestId ?? "none"} dist={nearestDist:F0}");
 
         if (nearestId != null)
         {

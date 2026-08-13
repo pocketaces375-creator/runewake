@@ -44,18 +44,12 @@ echo "  Running verification..." >&2
 echo "" >&2
 
 set +e
-verify_output=$("$VERIFY_BIN" --verify 2>&1)
+# Run with xvfb to provide a virtual display (needed for the Linux export binary)
+xvfb-run -a "$VERIFY_BIN" --verify 2>&1
 verify_exit=$?
 set -e
 
 echo "" >&2
-
-# Extract verification report from output
-if echo "$verify_output" | grep -q "\[VERIFY\]"; then
-  echo "=== Verification Report ===" >&2
-  echo "$verify_output" | grep "\[VERIFY\]" >&2
-  echo "" >&2
-fi
 
 if [ "$verify_exit" -eq 0 ]; then
   echo "=== RESULT: ✅ PASS ===" >&2

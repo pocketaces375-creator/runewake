@@ -38,6 +38,10 @@ public partial class DuelScene : Control
     private readonly List<LaneSlot> _playerSlots = new(5);
     private readonly List<HandCard> _handCards = new();
 
+    // Card sizes computed from viewport height (FIX 3a)
+    private float _handCardHeight = 180f;
+    private float _boardCardHeight = 200f;
+
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
     private BotController _bot = default!;
@@ -83,6 +87,9 @@ public partial class DuelScene : Control
         _handArea = GetNode<MarginContainer>("HandArea");
         _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
 
+        // Card sizing from viewport height — proportional to screen size
+        ScaleCardSizes(GetViewportRect().Size.Y);
+
         // Step 1: Typography — apply display font (Cinzel) to headers, body font (Inter) to data
         ApplyHeaderFont(_enemyName, FontTitle);
         ApplyHeaderFont(_turnLabel, FontSmall);
@@ -100,7 +107,9 @@ public partial class DuelScene : Control
         if (stoneTex != null)
         {
             boardBg.Texture = stoneTex;
-            boardBg.Modulate = new Color(0.38f, 0.36f, 0.33f, 1.0f); // darkened, desaturated — recedes behind cards
+            // Floor must be darker than lanes and cards so it recedes.
+            // Texture is baked dark (~39 lum); this keeps a warm cast without lifting it.
+            boardBg.Modulate = new Color(0.52f, 0.50f, 0.46f, 1.0f);
         }
         else
         {
@@ -225,7 +234,7 @@ public partial class DuelScene : Control
 
             var config = new GameConfig
             {
-                Seed = (ulong)GD.Randi(),
+                Seed = CampaignContext.DebugSeed ?? (ulong)GD.Randi(),
                 ContentVersion = 1,
                 Player0DeckIds = CampaignContext.PlayerDeckIds,
                 Player1DeckIds = encounter.Deck,
@@ -267,6 +276,10 @@ public partial class DuelScene : Control
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
 
+        // ═══ FIX 5: Reserve artifact slot + portrait layout space ═══
+        AddArtifactSlotFrames();
+        // ═══ END FIX 5 ═══
+
         // Start tutorial popup sequence if this is a tutorial encounter
         if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
         {
@@ -299,8 +312,96 @@ public partial class DuelScene : Control
                 {
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake/screenshots/board_art_v2.png");
-                    GD.Print("[CAPTURE] board_art_v2.png saved");
+                        img.SavePng("/home/fictive/runewake/artifacts/captures/duel_test.png");
+                    GD.Print("[CAPTURE] duel_test.png saved");
+
+                    // Write meta.json with screen-space card rects
+                    var meta = new System.Text.StringBuilder();
+                    meta.Append("{\n");
+
+                    // Capture hand card info from _handCards
+                    meta.Append("  \"expected_hand_card_count\": 4,\n");
+                    meta.Append("  \"expected_board_card_count\": 10,\n");
+                    meta.Append("  \"hand_cards\": [\n");
+                    for (int ci = 0; ci < _handCards.Count; ci++)
+                    {
+                        var hc = _handCards[ci];
+                        var r = hc.GetRect();
+                        // GetRect returns local coords; to get global need GlobalPosition
+                        var gp = hc.GetScreenTransform().Origin;
+                        var nameR = hc.GetNodeOrNull<Label>("CardName");
+                        var nameRect = new Rect2();
+                        if (nameR != null)
+                        {
+                            var np = nameR.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                        }
+
+                        meta.Append("    {\n");
+                        meta.Append($"      \"card_id\": \"{hc.CardName}\",\n");
+                        meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
+                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
+                        meta.Append("    }");
+                        if (ci < _handCards.Count - 1)
+                            meta.Append(",");
+                        meta.Append("\n");
+                    }
+                    meta.Append("  ],\n");
+
+                    // Capture board card info from player and enemy slots
+                    meta.Append("  \"board_cards\": [\n");
+                    int bi = 0;
+                    foreach (var slot in _playerSlots)
+                    {
+                        var r = slot.GetRect();
+                        var gp = slot.GetScreenTransform().Origin;
+                        var nameR = slot.GetNodeOrNull<Label>("CardName");
+                        var nameRect = new Rect2();
+                        if (nameR != null)
+                        {
+                            var np = nameR.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                        }
+
+                        meta.Append("    {\n");
+                        meta.Append($"      \"slot\": \"player_{slot.LaneIndex}\",\n");
+                        meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
+                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
+                        meta.Append("    },");
+                        meta.Append("\n");
+                        bi++;
+                    }
+                    foreach (var slot in _enemySlots)
+                    {
+                        var r = slot.GetRect();
+                        var gp = slot.GetScreenTransform().Origin;
+                        var nameR = slot.GetNodeOrNull<Label>("CardName");
+                        var nameRect = new Rect2();
+                        if (nameR != null)
+                        {
+                            var np = nameR.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                        }
+
+                        meta.Append("    {\n");
+                        meta.Append($"      \"slot\": \"enemy_{slot.LaneIndex}\",\n");
+                        meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
+                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
+                        meta.Append("    }");
+                        if (bi < (_playerSlots.Count + _enemySlots.Count) - 1)
+                            meta.Append(",");
+                        meta.Append("\n");
+                        bi++;
+                    }
+                    meta.Append("\n  ]\n");
+                    meta.Append("}\n");
+
+                    var metaPath = "/home/fictive/runewake/artifacts/captures/duel_test.meta.json";
+                    using (var writer = new System.IO.StreamWriter(metaPath))
+                    {
+                        writer.Write(meta.ToString());
+                    }
+                    GD.Print("[CAPTURE] duel_test.meta.json saved");
 
                     // Run layout verification
                     int failed = RunLayoutVerification();
@@ -444,6 +545,101 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
+    /// Reserve layout space for player/enemy portraits + artifact slots (FIX 5).
+    /// Placeholder frames that will be wired in P1 step 5. Prevents layout rework.
+    /// </summary>
+    private void AddArtifactSlotFrames()
+    {
+        float vh = GetViewportRect().Size.Y;
+        float frameSize = vh * 0.10f; // 10% of viewport height — compact but visible
+
+        // Helper to create a placeholder artifact frame
+        Control MakeFrame(Vector2 pos, bool isPlayer)
+        {
+            var frame = new PanelContainer();
+            frame.CustomMinimumSize = new Vector2(frameSize, frameSize);
+            frame.Size = frame.CustomMinimumSize;
+            frame.Position = pos;
+            var style = new StyleBoxFlat
+            {
+                BgColor = new Color(0.12f, 0.10f, 0.08f, 0.8f),
+                BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+            };
+            frame.AddThemeStyleboxOverride("panel", style);
+
+            var label = new Label
+            {
+                Text = "?",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            label.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.4f));
+            label.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
+            frame.AddChild(label);
+            return frame;
+        }
+
+        // Player: bottom-left, portrait + 2 artifact frames
+        float bottomY = vh - frameSize - 8f;
+        float leftX = 8f;
+
+        // Portrait placeholder
+        var playerPortrait = new PanelContainer();
+        playerPortrait.CustomMinimumSize = new Vector2(frameSize * 1.2f, frameSize * 1.4f);
+        playerPortrait.Position = new Vector2(leftX, bottomY - frameSize * 0.4f);
+        var pStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.12f, 0.09f, 0.85f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
+        };
+        playerPortrait.AddThemeStyleboxOverride("panel", pStyle);
+        var pLabel = new Label { Text = "?", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        pLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.5f));
+        pLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.4f));
+        playerPortrait.AddChild(pLabel);
+        AddChild(playerPortrait);
+
+        // Two artifact frames beside player portrait
+        float ax = leftX + frameSize * 1.2f + 4f;
+        var pa1 = MakeFrame(new Vector2(ax, bottomY), true);
+        var pa2 = MakeFrame(new Vector2(ax + frameSize + 4f, bottomY), true);
+        AddChild(pa1);
+        AddChild(pa2);
+
+        // Enemy: top-right, mirrored
+        float topY = 44f;
+        float rightX = GetViewportRect().Size.X - frameSize * 1.2f - 8f;
+
+        var enemyPortrait = new PanelContainer();
+        enemyPortrait.CustomMinimumSize = new Vector2(frameSize * 1.2f, frameSize * 1.4f);
+        enemyPortrait.Position = new Vector2(rightX, topY);
+        enemyPortrait.AddThemeStyleboxOverride("panel", pStyle);
+        var eLabel = new Label { Text = "?", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        eLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.5f));
+        eLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.4f));
+        enemyPortrait.AddChild(eLabel);
+        AddChild(enemyPortrait);
+
+        // Two artifact frames beside enemy portrait (to the right — mirrored)
+        float eax = rightX + frameSize * 1.2f + 4f;
+        var ea1 = MakeFrame(new Vector2(eax, topY), false);
+        var ea2 = MakeFrame(new Vector2(eax + frameSize + 4f, topY), false);
+        AddChild(ea1);
+        AddChild(ea2);
+
+        GD.Print($"[DUEL] Artifact slot frames reserved — player portrait + 2 slots L, enemy portrait + 2 slots R");
+    }
+
+    /// <summary>
     /// Load all card packs into the global CardRegistry.
     /// </summary>
     private static void LoadCardPacks()
@@ -468,6 +664,26 @@ public partial class DuelScene : Control
         }
 
     /// <summary>
+    /// Compute card sizes from viewport height (FIX 3a): hand ~180px at 1080p,
+    /// board ~200px at 1080p. Scales proportionally on smaller viewports.
+    /// </summary>
+    private void ScaleCardSizes(float viewportHeight)
+    {
+        // Reference: 1080p design height = 648 viewport (canvas_items stretch).
+        // 180px hand / 200px board at that reference; scale linearly with height.
+        float reference = 648f;
+        float scale = viewportHeight / reference;
+
+        _handCardHeight = Mathf.Max(130f, 180f * scale);   // never below usable size
+        _boardCardHeight = Mathf.Max(150f, 200f * scale);
+
+        // Grow the hand area to fit larger cards (was 200px tall)
+        _handArea.OffsetTop = -(_handCardHeight + 40f);
+
+        GD.Print($"[DUEL] viewport height {viewportHeight:F0} → hand {_handCardHeight:F0}px, board {_boardCardHeight:F0}px");
+    }
+
+    /// <summary>
     /// Create 5 lane slot instances for each row.
     /// </summary>
     private void PopulateLanes()
@@ -481,6 +697,7 @@ public partial class DuelScene : Control
             enemySlot.LaneIndex = i;
             enemySlot.LaneTapped += OnLaneTapped;
             _enemyLanes.AddChild(enemySlot);
+            enemySlot.ScaleTo(_boardCardHeight);
             _enemySlots.Add(enemySlot);
 
             var playerSlot = laneScene.Instantiate<LaneSlot>();
@@ -489,6 +706,7 @@ public partial class DuelScene : Control
             playerSlot.LaneTapped += OnLaneTapped;
             playerSlot.CardDropped += OnCardDropped;
             _playerLanes.AddChild(playerSlot);
+            playerSlot.ScaleTo(_boardCardHeight);
             _playerSlots.Add(playerSlot);
         }
     }
@@ -779,16 +997,32 @@ public partial class DuelScene : Control
         var hand = _gsm.GetHand(0);
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
 
+        // Compute dynamic card sizing so all cards fit with consistent spacing
+        // (FIX: hand overlaps — auto-shrink when hand is full)
+        float handSep = 34f;
+        _handFlow.AddThemeConstantOverride("separation", (int)handSep);
+        float availWidth = GetViewportRect().Size.X - 40f; // margin 20 each side; use viewport not _handArea (pre-layout)
+        float aspect = 110f / 168f;
+        int n = hand.Count;
+        float cardW = _handCardHeight * aspect;
+        float required = n * cardW + (n - 1) * handSep;
+        float fitHeight = _handCardHeight;
+        if (required > availWidth && n > 1)
+        {
+            float shrink = (availWidth - (n - 1) * handSep) / (n * aspect);
+            fitHeight = Mathf.Max(110f, shrink); // floor at 110px for readability
+        }
+
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
             _handFlow.AddChild(card);
+            card.ScaleTo(fitHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
 
-            // Grey out cards the player can't afford
-            card.Modulate = info.Cost > currentAttune
-                ? new Color(TextInactive.R, TextInactive.G, TextInactive.B, 0.6f)
-                : Colors.White;
+            // Playability: full brightness + gold badge when affordable;
+            // ≤30% desaturation + red badge when not. NEVER dim to black.
+            card.SetPlayable(info.Cost <= currentAttune);
 
             var capturedCard = card;
             card.Pressed += () => OnHandCardPressed(capturedCard);

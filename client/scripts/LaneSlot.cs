@@ -48,6 +48,7 @@ public partial class LaneSlot : PanelContainer
 
         // Apply header font to creature name
         ApplyHeaderFont(_cardName, FontLargeBody);
+        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
 
         // Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
@@ -103,36 +104,28 @@ public partial class LaneSlot : PanelContainer
         // Load card art
         LoadArt(cardDefId);
 
-        // Visual: exhausted creatures are grayed out, ready creatures are full color
-        Modulate = isExhausted ? Colors.Gray : Colors.White;
+        // Visual: exhausted creatures get a subtle desaturation marker (not darkness — see global rule)
+        Modulate = isExhausted ? new Color(0.85f, 0.85f, 0.85f, 1f) : Colors.White;
     }
 
     private void LoadArt(string cardDefId)
     {
-        // Remove previous texture children
-        foreach (var child in _artRect.GetChildren())
-            _artRect.RemoveChild(child);
-
         string artPath = $"res://content/art/{cardDefId}.webp";
         if (ResourceLoader.Exists(artPath))
         {
             var texture = ResourceLoader.Load<Texture2D>(artPath);
             if (texture != null)
             {
-                var tr = new TextureRect();
-                tr.Texture = texture;
-                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                tr.ExpandMode = TextureRect.ExpandModeEnum.KeepSize;
-                tr.AnchorRight = 1.0f;
-                tr.AnchorBottom = 1.0f;
-                tr.MouseFilter = MouseFilterEnum.Ignore;
-                _artRect.AddChild(tr);
-
-                GD.Print($"[LANESLOT] {cardDefId} art via TextureRect");
+                _artRect.Texture = texture;
+                _artRect.PlaceholderText = "";
+                GD.Print($"[LANESLOT] {cardDefId} art via FixedArtRect");
                 return;
             }
         }
-        GD.Print($"[LANESLOT] No art for {cardDefId}");
+        _artRect.Texture = null;
+        _artRect.PlaceholderText = _cardName.Text;
+        GD.Print($"[LANESLOT] No art for {cardDefId} — placeholder shown");
+        GD.Print($"[MISSING_ART] {cardDefId}");
     }
 
     /// <summary>
@@ -150,6 +143,23 @@ public partial class LaneSlot : PanelContainer
             _faceLabel.Visible = false;
         _state = NodeState.Empty;
         Modulate = Colors.White;
+    }
+
+    /// <summary>
+    /// Scale the lane slot to a target height (px in viewport space), keeping
+    /// the 160:120 aspect ratio. Fonts scale proportionally.
+    /// </summary>
+    public void ScaleTo(float targetHeight)
+    {
+        float aspect = 160f / 120f;
+        CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
+        Size = CustomMinimumSize;
+
+        float scale = targetHeight / 120f;
+        int nameSize = Mathf.Max(12, Mathf.RoundToInt(14 * scale));
+        int statSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
+        _cardName.AddThemeFontSizeOverride("font_size", nameSize);
+        _stats.AddThemeFontSizeOverride("font_size", statSize);
     }
 
     /// <summary>

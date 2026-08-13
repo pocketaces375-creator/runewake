@@ -12,7 +12,8 @@ public enum Zone
     Lane,
     Discard,
     Barrow,
-    RemovedFromGame
+    RemovedFromGame,
+    ArtifactSlot  /// Permanent field-effect slot (Artifact). Never changes zone.
 }
 
 /// <summary>
@@ -97,6 +98,20 @@ public sealed class CardInstance
 
     /// <summary>True if a Relic card's identity condition has been met and the card is face-up.</summary>
     public bool IsIdentified { get; set; }
+
+    // ——— Artifact-specific ———
+
+    /// <summary>The class this Artifact belongs to (e.g. "warrior", "mage"). Empty string for non-artifact cards.</summary>
+    public string ArtifactClass { get; set; } = string.Empty;
+
+    /// <summary>The slot pool this Artifact draws from (e.g. "sword", "shield", "dagger").</summary>
+    public string SlotPool { get; set; } = string.Empty;
+
+    /// <summary>Index of the ArtifactSlot this card occupies (-1 if not in an Artifact slot).</summary>
+    public int ArtifactSlotIndex { get; set; } = -1;
+
+    /// <summary>Whether this card is an Artifact (kind: "artifact").</summary>
+    public bool IsArtifact => CardType == CardType.ARTIFACT;
 
     // ——— Keywords at runtime ———
 

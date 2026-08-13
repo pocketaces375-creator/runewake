@@ -78,11 +78,20 @@ public static class CampaignContext
     /// </summary>
     public static bool ReduceMotion => Settings.ReduceMotion;
 
-    /// <summary>
-    /// Test hook: auto-navigate to duel scene and capture screenshot after render.
+    /// <summary>Test hook: auto-navigate to duel scene and capture screenshot after render.
     /// Set by Main.LoadGameData before switching to DuelScene.
     /// </summary>
     public static bool AutoCaptureScreenshot { get; set; }
+
+    /// <summary>Test hook: auto-navigate to map scene, select first unlocked node, capture.
+    /// Set by --capture-map CLI arg.
+    /// </summary>
+    public static bool CaptureMapScreenshot { get; set; }
+
+    /// <summary>Fixed seed for deterministic capture tests. Null = random seed.</summary>
+    public static ulong? DebugSeed { get; set; }
+
+    /// <summary>
 
     /// <summary>
     /// Load all encounter packs from the content directory.

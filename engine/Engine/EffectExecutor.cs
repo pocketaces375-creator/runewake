@@ -95,6 +95,18 @@ public static class EffectExecutor
                 case Op.REFRESH:
                     ApplyRefresh(target);
                     break;
+                case Op.SUPPRESS:
+                    ApplySuppress(target, effect.Amount ?? 1, source, state);
+                    break;
+                case Op.ADD_CHARGE:
+                    ApplyAddCharge(target, effect.Amount ?? 1, state);
+                    break;
+                case Op.SET_PREY:
+                    ApplySetPrey(target, source, state);
+                    break;
+                case Op.REVIVE_TOKEN:
+                    ApplyReviveToken(target, effect.Keyword ?? "artf_skeleton", source, state);
+                    break;
             }
         }
     }
@@ -437,6 +449,116 @@ public static class EffectExecutor
         }
     }
 
+    // ——— Artifact-specific ops ———
+
+    /// <summary>
+    /// SUPPRESS: Suppress the enemy player's Artifacts for N turns.
+    /// Target should be PLAYER_ENEMY or scope that resolves to the opponent.
+    /// </summary>
+    private static void ApplySuppress(ResolvedTarget target, int turns, CardInstance source, GameState state)
+    {
+        PlayerState? targetPlayer = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (targetPlayer is null || turns <= 0) return;
+
+        foreach (var slot in targetPlayer.ArtifactSlots)
+        {
+            if (slot.Occupant is not null)
+            {
+                slot.ApplySuppression(turns, $"artf_effect_{source.InstanceId}");
+                TriggerBus.Fire(state, Trigger.ON_ARTIFACT_SUPPRESS, targetPlayer.Index);
+            }
+        }
+    }
+
+    /// <summary>
+    /// ADD_CHARGE: Add N Charges to an Artifact slot or to the player's active Artifact.
+    /// Target can be PLAYER_SELF (adds to all slots) or ALLY_CREATURE + filter for a specific slot.
+    /// </summary>
+    private static void ApplyAddCharge(ResolvedTarget target, int amount, GameState state)
+    {
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null || amount <= 0) return;
+
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.MaxCharges > 0 && slot.Occupant is not null && !slot.IsSuppressed)
+            {
+                int before = slot.Charges;
+                slot.AddCharges(amount);
+                TriggerBus.Fire(state, Trigger.ON_CHARGE_GAINED, player.Index);
+
+                // Fire ON_CHARGE_FULL if charges just hit max
+                if (slot.Charges == slot.MaxCharges && before < slot.MaxCharges)
+                {
+                    TriggerBus.Fire(state, Trigger.ON_CHARGE_FULL, player.Index);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// SET_PREY: Mark an enemy creature as Prey for the given player (Ranger mechanic).
+    /// Target should be a creature target.
+    /// </summary>
+    private static void ApplySetPrey(ResolvedTarget target, CardInstance source, GameState state)
+    {
+        if (target is CreatureTarget ct)
+        {
+            var player = state.Player(source.Controller);
+            player.PreyTargetId = ct.Card.InstanceId;
+            TriggerBus.Fire(state, Trigger.ON_PREY_MARKED, player.Index);
+        }
+    }
+
+    /// <summary>
+    /// REVIVE_TOKEN: Revive the most recently deceased creature as a token.
+    /// Creates a 1/1 token in the first empty lane.
+    /// </summary>
+    private static void ApplyReviveToken(ResolvedTarget target, string tokenId, CardInstance source, GameState state)
+    {
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null) return;
+
+        // Find first empty lane
+        for (int i = 0; i < 5; i++)
+        {
+            if (player.Lanes[i].Occupant is null)
+            {
+                var token = new CardInstance(
+                    state.NextInstanceId++,
+                    tokenId,
+                    player.Index)
+                {
+                    Zone = Zone.Lane,
+                    LaneIndex = i,
+                    CardType = CardType.TOKEN,
+                    BaseAttack = 1,
+                    BaseVigor = 1,
+                    Cost = 0,
+                    IsExhausted = true
+                };
+                player.Lanes[i].Occupant = token;
+                return;
+            }
+        }
+        // No empty lane — revive fails silently
+    }
+
     // ——— Helpers ———
 
     private static void KillCreature(CardInstance card, GameState state)
@@ -444,6 +566,10 @@ public static class EffectExecutor
         if (card.Zone != Zone.Lane) return;
         var owner = state.Player(card.Controller);
         var lane = owner.Lanes[card.LaneIndex ?? 0];
+
+        // Increment death counter
+        state.CreatureDiedThisTurn++;
+        state.LastDeathPlayerIndex = card.Controller;
 
         // Check Unearth first
         if (!KeywordHandlers.OnDeath(card, owner))
@@ -457,5 +583,7 @@ public static class EffectExecutor
             lane.Occupant = null;
         }
         TriggerBus.FireDeathEvents(state, card, owner.Index);
+        // Fire global ON_CREATURE_DIES for all abilities (Artifact triggers, etc.)
+        TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, owner.Index);
     }
 }

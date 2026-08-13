@@ -104,8 +104,8 @@ offset_bottom = -160.0
 [node name="EnemyLaneMargin" type="MarginContainer" parent="Board"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
 
 [node name="EnemyLanes" type="HBoxContainer" parent="Board/EnemyLaneMargin"]
 size_flags_horizontal = 3
@@ -121,8 +121,8 @@ color = Color(0.3, 0.3, 0.35, 1)
 [node name="PlayerLaneMargin" type="MarginContainer" parent="Board"]
 size_flags_horizontal = 3
 size_flags_vertical = 0
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
 
 [node name="PlayerLanes" type="HBoxContainer" parent="Board/PlayerLaneMargin"]
 size_flags_horizontal = 3
@@ -183,4 +183,4 @@ anchors_preset = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 1
-theme_override_constants/separation = 16
+theme_override_constants/separation = 34

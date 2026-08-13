@@ -24,6 +24,7 @@
   {"id": "P3-04", "title": "Engine binding: GameState lifecycle", "status": "done"},
   {"id": "P3-05", "title": "Animation and feedback layer", "status": "done"},
   {"id": "P3-06", "title": "Bot opponent wired in with think-delay", "status": "done"},
+  {"id": "P3-07", "title": "Element/class coexistence cleanup", "status": "cancelled"},
 
   {"id": "P4-01", "title": "Map data format + loader", "status": "done"},
   {"id": "P4-02", "title": "Map screen: pan/zoom node graph", "status": "done"},

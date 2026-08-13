@@ -147,6 +147,22 @@ public static class TriggerBus
                 }
             }
         }
+
+        // Also collect from Artifact slots (off-board, lane -1)
+        // Suppressed Artifacts do NOT contribute passives or triggers
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is null || slot.IsSuppressed) continue;
+
+            var artCard = slot.Occupant;
+            foreach (var ability in artCard.Abilities)
+            {
+                if (ability.Trigger == trigger)
+                {
+                    result.Add((ability, artCard, player.Index, -1));
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -183,6 +199,20 @@ public static class TriggerBus
             ConditionOp.CONTROLS_STRATA => HasAnyCreatureWithStrata(player, condition.Value?.GetString() ?? "") ? 1 : 0,
             ConditionOp.DAMAGED_THIS_TURN => player.Vigor < player.MaxVigor ? 1 : 0,
             ConditionOp.RITUALS_CAST_GTE => 0, // Not tracked yet — stub
+            // Artifact conditions
+            ConditionOp.ATTACKERS_THIS_TURN_GTE => player.AttackCountThisTurn,
+            ConditionOp.ATTACKERS_THIS_TURN_EQ => player.AttackCountThisTurn,
+            ConditionOp.SPELLS_CAST_THIS_TURN_GTE => player.SpellCastCountThisTurn,
+            ConditionOp.SPELLS_CAST_THIS_TURN_EQ => player.SpellCastCountThisTurn,
+            ConditionOp.NO_ATTACKERS_LAST_TURN => player.AttackCountLastTurn == 0 ? 1 : 0,
+            ConditionOp.CREATURE_DIED_THIS_TURN => state.CreatureDiedThisTurn,
+            ConditionOp.FEWER_ALLY_CREATURES_THAN_ENEMY => CountCreaturesOnBoard(player) < CountCreaturesOnBoard(opponent) ? 1 : 0,
+            ConditionOp.ALLY_CREATURE_EXISTS => CountCreaturesOnBoard(player) >= 1 ? 1 : 0,
+            ConditionOp.PARTNER_CHARGES_GTE => PartnerCharges(source, player),
+            ConditionOp.DURING_YOUR_TURN => state.CurrentPlayerIndex == controller ? 1 : 0,
+            ConditionOp.NTH_ATTACKER_ON_PREY_THIS_TURN => player.PreyAttackCountThisTurn,
+            ConditionOp.FRIENDLY => state.LastDeathPlayerIndex == controller ? 1 : 0,
+            ConditionOp.ENEMY => state.LastDeathPlayerIndex != controller ? 1 : 0,
             _ => 0
         };
 
@@ -203,8 +233,42 @@ public static class TriggerBus
             ConditionOp.CONTROLS_STRATA => actual >= 1,
             ConditionOp.DAMAGED_THIS_TURN => actual >= threshold,
             ConditionOp.RITUALS_CAST_GTE => actual >= threshold,
+            // Artifact conditions
+            ConditionOp.ATTACKERS_THIS_TURN_GTE => actual >= threshold,
+            ConditionOp.ATTACKERS_THIS_TURN_EQ => actual == threshold,
+            ConditionOp.SPELLS_CAST_THIS_TURN_GTE => actual >= threshold,
+            ConditionOp.SPELLS_CAST_THIS_TURN_EQ => actual == threshold,
+            ConditionOp.NO_ATTACKERS_LAST_TURN => actual >= 1,
+            ConditionOp.CREATURE_DIED_THIS_TURN => actual >= threshold,
+            ConditionOp.FEWER_ALLY_CREATURES_THAN_ENEMY => actual >= 1,
+            ConditionOp.ALLY_CREATURE_EXISTS => actual >= 1,
+            ConditionOp.PARTNER_CHARGES_GTE => actual >= threshold,
+            ConditionOp.DURING_YOUR_TURN => actual >= 1,
+            ConditionOp.NTH_ATTACKER_ON_PREY_THIS_TURN => actual >= threshold,
+            ConditionOp.FRIENDLY => actual >= 1,
+            ConditionOp.ENEMY => actual >= 1,
             _ => true
         };
+    }
+
+    private static int PartnerCharges(CardInstance source, PlayerState player)
+    {
+        if (source == null || player.ArtifactSlots.Length == 0)
+            return 0;
+        // Find the slot this Artifact occupies (matching card def id), then return the partner slot's charges
+        for (int i = 0; i < player.ArtifactSlots.Length; i++)
+        {
+            var slot = player.ArtifactSlots[i];
+            if (slot.Occupant?.CardDefId == source.CardDefId)
+            {
+                int partner = i == 0 ? 1 : 0;
+                if (partner < player.ArtifactSlots.Length)
+                    return player.ArtifactSlots[partner].Charges;
+                return 0;
+            }
+        }
+        // If source isn't found in slots (shouldn't happen), use the first non-suppressed slot's partner
+        return 0;
     }
 
     private static int CountCreaturesOnBoard(PlayerState player)

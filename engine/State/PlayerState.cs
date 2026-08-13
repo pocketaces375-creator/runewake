@@ -68,6 +68,68 @@ public sealed class PlayerState
     /// </summary>
     public List<CardInstance> RuneTokens { get; } = new();
 
+    // ——— Artifact system ———
+
+    /// <summary>
+    /// The player's Artifact slots (array length = number of Artifacts this class carries).
+    /// For launch: length 2 (all classes have 2 Artifact slots).
+    /// Framework supports 1-3 slots per class (§8).
+    /// </summary>
+    public ArtifactSlot[] ArtifactSlots { get; set; } = Array.Empty<ArtifactSlot>();
+
+    /// <summary>
+    /// Instance ID of the creature currently marked as Prey for this player (Ranger mechanic).
+    /// Null when no Prey is marked. Cleared when the marked creature leaves play
+    /// or replaced by a new mark.
+    /// </summary>
+    public int? PreyTargetId { get; set; }
+
+    /// <summary>
+    /// Current class name for this player (e.g. "warrior", "mage", "thief").
+    /// Empty string if not yet assigned.
+    /// </summary>
+    public string ArtifactClass { get; set; } = string.Empty;
+
+    /// <summary>
+    /// IDs of the Artifact definitions assigned to this player's ArtifactSlots.
+    /// Matches the slot count (2 for launch classes).
+    /// </summary>
+    public string[] ArtifactDefIds { get; set; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Number of creatures that attacked this turn (for condition tracking).
+    /// Reset at start of each turn.
+    /// </summary>
+    public int AttackCountThisTurn { get; set; }
+
+    /// <summary>
+    /// Number of spells cast this turn (for condition tracking).
+    /// Reset at start of each turn.
+    /// </summary>
+    public int SpellCastCountThisTurn { get; set; }
+
+    /// <summary>
+    /// Whether this player attacked at all this turn (for Anvil/ON_NO_ATTACK_TURN).
+    /// </summary>
+    public bool HasAttackedThisTurn { get; set; }
+
+    /// <summary>
+    /// Whether the player has cast at least one spell this turn (for Artifact triggers).
+    /// </summary>
+    public bool SpellCastThisTurn { get; set; }
+
+    /// <summary>
+    /// Number of creatures that attacked last turn (for NO_ATTACKERS_LAST_TURN).
+    /// Set at end of turn before AttackCountThisTurn is reset.
+    /// </summary>
+    public int AttackCountLastTurn { get; set; }
+
+    /// <summary>
+    /// Number of friendly creatures that attacked Prey this turn (for NTH_ATTACKER_ON_PREY).
+    /// Reset at start of turn.
+    /// </summary>
+    public int PreyAttackCountThisTurn { get; set; }
+
     public PlayerState(int index)
     {
         Index = index;
@@ -108,6 +170,18 @@ public sealed class PlayerState
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);
         UnearthQueue = other.UnearthQueue.ConvertAll(c => c.Clone());
         RuneTokens = other.RuneTokens.ConvertAll(c => c.Clone());
+
+        // Artifact system
+        ArtifactSlots = other.ArtifactSlots.Select(s => s.Clone()).ToArray();
+        PreyTargetId = other.PreyTargetId;
+        ArtifactClass = other.ArtifactClass;
+        ArtifactDefIds = (string[])other.ArtifactDefIds.Clone();
+        AttackCountThisTurn = other.AttackCountThisTurn;
+        SpellCastCountThisTurn = other.SpellCastCountThisTurn;
+        HasAttackedThisTurn = other.HasAttackedThisTurn;
+        SpellCastThisTurn = other.SpellCastThisTurn;
+        AttackCountLastTurn = other.AttackCountLastTurn;
+        PreyAttackCountThisTurn = other.PreyAttackCountThisTurn;
     }
 
     /// <summary>

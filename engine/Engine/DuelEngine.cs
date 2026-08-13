@@ -44,6 +44,10 @@ public static partial class DuelEngine
         KeywordHandlers.ProcessFragile(endingPlayer);
         TruncateHand(endingPlayer);
 
+        // Tick suppression on the ending player's Artifacts (counted in owner's turns)
+        // But we also tick AFTER triggers so ON_ARTIFACT_UNSUPPRESS can fire correctly
+        TickArtifactSuppression(endingPlayer);
+
         // 2. Switch to next player
         state.CurrentPlayerIndex = state.OpponentIndex(action.PlayerIndex);
         if (state.CurrentPlayerIndex == 0)
@@ -85,6 +89,20 @@ public static partial class DuelEngine
         TriggerBus.Fire(state, Trigger.ON_TURN_START, state.CurrentPlayerIndex);
         IdentifyRelics(state, nextPlayer);
 
+        // 6. Per-turn tracking reset for the current player
+        nextPlayer.AttackCountLastTurn = nextPlayer.AttackCountThisTurn;
+        nextPlayer.AttackCountThisTurn = 0;
+        nextPlayer.SpellCastCountThisTurn = 0;
+        nextPlayer.HasAttackedThisTurn = false;
+        nextPlayer.SpellCastThisTurn = false;
+        nextPlayer.PreyAttackCountThisTurn = 0;
+        state.CreatureDiedThisTurn = 0;
+
+        // 7. Apply Artifact passives for this turn (re-applied each turn, cleared if suppressed)
+        // PASSIVE abilities with WHILE_PRESENT duration are refreshed each turn.
+        // Suppressed Artifacts skip this — their buffs naturally expire.
+        ApplyArtifactPassives(state, nextPlayer);
+
         return state;
     }
 
@@ -101,6 +119,13 @@ public static partial class DuelEngine
             throw new InvalidOperationException($"Not enough attunement: have {player.Attunement}, need {action.Cost}.");
 
         player.Attunement -= action.Cost;
+
+        // Track spell casting for Artifact conditions
+        if (card.CardType == CardType.RITUAL)
+        {
+            player.SpellCastThisTurn = true;
+            player.SpellCastCountThisTurn++;
+        }
 
         player.Hand.Remove(card);
         card.Controller = action.PlayerIndex;
@@ -143,6 +168,9 @@ public static partial class DuelEngine
         return state;
     }
 
+    /// <summary>
+    /// Track attack counts for Artifact system conditions.
+    /// </summary>
     private static GameState ApplyAttack(GameState state, AttackAction action)
     {
         var player = state.Player(action.PlayerIndex);
@@ -166,6 +194,10 @@ public static partial class DuelEngine
         int? resolvedTarget = KeywordHandlers.ResolveTargetLane(attacker, action.SourceLane, action.TargetLane);
         if (resolvedTarget is null)
             throw new InvalidOperationException("Invalid attack target.");
+
+        // Track attack for Artifact conditions
+        player.AttackCountThisTurn++;
+        player.HasAttackedThisTurn = true;
 
         int targetLaneIdx = resolvedTarget.Value;
 
@@ -201,6 +233,10 @@ public static partial class DuelEngine
             var actualLane = opponent.Lanes[tgtIdx];
             var defender = actualLane.Occupant!;
 
+            // Prey tracking: if the defender is this player's marked Prey, count the attack (Quiver R17)
+            if (player.PreyTargetId == defender.InstanceId)
+                player.PreyAttackCountThisTurn++;
+
             // Ward reduces attacker's damage to defender
             int damageToDefender = KeywordHandlers.ApplyWard(defender, attackPower);
 
@@ -225,6 +261,8 @@ public static partial class DuelEngine
             // Remove dead defender (check Unearth first)
             if (defenderKilled)
             {
+                state.CreatureDiedThisTurn++;
+                state.LastDeathPlayerIndex = opponent.Index;
                 bool isUnearthed = false;
                 if (!KeywordHandlers.OnDeath(defender, opponent))
                 {
@@ -239,6 +277,7 @@ public static partial class DuelEngine
                 }
                 // Fire ON_DEATH triggers
                 TriggerBus.FireDeathEvents(state, defender, opponent.Index);
+                TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, opponent.Index);
             }
         }
         else
@@ -254,6 +293,8 @@ public static partial class DuelEngine
         // Remove dead attacker (check Unearth first)
         if (attacker.CurrentVigor <= 0)
         {
+            state.CreatureDiedThisTurn++;
+            state.LastDeathPlayerIndex = player.Index;
             if (!KeywordHandlers.OnDeath(attacker, player))
             {
                 sourceLane.Occupant = null;
@@ -265,6 +306,7 @@ public static partial class DuelEngine
                 sourceLane.Occupant = null;
             }
             TriggerBus.FireDeathEvents(state, attacker, player.Index);
+            TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, player.Index);
         }
         else
         {
@@ -357,6 +399,62 @@ public static partial class DuelEngine
             player.Hand.RemoveAt(player.Hand.Count - 1);
             discarded.Zone = Zone.Discard;
             player.Discard.Add(discarded);
+        }
+    }
+
+    // ——— Artifact system helpers ———
+
+    /// <summary>
+    /// Apply Artifact PASSIVE abilities for the given player.
+    /// Called at the start of each turn. Suppressed Artifacts don't apply theirs.
+    /// Passives with WHILE_PRESENT duration are re-applied each turn so
+    /// suppression naturally suspends them.
+    /// </summary>
+    private static void ApplyArtifactPassives(GameState state, PlayerState player)
+    {
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is null || slot.IsSuppressed)
+                continue;
+
+            foreach (var ability in slot.Occupant.Abilities)
+            {
+                if (ability.Trigger != Trigger.PASSIVE)
+                    continue;
+
+                var opponent = state.Player(state.OpponentIndex(player.Index));
+
+                // Check ANY condition on the passive ability
+                if (!TriggerBus.EvaluateCondition(ability.Condition, slot.Occupant, player.Index, state))
+                    continue;
+
+                foreach (var effect in ability.Effects)
+                {
+                    var targets = TargetResolver.Resolve(
+                        effect.Target ?? new TargetDef { Scope = Scope.NONE },
+                        slot.Occupant,
+                        player,
+                        opponent,
+                        state);
+                    EffectExecutor.Execute(effect, slot.Occupant, state, targets);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tick suppression counters on the given player's Artifacts.
+    /// Called at the end of the player's turn (counted in that player's turns).
+    /// When suppression expires, fires ON_ARTIFACT_UNSUPPRESS triggers.
+    /// </summary>
+    private static void TickArtifactSuppression(PlayerState player)
+    {
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.IsSuppressed)
+            {
+                slot.TickSuppression();
+            }
         }
     }
 }

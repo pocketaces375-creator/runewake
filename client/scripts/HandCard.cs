@@ -14,7 +14,13 @@ public partial class HandCard : PanelContainer
     private Label _cardName;
     private Label _costLabel;
     private Label _statsLabel;
-    private FixedArtRect _artRect;
+    private TextureRect _artRect;
+    private PanelContainer _badgePanel;
+    private ColorRect _desatOverlay;
+    private Label _attackBadge;
+    private Label _vigorBadge;
+    private Label _noArtLabel;
+    private bool _isHovered;
 
     /// <summary>Card's unique identifier from the engine.</summary>
     public string CardId { get; private set; } = "";
@@ -24,7 +30,6 @@ public partial class HandCard : PanelContainer
     public int? CardAttack { get; private set; }
     public int? CardVigor { get; private set; }
 
-    /// <summary>ArtRect for verification.</summary>
     public Control ArtRectNode => _artRect;
 
     [Signal]
@@ -33,29 +38,42 @@ public partial class HandCard : PanelContainer
     public override void _Ready()
     {
         _cardName = GetNode<Label>("CardName");
-        _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
+        _artRect = GetNode<TextureRect>("VBox/ArtTexture");
+        _noArtLabel = GetNode<Label>("VBox/NoArtLabel");
         _statsLabel = GetNode<Label>("BottomRow/StatsLabel");
         _costLabel = GetNode<Label>("CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
+        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
         ApplyBodyFont(_statsLabel, FontSmall);
         ApplyBodyFont(_costLabel, FontLargeBody);
 
-        // Style cost badge
-        var badgeStyle = new StyleBoxFlat
+        _badgePanel = GetNode<PanelContainer>("CostBadge");
+
+        // High-contrast stat corner badges (FIX 3c) — attack bottom-left, vigor bottom-right
+        _attackBadge = MakeStatBadge(new Color(0.72f, 0.18f, 0.10f));
+        _vigorBadge = MakeStatBadge(new Color(0.20f, 0.55f, 0.30f));
+
+        // Desaturation overlay for unplayable cards — global rule: NEVER black out.
+        // A 30% gray veil desaturates the art while keeping it clearly visible.
+        _desatOverlay = new ColorRect
         {
-            BgColor = BgVoid,
-            BorderColor = Gold,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3
+            Color = new Color(0.5f, 0.5f, 0.5f, 0.3f),
+            MouseFilter = MouseFilterEnum.Ignore,
+            Visible = false
         };
-        GetNode<PanelContainer>("CostBadge").AddThemeStyleboxOverride("panel", badgeStyle);
+        _desatOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        AddChild(_desatOverlay);
+        // Keep the veil above the art (VBox) but below the name/badge so text stays crisp
+        var vboxIdx = GetNode("VBox").GetIndex();
+        MoveChild(_desatOverlay, vboxIdx + 1);
+
+        // Style cost badge
+        ApplyBadgeStyle(Gold, Gold);
+
+        // Hover enlarge (FIX 3d) — desktop pointer only; touch uses tap+detail popup
+        MouseEntered += OnHoverEntered;
+        MouseExited += OnHoverExited;
 
         // Card face style
         var cardStyle = new StyleBoxFlat
@@ -93,7 +111,7 @@ public partial class HandCard : PanelContainer
 
         bool isCreature = CardAttack.HasValue && CardVigor.HasValue;
         _statsLabel.Text = isCreature ? $"{CardAttack}/{CardVigor}" : "";
-        _statsLabel.Visible = isCreature;
+        _statsLabel.Visible = false; // hide old text — corner badges used instead
 
         // Strata border
         var strataColor = StrataColor(strata);
@@ -116,37 +134,190 @@ public partial class HandCard : PanelContainer
         };
         AddThemeStyleboxOverride("panel", cardStyle);
 
+        // Fill corner stat badges
+        UpdateStatBadges();
+
         LoadArt(cardId);
     }
 
     private void LoadArt(string cardId)
     {
-        // Remove any previous sprite child from FixedArtRect
-        foreach (var child in _artRect.GetChildren())
-            _artRect.RemoveChild(child);
-
         string artPath = $"res://content/art/{cardId}.webp";
         if (ResourceLoader.Exists(artPath))
         {
             var texture = ResourceLoader.Load<Texture2D>(artPath);
             if (texture != null)
             {
-                // Use TextureRect — the FixedArtRect's clip_contents keeps it bounded.
-                // TextureRect renders in Control layer (on top of card bg).
-                var tr = new TextureRect();
-                tr.Texture = texture;
-                tr.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                tr.ExpandMode = TextureRect.ExpandModeEnum.KeepSize;
-                tr.AnchorRight = 1.0f;
-                tr.AnchorBottom = 1.0f;
-                tr.MouseFilter = MouseFilterEnum.Ignore;
-                _artRect.AddChild(tr);
-
+                _artRect.Texture = texture;
+                _noArtLabel.Visible = false;
                 GD.Print($"[HANDCARD] {cardId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
-        GD.Print($"[HANDCARD] No art for {cardId}");
+        _artRect.Texture = null;
+        _noArtLabel.Visible = true;
+        _noArtLabel.Text = _cardName.Text;
+        GD.Print($"[HANDCARD] No art for {cardId} — placeholder shown");
+        GD.Print($"[MISSING_ART] {cardId}");
+    }
+
+    /// <summary>
+    /// Set whether this card is playable (cost <= available attunement).
+    /// Playable = full brightness, gold cost badge.
+    /// Unplayable = art visible with ≤30% desaturation, red cost badge.
+    /// NEVER dim-to-black per global UI directive.
+    /// </summary>
+    public void SetPlayable(bool playable)
+    {
+        _desatOverlay.Visible = !playable;
+        if (playable)
+        {
+            ApplyBadgeStyle(Gold, Gold);
+            Modulate = Colors.White;
+        }
+        else
+        {
+            ApplyBadgeStyle(new Color(0.8f, 0.18f, 0.12f), new Color(0.95f, 0.3f, 0.2f));
+            Modulate = Colors.White;
+        }
+    }
+
+    /// <summary>
+    /// Scale the card to a target height (px in viewport space), keeping the
+    /// 110:168 aspect ratio. Fonts scale proportionally so stats stay ≥16px
+    /// at 1080p (viewport 648 → card 190px → stat font 17px).
+    /// </summary>
+    public void ScaleTo(float targetHeight)
+    {
+        float aspect = 110f / 168f;
+        CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
+        Size = CustomMinimumSize;
+
+        // Scale fonts proportionally from the base 168px design
+        float scale = targetHeight / 168f;
+        int nameSize = Mathf.Max(11, Mathf.RoundToInt(13 * scale));
+        int statSize = Mathf.Max(16, Mathf.RoundToInt(17 * scale));
+        int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
+        _cardName.AddThemeFontSizeOverride("font_size", nameSize);
+        _statsLabel.AddThemeFontSizeOverride("font_size", statSize);
+        _costLabel.AddThemeFontSizeOverride("font_size", costSize);
+
+        // Hover pivot: bottom-center so card enlarges upward, not off-screen bottom
+        PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);
+
+        // Reposition stat badges for the new size
+        UpdateStatBadges();
+    }
+
+    // ——— Hand hover: enlarge ~1.8x, anchored above the hand (FIX 3d) ———
+
+    private void OnHoverEntered()
+    {
+        if (_isHovered) return;
+        _isHovered = true;
+        ZIndex = 10;
+        var tween = CreateTween();
+        tween.TweenProperty(this, "scale", new Vector2(1.8f, 1.8f), 0.15f)
+            .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+    }
+
+    private void OnHoverExited()
+    {
+        _isHovered = false;
+        var tween = CreateTween();
+        tween.TweenProperty(this, "scale", new Vector2(1f, 1f), 0.12f)
+            .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+        tween.TweenCallback(Callable.From(() => ZIndex = 0));
+    }
+
+    /// <summary>
+    /// Create a high-contrast corner stat badge (FIX 3c).
+    /// </summary>
+    private Label MakeStatBadge(Color accent)
+    {
+        var badge = new Label
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Text = ""
+        };
+        badge.AddThemeColorOverride("font_color", Colors.White);
+        badge.AddThemeColorOverride("font_outline_color", Colors.Black);
+        badge.AddThemeConstantOverride("outline_size", 4);
+        var style = new StyleBoxFlat
+        {
+            BgColor = accent.Darkened(0.35f),
+            BorderColor = accent,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 4,
+            ContentMarginTop = 1,
+            ContentMarginRight = 4,
+            ContentMarginBottom = 1
+        };
+        badge.AddThemeStyleboxOverride("normal", style);
+        AddChild(badge);
+        return badge;
+    }
+
+    /// <summary>
+    /// Position + fill the stat corner badges after the card is sized.
+    /// </summary>
+    private void UpdateStatBadges()
+    {
+        if (_attackBadge == null || _vigorBadge == null) return;
+
+        float h = CustomMinimumSize.Y;
+        float w = CustomMinimumSize.X;
+        float badgeSize = Mathf.Max(26f, h * 0.16f);
+
+        bool hasAttack = CardAttack.HasValue;
+        bool hasVigor = CardVigor.HasValue;
+
+        _attackBadge.Visible = hasAttack;
+        _vigorBadge.Visible = hasVigor;
+
+        if (hasAttack)
+        {
+            _attackBadge.Text = CardAttack.Value.ToString();
+            _attackBadge.Position = new Vector2(2, h - badgeSize - 2);
+            _attackBadge.Size = new Vector2(badgeSize, badgeSize);
+        }
+        if (hasVigor)
+        {
+            _vigorBadge.Text = CardVigor.Value.ToString();
+            _vigorBadge.Position = new Vector2(w - badgeSize - 2, h - badgeSize - 2);
+            _vigorBadge.Size = new Vector2(badgeSize, badgeSize);
+        }
+    }
+
+    /// <summary>
+    /// Apply a border + text color to the cost badge.
+    /// </summary>
+    private void ApplyBadgeStyle(Color borderColor, Color textColor)
+    {
+        var style = new StyleBoxFlat
+        {
+            BgColor = BgVoid,
+            BorderColor = borderColor,
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3
+        };
+        _badgePanel.AddThemeStyleboxOverride("panel", style);
+        _costLabel.AddThemeColorOverride("font_color", textColor);
     }
 
     // ——— Click handling via GuiInput ———

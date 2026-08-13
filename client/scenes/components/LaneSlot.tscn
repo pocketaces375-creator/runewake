@@ -82,6 +82,7 @@ theme_override_styles/normal = SubResource(3)
 text = ""
 autowrap_mode = 2
 max_lines_visible = 1
+clip_text = true
 mouse_filter = 2
 
 [node name="Stats" type="Label" parent="."]

@@ -1,48 +1,40 @@
-# .NET
+# Build outputs
 bin/
 obj/
-*.user
-*.suo
-*.sln.docstates
-*.userprefs
-.vs/
-*.DotSettings.user
-
-# Godot
-client/.godot/
-*.import
-*.translation
 export/
-exports/
+client/.godot/
+android/
+*.apk
+*.idsig
+*.zip
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-.eggs/
-dist/
-build/
-*.egg
-.venv/
-venv/
-.env
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
+# IDE and temp files
+*.user
+*.tmp
 *.swp
 *.swo
 *~
-.vscode/
-*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Content
-content/packs/
-*.pack.json
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
 
-# Godot exports
-client/exports/
+# Screenshots (generated during testing)
+screenshots/
+
+# Capture artifacts (force-add individual files for commits)
+artifacts/captures/
+
+# Godot specific
+client/.import/
+client/export_presets.cfg
+
+# OS files
+*.o
+*.so

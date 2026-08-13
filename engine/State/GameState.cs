@@ -54,6 +54,19 @@ public sealed class GameState
     /// </summary>
     public List<GameAction> ActionLog { get; } = new();
 
+    /// <summary>
+    /// Number of creatures that died this turn (any side, any cause).
+    /// Incremented in KillCreature. Reset at start of each turn.
+    /// Used for CREATURE_DIED_THIS_TURN, Grimoire discount (R19).
+    /// </summary>
+    public int CreatureDiedThisTurn { get; set; }
+
+    /// <summary>
+    /// Player index of the most recently deceased creature.
+    /// Set before firing ON_CREATURE_DIES so conditions (FRIENDLY/ENEMY) can evaluate.
+    /// </summary>
+    public int LastDeathPlayerIndex { get; set; }
+
     public GameState(ulong seed, int contentVersion = 1)
     {
         Players = new PlayerState[2];
@@ -139,6 +152,71 @@ public sealed class GameState
             RuneInjector.ApplyRunes(state, config.RunePage);
         }
 
+        // ——— Initialize Artifacts ———
+        for (int p = 0; p < 2; p++)
+        {
+            var player = state.Players[p];
+            var artifactIds = p == 0 ? config.Player0ArtifactIds : config.Player1ArtifactIds;
+            var className = p == 0 ? config.Player0Class : config.Player1Class;
+
+            if (artifactIds.Length == 0) continue;
+
+            player.ArtifactClass = className;
+            player.ArtifactDefIds = artifactIds;
+            player.ArtifactSlots = new ArtifactSlot[artifactIds.Length];
+            player.AttackCountThisTurn = 0;
+            player.SpellCastCountThisTurn = 0;
+            player.HasAttackedThisTurn = false;
+
+            for (int slotIdx = 0; slotIdx < artifactIds.Length; slotIdx++)
+            {
+                var slot = new ArtifactSlot(slotIdx);
+                var artDef = Cards.ArtifactRegistry.Get(artifactIds[slotIdx])
+                    ?? throw new InvalidOperationException($"Artifact definition '{artifactIds[slotIdx]}' not found.");
+
+                var instance = new CardInstance(state.NextInstanceId++, artifactIds[slotIdx], p)
+                {
+                    CardType = CardType.ARTIFACT,
+                    Zone = Zone.ArtifactSlot,
+                    ArtifactSlotIndex = slotIdx,
+                    ArtifactClass = artDef.Class,
+                    SlotPool = artDef.SlotPool,
+                    Cost = 0,
+                    BaseAttack = 0,
+                    BaseVigor = 0,
+                };
+
+                // Build the passive effect into an ability
+                var passiveAbility = new AbilityDef
+                {
+                    Trigger = Trigger.PASSIVE,
+                    Effects = new List<EffectDef> { artDef.Passive }
+                };
+
+                // Build the trigger ability
+                var triggerAbility = artDef.Trigger;
+
+                instance.Abilities.Add(passiveAbility);
+                instance.Abilities.Add(triggerAbility);
+
+                // Initialize Charges if configured
+                if (artDef.Charges is { } chargeCfg)
+                {
+                    slot.MaxCharges = chargeCfg.Max;
+                    slot.Charges = 0;
+                }
+
+                slot.Occupant = instance;
+                player.ArtifactSlots[slotIdx] = slot;
+            }
+        }
+
+        // Fire ON_ARTIFACT_REVEAL triggers for all Artifacts (open info, before mulligans)
+        for (int p = 0; p < 2; p++)
+        {
+            Engine.TriggerBus.Fire(state, Trigger.ON_ARTIFACT_REVEAL, p);
+        }
+
         return state;
     }
 
@@ -168,6 +246,8 @@ public sealed class GameState
         TriggerDepth = other.TriggerDepth;
         IsGameOver = other.IsGameOver;
         WinnerIndex = other.WinnerIndex;
+        CreatureDiedThisTurn = other.CreatureDiedThisTurn;
+        LastDeathPlayerIndex = other.LastDeathPlayerIndex;
     }
 
     /// <summary>
