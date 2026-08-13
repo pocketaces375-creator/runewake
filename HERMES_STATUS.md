@@ -222,6 +222,17 @@ Key pair deleted from disk.
 ### TASK G2 DONE — Deploy key rotated
 G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key only, held by Claude).
 
+### TASK B-FIX DONE — Root cause: Container layout stretched badges full-card-width
+- The green bar was the **vigor badge's green StyleBoxFlat background** stretched to full card width by the PanelContainer (a Container type) overriding child layout.
+- The numbers Claude saw (4/3/1/6) were **vigor values** displayed by the correctly-functioning corner badge code, but rendered as full-width bars because Container layout ignored the badge's Position and Size.
+- Fix: wrapped all absolute-positioned children (VBox, CardName, CostBadge, stat badges, desat overlay) in a non-Container `Control` node ("Content") so their anchors and programmatic positions are respected.
+- HandCard.tscn: root PanelContainer draws strata stylebox; new "Content" Control wrapper replaces direct children.
+- Attack badge: pos=(2,149) size=(29,29) — correct bottom-left corner.
+- Vigor badge: pos=(87,149) size=(29,29) — correct bottom-right corner.
+- CardName: pos=(5,128) size=(108,27) — correct anchored position.
+- CostBadge: pos=(0,0) size=(22,26) — correct top-left.
+- Verified via pixel sampling: attack area RGB=(119,30,17) bright red, vigor area RGB=(33,91,50) bright green, mid-strip G=70 vs R=74 (no green dominance).
+
 ### TASK V DONE — Capture harness + pixel gate
 - DebugCapture autoload: sets up deterministic test state (seed=42, 4 hand cards, 30-card deck, partial attune)
 - Runs under xvfb-run with OpenGL3 (llvmpipe) renderer — real GPU rendering

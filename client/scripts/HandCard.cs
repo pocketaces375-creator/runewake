@@ -36,16 +36,16 @@ public partial class HandCard : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("CardName");
-        _artRect = GetNode<TextureRect>("VBox/ArtTexture");
-        _noArtLabel = GetNode<Label>("VBox/NoArtLabel");
-        _costLabel = GetNode<Label>("CostBadge/CostLabel");
+        _cardName = GetNode<Label>("Content/CardName");
+        _artRect = GetNode<TextureRect>("Content/VBox/ArtTexture");
+        _noArtLabel = GetNode<Label>("Content/VBox/NoArtLabel");
+        _costLabel = GetNode<Label>("Content/CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
         _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
         ApplyBodyFont(_costLabel, FontLargeBody);
 
-        _badgePanel = GetNode<PanelContainer>("CostBadge");
+        _badgePanel = GetNode<PanelContainer>("Content/CostBadge");
 
         // High-contrast stat corner badges (FIX 3c) — attack bottom-left, vigor bottom-right
         _attackBadge = MakeStatBadge(new Color(0.72f, 0.18f, 0.10f));
@@ -60,10 +60,10 @@ public partial class HandCard : PanelContainer
             Visible = false
         };
         _desatOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        AddChild(_desatOverlay);
+        GetNode<Control>("Content").AddChild(_desatOverlay);
         // Keep the veil above the art (VBox) but below the name/badge so text stays crisp
-        var vboxIdx = GetNode("VBox").GetIndex();
-        MoveChild(_desatOverlay, vboxIdx + 1);
+        var vboxIdx = GetNode("Content/VBox").GetIndex();
+        GetNode("Content").MoveChild(_desatOverlay, vboxIdx + 1);
 
         // Style cost badge
         ApplyBadgeStyle(Gold, Gold);
@@ -254,7 +254,12 @@ public partial class HandCard : PanelContainer
             ContentMarginBottom = 1
         };
         badge.AddThemeStyleboxOverride("normal", style);
-        AddChild(badge);
+        GetNode<Control>("Content").AddChild(badge);
+        // Explicit positioning — opt out of Container layout so the PanelContainer
+        // doesn't stretch labels full card width (the root cause of the green bar bug).
+        badge.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+        badge.SizeFlagsHorizontal = 0;
+        badge.SizeFlagsVertical = 0;
         return badge;
     }
 
