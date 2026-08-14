@@ -5,6 +5,43 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
+## 2026-08-14 | TASK-DSL-1
+
+### DONE: TASK-DSL-1 — Turn-scoped counters + conditions
+Implementation of turn-scoped counters and conditions for Artifact mechanics:
+
+**State changes:**
+- `PlayerState`: added `AttackCountThisTurn`, `SpellCastCountThisTurn`, `HasAttackedThisTurn`, `SpellCastThisTurn`, `AttackCountLastTurn`, `PreyAttackCountThisTurn`, `FirstAttackerLaneIndex`, `FirstAttackedLaneIndex`
+- `GameState`: replaced scalar `CreatureDiedThisTurn` with `CreatureDiedThisTurnCount[2]` (side-aware array, [0]=P0's deaths, [1]=P1's)
+- `CardInstance`: `HasAttackedThisTurn` already existed (per-creature attack flag)
+- All new fields included in `Clone()` and hash computation
+
+**Conditions (TriggerBus):**
+- `ATTACKERS_THIS_TURN_GTE` / `ATTACKERS_THIS_TURN_EQ` — check player's AttackCountThisTurn
+- `SPELLS_CAST_THIS_TURN_EQ` — check player's SpellCastCountThisTurn
+- `NO_ATTACKERS_LAST_TURN` — true when AttackCountLastTurn == 0
+- `CREATURE_DIED_THIS_TURN` — side-aware via `ConditionDef.Side` ("ALLY"/"ENEMY"/"ANY")
+
+**Filters (TargetResolver):**
+- `HAS_NOT_ATTACKED` — creature with HasAttackedThisTurn == false
+- `FIRST_ATTACKER` — matches the lane index of the controller's first attacker this turn
+- `FIRST_ATTACKED` — matches the lane index of the controller's first creature attacked this turn
+
+**Counter lifecycle:**
+- Reset at start of each player's turn (in DuelEngine.StartTurn)
+- AttackCountLastTurn copies AttackCountThisTurn before reset (for NO_ATTACKERS_LAST_TURN)
+- CreatureDiedThisTurnCount reset for both players at each turn start
+- FirstAttackerLaneIndex set on first attack, FirstAttackedLaneIndex set on first defender hit
+- SpellCastCountThisTurn incremented on RITUAL play only
+
+**Rules text:** Added renderer cases for all new conditions.
+
+**Tests:** 19 new unit tests covering all conditions and filters, 482 total (463 legacy + 19 new), all green.
+
+Acceptance: new unit tests green, 463 legacy green. ✅
+
+---
+
 ## 2026-08-12 | 17:45
 
 ### DONE: Trikzos §11 decisions relayed
