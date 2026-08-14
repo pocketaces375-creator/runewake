@@ -1108,3 +1108,32 @@ foreman already running (PID 547596) — exiting
 foreman already running (PID 547596) — exiting
 foreman already running (PID 547596) — exiting
 foreman already running (PID 547596) — exiting
+foreman already running (PID 547596) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 19/48 (19 full + 0 bus, 38/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-14T20:47:03Z)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 19/48 (19 full + 0 bus, 38/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 19/48 (19 full + 0 bus, 38/96 halves)
+  Queue is empty
