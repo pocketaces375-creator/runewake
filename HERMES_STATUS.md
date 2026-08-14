@@ -377,6 +377,11 @@ All five defects fixed and proven end-to-end:
 - Commit 8bbe9d8 "TASK-TASK-H: Deck + Artifact side-group layout (DECISION CHANGE...)" pushed to main
 - TASKS_QUEUE.md marked [x]
 
+## 2026-08-14 | TASK-UI2
+
+### DONE: TASK-UI2 — Field + full-art pass (Trikzos direction)
+(1) Empty board slots: SlotBg stone texture at 0.35 opacity (up from 0.25) + visible PanelContainer border (brighter 0.30/0.27/0.24) reads as card places, not voids. (2) Board slot sizing: LaneSlot aspect changed from 160:120 (4:3) to 110:168 (~2:3) matching hand card proportions. ScaleTo uses 110f/168f aspect. 5 lanes at 118×180 fill ~590px of 1152 viewport with 8px margins. (3) FULL-BLEED: LaneSlot restructured — VBox/FixedArtRect replaced with Content wrapper + TextureRect (full-rect, KeepAspectCovered). CardName is now a full-width semi-transparent dark strip overlay (anchor_left=0.0, anchor_right=1.0). Attack/vigor corner badges with red/green StyleBoxFlat backgrounds. HandCard name strip also full-width (anchor_left=0.0, anchor_right=1.0). Placeholder cards show NoArtLabel centered on full-bleed stone background. Gate exit 0, 4 hand + 10 board card checks all pass.
+
 ## 2026-08-14 | TASK-F4B
 
 ### DONE: TASK-F4B — Close the gate's masking hole
