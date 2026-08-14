@@ -280,6 +280,12 @@ public partial class DuelScene : Control
         _turnLabel.AddThemeFontSizeOverride("font_size", FontSmall);
         _turnLabel.AddThemeColorOverride("font_color", TextSecondary);
 
+        // ═══ TASK-UI3d: Atmosphere overlay — layered lighting, mist, vignette, dust motes ═══
+        var atmosphere = new AtmosphereOverlay { Name = "AtmosphereOverlay" };
+        atmosphere.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        AddChild(atmosphere);
+        // ═══ END TASK-UI3d ═══
+
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
 

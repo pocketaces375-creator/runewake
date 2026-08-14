@@ -26,6 +26,64 @@ public static class ThemeTokens
     public static readonly Color SurfaceMetal = Color.FromHtml("#322E28");
 
     // ════════════════════════════════════════════
+    // Atmosphere (TASK-UI3d) — all values here so art can retune without code
+    // ════════════════════════════════════════════
+
+    // ── Warm ember glow (lower-left corner) ──
+    /// <summary>Ember glow color — warm reddish-orange like forge embers</summary>
+    public static readonly Color AtmosphereEmberGlow = Color.FromHtml("#D4502A");
+    /// <summary>Ember glow center X as fraction of viewport width (0=left, 1=right)</summary>
+    public const float AtmosphereEmberCenterX = 0.08f;
+    /// <summary>Ember glow center Y as fraction of viewport height (0=top, 1=bottom)</summary>
+    public const float AtmosphereEmberCenterY = 0.92f;
+    /// <summary>Ember glow max radius as fraction of viewport diagonal</summary>
+    public const float AtmosphereEmberRadius = 0.45f;
+    /// <summary>Ember glow peak alpha (inner ring)</summary>
+    public const float AtmosphereEmberAlpha = 0.12f;
+
+    // ── Cool moon glow (upper-right corner) ──
+    /// <summary>Moon glow color — cool pale blue-white</summary>
+    public static readonly Color AtmosphereMoonGlow = Color.FromHtml("#6A8BC4");
+    /// <summary>Moon glow center X as fraction of viewport width</summary>
+    public const float AtmosphereMoonCenterX = 0.92f;
+    /// <summary>Moon glow center Y as fraction of viewport height</summary>
+    public const float AtmosphereMoonCenterY = 0.08f;
+    /// <summary>Moon glow max radius as fraction of viewport diagonal</summary>
+    public const float AtmosphereMoonRadius = 0.40f;
+    /// <summary>Moon glow peak alpha (inner ring)</summary>
+    public const float AtmosphereMoonAlpha = 0.08f;
+
+    // ── Mist band ──
+    /// <summary>Mist band color — pale grey-blue at low opacity</summary>
+    public static readonly Color AtmosphereMistColor = Color.FromHtml("#8A9BB0");
+    /// <summary>Mist band center Y as fraction of viewport height</summary>
+    public const float AtmosphereMistCenterY = 0.45f;
+    /// <summary>Mist band total height as fraction of viewport height</summary>
+    public const float AtmosphereMistHeight = 0.08f;
+    /// <summary>Mist band max opacity</summary>
+    public const float AtmosphereMistAlpha = 0.06f;
+
+    // ── Vignette ──
+    /// <summary>Vignette color — dark brown-black</summary>
+    public static readonly Color AtmosphereVignetteColor = Color.FromHtml("#0A0907");
+    /// <summary>Vignette peak alpha at edges</summary>
+    public const float AtmosphereVignetteAlpha = 0.40f;
+    /// <summary>Vignette softness as fraction of viewport (0=hard, 1=full soft)</summary>
+    public const float AtmosphereVignetteSoftness = 0.35f;
+
+    // ── Dust motes ──
+    /// <summary>Number of static dust motes to render</summary>
+    public const int AtmosphereDustMoteCount = 7;
+    /// <summary>Minimum dust mote radius in pixels</summary>
+    public const float AtmosphereDustMoteMinRadius = 1.0f;
+    /// <summary>Maximum dust mote radius in pixels</summary>
+    public const float AtmosphereDustMoteMaxRadius = 3.0f;
+    /// <summary>Dust mote color — warm faint gold</summary>
+    public static readonly Color AtmosphereDustMoteColor = Color.FromHtml("#C9A84C");
+    /// <summary>Dust mote max opacity</summary>
+    public const float AtmosphereDustMoteAlpha = 0.35f;
+
+    // ════════════════════════════════════════════
     // Text
     // ════════════════════════════════════════════
 
