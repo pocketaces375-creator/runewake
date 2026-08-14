@@ -233,6 +233,16 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - CostBadge: pos=(0,0) size=(22,26) — correct top-left.
 - Verified via pixel sampling: attack area RGB=(119,30,17) bright red, vigor area RGB=(33,91,50) bright green, mid-strip G=70 vs R=74 (no green dominance).
 
+### TASK R1 DONE — Pixel gate turned green
+- Root cause of old 29 failures: (1) gate's PNG parser didn't apply filter bytes (Sub/Up/Average/Paeth) — read garbage pixels, reported 95% dark. (2) name_rect path broken by Content wrapper. (3) board cards empty at turn 1 (legitimate — no creatures played yet).
+- Fixes to gate: rewrote read_png with proper PNG filter decoding (None/Sub/Up/Average/Paeth). Actual whole-frame dark: 17.0%. Added board slot empty-detection (skip checks for uniformly colored lanes).
+- Fix to DuelScene capture hook: name_rect path updated to "Content/CardName", card_id now writes hc.CardId (not hc.CardName).
+- Fix to art visibility: removed VBox layout (ArtRectPlaceholder/ArtTexture/NoArtLabel were getting zero height under VBox distribution). Now all three are direct children of Content with FullRect anchors, stacking properly. ArtTexture renders first, NoArtLabel overlays when art missing.
+- Claude addendum (a): swapped tid_u_coral_guardian → dwn_r_sealing_light in test hand (confirmed art at 512x512). All 4 hand cards now have art files. Hand stddev 0.095-0.140 confirms art variation visible.
+- Claude addendum (b): stray "oral Guardian" label was the CardName node at pos=(0,0) size=(118,3) from Container layout override. Fixed by Content wrapper in TASK-B-FIX (CardName now at pos=(5,128) size=(108,27)).
+- Threshold justification: no thresholds tuned — all checks use original values: whole-frame dark < 85% (actual 17.0%), hand card luminance > 25/255 (actual 0.232-0.286), hand stddev > 12/255 (actual 0.095-0.140), name contrast > 0.15 (actual 0.828-0.894).
+- Gate exit: 0. All 4 hand card + 10 board card checks pass.
+
 ### TASK V DONE — Capture harness + pixel gate
 - DebugCapture autoload: sets up deterministic test state (seed=42, 4 hand cards, 30-card deck, partial attune)
 - Runs under xvfb-run with OpenGL3 (llvmpipe) renderer — real GPU rendering

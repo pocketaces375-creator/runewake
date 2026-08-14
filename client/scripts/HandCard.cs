@@ -37,8 +37,8 @@ public partial class HandCard : PanelContainer
     public override void _Ready()
     {
         _cardName = GetNode<Label>("Content/CardName");
-        _artRect = GetNode<TextureRect>("Content/VBox/ArtTexture");
-        _noArtLabel = GetNode<Label>("Content/VBox/NoArtLabel");
+        _artRect = GetNode<TextureRect>("Content/ArtTexture");
+        _noArtLabel = GetNode<Label>("Content/NoArtLabel");
         _costLabel = GetNode<Label>("Content/CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
@@ -61,9 +61,9 @@ public partial class HandCard : PanelContainer
         };
         _desatOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         GetNode<Control>("Content").AddChild(_desatOverlay);
-        // Keep the veil above the art (VBox) but below the name/badge so text stays crisp
-        var vboxIdx = GetNode("Content/VBox").GetIndex();
-        GetNode("Content").MoveChild(_desatOverlay, vboxIdx + 1);
+        // Keep the veil above the art but below the name/badge so text stays crisp
+        var artIdx = GetNode("Content/ArtTexture").GetIndex();
+        GetNode("Content").MoveChild(_desatOverlay, artIdx + 1);
 
         // Style cost badge
         ApplyBadgeStyle(Gold, Gold);

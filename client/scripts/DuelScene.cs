@@ -329,7 +329,7 @@ public partial class DuelScene : Control
                         var r = hc.GetRect();
                         // GetRect returns local coords; to get global need GlobalPosition
                         var gp = hc.GetScreenTransform().Origin;
-                        var nameR = hc.GetNodeOrNull<Label>("CardName");
+                        var nameR = hc.GetNodeOrNull<Label>("Content/CardName");
                         var nameRect = new Rect2();
                         if (nameR != null)
                         {
@@ -338,7 +338,8 @@ public partial class DuelScene : Control
                         }
 
                         meta.Append("    {\n");
-                        meta.Append($"      \"card_id\": \"{hc.CardName}\",\n");
+                        meta.Append($"      \"card_id\": \"{hc.CardId}\",\n");
+                        meta.Append($"      \"name\": \"{hc.CardName}\",\n");
                         meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
                         meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
                         meta.Append("    }");

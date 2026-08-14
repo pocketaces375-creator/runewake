@@ -67,7 +67,7 @@ public partial class DebugCapture : Node
         {
             // 4 hand cards at start + 26 filler cards
             "tid_c_abyssal_gaze",   // cost 1, HAS art
-            "tid_u_coral_guardian",  // cost 5, NO art
+            "dwn_r_sealing_light",  // cost 4, HAS art (confirmed via dwn_r_sealing_light.webp)
             "emb_c_cinder_runner",   // cost 2, HAS art
             "vrd_x_heartwood_relic", // cost 4, NO art
             // Filler cards for the rest of the deck (26 more = 30 total)

@@ -3,24 +3,28 @@
   "expected_board_card_count": 10,
   "hand_cards": [
     {
-      "card_id": "Root Warden",
+      "card_id": "vrd_c_root_warden",
+      "name": "Root Warden",
       "rect": { "x": 291.0, "y": 428.0, "w": 117.9, "h": 180.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
+      "name_rect": { "x": 295.7, "y": 555.8, "w": 108.4, "h": 27.0 }
     },
     {
-      "card_id": "Forgeguard Berserker",
+      "card_id": "emb_c_forgeguard_berserker",
+      "name": "Forgeguard Berserker",
       "rect": { "x": 442.0, "y": 428.0, "w": 117.9, "h": 180.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
+      "name_rect": { "x": 446.7, "y": 555.8, "w": 108.4, "h": 27.0 }
     },
     {
-      "card_id": "Skeletal Reaver",
+      "card_id": "hol_c_skeletal_reaver",
+      "name": "Skeletal Reaver",
       "rect": { "x": 593.0, "y": 428.0, "w": 117.9, "h": 180.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
+      "name_rect": { "x": 597.7, "y": 555.8, "w": 108.4, "h": 27.0 }
     },
     {
-      "card_id": "Coral Guardian",
+      "card_id": "dwn_r_sealing_light",
+      "name": "Sealing Light",
       "rect": { "x": 744.0, "y": 428.0, "w": 117.9, "h": 180.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
+      "name_rect": { "x": 748.7, "y": 555.8, "w": 108.4, "h": 27.0 }
     }
   ],
   "board_cards": [

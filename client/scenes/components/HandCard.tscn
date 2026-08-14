@@ -47,23 +47,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="Content"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="ArtRectPlaceholder" type="ColorRect" parent="Content/VBox"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.20, 0.18, 0.14, 1)
-mouse_filter = 2
-
-[node name="ArtTexture" type="TextureRect" parent="Content/VBox"]
+[node name="ArtTexture" type="TextureRect" parent="Content"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -71,7 +55,7 @@ mouse_filter = 2
 stretch_mode = 5
 expand_mode = 1
 
-[node name="NoArtLabel" type="Label" parent="Content/VBox"]
+[node name="NoArtLabel" type="Label" parent="Content"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
