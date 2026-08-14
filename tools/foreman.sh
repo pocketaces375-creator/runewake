@@ -146,6 +146,10 @@ run_hermes_session() {
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
+# Lockfile: prevent concurrent foreman runs (required for cron usage)
+exec 200>"/tmp/runewake_foreman.lock"
+flock -n 200 || { echo "foreman already running — exiting"; exit 0; }
+
 header "Foreman — one iteration"
 
 cd "${PROJECT_DIR}"
