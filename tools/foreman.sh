@@ -153,12 +153,63 @@ for line in content.split('\n'):
 }
 
 # Run hermes agent session with timeout
+# Run a hermes oneshot with retry-with-backoff (PART D — provider resilience).
+# 3 attempts total; waits 60s/180s between attempts; if all 3 fail with a
+# transient signature (provider outage, no new commit), wait 300s once more
+# before returning so the provider can recover before classification.
+# Usage: run_session_with_retry <timeout_secs> <prompt> <label>
+run_session_with_retry() {
+  local session_timeout="$1" prompt="$2" label="$3"
+  local attempt=1 max_attempts=3
+  local backoff=(60 180 300)
+  local output="" head_before head_after retryable
+
+  while [[ "${attempt}" -le "${max_attempts}" ]]; do
+    if [[ "${attempt}" -gt 1 ]]; then
+      local wait_s="${backoff[$((attempt - 2))]}"
+      warn "${label}: attempt ${attempt}/${max_attempts} — waiting ${wait_s}s before retry"
+      sleep "${wait_s}"
+    fi
+
+    head_before=$(git rev-parse HEAD 2>/dev/null || echo "")
+    cd "${PROJECT_DIR}"
+    output=$(timeout "${session_timeout}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?")
+    head_after=$(git rev-parse HEAD 2>/dev/null || echo "")
+
+    # Retryable only when: no new commit AND (non-zero exit OR transient
+    # signature in the output tail). A commit means real work happened.
+    retryable=0
+    if [[ "${head_after}" == "${head_before}" ]]; then
+      if echo "${output}" | grep -q "HERMES_EXIT_CODE=" || is_transient_output "${output}"; then
+        retryable=1
+      fi
+    fi
+
+    if [[ "${retryable}" -eq 0 ]]; then
+      echo "${output}"
+      return 0
+    fi
+
+    if [[ "${attempt}" -lt "${max_attempts}" ]]; then
+      # Dead session debris — clean the tree before the next attempt
+      warn "${label}: attempt ${attempt} transient — cleaning dead-session tree litter"
+      git checkout -- . 2>/dev/null || true
+      git clean -fd 2>/dev/null || true
+    else
+      warn "${label}: all ${max_attempts} attempts transient — waiting ${backoff[2]}s final recovery window"
+      sleep "${backoff[2]}"
+    fi
+    attempt=$((attempt + 1))
+  done
+
+  echo "${output}"
+}
+
 run_hermes_session() {
   local task_id="$1" task_desc="$2"
   local prompt="Implement the top unchecked task from ${QUEUE_FILE}: ${task_id} — ${task_desc}. Standard protocol in one session: implement the task, run the harness + gate, commit with message '${task_id}: ${task_desc}', push, write DONE line in HERMES_STATUS.md, then stop. Work from ${PROJECT_DIR}."
 
-  cd "${PROJECT_DIR}"
-  timeout "${FOREMAN_TIMEOUT}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?"
+  run_session_with_retry "${FOREMAN_TIMEOUT}" "${prompt}" "${task_id}"
 }
 
 # ── Transient classifier ─────────────────────────────────────────────────────
@@ -219,8 +270,8 @@ bus_msg_trusted() {
 run_bus_session() {
   local messages="$1" max_seq="$2"
   local prompt="New message(s) from Claude the orchestrator (${BUS_IN}):\n\n${messages}\n\nStanding instruction: Reply to Claude the orchestrator: act on small items directly (queue edits, file writes, answers); append large work items to TASKS_QUEUE.md as proper tasks instead of doing them; write your reply as a new MSG in bus/hermes_to_claude.md; commit 'bus: reply to MSG ${max_seq}', push, stop. Work from ${PROJECT_DIR}."
-  cd "${PROJECT_DIR}"
-  timeout "${BUS_TIMEOUT}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?"
+
+  run_session_with_retry "${BUS_TIMEOUT}" "${prompt}" "bus-session"
 }
 
 # ── Lock (PID file, no FD inheritance into children) ─────────────────────────
