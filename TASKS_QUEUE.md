@@ -55,7 +55,7 @@
 
 - [x] TASK-UI3a — per TASK_UI3_SPEC.md §UI3a
 - [x] TASK-UI3b — per TASK_UI3_SPEC.md §UI3b
-- [ ] TASK-UI3c — per TASK_UI3_SPEC.md §UI3c
+- [x] TASK-UI3c — per TASK_UI3_SPEC.md §UI3c
 - [ ] TASK-UI3d — per TASK_UI3_SPEC.md §UI3d
 
 ## After TASK-S1
