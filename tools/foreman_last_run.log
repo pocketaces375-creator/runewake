@@ -1,21 +1,3 @@
-21:36:22 VALIDATE - gate PASS
-21:36:32 VALIDATE - dotnet test FAIL
-21:36:32 VALIDATE - pytest PASS
-21:36:35 OUTCOME - RETRY 1 (no_new_commit checkbox_not_flipped dotnet_test_failure )
-
---- session output (tail 50) ---
-TASK-TEST complete. Here's the summary:
-
-- **Created** `test_fake_output.txt` in repo root with content "test"
-- **Committed** as `68e795f` with message `TASK-TEST: test task`
-- **Not modified** TASKS_QUEUE.md (per task instructions)
-- **No tests or gate** run (per task instructions)
-- **DONE line** written to HERMES_STATUS.md
-
-Stopping now.
-========================================
-=== foreman: 2026-08-14T01:46:59Z TASK-TEST retry ===
-Session: 1/10
 Failures: no_new_commit checkbox_not_flipped dotnet_test_failure 
 --- session tail ---
 Done. Here's the summary:
@@ -47,4 +29,22 @@ Failures: no_new_commit dotnet_test_failure
 - `xvfb-run godot --path client -- --capture=duel_test` → duel_test.png + meta.json regenerated
 - `python3 tools/capture_gate.py` → **PASS**: all 4 hand cards + 10 board cards pass luminance/variance/contrast checks
 - Git: commit `1b2c26f` pushed, TASKS_QUEUE.md marked `[x]`, DONE line written to HERMES_STATUS.md
+================================
+=== foreman: 2026-08-14T03:45:40Z TASK-H retry ===
+Session: 2/10
+Failures: no_new_commit dotnet_test_failure 
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-H done. Stopping here per protocol.
+
+What shipped:
+- DuelScene.cs: replaced FIX-5 portrait-flanking frames with BuildArsenalGroup — each side gets one group: player = [deck pile][Artifact][Artifact] lower-left, enemy = [Artifact][Artifact][deck pile] mirrored upper-right. Portraits stay; deck pile shows live deck count (26 player / 25 enemy in the capture); artifact frames carry faint "Artifact" labels.
+- Group rects (player at 95.8,560.6 w181x80; enemy at 875.5,55.3 w181x80) are written to duel_test.meta.json.
+- RunLayoutVerification + capture_gate.py now both validate the groups: in-viewport, correct corner placement, mirror symmetry, visible content.
+- Fixed a latent F4 bug found along the way: LaneSlot._Ready called SetEmpty() before _noArtLabel was assigned — that NRE was aborting the capture path entirely (the harness hadn't actually regenerated a capture since F4).
+- Harness capture regenerated, pixel gate exit 0, 463/463 unit tests green.
+
+Verification: /home/fictive/runewake/artifacts/captures/duel_test.png — both groups visible and mirrored in the PNG.
+
+History: 8bbe9d8 (implementation, exact message requested) + 0189e84 (DONE line in HERMES_STATUS.md), both pushed to main. TASKS_QUEUE.md marked [x]. Working tree clean.
 ================================
