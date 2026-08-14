@@ -110,6 +110,9 @@ public static class EffectExecutor
                 case Op.PREVENT_DAMAGE:
                     ApplyPreventDamage(target, effect, source);
                     break;
+                case Op.COST_MOD:
+                    ApplyCostMod(target, effect, source, state);
+                    break;
             }
         }
     }
@@ -480,6 +483,8 @@ public static class EffectExecutor
                 slot.ApplySuppression(turns, $"artf_effect_{source.InstanceId}");
                 // Suppression symmetry: remove all damage-prevention shields from this Artifact (G3).
                 DamageInterceptor.RemoveShieldsFromArtifact(state, slot.Occupant.InstanceId, targetPlayer.Index);
+                // Suppression symmetry: cost discounts from this Artifact die immediately (G3).
+                CostInterceptor.RemoveModsFromArtifact(state, slot.Occupant.InstanceId, targetPlayer.Index);
                 TriggerBus.Fire(state, Trigger.ON_ARTIFACT_SUPPRESS, targetPlayer.Index);
             }
         }
@@ -604,6 +609,49 @@ public static class EffectExecutor
             pt.Player.DamageShields.RemoveAll(s => s.SourceArtifactInstanceId == source.InstanceId);
             pt.Player.DamageShields.Add(shield);
         }
+    }
+
+    /// <summary>
+    /// COST_MOD: Register a standing cost discount (the discount mechanic).
+    /// The mod reduces the play cost of matching cards (applies_to + filter +
+    /// condition, evaluated at play time) by the effect's amount, never below 0.
+    /// Re-applying the same Artifact's mod replaces it (no stacking — e.g. a
+    /// passive re-applied each turn); mods with "stacks": true accumulate
+    /// (e.g. Aura trigger stacking -1 per enemy attack).
+    /// </summary>
+    private static void ApplyCostMod(ResolvedTarget target, EffectDef effect, CardInstance source, GameState state)
+    {
+        int amount = effect.Amount ?? 0;
+        if (amount <= 0) return;
+
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null) return;
+
+        bool stacks = effect.Stacks ?? false;
+        if (!stacks)
+        {
+            player.CostMods.RemoveAll(m =>
+                m.SourceArtifactInstanceId == source.InstanceId && m.SourceController == source.Controller);
+        }
+
+        player.CostMods.Add(new CostMod
+        {
+            Amount = amount,
+            AppliesTo = effect.AppliesTo,
+            Filter = effect.Filter,
+            Value = effect.Value,
+            Condition = effect.Condition,
+            Duration = effect.Duration,
+            Stacks = stacks,
+            SourceArtifactDefId = source.CardDefId,
+            SourceArtifactInstanceId = source.InstanceId,
+            SourceController = source.Controller
+        });
     }
 
     // ——— Helpers ———

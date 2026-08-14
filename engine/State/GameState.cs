@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text.Json;
 using Runewake.Engine.Cards;
 using Runewake.Engine.Engine;
 
@@ -118,7 +119,8 @@ public sealed class GameState
                         Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
                         TokenId = e.TokenId, Duration = e.Duration,
                         Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
-                        Condition = e.Condition
+                        Condition = e.Condition,
+                        AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks
                     }).ToList()
                 }));
 
@@ -325,6 +327,35 @@ public sealed class GameState
             return current;
         }
 
+        // Hash a single cost discount (COST_MOD) into the state hash.
+        ulong HashCostMod(ulong current, CostMod m)
+        {
+            current = HashInt(current, m.Amount);
+            if (m.AppliesTo is not null)
+                foreach (var ch in m.AppliesTo)
+                    current = HashInt(current, (int)ch);
+            if (m.Filter is not null)
+                foreach (var ch in m.Filter)
+                    current = HashInt(current, (int)ch);
+            current = HashInt(current, m.Value ?? -1);
+            if (m.Condition?.Op is ConditionOp cop)
+                current = HashInt(current, (int)cop);
+            if (m.Condition?.Value is JsonElement cv && cv.ValueKind == JsonValueKind.Number && cv.TryGetInt32(out var condVal))
+                current = HashInt(current, condVal);
+            if (m.Condition?.Side is not null)
+                foreach (var ch in m.Condition.Side)
+                    current = HashInt(current, (int)ch);
+            current = HashInt(current, m.Duration is { } dur ? (int)dur : -1);
+            current = HashBool(current, m.Stacks);
+            current = HashInt(current, m.UsedThisTurn);
+            if (m.SourceArtifactDefId is not null)
+                foreach (var ch in m.SourceArtifactDefId)
+                    current = HashInt(current, (int)ch);
+            current = HashInt(current, m.SourceArtifactInstanceId);
+            current = HashInt(current, m.SourceController);
+            return current;
+        }
+
         ulong h = fnvOffset;
 
         // Game-level fields
@@ -364,6 +395,11 @@ public sealed class GameState
             h = HashInt(h, pl.DamageShields.Count);
             foreach (var s in pl.DamageShields)
                 h = HashShield(h, s);
+
+            // Cost discounts (player) — COST_MOD
+            h = HashInt(h, pl.CostMods.Count);
+            foreach (var m in pl.CostMods)
+                h = HashCostMod(h, m);
 
             // Decks (remaining card IDs)
             h = HashInt(h, pl.Deck.Count);

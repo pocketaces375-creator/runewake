@@ -207,7 +207,8 @@ public sealed class CardInstance
                 Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
                 TokenId = e.TokenId, Duration = e.Duration,
                 Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
-                Condition = e.Condition
+                Condition = e.Condition,
+                AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks
             })
         });
         IdentifyCondition = other.IdentifyCondition is not null ? CopyCondition(other.IdentifyCondition) : null;

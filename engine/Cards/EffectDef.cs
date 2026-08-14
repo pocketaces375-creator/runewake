@@ -67,4 +67,25 @@ public sealed class EffectDef
     /// </summary>
     [JsonPropertyName("condition")]
     public ConditionDef? Condition { get; set; }
+
+    /// <summary>
+    /// Card-type filter for COST_MOD: "CREATURE" or "SPELL" (null = any card type).
+    /// </summary>
+    [JsonPropertyName("applies_to")]
+    public string? AppliesTo { get; set; }
+
+    /// <summary>
+    /// Companion value for COST_MOD card filters (e.g. ATTACK_LTE value 2 =
+    /// creatures with attack ≤ 2).
+    /// </summary>
+    [JsonPropertyName("value")]
+    public int? Value { get; set; }
+
+    /// <summary>
+    /// Whether repeated applications of the same COST_MOD stack additively
+    /// (true, e.g. Aura trigger) or replace each other (false/null, e.g. a
+    /// passive re-applied each turn).
+    /// </summary>
+    [JsonPropertyName("stacks")]
+    public bool? Stacks { get; set; }
 }

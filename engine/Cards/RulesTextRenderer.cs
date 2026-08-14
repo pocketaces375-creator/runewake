@@ -260,10 +260,60 @@ public static class RulesTextRenderer
                 return $"Move {tgt} to another lane";
             }
 
+            case Op.PREVENT_DAMAGE:
+            {
+                string amt = effect.Amount?.ToString() ?? "?";
+                string tgt = RenderTargetPhrase(target);
+                return $"Prevent {amt} damage to {tgt}";
+            }
+
+            case Op.COST_MOD:
+                return RenderCostMod(effect);
+
             default:
                 return $"?{effect.Op}";
         }
     }
+
+    /// <summary>
+    /// Render a COST_MOD discount: "Your first spell each turn costs 1 less",
+    /// "Creatures with attack ≤ 2 cost 1 less", etc.
+    /// </summary>
+    private static string RenderCostMod(EffectDef effect)
+    {
+        int amt = effect.Amount ?? 0;
+        string applies = (effect.AppliesTo?.ToUpperInvariant() ?? "ANY") switch
+        {
+            "CREATURE" => "Creatures",
+            "SPELL" => "Spells",
+            _ => "Cards"
+        };
+
+        string cardFilter = effect.Filter?.ToUpperInvariant() switch
+        {
+            "ATTACK_LTE" => $" with attack ≤ {effect.Value ?? 0}",
+            "FIRST_SPELL_EACH_TURN" => "", // handled by frequency phrase below
+            _ => ""
+        };
+
+        string freq = effect.Filter?.ToUpperInvariant() switch
+        {
+            "FIRST_SPELL_EACH_TURN" => "Your first spell each turn",
+            _ => applies
+        };
+
+        string tail = freq + cardFilter;
+
+        string condition = effect.Condition is not null
+            ? $" if {RenderCondition(effect.Condition)}"
+            : "";
+        string duration = effect.Duration == Duration.THIS_TURN ? " this turn" : "";
+
+        return $"{tail} cost{PluralS(freq)} {amt} less{condition}{duration}";
+    }
+
+    private static string PluralS(string subject)
+        => subject.EndsWith("s", StringComparison.Ordinal) ? "" : "s";
 
     // ——— Target phrase ———
 

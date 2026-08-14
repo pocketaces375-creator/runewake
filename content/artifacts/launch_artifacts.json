@@ -24,7 +24,7 @@
     "class": "mage",
     "slot_pool": "wand",
     "name": "Wand",
-    "passive": { "op": "ATTUNE", "applies_to": "SPELL", "filter": "FIRST_SPELL_EACH_TURN", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "passive": { "op": "COST_MOD", "applies_to": "SPELL", "filter": "FIRST_SPELL_EACH_TURN", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
     "trigger": { "trigger": "ON_SPELL_CAST", "condition": { "op": "SPELLS_CAST_THIS_TURN_EQ", "value": 2 }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
     "charges": { "max": 3, "gain_on": "on_spell_second", "spend_on": "on_spell_targets_creature", "spend_note": "auto-spend ALL on next spell with >=1 creature target; +1 damage OR +1 healing per charge, FIRST creature target only; buff spells do not spend (R4)" },
     "flavor": "The warden's eye never blinks."
@@ -35,7 +35,7 @@
     "slot_pool": "aura",
     "name": "Aura",
     "passive": { "op": "PREVENT_DAMAGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "filter": "FIRST_ATTACK_EACH_TURN", "source": "ATTACK" },
-    "trigger": { "trigger": "ON_CREATURE_ATTACKS", "condition": { "op": "ENEMY_ATTACKS_YOUR_CHARACTER" }, "effects": [{ "op": "ATTUNE", "applies_to": "SPELL", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "duration": "THIS_TURN", "stacks": true }] },
+    "trigger": { "trigger": "ON_CREATURE_ATTACKS", "condition": { "op": "ENEMY_ATTACKS_YOUR_CHARACTER" }, "effects": [{ "op": "COST_MOD", "applies_to": "SPELL", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "duration": "THIS_TURN", "stacks": true }] },
     "charges": null,
     "flavor": "The rune breathes. So does the mage."
   },
@@ -54,7 +54,7 @@
     "class": "thief",
     "slot_pool": "dagger",
     "name": "Duskfang",
-    "passive": { "op": "ATTUNE", "applies_to": "CREATURE", "filter": "ATTACK_LTE", "value": 2, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "filter": "ATTACK_LTE", "value": 2, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
     "trigger": { "trigger": "ON_CHARGE_FULL", "condition": null, "effects": [{ "op": "SUPPRESS", "target": { "scope": "PLAYER_ENEMY", "slots": "ALL" }, "turns": 1 }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
     "charges": { "max": 3, "gain_on": "on_creature_deals_damage_to_character", "max_per_creature_per_turn": 1, "spend_on": "on_charge_full" },
     "flavor": "The night always collects."
@@ -104,7 +104,7 @@
     "class": "necromancer",
     "slot_pool": "grimoire",
     "name": "Skull",
-    "passive": { "op": "ATTUNE", "applies_to": "CREATURE", "condition": { "op": "CREATURE_DIED_THIS_TURN", "side": "ANY" }, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "condition": { "op": "CREATURE_DIED_THIS_TURN", "side": "ANY" }, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
     "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "REVIVE_TOKEN", "target": { "scope": "PLAYER_SELF" }, "token": "artf_revenant_token", "stats": { "attack": 3, "vigor": 3 }, "on_board_full": "FIZZLE" }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
     "charges": { "max": 3, "gain_on": "on_ally_dies", "spend_on": "on_charge_full" },
     "flavor": "Death is a door. The Court holds the key."

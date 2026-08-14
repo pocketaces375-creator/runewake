@@ -148,6 +148,13 @@ public sealed class PlayerState
     /// </summary>
     public List<DamageShield> DamageShields { get; } = new();
 
+    /// <summary>
+    /// Active cost discounts (COST_MOD) for this player.
+    /// Applied at card-play time by CostInterceptor — matching mods reduce the
+    /// effective play cost (never below 0).
+    /// </summary>
+    public List<CostMod> CostMods { get; } = new();
+
     public PlayerState(int index)
     {
         Index = index;
@@ -203,6 +210,7 @@ public sealed class PlayerState
         FirstAttackerLaneIndex = other.FirstAttackerLaneIndex;
         FirstAttackedLaneIndex = other.FirstAttackedLaneIndex;
         DamageShields = other.DamageShields.ConvertAll(s => s.Clone());
+        CostMods = other.CostMods.ConvertAll(m => m.Clone());
     }
 
     /// <summary>

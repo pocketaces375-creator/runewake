@@ -39,6 +39,11 @@ public static partial class DuelEngine
     {
         var endingPlayer = state.Player(action.PlayerIndex);
 
+        // THIS_TURN cost discounts expire when the owning player ends their turn
+        // (a discount created during the enemy's turn — Aura — survives into the
+        // owner's turn and is cleared when the owner ends it).
+        endingPlayer.CostMods.RemoveAll(m => m.Duration == Duration.THIS_TURN);
+
         // 1. End phase — ON_TURN_END triggers, Fragile check, then hand size check
         TriggerBus.Fire(state, Trigger.ON_TURN_END, action.PlayerIndex);
         KeywordHandlers.ProcessFragile(endingPlayer);
@@ -120,10 +125,17 @@ public static partial class DuelEngine
         if (card.Zone != Zone.Hand)
             throw new InvalidOperationException("Card is not in hand.");
 
-        if (player.Attunement < action.Cost)
-            throw new InvalidOperationException($"Not enough attunement: have {player.Attunement}, need {action.Cost}.");
+        // COST_MOD discounts (the discount mechanic) reduce the effective cost
+        // at play time — the engine charges the discounted amount (floor 0).
+        int effectiveCost = CostInterceptor.GetEffectiveCost(state, card, action.PlayerIndex);
 
-        player.Attunement -= action.Cost;
+        if (player.Attunement < effectiveCost)
+            throw new InvalidOperationException($"Not enough attunement: have {player.Attunement}, need {effectiveCost}.");
+
+        player.Attunement -= effectiveCost;
+
+        // Consume per-turn discount gates (FIRST_SPELL_EACH_TURN) after a successful play.
+        CostInterceptor.ConsumePerTurnMods(state, card, action.PlayerIndex);
 
         // Track spell casting for Artifact conditions
         if (card.CardType == CardType.RITUAL)

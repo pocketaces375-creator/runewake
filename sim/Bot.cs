@@ -104,7 +104,10 @@ public class GreedyBot
         // 1. Play card actions
         foreach (var card in player.Hand)
         {
-            if (card.Cost <= player.Attunement)
+            // COST_MOD discounts (the discount mechanic) reduce effective cost.
+            int effectiveCost = CostInterceptor.GetEffectiveCost(state, card, playerIndex);
+
+            if (effectiveCost <= player.Attunement)
             {
                 if (card.CardType == CardType.CREATURE ||
                     card.CardType == CardType.RELIC)
@@ -117,7 +120,7 @@ public class GreedyBot
                             {
                                 PlayerIndex = playerIndex,
                                 CardInstanceId = card.InstanceId,
-                                Cost = card.Cost,
+                                Cost = effectiveCost,
                                 LaneIndex = l,
                             });
                         }
@@ -130,7 +133,7 @@ public class GreedyBot
                     {
                         PlayerIndex = playerIndex,
                         CardInstanceId = card.InstanceId,
-                        Cost = card.Cost,
+                        Cost = effectiveCost,
                         LaneIndex = null,
                     });
                 }
