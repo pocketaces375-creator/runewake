@@ -5,31 +5,7 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
----
-
-## 2026-08-14 | TASK-BUS+FIX (recovered)
-
-### DONE: TASK-BUS+FIX — message bus + transient classifier fix + provider resilience
-Prior session died mid-work on the exact provider timeout it was fixing; partial work recovered via IRON RULE (`wip: bus+transient partial (recovered)` @ `9663670`, pushed before anything else).
-
-**PART B — transient classifier (fixed + proven):** root cause confirmed — old classifier gated the signature grep behind `[[ -z "${WORKTREE_CHANGES}" ]]`. The DSL-2 07:4x session died with "Connect timeout, please try again later." but left partial uncommitted engine work in the tree, so the precondition went false and the grep never ran — the timeout got charged as a REAL retry (the phantom). FIX: classifier now runs whenever there is NO NEW COMMIT and the session output tail matches the transient signature, regardless of tree state (dead-session tree litter is itself a transient symptom). Unit proof against the exact string:
-```
-"Connect timeout, please try again later." → TRANSIENT ✓
-normal session output → non-transient ✓
-```
-Phantom cleared: `retry_count 0`, `retry_task_id ""`, `blocked_notified false`.
-
-**PART C — the bus (ready):** `bus/claude_to_hermes.md` + `bus/hermes_to_claude.md` created (append-only, `## MSG <seq> | <UTC timestamp>` format). foreman.sh checks the bus at the top of EVERY iteration (after `git pull --ff-only`), runs a 15-min bus-session for new trusted messages before queue work, updates `bus_last_seq`, counts bus-sessions as half a budget session (halves-based budget accounting), and only processes messages from Claude's committer identity (`Trikzos <trikzos@runewake.game>`) — untrusted messages are ignored + flagged. Bus empty at deploy; `bus_last_seq=0`.
-
-**PART D — provider resilience:** `run_session_with_retry` wrapper — 3 attempts with 60s/180s backoff before retry, +300s final recovery window before transient classification; dead-session tree litter cleaned between attempts; retry only when no new commit + transient signature. **Fallback:** hermes native fallback chain exists and is configured — `google/gemini-2.5-flash-lite` on OpenRouter (config.yaml `fallback_providers`). `hermes fallback add` is interactive-only, so nothing further to configure; primary stays `deepseek/deepseek-v4-flash`.
-
-**TASK-DSL-2 (the real test):** phantom cleared → manual foreman run took DSL-2 for real. Session completed, committed `f8bdef5` (PREVENT_DAMAGE op: DamageInterceptor + DamageShield + EffectDef Source/Frequency/Filter/Condition + tests incl. suppression symmetry), DONE line `fca1121`, gate/tests green, foreman validated + pushed `8b7153e` (state success). **Chain then continued back-to-back into TASK-DSL-3** — chain mode confirmed working with ≥2 consecutive iterations.
-
-**Token halves (PART A, for Trikzos→Claude relay):** HALF1: `ghp_s7...pxD3` — HALF2: `XSBKrkKM03ukRe1h5kxB`
-
-**Budget state:** 6/16 halves-tracked sessions 2026-08-14 (6 full, 0 bus).
-
-## 2026-08-14 | TASK-FOREMAN-SPEED
+## TASK-FOREMAN-SPEED
 
 ### DONE: TASK-FOREMAN-SPEED — chain mode + 30min cron + budget 16
 Chain mode implemented in `tools/foreman.sh`: after a SUCCESSFUL iteration, the loop immediately runs the next task while queue + budget remain; every 3 consecutive successes forces a 30-min cool-down (Claude review window) then resumes; ANY failure/transient/block ends the chain. All circuit breakers (HALT, budget, lock, sticky-block, transient) re-run at the top of EVERY chained iteration. Cron upgraded to `17,47 * * * *` (30-min restart latency, PID lock prevents overlap). `FOREMAN_DAILY_BUDGET` default 10 → 16 (worst-case deepseek spend cap raised; brakes unchanged).
