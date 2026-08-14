@@ -1,24 +1,3 @@
-- **capture_gate.py**: No changes needed — existing group rect checks work with the new top bar rect.
-
-Build: 0 errors, 104 warnings (pre-existing). Capture exit 0. Layout verification: 0 failures. Pixel gate: PASS (4 hand, 10 board, 2 group rects). Committed + pushed.
-
-⚠️ File-mutation verifier: 2 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
-  • /home/fictive/runewake/client/scenes/duel/DuelScene.tscn — [patch] Found 5 matches for old_string. Provide more context to make it unique, or use replace_all=True.
-  • /home/fictive/runewake/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file Did you mean one of these sections? 5| **TASK-S1 (2026-08-14):** Sim metric — ran logged sim suite across all 7 classes (warrior,…
-========================================
-=== foreman: 2026-08-14T22:16:50Z TASK-UI3b success ===
-Session: 21/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-## Done — TASK-UI3b complete
-
-**What was built:**
-- **`client/scripts/AltarField.cs`** — Custom `Control` that draws the altar ellipse using `DrawColoredPolygon` (fill + radial glow + inset shadow) and `DrawLine` (border + dashed inner ring). Border #57492c, 72-segment ellipse approximation.
-
-- **`client/scenes/duel/DuelScene.tscn`** — `Board` changed from `VBoxContainer` to plain `Control`; old `EnemyLaneMargin/EnemyLanes/Divider/PlayerLaneMargin/PlayerLanes` removed.
-
-- **`client/scripts/DuelScene.cs`** — `BuildAltarField()` creates the `AltarField` visual + `_altarContainer` for slots + 6 rune glyphs (ᚠᚢᚦᚨᚱᚲ) around ellipse edge. `PopulateLanes()` positions 5+5 `LaneSlot` instances at arc coordinates with rotation: enemy top arc (bow down), player bottom arc (bow up), 60px center gap.
-
 **Arc geometry** (scaled from 1280×720 design units):
 - Slots: 206×176, spread across 1240px ellipse
 - Lane X centers: 180, 410, 640, 870, 1100 (design space)
@@ -47,4 +26,25 @@ TASK-UI3c complete. Here's what was implemented:
 - `FitCardName()` method: measures text width against label width and reduces font size step-by-step until it fits or hits 8px minimum, then ellipsize
 
 **Results**: Client build → capture → pixel gate → layout verification → all exit 0. Commit + push on `main`. TASKS_QUEUE.md marked `[x]`. HERMES_STATUS.md updated.
+========================================
+=== foreman: 2026-08-14T23:07:46Z TASK-UI3d success ===
+Session: 23/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-UI3d complete. Summary:
+
+**Changes:**
+- `ThemeTokens.cs` — Added 25 atmosphere config constants (ember/moon glow colors/positions/radii/alphas, mist, vignette, dust motes) so art can retune without code
+- `AtmosphereOverlay.cs` (new) — Full-screen Control rendering via `_Draw`: concentric radial glow polygons (ember lower-left, moon upper-right), mist band across mid-field, 5-step vignette strips on all 4 edges, 7 static dust motes (fixed seed 12345 for deterministic captures)
+- `DuelScene.cs` — Wired AtmosphereOverlay into `_Ready()` after turn label, before background tap handler
+- `HandCard.tscn` — StyleBoxFlat shadow: size=10, offset=(3,4), color=black 0.5α
+- `LaneSlot.tscn` — StyleBoxFlat shadow: same parameters
+
+**Acceptance:**
+- Client build: 0 errors
+- Capture: `duel_test.png` saved (680KB, was 717KB — vignette compresses edges)
+- Pixel gate: all 4 hand cards + 10 board cards + 2 group rects pass (exit 0)
+- Layout verification: 0 failed
+- Atmosphere overlay confirmed loaded: `[ATMOSPHERE] TASK-UI3d: Atmosphere overlay ready`
+- Committed `331ab20` / pushed / DONE line written / queue marked `[x]`
 ========================================
