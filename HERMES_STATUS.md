@@ -300,3 +300,13 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - `ARTIFACT_RULINGS.md` — 26 rulings (G1–G8, R1–R26), overwritten with Claude's verbatim text
 - `LAUNCH_ROADMAP.md` — P0–P6 phased roadmap, decisions, content budget, orchestration protocol
 - Both files are now authoritative — ready for TASK-T1 (ruling tests)
+
+---
+
+## 2026-08-13 | TASK-CRON — Foreman cron installed
+
+### DONE: TASK-CRON — cron job live
+- Installed: `17 * * * * cd /home/fictive/runewake && bash tools/foreman.sh >> tools/foreman_cron.log 2>&1`
+- Verified via `crontab -l`: single entry, correct syntax
+- Cron daemon running (PID 1292)
+- From 13:17 UTC onward, the foreman owns the queue autonomously
