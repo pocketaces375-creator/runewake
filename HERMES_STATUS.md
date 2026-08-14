@@ -5,7 +5,7 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
-## 2026-08-14 | TASK-FOREMAN-SPEED
+## TASK-FOREMAN-SPEED
 
 ### DONE: TASK-FOREMAN-SPEED — chain mode + 30min cron + budget 16
 Chain mode implemented in `tools/foreman.sh`: after a SUCCESSFUL iteration, the loop immediately runs the next task while queue + budget remain; every 3 consecutive successes forces a 30-min cool-down (Claude review window) then resumes; ANY failure/transient/block ends the chain. All circuit breakers (HALT, budget, lock, sticky-block, transient) re-run at the top of EVERY chained iteration. Cron upgraded to `17,47 * * * *` (30-min restart latency, PID lock prevents overlap). `FOREMAN_DAILY_BUDGET` default 10 → 16 (worst-case deepseek spend cap raised; brakes unchanged).
@@ -445,3 +445,22 @@ All five defects fixed and proven end-to-end:
 - Harness capture regenerated: gate exit 0, all 6 occupied slots pass luminance/variance checks, 4 empty slots skipped
 - Commit 516b3d6 pushed to main
 - TASKS_QUEUE.md marked [x]
+
+---
+
+## 2026-08-14 | TASK-DSL-2
+
+### DONE: TASK-DSL-2 — PREVENT_DAMAGE op: amount, source filter (ATTACK vs SPELL), frequency (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN), condition support (FEWER_ALLY_CREATURES_THAN_ENEMY). Unit tests incl. suppression symmetry.
+
+**Implementation:**
+
+- `DamageInterceptor.cs` — new static class with `Reduce(state, target, amount, sourceType)` overloads for PlayerState and CardInstance. Applies shields in order with source filtering (ATTACK/SPELL/null = any), frequency gating (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN via `ResetUsage()` at every turn start), condition evaluation at damage-application time (R21) via existing TriggerBus, suppression symmetry (shield from suppressed artifact is inert, only `artf_`-prefixed defs checked), and `RemoveShieldsFromArtifact()` called on suppress (G3).
+- `DuelEngine.cs` — combat damage (both creature-to-creature and face) passes through `DamageInterceptor.Reduce(state, ..., SourceAttack)`.
+- `EffectExecutor.cs` — `PREVENT_DAMAGE` op in switch statement calls `ApplyPreventDamage()` which registers a `DamageShield` on the target (player or creature), replacing any existing shield from the same artifact instance (no stacking per G6). Spell damage passes through `DamageInterceptor.Reduce(state, ..., SourceSpell)`. Suppression (G3) calls `RemoveShieldsFromArtifact` to remove shields immediately.
+- `DamageShield.cs` — data model with Amount, Source, Frequency, Condition, SourceArtifactDefId/InstanceId/Controller, UsedThisTurn counter.
+
+**Tests:** 22 new unit tests covering basic amount, never-below-zero, zero-amount no-op, ATTACK source filter, SPELL source filter, null source filter (any), FIRST_ATTACK_EACH_TURN frequency, turn-reset, ONCE_PER_ENEMY_TURN, FEWER_ALLY_CREATURES_THAN_ENEMY condition (active/inactive/at-damage-time), creature targets, multiple shields, suppressed-artifact inert, RemoveShieldsFromArtifact, EffectExecutor integration (player, creature, no-stacking), frequency-from-filter-alias, and combat integration (player shield, creature shield, face shield).
+
+**Verification:** `dotnet build` succeeded, `dotnet test` 505/505 passed (22 new + 483 legacy), no TODOs or NotImplementException in new code.
+
+Acceptance: ✅ new unit tests green, 505 legacy green, suppression symmetry tested.
