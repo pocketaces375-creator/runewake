@@ -1,9 +1,9 @@
 {
   "date": "2026-08-14",
-  "session_count": 1,
+  "session_count": 0,
   "last_task_id": "",
   "last_commit_sha": "",
-  "retry_count": 1,
-  "retry_task_id": "TASK-F4B",
+  "retry_count": 0,
+  "retry_task_id": "",
   "blocked_notified": false
 }

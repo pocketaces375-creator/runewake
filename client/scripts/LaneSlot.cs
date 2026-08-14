@@ -4,17 +4,20 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// A single lane slot on the board. Shows card name and stats when occupied,
-/// or remains empty with a subtle border. Supports drag-and-drop for playing
-/// cards from hand, and tap selection for attack targeting.
+/// A single lane slot on the board. Shows full-bleed card art with overlay
+/// name strip and stat badges when occupied, or a visible empty frame/border
+/// when empty so slots never read as voids (TASK-UI2).
+/// Supports drag-and-drop for playing cards from hand, and tap selection
+/// for attack targeting.
 /// </summary>
 public partial class LaneSlot : PanelContainer
 {
     private Label _cardName;
-    private Label _stats;
     private Label _faceLabel;
     private Label _noArtLabel;
-    private FixedArtRect _artRect;
+    private TextureRect _artRect;
+    private Label _attackBadge;
+    private Label _vigorBadge;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
 
@@ -42,12 +45,17 @@ public partial class LaneSlot : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("CardName");
-        _stats = GetNode<Label>("Stats");
-        _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
+        _cardName = GetNode<Label>("Content/CardName");
+        _artRect = GetNode<TextureRect>("Content/ArtTexture");
+        _noArtLabel = GetNode<Label>("Content/NoArtLabel");
+        _attackBadge = GetNode<Label>("Content/AttackBadge");
+        _vigorBadge = GetNode<Label>("Content/VigorBadge");
+
+        // Style stat badges with accent-colored backgrounds
+        ApplyStatBadgeStyle(_attackBadge, new Color(0.72f, 0.18f, 0.10f)); // red for attack
+        ApplyStatBadgeStyle(_vigorBadge, new Color(0.20f, 0.55f, 0.30f)); // green for vigor
 
         // NoArtLabel — card name placeholder when art file is missing
-        _noArtLabel = GetNode<Label>("NoArtLabel");
         _noArtLabel.Visible = false;
         ApplyHeaderFont(_noArtLabel, FontLargeBody);
 
@@ -67,7 +75,9 @@ public partial class LaneSlot : PanelContainer
             Modulate = new Color(1, 0.85f, 0.2f, 1)
         };
         _faceLabel.AddThemeFontSizeOverride("font_size", 14);
-        GetNode("VBox").AddChild(_faceLabel);
+        _faceLabel.MouseFilter = MouseFilterEnum.Ignore;
+        _faceLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        GetNode<Control>("Content").AddChild(_faceLabel);
 
         // Connect touch area (expanded hit region) for touch input
         var touchArea = GetNodeOrNull<Control>("TouchArea");
@@ -84,6 +94,28 @@ public partial class LaneSlot : PanelContainer
         }
     }
 
+    private static void ApplyStatBadgeStyle(Label badge, Color accent)
+    {
+        var style = new StyleBoxFlat
+        {
+            BgColor = accent.Darkened(0.35f),
+            BorderColor = accent,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+            ContentMarginLeft = 3,
+            ContentMarginTop = 0,
+            ContentMarginRight = 3,
+            ContentMarginBottom = 0
+        };
+        badge.AddThemeStyleboxOverride("normal", style);
+    }
+
     /// <summary>
     /// Handle taps from the expanded touch area overlay.
     /// </summary>
@@ -97,16 +129,29 @@ public partial class LaneSlot : PanelContainer
     }
 
     /// <summary>
-    /// Set this lane slot to show card info.
+    /// Set this lane slot to show card info with full-bleed art.
     /// </summary>
     public void SetCard(string cardDefId, string name, int attack, int vigor, bool isExhausted = false)
     {
         _cardName.Text = name;
-        _stats.Text = $"{attack}/{vigor}";
         _state = NodeState.Occupied;
 
         _cardName.Show();
-        _stats.Show();
+        _attackBadge.Show();
+        _vigorBadge.Show();
+
+        // Update stat badges
+        _attackBadge.Text = attack.ToString();
+        _vigorBadge.Text = vigor.ToString();
+
+        // Position stat badges at bottom corners
+        float h = CustomMinimumSize.Y;
+        float w = CustomMinimumSize.X;
+        float badgeSize = Mathf.Max(22f, h * 0.15f);
+        _attackBadge.Position = new Vector2(2, h - badgeSize - 2);
+        _attackBadge.Size = new Vector2(badgeSize, badgeSize);
+        _vigorBadge.Position = new Vector2(w - badgeSize - 2, h - badgeSize - 2);
+        _vigorBadge.Size = new Vector2(badgeSize, badgeSize);
 
         // Load card art
         LoadArt(cardDefId);
@@ -124,14 +169,13 @@ public partial class LaneSlot : PanelContainer
             if (texture != null)
             {
                 _artRect.Texture = texture;
-                _artRect.PlaceholderText = "";
-                GD.Print($"[LANESLOT] {cardDefId} art via FixedArtRect");
+                _noArtLabel.Visible = false;
+                GD.Print($"[LANESLOT] {cardDefId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
-        // No card name text via FixedArtRect — NoArtLabel handles it
+        // No card art — show placeholder label
         _artRect.Texture = null;
-        _artRect.PlaceholderText = "";
         _noArtLabel.Visible = true;
         _noArtLabel.Text = _cardName.Text;
         GD.Print($"[LANESLOT] No art for {cardDefId} — NoArtLabel shown");
@@ -139,15 +183,16 @@ public partial class LaneSlot : PanelContainer
     }
 
     /// <summary>
-    /// Clear this lane slot back to empty.
+    /// Clear this lane slot back to empty — shows visible border/frame
+    /// so it reads as a card place, not a void (TASK-UI2).
     /// </summary>
     public void SetEmpty()
     {
         _cardName.Text = "";
-        _stats.Text = "";
 
         _cardName.Hide();
-        _stats.Hide();
+        _attackBadge.Hide();
+        _vigorBadge.Hide();
         _artRect.Texture = null;
         _noArtLabel.Visible = false;
         if (_faceLabel != null)
@@ -158,19 +203,21 @@ public partial class LaneSlot : PanelContainer
 
     /// <summary>
     /// Scale the lane slot to a target height (px in viewport space), keeping
-    /// the 160:120 aspect ratio. Fonts scale proportionally.
+    /// the ~2:3 aspect ratio (matching board-card proportions, TASK-UI2).
+    /// Fonts scale proportionally.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 160f / 120f;
+        float aspect = 110f / 168f; // ~2:3, matching hand card proportions
         CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
         Size = CustomMinimumSize;
 
-        float scale = targetHeight / 120f;
+        float scale = targetHeight / 168f;
         int nameSize = Mathf.Max(12, Mathf.RoundToInt(14 * scale));
-        int statSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
+        int statSize = Mathf.Max(14, Mathf.RoundToInt(16 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
-        _stats.AddThemeFontSizeOverride("font_size", statSize);
+        _attackBadge.AddThemeFontSizeOverride("font_size", statSize);
+        _vigorBadge.AddThemeFontSizeOverride("font_size", statSize);
     }
 
     /// <summary>

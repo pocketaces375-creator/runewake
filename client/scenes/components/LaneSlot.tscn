@@ -2,40 +2,39 @@
 
 [ext_resource type="Script" path="res://scripts/LaneSlot.cs" id="1_xyz"]
 [ext_resource type="Shader" path="res://shaders/lane_inset.gdshader" id="2_shader"]
-[ext_resource type="Script" path="res://scripts/FixedArtRect.cs" id="3_art"]
 
 [sub_resource type="ShaderMaterial" id="2"]
 shader = ExtResource("2_shader")
 
 [sub_resource type="StyleBoxFlat" id="1"]
-content_margin_left = 6
-content_margin_top = 6
-content_margin_right = 6
-content_margin_bottom = 6
+content_margin_left = 0
+content_margin_top = 0
+content_margin_right = 0
+content_margin_bottom = 0
 bg_color = Color(0.18, 0.16, 0.14, 1)
-border_color = Color(0.10, 0.09, 0.07, 1)
+border_color = Color(0.30, 0.27, 0.24, 1)
 border_width_left = 2
 border_width_top = 2
-border_width_right = 3
-border_width_bottom = 3
+border_width_right = 2
+border_width_bottom = 2
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_left = 6
 corner_radius_bottom_right = 6
 draw_center = true
 
-[sub_resource type="StyleBoxFlat" id="3"]
-bg_color = Color(0, 0, 0, 0.5)
-content_margin_left = 4
-content_margin_top = 1
-content_margin_right = 4
-content_margin_bottom = 1
+[sub_resource type="StyleBoxFlat" id="4"]
+bg_color = Color(0, 0, 0, 0.55)
+content_margin_left = 3
+content_margin_top = 0
+content_margin_right = 3
+content_margin_bottom = 0
 
 [node name="LaneSlot" type="PanelContainer"]
 anchors_preset = 0
 size_flags_horizontal = 0
 size_flags_vertical = 0
-custom_minimum_size = Vector2(160, 120)
+custom_minimum_size = Vector2(110, 168)
 script = ExtResource("1_xyz")
 theme_override_styles/panel = SubResource(1)
 material = SubResource(2)
@@ -47,50 +46,26 @@ anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 1
-modulate = Color(1, 1, 1, 0.25)
+modulate = Color(1, 1, 1, 0.35)
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="Content" type="Control" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-alignment = 1
-theme_override_constants/separation = 0
-
-[node name="ArtRect" type="Control" parent="VBox"]
-size_flags_horizontal = 3
-size_flags_vertical = 3
-custom_minimum_size = Vector2(100, 70)
-mouse_filter = 2
-clip_contents = true
-script = ExtResource("3_art")
-
-[node name="CardName" type="Label" parent="."]
-anchors_preset = 0
-anchor_left = 0.04
-anchor_top = 0.72
-anchor_right = 0.96
-anchor_bottom = 0.88
-size_flags_horizontal = 3
-size_flags_vertical = 0
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
-theme_override_styles/normal = SubResource(3)
-text = ""
-autowrap_mode = 2
-max_lines_visible = 1
-clip_text = true
 mouse_filter = 2
 
-[node name="NoArtLabel" type="Label" parent="."]
-anchors_preset = 0
-anchor_left = 0.04
-anchor_top = 0.02
-anchor_right = 0.96
-anchor_bottom = 0.68
+[node name="ArtTexture" type="TextureRect" parent="Content"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+stretch_mode = 5
+expand_mode = 1
+
+[node name="NoArtLabel" type="Label" parent="Content"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 2
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -100,14 +75,53 @@ autowrap_mode = 2
 max_lines_visible = 2
 text = ""
 
-[node name="Stats" type="Label" parent="."]
-anchors_preset = 10
-anchor_left = 0.55
-anchor_top = 0.82
-anchor_right = 0.97
-anchor_bottom = 0.98
-theme_override_font_sizes/font_size = 13
-theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
+[node name="CardName" type="Label" parent="Content"]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.72
+anchor_right = 1.0
+anchor_bottom = 0.88
+size_flags_horizontal = 3
+size_flags_vertical = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
+theme_override_styles/normal = SubResource(4)
+text = ""
+autowrap_mode = 2
+max_lines_visible = 1
+clip_text = true
+mouse_filter = 2
+
+[node name="AttackBadge" type="Label" parent="Content"]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+text = ""
+
+[node name="VigorBadge" type="Label" parent="Content"]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 text = ""
 
 [node name="TouchArea" type="Control" parent="."]

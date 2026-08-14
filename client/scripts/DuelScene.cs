@@ -379,7 +379,7 @@ public partial class DuelScene : Control
                     {
                         var r = slot.GetRect();
                         var gp = slot.GetScreenTransform().Origin;
-                        var nameR = slot.GetNodeOrNull<Label>("CardName");
+                        var nameR = slot.GetNodeOrNull<Label>("Content/CardName");
                         var nameRect = new Rect2();
                         if (nameR != null)
                         {
@@ -400,7 +400,7 @@ public partial class DuelScene : Control
                     {
                         var r = slot.GetRect();
                         var gp = slot.GetScreenTransform().Origin;
-                        var nameR = slot.GetNodeOrNull<Label>("CardName");
+                        var nameR = slot.GetNodeOrNull<Label>("Content/CardName");
                         var nameRect = new Rect2();
                         if (nameR != null)
                         {
