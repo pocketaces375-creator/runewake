@@ -23,4 +23,13 @@ public sealed class AbilityDef
     /// <summary>The effects produced when this ability fires (1–2).</summary>
     [JsonPropertyName("effects")]
     public List<EffectDef> Effects { get; set; } = new();
+
+    /// <summary>
+    /// Optional timing modifier for when the trigger fires.
+    /// "END_OF_TURN" means the trigger resolves at end of turn instead of immediately
+    /// (used by ON_CHARGE_FULL for Censer, Grimoire per G8).
+    /// Null (default) = fire immediately.
+    /// </summary>
+    [JsonPropertyName("timing")]
+    public string? Timing { get; set; }
 }

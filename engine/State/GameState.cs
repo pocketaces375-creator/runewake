@@ -209,7 +209,13 @@ public sealed class GameState
                 {
                     slot.MaxCharges = chargeCfg.Max;
                     slot.Charges = 0;
+                    slot.ChargeConfigMaxPerTurn = chargeCfg.MaxPerTurn;
+                    slot.ChargeConfigMaxPerCreaturePerTurn = chargeCfg.MaxPerCreaturePerTurn;
                 }
+
+                // Determine if this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN
+                slot.HasDeferredChargeFull = artDef.Trigger.Trigger == Trigger.ON_CHARGE_FULL
+                    && artDef.Trigger.Timing == "END_OF_TURN";
 
                 slot.Occupant = instance;
                 player.ArtifactSlots[slotIdx] = slot;
@@ -463,6 +469,32 @@ public sealed class GameState
                 {
                     h = HashInt(h, -1); // empty lane marker
                 }
+            }
+
+            // Artifact slots (charges, suppression, tracking per G3, G5, G8)
+            for (int a = 0; a < pl.ArtifactSlots.Length; a++)
+            {
+                var slot = pl.ArtifactSlots[a];
+                h = HashInt(h, slot.Charges);
+                h = HashInt(h, slot.MaxCharges);
+                h = HashBool(h, slot.IsSuppressed);
+                h = HashInt(h, slot.SuppressionRemaining);
+                h = HashBool(h, slot.PassiveAppliedThisTurn);
+                h = HashBool(h, slot.HasTriggeredThisTurn);
+                h = HashInt(h, slot.ChargesGainedThisTurn);
+                h = HashBool(h, slot.PendingChargeFull);
+                h = HashBool(h, slot.HasDeferredChargeFull);
+                h = HashInt(h, slot.ChargeConfigMaxPerTurn);
+                h = HashInt(h, slot.ChargeConfigMaxPerCreaturePerTurn);
+                // Per-creature tracking — hash each creature entry
+                h = HashInt(h, slot.ChargesGainedThisTurnByCreature.Count);
+                foreach (var kvp in slot.ChargesGainedThisTurnByCreature.OrderBy(kvp => kvp.Key))
+                {
+                    h = HashInt(h, kvp.Key);
+                    h = HashInt(h, kvp.Value);
+                }
+                // Hash occupant instance id for replay determinism
+                h = HashInt(h, slot.Occupant?.InstanceId ?? -1);
             }
         }
 

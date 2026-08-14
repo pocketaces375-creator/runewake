@@ -36,7 +36,7 @@
 
 - [x] TASK-DSL-4 — Cadenced passives: cadence ON_TURN_START with explicit ordering key; Prey marking runs BEFORE all other turn-start effects (R15), Censer heal after, then draw. Unit tests pinning the order.
 
-- [ ] TASK-DSL-5 — Charge plumbing: RESET_CHARGES, max_per_turn and max_per_creature_per_turn caps, ON_CHARGE_FULL with timing END_OF_TURN, charge freeze under suppression (G3). Unit tests.
+- [x] TASK-DSL-5 — Charge plumbing: RESET_CHARGES, max_per_turn and max_per_creature_per_turn caps, ON_CHARGE_FULL with timing END_OF_TURN, charge freeze under suppression (G3). Unit tests.
 
 - [ ] TASK-DSL-6 — Partner-slot mechanics: PARTNER_CHARGES_GTE condition, FORGE op with spend_from PARTNER_SLOT (all charges, +1/+1 per charge, HIGHEST_COST target, tiebreak OLDEST_IN_PLAY, charges kept if no creature — R25). Unit tests.
 

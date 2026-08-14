@@ -53,6 +53,10 @@ public static partial class DuelEngine
         // But we also tick AFTER triggers so ON_ARTIFACT_UNSUPPRESS can fire correctly
         TickArtifactSuppression(endingPlayer);
 
+        // 1.5 Deferred ON_CHARGE_FULL — fire any artifact triggers with timing END_OF_TURN
+        // that had PendingChargeFull set during this turn (Censer, Grimoire per G8).
+        FireDeferredChargeFull(state, endingPlayer);
+
         // 2. Switch to next player
         state.CurrentPlayerIndex = state.OpponentIndex(action.PlayerIndex);
         if (state.CurrentPlayerIndex == 0)
@@ -111,6 +115,11 @@ public static partial class DuelEngine
         nextPlayer.FirstAttackedLaneIndex = null;
         state.CreatureDiedThisTurnCount[0] = 0;
         state.CreatureDiedThisTurnCount[1] = 0;
+        // Reset per-turn charge tracking for the next player's artifacts (max_per_turn, etc.)
+        foreach (var slot in nextPlayer.ArtifactSlots)
+        {
+            slot.ResetChargeTracking();
+        }
         // Reset damage-prevention shield usage counters (R5: resets at start of EVERY turn, both players).
         DamageInterceptor.ResetUsage(state);
 
@@ -550,6 +559,29 @@ public static partial class DuelEngine
             {
                 slot.TickSuppression();
             }
+        }
+    }
+
+    /// <summary>
+    /// Fire deferred ON_CHARGE_FULL triggers for any artifact slots with
+    /// PendingChargeFull set. These are artifacts whose ON_CHARGE_FULL ability
+    /// has timing "END_OF_TURN" (Censer, Grimoire per G8).
+    /// Clears the PendingChargeFull flag after firing.
+    /// </summary>
+    private static void FireDeferredChargeFull(GameState state, PlayerState endingPlayer)
+    {
+        var opponent = state.Player(state.OpponentIndex(endingPlayer.Index));
+
+        foreach (var slot in endingPlayer.ArtifactSlots)
+        {
+            if (!slot.PendingChargeFull || slot.Occupant is null || slot.IsSuppressed)
+                continue;
+
+            slot.PendingChargeFull = false;
+
+            // Fire ON_CHARGE_FULL — the trigger bus will find matching abilities
+            // on this player's artifacts that have ON_CHARGE_FULL trigger.
+            TriggerBus.Fire(state, Trigger.ON_CHARGE_FULL, endingPlayer.Index);
         }
     }
 }

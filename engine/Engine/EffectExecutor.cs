@@ -99,7 +99,7 @@ public static class EffectExecutor
                     ApplySuppress(target, effect.Amount ?? 1, source, state);
                     break;
                 case Op.ADD_CHARGE:
-                    ApplyAddCharge(target, effect.Amount ?? 1, state);
+                    ApplyAddCharge(target, effect.Amount ?? 1, source, state);
                     break;
                 case Op.SET_PREY:
                     ApplySetPrey(target, source, state);
@@ -112,6 +112,9 @@ public static class EffectExecutor
                     break;
                 case Op.COST_MOD:
                     ApplyCostMod(target, effect, source, state);
+                    break;
+                case Op.RESET_CHARGES:
+                    ApplyResetCharges(target, state);
                     break;
             }
         }
@@ -493,8 +496,14 @@ public static class EffectExecutor
     /// <summary>
     /// ADD_CHARGE: Add N Charges to an Artifact slot or to the player's active Artifact.
     /// Target can be PLAYER_SELF (adds to all slots) or ALLY_CREATURE + filter for a specific slot.
+    /// Enforces per-turn caps (max_per_turn, max_per_creature_per_turn) from the artifact's
+    /// ChargeConfig via ArtifactSlot.AddCharges().
+    /// If the artifact's ON_CHARGE_FULL ability has timing "END_OF_TURN", sets PendingChargeFull
+    /// instead of firing immediately. Immediate ON_CHARGE_FULL fires as before when no timing
+    /// modifier is set.
+    /// Suppressed artifacts are skipped (G3 — charge freeze under suppression).
     /// </summary>
-    private static void ApplyAddCharge(ResolvedTarget target, int amount, GameState state)
+    private static void ApplyAddCharge(ResolvedTarget target, int amount, CardInstance source, GameState state)
     {
         PlayerState? player = target switch
         {
@@ -504,19 +513,61 @@ public static class EffectExecutor
         };
         if (player is null || amount <= 0) return;
 
+        // If the source is a creature (not an artifact), use its instance ID
+        // for per-creature charge tracking (max_per_creature_per_turn).
+        int? creatureId = source.CardType == CardType.CREATURE || source.CardType == CardType.TOKEN
+            ? source.InstanceId
+            : null;
+
         foreach (var slot in player.ArtifactSlots)
         {
-            if (slot.MaxCharges > 0 && slot.Occupant is not null && !slot.IsSuppressed)
-            {
-                int before = slot.Charges;
-                slot.AddCharges(amount);
-                TriggerBus.Fire(state, Trigger.ON_CHARGE_GAINED, player.Index);
+            if (slot.MaxCharges <= 0 || slot.Occupant is null || slot.IsSuppressed)
+                continue;
 
-                // Fire ON_CHARGE_FULL if charges just hit max
-                if (slot.Charges == slot.MaxCharges && before < slot.MaxCharges)
+            int before = slot.Charges;
+            int added = slot.AddCharges(amount, creatureId);
+            if (added <= 0)
+                continue; // capped by per-turn limit or at max
+
+            TriggerBus.Fire(state, Trigger.ON_CHARGE_GAINED, player.Index);
+
+            // Fire ON_CHARGE_FULL if charges just hit max (or were already at max and got more)
+            bool justFilled = before < slot.MaxCharges && slot.Charges >= slot.MaxCharges;
+            if (justFilled)
+            {
+                if (slot.HasDeferredChargeFull)
                 {
+                    // Defer — will fire at end of turn (Censer, Grimoire)
+                    slot.PendingChargeFull = true;
+                }
+                else
+                {
+                    // Fire immediately (Duskfang etc.)
                     TriggerBus.Fire(state, Trigger.ON_CHARGE_FULL, player.Index);
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// RESET_CHARGES: Reset Charges on an Artifact slot to 0.
+    /// Target should be PLAYER_SELF (resets all slots) or a specific slot.
+    /// </summary>
+    private static void ApplyResetCharges(ResolvedTarget target, GameState state)
+    {
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null) return;
+
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is not null)
+            {
+                slot.ResetCharges();
             }
         }
     }

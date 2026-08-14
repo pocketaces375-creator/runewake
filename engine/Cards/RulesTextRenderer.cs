@@ -270,6 +270,9 @@ public static class RulesTextRenderer
             case Op.COST_MOD:
                 return RenderCostMod(effect);
 
+            case Op.RESET_CHARGES:
+                return "Reset Charges";
+
             default:
                 return $"?{effect.Op}";
         }

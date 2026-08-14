@@ -63,6 +63,52 @@ public sealed class ArtifactSlot
     /// </summary>
     public bool PassiveAppliedThisTurn { get; set; }
 
+    // ——— Per-turn charge tracking (TASK-DSL-5) ———
+
+    /// <summary>
+    /// Total Charges gained this turn across all sources.
+    /// Used to enforce <see cref="ChargeConfigMaxPerTurn"/>.
+    /// Reset at start of the owner's turn.
+    /// </summary>
+    public int ChargesGainedThisTurn { get; set; }
+
+    /// <summary>
+    /// Charges gained this turn keyed by creature instance ID.
+    /// Used to enforce <see cref="ChargeConfigMaxPerCreaturePerTurn"/>.
+    /// Reset at start of the owner's turn.
+    /// </summary>
+    public Dictionary<int, int> ChargesGainedThisTurnByCreature { get; set; } = new();
+
+    /// <summary>
+    /// Whether this slot has a pending ON_CHARGE_FULL trigger that should
+    /// fire at end of turn (for triggers with timing "END_OF_TURN").
+    /// Set when ADD_CHARGE fills charges and the artifact's ON_CHARGE_FULL
+    /// ability has timing END_OF_TURN.
+    /// Cleared after the end-of-turn firing.
+    /// </summary>
+    public bool PendingChargeFull { get; set; }
+
+    /// <summary>
+    /// Per-turn charge gain cap from the artifact's ChargeConfig (max_per_turn).
+    /// 0 = unlimited.
+    /// Set when the artifact is assigned to this slot.
+    /// </summary>
+    public int ChargeConfigMaxPerTurn { get; set; }
+
+    /// <summary>
+    /// Per-creature per-turn charge gain cap from the artifact's ChargeConfig
+    /// (max_per_creature_per_turn). 0 = unlimited.
+    /// Set when the artifact is assigned to this slot.
+    /// </summary>
+    public int ChargeConfigMaxPerCreaturePerTurn { get; set; }
+
+    /// <summary>
+    /// Whether this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN
+    /// (meaning the trigger fires at end of turn, not immediately).
+    /// Derived from the artifact's ability definitions when assigned.
+    /// </summary>
+    public bool HasDeferredChargeFull { get; set; }
+
     public ArtifactSlot(int index)
     {
         Index = index;
@@ -79,6 +125,12 @@ public sealed class ArtifactSlot
         SuppressionSourceId = other.SuppressionSourceId;
         HasTriggeredThisTurn = other.HasTriggeredThisTurn;
         PassiveAppliedThisTurn = other.PassiveAppliedThisTurn;
+        ChargesGainedThisTurn = other.ChargesGainedThisTurn;
+        ChargesGainedThisTurnByCreature = new Dictionary<int, int>(other.ChargesGainedThisTurnByCreature);
+        PendingChargeFull = other.PendingChargeFull;
+        ChargeConfigMaxPerTurn = other.ChargeConfigMaxPerTurn;
+        ChargeConfigMaxPerCreaturePerTurn = other.ChargeConfigMaxPerCreaturePerTurn;
+        HasDeferredChargeFull = other.HasDeferredChargeFull;
     }
 
     /// <summary>
@@ -124,11 +176,54 @@ public sealed class ArtifactSlot
 
     /// <summary>
     /// Add Charges, capping at MaxCharges.
+    /// Enforces per-turn limits (<see cref="ChargeConfigMaxPerTurn"/> and
+    /// <see cref="ChargeConfigMaxPerCreaturePerTurn"/>).
+    /// Returns the actual number of charges added (0 if capped).
     /// </summary>
-    public void AddCharges(int amount)
+    public int AddCharges(int amount, int? creatureInstanceId = null)
     {
-        if (MaxCharges > 0)
-            Charges = Math.Min(MaxCharges, Charges + amount);
+        if (MaxCharges <= 0 || amount <= 0 || IsSuppressed)
+            return 0;
+
+        int capped = amount;
+
+        // Total per-turn cap (max_per_turn)
+        if (ChargeConfigMaxPerTurn > 0)
+        {
+            int remainingTurn = ChargeConfigMaxPerTurn - ChargesGainedThisTurn;
+            if (remainingTurn <= 0)
+                return 0; // capped for this turn
+            capped = Math.Min(capped, remainingTurn);
+        }
+
+        // Per-creature per-turn cap (max_per_creature_per_turn)
+        if (ChargeConfigMaxPerCreaturePerTurn > 0 && creatureInstanceId.HasValue)
+        {
+            int creatureId = creatureInstanceId.Value;
+            if (!ChargesGainedThisTurnByCreature.TryGetValue(creatureId, out int creatureCharges))
+                creatureCharges = 0;
+            int remainingCreature = ChargeConfigMaxPerCreaturePerTurn - creatureCharges;
+            if (remainingCreature <= 0)
+                return 0; // this creature capped
+            capped = Math.Min(capped, remainingCreature);
+        }
+
+        // Enforce hard ceiling to MaxCharges
+        int before = Charges;
+        capped = Math.Min(capped, MaxCharges - before);
+        if (capped <= 0)
+            return 0;
+
+        Charges = before + capped;
+        ChargesGainedThisTurn += capped;
+        if (creatureInstanceId.HasValue)
+        {
+            int creatureId = creatureInstanceId.Value;
+            ChargesGainedThisTurnByCreature.TryGetValue(creatureId, out int current);
+            ChargesGainedThisTurnByCreature[creatureId] = current + capped;
+        }
+
+        return capped;
     }
 
     /// <summary>
@@ -139,5 +234,25 @@ public sealed class ArtifactSlot
         int spent = Charges;
         Charges = 0;
         return spent;
+    }
+
+    /// <summary>
+    /// Reset Charges to 0 without any trigger side effects.
+    /// Used by the RESET_CHARGES op (Duskfang, Censer, Grimoire triggers).
+    /// </summary>
+    public void ResetCharges()
+    {
+        Charges = 0;
+    }
+
+    /// <summary>
+    /// Reset per-turn charge tracking counters.
+    /// Called at the start of the owner's turn.
+    /// </summary>
+    public void ResetChargeTracking()
+    {
+        ChargesGainedThisTurn = 0;
+        ChargesGainedThisTurnByCreature.Clear();
+        PendingChargeFull = false;
     }
 }

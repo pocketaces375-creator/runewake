@@ -46,7 +46,7 @@ public enum Op
     COPY, SET_STAT, REFRESH,
     // Artifact-specific ops
     SUPPRESS, ADD_CHARGE, SET_PREY, REVIVE_TOKEN,
-    PREVENT_DAMAGE, COST_MOD
+    PREVENT_DAMAGE, COST_MOD, RESET_CHARGES
 }
 
 // ——— Target Scope ———

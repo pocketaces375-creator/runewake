@@ -92,4 +92,22 @@ public sealed class ChargeConfig
     /// </summary>
     [JsonPropertyName("spend_on")]
     public string SpendOn { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum total Charges that can be gained per turn (across all sources).
+    /// 0 or null = unlimited.
+    /// Enforced at ADD_CHARGE time. Reset when the owner's turn starts.
+    /// Used by: Censer (max_per_turn: 1).
+    /// </summary>
+    [JsonPropertyName("max_per_turn")]
+    public int MaxPerTurn { get; set; }
+
+    /// <summary>
+    /// Maximum Charges that can be gained per turn from a single creature.
+    /// 0 or null = unlimited.
+    /// Enforced at ADD_CHARGE time by tracking which creature instance triggered the gain.
+    /// Used by: Duskfang (max_per_creature_per_turn: 1).
+    /// </summary>
+    [JsonPropertyName("max_per_creature_per_turn")]
+    public int MaxPerCreaturePerTurn { get; set; }
 }
