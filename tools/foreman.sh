@@ -236,6 +236,9 @@ fi
 header "Running: ${TASK_ID}"
 info "Model: ${FOREMAN_MODEL}  Timeout: ${FOREMAN_TIMEOUT}s"
 
+# Capture HEAD before the session so we can detect new commits
+CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
+
 SESSION_OUTPUT=$(run_hermes_session "${TASK_ID}" "${TASK_DESC}")
 
 if echo "${SESSION_OUTPUT}" | grep -q "HERMES_EXIT_CODE="; then
@@ -279,7 +282,6 @@ header "Validation"
 VALIDATION_FAILED=0
 VALIDATION_REASONS=""
 NEW_COMMIT_SHA=""
-CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
 
 # 5a. New commit?
 NEW_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
@@ -339,8 +341,8 @@ else
 fi
 
 # 5e. Python tests green? (decision by exit code only)
-if command -v python3 &>/dev/null && [[ -d "${PROJECT_DIR}/tests" ]]; then
-  if (cd "${PROJECT_DIR}" && python3 -m pytest tests/ -x -q); then
+if command -v python3 &>/dev/null && [[ -d "${PROJECT_DIR}/pipeline/tests" ]]; then
+  if (cd "${PROJECT_DIR}" && python3 -m pytest pipeline/tests/ -x -q); then
     ok "Python tests passed"
   else
     warn "Python tests failed"
