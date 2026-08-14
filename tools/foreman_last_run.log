@@ -1,28 +1,3 @@
-1. **TriggerBus.FireArtifactSlot** — new method scoping ON_CHARGE_FULL/ON_CHARGE_GAINED to the specific artifact slot. Fixes G6 mirror-match violation where P1's artifact fired when P0's charges filled.
-2. **EffectExecutor.ApplyAddCharge** — switched ON_CHARGE_GAINED and ON_CHARGE_FULL fires to the slot-scoped method.
-3. **DuelEngine.FireDeferredChargeFull** — switched to slot-scoped fire.
-4. **EffectExecutor.ApplyResetCharges** — added `!slot.IsSuppressed` guard per G3 (no loss).
-5. **All 594 legacy tests still green** — zero regressions.
-
-### Committed
-`99ae6f5` — `TASK-T1a: Ruling tests, general: G1–G8, naming Ruling_<id>_<Name>. All green, legacy green.`
-
-### Not pushed (foreman chain active)
-Per the IRON RULE: the foreman PID is live at `/tmp/runewake_foreman.pid` (547596). The push will be handled by the foreman chain upon release.
-
-**What's next:** TASK-T1b — Warrior ruling tests (R1–R3).
-
-⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
-  • /root/hermes/skis/RulinGeeralTess.s — [patch] Failed to read file: /root/hermes/skis/RulinGeeralTess.s
-========================================
-=== foreman: 2026-08-14T18:31:23Z TASK-T1b success ===
-Session: 15/48
---- session tail ---
-**TASK-T1b complete.** Here's the report:
-
-**What shipped:**
-- `tests/Engine/RulingWarriorTests.cs` — 15 tests covering Warrior rulings R1–R3 verbatim
-
 **R1 — Ancestral Blade (6 tests):**
 - Spell-damage clamp to 1 vigor (asserts clamp, not prevention)
 - Combat damage bypassed (shield doesn't apply)
@@ -47,4 +22,29 @@ Session: 15/48
 **State:** 631 tests green (616 legacy + 15 new). Committed `5f7eb7a`, pushed. TASKS_QUEUE.md marked `[x]`. DONE line in HERMES_STATUS.md.
 
 **Next unchecked:** TASK-T2 — Ruling tests, Mage + Thief: R4–R10.
+========================================
+=== foreman: 2026-08-14T18:46:27Z TASK-T2 success ===
+Session: 16/48
+--- session tail ---
+**TASK-T2 complete.** Here's the summary:
+
+**New file:** `tests/Engine/RulingMageThiefTests.cs` — 25 tests across 7 rulings:
+
+| Ruling | Artifact | Tests |
+|--------|----------|-------|
+| **R4** | Wand (Warden's Focus) | Damage bonus per charge, heal bonus, no-spend on buff spells, first-creature-target-only |
+| **R5** | Aura (Mantle) passive | First attack reduced 1, second attack full damage, resets every turn, creature damage not shielded |
+| **R6** | Aura trigger | Enemy face attack queues spell discount, multiple attacks stack, spells-only |
+| **R7** | Whisperfang trigger | Exactly-1-attacker condition, zero×one, 2+ no draw, attacked-and-died counts |
+| **R8** | Whisperfang passive | STEALTH_STRIKE to FIRST_ATTACKER, second attacker excluded |
+| **R9** | Duskfang charges | Per-creature cap, suppress both enemy artifacts at 3, auto-reset |
+| **R10** | Twin daggers | Passive no-stack (engine gap noted), triggers independent, separate charge pools |
+
+**Gate:** `dotnet test` — **656/656 passing** (631 legacy + 25 new) ✅
+
+**Commit:** `3b21707` — pushed to main
+**HERMES_STATUS.md:** DONE line written
+**TASKS_QUEUE.md:** TASK-T2 marked [x]
+
+**Engine gap logged (R10):** Within-player same-def-id passive dedup by card def ID is not implemented — two identical Duskfang artifacts each register their own COST_MOD (2 entries instead of 1). The test documents this as a known gap.
 ========================================
