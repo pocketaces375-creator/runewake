@@ -374,4 +374,5 @@ All five defects fixed and proven end-to-end:
 - Group rects (player/enemy) written to duel_test.meta.json; RunLayoutVerification checks in-viewport, lower-left/upper-right placement, and mirror symmetry; capture_gate.py validates group visibility (stddev > 8/255)
 - Fixed pre-existing F4 bug: LaneSlot._Ready called SetEmpty() before _noArtLabel assignment → NRE aborted capture path; reordered
 - Harness capture regenerated, pixel gate exit 0, 463 unit tests green
-- Commit pending push "TASK-H: Deck + Artifact side-group layout (DECISION CHANGE...)"
+- Commit 8bbe9d8 "TASK-TASK-H: Deck + Artifact side-group layout (DECISION CHANGE...)" pushed to main
+- TASKS_QUEUE.md marked [x]
