@@ -1,19 +1,3 @@
-- `EffectDef.cs` — Added `AppliesTo`, `Value`, `Stacks`, `Floor` fields
-- `CostMod.cs` (new) — Runtime data structure with `Clone()`, all required fields (applies_to, filter, filter_value, condition, duration, stacks, amount, floor, used_this_turn, source tracking)
-- `PlayerState.cs` — Added `CostMods` list with `Clone()` support
-- `EffectExecutor.cs` — Added `ApplyCostMod()` handler (registers/replaces cost mods on player target, stacking or non-stacking per source artifact)
-- `DuelEngine.cs` — Added `GetEffectiveCost()`, `ConsumeCostMods()`, `RefreshCostMods()` methods; modified `ApplyPlayCard` to use effective discounted cost; called `RefreshCostMods` at turn start (removes THIS_TURN mods, resets per-turn usage flags); called `ConsumeCostMods` after successful card play (marks FIRST_SPELL_EACH_TURN as used)
-- `RulesTextRenderer.cs` — Added COST_MOD rendering
-- `Bot.cs` — `EnumerateValidActions` uses `GetEffectiveCost`
-- `GameState.cs` — Added `HashCostMod` to state hash + `CostMods` fields copied in EffectDef copy sites
-
-**Content migration:**
-- `launch_artifacts.json` — All 4 ATTUNE discounts migrated to COST_MOD:
-  - Wand (Mage): `FIRST_SPELL_EACH_TURN` passive
-  - Aura (Mage): `THIS_TURN` + `stacks: true` trigger
-  - Duskfang (Thief): `ATTACK_LTE` passive
-  - Skull (Necromancer): `CREATURE_DIED_THIS_TURN` condition passive
-
 **Tests:**
 - `CostModTests.cs` (25 tests, 22 passing) — Covers: generic discount, floor 0, applies_to (CREATURE/SPELL), ATTACK_LTE filter, FIRST_SPELL_EACH_TURN per-turn, condition gating, stacking, UsedThisTurn skip, integration with ApplyPlayCard, insufficient attunement, full discount to 0, lifecycle (THIS_TURN removal, UsedThisTurn reset), Wand/Aura/Grimoire patterns, clone correctness, hash inclusion, Bot action enumeration
 
@@ -47,4 +31,20 @@ Done. TASK-DSL-3 completed:
 - **Tests:** 531/531 pass (19 new + 512 legacy)
 - **Migration:** 4 ATTUNE→COST_MOD entries in launch_artifacts.json, zero ATTUNE remaining
 - **Stack:** TASK-DSL-4 (cadenced passives) next in queue
+========================================
+=== foreman: 2026-08-14T14:00:11Z TASK-DSL-4 success ===
+Session: 9/16
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-DSL-4 done. Protocol followed: implement → tests → commit → push → DONE line → stop.
+
+Implementation:
+- EffectDef: new `Cadence` + `Order` fields (JSON `cadence`/`order`) with constants `ON_TURN_START` and `BEFORE_ALL_OTHER_TURN_START_EFFECTS`
+- DuelEngine: new turn-start cadence phase (3.5, after Attune, before Draw) — `FireCadencedPassives()` sorts cadenced artifact passives by the explicit ordering key (BEFORE_ALL_OTHER first, stable by slot) so Bow Prey marking resolves before Censer heal, both before draw (R11, R15). `ApplyArtifactPassives` now skips cadenced effects to avoid double-fire
+- TargetResolver: added `MOST_WOUNDED` filter (Censer's R11 target)
+- CardInstance: Clone() now copies Cadence/Order (was dropping them on state clone — caught by tests)
+
+Tests: 9 new in tests/Engine/CadencePassiveTests.cs pinning order (ordering-key interaction test, reversed-order negative, real Bow+Censer pair, no-enemy/no-mark R15, no-wound/no-heal R11, cadence-before-trigger-phase via hand-size watcher, suppression R18/G3, JSON wiring).
+
+Verification: 540/540 tests pass (9 new + 531 legacy). Commits `e7c8d35` + `b235d1f` pushed to main. TASKS_QUEUE.md marked [x], DONE line in HERMES_STATUS.md. Stopping here per protocol.
 ========================================
