@@ -100,6 +100,50 @@ public static class TriggerBus
     }
 
     /// <summary>
+    /// Fire matching abilities of ONE artifact slot's occupant only.
+    /// Used for per-artifact events like ON_CHARGE_FULL and ON_CHARGE_GAINED
+    /// where the event belongs to a specific artifact (G6: each player's
+    /// Charges/triggers are their own — the opponent's mirror copy must NOT
+    /// fire when yours fills).
+    /// </summary>
+    /// <param name="state">The game state (already cloned by caller).</param>
+    /// <param name="trigger">The trigger event type.</param>
+    /// <param name="controller">The player who controls the artifact slot.</param>
+    /// <param name="slotIndex">The slot index of the artifact.</param>
+    public static void FireArtifactSlot(GameState state, Trigger trigger, int controller, int slotIndex)
+    {
+        var player = state.Player(controller);
+        if (slotIndex < 0 || slotIndex >= player.ArtifactSlots.Length)
+            return;
+        var slot = player.ArtifactSlots[slotIndex];
+        if (slot.Occupant is null || slot.IsSuppressed)
+            return;
+
+        foreach (var ability in slot.Occupant.Abilities)
+        {
+            if (ability.Trigger != trigger)
+                continue;
+            if (state.TriggerDepth >= MaxTriggerDepth)
+                return;
+            if (!ConditionMet(ability.Condition, slot.Occupant, controller, state))
+                continue;
+
+            state.TriggerDepth++;
+            var opponent = state.Player(state.OpponentIndex(controller));
+            foreach (var effect in ability.Effects)
+            {
+                var targets = TargetResolver.Resolve(
+                    effect.Target ?? new TargetDef { Scope = Scope.NONE },
+                    slot.Occupant,
+                    player,
+                    opponent,
+                    state);
+                EffectExecutor.Execute(effect, slot.Occupant, state, targets);
+            }
+        }
+    }
+
+    /// <summary>
     /// Collect all abilities matching a trigger from creatures on the board,
     /// ordered: event player's creatures first (lane 0-4), then the other player's (lane 0-4).
     /// </summary>

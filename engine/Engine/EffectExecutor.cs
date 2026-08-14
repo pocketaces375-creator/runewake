@@ -534,7 +534,8 @@ public static class EffectExecutor
             if (added <= 0)
                 continue; // capped by per-turn limit or at max
 
-            TriggerBus.Fire(state, Trigger.ON_CHARGE_GAINED, player.Index);
+            // Fire ON_CHARGE_GAINED only for THIS slot (G6: each player's charges are their own)
+            TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_GAINED, player.Index, slot.Index);
 
             // Fire ON_CHARGE_FULL if charges just hit max (or were already at max and got more)
             bool justFilled = before < slot.MaxCharges && slot.Charges >= slot.MaxCharges;
@@ -547,8 +548,8 @@ public static class EffectExecutor
                 }
                 else
                 {
-                    // Fire immediately (Duskfang etc.)
-                    TriggerBus.Fire(state, Trigger.ON_CHARGE_FULL, player.Index);
+                    // Fire immediately (Duskfang etc.) — only THIS slot (G6)
+                    TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, player.Index, slot.Index);
                 }
             }
         }
@@ -570,7 +571,9 @@ public static class EffectExecutor
 
         foreach (var slot in player.ArtifactSlots)
         {
-            if (slot.Occupant is not null)
+            // Suppressed artifacts' Charges are frozen (G3: no gain, no spend, no loss) —
+            // a reset while suppressed would be a loss, so skip suppressed slots.
+            if (slot.Occupant is not null && !slot.IsSuppressed)
             {
                 slot.ResetCharges();
             }

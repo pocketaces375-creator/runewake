@@ -582,9 +582,9 @@ public static partial class DuelEngine
 
             slot.PendingChargeFull = false;
 
-            // Fire ON_CHARGE_FULL — the trigger bus will find matching abilities
-            // on this player's artifacts that have ON_CHARGE_FULL trigger.
-            TriggerBus.Fire(state, Trigger.ON_CHARGE_FULL, endingPlayer.Index);
+            // Fire ON_CHARGE_FULL for THIS slot only (G6: the opponent's mirror
+            // artifact must not fire when this player's charges filled).
+            TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, endingPlayer.Index, slot.Index);
         }
     }
 }
