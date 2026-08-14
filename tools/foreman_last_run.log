@@ -1,32 +1,3 @@
-TASK-DSL-4 done. Protocol followed: implement → tests → commit → push → DONE line → stop.
-
-Implementation:
-- EffectDef: new `Cadence` + `Order` fields (JSON `cadence`/`order`) with constants `ON_TURN_START` and `BEFORE_ALL_OTHER_TURN_START_EFFECTS`
-- DuelEngine: new turn-start cadence phase (3.5, after Attune, before Draw) — `FireCadencedPassives()` sorts cadenced artifact passives by the explicit ordering key (BEFORE_ALL_OTHER first, stable by slot) so Bow Prey marking resolves before Censer heal, both before draw (R11, R15). `ApplyArtifactPassives` now skips cadenced effects to avoid double-fire
-- TargetResolver: added `MOST_WOUNDED` filter (Censer's R11 target)
-- CardInstance: Clone() now copies Cadence/Order (was dropping them on state clone — caught by tests)
-
-Tests: 9 new in tests/Engine/CadencePassiveTests.cs pinning order (ordering-key interaction test, reversed-order negative, real Bow+Censer pair, no-enemy/no-mark R15, no-wound/no-heal R11, cadence-before-trigger-phase via hand-size watcher, suppression R18/G3, JSON wiring).
-
-Verification: 540/540 tests pass (9 new + 531 legacy). Commits `e7c8d35` + `b235d1f` pushed to main. TASKS_QUEUE.md marked [x], DONE line in HERMES_STATUS.md. Stopping here per protocol.
-========================================
-=== foreman: 2026-08-14T14:24:35Z TASK-DSL-5 success ===
-Session: 10/16
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Done. TASK-DSL-5 complete:
-
-**Implementation** (commit `7264b41` + DONE line `014887f`, pushed to main):
-- `Op.RESET_CHARGES` added; `ArtifactSlot` gains per-turn tracking (`ChargesGainedThisTurn`, per-creature dict, `PendingChargeFull`) plus config-derived caps and `HasDeferredChargeFull` from `ChargeConfig.max_per_turn` / `max_per_creature_per_turn` and `AbilityDef.Timing="END_OF_TURN"` — all already declared in launch_artifacts.json (Censer, Duskfang, Grimoire).
-- `EffectExecutor.ApplyAddCharge` enforces both caps, freezes charges under suppression (G3), fires ON_CHARGE_FULL immediately or defers to end of turn; `RESET_CHARGES` case added.
-- `DuelEngine.ApplyEndTurn` fires deferred ON_CHARGE_FULL (G8) and resets per-turn charge tracking at owner's turn start.
-- State hash + clone cover all new fields for deterministic replay; RulesTextRenderer renders "Reset Charges".
-
-**Verification:** 568/568 tests green (28 new ChargeTests + 540 legacy). TASKS_QUEUE.md marked `[x]`, DONE line written to HERMES_STATUS.md. Stopping here per protocol.
-========================================
-=== foreman: 2026-08-14T15:11:20Z TASK-DSL-6 success ===
-Session: 11/16
---- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 Done. Here's the summary of what was implemented:
 
@@ -47,4 +18,33 @@ Done. Here's the summary of what was implemented:
 - Full trigger integration: fires through ON_TURN_END_NO_ATTACK correctly
 
 **Results:** All 587 tests pass (463 legacy + 19 new). Committed and pushed.
+========================================
+=== foreman: 2026-08-14T15:28:00Z TASK-DSL-7 success ===
+Session: 12/16
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Done. Here's the summary:
+
+**TASK-DSL-7 implemented and pushed.** Commit `83e1ec6` on `main`.
+
+### ANCESTRAL_SHIELD (R1)
+- New field `AncestralShieldUsedThisTurn` on `CardInstance`
+- `KeywordHandlers.TryAncestralShieldClamp()` — scans all friendly creatures for an active, unused ANCESTRAL_SHIELD after spell damage; if the target's vigor dropped below 1, clamps it back to 1. Scans full board so the keyword protects **all allies**, not just itself.
+- Wired in `EffectExecutor.ApplyDamage` — damage fires normally (triggers resolve), then clamp applied before kill check.
+- `KeywordHandlers.ResetAncestralShields()` resets all flags at turn start in `DuelEngine.ApplyEndTurn`.
+
+### STEALTH_STRIKE (R8)
+- In `DuelEngine.ApplyAttack` — counter-damage line is conditional: `if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))` defender's attack damage is skipped.
+
+### Pipeline updates
+- Added keyword descriptions to `render_rules.py`, weights to `score.py` (ANCESTRAL_SHIELD: 1.5, STEALTH_STRIKE: 1.2), keyword list to `generate.py`.
+
+### Tests (7 new, 594 total all green)
+- `AncestralShield_ClampsVigorTo1AfterEnemySpell`
+- `AncestralShield_DoesNotProtectAgainstCombatDamage`
+- `AncestralShield_OneUsePerTurn`
+- `AncestralShield_ResetsAtTurnStart`
+- `StealthStrike_NoCounterDamageFromDefender`
+- `StealthStrike_NonStealthStillTakesCounterDamage`
+- `StealthStrike_FaceAttackNoCounterDamage`
 ========================================
