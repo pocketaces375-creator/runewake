@@ -24,8 +24,6 @@ public partial class DuelScene : Control
     private Label _playerVigorValue;
     private Label _playerAttuneValue;
     private Label _turnLabel;
-    private HBoxContainer _enemyLanes;
-    private HBoxContainer _playerLanes;
     private MarginContainer _handArea;
     private HBoxContainer _handFlow;
     private Button? _endTurnButton;
@@ -37,6 +35,10 @@ public partial class DuelScene : Control
     // Deck + Artifact group rects (TASK-H)
     private Control _playerGroupRect = default!;
     private Control _enemyGroupRect = default!;
+
+    // TASK-UI3b: Altar battlefield container and slots
+    private AltarField _altarField = default!;
+    private Control _altarContainer = default!;
 
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
@@ -143,8 +145,8 @@ public partial class DuelScene : Control
         RemoveChild(playerHud);
         AddChild(playerHud);
 
-        _enemyLanes = board.GetNode<HBoxContainer>("EnemyLaneMargin/EnemyLanes");
-        _playerLanes = board.GetNode<HBoxContainer>("PlayerLaneMargin/PlayerLanes");
+        // TASK-UI3b: Build altar battlefield (replaces straight HBox lanes)
+        BuildAltarField();
 
         // Create input controller
         _input = new InputController();
@@ -165,9 +167,6 @@ public partial class DuelScene : Control
         AddChild(_bot);
         _bot.BotTurnStarted += OnBotTurnStarted;
         _bot.BotTurnEnded += OnBotTurnEnded;
-
-        // Populate lane slots
-        PopulateLanes();
 
         // Load card packs
         LoadCardPacks();
@@ -997,31 +996,127 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// Create 5 lane slot instances for each row.
+    /// TASK-UI3b: Build the altar battlefield — ellipse background, arc-positioned slots, rune glyphs.
+    /// Replaces the old straight HBoxContainer lanes with facing arcs inside an altar ellipse.
+    /// Ellipse ~1240x418 design units centered under the top bar, with border, dashed ring, glow.
+    /// </summary>
+    private void BuildAltarField()
+    {
+        var board = GetNode("Board");
+        float vw = GetViewportRect().Size.X;
+        float vh = GetViewportRect().Size.Y;
+        float scale = vh / 648f;
+
+        // ── Altar ellipse background ──
+        _altarField = new AltarField { Name = "AltarField" };
+        _altarField.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _altarField.MouseFilter = Control.MouseFilterEnum.Ignore;
+        board.AddChild(_altarField);
+
+        // ── Container for arc-positioned slots ──
+        _altarContainer = new Control { Name = "AltarContainer" };
+        _altarContainer.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _altarContainer.MouseFilter = Control.MouseFilterEnum.Ignore;
+        board.AddChild(_altarContainer);
+
+        // ── Rune glyphs around ellipse edge (6 unicode runic characters) ──
+        string runes = "ᚠᚢᚦᚨᚱᚲ"; // Fehu, Uruz, Thurisaz, Ansuz, Raidho, Kenaz
+        float ellipseRx = 620f * scale;
+        float ellipseRy = 209f * scale;
+        Vector2 ellipseCenter = new Vector2(vw / 2f, vh * 0.39f);
+
+        // 6 positions around the ellipse (top, top-right, right, bottom, bottom-left, left)
+        float[] runeAngles = { -Mathf.Pi / 2f, -Mathf.Pi / 6f, Mathf.Pi / 6f, Mathf.Pi / 2f, 5f * Mathf.Pi / 6f, -5f * Mathf.Pi / 6f };
+        for (int i = 0; i < 6 && i < runes.Length; i++)
+        {
+            float angle = runeAngles[i];
+            float rx = 630f * scale;
+            float ry = 215f * scale;
+            float gx = ellipseCenter.X + rx * Mathf.Cos(angle) - 8f;
+            float gy = ellipseCenter.Y + ry * Mathf.Sin(angle) - 8f;
+
+            var rune = new Label
+            {
+                Text = runes[i].ToString(),
+                Position = new Vector2(gx, gy),
+                CustomMinimumSize = new Vector2(16, 16),
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            rune.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
+            rune.AddThemeColorOverride("font_color", new Color(0.34f, 0.29f, 0.17f, 0.3f));
+            _altarContainer.AddChild(rune);
+        }
+
+        // Populate arc slots
+        PopulateLanes();
+
+        GD.Print("[DUEL] TASK-UI3b: Altar field built");
+    }
+
+    /// <summary>
+    /// TASK-UI3b: Create 5 lane slot instances for each side, positioned on facing arcs
+    /// inside the altar ellipse. Outer slots get vertical offset + rotation for arc curvature.
     /// </summary>
     private void PopulateLanes()
     {
         var laneScene = GD.Load<PackedScene>("res://scenes/components/LaneSlot.tscn");
+        float vw = GetViewportRect().Size.X;
+        float vh = GetViewportRect().Size.Y;
+        float scale = vh / 648f;
+        float slotH = 176f * scale;
+        float slotW = 206f * scale;
+
+        // Arc geometry: X positions (centers) spread across the ellipse
+        float centerX = vw / 2f;
+        float spacing = 230f * scale;
+
+        // Enemy baseline Y: top arc, centered within ellipse top half
+        float enemyBaseY = GetViewportRect().Size.Y * 0.195f;
+        // Player baseline Y: bottom arc
+        float playerBaseY = GetViewportRect().Size.Y * 0.59f;
 
         for (int i = 0; i < 5; i++)
         {
+            float xCenter = centerX + (i - 2) * spacing;
+            float x = xCenter - slotW / 2f;
+
+            // ── Enemy slot (top arc, bowing downward) ──
+            float enemyYOffset = i switch { 0 or 4 => 34f, 1 or 3 => 8f, _ => 0f } * scale;
+            float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
             enemySlot.LaneIndex = i;
             enemySlot.LaneTapped += OnLaneTapped;
-            _enemyLanes.AddChild(enemySlot);
-            enemySlot.ScaleTo(_boardCardHeight);
+            _altarContainer.AddChild(enemySlot);
+            // Font sizing via ScaleTo (needs _Ready first, so call after AddChild)
+            enemySlot.ScaleTo(slotH);
+            // Override to arc slot proportions
+            enemySlot.CustomMinimumSize = new Vector2(slotW, slotH);
+            enemySlot.Size = new Vector2(slotW, slotH);
+            enemySlot.Position = new Vector2(x, enemyY);
+            enemySlot.PivotOffset = new Vector2(slotW / 2f, slotH / 2f);
+            enemySlot.Rotation = i switch { 0 => Mathf.DegToRad(4f), 1 => Mathf.DegToRad(2f), 3 => Mathf.DegToRad(-2f), 4 => Mathf.DegToRad(-4f), _ => 0f };
             _enemySlots.Add(enemySlot);
 
+            // ── Player slot (bottom arc, bowing upward) ──
+            float playerYOffset = i switch { 0 or 4 => 34f, 1 or 3 => 8f, _ => 0f } * scale;
+            float playerY = playerBaseY - playerYOffset;
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
             playerSlot.LaneIndex = i;
             playerSlot.LaneTapped += OnLaneTapped;
             playerSlot.CardDropped += OnCardDropped;
-            _playerLanes.AddChild(playerSlot);
-            playerSlot.ScaleTo(_boardCardHeight);
+            _altarContainer.AddChild(playerSlot);
+            playerSlot.ScaleTo(slotH);
+            playerSlot.CustomMinimumSize = new Vector2(slotW, slotH);
+            playerSlot.Size = new Vector2(slotW, slotH);
+            playerSlot.Position = new Vector2(x, playerY);
+            playerSlot.PivotOffset = new Vector2(slotW / 2f, slotH / 2f);
+            playerSlot.Rotation = i switch { 0 => Mathf.DegToRad(-4f), 1 => Mathf.DegToRad(-2f), 3 => Mathf.DegToRad(2f), 4 => Mathf.DegToRad(4f), _ => 0f };
             _playerSlots.Add(playerSlot);
         }
+
+        GD.Print($"[DUEL] TASK-UI3b: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
     }
 
     // ——— State-driven rendering ———
