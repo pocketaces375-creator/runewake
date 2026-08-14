@@ -1,43 +1,3 @@
-- **`TargetDef.cs`** — Added `Tiebreak` field
-- **`TargetResolver.cs`** — Integrated tiebreak into all sort filters (`HIGHEST_COST` + `OLDEST_IN_PLAY` gives correct ordering by cost desc then instanceId asc for tiebreaking)
-- **`EffectExecutor.cs`** — `ApplyForge` implementation: finds partner slot (twin artifact), spends ALL charges, applies per-charge attack/vigor buff, keeps charges if no creature target, respects suppression
-
-**Tests — `ForgeTests.cs`** (19 tests):
-- PARTNER_CHARGES_GTE condition: met, not met, zero, max
-- FORGE: spends all charges, buffs per charge, targets highest cost creature
-- Tiebreak: OLDEST_IN_PLAY with 2 and 3 creatures at same cost
-- Edge cases: no creature (keeps charges), zero charges, suppressed partner, enemy-only creatures
-- Per-charge variants: attack-only, vigor-only, linear scaling with many charges
-- Full trigger integration: fires through ON_TURN_END_NO_ATTACK correctly
-
-**Results:** All 587 tests pass (463 legacy + 19 new). Committed and pushed.
-========================================
-=== foreman: 2026-08-14T15:28:00Z TASK-DSL-7 success ===
-Session: 12/16
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Done. Here's the summary:
-
-**TASK-DSL-7 implemented and pushed.** Commit `83e1ec6` on `main`.
-
-### ANCESTRAL_SHIELD (R1)
-- New field `AncestralShieldUsedThisTurn` on `CardInstance`
-- `KeywordHandlers.TryAncestralShieldClamp()` — scans all friendly creatures for an active, unused ANCESTRAL_SHIELD after spell damage; if the target's vigor dropped below 1, clamps it back to 1. Scans full board so the keyword protects **all allies**, not just itself.
-- Wired in `EffectExecutor.ApplyDamage` — damage fires normally (triggers resolve), then clamp applied before kill check.
-- `KeywordHandlers.ResetAncestralShields()` resets all flags at turn start in `DuelEngine.ApplyEndTurn`.
-
-### STEALTH_STRIKE (R8)
-- In `DuelEngine.ApplyAttack` — counter-damage line is conditional: `if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))` defender's attack damage is skipped.
-
-### Pipeline updates
-- Added keyword descriptions to `render_rules.py`, weights to `score.py` (ANCESTRAL_SHIELD: 1.5, STEALTH_STRIKE: 1.2), keyword list to `generate.py`.
-
-### Tests (7 new, 594 total all green)
-- `AncestralShield_ClampsVigorTo1AfterEnemySpell`
-- `AncestralShield_DoesNotProtectAgainstCombatDamage`
-- `AncestralShield_OneUsePerTurn`
-- `AncestralShield_ResetsAtTurnStart`
-- `StealthStrike_NoCounterDamageFromDefender`
 - `StealthStrike_NonStealthStillTakesCounterDamage`
 - `StealthStrike_FaceAttackNoCounterDamage`
 ========================================
@@ -47,4 +7,44 @@ Failures: no_new_commit checkbox_not_flipped
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 Now I have full understanding. Let me write the complete rulings test file
+========================================
+=== foreman: 2026-08-14T18:13:20Z TASK-T1a success ===
+Session: 14/48
+--- session tail ---
+**TASK-T1a complete — DONE**
+
+## Summary
+
+**New file:** `tests/Engine/RulingGeneralTests.cs` — 22 tests across G1–G8, all named `Ruling_G#_Name`.
+
+### What shipped
+
+| Ruling | Tests | Coverage |
+|--------|-------|----------|
+| **G1** — Trigger ordering | 3 | Active-player artifacts first; slot 0 before slot 1 (damage/heal order); effects complete before next ability (non-interleaved) |
+| **G2** — End-of-turn stacking | 1 | Deferred ON_CHARGE_FULL fires at end of turn; THIS_TURN buffs still present when the heal resolves |
+| **G3** — Suppression scope | 4 | Passive off & triggers don't fire; charges frozen (no gain, no loss, no spend); permanent buffs remain; continuous passives off immediately (cost mods removed) |
+| **G4** — Suppression duration | 3 | 1 turn = until end of owner's next turn; same source refreshes; different source extends |
+| **G5** — Turn-scoped counters | 2 | Reset at start of every turn, per-player independent; conditions read the owner's counter |
+| **G6** — Mirror matches | 3 | Charge-full fires only the owning artifact; identical passives don't stack across players; charges are per-player |
+| **G7** — Creature died | 2 | Any side, any turn; side-aware ALLY/ENEMY |
+| **G8** — Charges | 4 | Per-card cap 3; immediate fire on 3rd charge; deferred to end of turn; visible to both players |
+
+### Engine fixes (rulings win)
+1. **TriggerBus.FireArtifactSlot** — new method scoping ON_CHARGE_FULL/ON_CHARGE_GAINED to the specific artifact slot. Fixes G6 mirror-match violation where P1's artifact fired when P0's charges filled.
+2. **EffectExecutor.ApplyAddCharge** — switched ON_CHARGE_GAINED and ON_CHARGE_FULL fires to the slot-scoped method.
+3. **DuelEngine.FireDeferredChargeFull** — switched to slot-scoped fire.
+4. **EffectExecutor.ApplyResetCharges** — added `!slot.IsSuppressed` guard per G3 (no loss).
+5. **All 594 legacy tests still green** — zero regressions.
+
+### Committed
+`99ae6f5` — `TASK-T1a: Ruling tests, general: G1–G8, naming Ruling_<id>_<Name>. All green, legacy green.`
+
+### Not pushed (foreman chain active)
+Per the IRON RULE: the foreman PID is live at `/tmp/runewake_foreman.pid` (547596). The push will be handled by the foreman chain upon release.
+
+**What's next:** TASK-T1b — Warrior ruling tests (R1–R3).
+
+⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
+  • /root/hermes/skis/RulinGeeralTess.s — [patch] Failed to read file: /root/hermes/skis/RulinGeeralTess.s
 ========================================
