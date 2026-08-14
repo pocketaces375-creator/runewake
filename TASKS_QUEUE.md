@@ -56,7 +56,7 @@
 - [x] TASK-UI3a — per TASK_UI3_SPEC.md §UI3a
 - [x] TASK-UI3b — per TASK_UI3_SPEC.md §UI3b
 - [x] TASK-UI3c — per TASK_UI3_SPEC.md §UI3c
-- [ ] TASK-UI3d — per TASK_UI3_SPEC.md §UI3d
+- [x] TASK-UI3d — per TASK_UI3_SPEC.md §UI3d
 
 ## After TASK-S1
 After S1: continue into UI3 — Claude reviews metrics in parallel; do not stop. If mockups/board_c7.png absent at UI3d start, BLOCKED for UI3d only, take next task.
