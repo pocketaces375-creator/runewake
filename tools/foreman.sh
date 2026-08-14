@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # tools/foreman.sh — Autonomous task execution loop for Runewake
 #
-# Performs one iteration:
+# Chain mode: after a SUCCESSFUL iteration, immediately run the next task
+# while queue + budget allow (no cron wait). Every 3 consecutive successes
+# forces a 30-min cool-down (Claude's live-review window), then resumes.
+# ANY failure, transient, or block ends the chain — cron picks up later.
+#
+# Each iteration:
 #   1. Check circuit breakers (HALT, daily budget, BLOCKED stickiness)
 #   2. Read TASKS_QUEUE.md → top unchecked [ ] task
 #   3. Repeat-detector
@@ -20,7 +25,7 @@
 #   FOREMAN_PROJECT_DIR       default: /home/fictive/runewake
 #   FOREMAN_MODEL             default: deepseek/deepseek-v4-flash
 #   FOREMAN_TIMEOUT           default: 2700 (45 min)
-#   FOREMAN_DAILY_BUDGET      default: 10
+#   FOREMAN_DAILY_BUDGET      default: 16
 #   FOREMAN_TELEGRAM_TARGET   default: telegram:Runewake
 #   FOREMAN_GODOT_BIN         default: /home/fictive/Godot_v4.3-stable_linux.x86_64
 #
@@ -30,7 +35,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-10}"
+DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-16}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -159,9 +164,9 @@ fi
 echo "$$" > "${LOCK_PID_FILE}"
 trap 'rm -f "${LOCK_PID_FILE}"' EXIT
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Main ─────────────────────────────────────────────────────
 
-header "Foreman — one iteration"
+header "Foreman — chain mode"
 cd "${PROJECT_DIR}"
 
 # Ensure project dir exists
@@ -175,6 +180,19 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
   fail "Not a git repository"
   exit 2
 fi
+
+# ── Chain loop ──────────────────────────────────────────────────
+# The PID lock above is acquired ONCE and held for the entire chain
+# (mutual exclusion for all iterations). Every other circuit breaker
+# (HALT, budget, sticky-block, transient) re-runs at the top of each
+# chained iteration.
+CHAIN_RUNNING=1
+CONSECUTIVE_SUCCESSES=0
+ITERATION=0
+
+while [[ "${CHAIN_RUNNING}" -eq 1 ]]; do
+  ITERATION=$((ITERATION + 1))
+  header "Iteration ${ITERATION} — chain mode"
 
 # ── 1. Circuit breaker: HALT file ────────────────────────────────────────────
 if [[ -f "${HALT_FILE}" ]]; then
@@ -514,6 +532,45 @@ if ! git diff --cached --quiet 2>/dev/null; then
   git push origin main 2>/dev/null || true
 fi
 
+# ── 7. Chain decision ─────────────────────────────────────────────
+# Success → chain to the next task if queue + budget remain. Every 3
+# consecutive successes forces a 30-min cool-down (Claude's live-review
+# window), then resumes. ANY failure/retry/block ends the chain — the
+# circuit breakers above (HALT, budget, queue-empty, sticky-block,
+# transient) exit directly and thereby end the chain too.
+if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
+  CONSECUTIVE_SUCCESSES=$((CONSECUTIVE_SUCCESSES + 1))
+  ok "Task ${TASK_ID} complete — consecutive successes: ${CONSECUTIVE_SUCCESSES}"
+
+  # Mandatory cool-down after every 3 consecutive successes
+  if [[ "${CONSECUTIVE_SUCCESSES}" -ge 3 ]]; then
+    warn "3 consecutive successes — 30-min cool-down (Claude review window)"
+    telegram_text "3 tasks done back-to-back — 30-min cool-down, then resume"
+    sleep 1800
+    CONSECUTIVE_SUCCESSES=0
+    ok "Cool-down over — resuming chain"
+  fi
+
+  # Chain continuation gate: queue + budget
+  NEXT_TOP=$(find_top_task)
+  SESSION_COUNT_NOW=$(get_state "session_count")
+  if [[ -z "${NEXT_TOP}" ]]; then
+    ok "Queue empty — chain ends"
+    CHAIN_RUNNING=0
+  elif [[ "${SESSION_COUNT_NOW}" -ge "${DAILY_BUDGET}" ]]; then
+    info "Budget spent (${SESSION_COUNT_NOW}/${DAILY_BUDGET}) — chain ends"
+    CHAIN_RUNNING=0
+  else
+    info "Chaining — budget ${SESSION_COUNT_NOW}/${DAILY_BUDGET}, next: ${NEXT_TOP}"
+  fi
+else
+  warn "Chain ends — ${TASK_ID} ${OUTCOME_LABEL}"
+  CHAIN_RUNNING=0
+fi
+
+done  # while [[ "${CHAIN_RUNNING}" -eq 1 ]]
+
+# ── Final exit ──────────────────────────────────────────────────
 if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   exit 0
 else
