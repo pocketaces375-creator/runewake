@@ -3,7 +3,9 @@
   "session_count": 3,
   "last_task_id": "TASK-UI2",
   "last_commit_sha": "b6a7ca10720b2d0bf99b8d465c33fe7c68122cee",
-  "retry_count": 1,
-  "retry_task_id": "TASK-DSL-1",
-  "blocked_notified": false
+  "retry_count": 0,
+  "retry_task_id": "",
+  "blocked_notified": false,
+  "consecutive_transients": 0,
+  "transient_notified": false
 }

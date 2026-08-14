@@ -190,6 +190,10 @@ SESSION_COUNT=$(get_state "session_count")
 RETRY_TASK_ID=$(get_state "retry_task_id")
 RETRY_COUNT=$(get_state "retry_count")
 BLOCKED_NOTIFIED=$(get_state "blocked_notified")
+CONSECUTIVE_TRANSIENTS=$(get_state "consecutive_transients")
+TRANSIENT_NOTIFIED=$(get_state "transient_notified")
+CONSECUTIVE_TRANSIENTS=${CONSECUTIVE_TRANSIENTS:-0}
+TRANSIENT_NOTIFIED=${TRANSIENT_NOTIFIED:-False}
 
 if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   set_state "date" "\"${TODAY}\""
@@ -197,8 +201,12 @@ if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
   set_state "blocked_notified" "False"
+  set_state "consecutive_transients" 0
+  set_state "transient_notified" "False"
   SESSION_COUNT=0
   BLOCKED_NOTIFIED="False"
+  CONSECUTIVE_TRANSIENTS=0
+  TRANSIENT_NOTIFIED="False"
 fi
 
 if [[ "${SESSION_COUNT}" -ge "${DAILY_BUDGET}" ]]; then
@@ -257,6 +265,53 @@ echo "${SESSION_OUTPUT}" | tail -5
 SESSION_COUNT=$((SESSION_COUNT + 1))
 set_state "session_count" "${SESSION_COUNT}"
 SESSION_OUTPUT_SNAPSHOT=$(echo "${SESSION_OUTPUT}" | tail -50)
+
+# ── FIX #6: Transient failure classification ──────────────────────────────────
+# Provider outage (no commit, no work, transient signature) must NOT consume
+# task retries. Real failures (work produced but validation failed) keep the
+# normal retry-then-block path.
+TRANSIENT=0
+POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
+WORKTREE_CHANGES=$(git status --porcelain 2>/dev/null | head -20 || echo "")
+if [[ "${POST_SESSION_HEAD}" == "${CURRENT_HEAD}" ]] && [[ -z "${WORKTREE_CHANGES}" ]]; then
+  if echo "${SESSION_OUTPUT}" | grep -Eiq "connect timeout|connection (error|refused|reset)|timed? ?out|rate limit|overloaded|5[0-9][0-9] "; then
+    TRANSIENT=1
+  fi
+fi
+
+if [[ "${TRANSIENT}" -eq 1 ]]; then
+  CONSECUTIVE_TRANSIENTS=$((CONSECUTIVE_TRANSIENTS + 1))
+  set_state "consecutive_transients" "${CONSECUTIVE_TRANSIENTS}"
+  warn "Transient skip: ${TASK_ID} (consecutive ${CONSECUTIVE_TRANSIENTS})"
+
+  # Alert once per day on the 4th consecutive transient
+  if [[ "${CONSECUTIVE_TRANSIENTS}" -ge 4 ]] && [[ "${TRANSIENT_NOTIFIED}" != "True" ]]; then
+    telegram_text "⚠️ provider flaky — ${TASK_ID} skipped ${CONSECUTIVE_TRANSIENTS}x, still retrying hourly"
+    set_state "transient_notified" "True"
+    TRANSIENT_NOTIFIED="True"
+  fi
+
+  # Log the transient skip
+  {
+    echo "=== foreman: $(date -u '+%Y-%m-%dT%H:%M:%SZ') ${TASK_ID} transient ==="
+    echo "Session: ${SESSION_COUNT}/${DAILY_BUDGET}"
+    echo "Transient: consecutive ${CONSECUTIVE_TRANSIENTS}"
+    echo "--- session tail ---"
+    echo "${SESSION_OUTPUT_SNAPSHOT}"
+    echo "================================"
+  } >> "${LAST_RUN_LOG}"
+  tail -50 "${LAST_RUN_LOG}" > "${LAST_RUN_LOG}.tmp" 2>/dev/null || true && mv "${LAST_RUN_LOG}.tmp" "${LAST_RUN_LOG}" 2>/dev/null || true
+
+  cd "${PROJECT_DIR}"
+  git add "${STATE_FILE}" "${LAST_RUN_LOG}" 2>/dev/null || true
+  if ! git diff --cached --quiet 2>/dev/null; then
+    git commit -m "foreman: state after ${TASK_ID} (transient)" 2>/dev/null || true
+    git push origin main 2>/dev/null || true
+  fi
+
+  info "Transient skip logged — exiting 0 (task NOT charged a retry)"
+  exit 0
+fi
 
 # ── FIX #4: Fresh capture before gate ────────────────────────────────────────
 header "Regenerating capture"
@@ -386,6 +441,8 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
   set_state "blocked_notified" "False"
+  set_state "consecutive_transients" 0
+  set_state "transient_notified" "False"
 
   ok "Task ${TASK_ID} complete! (${SESSION_COUNT}/${DAILY_BUDGET})"
   telegram_text "${TASK_ID} done (${SESSION_COUNT}/${DAILY_BUDGET})"
