@@ -308,6 +308,9 @@ public partial class DuelScene : Control
                     Callable.From(OnStateChanged).CallDeferred();
                 }
 
+                // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
+                PrePlaceCreatures();
+
                 // Capture after board renders
                 var snapTimer = new Godot.Timer();
                 snapTimer.OneShot = true;
@@ -387,7 +390,8 @@ public partial class DuelScene : Control
                         meta.Append("    {\n");
                         meta.Append($"      \"slot\": \"player_{slot.LaneIndex}\",\n");
                         meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
-                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
+                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }},\n");
+                        meta.Append($"      \"state\": \"{(_gsm.State.Players[0].Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
                         meta.Append("    },");
                         meta.Append("\n");
                         bi++;
@@ -407,7 +411,8 @@ public partial class DuelScene : Control
                         meta.Append("    {\n");
                         meta.Append($"      \"slot\": \"enemy_{slot.LaneIndex}\",\n");
                         meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
-                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }}\n");
+                        meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }},\n");
+                        meta.Append($"      \"state\": \"{(_gsm.State.Players[1].Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
                         meta.Append("    }");
                         if (bi < (_playerSlots.Count + _enemySlots.Count) - 1)
                             meta.Append(",");
@@ -2045,5 +2050,73 @@ public partial class DuelScene : Control
         GD.Print($"[VERIFY] === {fails} check(s) failed ===");
 
         return fails;
+    }
+
+    /// <summary>
+    /// TASK-F4B: Pre-place 3 creatures per side on the board for the capture screenshot.
+    /// Places card instances directly in the lane state with a mix of art/no-art cards.
+    /// </summary>
+    private void PrePlaceCreatures()
+    {
+        var state = _gsm.State;
+        if (state == null)
+        {
+            GD.PrintErr("[CAPTURE] Cannot pre-place creatures: game state is null");
+            return;
+        }
+
+        GD.Print("[CAPTURE] Pre-placing 3 creatures per side on lanes 0-2");
+
+        // Cards with art: emb_c_cinder_runner (cost 2), dwn_r_sealing_light (cost 4)
+        // Card without art: vrd_x_heartwood_relic (cost 4)
+        var placements = new (int PlayerIdx, int Lane, string CardId)[]
+        {
+            // Player (side 0): lane 0=HAS art, lane 1=NO art, lane 2=HAS art
+            (0, 0, "emb_c_cinder_runner"),
+            (0, 1, "vrd_x_heartwood_relic"),
+            (0, 2, "dwn_r_sealing_light"),
+            // Enemy (side 1): lane 0=HAS art, lane 1=NO art, lane 2=HAS art
+            (1, 0, "emb_c_cinder_runner"),
+            (1, 1, "vrd_x_heartwood_relic"),
+            (1, 2, "dwn_r_sealing_light"),
+        };
+
+        int nextId = state.NextInstanceId;
+        foreach (var (playerIdx, laneIdx, cardId) in placements)
+        {
+            var def = CardRegistry.Get(cardId);
+            if (def == null)
+            {
+                GD.PrintErr($"[CAPTURE] Card def not found: {cardId}");
+                continue;
+            }
+
+            var instance = new CardInstance(nextId++, cardId, playerIdx)
+            {
+                CardType = CardType.CREATURE,
+                Cost = def.Cost,
+                Strata = def.Strata,
+                BaseAttack = def.Attack ?? 0,
+                BaseVigor = def.Vigor ?? 0,
+                Zone = Zone.Lane,
+                LaneIndex = laneIdx,
+            };
+            instance.Keywords.AddRange(def.Keywords);
+            instance.Abilities.AddRange(def.Abilities.Select(a => new AbilityDef
+            {
+                Trigger = a.Trigger, Condition = a.Condition, ActivationCost = a.ActivationCost,
+                Effects = a.Effects.Select(e => new EffectDef
+                {
+                    Op = e.Op, Target = e.Target, Amount = e.Amount,
+                    Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
+                    TokenId = e.TokenId, Duration = e.Duration
+                }).ToList()
+            }));
+
+            state.Players[playerIdx].Lanes[laneIdx].Occupant = instance;
+        }
+        state.NextInstanceId = nextId;
+
+        GD.Print("[CAPTURE] Pre-placed 3 creatures per side on the board");
     }
 }

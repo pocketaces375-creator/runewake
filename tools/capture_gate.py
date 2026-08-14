@@ -296,20 +296,22 @@ def main():
         if not r:
             failures.append(f"BOARD_CARD_{i}: missing rect")
             continue
+        slot_state = card.get("state", "empty")
         mean, std = rect_mean_stddev(pixels, width, height, r["x"], r["y"], r["w"], r["h"])
-        # Board lanes may be empty (no creature played yet) — skip luminance check
-        # if the slot is uniformly dark (no card visible). Check if the slot has
-        # more than just the background color by comparing with the board bg.
-        slot_is_empty = mean <= 25 / 255.0 and std < 5 / 255.0
-        if not slot_is_empty:
-            if mean <= 25 / 255.0:
-                failures.append(
-                    f"BOARD_CARD_{i}: mean luminance {mean:.3f} too low (need > {25 / 255.0:.3f})"
-                )
+        # TASK-F4B: Use explicit state field from meta.json.
+        # "empty" = no creature → skip luminance checks (uniform is OK).
+        # "occupied" = creature present → uniform color MUST fail.
+        slot_is_empty = (slot_state == "empty")
         if slot_is_empty:
-            print(f"  SKIP board card {i}: empty slot, skipping checks")
+            print(f"  SKIP board card {i}: slot state=empty, skipping checks")
         else:
-            print(f"  PASS board card {i}: mean={mean:.3f}, std={std:.3f}")
+            if mean <= 25 / 255.0 or std < 5 / 255.0:
+                failures.append(
+                    f"BOARD_CARD_{i}: slot state={slot_state} but mean={mean:.3f}, std={std:.3f} — "
+                    f"occupied slot must not be uniform (need mean > {25 / 255.0:.3f} AND std >= {5 / 255.0:.3f})"
+                )
+            else:
+                print(f"  PASS board card {i}: state={slot_state}, mean={mean:.3f}, std={std:.3f}")
 
         # Only check name contrast if the name rect has actual content (>1 unique color)
         name_r = card.get("name_rect")
