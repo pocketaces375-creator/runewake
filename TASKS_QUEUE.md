@@ -47,7 +47,7 @@
 
 - [x] TASK-T2 — Ruling tests, Mage + Thief: R4–R10.
 
-|- [x] TASK-T3 — Ruling tests, Cleric + Ranger: R11–R18.
+- [x] TASK-T3 — Ruling tests, Cleric + Ranger: R11–R18.
 
 - [ ] TASK-T4 — Ruling tests, Necromancer + Runesmith: R19–R26 + spec §10 checklist items (zone integrity, N-slot generalization, AI never targets Artifact slots).
 
