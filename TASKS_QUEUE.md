@@ -42,8 +42,8 @@
 
 - [x] TASK-DSL-7 — Keyword handlers: ANCESTRAL_SHIELD (first enemy spell that would drop an ally below 1 vigor clamps it to 1 — clamp not prevention, damage triggers still fire, one use, until your next turn — R1) and STEALTH_STRIKE (no counter-damage for that attack, decided at declaration — R8). Unit tests.
 
-- [ ] TASK-T1a — Ruling tests, general: G1–G8, naming Ruling_<id>_<Name>. All green, legacy green.
-- [ ] TASK-T1b — Ruling tests, Warrior: R1–R3, same naming and acceptance.
+- [x] TASK-T1a — Ruling tests, general: G1–G8, naming Ruling_<id>_<Name>. All green, legacy green.
+- [x] TASK-T1b — Ruling tests, Warrior: R1–R3, same naming and acceptance.
 
 - [ ] TASK-T2 — Ruling tests, Mage + Thief: R4–R10.
 
