@@ -194,9 +194,9 @@ if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   set_state "session_count" 0
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
-  set_state "blocked_notified" "false"
+  set_state "blocked_notified" "False"
   SESSION_COUNT=0
-  BLOCKED_NOTIFIED="false"
+  BLOCKED_NOTIFIED="False"
 fi
 
 if [[ "${SESSION_COUNT}" -ge "${DAILY_BUDGET}" ]]; then
@@ -222,10 +222,10 @@ info "Top task: ${TASK_ID}"
 
 # ── 3b. BLOCKED check (sticky) ──────────────────────────────────────────────
 if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]] && [[ "${RETRY_COUNT}" -ge 1 ]]; then
-  if [[ "${BLOCKED_NOTIFIED}" != "true" ]]; then
+  if [[ "${BLOCKED_NOTIFIED}" != "True" ]]; then
     fail "Task ${TASK_ID} BLOCKED (exhausted retry ${RETRY_COUNT})"
     telegram_text "BLOCKED: ${TASK_ID} — exhausted retry (${RETRY_COUNT})"
-    set_state "blocked_notified" "true"
+    set_state "blocked_notified" "True"
   else
     info "Task ${TASK_ID} still BLOCKED (already notified, silent)"
   fi
@@ -371,7 +371,7 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   set_state "last_commit_sha" "\"${NEW_COMMIT_SHA}\""
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
-  set_state "blocked_notified" "false"
+  set_state "blocked_notified" "False"
 
   ok "Task ${TASK_ID} complete! (${SESSION_COUNT}/${DAILY_BUDGET})"
   telegram_text "${TASK_ID} done (${SESSION_COUNT}/${DAILY_BUDGET})"
@@ -382,7 +382,7 @@ else
   if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]]; then
     warn "Task ${TASK_ID} BLOCKED after ${RETRY_COUNT} retries"
     telegram_text "BLOCKED: ${TASK_ID} — failed after retry (${VALIDATION_REASONS})"
-    set_state "blocked_notified" "true"
+    set_state "blocked_notified" "True"
     # Sticky: do NOT reset retry_count/retry_task_id
   else
     NEW_RETRY=$((RETRY_COUNT + 1))

@@ -310,6 +310,43 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - Verified via `crontab -l`: single entry, correct syntax
 - Cron daemon running (PID 1292)
 - From 13:17 UTC onward, the foreman owns the queue autonomously
+
+---
+
+## 2026-08-13 | TASK-FOREMAN-FIX — Five hardening fixes
+
+### DONE: TASK-FOREMAN-FIX — budget/blocked/push/capture/state hardening
+All five defects fixed and proven end-to-end:
+
+**Fix 1 — Budget counts every session:**
+- `SESSION_COUNT` incremented immediately after `run_hermes_session` returns, on both success and failure paths
+- Verified: Run #1 (failure) incremented budget to 1/10 ✅
+
+**Fix 2 — BLOCKED is sticky:**
+- `retry_count`/`retry_task_id` are NEVER reset in the BLOCKED branch (deleted the old reset lines)
+- Added `blocked_notified` state flag — Telegram BLOCKED alert fires exactly once, subsequent runs exit silently
+- Pre-run BLOCKED check short-circuits before any hermes session
+- Verified: Run #2 sent ONE notification ("sent"), Run #3 exited silently ("already notified") ✅
+
+**Fix 3 — Enforce push / revert-safe cleanup:**
+- `git push origin main` runs after successful validation; push failure = validation failure
+- Retry cleanup: uses `git revert --no-edit` + push for remotely-pushed commits, `git reset --hard` for local-only
+- State snapshot saved before `git checkout -- .` and restored after, so retry state survives cleanup ✅
+
+**Fix 4 — Fresh capture before gate:**
+- Foreman regenerates capture via `xvfb-run -a <godot> --path client -- --capture=duel_test` before running gate
+- Regeneration failure = validation failure with reason `capture_regen_failed`
+- Configurable via `FOREMAN_GODOT_BIN` env var ✅
+
+**Fix 5 — Commit state each iteration:**
+- At end of every iteration, `foreman_state.json` + `foreman_last_run.log` (last 50 lines) are committed and pushed
+- Commit message: `foreman: state after <task-id> (<outcome>)`
+- Verified: commit `453a532` pushed after TASK-TEST retry ✅
+
+**Also fixed:** Lock mechanism replaced `exec 200>/tmp/...flock` (VBCSCompiler inherited FD) with PID-file approach (`/tmp/runewake_foreman.pid` + `kill -0` + `trap cleanup`) — no FD leaking into compiler daemons ✅
+
+### Start command: `cd /home/fictive/runewake && bash tools/foreman.sh`
+### Stop: `touch FOREMAN_HALT`
 ## 2026-08-13 | TASK-TEST
 
 ### DONE: TASK-TEST — test task
