@@ -13,6 +13,7 @@ public partial class LaneSlot : PanelContainer
     private Label _cardName;
     private Label _stats;
     private Label _faceLabel;
+    private Label _noArtLabel;
     private FixedArtRect _artRect;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
@@ -45,6 +46,11 @@ public partial class LaneSlot : PanelContainer
         _stats = GetNode<Label>("Stats");
         _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
         SetEmpty();
+
+        // NoArtLabel — card name placeholder when art file is missing
+        _noArtLabel = GetNode<Label>("NoArtLabel");
+        _noArtLabel.Visible = false;
+        ApplyHeaderFont(_noArtLabel, FontLargeBody);
 
         // Apply header font to creature name
         ApplyHeaderFont(_cardName, FontLargeBody);
@@ -122,9 +128,12 @@ public partial class LaneSlot : PanelContainer
                 return;
             }
         }
+        // No card name text via FixedArtRect — NoArtLabel handles it
         _artRect.Texture = null;
-        _artRect.PlaceholderText = _cardName.Text;
-        GD.Print($"[LANESLOT] No art for {cardDefId} — placeholder shown");
+        _artRect.PlaceholderText = "";
+        _noArtLabel.Visible = true;
+        _noArtLabel.Text = _cardName.Text;
+        GD.Print($"[LANESLOT] No art for {cardDefId} — NoArtLabel shown");
         GD.Print($"[MISSING_ART] {cardDefId}");
     }
 
@@ -139,6 +148,7 @@ public partial class LaneSlot : PanelContainer
         _cardName.Hide();
         _stats.Hide();
         _artRect.Texture = null;
+        _noArtLabel.Visible = false;
         if (_faceLabel != null)
             _faceLabel.Visible = false;
         _state = NodeState.Empty;

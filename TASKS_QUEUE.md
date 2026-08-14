@@ -15,7 +15,7 @@
 - [x] TASK-R1 — Turn the pixel gate green. FIX-2/3 (playable-dim root cause, sizing, badges) done per HERMES_STATUS, remaining gate fixes: fixed PNG parser filter handling, fixed name_rect path for Content wrapper, fixed whole-frame luminance via proper RGBA parsing, swapped test-hand for art-visibility (dwn_r_sealing_light), skipped empty-board checks. Gate exit 0.
   Acceptance: capture_gate.py exits 0 on the committed capture, and the capture visibly shows: readable hand cards, corner badges, no green bar.
 
-- [ ] TASK-F4 — Board/hand placeholder art pass. Any card with no art file renders the parchment/stone placeholder with the card NAME clearly readable (board AND hand — NoArtLabel exists for hand; extend to LaneSlot). Never a black void anywhere in the client.
+- [x] TASK-F4 — Board/hand placeholder art pass. Any card with no art file renders the parchment/stone placeholder with the card NAME clearly readable (board AND hand — NoArtLabel exists for hand; extend to LaneSlot). Never a black void anywhere in the client.
   Acceptance: harness capture (test state includes at least one missing-art card) + gate pass.
 
 - [ ] TASK-H — Deck + Artifact side-group layout (DECISION CHANGE, supersedes the old portrait-flanking plan and the pending FIX-5): each player's deck pile and their TWO Artifact card frames form one visual group — "this is my sword and shield, next to my arsenal" — player's group lower-left area, opponent's mirrored upper-right. Portraits stay but the Artifacts anchor to the DECK group. Placeholder artifact frames with faint "Artifact" labels; add the group rects to duel_test.meta.json.
