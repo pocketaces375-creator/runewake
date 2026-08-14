@@ -5,7 +5,7 @@
   "last_commit_sha": "83e1ec6aecc7e34c87beb83e0331fa51340eca7d",
   "retry_count": 1,
   "retry_task_id": "TASK-T1",
-  "blocked_notified": false,
+  "blocked_notified": true,
   "consecutive_transients": 0,
   "transient_notified": false,
   "bus_last_seq": 0,
