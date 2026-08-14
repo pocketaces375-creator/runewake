@@ -15,6 +15,8 @@
 - [x] TASK-R1 — Turn the pixel gate green. FIX-2/3 (playable-dim root cause, sizing, badges) done per HERMES_STATUS, remaining gate fixes: fixed PNG parser filter handling, fixed name_rect path for Content wrapper, fixed whole-frame luminance via proper RGBA parsing, swapped test-hand for art-visibility (dwn_r_sealing_light), skipped empty-board checks. Gate exit 0.
   Acceptance: capture_gate.py exits 0 on the committed capture, and the capture visibly shows: readable hand cards, corner badges, no green bar.
 
+- [ ] TASK-TEST — TEST TASK: create a file called test_fake_output.txt in the repo root with content "test", commit it with message "TASK-TEST: test task", do NOT mark any task as done in TASKS_QUEUE.md, do NOT run tests or gate. Do this quickly and then stop.
+
 - [ ] TASK-F4 — Board/hand placeholder art pass. Any card with no art file renders the parchment/stone placeholder with the card NAME clearly readable (board AND hand — NoArtLabel exists for hand; extend to LaneSlot). Never a black void anywhere in the client.
   Acceptance: harness capture (test state includes at least one missing-art card) + gate pass.
 
