@@ -11,7 +11,7 @@
 # only). If found, run a 15-min bus-session before queue work.
 #
 # Cron: 2,17,32,47 * * * * (every 15 min, PID lock prevents overlap).
-# Budget: 24 sessions/day (half-session accounting), cool-down 15 min.
+# Budget: 48 sessions/day (half-session accounting), cool-down 15 min.
 #
 # Each iteration:
 #   1. Check circuit breakers (HALT, git pull, bus check, daily budget halves)
@@ -32,7 +32,7 @@
 #   FOREMAN_PROJECT_DIR       default: /home/fictive/runewake
 #   FOREMAN_MODEL             default: deepseek/deepseek-v4-flash
 #   FOREMAN_TIMEOUT           default: 2700 (45 min)
-#   FOREMAN_DAILY_BUDGET      default: 24
+#   FOREMAN_DAILY_BUDGET      default: 48
 #   FOREMAN_TELEGRAM_TARGET   default: telegram:Runewake
 #   FOREMAN_GODOT_BIN         default: /home/fictive/Godot_v4.3-stable_linux.x86_64
 #
@@ -42,7 +42,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-24}"
+DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-48}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -377,11 +377,19 @@ CONSECUTIVE_TRANSIENTS=$(get_state "consecutive_transients")
 TRANSIENT_NOTIFIED=$(get_state "transient_notified")
 BUS_SESSION_COUNT=$(get_state "bus_session_count")
 BUS_SESSION_COUNT=${BUS_SESSION_COUNT:-0}
+NO_PROGRESS_COUNT=$(get_state "no_progress_count")
+VALIDATED_COUNT=$(get_state "validated_count")
 CONSECUTIVE_TRANSIENTS=${CONSECUTIVE_TRANSIENTS:-0}
 TRANSIENT_NOTIFIED=${TRANSIENT_NOTIFIED:-False}
+NO_PROGRESS_COUNT=${NO_PROGRESS_COUNT:-0}
+VALIDATED_COUNT=${VALIDATED_COUNT:-0}
 
 if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
-  set_state "date" "\"${TODAY}\""
+  # Telemetry: log yesterday's activity to HERMES_STATUS.md
+  if [[ -n "${STATE_DATE}" ]] && [[ "${STATE_DATE}" != "null" ]] && [[ "${SESSION_COUNT}" -gt 0 || "${BUS_SESSION_COUNT}" -gt 0 ]]; then
+    echo "- ${TODAY}: TEMPO — ${SESSION_COUNT} sessions yesterday, ${VALIDATED_COUNT} validated." >> "${PROJECT_DIR}/HERMES_STATUS.md"
+  fi
+  set_state "date" "'"${TODAY}"'"
   set_state "session_count" 0
   set_state "bus_session_count" 0
   set_state "retry_count" 0
@@ -389,11 +397,15 @@ if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   set_state "blocked_notified" "False"
   set_state "consecutive_transients" 0
   set_state "transient_notified" "False"
+  set_state "no_progress_count" 0
+  set_state "validated_count" 0
   SESSION_COUNT=0
   BUS_SESSION_COUNT=0
   BLOCKED_NOTIFIED="False"
   CONSECUTIVE_TRANSIENTS=0
   TRANSIENT_NOTIFIED="False"
+  NO_PROGRESS_COUNT=0
+  VALIDATED_COUNT=0
 fi
 
 # Budget check: each full session = 2 halves, each bus session = 1 half
@@ -663,6 +675,33 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   set_state "consecutive_transients" 0
   set_state "transient_notified" "False"
 
+  # Increment validated counter for telemetry
+  VALIDATED_COUNT=$((VALIDATED_COUNT + 1))
+  set_state "validated_count" "${VALIDATED_COUNT}"
+
+  # ── 6b. No-progress breaker ──────────────────────────────────────────────────
+  # If the same task is still the top unchecked item after validation, the queue
+  # didn't advance. 3 consecutive such sessions → HALT (runaway guard for 24/7).
+  CURRENT_TOP=""
+  NEXT_TOP_LINE=$(find_top_task 2>/dev/null || echo "")
+  if [[ -n "${NEXT_TOP_LINE}" ]]; then
+    CURRENT_TOP=$(echo "${NEXT_TOP_LINE}" | cut -d'|' -f1)
+  fi
+  if [[ -n "${CURRENT_TOP}" ]] && [[ "${CURRENT_TOP}" == "${TASK_ID}" ]]; then
+    NO_PROGRESS_COUNT=$((NO_PROGRESS_COUNT + 1))
+    set_state "no_progress_count" "${NO_PROGRESS_COUNT}"
+    warn "No progress: same task ${CURRENT_TOP} still top — ${NO_PROGRESS_COUNT}/3"
+    if [[ "${NO_PROGRESS_COUNT}" -ge 3 ]]; then
+      warn "No progress after 3 consecutive sessions — creating HALT"
+      telegram_text "🚨 No-progress: 3 consecutive sessions without queue advancement — creating HALT"
+      touch "${HALT_FILE}"
+      exit 1
+    fi
+  else
+    set_state "no_progress_count" 0
+    NO_PROGRESS_COUNT=0
+  fi
+
   ok "Task ${TASK_ID} complete! (${SESSION_COUNT}/${DAILY_BUDGET})"
   telegram_text "${TASK_ID} done (${SESSION_COUNT}/${DAILY_BUDGET})"
   if [[ "${GATE_PASSED}" -eq 1 ]] && [[ -n "${LATEST_CAPTURE}" ]]; then
@@ -735,7 +774,7 @@ fi
 
 # ── 7. Chain decision ─────────────────────────────────────────────────────────
 # Success → chain to the next task if queue + budget remain. Every 3
-# consecutive successes forces a 30-min cool-down (Claude's live-review
+# consecutive successes forces a 15-min cool-down (Claude's live-review
 # window), then resumes. ANY failure/retry/block ends the chain — the
 # circuit breakers above (HALT, pull, bus, budget, sticky-block, transient)
 # exit directly and thereby end the chain too.
