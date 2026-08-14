@@ -1,9 +1,3 @@
-Session: 1/10
---- session tail ---
-## TASK-UI2 — DONE ✅
-
-**What was implemented:**
-
 **(1) Empty board slots visible border/frame** — LaneSlot PanelContainer stylebox border brightened from `0.10/0.09/0.07` to `0.30/0.27/0.24`. SlotBg stone texture opacity raised from `0.25` to `0.35`. Empty slots now clearly read as card places, not voids.
 
 **(2) Board slot sizing tuned to ~2:3 aspect** — LaneSlot aspect ratio changed from `160:120` (4:3) to `110:168` (~2:3), matching HandCard proportions. `ScaleTo` uses `110f/168f`. Five lanes at 118×180 fill ~590px of the 1152 viewport with 8px side margins — no oversized frames.
@@ -47,4 +41,10 @@ DONE.
    - `62ca14b` — TASKS_QUEUE checkbox + HERMES_STATUS DONE entry
 
 5. **TASKS_QUEUE.md** marked `[x]`, **HERMES_STATUS.md** has DONE entry with full change list
+================================
+=== foreman: 2026-08-14T07:10:17Z TASK-DSL-1 retry ===
+Session: 3/10
+Failures: no_new_commit checkbox_not_flipped 
+--- session tail ---
+Connect timeout, please try again later.
 ================================
