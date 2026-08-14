@@ -1,25 +1,3 @@
-**R1 — Ancestral Blade (6 tests):**
-- Spell-damage clamp to 1 vigor (asserts clamp, not prevention)
-- Combat damage bypassed (shield doesn't apply)
-- One use then disarms (second lethal spell in same turn kills)
-- Clamp not prevention (Damage > 0 confirmed)
-- Turn-start reset (ResetAncestralShields engine path)
-- 3-attack arms condition (ATTACKERS_THIS_TURN_GTE 3)
-
-**R2 — Bulwark passive (3 tests):**
-- +0/+1 at end of turn applied only to HAS_NOT_ATTACKED creatures
-- Freshly summoned creatures have HasAttackedThisTurn=false
-- HAS_NOT_ATTACKED filter excludes actual attackers
-
-**R3 — Bulwark trigger (6 tests):**
-- NO_ATTACKERS_LAST_TURN condition true/false + per-player independence
-- AttackCountLastTurn persistence via EndTurn cycle
-- PREVENT_DAMAGE 2 combat source ONCE_PER_ENEMY_TURN
-- Second attack in same enemy turn sees full damage (shield already spent)
-- FirstAttackedLaneIndex tracking on the defending player
-- FIRST_ATTACKED filter resolves to the correct creature
-
-**State:** 631 tests green (616 legacy + 15 new). Committed `5f7eb7a`, pushed. TASKS_QUEUE.md marked `[x]`. DONE line in HERMES_STATUS.md.
 
 **Next unchecked:** TASK-T2 — Ruling tests, Mage + Thief: R4–R10.
 ========================================
@@ -47,4 +25,26 @@ Session: 16/48
 **TASKS_QUEUE.md:** TASK-T2 marked [x]
 
 **Engine gap logged (R10):** Within-player same-def-id passive dedup by card def ID is not implemented — two identical Duskfang artifacts each register their own COST_MOD (2 entries instead of 1). The test documents this as a known gap.
+========================================
+=== foreman: 2026-08-14T19:28:34Z TASK-T3 success ===
+Session: 17/48
+--- session tail ---
+TASK-T3 is complete. Here's the summary:
+
+**TASK-T3 — Ruling tests, Cleric + Ranger: R11–R18**
+
+New file: `tests/Engine/RulingClericRangerTests.cs` — 18 tests across 8 rulings:
+
+| Ruling | Artifact | Tests |
+|--------|----------|-------|
+| R11 | Censer heal | Most wounded + tiebreaker + before-draw ordering |
+| R12 | Censer charge | 1/turn cap, combat-damage conditions, deferred full-heal at 3 |
+| R13 | Icon passive | ON_HEAL grants +1 attack THIS_TURN, overheal excluded |
+| R14 | Icon trigger | ON_CREATURE_DIES heals player 2 on any turn |
+| R15 | Prey marking | HIGHEST_ATTACK tie → longest in play, mark persists mid-turn |
+| R16 | Prey death | Draw at death (max once/turn), no re-mark until next turn |
+| R17 | Quiver spillover | NTH_ATTACKER_ON_PREY ≥ 2 fires; per-turn gate identified as future constraint |
+| R18 | Suppression | No new mark when Bow suppressed; existing mark persists |
+
+All 674 tests green (no regressions). Committed as `TASK-T3: Ruling tests, Cleric + Ranger: R11-R18.`, pushed, DONE line written to HERMES_STATUS.md.
 ========================================
