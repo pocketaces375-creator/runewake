@@ -28,6 +28,7 @@ static void PrintUsage()
 {
     Console.WriteLine("Usage:");
     Console.WriteLine("  Runewake.Sim run --deck-a <path> --deck-b <path> [--games <N>] [--seed <N>]");
+    Console.WriteLine("                    [--artifacts-path <path>] [--class-a <name>] [--class-b <name>]");
     Console.WriteLine("  Runewake.Sim validate-card <card-file>");
     Console.WriteLine();
     Console.WriteLine("Commands:");
@@ -40,6 +41,9 @@ static void RunCommand(string[] args)
     string? deckA = null, deckB = null;
     int games = 100;
     ulong seed = 42;
+    string? artifactsPath = null;
+    string? classA = null;
+    string? classB = null;
 
     for (int i = 1; i < args.Length; i++)
     {
@@ -56,6 +60,15 @@ static void RunCommand(string[] args)
                 break;
             case "--seed" when i + 1 < args.Length && ulong.TryParse(args[++i], out var s):
                 seed = s;
+                break;
+            case "--artifacts-path" when i + 1 < args.Length:
+                artifactsPath = args[++i];
+                break;
+            case "--class-a" when i + 1 < args.Length:
+                classA = args[++i];
+                break;
+            case "--class-b" when i + 1 < args.Length:
+                classB = args[++i];
                 break;
         }
     }
@@ -78,6 +91,18 @@ static void RunCommand(string[] args)
         Environment.Exit(1);
     }
 
+    // Load artifacts if path provided
+    if (artifactsPath is not null)
+    {
+        if (!File.Exists(artifactsPath))
+        {
+            Console.Error.WriteLine($"Error: artifacts file not found: {artifactsPath}");
+            Environment.Exit(1);
+        }
+        int count = ArtifactLoader.LoadPack(artifactsPath);
+        Console.Error.WriteLine($"Loaded {count} artifact definitions.");
+    }
+
     var deckAIds = BatchRunner.LoadDeckFromPack(deckA);
     var deckBIds = BatchRunner.LoadDeckFromPack(deckB);
 
@@ -93,11 +118,13 @@ static void RunCommand(string[] args)
         DeckB = deckB,
         DeckAIds = deckAIds,
         DeckBIds = deckBIds,
+        Player0Class = classA ?? "",
+        Player1Class = classB ?? "",
     };
 
     var report = BatchRunner.Run(config);
     Console.WriteLine(report.ToJson());
-    Console.Error.WriteLine($"Done. P0 wins: {report.P0Wins}/{report.TotalGames} ({report.WinRateP0:P1}), avg turns: {report.AvgTurns:F1}");
+    Console.Error.WriteLine($"Done. P0 wins: {report.P0Wins}/{report.TotalGames} ({report.WinRateP0:P1}), avg turns: {report.AvgTurns:F1}, combat turns deviating: {report.TotalDeviationTurns}/{report.TotalCombatTurns} ({report.AttackDeviationRate:P1})");
 }
 
 static void ValidateCardCommand(string[] args)

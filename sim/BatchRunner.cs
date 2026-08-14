@@ -31,6 +31,12 @@ public sealed class GameResult
 
     [JsonPropertyName("p1_vigor")]
     public int P1Vigor { get; init; }
+
+    [JsonPropertyName("combat_turns")]
+    public int CombatTurns { get; init; }
+
+    [JsonPropertyName("deviation_turns")]
+    public int DeviationTurns { get; init; }
 }
 
 /// <summary>
@@ -58,6 +64,15 @@ public sealed class BatchReport
 
     [JsonPropertyName("win_rate_p0")]
     public double WinRateP0 => TotalGames > 0 ? (double)P0Wins / TotalGames : 0;
+
+    [JsonPropertyName("total_combat_turns")]
+    public int TotalCombatTurns => Results.Sum(r => r.CombatTurns);
+
+    [JsonPropertyName("total_deviation_turns")]
+    public int TotalDeviationTurns => Results.Sum(r => r.DeviationTurns);
+
+    [JsonPropertyName("attack_deviation_rate")]
+    public double AttackDeviationRate => TotalCombatTurns > 0 ? (double)TotalDeviationTurns / TotalCombatTurns : 0;
 
     /// <summary>
     /// Serializes this report to a compact JSON string.
@@ -105,6 +120,12 @@ public sealed class BatchConfig
     /// </summary>
     [JsonIgnore]
     public List<string> DeckBIds { get; set; } = new();
+
+    [JsonPropertyName("player0_class")]
+    public string Player0Class { get; init; } = string.Empty;
+
+    [JsonPropertyName("player1_class")]
+    public string Player1Class { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -113,6 +134,28 @@ public sealed class BatchConfig
 public static class BatchRunner
 {
     private static readonly GreedyBot Bot = new();
+
+    /// <summary>
+    /// Maps class name to artifact IDs (from launch_artifacts.json).
+    /// </summary>
+    private static readonly Dictionary<string, string[]> ClassArtifactMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["warrior"] = new[] { "artf_warrior_sword", "artf_warrior_shield" },
+        ["mage"] = new[] { "artf_mage_wand", "artf_mage_aura" },
+        ["thief"] = new[] { "artf_thief_dagger_whisper", "artf_thief_dagger_dusk" },
+        ["cleric"] = new[] { "artf_cleric_censer", "artf_cleric_icon" },
+        ["ranger"] = new[] { "artf_ranger_bow", "artf_ranger_quiver" },
+        ["necromancer"] = new[] { "artf_necromancer_grimoire", "artf_necromancer_phylactery" },
+        ["runesmith"] = new[] { "artf_runesmith_hammer", "artf_runesmith_anvil" },
+    };
+
+    /// <summary>
+    /// Resolves artifact IDs for a given class name. Returns empty array if class not found.
+    /// </summary>
+    public static string[] GetArtifactIdsForClass(string className)
+    {
+        return ClassArtifactMap.TryGetValue(className, out var ids) ? ids : Array.Empty<string>();
+    }
 
     /// <summary>
     /// Runs a batch of games. Each game gets a unique seed (baseSeed + gameIndex)
@@ -125,29 +168,97 @@ public static class BatchRunner
         for (int i = 0; i < config.Games; i++)
         {
             ulong gameSeed = (ulong)((long)config.Seed + i * 100003);
+
+            // Resolve artifact IDs for each player
+            var p0ArtifactIds = GetArtifactIdsForClass(config.Player0Class);
+            var p1ArtifactIds = GetArtifactIdsForClass(config.Player1Class);
+
             var gameConfig = new GameConfig
             {
                 Seed = gameSeed,
                 ContentVersion = config.ContentVersion,
                 Player0DeckIds = new List<string>(config.DeckAIds),
                 Player1DeckIds = new List<string>(config.DeckBIds),
+                Player0ArtifactIds = p0ArtifactIds,
+                Player1ArtifactIds = p1ArtifactIds,
+                Player0Class = config.Player0Class,
+                Player1Class = config.Player1Class,
             };
 
             var state = GameState.Initialize(gameConfig);
             int turns = 0;
             const int maxTurns = 200; // safety limit
 
+            // Attack deviation tracking
+            int combatTurns = 0;
+            int deviationTurns = 0;
+            int lastActivePlayer = -1;
+            bool turnHadAttack = false;
+            int eligibleNotAttacked = 0;
+
             while (!state.IsGameOver && turns < maxTurns)
             {
                 int playerIdx = state.CurrentPlayerIndex;
+
+                // Track player turns for per-turn metrics
+                if (playerIdx != lastActivePlayer)
+                {
+                    // Finalize previous turn metrics
+                    if (lastActivePlayer >= 0 && turnHadAttack && eligibleNotAttacked > 0)
+                    {
+                        deviationTurns++;
+                    }
+
+                    // Start new turn tracking
+                    lastActivePlayer = playerIdx;
+                    turnHadAttack = false;
+                    eligibleNotAttacked = CountEligibleNotAttacked(state, playerIdx);
+                }
+
                 var action = Bot.ChooseAction(state, playerIdx);
                 if (action is null)
                     break;
+
+                // Update tracking based on action type
+                if (action is AttackAction)
+                {
+                    turnHadAttack = true;
+                    // One attacker acted, decrement eligible-not-attacked
+                    if (eligibleNotAttacked > 0)
+                        eligibleNotAttacked--;
+                }
+                else if (action is EndTurnAction)
+                {
+                    // Finalize this turn
+                    if (turnHadAttack && eligibleNotAttacked > 0)
+                    {
+                        deviationTurns++;
+                    }
+                    if (turnHadAttack)
+                    {
+                        combatTurns++;
+                    }
+                    turnHadAttack = false;
+                    eligibleNotAttacked = 0;
+                    lastActivePlayer = -1; // force fresh tracking on next player
+                }
+                // PlayCardAction — eligibleNotAttacked unchanged (creatures unchanged)
+
                 state = DuelEngine.Apply(state, action);
                 turns++;
 
                 // A turn is complete when both players have acted (back to P0)
                 // TurnNumber in GameState increments after P1's EndTurn
+            }
+
+            // Finalize last turn if game ended mid-turn
+            if (turnHadAttack && eligibleNotAttacked > 0)
+            {
+                deviationTurns++;
+            }
+            if (turnHadAttack)
+            {
+                combatTurns++;
             }
 
             // Determine winner from final state
@@ -163,6 +274,8 @@ public static class BatchRunner
                 P1AttunementMax = state.Players[1].AttunementMax,
                 P0Vigor = state.Players[0].Vigor,
                 P1Vigor = state.Players[1].Vigor,
+                CombatTurns = combatTurns,
+                DeviationTurns = deviationTurns,
             });
         }
 
@@ -171,6 +284,23 @@ public static class BatchRunner
             Config = config,
             Results = results,
         };
+    }
+
+    /// <summary>
+    /// Counts how many eligible (ready, non-exhausted, attack > 0) creatures
+    /// for the given player have not yet attacked this turn.
+    /// </summary>
+    private static int CountEligibleNotAttacked(GameState state, int playerIndex)
+    {
+        var player = state.Player(playerIndex);
+        int count = 0;
+        for (int l = 0; l < 5; l++)
+        {
+            var occ = player.Lanes[l].Occupant;
+            if (occ is not null && !occ.IsExhausted && !occ.HasAttackedThisTurn && occ.CurrentAttack > 0)
+                count++;
+        }
+        return count;
     }
 
     /// <summary>
