@@ -5,6 +5,18 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
+## 2026-08-14 | TASK-FOREMAN-SPEED
+
+### DONE: TASK-FOREMAN-SPEED — chain mode + 30min cron + budget 16
+Chain mode implemented in `tools/foreman.sh`: after a SUCCESSFUL iteration, the loop immediately runs the next task while queue + budget remain; every 3 consecutive successes forces a 30-min cool-down (Claude review window) then resumes; ANY failure/transient/block ends the chain. All circuit breakers (HALT, budget, lock, sticky-block, transient) re-run at the top of EVERY chained iteration. Cron upgraded to `17,47 * * * *` (30-min restart latency, PID lock prevents overlap). `FOREMAN_DAILY_BUDGET` default 10 → 16 (worst-case deepseek spend cap raised; brakes unchanged).
+
+**Manual chain run (verification):** iteration 1 hit the sticky-block brake — `TASK-DSL-2` has `retry_count=1` from a prior connect-timeout failure (session died before committing, leaving uncommitted PREVENT_DAMAGE work in the tree). Chain exited 1 after one notification, exactly per spec ("block ends the chain"). Chain ran **0 tasks** today — see queue note below.
+
+**Queue position:** `TASK-DSL-2` (sticky-blocked until retry state resets), then DSL-3, DSL-4, DSL-5, DSL-6, DSL-7, T1–T4, S1.
+**Budget state:** 5/16 sessions used 2026-08-14.
+
+**NOTE for Claude/orchestrator:** the engine tree has uncommitted partial work from the failed DSL-2 session (`DamageInterceptor.cs`, `DamageShield.cs` + PREVENT_DAMAGE fields in `EffectDef.cs`/`CardInstance.cs`/`GameState.cs` etc.). The foreman left it untouched per the "no failed worker commit" guard. Day rollover will reset retry state and DSL-2 will run again with this partial work present — decide whether to salvage or discard before then.
+
 ## 2026-08-14 | TASK-DSL-1
 
 ### DONE: TASK-DSL-1 — Turn-scoped counters + conditions
