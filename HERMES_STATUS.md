@@ -534,4 +534,4 @@ Acceptance: ✅ new unit tests green, 505 legacy green, suppression symmetry tes
 
 **Tests:** 9 new unit tests (`tests/Engine/CadencePassiveTests.cs`): EffectDef deserializes cadence/order, ordering key BEFORE_ALL_OTHER resolves before default (damage-then-heal interaction), reversed-order negative case, real Bow+Censer pair (prey marked AND ally healed at turn start), no-enemy = no mark (R15), no-wounded = no heal (R11), cadence resolves before the turn-start trigger phase (hand-size watcher proves cadence draw + normal draw both land before triggers), suppressed artifact cadence doesn't fire (R18/G3), launch_artifacts.json carries cadence on Bow + Censer.
 
-**Verification:** 540/540 tests passed (9 new + 531 legacy). Commit pending push.
+**Verification:** 540/540 tests passed (9 new + 531 legacy). Commit `e7c8d35` pushed to main.
