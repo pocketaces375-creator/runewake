@@ -1,26 +1,4 @@
 
-Committed as `e7ae82b`, pushed, TASKS_QUEUE marked done, HERMES_STATUS updated. Stopping per protocol — next unchecked task is **TASK-S1** (sim metric across all 7 classes).
-========================================
-=== foreman: 2026-08-14T20:19:01Z TASK-S1 success ===
-Session: 19/48
---- session tail ---
-TASK-S1 complete. Here's the summary:
-
----
-
-**TASK-S1: Sim metric — done.** 
-
-**Changes made:**
-1. **`engine/Cards/CardEnums.cs`** — Added missing enum values needed to parse `launch_artifacts.json`: `WHILE_ATTACKING`, `UNTIL_YOUR_NEXT_TURN` (Duration); `ON_ALLY_ATTACKED` (Trigger); `HEAL_FULL` (Op); `SELF_ARTIFACT` (Scope); `ENEMY_ATTACKS_YOUR_CHARACTER`, `FRIENDLY_ON_YOUR_TURN`, `AND` (ConditionOp).
-
-2. **`sim/Program.cs`** — Added `--artifacts-path`, `--class-a`, `--class-b` CLI args; loads artifacts on startup; passes class info to BatchConfig.
-
-3. **`sim/BatchRunner.cs`** — Added artifact ID lookup by class name, attack deviation tracking (per-turn: counts eligible attackers, checks if bot chose EndTurnAction while attackers remained), new fields on `GameResult`/`BatchReport` for `combat_turns`, `deviation_turns`, `attack_deviation_rate`.
-
-4. **`sim/run_s1_metric.py`** — New Python harness that runs 7×7 class matrix (49 matchups × 200 games = 9,800 games) with fixed seeds.
-
-5. **`sim/artifact_metrics.md`** — Generated report with winrate matrix + deviation rates.
-
 **Key results:**
 - **Winrate ranking:** Warrior 83.6% > Thief 83.0% > Cleric 71.1% > Ranger 67.4% > Necromancer 42.1% > Mage 38.7% = Runesmith 38.7%
 - **Deviation ≥25% target:** 4/7 classes meet (Mage 27.9%, Thief 29.7%, Necromancer 28.4%, Runesmith 26.0%); 3 below (Warrior 18.5%, Cleric 19.1%, Ranger 19.8%). Overall 24.8% — just shy of target.
@@ -47,4 +25,26 @@ Build: 0 errors, 104 warnings (pre-existing). Capture exit 0. Layout verificatio
 ⚠️ File-mutation verifier: 2 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake/client/scenes/duel/DuelScene.tscn — [patch] Found 5 matches for old_string. Provide more context to make it unique, or use replace_all=True.
   • /home/fictive/runewake/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file Did you mean one of these sections? 5| **TASK-S1 (2026-08-14):** Sim metric — ran logged sim suite across all 7 classes (warrior,…
+========================================
+=== foreman: 2026-08-14T22:16:50Z TASK-UI3b success ===
+Session: 21/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+## Done — TASK-UI3b complete
+
+**What was built:**
+- **`client/scripts/AltarField.cs`** — Custom `Control` that draws the altar ellipse using `DrawColoredPolygon` (fill + radial glow + inset shadow) and `DrawLine` (border + dashed inner ring). Border #57492c, 72-segment ellipse approximation.
+
+- **`client/scenes/duel/DuelScene.tscn`** — `Board` changed from `VBoxContainer` to plain `Control`; old `EnemyLaneMargin/EnemyLanes/Divider/PlayerLaneMargin/PlayerLanes` removed.
+
+- **`client/scripts/DuelScene.cs`** — `BuildAltarField()` creates the `AltarField` visual + `_altarContainer` for slots + 6 rune glyphs (ᚠᚢᚦᚨᚱᚲ) around ellipse edge. `PopulateLanes()` positions 5+5 `LaneSlot` instances at arc coordinates with rotation: enemy top arc (bow down), player bottom arc (bow up), 60px center gap.
+
+**Arc geometry** (scaled from 1280×720 design units):
+- Slots: 206×176, spread across 1240px ellipse
+- Lane X centers: 180, 410, 640, 870, 1100 (design space)
+- Outer slots: +34px vertical offset, ±4° rotation
+- Second slots: +8px vertical offset, ±2° rotation
+- Center: flat
+
+**Results:** Build → capture → pixel gate → all exit 0. 4 hand + 10 board card checks pass. Pushed as commit `ebcd698`.
 ========================================
