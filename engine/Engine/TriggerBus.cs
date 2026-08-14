@@ -205,7 +205,7 @@ public static class TriggerBus
             ConditionOp.SPELLS_CAST_THIS_TURN_GTE => player.SpellCastCountThisTurn,
             ConditionOp.SPELLS_CAST_THIS_TURN_EQ => player.SpellCastCountThisTurn,
             ConditionOp.NO_ATTACKERS_LAST_TURN => player.AttackCountLastTurn == 0 ? 1 : 0,
-            ConditionOp.CREATURE_DIED_THIS_TURN => state.CreatureDiedThisTurn,
+            ConditionOp.CREATURE_DIED_THIS_TURN => CreatureDiedThisTurnCount(condition, player, opponent, state),
             ConditionOp.FEWER_ALLY_CREATURES_THAN_ENEMY => CountCreaturesOnBoard(player) < CountCreaturesOnBoard(opponent) ? 1 : 0,
             ConditionOp.ALLY_CREATURE_EXISTS => CountCreaturesOnBoard(player) >= 1 ? 1 : 0,
             ConditionOp.PARTNER_CHARGES_GTE => PartnerCharges(source, player),
@@ -239,7 +239,7 @@ public static class TriggerBus
             ConditionOp.SPELLS_CAST_THIS_TURN_GTE => actual >= threshold,
             ConditionOp.SPELLS_CAST_THIS_TURN_EQ => actual == threshold,
             ConditionOp.NO_ATTACKERS_LAST_TURN => actual >= 1,
-            ConditionOp.CREATURE_DIED_THIS_TURN => actual >= threshold,
+            ConditionOp.CREATURE_DIED_THIS_TURN => actual >= Math.Max(1, threshold),
             ConditionOp.FEWER_ALLY_CREATURES_THAN_ENEMY => actual >= 1,
             ConditionOp.ALLY_CREATURE_EXISTS => actual >= 1,
             ConditionOp.PARTNER_CHARGES_GTE => actual >= threshold,
@@ -248,6 +248,22 @@ public static class TriggerBus
             ConditionOp.FRIENDLY => actual >= 1,
             ConditionOp.ENEMY => actual >= 1,
             _ => true
+        };
+    }
+
+    /// <summary>
+    /// Side-aware death count for CREATURE_DIED_THIS_TURN.
+    /// Side "ALLY" = creatures controlled by the condition's player that died this turn,
+    /// "ENEMY" = the opponent's, anything else (or null) = both sides (G7 default).
+    /// </summary>
+    private static int CreatureDiedThisTurnCount(ConditionDef condition, PlayerState player, PlayerState opponent, GameState state)
+    {
+        string side = condition.Side?.ToUpperInvariant() ?? "ANY";
+        return side switch
+        {
+            "ALLY" => state.CreatureDiedThisTurnCount[player.Index],
+            "ENEMY" => state.CreatureDiedThisTurnCount[opponent.Index],
+            _ => state.CreatureDiedThisTurnCount[0] + state.CreatureDiedThisTurnCount[1]
         };
     }
 

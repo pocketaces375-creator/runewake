@@ -395,6 +395,12 @@ public static class RulesTextRenderer
             ConditionOp.CONTROLS_KEYWORD => $"you control a creature with {RenderCondValue(condition.Value)}",
             ConditionOp.CONTROLS_STRATA => $"you control a {RenderCondValue(condition.Value)} creature",
             ConditionOp.DAMAGED_THIS_TURN => "a creature was damaged this turn",
+            ConditionOp.ATTACKERS_THIS_TURN_GTE => $"you attacked {RenderCondValue(condition.Value)}+ times this turn",
+            ConditionOp.ATTACKERS_THIS_TURN_EQ => $"you attacked exactly {RenderCondValue(condition.Value)} times this turn",
+            ConditionOp.SPELLS_CAST_THIS_TURN_GTE => $"you cast {RenderCondValue(condition.Value)}+ spells this turn",
+            ConditionOp.SPELLS_CAST_THIS_TURN_EQ => $"you cast exactly {RenderCondValue(condition.Value)} spells this turn",
+            ConditionOp.NO_ATTACKERS_LAST_TURN => "you didn't attack on your last turn",
+            ConditionOp.CREATURE_DIED_THIS_TURN => RenderCreatureDiedThisTurn(condition),
             _ => "?"
         };
     }
@@ -412,6 +418,18 @@ public static class RulesTextRenderer
         if (el.ValueKind == JsonValueKind.False)
             return "";
         return "?";
+    }
+
+    private static string RenderCreatureDiedThisTurn(ConditionDef condition)
+    {
+        string side = condition.Side?.ToUpperInvariant() ?? "ANY";
+        string value = RenderCondValue(condition.Value);
+        return side switch
+        {
+            "ALLY" => "a friendly creature died this turn",
+            "ENEMY" => "an enemy creature died this turn",
+            _ => string.IsNullOrEmpty(value) || value == "?" ? "a creature died this turn" : $"{value}+ creatures died this turn"
+        };
     }
 
     /// <summary>

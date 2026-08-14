@@ -567,8 +567,8 @@ public static class EffectExecutor
         var owner = state.Player(card.Controller);
         var lane = owner.Lanes[card.LaneIndex ?? 0];
 
-        // Increment death counter
-        state.CreatureDiedThisTurn++;
+        // Increment death counter (side-aware: count under the dead card's controller)
+        state.CreatureDiedThisTurnCount[card.Controller]++;
         state.LastDeathPlayerIndex = card.Controller;
 
         // Check Unearth first

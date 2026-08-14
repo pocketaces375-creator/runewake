@@ -45,7 +45,7 @@ public static class TargetResolver
 
         // Apply filter
         if (!string.IsNullOrEmpty(target.Filter) && target.Filter != "ANY")
-            pool = ApplyFilter(pool, target.Filter, source);
+            pool = ApplyFilter(pool, target.Filter, source, sourcePlayer);
 
         // Apply count
         pool = ApplyCount(pool, target.Count);
@@ -79,7 +79,8 @@ public static class TargetResolver
     private static List<ResolvedTarget> ApplyFilter(
         List<ResolvedTarget> pool,
         string filter,
-        CardInstance source)
+        CardInstance source,
+        PlayerState sourcePlayer)
     {
         // Positional filters require knowing the source lane
         int? srcLane = source.LaneIndex;
@@ -98,6 +99,11 @@ public static class TargetResolver
                 && ct.LaneIndex == 2).ToList(),
             "DAMAGED" => pool.Where(t => t is CreatureTarget ct && ct.Card.Damage > 0).ToList(),
             "UNDAMAGED" => pool.Where(t => t is CreatureTarget ct && ct.Card.Damage == 0).ToList(),
+            "HAS_NOT_ATTACKED" => pool.Where(t => t is CreatureTarget ct && !ct.Card.HasAttackedThisTurn).ToList(),
+            "FIRST_ATTACKER" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (sourcePlayer.FirstAttackerLaneIndex ?? -1)).ToList(),
+            "FIRST_ATTACKED" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (sourcePlayer.FirstAttackedLaneIndex ?? -1)).ToList(),
             var s when s.StartsWith("STRATA:") => pool.Where(t =>
             {
                 var strataStr = s[7..];

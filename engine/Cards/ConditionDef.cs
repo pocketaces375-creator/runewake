@@ -18,6 +18,13 @@ public sealed class ConditionDef
     [JsonPropertyName("value")]
     public JsonElement? Value { get; set; }
 
+    /// <summary>
+    /// Side-awareness for CREATURE_DIED_THIS_TURN: "ALLY", "ENEMY", "ANY", or null (= ANY).
+    /// The condition only counts creatures that died on the specified side.
+    /// </summary>
+    [JsonPropertyName("side")]
+    public string? Side { get; set; }
+
     /// <summary>All of these sub-conditions must be true (AND).</summary>
     [JsonPropertyName("all")]
     public List<ConditionDef>? All { get; set; }

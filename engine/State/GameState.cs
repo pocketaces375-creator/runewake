@@ -55,11 +55,12 @@ public sealed class GameState
     public List<GameAction> ActionLog { get; } = new();
 
     /// <summary>
-    /// Number of creatures that died this turn (any side, any cause).
-    /// Incremented in KillCreature. Reset at start of each turn.
-    /// Used for CREATURE_DIED_THIS_TURN, Grimoire discount (R19).
+    /// Number of creatures that died this turn, per player index (side-aware).
+    /// [0] = creatures controlled by player 0 that died this turn, [1] = player 1's.
+    /// Incremented in KillCreature / attack resolution. Reset at start of each turn.
+    /// Used for CREATURE_DIED_THIS_TURN (Grimoire discount R19, G7).
     /// </summary>
-    public int CreatureDiedThisTurn { get; set; }
+    public int[] CreatureDiedThisTurnCount { get; set; } = new int[2];
 
     /// <summary>
     /// Player index of the most recently deceased creature.
@@ -246,7 +247,7 @@ public sealed class GameState
         TriggerDepth = other.TriggerDepth;
         IsGameOver = other.IsGameOver;
         WinnerIndex = other.WinnerIndex;
-        CreatureDiedThisTurn = other.CreatureDiedThisTurn;
+        CreatureDiedThisTurnCount = (int[])other.CreatureDiedThisTurnCount.Clone();
         LastDeathPlayerIndex = other.LastDeathPlayerIndex;
     }
 
@@ -312,6 +313,9 @@ public sealed class GameState
         h = HashBool(h, IsGameOver);
         h = HashInt(h, WinnerIndex ?? -1);
         h = HashInt(h, NextInstanceId);
+        h = HashInt(h, CreatureDiedThisTurnCount[0]);
+        h = HashInt(h, CreatureDiedThisTurnCount[1]);
+        h = HashInt(h, LastDeathPlayerIndex);
 
         // Players
         for (int p = 0; p < 2; p++)
@@ -325,6 +329,15 @@ public sealed class GameState
             h = HashInt(h, pl.AttunementPerTurn);
             h = HashInt(h, pl.FatigueCounter);
             h = HashInt(h, pl.MaxHandSize);
+            // Turn-scoped counters (G5) — read by conditions/filters, part of observable state
+            h = HashInt(h, pl.AttackCountThisTurn);
+            h = HashInt(h, pl.SpellCastCountThisTurn);
+            h = HashBool(h, pl.HasAttackedThisTurn);
+            h = HashBool(h, pl.SpellCastThisTurn);
+            h = HashInt(h, pl.AttackCountLastTurn);
+            h = HashInt(h, pl.PreyAttackCountThisTurn);
+            h = HashInt(h, pl.FirstAttackerLaneIndex ?? -1);
+            h = HashInt(h, pl.FirstAttackedLaneIndex ?? -1);
 
             // Decks (remaining card IDs)
             h = HashInt(h, pl.Deck.Count);

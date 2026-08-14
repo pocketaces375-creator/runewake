@@ -96,7 +96,10 @@ public static partial class DuelEngine
         nextPlayer.HasAttackedThisTurn = false;
         nextPlayer.SpellCastThisTurn = false;
         nextPlayer.PreyAttackCountThisTurn = 0;
-        state.CreatureDiedThisTurn = 0;
+        nextPlayer.FirstAttackerLaneIndex = null;
+        nextPlayer.FirstAttackedLaneIndex = null;
+        state.CreatureDiedThisTurnCount[0] = 0;
+        state.CreatureDiedThisTurnCount[1] = 0;
 
         // 7. Apply Artifact passives for this turn (re-applied each turn, cleared if suppressed)
         // PASSIVE abilities with WHILE_PRESENT duration are refreshed each turn.
@@ -196,8 +199,11 @@ public static partial class DuelEngine
             throw new InvalidOperationException("Invalid attack target.");
 
         // Track attack for Artifact conditions
+        bool isFirstAttack = player.AttackCountThisTurn == 0;
         player.AttackCountThisTurn++;
         player.HasAttackedThisTurn = true;
+        if (isFirstAttack)
+            player.FirstAttackerLaneIndex = action.SourceLane;
 
         int targetLaneIdx = resolvedTarget.Value;
 
@@ -233,6 +239,10 @@ public static partial class DuelEngine
             var actualLane = opponent.Lanes[tgtIdx];
             var defender = actualLane.Occupant!;
 
+            // Track first creature attacked on the defender's side (Bulwark FIRST_ATTACKED)
+            if (opponent.FirstAttackedLaneIndex is null)
+                opponent.FirstAttackedLaneIndex = tgtIdx;
+
             // Prey tracking: if the defender is this player's marked Prey, count the attack (Quiver R17)
             if (player.PreyTargetId == defender.InstanceId)
                 player.PreyAttackCountThisTurn++;
@@ -261,7 +271,7 @@ public static partial class DuelEngine
             // Remove dead defender (check Unearth first)
             if (defenderKilled)
             {
-                state.CreatureDiedThisTurn++;
+                state.CreatureDiedThisTurnCount[opponent.Index]++;
                 state.LastDeathPlayerIndex = opponent.Index;
                 bool isUnearthed = false;
                 if (!KeywordHandlers.OnDeath(defender, opponent))
@@ -293,7 +303,7 @@ public static partial class DuelEngine
         // Remove dead attacker (check Unearth first)
         if (attacker.CurrentVigor <= 0)
         {
-            state.CreatureDiedThisTurn++;
+            state.CreatureDiedThisTurnCount[player.Index]++;
             state.LastDeathPlayerIndex = player.Index;
             if (!KeywordHandlers.OnDeath(attacker, player))
             {

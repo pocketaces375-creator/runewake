@@ -130,6 +130,18 @@ public sealed class PlayerState
     /// </summary>
     public int PreyAttackCountThisTurn { get; set; }
 
+    /// <summary>
+    /// Lane index of the first friendly creature that attacked this turn (for FIRST_ATTACKER filter).
+    /// Null if no creature has attacked yet this turn.
+    /// </summary>
+    public int? FirstAttackerLaneIndex { get; set; }
+
+    /// <summary>
+    /// Lane index of the first friendly creature that was attacked by an enemy this turn
+    /// (for FIRST_ATTACKED filter). Null if no creature has been attacked yet this turn.
+    /// </summary>
+    public int? FirstAttackedLaneIndex { get; set; }
+
     public PlayerState(int index)
     {
         Index = index;
@@ -182,6 +194,8 @@ public sealed class PlayerState
         SpellCastThisTurn = other.SpellCastThisTurn;
         AttackCountLastTurn = other.AttackCountLastTurn;
         PreyAttackCountThisTurn = other.PreyAttackCountThisTurn;
+        FirstAttackerLaneIndex = other.FirstAttackerLaneIndex;
+        FirstAttackedLaneIndex = other.FirstAttackedLaneIndex;
     }
 
     /// <summary>
