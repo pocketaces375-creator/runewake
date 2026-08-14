@@ -168,8 +168,9 @@ check_task_done() {
 import re
 with open('${QUEUE_FILE}') as f:
     content = f.read()
-for line in content.split('\n'):
-    if '${task_id}' in line and re.match(r'^\s*-\s*\[\s*x\s*\]', line):
+pattern = re.compile(r'^\\s*-\\s*\\[\\s*x\\s*\\]\\s*\\b' + re.escape('${task_id}') + r'\\b')
+for line in content.split('\\n'):
+    if pattern.search(line):
         print('done')
         break
 " 2>/dev/null || echo ""

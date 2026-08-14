@@ -366,6 +366,43 @@ def main():
             else:
                 print(f"  PASS group {side}: mean={mean:.3f}, std={std:.3f}")
 
+    # Check 5: Overlap assertion (TASK-UI3c)
+    # No two meta rects from DIFFERENT groups may intersect.
+    # Groups: hand cards, board cards (per slot), player group, enemy group.
+    all_entries = []
+
+    for i, card in enumerate(hand_cards):
+        if "rect" in card:
+            all_entries.append((f"hand_card_{i}", "hand", card["rect"]))
+
+    for i, card in enumerate(board_cards):
+        slot = card.get("slot", f"board_{i}")
+        if "rect" in card:
+            group = "board_player" if slot.startswith("player") else "board_enemy"
+            all_entries.append((f"board_{slot}", group, card["rect"]))
+
+    for g in groups:
+        side = g.get("side", "unknown")
+        if "rect" in g:
+            all_entries.append((f"group_{side}", f"group_{side}", g["rect"]))
+
+    for i in range(len(all_entries)):
+        for j in range(i + 1, len(all_entries)):
+            name_a, group_a, ra = all_entries[i]
+            name_b, group_b, rb = all_entries[j]
+            # Skip same-group overlaps (own elements may stack)
+            if group_a == group_b:
+                continue
+            # Rect intersection test
+            ax, ay, aw, ah = ra["x"], ra["y"], ra["w"], ra["h"]
+            bx, by, bw, bh = rb["x"], rb["y"], rb["w"], rb["h"]
+            if ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by:
+                failures.append(
+                    f"OVERLAP: {name_a} ({group_a}) intersects {name_b} ({group_b}) — "
+                    f"rect_a=({ax:.0f},{ay:.0f},{aw:.0f},{ah:.0f}) "
+                    f"rect_b=({bx:.0f},{by:.0f},{bw:.0f},{bh:.0f})"
+                )
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:
