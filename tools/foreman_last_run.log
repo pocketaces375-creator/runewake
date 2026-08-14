@@ -1,15 +1,3 @@
-=== foreman: 2026-08-14T13:11:31Z TASK-DSL-3 retry ===
-Session: 7/16
-Failures: checkbox_not_flipped 
---- session tail ---
-Here's what I've accomplished and what remains:
-
-## TASK-DSL-3 Implementation Status
-
-### ✅ Completed
-
-**Engine changes:**
-- `CardEnums.cs` — Added `COST_MOD` to the `Op` enum
 - `EffectDef.cs` — Added `AppliesTo`, `Value`, `Stacks`, `Floor` fields
 - `CostMod.cs` (new) — Runtime data structure with `Clone()`, all required fields (applies_to, filter, filter_value, condition, duration, stacks, amount, floor, used_this_turn, source tracking)
 - `PlayerState.cs` — Added `CostMods` list with `Clone()` support
@@ -47,4 +35,16 @@ dotnet test tests/ --filter "FullyQualifiedName~CostModTests" -v n
 git add -A && git commit -m "TASK-DSL-3: COST_MOD op (discount mechanic)..."
 git push
 ```
+========================================
+=== foreman: 2026-08-14T13:32:49Z TASK-DSL-3 success ===
+Session: 8/16
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Done. TASK-DSL-3 completed:
+
+- **New files:** `CostMod.cs`, `CostInterceptor.cs`, `CostModTests.cs`
+- **Modified files:** `CardEnums.cs`, `EffectDef.cs`, `PlayerState.cs`, `CardInstance.cs`, `GameState.cs`, `EffectExecutor.cs`, `DuelEngine.cs`, `RulesTextRenderer.cs`, `Bot.cs`, `launch_artifacts.json`
+- **Tests:** 531/531 pass (19 new + 512 legacy)
+- **Migration:** 4 ATTUNE→COST_MOD entries in launch_artifacts.json, zero ATTUNE remaining
+- **Stack:** TASK-DSL-4 (cadenced passives) next in queue
 ========================================
