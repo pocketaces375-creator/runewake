@@ -131,6 +131,9 @@ public partial class HandCard : PanelContainer
         UpdateStatBadges();
 
         LoadArt(cardId);
+
+        // TASK-UI3c: Auto-shrink name font to fit
+        FitCardName(_cardName.GetThemeFontSize("font_size"));
     }
 
     private void LoadArt(string cardId)
@@ -177,27 +180,60 @@ public partial class HandCard : PanelContainer
 
     /// <summary>
     /// Scale the card to a target height (px in viewport space), keeping the
-    /// 110:168 aspect ratio. Fonts scale proportionally so stats stay ≥16px
-    /// at 1080p (viewport 648 → card 190px → stat font 17px).
+    /// 104:152 aspect ratio (TASK-UI3c). Fonts scale proportionally so stats stay readable.
+    /// Auto-shrinks the name font so full names fit (min 8px, then ellipsize).
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 110f / 168f;
+        float aspect = 104f / 152f;
         CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
         Size = CustomMinimumSize;
 
-        // Scale fonts proportionally from the base 168px design
-        float scale = targetHeight / 168f;
+        // Scale fonts proportionally from the base 152px design
+        float scale = targetHeight / 152f;
         int nameSize = Mathf.Max(11, Mathf.RoundToInt(13 * scale));
         int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _costLabel.AddThemeFontSizeOverride("font_size", costSize);
+
+        // TASK-UI3c: Auto-shrink name font until text fits single line or hits min 8px
+        FitCardName(nameSize);
 
         // Hover pivot: bottom-center so card enlarges upward, not off-screen bottom
         PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);
 
         // Reposition stat badges for the new size
         UpdateStatBadges();
+    }
+
+    /// <summary>
+    /// TASK-UI3c: Auto-shrink the card name font so the full text fits in the label.
+    /// Measures text width against the label's available width and reduces font size
+    /// until it fits or hits minimum 8px. The label's clip_text=true handles remainder.
+    /// </summary>
+    private void FitCardName(int startSize)
+    {
+        if (_cardName.Text.Length == 0) return;
+
+        float availWidth = _cardName.Size.X;
+        if (availWidth <= 0)
+            availWidth = CustomMinimumSize.X - 8f; // fallback: card width minus margins
+
+        int fontSize = startSize;
+        while (fontSize >= 8)
+        {
+            _cardName.AddThemeFontSizeOverride("font_size", fontSize);
+            var font = _cardName.GetThemeDefaultFont();
+            if (font != null)
+            {
+                float textWidth = font.GetStringSize(_cardName.Text,
+                    HorizontalAlignment.Left, -1, fontSize).X;
+                if (textWidth <= availWidth + 2f)
+                    return; // fits
+            }
+            fontSize--;
+        }
+        _cardName.AddThemeFontSizeOverride("font_size", 8); // floor at 8px
     }
 
     // ——— Hand hover: enlarge ~1.8x, anchored above the hand (FIX 3d) ———
