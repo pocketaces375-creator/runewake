@@ -53,7 +53,7 @@
 
 - [x] TASK-S1 — Sim metric: run the logged sim suite across all 7 classes (each vs each, fixed seeds). Report per-class: winrate matrix and % of non-empty combat turns where the chosen attack set ≠ "all legal attackers attack" (target ≥25%). Write results to sim/artifact_metrics.md. NO balance changes — numbers are Claude's to move.
 
-- [ ] TASK-UI3a — per TASK_UI3_SPEC.md §UI3a
+- [x] TASK-UI3a — per TASK_UI3_SPEC.md §UI3a
 - [ ] TASK-UI3b — per TASK_UI3_SPEC.md §UI3b
 - [ ] TASK-UI3c — per TASK_UI3_SPEC.md §UI3c
 - [ ] TASK-UI3d — per TASK_UI3_SPEC.md §UI3d
