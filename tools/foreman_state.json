@@ -1,9 +1,9 @@
 {
   "date": "2026-08-13",
-  "session_count": 0,
+  "session_count": 1,
   "last_task_id": "",
   "last_commit_sha": "",
-  "retry_count": 0,
-  "retry_task_id": "",
+  "retry_count": 1,
+  "retry_task_id": "TASK-TEST",
   "blocked_notified": "false"
 }
