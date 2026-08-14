@@ -255,5 +255,32 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - The green bar was `BottomRow/StatsLabel` showing `{Attack}/{Vigor}` — the attack/vigor stat display. Named: **attack/vigor stats label**.
 - Deleted the entire `BottomRow` HBoxContainer from HandCard.tscn (BottomSpacer + StatsLabel) and all `_statsLabel` code references from HandCard.cs.
 - Corner badges already active from FIX-3c (attack bottom-left red, vigor bottom-right green) — matching board cards.
-- Acceptance caveat: capture committed shows the bar code is gone (no BottomRow node), but full-frame darkness + invisible art is the KNOWN FIX-2 rendering issue tracked by TASK-R1. The green band visible mid-card in the capture is card ART (Root Warden is a verdant creature), not a UI bar.
-- Also fixed DebugCapture arg parsing: Godot 4.3 puts args after `--` in GetCmdlineUserArgs, not GetCmdlineArgs — merged both so --capture=duel_test works with or without separator.
+- Also fixed DebugCapture arg parsing: Godot 4.3 puts args after '--' in GetCmdlineUserArgs, not GetCmdlineArgs — merged both so --capture=duel_test works with or without separator.
+
+---
+
+## 2026-08-13 | TASK-LOOP — Foreman built
+
+### DONE: TASK-LOOP — tools/foreman.sh built and verified
+- `tools/foreman.sh` — iterated task executor with circuit breakers
+- `tools/foreman_state.json` — persists date, session_count, last_task_id, last_commit_sha, retry state
+
+- **Circuit breakers (all tested):**
+  - `FOREMAN_HALT` file → 🛑 exits 1 with Telegram notification
+  - 10-session daily budget → ⏸ exits 0 with Telegram notification
+  - Queue empty → 📭 exits 0 with Telegram notification
+  - One retry per task, then BLOCKED-and-exit
+
+- **Per iteration:**
+  1. Check circuit breakers
+  2. Read TASKS_QUEUE.md → find top unchecked [ ] task
+  3. Repeat-detector (same task, same HEAD → skip)
+  4. Run `hermes -z "..."` (45-min wall clock) — implements the task
+  5. Mechanical validation: new commit, checkbox flipped, dotnet tests, python tests, pixel gate (if capture exists)
+  6. Retry-once on failure → reverts failed commit for clean retry
+  7. Telegram notification shell-side (hermes send) — ✅/⚠️/🛑/⏸/📭 + capture PNG on success
+
+- **Start command:** `bash tools/foreman.sh` (from /home/fictive/runewake)
+- **Stop mechanism:** `touch FOREMAN_HALT` in project root → foreman refuses to start
+- **Resume:** `rm FOREMAN_HALT` → cleared for next run
+- **One iteration only:** run via cron for continuous operation, or manually one-at-a-time
