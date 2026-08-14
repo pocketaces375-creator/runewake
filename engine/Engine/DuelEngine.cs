@@ -81,6 +81,12 @@ public static partial class DuelEngine
         nextPlayer.AttunementMax = newMax;
         nextPlayer.Attunement = newMax;
 
+        // 3.5 Cadence phase — cadenced ON_TURN_START artifact passives.
+        // Prey marking (order BEFORE_ALL_OTHER_TURN_START_EFFECTS) resolves
+        // before all other turn-start effects (R15); Censer heal after;
+        // then draw (R11, R15).
+        FireCadencedPassives(state, nextPlayer);
+
         // 4. Draw phase
         bool firstPlayerSkipsDraw =
             state.CurrentPlayerIndex == 0
@@ -432,10 +438,68 @@ public static partial class DuelEngine
     // ——— Artifact system helpers ———
 
     /// <summary>
+    /// Fire cadenced ON_TURN_START artifact passives in explicit order.
+    /// Cadence <see cref="EffectDef.CadenceOnTurnStart"/> means the passive
+    /// resolves at the start of the owner's turn, BEFORE the draw phase
+    /// (R11, R15). The <see cref="EffectDef.Order"/> key gives an explicit
+    /// resolution order: <see cref="EffectDef.OrderBeforeAllOtherTurnStartEffects"/>
+    /// (Bow Prey marking, R15) resolves before any other turn-start effect.
+    /// Suppressed Artifacts don't contribute. Stable by slot order within
+    /// the same order key.
+    /// </summary>
+    private static void FireCadencedPassives(GameState state, PlayerState player)
+    {
+        var opponent = state.Player(state.OpponentIndex(player.Index));
+
+        var pending = new List<(ArtifactSlot slot, CardInstance artifact, AbilityDef ability, EffectDef effect)>();
+
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is null || slot.IsSuppressed)
+                continue;
+
+            foreach (var ability in slot.Occupant.Abilities)
+            {
+                if (ability.Trigger != Trigger.PASSIVE)
+                    continue;
+
+                foreach (var effect in ability.Effects)
+                {
+                    if (effect.Cadence == EffectDef.CadenceOnTurnStart)
+                        pending.Add((slot, slot.Occupant, ability, effect));
+                }
+            }
+        }
+
+        // Explicit ordering key: BEFORE_ALL_OTHER_TURN_START_EFFECTS first,
+        // then default order; stable by slot index within each group.
+        var ordered = pending
+            .OrderBy(p => p.effect.Order == EffectDef.OrderBeforeAllOtherTurnStartEffects ? 0 : 1)
+            .ThenBy(p => p.slot.Index)
+            .ToList();
+
+        foreach (var (_, artifact, ability, effect) in ordered)
+        {
+            if (!TriggerBus.EvaluateCondition(ability.Condition, artifact, player.Index, state))
+                continue;
+
+            var targets = TargetResolver.Resolve(
+                effect.Target ?? new TargetDef { Scope = Scope.NONE },
+                artifact,
+                player,
+                opponent,
+                state);
+            EffectExecutor.Execute(effect, artifact, state, targets);
+        }
+    }
+
+    /// <summary>
     /// Apply Artifact PASSIVE abilities for the given player.
     /// Called at the start of each turn. Suppressed Artifacts don't apply theirs.
     /// Passives with WHILE_PRESENT duration are re-applied each turn so
     /// suppression naturally suspends them.
+    /// Cadenced passives (effects with a Cadence) fire in their cadence phase
+    /// (e.g. <see cref="EffectDef.CadenceOnTurnStart"/>) and are skipped here.
     /// </summary>
     private static void ApplyArtifactPassives(GameState state, PlayerState player)
     {
@@ -457,6 +521,10 @@ public static partial class DuelEngine
 
                 foreach (var effect in ability.Effects)
                 {
+                    // Cadenced passives fire in their cadence phase, not here.
+                    if (!string.IsNullOrEmpty(effect.Cadence))
+                        continue;
+
                     var targets = TargetResolver.Resolve(
                         effect.Target ?? new TargetDef { Scope = Scope.NONE },
                         slot.Occupant,

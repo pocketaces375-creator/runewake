@@ -208,7 +208,8 @@ public sealed class CardInstance
                 TokenId = e.TokenId, Duration = e.Duration,
                 Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
                 Condition = e.Condition,
-                AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks
+                AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks,
+                Cadence = e.Cadence, Order = e.Order
             })
         });
         IdentifyCondition = other.IdentifyCondition is not null ? CopyCondition(other.IdentifyCondition) : null;

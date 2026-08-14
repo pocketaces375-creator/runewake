@@ -34,7 +34,7 @@
 
 - [x] TASK-DSL-3 — COST_MOD op (the discount mechanic): applies_to CREATURE|SPELL, filter (e.g. ATTACK_LTE), condition (e.g. CREATURE_DIED_THIS_TURN), per-turn filters (FIRST_SPELL_EACH_TURN), duration, stacking, floor 0. MIGRATE launch_artifacts.json: every discount currently encoded as "ATTUNE" becomes COST_MOD (Warden's Focus passive, Mantle trigger, Duskfang passive, Grimoire passive). Unit tests.
 
-- [ ] TASK-DSL-4 — Cadenced passives: cadence ON_TURN_START with explicit ordering key; Prey marking runs BEFORE all other turn-start effects (R15), Censer heal after, then draw. Unit tests pinning the order.
+- [x] TASK-DSL-4 — Cadenced passives: cadence ON_TURN_START with explicit ordering key; Prey marking runs BEFORE all other turn-start effects (R15), Censer heal after, then draw. Unit tests pinning the order.
 
 - [ ] TASK-DSL-5 — Charge plumbing: RESET_CHARGES, max_per_turn and max_per_creature_per_turn caps, ON_CHARGE_FULL with timing END_OF_TURN, charge freeze under suppression (G3). Unit tests.
 

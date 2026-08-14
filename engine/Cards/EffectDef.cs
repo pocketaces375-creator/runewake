@@ -88,4 +88,27 @@ public sealed class EffectDef
     /// </summary>
     [JsonPropertyName("stacks")]
     public bool? Stacks { get; set; }
+
+    /// <summary>
+    /// Cadence for artifact passive effects — when the passive resolves.
+    /// <see cref="CadenceOnTurnStart"/> = at the start of the owner's turn,
+    /// BEFORE the draw phase (R11, R15). Null = refreshed each turn by the
+    /// generic passive step (existing behavior).
+    /// </summary>
+    [JsonPropertyName("cadence")]
+    public string? Cadence { get; set; }
+
+    /// <summary>
+    /// Explicit ordering key within a cadence phase.
+    /// <see cref="OrderBeforeAllOtherTurnStartEffects"/> resolves before all
+    /// other turn-start effects (R15 Prey marking). Null = default order.
+    /// </summary>
+    [JsonPropertyName("order")]
+    public string? Order { get; set; }
+
+    /// <summary>Cadence value: passive fires at the start of the owner's turn (before draw).</summary>
+    public const string CadenceOnTurnStart = "ON_TURN_START";
+
+    /// <summary>Ordering key: resolve before all other turn-start effects (R15 Prey marking).</summary>
+    public const string OrderBeforeAllOtherTurnStartEffects = "BEFORE_ALL_OTHER_TURN_START_EFFECTS";
 }

@@ -518,3 +518,20 @@ All five defects fixed and proven end-to-end:
 **Verification:** `dotnet build` succeeded, `dotnet test` 505/505 passed (22 new + 483 legacy), no TODOs or NotImplementException in new code.
 
 Acceptance: ✅ new unit tests green, 505 legacy green, suppression symmetry tested.
+
+---
+
+## 2026-08-14 | TASK-DSL-4
+
+### DONE: TASK-DSL-4 — Cadenced passives: cadence ON_TURN_START with explicit ordering key; Prey marking runs BEFORE all other turn-start effects (R15), Censer heal after, then draw. Unit tests pinning the order.
+
+**Implementation:**
+
+- `EffectDef.cs` — new `Cadence` + `Order` string fields (`"cadence"` / `"order"` in JSON). Constants: `CadenceOnTurnStart = "ON_TURN_START"`, `OrderBeforeAllOtherTurnStartEffects = "BEFORE_ALL_OTHER_TURN_START_EFFECTS"`.
+- `DuelEngine.cs` — new turn-start cadence phase (step 3.5, after Attune, before Draw): `FireCadencedPassives()` collects cadenced ON_TURN_START artifact passives from non-suppressed slots, sorts by explicit ordering key (BEFORE_ALL_OTHER_TURN_START_EFFECTS first, stable by slot index), then executes each. This makes Bow Prey marking (R15) resolve before Censer heal (R11), and both before the draw phase. `ApplyArtifactPassives()` (step 7) now skips effects with a Cadence so cadenced passives don't double-fire.
+- `TargetResolver.cs` — `MOST_WOUNDED` filter (greatest missing vigor, tie → first in lane order) so the Censer heal actually targets the most-wounded ally (R11).
+- `CardInstance.cs` — `Clone()` now copies `Cadence`/`Order` onto cloned `EffectDef`s (missing in the old clone → cadence info was being dropped on state clone).
+
+**Tests:** 9 new unit tests (`tests/Engine/CadencePassiveTests.cs`): EffectDef deserializes cadence/order, ordering key BEFORE_ALL_OTHER resolves before default (damage-then-heal interaction), reversed-order negative case, real Bow+Censer pair (prey marked AND ally healed at turn start), no-enemy = no mark (R15), no-wounded = no heal (R11), cadence resolves before the turn-start trigger phase (hand-size watcher proves cadence draw + normal draw both land before triggers), suppressed artifact cadence doesn't fire (R18/G3), launch_artifacts.json carries cadence on Bow + Censer.
+
+**Verification:** 540/540 tests passed (9 new + 531 legacy). Commit pending push.
