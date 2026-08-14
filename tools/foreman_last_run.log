@@ -1,50 +1,50 @@
-================================
-=== foreman: 2026-08-14T07:26:00Z TASK-DSL-1 success ===
-Session: 4/10
+=== foreman: 2026-08-14T13:11:31Z TASK-DSL-3 retry ===
+Session: 7/16
+Failures: checkbox_not_flipped 
 --- session tail ---
-Done. Here's the report:
+Here's what I've accomplished and what remains:
 
-**TASK-DSL-1: Turn-scoped counters + conditions — COMPLETE**
+## TASK-DSL-3 Implementation Status
 
-**What shipped:**
-- **Turn-scoped counters** on `PlayerState`: `AttackCountThisTurn`, `SpellCastCountThisTurn`, `AttackCountLastTurn`, and tracking flags (`HasAttackedThisTurn`, `SpellCastThisTurn`, `PreyAttackCountThisTurn`)
-- **First-attacker tracking**: `FirstAttackerLaneIndex` (set on player's first attack) and `FirstAttackedLaneIndex` (set on first defender hit by an enemy) — both nullable ints tracking lane index
-- **Side-aware death counter**: `GameState.CreatureDiedThisTurnCount[2]` replaces the old scalar, tracking deaths per controller (`[0]` = P0, `[1]` = P1)
-- **4 conditions** in TriggerBus: `ATTACKERS_THIS_TURN_GTE/EQ`, `SPELLS_CAST_THIS_TURN_EQ`, `NO_ATTACKERS_LAST_TURN`, `CREATURE_DIED_THIS_TURN` (side-aware via `ConditionDef.Side`)
-- **3 filters** in TargetResolver: `HAS_NOT_ATTACKED`, `FIRST_ATTACKER`, `FIRST_ATTACKED`
-- **Rules text rendering** for all new conditions
-- **Counter lifecycle**: reset at each player's turn start, cross-turn chaining via `AttackCountLastTurn`
-- **19 unit tests** covering every condition and filter (happy path + edge cases + per-player independence)
+### ✅ Completed
 
-**Tests:** 482 pass (463 legacy + 19 new), 0 failures.
+**Engine changes:**
+- `CardEnums.cs` — Added `COST_MOD` to the `Op` enum
+- `EffectDef.cs` — Added `AppliesTo`, `Value`, `Stacks`, `Floor` fields
+- `CostMod.cs` (new) — Runtime data structure with `Clone()`, all required fields (applies_to, filter, filter_value, condition, duration, stacks, amount, floor, used_this_turn, source tracking)
+- `PlayerState.cs` — Added `CostMods` list with `Clone()` support
+- `EffectExecutor.cs` — Added `ApplyCostMod()` handler (registers/replaces cost mods on player target, stacking or non-stacking per source artifact)
+- `DuelEngine.cs` — Added `GetEffectiveCost()`, `ConsumeCostMods()`, `RefreshCostMods()` methods; modified `ApplyPlayCard` to use effective discounted cost; called `RefreshCostMods` at turn start (removes THIS_TURN mods, resets per-turn usage flags); called `ConsumeCostMods` after successful card play (marks FIRST_SPELL_EACH_TURN as used)
+- `RulesTextRenderer.cs` — Added COST_MOD rendering
+- `Bot.cs` — `EnumerateValidActions` uses `GetEffectiveCost`
+- `GameState.cs` — Added `HashCostMod` to state hash + `CostMods` fields copied in EffectDef copy sites
 
-**Next:** TASK-DSL-2 — PREVENT_DAMAGE op.
-================================
-=== foreman: 2026-08-14T08:30:33Z TASK-DSL-2 retry ===
-Session: 5/10
-Failures: no_new_commit checkbox_not_flipped 
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Connect timeout, please try again later.
-================================
-=== foreman: 2026-08-14T12:49:00Z TASK-DSL-2 success ===
-Session: 6/16
---- session tail ---
-  TASK-DSL-2: attempt 1 transient — cleaning dead-session tree litter
-  TASK-DSL-2: attempt 2/3 — waiting 60s before retry
-**TASK-DSL-2: COMPLETE** ✅
+**Content migration:**
+- `launch_artifacts.json` — All 4 ATTUNE discounts migrated to COST_MOD:
+  - Wand (Mage): `FIRST_SPELL_EACH_TURN` passive
+  - Aura (Mage): `THIS_TURN` + `stacks: true` trigger
+  - Duskfang (Thief): `ATTACK_LTE` passive
+  - Skull (Necromancer): `CREATURE_DIED_THIS_TURN` condition passive
 
-**What shipped:**
-- `engine/Engine/DamageInterceptor.cs` — new static class with `Reduce()` for players and creatures, source filtering (ATTACK/SPELL), frequency gating (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN), condition evaluation at damage-time (FEWER_ALLY_CREATURES_THAN_ENEMY), suppression symmetry, and `RemoveShieldsFromArtifact()`
-- `engine/Engine/DuelEngine.cs` — combat damage (creature trade, excess, face) passes through interceptor as SourceAttack
-- `engine/Engine/EffectExecutor.cs` — PREVENT_DAMAGE op registers shields on targets (no stacking per G6), spell damage intercepted as SourceSpell, suppression calls `RemoveShieldsFromArtifact`
-- `tests/Engine/PreventDamageTests.cs` — 22 tests covering all requirements
+**Tests:**
+- `CostModTests.cs` (25 tests, 22 passing) — Covers: generic discount, floor 0, applies_to (CREATURE/SPELL), ATTACK_LTE filter, FIRST_SPELL_EACH_TURN per-turn, condition gating, stacking, UsedThisTurn skip, integration with ApplyPlayCard, insufficient attunement, full discount to 0, lifecycle (THIS_TURN removal, UsedThisTurn reset), Wand/Aura/Grimoire patterns, clone correctness, hash inclusion, Bot action enumeration
 
-**Verification:** `dotnet build` 0 errors, `dotnet test` 505/505 passed (22 new + 483 legacy), no TODOs
+### ❌ 3 Tests Failing (stale reference bug)
 
-**Commits:**
-- `f8bdef5` — TASK-DSL-2: PREVENT_DAMAGE op... (implementation + tests)
-- `fca1121` — TASK-DSL-2: DONE status in HERMES_STATUS.md
+All 3 failures share the same root cause: after `state = DuelEngine.Apply(state, ...)` returns a cloned state, the tests still reference the old `player` variable:
 
-**Next queue task:** TASK-DSL-3 — COST_MOD op (discount mechanic)
+1. **`PlayCard_UsesDiscountedCost`** (line 225) — `player` variable stale after clone
+2. **`Aura_StacksThisTurn_MultipleDiscountsAccumulate`** (line 442) — Same stale reference
+3. **`Wand_FirstSpellEachTurn_WorksViaFullFlow`** (line 400) — Same
+
+Fix: re-assign `player = state.Players[0]` after each `DuelEngine.Apply` call (already fixed in `PlayCard_ConsumesFirstSpellEachTurn`). Three more occurrences need the same fix in the test file.
+
+### Next step
+
+Quick fix of the 3 stale references in `CostModTests.cs`, then:
+```bash
+dotnet test tests/ --filter "FullyQualifiedName~CostModTests" -v n
+git add -A && git commit -m "TASK-DSL-3: COST_MOD op (discount mechanic)..."
+git push
+```
 ========================================
