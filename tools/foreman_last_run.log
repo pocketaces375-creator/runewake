@@ -1,24 +1,3 @@
-**(1) Empty board slots visible border/frame** — LaneSlot PanelContainer stylebox border brightened from `0.10/0.09/0.07` to `0.30/0.27/0.24`. SlotBg stone texture opacity raised from `0.25` to `0.35`. Empty slots now clearly read as card places, not voids.
-
-**(2) Board slot sizing tuned to ~2:3 aspect** — LaneSlot aspect ratio changed from `160:120` (4:3) to `110:168` (~2:3), matching HandCard proportions. `ScaleTo` uses `110f/168f`. Five lanes at 118×180 fill ~590px of the 1152 viewport with 8px side margins — no oversized frames.
-
-**(3) FULL-BLEED card art, hand AND board:**
-- **LaneSlot**: Replaced VBox/FixedArtRect structure with a **Content wrapper** + full-rect **TextureRect** (KeepAspectCovered). Art fills the entire card face edge-to-edge.
-- **CardName**: Now a full-width strip (`anchor_left=0.0`, `anchor_right=1.0`) with a semi-transparent dark stylebox (`Color(0,0,0,0.55)`) overlaid on the art.
-- **Attack/Vigor badges**: Red/green StyleBoxFlat corner badges at bottom-left/bottom-right, positioned programmatically.
-- **Cost badge** (HandCard): Solid corner chip, stays on top of art.
-- **Placeholder cards**: NoArtLabel centered on full-bleed stone background (TextureRect null → ColorRect shows through).
-- **HandCard**: Name strip also made full-width (`anchor_left=0.0`, `anchor_right=1.0`).
-
-**Verification:**
-- `dotnet build`: 0 errors
-- `dotnet test`: 463 legacy tests green
-- Capture regenerated: all 4 hand cards + 10 lane slots pass
-- Layout verification: 0 failures
-- Pixel gate: **PASS** — exit 0
-- Commit `d28a350` + `b6a7ca1` pushed to main
-- Capture sent to Telegram group "Runewake" (message 3800)
-================================
 === foreman: 2026-08-14T06:24:20Z TASK-NAMES retry ===
 Session: 2/10
 Failures: pytest_failure 
@@ -47,4 +26,25 @@ Session: 3/10
 Failures: no_new_commit checkbox_not_flipped 
 --- session tail ---
 Connect timeout, please try again later.
+================================
+=== foreman: 2026-08-14T07:26:00Z TASK-DSL-1 success ===
+Session: 4/10
+--- session tail ---
+Done. Here's the report:
+
+**TASK-DSL-1: Turn-scoped counters + conditions — COMPLETE**
+
+**What shipped:**
+- **Turn-scoped counters** on `PlayerState`: `AttackCountThisTurn`, `SpellCastCountThisTurn`, `AttackCountLastTurn`, and tracking flags (`HasAttackedThisTurn`, `SpellCastThisTurn`, `PreyAttackCountThisTurn`)
+- **First-attacker tracking**: `FirstAttackerLaneIndex` (set on player's first attack) and `FirstAttackedLaneIndex` (set on first defender hit by an enemy) — both nullable ints tracking lane index
+- **Side-aware death counter**: `GameState.CreatureDiedThisTurnCount[2]` replaces the old scalar, tracking deaths per controller (`[0]` = P0, `[1]` = P1)
+- **4 conditions** in TriggerBus: `ATTACKERS_THIS_TURN_GTE/EQ`, `SPELLS_CAST_THIS_TURN_EQ`, `NO_ATTACKERS_LAST_TURN`, `CREATURE_DIED_THIS_TURN` (side-aware via `ConditionDef.Side`)
+- **3 filters** in TargetResolver: `HAS_NOT_ATTACKED`, `FIRST_ATTACKER`, `FIRST_ATTACKED`
+- **Rules text rendering** for all new conditions
+- **Counter lifecycle**: reset at each player's turn start, cross-turn chaining via `AttackCountLastTurn`
+- **19 unit tests** covering every condition and filter (happy path + edge cases + per-player independence)
+
+**Tests:** 482 pass (463 legacy + 19 new), 0 failures.
+
+**Next:** TASK-DSL-2 — PREVENT_DAMAGE op.
 ================================
