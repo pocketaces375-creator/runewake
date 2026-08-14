@@ -22,7 +22,8 @@ from modules.render_rules import (
 def test_all_keywords_have_descriptions():
     """Every defined keyword should have a human-readable description."""
     for kw in ["GUARD", "SWIFT", "PIERCE", "WARD", "VENOM", "REACH",
-               "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED"]:
+               "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED",
+               "ANCESTRAL_SHIELD", "STEALTH_STRIKE"]:
         assert kw in KEYWORD_DESCRIPTIONS
         assert len(KEYWORD_DESCRIPTIONS[kw]) > 10
 

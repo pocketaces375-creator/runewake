@@ -182,6 +182,51 @@ public static class KeywordHandlers
         return card.EffectiveKeywords.Contains("SEALED");
     }
 
+    /// <summary>
+    /// ANCESTRAL_SHIELD: after an enemy spell applies damage to a creature,
+    /// clamp that creature's Vigor to at least 1 (clamp not prevention — damage
+    /// triggers still fire). One use per turn, until the shield-owner's next turn.
+    /// Scans all friendly creatures for an active ANCESTRAL_SHIELD.
+    /// Returns true if the clamp was applied (shield consumed).
+    /// </summary>
+    public static bool TryAncestralShieldClamp(CardInstance damagedCreature, GameState state)
+    {
+        var owner = state.Player(damagedCreature.Controller);
+        for (int i = 0; i < 5; i++)
+        {
+            var ally = owner.Lanes[i].Occupant;
+            if (ally is null || !ally.EffectiveKeywords.Contains("ANCESTRAL_SHIELD"))
+                continue;
+            if (ally.AncestralShieldUsedThisTurn)
+                continue;
+
+            // Clamp: if CurrentVigor would be below 1, reduce Damage to achieve V=1
+            if (damagedCreature.CurrentVigor < 1)
+            {
+                int vigTarget = damagedCreature.BaseVigor + damagedCreature.VigorModifier;
+                damagedCreature.Damage = Math.Max(0, vigTarget - 1);
+                ally.AncestralShieldUsedThisTurn = true;
+                return true;
+            }
+            // No clamping needed — creature is still ≥1 V
+            return false;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Reset ANCESTRAL_SHIELD usage flags at the start of the controlling player's turn.
+    /// </summary>
+    public static void ResetAncestralShields(PlayerState player)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            var ally = player.Lanes[i].Occupant;
+            if (ally is not null)
+                ally.AncestralShieldUsedThisTurn = false;
+        }
+    }
+
     // ——— Internal helpers ———
 
     private static void DestroyCreature(LaneState lane, CardInstance card, PlayerState owner, GameState? state)

@@ -132,6 +132,8 @@ public static class EffectExecutor
             // Spell/ability damage is intercepted by PREVENT_DAMAGE shields (source SPELL).
             amount = DamageInterceptor.Reduce(state, ct.Card, amount, DamageInterceptor.SourceSpell);
             ct.Card.Damage += amount;
+            // ANCESTRAL_SHIELD: clamp ally vigor to at least 1 after spell damage (R1)
+            KeywordHandlers.TryAncestralShieldClamp(ct.Card, state);
             if (ct.Card.CurrentVigor <= 0)
                 KillCreature(ct.Card, state);
         }

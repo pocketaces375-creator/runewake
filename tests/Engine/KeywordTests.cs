@@ -376,4 +376,196 @@ public class KeywordTests
 
         Assert.True(KeywordHandlers.IsSealed(state.Players[0].Lanes[4].Occupant!));
     }
+
+    // ——— 12. ANCESTRAL_SHIELD ———
+
+    [Fact]
+    public void AncestralShield_ClampsVigorTo1AfterEnemySpell()
+    {
+        // P0: 1/2 creature with ANCESTRAL_SHIELD. P1 casts a 4-damage spell at it.
+        // Without shield → dead. With shield → clamped to 1 vigor. Damage still applied.
+        var state = CreateState();
+        state.Players[0].Hand[0].BaseAttack = 1;
+        state.Players[0].Hand[0].BaseVigor = 2;
+        state.Players[0].Hand[0].Keywords = new List<string> { "ANCESTRAL_SHIELD" };
+        state = PlayFirst(state, 0, 2);
+
+        // Clone first, then resolve targets on the clone
+        var state2 = state.Clone();
+        var target = state2.Players[0].Lanes[2].Occupant!;
+        var spellSource = new CardInstance(state2.NextInstanceId++, "tst_enemy_spell", 1)
+        { CardType = CardType.CREATURE };
+
+        var targets = TargetResolver.Resolve(
+            new TargetDef { Scope = Scope.ENEMY_CREATURE },
+            spellSource, state2.Players[1], state2.Players[0], state2);
+        var effect = new EffectDef { Op = Op.DAMAGE, Amount = 4 };
+        EffectExecutor.Execute(effect, spellSource, state2, targets);
+
+        var survivor = state2.Players[0].Lanes[2].Occupant!;
+        // Vigor clamped to 1 (was 2, took 4 damage → would be dead, clamped to 1)
+        Assert.Equal(1, survivor.CurrentVigor);
+        // Damage was applied (clamp, not prevention)
+        Assert.True(survivor.Damage > 0);
+        // Shield consumed
+        Assert.True(survivor.AncestralShieldUsedThisTurn);
+    }
+
+    [Fact]
+    public void AncestralShield_DoesNotProtectAgainstCombatDamage()
+    {
+        // P0: 1/2 with ANCESTRAL_SHIELD. P1: 3/3 attacks it.
+        // Combat damage bypasses the shield — creature(s) die.
+        var state = CreateState(1, 1);
+        state.Players[0].Hand[0].BaseAttack = 1;
+        state.Players[0].Hand[0].BaseVigor = 2;
+        state.Players[0].Hand[0].Keywords = new List<string> { "ANCESTRAL_SHIELD" };
+        state.Players[1].Hand[0].BaseAttack = 3;
+        state.Players[1].Hand[0].BaseVigor = 3;
+        state = PlayFirst(state, 0, 2);
+        state = PlayFirst(state, 1, 2);
+        Ready(state, 1, 2);
+
+        state = DuelEngine.Apply(state, new AttackAction { PlayerIndex = 1, SourceLane = 2 });
+
+        // P0's creature died from combat damage (no ANCESTRAL_SHIELD vs combat)
+        Assert.Null(state.Players[0].Lanes[2].Occupant);
+    }
+
+    [Fact]
+    public void AncestralShield_OneUsePerTurn()
+    {
+        // P0: 1/5 with ANCESTRAL_SHIELD. P1 casts two spells: first 5 dmg, second 5 dmg.
+        // First spell: clamped to 1 vigor (would be 1-5=-4 → clamp), shield consumed.
+        // Second spell: no shield left, creature dies.
+        var state = CreateState();
+        state.Players[0].Hand[0].BaseAttack = 1;
+        state.Players[0].Hand[0].BaseVigor = 5;
+        state.Players[0].Hand[0].Keywords = new List<string> { "ANCESTRAL_SHIELD" };
+        state = PlayFirst(state, 0, 2);
+
+        // Clone for the spell test
+        var state2 = state.Clone();
+        var spellSource = new CardInstance(state2.NextInstanceId++, "tst_enemy_spell", 1)
+        { CardType = CardType.CREATURE };
+
+        // First spell: 5 damage — takes 1/5 to 1 vigor via clamp
+        var effect = new EffectDef { Op = Op.DAMAGE, Amount = 5 };
+        var targets = TargetResolver.Resolve(
+            new TargetDef { Scope = Scope.ENEMY_CREATURE },
+            spellSource, state2.Players[1], state2.Players[0], state2);
+        EffectExecutor.Execute(effect, spellSource, state2, targets);
+
+        var survivor = state2.Players[0].Lanes[2].Occupant!;
+        Assert.Equal(1, survivor.CurrentVigor); // clamped
+        Assert.True(survivor.AncestralShieldUsedThisTurn);
+
+        // Second spell: 5 more damage — shield already consumed, creature dies
+        var targets2 = TargetResolver.Resolve(
+            new TargetDef { Scope = Scope.ENEMY_CREATURE },
+            spellSource, state2.Players[1], state2.Players[0], state2);
+        EffectExecutor.Execute(effect, spellSource, state2, targets2);
+
+        Assert.Null(state2.Players[0].Lanes[2].Occupant);
+    }
+
+    [Fact]
+    public void AncestralShield_ResetsAtTurnStart()
+    {
+        // P0: 3/5 with ANCESTRAL_SHIELD in lane 2. Used, then cycles through
+        // P0's next turn start to verify reset.
+        var state = CreateState();
+        state.Players[0].Hand[0].BaseAttack = 3;
+        state.Players[0].Hand[0].BaseVigor = 5;
+        state.Players[0].Hand[0].Keywords = new List<string> { "ANCESTRAL_SHIELD" };
+        state = PlayFirst(state, 0, 2);
+
+        var survivor = state.Players[0].Lanes[2].Occupant!;
+
+        // Use the shield: set damage to 5 so CurrentVigor = 0, then clamp
+        survivor.Damage = 5; // CurrentVigor = max(0, 5-5) = 0  < 1 → clamp triggers
+        bool clamped = KeywordHandlers.TryAncestralShieldClamp(survivor, state);
+        Assert.True(clamped);
+        Assert.True(survivor.AncestralShieldUsedThisTurn);
+
+        // End P0's turn → P1's turn → End P1's turn → P0's turn (reset happens at P0 turn start)
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
+
+        // Shield should be reset
+        Assert.False(state.Players[0].Lanes[2].Occupant!.AncestralShieldUsedThisTurn);
+    }
+
+    // ——— 13. STEALTH_STRIKE ———
+
+    [Fact]
+    public void StealthStrike_NoCounterDamageFromDefender()
+    {
+        // P0: 3/2 STEALTH_STRIKE attacks P1: 3/4 blocker
+        // P0 takes 0 counter-damage, P1 takes 3
+        var state = CreateState(1, 1);
+        state.Players[0].Hand[0].BaseAttack = 3;
+        state.Players[0].Hand[0].BaseVigor = 2;
+        state.Players[0].Hand[0].Keywords = new List<string> { "STEALTH_STRIKE" };
+        state.Players[0].Hand[0].Cost = 3;
+        state.Players[1].Hand[0].BaseAttack = 3;
+        state.Players[1].Hand[0].BaseVigor = 4;
+        state = PlayFirst(state, 0, 0);
+        state = PlayFirst(state, 1, 0);
+        Ready(state, 0, 0);
+
+        state = DuelEngine.Apply(state, new AttackAction { PlayerIndex = 0, SourceLane = 0 });
+
+        var attacker = state.Players[0].Lanes[0].Occupant!;
+        var defender = state.Players[1].Lanes[0].Occupant!;
+
+        // Attacker took NO counter-damage
+        Assert.Equal(0, attacker.Damage);
+        // Defender took full damage
+        Assert.Equal(3, defender.Damage);
+        // Attacker survived (2 vigor - 0 damage = 2)
+        Assert.Equal(2, attacker.CurrentVigor);
+    }
+
+    [Fact]
+    public void StealthStrike_NonStealthStillTakesCounterDamage()
+    {
+        // Normal creature (no STEALTH_STRIKE) takes counter-damage as usual — dies
+        var state = CreateState(1, 1);
+        state.Players[0].Hand[0].BaseAttack = 3;
+        state.Players[0].Hand[0].BaseVigor = 2;
+        state.Players[0].Hand[0].Cost = 3;
+        state.Players[1].Hand[0].BaseAttack = 3;
+        state.Players[1].Hand[0].BaseVigor = 4;
+        state = PlayFirst(state, 0, 0);
+        state = PlayFirst(state, 1, 0);
+        Ready(state, 0, 0);
+
+        state = DuelEngine.Apply(state, new AttackAction { PlayerIndex = 0, SourceLane = 0 });
+
+        // Attacker died (2 vigor - 3 damage = dead) — verify in discard
+        Assert.Null(state.Players[0].Lanes[0].Occupant);
+        // Defender survived with 1 vigor (4 - 3 = 1)
+        Assert.Equal(1, state.Players[1].Lanes[0].Occupant!.CurrentVigor);
+    }
+
+    [Fact]
+    public void StealthStrike_FaceAttackNoCounterDamage()
+    {
+        // P0: 3/2 STEALTH_STRIKE attacks face (empty lane 0)
+        // No counter-damage (obviously), just verifying the keyword doesn't break face attacks
+        var state = CreateState(1);
+        state.Players[0].Hand[0].BaseAttack = 3;
+        state.Players[0].Hand[0].BaseVigor = 2;
+        state.Players[0].Hand[0].Keywords = new List<string> { "STEALTH_STRIKE" };
+        state = PlayFirst(state, 0, 0);
+        Ready(state, 0, 0);
+
+        state = DuelEngine.Apply(state, new AttackAction { PlayerIndex = 0, SourceLane = 0 });
+
+        // Face took 3 damage; attacker untouched
+        Assert.Equal(22, state.Players[1].Vigor);
+        Assert.NotNull(state.Players[0].Lanes[0].Occupant);
+        Assert.Equal(0, state.Players[0].Lanes[0].Occupant!.Damage);
+    }
 }

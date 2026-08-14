@@ -38,9 +38,9 @@
 
 - [x] TASK-DSL-5 — Charge plumbing: RESET_CHARGES, max_per_turn and max_per_creature_per_turn caps, ON_CHARGE_FULL with timing END_OF_TURN, charge freeze under suppression (G3). Unit tests.
 
-- [ ] TASK-DSL-6 — Partner-slot mechanics: PARTNER_CHARGES_GTE condition, FORGE op with spend_from PARTNER_SLOT (all charges, +1/+1 per charge, HIGHEST_COST target, tiebreak OLDEST_IN_PLAY, charges kept if no creature — R25). Unit tests.
+- [x] TASK-DSL-6 — Partner-slot mechanics: PARTNER_CHARGES_GTE condition, FORGE op with spend_from PARTNER_SLOT (all charges, +1/+1 per charge, HIGHEST_COST target, tiebreak OLDEST_IN_PLAY, charges kept if no creature — R25). Unit tests.
 
-- [ ] TASK-DSL-7 — Keyword handlers: ANCESTRAL_SHIELD (first enemy spell that would drop an ally below 1 vigor clamps it to 1 — clamp not prevention, damage triggers still fire, one use, until your next turn — R1) and STEALTH_STRIKE (no counter-damage for that attack, decided at declaration — R8). Unit tests.
+- [x] TASK-DSL-7 — Keyword handlers: ANCESTRAL_SHIELD (first enemy spell that would drop an ally below 1 vigor clamps it to 1 — clamp not prevention, damage triggers still fire, one use, until your next turn — R1) and STEALTH_STRIKE (no counter-damage for that attack, decided at declaration — R8). Unit tests.
 
 - [ ] TASK-T1 — Ruling tests, general + Warrior: G1–G8 + R1–R3, naming Ruling_<id>_<Name>. All green, legacy green.
 

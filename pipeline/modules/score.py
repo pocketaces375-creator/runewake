@@ -35,6 +35,8 @@ KEYWORD_WEIGHTS: dict[str, float] = {
     "ECHO": 1.0,
     "FRAGILE": -1.6,
     "SEALED": 0.9,
+    "ANCESTRAL_SHIELD": 1.5,
+    "STEALTH_STRIKE": 1.2,
 }
 
 # Trigger multipliers (default 1.0 for unspecified triggers)

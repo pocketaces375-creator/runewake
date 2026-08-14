@@ -55,6 +55,9 @@ def test_compute_keywords_single():
     score = compute_keywords({"keywords": ["SWIFT"]})
     assert score == KEYWORD_WEIGHTS["SWIFT"]
 
+    # Weight known
+    assert KEYWORD_WEIGHTS["ANCESTRAL_SHIELD"] > 0
+
 
 def test_compute_keywords_multiple():
     """Multiple keywords sum correctly."""

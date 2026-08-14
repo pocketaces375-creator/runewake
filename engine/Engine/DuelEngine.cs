@@ -122,6 +122,8 @@ public static partial class DuelEngine
         }
         // Reset damage-prevention shield usage counters (R5: resets at start of EVERY turn, both players).
         DamageInterceptor.ResetUsage(state);
+        // Reset ANCESTRAL_SHIELD usage flags at the start of the current player's turn (R1).
+        KeywordHandlers.ResetAncestralShields(nextPlayer);
 
         // 7. Apply Artifact passives for this turn (re-applied each turn, cleared if suppressed)
         // PASSIVE abilities with WHILE_PRESENT duration are refreshed each turn.
@@ -279,11 +281,12 @@ public static partial class DuelEngine
             // Ward reduces attacker's damage to defender
             int damageToDefender = KeywordHandlers.ApplyWard(defender, attackPower);
 
-            // Simultaneous damage (defender always hits back with full power)
+            // Simultaneous damage (defender hits back with full power unless attacker has STEALTH_STRIKE — R8)
             int atkDamage = defender.CurrentAttack;
             // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
             defender.Damage += DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack);
-            attacker.Damage += DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack);
+            if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
+                attacker.Damage += DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack);
 
             // Venom marking
             KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);

@@ -88,6 +88,12 @@ public sealed class CardInstance
     /// <summary>Remaining Ward charges. Each prevents one instance of damage.</summary>
     public int WardRemaining { get; set; }
 
+    /// <summary>
+    /// ANCESTRAL_SHIELD: true after the one-use-per-turn clamp has been consumed.
+    /// Reset at the start of this creature's controller's next turn.
+    /// </summary>
+    public bool AncestralShieldUsedThisTurn { get; set; }
+
     /// <summary>True if marked by Venom for destruction at end of combat.</summary>
     public bool IsVenomed { get; set; }
 
@@ -189,6 +195,7 @@ public sealed class CardInstance
         IsExhausted = other.IsExhausted;
         SummonedThisTurn = other.SummonedThisTurn;
         WardRemaining = other.WardRemaining;
+        AncestralShieldUsedThisTurn = other.AncestralShieldUsedThisTurn;
         IsVenomed = other.IsVenomed;
         UnearthCost = other.UnearthCost;
         IsIdentified = other.IsIdentified;

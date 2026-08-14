@@ -26,6 +26,8 @@ KEYWORD_DESCRIPTIONS: dict[str, str] = {
     "ECHO": "Echo — when this creature is played, copy the last ability played by either player.",
     "FRAGILE": "Fragile — when this creature takes damage, it dies.",
     "SEALED": "Sealed — this relic starts unidentified. It is revealed when its identify condition is met.",
+    "ANCESTRAL_SHIELD": "Ancestral Shield — the first time each turn an ally would be reduced to below 1 Vigor by an enemy spell, clamp it to 1 instead (damage triggers still resolve).",
+    "STEALTH_STRIKE": "Stealth Strike — when this creature attacks, it deals no counter-damage to the defender.",
 }
 
 # ── Trigger descriptions ──────────────────────────────────────────────────────
