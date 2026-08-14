@@ -100,6 +100,8 @@ public static partial class DuelEngine
         nextPlayer.FirstAttackedLaneIndex = null;
         state.CreatureDiedThisTurnCount[0] = 0;
         state.CreatureDiedThisTurnCount[1] = 0;
+        // Reset damage-prevention shield usage counters (R5: resets at start of EVERY turn, both players).
+        DamageInterceptor.ResetUsage(state);
 
         // 7. Apply Artifact passives for this turn (re-applied each turn, cleared if suppressed)
         // PASSIVE abilities with WHILE_PRESENT duration are refreshed each turn.
@@ -252,8 +254,9 @@ public static partial class DuelEngine
 
             // Simultaneous damage (defender always hits back with full power)
             int atkDamage = defender.CurrentAttack;
-            defender.Damage += damageToDefender;
-            attacker.Damage += atkDamage;
+            // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
+            defender.Damage += DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack);
+            attacker.Damage += DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack);
 
             // Venom marking
             KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);
@@ -264,6 +267,7 @@ public static partial class DuelEngine
             {
                 int neededToKill = defender.BaseVigor + defender.VigorModifier;
                 int excessDamage = System.Math.Max(0, attackPower - neededToKill);
+                excessDamage = DamageInterceptor.Reduce(state, opponent, excessDamage, DamageInterceptor.SourceAttack);
                 opponent.Vigor -= excessDamage;
                 CheckGameOver(state, opponent);
             }
@@ -292,7 +296,8 @@ public static partial class DuelEngine
         }
         else
         {
-            // Face damage
+            // Face damage (intercepted by PREVENT_DAMAGE shields, source ATTACK).
+            attackPower = DamageInterceptor.Reduce(state, opponent, attackPower, DamageInterceptor.SourceAttack);
             opponent.Vigor -= attackPower;
             CheckGameOver(state, opponent);
         }

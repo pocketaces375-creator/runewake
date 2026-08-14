@@ -85,11 +85,15 @@ public static class DamageInterceptor
 
     /// <summary>
     /// True when the Artifact that created the shield is currently suppressed or no longer present.
-    /// Test-created shields without an artifact backing are always active.
+    /// Only cards with artifact def ids (prefixed "artf_") are checked; non-artifact sources are
+    /// always active. Test-created shields without a backing artifact are always active.
     /// </summary>
     private static bool IsSourceArtifactSuppressed(GameState state, DamageShield shield)
     {
         if (shield.SourceArtifactInstanceId <= 0 || shield.SourceController < 0)
+            return false;
+        // Only Artifact cards can be suppressed; everything else ignores suppression.
+        if (!shield.SourceArtifactDefId.StartsWith("artf_", StringComparison.Ordinal))
             return false;
 
         var owner = state.Player(shield.SourceController);

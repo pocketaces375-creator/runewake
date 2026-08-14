@@ -460,6 +460,8 @@ public static class EffectExecutor
     /// <summary>
     /// SUPPRESS: Suppress the enemy player's Artifacts for N turns.
     /// Target should be PLAYER_ENEMY or scope that resolves to the opponent.
+    /// Suppression removes PREVENT_DAMAGE shields from the suppressed Artifacts
+    /// immediately (G3: passive off, triggers don't fire, Charges frozen).
     /// </summary>
     private static void ApplySuppress(ResolvedTarget target, int turns, CardInstance source, GameState state)
     {
@@ -476,6 +478,8 @@ public static class EffectExecutor
             if (slot.Occupant is not null)
             {
                 slot.ApplySuppression(turns, $"artf_effect_{source.InstanceId}");
+                // Suppression symmetry: remove all damage-prevention shields from this Artifact (G3).
+                DamageInterceptor.RemoveShieldsFromArtifact(state, slot.Occupant.InstanceId, targetPlayer.Index);
                 TriggerBus.Fire(state, Trigger.ON_ARTIFACT_SUPPRESS, targetPlayer.Index);
             }
         }
@@ -563,6 +567,43 @@ public static class EffectExecutor
             }
         }
         // No empty lane — revive fails silently
+    }
+
+    /// <summary>
+    /// PREVENT_DAMAGE: Register a standing damage-prevention shield on the target
+    /// (player or creature). The shield reduces incoming damage by the effect's
+    /// amount when its source filter, frequency gate, and condition (evaluated at
+    /// damage-application time, R21) all pass.
+    /// Re-applying the same Artifact's shield replaces it (no stacking — G6).
+    /// </summary>
+    private static void ApplyPreventDamage(ResolvedTarget target, EffectDef effect, CardInstance source)
+    {
+        int amount = effect.Amount ?? 0;
+        if (amount <= 0) return;
+
+        var shield = new DamageShield
+        {
+            Amount = amount,
+            Source = effect.Source,
+            // "filter" field on the effect is an alias for "frequency" (e.g. Aura passive).
+            Frequency = effect.Frequency ?? effect.Filter,
+            Condition = effect.Condition,
+            SourceArtifactDefId = source.CardDefId,
+            SourceArtifactInstanceId = source.InstanceId,
+            SourceController = source.Controller
+        };
+
+        // Register on the target — replace any existing shield from the same Artifact (no stacking).
+        if (target is CreatureTarget ct)
+        {
+            ct.Card.DamageShields.RemoveAll(s => s.SourceArtifactInstanceId == source.InstanceId);
+            ct.Card.DamageShields.Add(shield);
+        }
+        else if (target is PlayerTarget pt)
+        {
+            pt.Player.DamageShields.RemoveAll(s => s.SourceArtifactInstanceId == source.InstanceId);
+            pt.Player.DamageShields.Add(shield);
+        }
     }
 
     // ——— Helpers ———

@@ -30,7 +30,7 @@
 - [x] TASK-DSL-1 — Turn-scoped counters + conditions: ATTACKERS_THIS_TURN_GTE/EQ, SPELLS_CAST_THIS_TURN_EQ, NO_ATTACKERS_LAST_TURN, CREATURE_DIED_THIS_TURN (side-aware), HAS_NOT_ATTACKED / FIRST_ATTACKER / FIRST_ATTACKED filters. Engine + unit tests only, no client work.
   Acceptance: new unit tests green, 463 legacy green.
 
-- [ ] TASK-DSL-2 — PREVENT_DAMAGE op: amount, source filter (ATTACK vs SPELL), frequency (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN), condition support (FEWER_ALLY_CREATURES_THAN_ENEMY). Unit tests incl. suppression symmetry.
+- [x] TASK-DSL-2 — PREVENT_DAMAGE op: amount, source filter (ATTACK vs SPELL), frequency (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN), condition support (FEWER_ALLY_CREATURES_THAN_ENEMY). Unit tests incl. suppression symmetry.
 
 - [ ] TASK-DSL-3 — COST_MOD op (the discount mechanic): applies_to CREATURE|SPELL, filter (e.g. ATTACK_LTE), condition (e.g. CREATURE_DIED_THIS_TURN), per-turn filters (FIRST_SPELL_EACH_TURN), duration, stacking, floor 0. MIGRATE launch_artifacts.json: every discount currently encoded as "ATTUNE" becomes COST_MOD (Warden's Focus passive, Mantle trigger, Duskfang passive, Grimoire passive). Unit tests.
 
