@@ -1,28 +1,3 @@
-Session: 17/48
---- session tail ---
-TASK-T3 is complete. Here's the summary:
-
-**TASK-T3 — Ruling tests, Cleric + Ranger: R11–R18**
-
-New file: `tests/Engine/RulingClericRangerTests.cs` — 18 tests across 8 rulings:
-
-| Ruling | Artifact | Tests |
-|--------|----------|-------|
-| R11 | Censer heal | Most wounded + tiebreaker + before-draw ordering |
-| R12 | Censer charge | 1/turn cap, combat-damage conditions, deferred full-heal at 3 |
-| R13 | Icon passive | ON_HEAL grants +1 attack THIS_TURN, overheal excluded |
-| R14 | Icon trigger | ON_CREATURE_DIES heals player 2 on any turn |
-| R15 | Prey marking | HIGHEST_ATTACK tie → longest in play, mark persists mid-turn |
-| R16 | Prey death | Draw at death (max once/turn), no re-mark until next turn |
-| R17 | Quiver spillover | NTH_ATTACKER_ON_PREY ≥ 2 fires; per-turn gate identified as future constraint |
-| R18 | Suppression | No new mark when Bow suppressed; existing mark persists |
-
-All 674 tests green (no regressions). Committed as `TASK-T3: Ruling tests, Cleric + Ranger: R11-R18.`, pushed, DONE line written to HERMES_STATUS.md.
-========================================
-=== foreman: 2026-08-14T19:55:45Z TASK-T4 success ===
-Session: 18/48
---- session tail ---
-TASK-T4 complete. Here's the summary:
 
 **New file:** `tests/Engine/RulingNecromancerRunesmithTests.cs` — 25 tests, all 699 total green.
 
@@ -47,4 +22,29 @@ TASK-T4 complete. Here's the summary:
 | **§10 AI targeting** | GreedyBot only generates AttackAction with TargetLane in 0-4 (never Artifact slot indices) |
 
 Committed as `e7ae82b`, pushed, TASKS_QUEUE marked done, HERMES_STATUS updated. Stopping per protocol — next unchecked task is **TASK-S1** (sim metric across all 7 classes).
+========================================
+=== foreman: 2026-08-14T20:19:01Z TASK-S1 success ===
+Session: 19/48
+--- session tail ---
+TASK-S1 complete. Here's the summary:
+
+---
+
+**TASK-S1: Sim metric — done.** 
+
+**Changes made:**
+1. **`engine/Cards/CardEnums.cs`** — Added missing enum values needed to parse `launch_artifacts.json`: `WHILE_ATTACKING`, `UNTIL_YOUR_NEXT_TURN` (Duration); `ON_ALLY_ATTACKED` (Trigger); `HEAL_FULL` (Op); `SELF_ARTIFACT` (Scope); `ENEMY_ATTACKS_YOUR_CHARACTER`, `FRIENDLY_ON_YOUR_TURN`, `AND` (ConditionOp).
+
+2. **`sim/Program.cs`** — Added `--artifacts-path`, `--class-a`, `--class-b` CLI args; loads artifacts on startup; passes class info to BatchConfig.
+
+3. **`sim/BatchRunner.cs`** — Added artifact ID lookup by class name, attack deviation tracking (per-turn: counts eligible attackers, checks if bot chose EndTurnAction while attackers remained), new fields on `GameResult`/`BatchReport` for `combat_turns`, `deviation_turns`, `attack_deviation_rate`.
+
+4. **`sim/run_s1_metric.py`** — New Python harness that runs 7×7 class matrix (49 matchups × 200 games = 9,800 games) with fixed seeds.
+
+5. **`sim/artifact_metrics.md`** — Generated report with winrate matrix + deviation rates.
+
+**Key results:**
+- **Winrate ranking:** Warrior 83.6% > Thief 83.0% > Cleric 71.1% > Ranger 67.4% > Necromancer 42.1% > Mage 38.7% = Runesmith 38.7%
+- **Deviation ≥25% target:** 4/7 classes meet (Mage 27.9%, Thief 29.7%, Necromancer 28.4%, Runesmith 26.0%); 3 below (Warrior 18.5%, Cleric 19.1%, Ranger 19.8%). Overall 24.8% — just shy of target.
+- All 699 existing tests green.
 ========================================
