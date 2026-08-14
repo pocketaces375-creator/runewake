@@ -7,6 +7,34 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
+---
+
+## 2026-08-14 | TASK-DSL-3
+
+### DONE: TASK-DSL-3 — COST_MOD op (the discount mechanic): applies_to CREATURE|SPELL, filter (e.g. ATTACK_LTE), condition (e.g. CREATURE_DIED_THIS_TURN), per-turn filters (FIRST_SPELL_EACH_TURN), duration, stacking, floor 0. MIGRATE launch_artifacts.json: every discount currently encoded as "ATTUNE" becomes COST_MOD (Warden's Focus passive, Mantle trigger, Duskfang passive, Grimoire passive). Unit tests.
+
+**Implementation:**
+
+- `CostMod.cs` — data model on PlayerState: Amount, AppliesTo (CREATURE/SPELL), Filter (ATTACK_LTE, FIRST_SPELL_EACH_TURN), Value (companion for ATTACK_LTE), Condition (evaluated at play time), Duration (THIS_TURN cleared at owner's turn end), Stacks (Aura — additive; passive re-application replaces), UsedThisTurn (per-turn consumption), SourceArtifactDefId/InstanceId/Controller (suppression lookup).
+- `CostInterceptor.cs` — `GetEffectiveCost(state, card, controller)` pure function sums active matching mods (never below 0). `ConsumePerTurnMods(state, card, controller)` marks FIRST_SPELL_EACH_TURN gate spent after a successful play. `RemoveModsFromArtifact(state, instanceId, controller)` called on suppression (G3 symmetry).
+- `EffectExecutor.cs` — `COST_MOD` case calls `ApplyCostMod(target, effect, source, state)` which registers a CostMod on the player (PLAYER_SELF target), replacing when !stacks (same artifact instance → G6-style no-stacking) or adding when stacks.
+- `DuelEngine.cs` — `ApplyPlayCard` computes `CostInterceptor.GetEffectiveCost` for validation and charge, then consumes per-turn gates. `ApplyEndTurn` clears THIS_TURN mods of the ending player (Aura mods created during enemy's turn survive into the owner's turn). `ApplySuppress` calls `RemoveModsFromArtifact` for suppression symmetry.
+- `GameState.ComputeStateHash` includes CostMod entries for deterministic replay.
+- `RulesTextRenderer.cs` — renders "Your first spell each turn costs 1 less", "Creatures with attack ≤ 2 cost 1 less", etc.
+- `Bot.cs` — `EnumerateValidActions` uses `CostInterceptor.GetEffectiveCost` so the bot sees discounted prices.
+
+**Migration:** `launch_artifacts.json` — 4 entries:
+- Wand passive: `ATTUNE` → `COST_MOD` with `filter: "FIRST_SPELL_EACH_TURN"`
+- Aura trigger: `ATTUNE` → `COST_MOD` with `duration: "THIS_TURN", stacks: true`
+- Duskfang passive: `ATTUNE` → `COST_MOD` with `filter: "ATTACK_LTE", value: 2`
+- Grimoire passive: `ATTUNE` → `COST_MOD` with `condition: {op: "CREATURE_DIED_THIS_TURN", side: "ANY"}`
+
+No remaining `ATTUNE` op in the file.
+
+**Tests:** 19 new unit tests: basic discount, floor 0, zero-amount, applies_to (SPELL/CREATURE/any), ATTACK_LTE filter, CREATURE_DIED_THIS_TURN condition (side-aware, evaluated at play time), FIRST_SPELL_EACH_TURN consumption (with and without type-mismatch), THIS_TURN clearing at owner turn end (survives enemy turn), stacking accumulation, no-stacking replacement, EffectExecutor registration, suppressed artifact inert, RemoveModsFromArtifact, engine play-card charging (discounted, full, affordability, rejection), clone preservation, state hash inclusion, launch_artifacts.json migration assertion (raw JSON + EffectDef deserialization), and end-to-end via artifact passive application.
+
+**Verification:** 531/531 tests passed (19 new + 512 legacy). Commit `a61a622` pushed to main.
+
 ## 2026-08-14 | TASK-BUS+FIX (recovered)
 
 ### DONE: TASK-BUS+FIX — message bus + transient classifier fix + provider resilience
