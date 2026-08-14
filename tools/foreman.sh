@@ -325,29 +325,27 @@ else
   GATE_PASSED=1
 fi
 
-# 5d. Dotnet tests green?
+# 5d. Dotnet tests green? (decision by exit code only)
 if command -v dotnet &>/dev/null; then
-  TEST_OUTPUT=$(cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --nologo -v q 2>&1 || true)
-  if echo "${TEST_OUTPUT}" | grep -q "Failed:" && ! echo "${TEST_OUTPUT}" | grep -q "Failed: 0"; then
+  if (cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --nologo -v q); then
+    ok "Dotnet tests passed"
+  else
     warn "Dotnet tests failed"
     VALIDATION_FAILED=1
     VALIDATION_REASONS="${VALIDATION_REASONS}dotnet_test_failure "
-  else
-    ok "Dotnet tests passed"
   fi
 else
   info "dotnet not available"
 fi
 
-# 5e. Python tests green?
+# 5e. Python tests green? (decision by exit code only)
 if command -v python3 &>/dev/null && [[ -d "${PROJECT_DIR}/tests" ]]; then
-  PYTEST_OUTPUT=$(cd "${PROJECT_DIR}" && python3 -m pytest tests/ -x -q 2>&1 || true)
-  if echo "${PYTEST_OUTPUT}" | grep -q "failed" && ! echo "${PYTEST_OUTPUT}" | grep -q "0 failed"; then
+  if (cd "${PROJECT_DIR}" && python3 -m pytest tests/ -x -q); then
+    ok "Python tests passed"
+  else
     warn "Python tests failed"
     VALIDATION_FAILED=1
     VALIDATION_REASONS="${VALIDATION_REASONS}pytest_failure "
-  else
-    ok "Python tests passed"
   fi
 fi
 
@@ -394,7 +392,7 @@ else
     # Save state before cleanup
     STATE_SNAPSHOT=$(cat "${STATE_FILE}" 2>/dev/null || echo "{}")
 
-    # Revert pushed commit with git revert, local with git reset
+    # Only revert if a failed worker commit actually exists
     if [[ -n "${NEW_COMMIT_SHA}" ]] && [[ "${NEW_COMMIT_SHA}" != "${CURRENT_HEAD}" ]]; then
       if git branch -r --contains "${NEW_COMMIT_SHA}" 2>/dev/null | grep -q "origin/main"; then
         info "Reverting pushed commit ${NEW_COMMIT_SHA}"
@@ -404,10 +402,12 @@ else
         info "Resetting local commit ${NEW_COMMIT_SHA}"
         git reset --hard "${CURRENT_HEAD}" 2>/dev/null || true
       fi
+      # Only clean up tracked changes when we reverted a failed commit
+      git checkout -- . 2>/dev/null || true
+      git clean -fd 2>/dev/null || true
+    else
+      info "No failed worker commit — leaving tree untouched"
     fi
-
-    git checkout -- . 2>/dev/null || true
-    git clean -fd 2>/dev/null || true
     echo "${STATE_SNAPSHOT}" > "${STATE_FILE}"
   fi
 fi
