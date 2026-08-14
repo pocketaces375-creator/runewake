@@ -43,9 +43,9 @@ public static class TargetResolver
             _ => new List<ResolvedTarget>()
         };
 
-        // Apply filter
+        // Apply filter (with tiebreak baked into sort filters)
         if (!string.IsNullOrEmpty(target.Filter) && target.Filter != "ANY")
-            pool = ApplyFilter(pool, target.Filter, source, sourcePlayer);
+            pool = ApplyFilter(pool, target.Filter, target.Tiebreak, source, sourcePlayer);
 
         // Apply count
         pool = ApplyCount(pool, target.Count);
@@ -79,6 +79,7 @@ public static class TargetResolver
     private static List<ResolvedTarget> ApplyFilter(
         List<ResolvedTarget> pool,
         string filter,
+        string? tiebreak,
         CardInstance source,
         PlayerState sourcePlayer)
     {
@@ -120,11 +121,25 @@ public static class TargetResolver
                 return t is CreatureTarget ct && ct.Card.CardType.ToString() == typeStr;
             }).ToList(),
             "RANDOM" => pool, // Ordering done later, select top N
-            "LOWEST_VIGOR" => pool.OrderBy(t => t is CreatureTarget ct ? ct.Card.CurrentVigor : 0).ToList(),
-            "MOST_WOUNDED" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Damage : 0).ToList(),
-            "HIGHEST_ATTACK" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.CurrentAttack : 0).ToList(),
-            "LOWEST_COST" => pool.OrderBy(t => t is CreatureTarget ct ? ct.Card.Cost : 0).ToList(),
-            "HIGHEST_COST" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Cost : 0).ToList(),
+            "LOWEST_VIGOR" => pool.OrderBy(t => t is CreatureTarget ct ? ct.Card.CurrentVigor : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "MOST_WOUNDED" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Damage : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "HIGHEST_ATTACK" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.CurrentAttack : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "LOWEST_COST" => pool.OrderBy(t => t is CreatureTarget ct ? ct.Card.Cost : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "HIGHEST_COST" when tiebreak == "OLDEST_IN_PLAY" => pool
+                .OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Cost : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "HIGHEST_COST" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Cost : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
             "CHOSEN" => pool, // Player would choose; engine selects first valid
             _ => pool
         };

@@ -116,6 +116,9 @@ public static class EffectExecutor
                 case Op.RESET_CHARGES:
                     ApplyResetCharges(target, state);
                     break;
+                case Op.FORGE:
+                    ApplyForge(target, effect, source, state);
+                    break;
             }
         }
     }
@@ -703,6 +706,54 @@ public static class EffectExecutor
             SourceArtifactInstanceId = source.InstanceId,
             SourceController = source.Controller
         });
+    }
+
+    /// <summary>
+    /// FORGE: Spend Charges from the specified source and grant stats per charge
+    /// to the resolved target creature.
+    /// spend_from="PARTNER_SLOT" = spend from this artifact's twin slot.
+    /// spend="ALL" = spend all charges from that slot.
+    /// per_charge determines how much attack/vigor is granted per charge spent.
+    /// If no creature is available (target list empty), charges are kept (R25).
+    /// </summary>
+    private static void ApplyForge(ResolvedTarget target, EffectDef effect, CardInstance source, GameState state)
+    {
+        // Only works on creature targets
+        if (target is not CreatureTarget ct)
+            return;
+
+        var player = state.Player(source.Controller);
+
+        // Find this artifact's slot, then locate the partner slot
+        ArtifactSlot? partnerSlot = null;
+        for (int i = 0; i < player.ArtifactSlots.Length; i++)
+        {
+            var slot = player.ArtifactSlots[i];
+            if (slot.Occupant?.CardDefId == source.CardDefId)
+            {
+                int partner = i == 0 ? 1 : 0;
+                if (partner < player.ArtifactSlots.Length)
+                    partnerSlot = player.ArtifactSlots[partner];
+                break;
+            }
+        }
+
+        if (partnerSlot is null || partnerSlot.Occupant is null || partnerSlot.IsSuppressed)
+            return;
+
+        // Spend ALL charges
+        int chargesSpent = partnerSlot.SpendAllCharges();
+        if (chargesSpent <= 0)
+            return;
+
+        // Apply per-charge stats
+        int atkBonus = (effect.PerCharge?.Attack ?? 0) * chargesSpent;
+        int vigBonus = (effect.PerCharge?.Vigor ?? 0) * chargesSpent;
+        if (atkBonus > 0 || vigBonus > 0)
+        {
+            ct.Card.AttackModifier += atkBonus;
+            ct.Card.VigorModifier += vigBonus;
+        }
     }
 
     // ——— Helpers ———

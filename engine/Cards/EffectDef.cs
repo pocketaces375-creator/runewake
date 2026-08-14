@@ -111,4 +111,24 @@ public sealed class EffectDef
 
     /// <summary>Ordering key: resolve before all other turn-start effects (R15 Prey marking).</summary>
     public const string OrderBeforeAllOtherTurnStartEffects = "BEFORE_ALL_OTHER_TURN_START_EFFECTS";
+
+    /// <summary>
+    /// Which source to spend from for FORGE / similar ops.
+    /// "PARTNER_SLOT" = the twin artifact slot.
+    /// </summary>
+    [JsonPropertyName("spend_from")]
+    public string? SpendFrom { get; set; }
+
+    /// <summary>
+    /// How much to spend for FORGE: "ALL" = spend all charges.
+    /// </summary>
+    [JsonPropertyName("spend")]
+    public string? Spend { get; set; }
+
+    /// <summary>
+    /// Stats gained per charge spent for FORGE.
+    /// JSON shape: { "attack": 1, "vigor": 1 }
+    /// </summary>
+    [JsonPropertyName("per_charge")]
+    public PerChargeStats? PerCharge { get; set; }
 }

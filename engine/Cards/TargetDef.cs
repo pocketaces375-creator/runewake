@@ -24,4 +24,11 @@ public sealed class TargetDef
     /// </summary>
     [JsonPropertyName("count")]
     public TargetCount? Count { get; set; }
+
+    /// <summary>
+    /// Tiebreak rule when multiple targets match equally (e.g. both have same cost).
+    /// "OLDEST_IN_PLAY" = lower instance ID wins.
+    /// </summary>
+    [JsonPropertyName("tiebreak")]
+    public string? Tiebreak { get; set; }
 }
