@@ -3,12 +3,15 @@
 #
 # Chain mode: after a SUCCESSFUL iteration, immediately run the next task
 # while queue + budget allow (no cron wait). Every 3 consecutive successes
-# forces a 30-min cool-down (Claude's live-review window), then resumes.
+# forces a 15-min cool-down (Claude's live-review window), then resumes.
 # ANY failure, transient, or block ends the chain — cron picks up later.
 #
 # Bus: at the top of every iteration, after git pull, check
 # bus/claude_to_hermes.md for new messages from Claude (sequenced, trusted
 # only). If found, run a 15-min bus-session before queue work.
+#
+# Cron: 2,17,32,47 * * * * (every 15 min, PID lock prevents overlap).
+# Budget: 24 sessions/day (half-session accounting), cool-down 15 min.
 #
 # Each iteration:
 #   1. Check circuit breakers (HALT, git pull, bus check, daily budget halves)
@@ -29,7 +32,7 @@
 #   FOREMAN_PROJECT_DIR       default: /home/fictive/runewake
 #   FOREMAN_MODEL             default: deepseek/deepseek-v4-flash
 #   FOREMAN_TIMEOUT           default: 2700 (45 min)
-#   FOREMAN_DAILY_BUDGET      default: 16
+#   FOREMAN_DAILY_BUDGET      default: 24
 #   FOREMAN_TELEGRAM_TARGET   default: telegram:Runewake
 #   FOREMAN_GODOT_BIN         default: /home/fictive/Godot_v4.3-stable_linux.x86_64
 #
@@ -39,7 +42,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-16}"
+DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-24}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -742,9 +745,9 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
 
   # Mandatory cool-down after every 3 consecutive successes
   if [[ "${CONSECUTIVE_SUCCESSES}" -ge 3 ]]; then
-    warn "3 consecutive successes — 30-min cool-down (Claude review window)"
-    telegram_text "3 tasks done back-to-back — 30-min cool-down, then resume"
-    sleep 1800
+    warn "3 consecutive successes — 15-min cool-down (Claude review window)"
+    telegram_text "3 tasks done back-to-back — 15-min cool-down, then resume"
+    sleep 900
     CONSECUTIVE_SUCCESSES=0
     ok "Cool-down over — resuming chain"
   fi
