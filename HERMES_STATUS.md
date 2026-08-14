@@ -5,17 +5,6 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
-## 2026-08-14 | TASK-NAMES
-
-### DONE: TASK-NAMES — One-word Artifact display names (Trikzos direction)
-- launch_artifacts.json "name" fields changed: Ancestral Blade→Sword, Bulwark of the Line→Shield, Warden's Focus→Wand, Mantle of the Living Rune→Aura, Dawnlit Censer→Censer, Icon of the Unbroken→Icon, Heartwood Bow→Bow, Quiver of Whispers→Quiver, Grimoire of the Hollow Court→Skull, Phylactery of the Pale King→Shard, Forgehammer of the Deep Halls→Hammer, Runic Anvil→Anvil
-- Whisperfang and Duskfang unchanged (already one word, two Daggers must stay distinguishable)
-- docs/ARTIFACT_NAME_ALIASES.md created with old→new mapping for cross-referencing
-- JSON valid, all 463 tests green
-- Commit ca58a0f pushed to main
-
----
-
 ## 2026-08-12 | 17:45
 
 ### DONE: Trikzos §11 decisions relayed
