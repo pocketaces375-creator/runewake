@@ -39,4 +39,32 @@ public sealed class EffectDef
     /// <summary>Duration of the effect.</summary>
     [JsonPropertyName("duration")]
     public Duration? Duration { get; set; }
+
+    /// <summary>
+    /// Damage-source filter for PREVENT_DAMAGE: "ATTACK" or "SPELL" (null = any source).
+    /// </summary>
+    [JsonPropertyName("source")]
+    public string? Source { get; set; }
+
+    /// <summary>
+    /// Frequency gate for PREVENT_DAMAGE: "FIRST_ATTACK_EACH_TURN" or "ONCE_PER_ENEMY_TURN"
+    /// (null = unlimited). Some cards express this via the effect-level "filter" field
+    /// (e.g. Aura passive uses "filter": "FIRST_ATTACK_EACH_TURN").
+    /// </summary>
+    [JsonPropertyName("frequency")]
+    public string? Frequency { get; set; }
+
+    /// <summary>
+    /// Effect-level filter string. For PREVENT_DAMAGE this is an alias for
+    /// <see cref="Frequency"/> (Aura passive encodes the frequency here).
+    /// </summary>
+    [JsonPropertyName("filter")]
+    public string? Filter { get; set; }
+
+    /// <summary>
+    /// Condition evaluated at damage-application time for PREVENT_DAMAGE (R21),
+    /// e.g. FEWER_ALLY_CREATURES_THAN_ENEMY. Applies to the effect's target.
+    /// </summary>
+    [JsonPropertyName("condition")]
+    public ConditionDef? Condition { get; set; }
 }

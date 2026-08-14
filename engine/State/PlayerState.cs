@@ -142,6 +142,12 @@ public sealed class PlayerState
     /// </summary>
     public int? FirstAttackedLaneIndex { get; set; }
 
+    /// <summary>
+    /// Active damage-prevention shields (PREVENT_DAMAGE) protecting this player.
+    /// Intercepted at damage-application time by the engine.
+    /// </summary>
+    public List<DamageShield> DamageShields { get; } = new();
+
     public PlayerState(int index)
     {
         Index = index;
@@ -196,6 +202,7 @@ public sealed class PlayerState
         PreyAttackCountThisTurn = other.PreyAttackCountThisTurn;
         FirstAttackerLaneIndex = other.FirstAttackerLaneIndex;
         FirstAttackedLaneIndex = other.FirstAttackedLaneIndex;
+        DamageShields = other.DamageShields.ConvertAll(s => s.Clone());
     }
 
     /// <summary>

@@ -45,7 +45,8 @@ public enum Op
     ATTUNE, MOVE_LANE, IDENTIFY, GAIN_VIGOR, LOSE_VIGOR,
     COPY, SET_STAT, REFRESH,
     // Artifact-specific ops
-    SUPPRESS, ADD_CHARGE, SET_PREY, REVIVE_TOKEN
+    SUPPRESS, ADD_CHARGE, SET_PREY, REVIVE_TOKEN,
+    PREVENT_DAMAGE
 }
 
 // ——— Target Scope ———

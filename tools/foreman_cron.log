@@ -18,3 +18,92 @@
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
 foreman already running (PID 880707) — exiting
 foreman already running (PID 1516507) — exiting
+
+=== Foreman — one iteration ===
+
+  Budget: 4/10 sessions used today
+  Top task: TASK-DSL-2
+
+=== Running: TASK-DSL-2 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Connect timeout, please try again later.
+
+=== Regenerating capture ===
+
+  Godot not found at /home/fictive/Godot_v4.3-stable_linux.x86_64, skipping capture
+  Skipping capture regen
+
+=== Validation ===
+
+  No new commit
+  Task TASK-DSL-2 not [x] in queue
+  Pixel gate passed
+  dotnet not available or no worker commit
+  pipeline venv not found or no worker commit — skipping pytest gate
+  Retry (1/1): no_new_commit checkbox_not_flipped 
+  No failed worker commit — leaving tree untouched
+[main efd95bd] foreman: state after TASK-DSL-2 (retry)
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/16 (5 full + 0 bus, 10/32 halves)
+  Top task: TASK-DSL-2
+  Task TASK-DSL-2 still BLOCKED (already notified, silent)

@@ -6,18 +6,22 @@
 # forces a 30-min cool-down (Claude's live-review window), then resumes.
 # ANY failure, transient, or block ends the chain — cron picks up later.
 #
+# Bus: at the top of every iteration, after git pull, check
+# bus/claude_to_hermes.md for new messages from Claude (sequenced, trusted
+# only). If found, run a 15-min bus-session before queue work.
+#
 # Each iteration:
-#   1. Check circuit breakers (HALT, daily budget, BLOCKED stickiness)
+#   1. Check circuit breakers (HALT, git pull, bus check, daily budget halves)
 #   2. Read TASKS_QUEUE.md → top unchecked [ ] task
-#   3. Repeat-detector
-#   4. Run one hermes model session (45-min wall clock)
+#   3. Repeat-detector / sticky-block
+#   4. Run one hermes model session (45-min wall clock) or bus session (15 min)
 #   5. BUDGET INCREMENT (sessions cost tokens regardless of outcome)
 #   6. Mechanical validation (commit, checkbox, FRESH gate, tests, push)
 #   7. One retry on failure → BLOCKED-and-exit (sticky, notified once)
 #   8. Commit state each iteration + Telegram notification
 #
 # Usage:
-#   bash tools/foreman.sh                    # one iteration
+#   bash tools/foreman.sh                    # chain mode
 #   touch FOREMAN_HALT                       # stop all future runs
 #   rm FOREMAN_HALT                          # resume
 #
@@ -40,6 +44,12 @@ TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
 PYTHON_BIN="${FOREMAN_PYTHON_BIN:-$HOME/.hermes/hermes-agent/venv/bin/python}"
+# Bus config
+BUS_DIR="${PROJECT_DIR}/bus"
+BUS_IN="${BUS_DIR}/claude_to_hermes.md"
+BUS_OUT="${BUS_DIR}/hermes_to_claude.md"
+CLAUDE_COMMITTER="${FOREMAN_CLAUDE_COMMITTER:-Trikzos <trikzos@runewake.game>}"
+BUS_TIMEOUT="${FOREMAN_BUS_TIMEOUT:-900}"  # 15 min
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
 STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
@@ -151,6 +161,68 @@ run_hermes_session() {
   timeout "${FOREMAN_TIMEOUT}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?"
 }
 
+# ── Transient classifier ─────────────────────────────────────────────────────
+# Scans the session output tail (where timeout lines land) for provider-outage
+# signatures. Case-insensitive. Returns 0 (TRANSIENT) on any match.
+# Usage: is_transient_output "<full session output>"
+is_transient_output() {
+  local output="$1"
+  echo "${output}" | tail -50 | grep -Eiq "connect timeout|connection (error|refused|reset)|timed? ?out|rate limit|overloaded|5[0-9][0-9] "
+}
+
+# ── Bus helpers ──────────────────────────────────────────────────────────────
+# Get the highest MSG seq in a bus file (0 if empty/missing)
+bus_max_seq() {
+  local file="$1"
+  python3 -c "
+import re, sys
+try:
+    content = open('${file}').read()
+except FileNotFoundError:
+    print(0); sys.exit(0)
+seqs = [int(m) for m in re.findall(r'^## MSG (\d+)', content, re.M)]
+print(max(seqs) if seqs else 0)
+"
+}
+
+# Extract message blocks with seq > last
+bus_new_messages() {
+  local file="$1" last="$2"
+  python3 -c "
+import re, sys
+content = open('${file}').read()
+blocks = re.split(r'(?m)^(?=## MSG )', content)
+out = []
+for b in blocks:
+    m = re.match(r'## MSG (\d+)', b)
+    if m and int(m.group(1)) > int('${last}'):
+        out.append(b.strip())
+print('\n\n'.join(out))
+"
+}
+
+# Trust check: was this MSG introduced by a commit authored by Claude's identity?
+bus_msg_trusted() {
+  local seq="$1"
+  local author
+  author=$(cd "${PROJECT_DIR}" && git log --format="%an <%ae>" -S "## MSG ${seq}" -- "${BUS_IN}" 2>/dev/null | head -1 || echo "")
+  if [[ -z "${author}" ]]; then
+    echo "untrusted:no_commit_found"
+  elif [[ "${author}" == "${CLAUDE_COMMITTER}" ]]; then
+    echo "trusted"
+  else
+    echo "untrusted:${author}"
+  fi
+}
+
+# Run a bus-session (15-min wall clock, counts half a budget session)
+run_bus_session() {
+  local messages="$1" max_seq="$2"
+  local prompt="New message(s) from Claude the orchestrator (${BUS_IN}):\n\n${messages}\n\nStanding instruction: Reply to Claude the orchestrator: act on small items directly (queue edits, file writes, answers); append large work items to TASKS_QUEUE.md as proper tasks instead of doing them; write your reply as a new MSG in bus/hermes_to_claude.md; commit 'bus: reply to MSG ${max_seq}', push, stop. Work from ${PROJECT_DIR}."
+  cd "${PROJECT_DIR}"
+  timeout "${BUS_TIMEOUT}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?"
+}
+
 # ── Lock (PID file, no FD inheritance into children) ─────────────────────────
 if [[ -f "${LOCK_PID_FILE}" ]]; then
   LOCK_PID=$(cat "${LOCK_PID_FILE}" 2>/dev/null || echo "")
@@ -184,8 +256,8 @@ fi
 # ── Chain loop ──────────────────────────────────────────────────
 # The PID lock above is acquired ONCE and held for the entire chain
 # (mutual exclusion for all iterations). Every other circuit breaker
-# (HALT, budget, sticky-block, transient) re-runs at the top of each
-# chained iteration.
+# (HALT, pull, bus, budget, sticky-block, transient) re-runs at the
+# top of each chained iteration.
 CHAIN_RUNNING=1
 CONSECUTIVE_SUCCESSES=0
 ITERATION=0
@@ -201,7 +273,46 @@ if [[ -f "${HALT_FILE}" ]]; then
   exit 1
 fi
 
-# ── 2. Circuit breaker: Daily budget ─────────────────────────────────────────
+# ── 1b. Sync with origin (bus messages + queue edits land here) ──────────────
+git pull --ff-only origin main 2>/dev/null || warn "git pull failed (network or dirty tree)"
+
+# ── 1c. Bus check (before queue work) ────────────────────────────────────────
+BUS_LAST_SEQ=$(get_state "bus_last_seq")
+BUS_LAST_SEQ=${BUS_LAST_SEQ:-0}
+BUS_MAX_SEQ=$(bus_max_seq "${BUS_IN}")
+if [[ "${BUS_MAX_SEQ}" -gt "${BUS_LAST_SEQ}" ]]; then
+  header "Bus: new messages ${BUS_LAST_SEQ+1}..${BUS_MAX_SEQ}"
+  # Trust check per message
+  TRUSTED_MSGS=""
+  UNTRUSTED_FLAG=0
+  for s in $(seq $((BUS_LAST_SEQ + 1)) "${BUS_MAX_SEQ}"); do
+    TRUST_RESULT=$(bus_msg_trusted "${s}")
+    if [[ "${TRUST_RESULT}" == "trusted" ]]; then
+      # Extract this message only
+      MSG_BLOCK=$(bus_new_messages "${BUS_IN}" $((s - 1)))
+      TRUSTED_MSGS="${TRUSTED_MSGS}${MSG_BLOCK}\n\n"
+    else
+      UNTRUSTED_FLAG=1
+      warn "Bus MSG ${s} untrusted: ${TRUST_RESULT} — ignored"
+    fi
+  done
+  if [[ "${UNTRUSTED_FLAG}" -eq 1 ]]; then
+    telegram_text "⚠️ Bus: untrusted message(s) in claude_to_hermes.md — ignored"
+  fi
+  if [[ -n "${TRUSTED_MSGS}" ]]; then
+    header "Running bus-session"
+    BUS_OUTPUT=$(run_bus_session "${TRUSTED_MSGS}" "${BUS_MAX_SEQ}")
+    echo "${BUS_OUTPUT}" | tail -5
+    # bus-session counts half a budget session
+    BUS_SESSION_COUNT=$(get_state "bus_session_count")
+    BUS_SESSION_COUNT=$((BUS_SESSION_COUNT + 1))
+    set_state "bus_session_count" "${BUS_SESSION_COUNT}"
+    ok "Bus session done — total bus sessions: ${BUS_SESSION_COUNT}"
+  fi
+  set_state "bus_last_seq" "${BUS_MAX_SEQ}"
+fi
+
+# ── 2. Circuit breaker: Daily budget (in half-sessions) ──────────────────────
 TODAY=$(today)
 STATE_DATE=$(get_state "date")
 SESSION_COUNT=$(get_state "session_count")
@@ -210,30 +321,46 @@ RETRY_COUNT=$(get_state "retry_count")
 BLOCKED_NOTIFIED=$(get_state "blocked_notified")
 CONSECUTIVE_TRANSIENTS=$(get_state "consecutive_transients")
 TRANSIENT_NOTIFIED=$(get_state "transient_notified")
+BUS_SESSION_COUNT=$(get_state "bus_session_count")
+BUS_SESSION_COUNT=${BUS_SESSION_COUNT:-0}
 CONSECUTIVE_TRANSIENTS=${CONSECUTIVE_TRANSIENTS:-0}
 TRANSIENT_NOTIFIED=${TRANSIENT_NOTIFIED:-False}
 
 if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   set_state "date" "\"${TODAY}\""
   set_state "session_count" 0
+  set_state "bus_session_count" 0
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
   set_state "blocked_notified" "False"
   set_state "consecutive_transients" 0
   set_state "transient_notified" "False"
   SESSION_COUNT=0
+  BUS_SESSION_COUNT=0
   BLOCKED_NOTIFIED="False"
   CONSECUTIVE_TRANSIENTS=0
   TRANSIENT_NOTIFIED="False"
 fi
 
-if [[ "${SESSION_COUNT}" -ge "${DAILY_BUDGET}" ]]; then
-  warn "Daily budget spent: ${SESSION_COUNT}/${DAILY_BUDGET}"
-  telegram_text "Budget spent — ${SESSION_COUNT}/${DAILY_BUDGET} sessions today"
+# Budget check: each full session = 2 halves, each bus session = 1 half
+SPENT_HALVES=$(( SESSION_COUNT * 2 + BUS_SESSION_COUNT ))
+BUDGET_HALVES=$(( DAILY_BUDGET * 2 ))
+if [[ "${SPENT_HALVES}" -ge "${BUDGET_HALVES}" ]]; then
+  SPENT_FRAC=$(( SESSION_COUNT ))  # whole part
+  if [[ $(( BUS_SESSION_COUNT % 2 )) -eq 1 ]]; then
+    SPENT_FRAC="${SPENT_FRAC}.5"
+  fi
+  warn "Daily budget spent: ${SESSION_COUNT} full + ${BUS_SESSION_COUNT} bus = ${SPENT_FRAC}/${DAILY_BUDGET}"
+  telegram_text "Budget spent — ${SPENT_FRAC}/${DAILY_BUDGET} sessions today"
   exit 0
 fi
 
-info "Budget: ${SESSION_COUNT}/${DAILY_BUDGET} sessions used today"
+# Display budget info
+SPENT_FRAC="${SESSION_COUNT}"
+if [[ $(( BUS_SESSION_COUNT % 2 )) -eq 1 ]]; then
+  SPENT_FRAC="${SPENT_FRAC}.5"
+fi
+info "Budget: ${SPENT_FRAC}/${DAILY_BUDGET} (${SESSION_COUNT} full + ${BUS_SESSION_COUNT} bus, ${SPENT_HALVES}/${BUDGET_HALVES} halves)"
 
 # ── 3. Read queue ────────────────────────────────────────────────────────────
 TOP_TASK=$(find_top_task)
@@ -284,15 +411,28 @@ SESSION_COUNT=$((SESSION_COUNT + 1))
 set_state "session_count" "${SESSION_COUNT}"
 SESSION_OUTPUT_SNAPSHOT=$(echo "${SESSION_OUTPUT}" | tail -50)
 
-# ── FIX #6: Transient failure classification ──────────────────────────────────
-# Provider outage (no commit, no work, transient signature) must NOT consume
-# task retries. Real failures (work produced but validation failed) keep the
-# normal retry-then-block path.
+# ── FIX #6 (FIXED): Transient failure classification ──────────────────────────
+# Provider outage (no commit, transient signature in session output) must NOT
+# consume task retries. Real failures (work produced but validation failed)
+# keep the normal retry-then-block path.
+#
+# BUGFIX (TASK-BUS): the old classifier gated the signature grep behind
+# `[[ -z "${WORKTREE_CHANGES}" ]]` — the DSL-2 session died mid-work with
+# "Connect timeout, please try again later." but left partial uncommitted
+# engine changes in the tree (PREVENT_DAMAGE implementation). The tree-changes
+# precondition went FALSE, the grep never ran, and the timeout was charged as
+# a REAL retry (phantom). FIX: tree changes do NOT gate the transient scan.
+# The no-commit precondition is sufficient; the session output signature tells
+# the truth. If the session left partial work, that's debris from a dead
+# provider connection — the tree is cleaned up on transient handling.
 TRANSIENT=0
 POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
 WORKTREE_CHANGES=$(git status --porcelain 2>/dev/null | head -20 || echo "")
-if [[ "${POST_SESSION_HEAD}" == "${CURRENT_HEAD}" ]] && [[ -z "${WORKTREE_CHANGES}" ]]; then
-  if echo "${SESSION_OUTPUT}" | grep -Eiq "connect timeout|connection (error|refused|reset)|timed? ?out|rate limit|overloaded|5[0-9][0-9] "; then
+if [[ "${POST_SESSION_HEAD}" == "${CURRENT_HEAD}" ]]; then
+  # No new commit — scan the session output tail for transient signatures.
+  # Tree changes do NOT gate this: a connect-timeout mid-session leaves
+  # partial work behind (DSL-2 07:4x case). The timeout signature is truth.
+  if is_transient_output "${SESSION_OUTPUT}"; then
     TRANSIENT=1
   fi
 fi
@@ -301,6 +441,13 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   CONSECUTIVE_TRANSIENTS=$((CONSECUTIVE_TRANSIENTS + 1))
   set_state "consecutive_transients" "${CONSECUTIVE_TRANSIENTS}"
   warn "Transient skip: ${TASK_ID} (consecutive ${CONSECUTIVE_TRANSIENTS})"
+
+  # Clean up partial worktree changes from the dead session
+  if [[ -n "${WORKTREE_CHANGES}" ]]; then
+    warn "Cleaning up ${WORKTREE_CHANGES} partial worktree changes from dead session"
+    git checkout -- . 2>/dev/null || true
+    git clean -fd 2>/dev/null || true
+  fi
 
   # Alert once per day on the 4th consecutive transient
   if [[ "${CONSECUTIVE_TRANSIENTS}" -ge 4 ]] && [[ "${TRANSIENT_NOTIFIED}" != "True" ]]; then
@@ -316,7 +463,7 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
     echo "Transient: consecutive ${CONSECUTIVE_TRANSIENTS}"
     echo "--- session tail ---"
     echo "${SESSION_OUTPUT_SNAPSHOT}"
-    echo "================================"
+    echo "========================================"
   } >> "${LAST_RUN_LOG}"
   tail -50 "${LAST_RUN_LOG}" > "${LAST_RUN_LOG}.tmp" 2>/dev/null || true && mv "${LAST_RUN_LOG}.tmp" "${LAST_RUN_LOG}" 2>/dev/null || true
 
@@ -521,7 +668,7 @@ fi
     echo "--- session tail ---"
     echo "${SESSION_OUTPUT_SNAPSHOT}"
   fi
-  echo "================================"
+  echo "========================================"
 } >> "${LAST_RUN_LOG}"
 tail -50 "${LAST_RUN_LOG}" > "${LAST_RUN_LOG}.tmp" 2>/dev/null || true && mv "${LAST_RUN_LOG}.tmp" "${LAST_RUN_LOG}" 2>/dev/null || true
 
@@ -532,12 +679,12 @@ if ! git diff --cached --quiet 2>/dev/null; then
   git push origin main 2>/dev/null || true
 fi
 
-# ── 7. Chain decision ─────────────────────────────────────────────
+# ── 7. Chain decision ─────────────────────────────────────────────────────────
 # Success → chain to the next task if queue + budget remain. Every 3
 # consecutive successes forces a 30-min cool-down (Claude's live-review
 # window), then resumes. ANY failure/retry/block ends the chain — the
-# circuit breakers above (HALT, budget, queue-empty, sticky-block,
-# transient) exit directly and thereby end the chain too.
+# circuit breakers above (HALT, pull, bus, budget, sticky-block, transient)
+# exit directly and thereby end the chain too.
 if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   CONSECUTIVE_SUCCESSES=$((CONSECUTIVE_SUCCESSES + 1))
   ok "Task ${TASK_ID} complete — consecutive successes: ${CONSECUTIVE_SUCCESSES}"
@@ -551,17 +698,21 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
     ok "Cool-down over — resuming chain"
   fi
 
-  # Chain continuation gate: queue + budget
+  # Chain continuation gate: queue + budget (halves)
   NEXT_TOP=$(find_top_task)
   SESSION_COUNT_NOW=$(get_state "session_count")
+  BUS_SESSION_COUNT_NOW=$(get_state "bus_session_count")
+  BUS_SESSION_COUNT_NOW=${BUS_SESSION_COUNT_NOW:-0}
+  SPENT_HALVES_NOW=$(( SESSION_COUNT_NOW * 2 + BUS_SESSION_COUNT_NOW ))
+  BUDGET_HALVES_NOW=$(( DAILY_BUDGET * 2 ))
   if [[ -z "${NEXT_TOP}" ]]; then
     ok "Queue empty — chain ends"
     CHAIN_RUNNING=0
-  elif [[ "${SESSION_COUNT_NOW}" -ge "${DAILY_BUDGET}" ]]; then
-    info "Budget spent (${SESSION_COUNT_NOW}/${DAILY_BUDGET}) — chain ends"
+  elif [[ "${SPENT_HALVES_NOW}" -ge "${BUDGET_HALVES_NOW}" ]]; then
+    info "Budget spent (${SPENT_HALVES_NOW}/${BUDGET_HALVES_NOW} halves) — chain ends"
     CHAIN_RUNNING=0
   else
-    info "Chaining — budget ${SESSION_COUNT_NOW}/${DAILY_BUDGET}, next: ${NEXT_TOP}"
+    info "Chaining — budget ${SPENT_HALVES_NOW}/${BUDGET_HALVES_NOW} halves, next: ${NEXT_TOP%%|*}"
   fi
 else
   warn "Chain ends — ${TASK_ID} ${OUTCOME_LABEL}"

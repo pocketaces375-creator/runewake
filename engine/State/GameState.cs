@@ -116,7 +116,9 @@ public sealed class GameState
                     {
                         Op = e.Op, Target = e.Target, Amount = e.Amount,
                         Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
-                        TokenId = e.TokenId, Duration = e.Duration
+                        TokenId = e.TokenId, Duration = e.Duration,
+                        Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
+                        Condition = e.Condition
                     }).ToList()
                 }));
 
@@ -304,6 +306,25 @@ public sealed class GameState
         ulong HashInt(ulong current, int value) => Hash(current, (ulong)value);
         ulong HashBool(ulong current, bool value) => Hash(current, value ? 1UL : 0UL);
 
+        // Hash a single damage-prevention shield into the state hash.
+        ulong HashShield(ulong current, DamageShield s)
+        {
+            current = HashInt(current, s.Amount);
+            if (s.Source is not null)
+                foreach (var ch in s.Source)
+                    current = HashInt(current, (int)ch);
+            if (s.Frequency is not null)
+                foreach (var ch in s.Frequency)
+                    current = HashInt(current, (int)ch);
+            if (s.SourceArtifactDefId is not null)
+                foreach (var ch in s.SourceArtifactDefId)
+                    current = HashInt(current, (int)ch);
+            current = HashInt(current, s.SourceArtifactInstanceId);
+            current = HashInt(current, s.SourceController);
+            current = HashInt(current, s.UsedThisTurn);
+            return current;
+        }
+
         ulong h = fnvOffset;
 
         // Game-level fields
@@ -338,6 +359,11 @@ public sealed class GameState
             h = HashInt(h, pl.PreyAttackCountThisTurn);
             h = HashInt(h, pl.FirstAttackerLaneIndex ?? -1);
             h = HashInt(h, pl.FirstAttackedLaneIndex ?? -1);
+
+            // Damage-prevention shields (player)
+            h = HashInt(h, pl.DamageShields.Count);
+            foreach (var s in pl.DamageShields)
+                h = HashShield(h, s);
 
             // Decks (remaining card IDs)
             h = HashInt(h, pl.Deck.Count);
@@ -386,6 +412,10 @@ public sealed class GameState
                     h = HashBool(h, occ.IsVenomed);
                     h = HashInt(h, occ.UnearthCost);
                     h = HashBool(h, occ.IsIdentified);
+                    // Damage-prevention shields (creature)
+                    h = HashInt(h, occ.DamageShields.Count);
+                    foreach (var s in occ.DamageShields)
+                        h = HashShield(h, s);
                     // Hash effective keywords
                     var keywords = occ.EffectiveKeywords.OrderBy(k => k).ToList();
                     h = HashInt(h, keywords.Count);

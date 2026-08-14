@@ -107,6 +107,9 @@ public static class EffectExecutor
                 case Op.REVIVE_TOKEN:
                     ApplyReviveToken(target, effect.Keyword ?? "artf_skeleton", source, state);
                     break;
+                case Op.PREVENT_DAMAGE:
+                    ApplyPreventDamage(target, effect, source);
+                    break;
             }
         }
     }
@@ -117,12 +120,15 @@ public static class EffectExecutor
     {
         if (target is CreatureTarget ct)
         {
+            // Spell/ability damage is intercepted by PREVENT_DAMAGE shields (source SPELL).
+            amount = DamageInterceptor.Reduce(state, ct.Card, amount, DamageInterceptor.SourceSpell);
             ct.Card.Damage += amount;
             if (ct.Card.CurrentVigor <= 0)
                 KillCreature(ct.Card, state);
         }
         else if (target is PlayerTarget pt)
         {
+            amount = DamageInterceptor.Reduce(state, pt.Player, amount, DamageInterceptor.SourceSpell);
             pt.Player.Vigor -= amount;
             if (pt.Player.Vigor <= 0)
             {

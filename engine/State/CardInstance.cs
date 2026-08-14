@@ -113,6 +113,12 @@ public sealed class CardInstance
     /// <summary>Whether this card is an Artifact (kind: "artifact").</summary>
     public bool IsArtifact => CardType == CardType.ARTIFACT;
 
+    /// <summary>
+    /// Active damage-prevention shields (PREVENT_DAMAGE) protecting this creature.
+    /// Intercepted at damage-application time by the engine.
+    /// </summary>
+    public List<DamageShield> DamageShields { get; } = new();
+
     // ——— Keywords at runtime ———
 
     /// <summary>Keywords this card naturally has (from its definition).</summary>
@@ -199,10 +205,13 @@ public sealed class CardInstance
             {
                 Op = e.Op, Target = e.Target, Amount = e.Amount,
                 Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
-                TokenId = e.TokenId, Duration = e.Duration
+                TokenId = e.TokenId, Duration = e.Duration,
+                Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
+                Condition = e.Condition
             })
         });
         IdentifyCondition = other.IdentifyCondition is not null ? CopyCondition(other.IdentifyCondition) : null;
+        DamageShields = other.DamageShields.ConvertAll(s => s.Clone());
     }
 
     private static ConditionDef CopyCondition(ConditionDef c)
