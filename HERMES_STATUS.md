@@ -9,6 +9,27 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 
 ---
 
+## 2026-08-14 | TASK-DSL-5
+
+### DONE: TASK-DSL-5 — Charge plumbing
+RESET_CHARGES op, max_per_turn and max_per_creature_per_turn caps, ON_CHARGE_FULL with timing END_OF_TURN, charge freeze under suppression (G3).
+
+**Implementation:**
+- `Op.RESET_CHARGES` added to CardEnums.
+- `ArtifactSlot` — per-turn charge tracking: `ChargesGainedThisTurn` (max_per_turn), `ChargesGainedThisTurnByCreature` dict (max_per_creature_per_turn), `PendingChargeFull` (deferred ON_CHARGE_FULL), `ChargeConfigMaxPerTurn`/`ChargeConfigMaxPerCreaturePerTurn`/`HasDeferredChargeFull` (derived from ChargeConfig + trigger timing at slot assignment). `AddCharges(amount, creatureInstanceId)` enforces both caps + suppression freeze; `ResetCharges()`, `ResetChargeTracking()`.
+- `ChargeConfig` — `max_per_turn` and `max_per_creature_per_turn` JSON fields (launch_artifacts.json already declares them: Censer max_per_turn 1, Duskfang max_per_creature_per_turn 1).
+- `AbilityDef.Timing` — "END_OF_TURN" modifier for ON_CHARGE_FULL (Censer, Grimoire in launch_artifacts.json).
+- `EffectExecutor` — `RESET_CHARGES` case; `ApplyAddCharge` now passes the source card (creature instance ID for per-creature caps), enforces per-turn caps, skips suppressed slots (G3), and either fires ON_CHARGE_FULL immediately (no timing) or sets PendingChargeFull (END_OF_TURN).
+- `DuelEngine.ApplyEndTurn` — `FireDeferredChargeFull` fires pending ON_CHARGE_FULL triggers at end of turn (G8), clears PendingChargeFull; per-turn charge tracking resets at start of the owner's turn.
+- `GameState.ComputeStateHash` — includes all artifact slot charge/suppression/tracking fields for deterministic replay; `ArtifactSlot.Clone` preserves them.
+- `RulesTextRenderer` — "Reset Charges" case.
+
+**Tests:** 28 new unit tests: RESET_CHARGES (clear, zero no-op, MaxCharges preserved, via EffectExecutor), max_per_turn (limit, return-zero-when-capped, zero=unlimited, resets on turn start), max_per_creature_per_turn (per-creature limit, different creatures independent, zero=unlimited, no-creature-id path, combined with max_per_turn), suppression freeze (blocked while suppressed, resumes when unsuppressed, via EffectExecutor), ON_CHARGE_FULL timing (deferred does NOT fire immediately, immediate fires on fill, no-timing does not set pending, clears on turn end, via EffectExecutor), edge cases (negative amount, no-charge artifact, cap at max, actual-added return, reset clears pending), state hash inclusion, clone preservation.
+
+**Verification:** 568/568 tests passed (28 new + 540 legacy). Commit `7264b41` pushed to main.
+
+---
+
 ## 2026-08-14 | TASK-DSL-3
 
 ### DONE: TASK-DSL-3 — COST_MOD op (the discount mechanic): applies_to CREATURE|SPELL, filter (e.g. ATTACK_LTE), condition (e.g. CREATURE_DIED_THIS_TURN), per-turn filters (FIRST_SPELL_EACH_TURN), duration, stacking, floor 0. MIGRATE launch_artifacts.json: every discount currently encoded as "ATTUNE" becomes COST_MOD (Warden's Focus passive, Mantle trigger, Duskfang passive, Grimoire passive). Unit tests.
