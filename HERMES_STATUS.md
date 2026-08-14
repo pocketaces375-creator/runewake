@@ -8,14 +8,14 @@ Types: DONE, BLOCKED, QUESTION, CONFLICT
 ## 2026-08-12 | 17:45
 
 ### DONE: Trikzos §11 decisions relayed
-| Decision | Result |
-|---|---|
-| System name | **Artifacts** (not Relics — collides with RELIC type; not Glyph Cards — collides with rune Glyphs) |
-| Guard stance | **NO** — shelved permanently |
-| Class count | **7 classes**, 2 Artifact slots each |
-| Duskfang suppression | **KEEP** — Thief is anti-Artifact class |
-| Card class restrictions | **NONE** — any class can use any deck card; only Artifacts are class-specific |
-| Variant scope (v1) | **One fixed pair per class** — no per-slot choices at launch |
+ Decision | Result |
+---|---|
+ System name | **Artifacts** (not Relics — collides with RELIC type; not Glyph Cards — collides with rune Glyphs) |
+ Guard stance | **NO** — shelved permanently |
+ Class count | **7 classes**, 2 Artifact slots each |
+ Duskfang suppression | **KEEP** — Thief is anti-Artifact class |
+ Card class restrictions | **NONE** — any class can use any deck card; only Artifacts are class-specific |
+ Variant scope (v1) | **One fixed pair per class** — no per-slot choices at launch |
 
 ### DONE: ARTIFACT_CLASSES.md received
 All 7 classes specced:
@@ -44,7 +44,7 @@ Confirming: "costs 1 less" on Artifact cards = costs 1 less **attunement**. If F
 ArtifactSlots zone, PlayerState changes, GameState init, TriggerBus integration. Building 14 Artifacts through existing EffectExecutor/TriggerBus. Prey marker as the only new engine primitive.
 
 ### NOTE: Cards expanded to 375
-|Trikzos wants 375 cards for first drop with 3+ variants per Artifact slot. This is a card generation pipeline question, not an engine blocker. Pipeline already supports batch generation. Will increase scope but doesn't block P1.
+Trikzos wants 375 cards for first drop with 3+ variants per Artifact slot. This is a card generation pipeline question, not an engine blocker. Pipeline already supports batch generation. Will increase scope but doesn't block P1.
 
 ---
 
@@ -60,19 +60,19 @@ Rec'd from Claude via Trikzos. 26 rulings (G1–G8, R1–R26). Immediately compa
 ### CONFLICT: launch_artifacts.json DSL gaps — 7 filters/conditions need engine support
 The rulings define specific conditions and filters that the current DSL/engine doesn't support natively. These are flagged so Claude sees them in the diff review:
 
-| Ruling | Needed filter/condition | Current DSL status |
-|--------|------------------------|-------------------|
-| R1 (Ancestral Blade) | `filter: "ATTACKING"` — passive only applies while attacking | Missing — `GRANT_KEY` fallback used; engine needs clamp-to-1 mechanic |
-| R2 (Bulwark) | `filter: "HAS_NOT_ATTACKED"` — did not attack this turn | Missing — `NEXT_TURN` duration used as approximation |
-| R3 (Bulwark trigger) | `condition: "NO_ATTACKERS_LAST_TURN"` | Missing — `ON_CREATURE_ATTACKS` + `GAIN_VIGOR` is a placeholder |
-| R7 (Whisperfang) | `filter: "EXACTLY_ONE_ATTACKER"` — count exactly 1 attacker | Missing — `condition: ALLY_COUNT_GTE 1` is wrong |
-| R9 (Duskfang) | `gain_on: "on_creature_deals_damage_to_character"` — max 1 Charge per creature per turn | Missing |
-| R11 (Censer) | `filter: "MOST_WOUNDED"` — tie → owner chooses | Missing — AI path needs tiebreaker |
-| R12 (Censer charge) | `gain_on: "on_creature_survived_combat_damage"` — max 1 per turn | Missing |
-| R15 (Prey marking) | Start-of-turn order: Prey marks BEFORE Censer heal, before draw | Need to verify turn-start ordering |
-| R19 (Grimoire discount) | While ≥1 creature died this turn, each creature costs 1 less, floor 0 | Missing — `ATTUNE` placeholder; actual discount needs engine support |
-| R23 (Forgehammer) | `filter: "FIRST_SUMMONED_THIS_TURN"` + cost ≥ 3 | Missing — `BUFF PERMANENT` approximation |
-| R25 (Anvil) | Charge spend on trigger: ALL charges spent, +1/+1 per charge, to highest-cost creature | Missing — `ON_TURN_END_NO_ATTACK` exists but charge-spend logic needs wiring |
+ Ruling | Needed filter/condition | Current DSL status |
+--------|------------------------|-------------------|
+ R1 (Ancestral Blade) | `filter: "ATTACKING"` — passive only applies while attacking | Missing — `GRANT_KEY` fallback used; engine needs clamp-to-1 mechanic |
+ R2 (Bulwark) | `filter: "HAS_NOT_ATTACKED"` — did not attack this turn | Missing — `NEXT_TURN` duration used as approximation |
+ R3 (Bulwark trigger) | `condition: "NO_ATTACKERS_LAST_TURN"` | Missing — `ON_CREATURE_ATTACKS` + `GAIN_VIGOR` is a placeholder |
+ R7 (Whisperfang) | `filter: "EXACTLY_ONE_ATTACKER"` — count exactly 1 attacker | Missing — `condition: ALLY_COUNT_GTE 1` is wrong |
+ R9 (Duskfang) | `gain_on: "on_creature_deals_damage_to_character"` — max 1 Charge per creature per turn | Missing |
+ R11 (Censer) | `filter: "MOST_WOUNDED"` — tie → owner chooses | Missing — AI path needs tiebreaker |
+ R12 (Censer charge) | `gain_on: "on_creature_survived_combat_damage"` — max 1 per turn | Missing |
+ R15 (Prey marking) | Start-of-turn order: Prey marks BEFORE Censer heal, before draw | Need to verify turn-start ordering |
+ R19 (Grimoire discount) | While ≥1 creature died this turn, each creature costs 1 less, floor 0 | Missing — `ATTUNE` placeholder; actual discount needs engine support |
+ R23 (Forgehammer) | `filter: "FIRST_SUMMONED_THIS_TURN"` + cost ≥ 3 | Missing — `BUFF PERMANENT` approximation |
+ R25 (Anvil) | Charge spend on trigger: ALL charges spent, +1/+1 per charge, to highest-cost creature | Missing — `ON_TURN_END_NO_ATTACK` exists but charge-spend logic needs wiring |
 
 ### CONFLICT: Ruling §5a — "costs 1 less" resource
 Already logged. "Costs 1 less" = attunement discount. Engine's `ATTUNE` op increases attunement max, not discounts. A discount mechanic (temporarily reduce cost of next card) doesn't exist yet. Marked as engine gap, not blocking P1 test suite. Claude's design intent is clear: attunement is the resource.
@@ -284,3 +284,19 @@ G1 key rotated out 2026-08-13 — replaced by claude-orchestrator-v2 (public key
 - **Stop mechanism:** `touch FOREMAN_HALT` in project root → foreman refuses to start
 - **Resume:** `rm FOREMAN_HALT` → cleared for next run
 - **One iteration only:** run via cron for continuous operation, or manually one-at-a-time
+
+---
+
+## 2026-08-13 | TASK-LOOP-FIX — Concurrency lockfile
+
+### DONE: TASK-LOOP-FIX — flock lockfile added
+- Added `exec 200>"/tmp/runewake_foreman.lock"` + `flock -n 200` at top of main section
+- Silent exit 0 on lock contention (no Telegram message — avoids cron spam)
+- Verified: first run acquires lock, second run exits 0 silently
+- **Recommended cron line:** `17 * * * * cd /home/fictive/runewake && bash tools/foreman.sh >> tools/foreman_cron.log 2>&1`
+  (hourly; the 10/day budget self-limits)
+
+### DONE: TASK-DOCS-SYNC — Authoritative docs landed
+- `ARTIFACT_RULINGS.md` — 26 rulings (G1–G8, R1–R26), overwritten with Claude's verbatim text
+- `LAUNCH_ROADMAP.md` — P0–P6 phased roadmap, decisions, content budget, orchestration protocol
+- Both files are now authoritative — ready for TASK-T1 (ruling tests)
