@@ -27,7 +27,7 @@
 
 - [x] TASK-NAMES — One-word Artifact display names (Trikzos direction) (verified by Claude; validation env was at fault): display names become single words; ids/slot pools unchanged. launch_artifacts.json "name" fields: Ancestral Blade→Sword, Bulwark of the Line→Shield, Warden's Focus→Wand, Mantle of the Living Rune→Aura, Whisperfang and Duskfang stay (already one word, and two Daggers must stay distinguishable), Grimoire of the Hollow Court→Skull, Phylactery of the Pale King→Shard, Forgehammer of the Deep Halls→Hammer, Runic Anvil→Anvil, Dawnlit Censer→Censer, Icon of the Unbroken→Icon, Heartwood Bow→Bow, Quiver of Whispers→Quiver. Add docs/ARTIFACT_NAME_ALIASES.md mapping old→new so rulings/docs referencing old names stay traceable. Acceptance: JSON valid, tests green, alias file committed.
 
-- [ ] TASK-DSL-1 — Turn-scoped counters + conditions: ATTACKERS_THIS_TURN_GTE/EQ, SPELLS_CAST_THIS_TURN_EQ, NO_ATTACKERS_LAST_TURN, CREATURE_DIED_THIS_TURN (side-aware), HAS_NOT_ATTACKED / FIRST_ATTACKER / FIRST_ATTACKED filters. Engine + unit tests only, no client work.
+- [x] TASK-DSL-1 — Turn-scoped counters + conditions: ATTACKERS_THIS_TURN_GTE/EQ, SPELLS_CAST_THIS_TURN_EQ, NO_ATTACKERS_LAST_TURN, CREATURE_DIED_THIS_TURN (side-aware), HAS_NOT_ATTACKED / FIRST_ATTACKER / FIRST_ATTACKED filters. Engine + unit tests only, no client work.
   Acceptance: new unit tests green, 463 legacy green.
 
 - [ ] TASK-DSL-2 — PREVENT_DAMAGE op: amount, source filter (ATTACK vs SPELL), frequency (FIRST_ATTACK_EACH_TURN, ONCE_PER_ENEMY_TURN), condition support (FEWER_ALLY_CREATURES_THAN_ENEMY). Unit tests incl. suppression symmetry.
