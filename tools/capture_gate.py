@@ -341,6 +341,29 @@ def main():
                 else:
                     print(f"  PASS board card {i} name: contrast={contrast:.3f}")
 
+    # Check 4: Arsenal group rects (TASK-H)
+    groups = meta.get("groups", [])
+    if not groups:
+        failures.append("GROUPS_MISSING: no 'groups' entries in meta.json (TASK-H requires player + enemy group rects)")
+    else:
+        by_side = {g.get("side"): g for g in groups}
+        if "player" not in by_side or "enemy" not in by_side:
+            failures.append(f"GROUPS_SIDES: expected player+enemy groups, got {list(by_side.keys())}")
+        for side in ("player", "enemy"):
+            g = by_side.get(side)
+            if not g or "rect" not in g:
+                failures.append(f"GROUPS_{side.upper()}: missing rect")
+                continue
+            r = g["rect"]
+            mean, std = rect_mean_stddev(pixels, width, height, r["x"], r["y"], r["w"], r["h"])
+            # Group rect should contain visible content (deck pile + artifact frames) — not a void
+            if std <= 8 / 255.0:
+                failures.append(
+                    f"GROUPS_{side.upper()}: rect stddev {std:.3f} too low (need > {8 / 255.0:.3f}) — group not visible"
+                )
+            else:
+                print(f"  PASS group {side}: mean={mean:.3f}, std={std:.3f}")
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:

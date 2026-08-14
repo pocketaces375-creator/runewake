@@ -45,12 +45,13 @@ public partial class LaneSlot : PanelContainer
         _cardName = GetNode<Label>("CardName");
         _stats = GetNode<Label>("Stats");
         _artRect = GetNode<FixedArtRect>("VBox/ArtRect");
-        SetEmpty();
 
         // NoArtLabel — card name placeholder when art file is missing
         _noArtLabel = GetNode<Label>("NoArtLabel");
         _noArtLabel.Visible = false;
         ApplyHeaderFont(_noArtLabel, FontLargeBody);
+
+        SetEmpty();
 
         // Apply header font to creature name
         ApplyHeaderFont(_cardName, FontLargeBody);

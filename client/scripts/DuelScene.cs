@@ -34,6 +34,10 @@ public partial class DuelScene : Control
     private ColorRect _enemyHealthBar = default!;
     private ColorRect _playerHealthBar = default!;
 
+    // Deck + Artifact group rects (TASK-H)
+    private Control _playerGroupRect = default!;
+    private Control _enemyGroupRect = default!;
+
     private readonly List<LaneSlot> _enemySlots = new(5);
     private readonly List<LaneSlot> _playerSlots = new(5);
     private readonly List<HandCard> _handCards = new();
@@ -349,6 +353,22 @@ public partial class DuelScene : Control
                     }
                     meta.Append("  ],\n");
 
+                    // Capture arsenal group rects (TASK-H: deck + artifact groups)
+                    meta.Append("  \"groups\": [\n");
+                    var playerGp = _playerGroupRect.GetScreenTransform().Origin;
+                    var playerGpSize = _playerGroupRect.Size;
+                    meta.Append("    {\n");
+                    meta.Append("      \"side\": \"player\",\n");
+                    meta.Append($"      \"rect\": {{ \"x\": {playerGp.X:F1}, \"y\": {playerGp.Y:F1}, \"w\": {playerGpSize.X:F1}, \"h\": {playerGpSize.Y:F1} }}\n");
+                    meta.Append("    },\n");
+                    var enemyGp = _enemyGroupRect.GetScreenTransform().Origin;
+                    var enemyGpSize = _enemyGroupRect.Size;
+                    meta.Append("    {\n");
+                    meta.Append("      \"side\": \"enemy\",\n");
+                    meta.Append($"      \"rect\": {{ \"x\": {enemyGp.X:F1}, \"y\": {enemyGp.Y:F1}, \"w\": {enemyGpSize.X:F1}, \"h\": {enemyGpSize.Y:F1} }}\n");
+                    meta.Append("    }\n");
+                    meta.Append("  ],\n");
+
                     // Capture board card info from player and enemy slots
                     meta.Append("  \"board_cards\": [\n");
                     int bi = 0;
@@ -546,53 +566,66 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// Reserve layout space for player/enemy portraits + artifact slots (FIX 5).
-    /// Placeholder frames that will be wired in P1 step 5. Prevents layout rework.
+    /// TASK-H: Deck + Artifact side-group layout (DECISION CHANGE, supersedes FIX-5 portrait-flanking).
+    /// Each player's deck pile + TWO Artifact frames form one visual group ("this is my sword and shield,
+    /// next to my arsenal"). Player's group in the lower-left area, opponent's mirrored upper-right.
+    /// Portraits stay; the Artifacts anchor to the DECK group. Placeholder frames with faint "Artifact" labels.
+    /// The group rects are stored in _playerGroupRect/_enemyGroupRect and written to duel_test.meta.json.
     /// </summary>
     private void AddArtifactSlotFrames()
     {
+        float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
         float frameSize = vh * 0.10f; // 10% of viewport height — compact but visible
 
-        // Helper to create a placeholder artifact frame
-        Control MakeFrame(Vector2 pos, bool isPlayer)
-        {
-            var frame = new PanelContainer();
-            frame.CustomMinimumSize = new Vector2(frameSize, frameSize);
-            frame.Size = frame.CustomMinimumSize;
-            frame.Position = pos;
-            var style = new StyleBoxFlat
-            {
-                BgColor = new Color(0.12f, 0.10f, 0.08f, 0.8f),
-                BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            frame.AddThemeStyleboxOverride("panel", style);
+        // Sizes
+        float portraitW = frameSize * 1.2f;
+        float portraitH = frameSize * 1.4f;
+        float deckW = frameSize * 0.85f;
+        float deckH = frameSize * 1.05f;
+        float artW = frameSize * 0.8f;
+        float artH = frameSize * 0.95f;
+        float gap = 5f;
+        float pad = 6f;
 
-            var label = new Label
-            {
-                Text = "?",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            label.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.4f));
-            label.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
-            frame.AddChild(label);
-            return frame;
-        }
-
-        // Player: bottom-left, portrait + 2 artifact frames
-        float bottomY = vh - frameSize - 8f;
+        // ═══ PLAYER: lower-left area ═══
+        // Portrait stays at the left edge; the arsenal group sits beside it.
+        float playerY = vh - portraitH - 8f;
         float leftX = 8f;
 
-        // Portrait placeholder
-        var playerPortrait = new PanelContainer();
-        playerPortrait.CustomMinimumSize = new Vector2(frameSize * 1.2f, frameSize * 1.4f);
-        playerPortrait.Position = new Vector2(leftX, bottomY - frameSize * 0.4f);
+        var playerPortrait = MakePortraitFrame(new Vector2(leftX, playerY), frameSize);
+        AddChild(playerPortrait);
+
+        // Arsenal group: [Deck Pile][Artifact][Artifact]
+        float groupX = leftX + portraitW + 10f;
+        float groupY = playerY + (portraitH - deckH) * 0.5f;
+        _playerGroupRect = BuildArsenalGroup(groupX, groupY, deckW, deckH, artW, artH, gap, pad, isPlayer: true);
+        AddChild(_playerGroupRect);
+
+        // ═══ ENEMY: upper-right area, mirrored ═══
+        // Portrait stays at the right edge; the arsenal group mirrors beside it:
+        // [Artifact][Artifact][Deck Pile] reading left→right.
+        float topY = 44f;
+        float rightX = vw - portraitW - 8f;
+
+        var enemyPortrait = MakePortraitFrame(new Vector2(rightX, topY), frameSize);
+        AddChild(enemyPortrait);
+
+        float enemyGroupW = pad * 2 + deckW + artW * 2 + gap * 2;
+        float enemyGroupX = rightX - enemyGroupW - 10f;
+        float enemyGroupY = topY + (portraitH - deckH) * 0.5f;
+        _enemyGroupRect = BuildArsenalGroup(enemyGroupX, enemyGroupY, deckW, deckH, artW, artH, gap, pad, isPlayer: false);
+        AddChild(_enemyGroupRect);
+
+        GD.Print($"[DUEL] TASK-H deck+artifact groups: player @({groupX:F0},{groupY:F0}), enemy @({enemyGroupX:F0},{enemyGroupY:F0})");
+    }
+
+    /// <summary>Portrait placeholder frame (kept from FIX-5, artifacts no longer flank it).</summary>
+    private Control MakePortraitFrame(Vector2 pos, float frameSize)
+    {
+        var portrait = new PanelContainer();
+        portrait.CustomMinimumSize = new Vector2(frameSize * 1.2f, frameSize * 1.4f);
+        portrait.Position = pos;
         var pStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.15f, 0.12f, 0.09f, 0.85f),
@@ -602,42 +635,134 @@ public partial class DuelScene : Control
             CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
             CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
         };
-        playerPortrait.AddThemeStyleboxOverride("panel", pStyle);
+        portrait.AddThemeStyleboxOverride("panel", pStyle);
         var pLabel = new Label { Text = "?", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
         pLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.5f));
         pLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.4f));
-        playerPortrait.AddChild(pLabel);
-        AddChild(playerPortrait);
+        portrait.AddChild(pLabel);
+        return portrait;
+    }
 
-        // Two artifact frames beside player portrait
-        float ax = leftX + frameSize * 1.2f + 4f;
-        var pa1 = MakeFrame(new Vector2(ax, bottomY), true);
-        var pa2 = MakeFrame(new Vector2(ax + frameSize + 4f, bottomY), true);
-        AddChild(pa1);
-        AddChild(pa2);
+    /// <summary>
+    /// Build one arsenal group: a subtle container rect holding the deck pile and two artifact frames.
+    /// Player order (left→right): [Deck][Art][Art]; enemy order is mirrored: [Art][Art][Deck].
+    /// </summary>
+    private Control BuildArsenalGroup(float x, float y, float deckW, float deckH, float artW, float artH, float gap, float pad, bool isPlayer)
+    {
+        var group = new PanelContainer { Name = isPlayer ? "PlayerArsenalGroup" : "EnemyArsenalGroup" };
+        group.Position = new Vector2(x, y);
+        group.CustomMinimumSize = new Vector2(pad * 2 + deckW + artW * 2 + gap * 2, pad * 2 + deckH);
+        var groupStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.45f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.25f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6
+        };
+        group.AddThemeStyleboxOverride("panel", groupStyle);
 
-        // Enemy: top-right, mirrored
-        float topY = 44f;
-        float rightX = GetViewportRect().Size.X - frameSize * 1.2f - 8f;
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", (int)gap);
+        group.AddChild(row);
 
-        var enemyPortrait = new PanelContainer();
-        enemyPortrait.CustomMinimumSize = new Vector2(frameSize * 1.2f, frameSize * 1.4f);
-        enemyPortrait.Position = new Vector2(rightX, topY);
-        enemyPortrait.AddThemeStyleboxOverride("panel", pStyle);
-        var eLabel = new Label { Text = "?", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-        eLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(frameSize * 0.5f));
-        eLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.4f));
-        enemyPortrait.AddChild(eLabel);
-        AddChild(enemyPortrait);
+        var deck = MakeDeckPile(deckW, deckH, isPlayer);
+        var art1 = MakeArtifactFrame(artW, artH);
+        var art2 = MakeArtifactFrame(artW, artH);
 
-        // Two artifact frames beside enemy portrait (to the right — mirrored)
-        float eax = rightX + frameSize * 1.2f + 4f;
-        var ea1 = MakeFrame(new Vector2(eax, topY), false);
-        var ea2 = MakeFrame(new Vector2(eax + frameSize + 4f, topY), false);
-        AddChild(ea1);
-        AddChild(ea2);
+        if (isPlayer)
+        {
+            row.AddChild(deck);
+            row.AddChild(art1);
+            row.AddChild(art2);
+        }
+        else
+        {
+            row.AddChild(art1);
+            row.AddChild(art2);
+            row.AddChild(deck);
+        }
 
-        GD.Print($"[DUEL] Artifact slot frames reserved — player portrait + 2 slots L, enemy portrait + 2 slots R");
+        return group;
+    }
+
+    /// <summary>Deck pile visual: stacked card backs + live deck count.</summary>
+    private Control MakeDeckPile(float w, float h, bool isPlayer)
+    {
+        var pile = new Control { CustomMinimumSize = new Vector2(w, h) };
+        pile.MouseFilter = MouseFilterEnum.Ignore;
+
+        // Stacked card backs (3 layers, offset to suggest a pile)
+        for (int i = 2; i >= 0; i--)
+        {
+            var back = new PanelContainer
+            {
+                Position = new Vector2(i * 3f, i * 3f),
+                CustomMinimumSize = new Vector2(w, h),
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            var style = new StyleBoxFlat
+            {
+                BgColor = new Color(0.10f, 0.08f, 0.06f, 0.95f),
+                BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.35f),
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
+            };
+            back.AddThemeStyleboxOverride("panel", style);
+            pile.AddChild(back);
+        }
+
+        // Deck count label (live from game state)
+        var count = 0;
+        if (_gsm != null && _gsm.State != null)
+        {
+            var p = isPlayer ? _gsm.State.Players[0] : _gsm.State.Players[1];
+            count = p.Deck.Count;
+        }
+        var label = new Label
+        {
+            Text = count.ToString(),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        label.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(h * 0.35f));
+        label.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.45f, 0.9f));
+        pile.AddChild(label);
+
+        return pile;
+    }
+
+    /// <summary>Placeholder artifact card frame with a faint "Artifact" label.</summary>
+    private Control MakeArtifactFrame(float w, float h)
+    {
+        var frame = new PanelContainer { CustomMinimumSize = new Vector2(w, h) };
+        frame.MouseFilter = MouseFilterEnum.Ignore;
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.10f, 0.08f, 0.8f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        };
+        frame.AddThemeStyleboxOverride("panel", style);
+
+        var label = new Label
+        {
+            Text = "Artifact",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        label.AddThemeFontSizeOverride("font_size", Mathf.Max(8, Mathf.RoundToInt(h * 0.16f)));
+        label.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.45f));
+        frame.AddChild(label);
+        return frame;
     }
 
     /// <summary>
@@ -1851,6 +1976,72 @@ public partial class DuelScene : Control
         GD.Print($"[VERIFY] Lane slots with visible art: {laneArtCount}/{_enemySlots.Count + _playerSlots.Count}");
         GD.Print($"[VERIFY] Largest hand card: ({maxW:F0}x{maxH:F0})");
         GD.Print($"[VERIFY] Smallest hand card: ({minW:F0}x{minH:F0})");
+
+        // — TASK-H: Deck + Artifact group checks —
+        GD.Print("[VERIFY] === Arsenal group checks (TASK-H) ===");
+        if (_playerGroupRect == null || _enemyGroupRect == null)
+        {
+            GD.PrintErr("[VERIFY] FAIL: Arsenal group rects not created");
+            fails++;
+        }
+        else
+        {
+            var playerRect = new Rect2(_playerGroupRect.GetScreenTransform().Origin, _playerGroupRect.Size);
+            var enemyRect = new Rect2(_enemyGroupRect.GetScreenTransform().Origin, _enemyGroupRect.Size);
+
+            // Groups are inside the viewport
+            if (playerRect.Position.X < 0 || playerRect.Position.Y < 0 ||
+                playerRect.End.X > viewportSize.X + 2 || playerRect.End.Y > viewportSize.Y + 2)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Player arsenal group {playerRect} exceeds viewport {viewportSize}");
+                fails++;
+            }
+            else
+            {
+                GD.Print($"[VERIFY] OK: Player arsenal group {playerRect}");
+            }
+
+            if (enemyRect.Position.X < 0 || enemyRect.Position.Y < 0 ||
+                enemyRect.End.X > viewportSize.X + 2 || enemyRect.End.Y > viewportSize.Y + 2)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Enemy arsenal group {enemyRect} exceeds viewport {viewportSize}");
+                fails++;
+            }
+            else
+            {
+                GD.Print($"[VERIFY] OK: Enemy arsenal group {enemyRect}");
+            }
+
+            // Player group is lower-left (below vertical center), enemy is upper-right (above center)
+            float midX = viewportSize.X * 0.5f;
+            float midY = viewportSize.Y * 0.5f;
+            bool playerLowerLeft = playerRect.Position.X < midX && playerRect.Position.Y > midY;
+            bool enemyUpperRight = enemyRect.Position.X > midX && enemyRect.Position.Y < midY;
+            if (!playerLowerLeft)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Player arsenal group at {playerRect.Position} is not lower-left (mid {midX},{midY})");
+                fails++;
+            }
+            if (!enemyUpperRight)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Enemy arsenal group at {enemyRect.Position} is not upper-right (mid {midX},{midY})");
+                fails++;
+            }
+
+            // Mirror symmetry: group sizes within 2px of each other
+            float wDiff = Mathf.Abs(playerRect.Size.X - enemyRect.Size.X);
+            float hDiff = Mathf.Abs(playerRect.Size.Y - enemyRect.Size.Y);
+            if (wDiff > 2 || hDiff > 2)
+            {
+                GD.PrintErr($"[VERIFY] FAIL: Arsenal group sizes not mirrored: player {playerRect.Size} vs enemy {enemyRect.Size}");
+                fails++;
+            }
+            else
+            {
+                GD.Print($"[VERIFY] OK: Arsenal groups mirrored ({playerRect.Size.X:F0}x{playerRect.Size.Y:F0})");
+            }
+        }
+
         GD.Print($"[VERIFY] === {fails} check(s) failed ===");
 
         return fails;

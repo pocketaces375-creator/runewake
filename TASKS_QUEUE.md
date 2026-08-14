@@ -18,7 +18,7 @@
 - [x] TASK-F4 — Board/hand placeholder art pass. Any card with no art file renders the parchment/stone placeholder with the card NAME clearly readable (board AND hand — NoArtLabel exists for hand; extend to LaneSlot). Never a black void anywhere in the client.
   Acceptance: harness capture (test state includes at least one missing-art card) + gate pass.
 
-- [ ] TASK-H — Deck + Artifact side-group layout (DECISION CHANGE, supersedes the old portrait-flanking plan and the pending FIX-5): each player's deck pile and their TWO Artifact card frames form one visual group — "this is my sword and shield, next to my arsenal" — player's group lower-left area, opponent's mirrored upper-right. Portraits stay but the Artifacts anchor to the DECK group. Placeholder artifact frames with faint "Artifact" labels; add the group rects to duel_test.meta.json.
+- [x] TASK-H — Deck + Artifact side-group layout (DECISION CHANGE, supersedes the old portrait-flanking plan and the pending FIX-5): each player's deck pile and their TWO Artifact card frames form one visual group — "this is my sword and shield, next to my arsenal" — player's group lower-left area, opponent's mirrored upper-right. Portraits stay but the Artifacts anchor to the DECK group. Placeholder artifact frames with faint "Artifact" labels; add the group rects to duel_test.meta.json.
   Acceptance: harness capture + gate pass; both groups visible and mirrored in the PNG.
 
 - [ ] TASK-DSL-1 — Turn-scoped counters + conditions: ATTACKERS_THIS_TURN_GTE/EQ, SPELLS_CAST_THIS_TURN_EQ, NO_ATTACKERS_LAST_TURN, CREATURE_DIED_THIS_TURN (side-aware), HAS_NOT_ATTACKED / FIRST_ATTACKER / FIRST_ATTACKED filters. Engine + unit tests only, no client work.

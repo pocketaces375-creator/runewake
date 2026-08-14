@@ -7,3 +7,12 @@
 === Running: TASK-F4 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+
+=== Foreman — one iteration ===
+
+  Budget: 1/10 sessions used today
+  Top task: TASK-H
+
+=== Running: TASK-H ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
