@@ -29,6 +29,8 @@ Phantom cleared: `retry_count 0`, `retry_task_id ""`, `blocked_notified false`.
 
 **Budget state:** 6/16 halves-tracked sessions 2026-08-14 (6 full, 0 bus).
 
+**⚠️ Post-DONE incident + recovery (same session):** while the chain ran DSL-3, a DONE-line commit pushed mid-chain (`247c489`) was mistaken by the foreman's retry cleanup for the worker's failed commit and reverted; `git clean` also removed the DSL-3 worker's partial `CostMod.cs`/`CostModTests.cs`. Recovered: `5b97c9c` (reapply DONE line), `4765ac7` (clear DSL-3 phantom retry). **Lesson: never commit/push to the repo while the foreman chain is live — DONE-line commits go after the chain releases the repo.** DSL-3 unchecked, retry cleared, budget 7/16 — cron picks it up.
+
 ## 2026-08-14 | TASK-FOREMAN-SPEED
 
 ### DONE: TASK-FOREMAN-SPEED — chain mode + 30min cron + budget 16
