@@ -376,3 +376,18 @@ All five defects fixed and proven end-to-end:
 - Harness capture regenerated, pixel gate exit 0, 463 unit tests green
 - Commit 8bbe9d8 "TASK-TASK-H: Deck + Artifact side-group layout (DECISION CHANGE...)" pushed to main
 - TASKS_QUEUE.md marked [x]
+
+## 2026-08-14 | TASK-F4B
+
+### DONE: TASK-F4B — Close the gate's masking hole
+- Added PrePlaceCreatures() to DuelScene.cs: pre-places 3 creatures per side on lanes 0-2 after mulligan, before capture snapshot
+  - Player+enemy lane 0: emb_c_cinder_runner (HAS art → FixedArtRect)
+  - Player+enemy lane 1: vrd_x_heartwood_relic (NO art → NoArtLabel, exercising placeholder)
+  - Player+enemy lane 2: dwn_r_sealing_light (HAS art → FixedArtRect)
+- Board card meta entries now include explicit "state" field: "occupied" when lane has occupant, "empty" when not
+- capture_gate.py: replaced heuristic slot-is-empty (mean+stddev hack) with explicit state field from meta
+  - state=empty → SKIP checks (uniform color is OK — no creature expected)
+  - state=occupied → FAIL if uniform (creature must be visible, not a void)
+- Harness capture regenerated: gate exit 0, all 6 occupied slots pass luminance/variance checks, 4 empty slots skipped
+- Commit 516b3d6 pushed to main
+- TASKS_QUEUE.md marked [x]
