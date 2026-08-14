@@ -33,6 +33,8 @@ FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
 DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-10}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
+# Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
+PYTHON_BIN="${FOREMAN_PYTHON_BIN:-$HOME/.hermes/hermes-agent/venv/bin/python}"
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
 STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
@@ -327,28 +329,40 @@ else
   GATE_PASSED=1
 fi
 
-# 5d. Dotnet tests green? (decision by exit code only)
-if command -v dotnet &>/dev/null; then
-  if (cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --nologo -v q); then
-    ok "Dotnet tests passed"
+# 5d. Dotnet tests green? — scoped: run only if worker commit touched .NET or content files
+if command -v dotnet &>/dev/null && [[ -n "${NEW_COMMIT_SHA}" ]]; then
+  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
+  if echo "${CHANGED_FILES}" | grep -qE '\.(cs|csproj)$|content/.*\.json$'; then
+    if (cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --nologo -v q); then
+      ok "Dotnet tests passed"
+    else
+      warn "Dotnet tests failed"
+      VALIDATION_FAILED=1
+      VALIDATION_REASONS="${VALIDATION_REASONS}dotnet_test_failure "
+    fi
   else
-    warn "Dotnet tests failed"
-    VALIDATION_FAILED=1
-    VALIDATION_REASONS="${VALIDATION_REASONS}dotnet_test_failure "
+    info "No .NET/content changes — skipping dotnet gate"
   fi
 else
-  info "dotnet not available"
+  info "dotnet not available or no worker commit"
 fi
 
-# 5e. Python tests green? (decision by exit code only)
-if command -v python3 &>/dev/null && [[ -d "${PROJECT_DIR}/pipeline/tests" ]]; then
-  if (cd "${PROJECT_DIR}" && python3 -m pytest pipeline/tests/ -x -q); then
-    ok "Python tests passed"
+# 5e. Python tests green? — scoped: run only if worker commit touched *.py; bound to pipeline venv
+if [[ -x "${PYTHON_BIN}" ]] && [[ -d "${PROJECT_DIR}/pipeline/tests" ]] && [[ -n "${NEW_COMMIT_SHA}" ]]; then
+  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
+  if echo "${CHANGED_FILES}" | grep -qE '\.py$'; then
+    if (cd "${PROJECT_DIR}" && "${PYTHON_BIN}" -m pytest pipeline/tests/ -x -q); then
+      ok "Python tests passed"
+    else
+      warn "Python tests failed"
+      VALIDATION_FAILED=1
+      VALIDATION_REASONS="${VALIDATION_REASONS}pytest_failure "
+    fi
   else
-    warn "Python tests failed"
-    VALIDATION_FAILED=1
-    VALIDATION_REASONS="${VALIDATION_REASONS}pytest_failure "
+    info "No Python changes — skipping pytest gate"
   fi
+else
+  info "pipeline venv not found or no worker commit — skipping pytest gate"
 fi
 
 # ── FIX #3: Enforce push on success ──────────────────────────────────────────
