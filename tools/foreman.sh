@@ -119,6 +119,26 @@ today() {
   date +%Y-%m-%d
 }
 
+# Parked heartbeat — write timestamp + reason at most once per 60 min
+# so Claude's remote eyes can tell "parked" from "dead".
+write_parked_heartbeat() {
+  local reason="$1"
+  local now_epoch
+  now_epoch=$(date +%s)
+  local last_heartbeat
+  last_heartbeat=$(get_state "last_heartbeat_epoch" 2>/dev/null || echo "0")
+  last_heartbeat=${last_heartbeat:-0}
+  local elapsed=$(( now_epoch - last_heartbeat ))
+  if [[ "${elapsed}" -lt 3600 ]] && [[ "${last_heartbeat}" -gt 0 ]]; then
+    return 0  # within hourly quiet window
+  fi
+  set_state "last_heartbeat_epoch" "${now_epoch}"
+  set_state "last_heartbeat_reason" "\"${reason}\""
+  local now_iso
+  now_iso=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+  ok "Heartbeat: parked — ${reason} (${now_iso})"
+}
+
 # Find the top unchecked task in TASKS_QUEUE.md
 find_top_task() {
   python3 -c "
@@ -324,6 +344,7 @@ while [[ "${CHAIN_RUNNING}" -eq 1 ]]; do
 if [[ -f "${HALT_FILE}" ]]; then
   warn "HALT file found at ${HALT_FILE}"
   telegram_text "FOREMAN HALTED — ${HALT_FILE} exists"
+  write_parked_heartbeat "HALT"
   exit 1
 fi
 
@@ -434,6 +455,7 @@ TOP_TASK=$(find_top_task)
 if [[ -z "${TOP_TASK}" ]]; then
   ok "Queue is empty"
   telegram_text "Queue empty — no tasks remaining"
+  write_parked_heartbeat "empty_queue"
   exit 0
 fi
 
@@ -450,6 +472,7 @@ if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]] && [[ "${RETRY_COUNT}" -ge 1 ]]; the
   else
     info "Task ${TASK_ID} still BLOCKED (already notified, silent)"
   fi
+  write_parked_heartbeat "sticky_block"
   exit 1
 fi
 
