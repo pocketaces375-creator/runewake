@@ -1,10 +1,10 @@
 {
   "date": "2026-08-14",
-  "session_count": 4,
+  "session_count": 5,
   "last_task_id": "TASK-DSL-1",
   "last_commit_sha": "7f1406c9a85949994f87d343d9a53957ae7707cf",
-  "retry_count": 0,
-  "retry_task_id": "",
+  "retry_count": 1,
+  "retry_task_id": "TASK-DSL-2",
   "blocked_notified": false,
   "consecutive_transients": 0,
   "transient_notified": false
