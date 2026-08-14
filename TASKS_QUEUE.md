@@ -49,7 +49,7 @@
 
 - [x] TASK-T3 — Ruling tests, Cleric + Ranger: R11–R18.
 
-- [ ] TASK-T4 — Ruling tests, Necromancer + Runesmith: R19–R26 + spec §10 checklist items (zone integrity, N-slot generalization, AI never targets Artifact slots).
+- [x] TASK-T4 — Ruling tests, Necromancer + Runesmith: R19–R26 + spec §10 checklist items (zone integrity, N-slot generalization, AI never targets Artifact slots).
 
 - [ ] TASK-S1 — Sim metric: run the logged sim suite across all 7 classes (each vs each, fixed seeds). Report per-class: winrate matrix and % of non-empty combat turns where the chosen attack set ≠ "all legal attackers attack" (target ≥25%). Write results to sim/artifact_metrics.md. NO balance changes — numbers are Claude's to move.
 
