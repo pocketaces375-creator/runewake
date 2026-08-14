@@ -141,6 +141,13 @@ public static class TargetResolver
                 .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
                 .ToList(),
             "CHOSEN" => pool, // Player would choose; engine selects first valid
+            "FIRST_SUMMONED_THIS_TURN" => pool
+                .Where(t => t is CreatureTarget ct && ct.Card.SummonedThisTurn)
+                .OrderBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
+            "HAS_PERMANENT_BUFF" => pool
+                .Where(t => t is CreatureTarget ct && (ct.Card.AttackModifier > 0 || ct.Card.VigorModifier > 0))
+                .ToList(),
             _ => pool
         };
     }
