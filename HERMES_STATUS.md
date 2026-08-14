@@ -353,3 +353,15 @@ All five defects fixed and proven end-to-end:
 - Created test_fake_output.txt in repo root with content "test" (already present from prior foreman proof; verified content + tracked)
 - Commit 19cd35b "TASK-TEST: test task" pushed to main
 - TASKS_QUEUE.md NOT modified (per task instruction); tests/gate NOT run (per task instruction)
+|
+|---
+
+## 2026-08-13 | TASK-F4
+
+### DONE: TASK-F4 — Board/hand placeholder art pass
+- Added NoArtLabel (Label node) to LaneSlot.tscn — overlays art area with card name, off-white parchment text, auto-wrap, 2 lines max
+- Wired in LaneSlot.cs: `_Ready()` (hide by default, apply header font), `LoadArt()` (show with card name when no art, clear FixedArtRect text to avoid double-text), `SetEmpty()` (hide)
+- FixedArtRect PlaceholderText cleared when NoArtLabel handles display — no DrawString vs Label double-text
+- Built, harness capture regenerated, pixel gate exit 0
+- Commit 1b2c26f "TASK-F4: Board/hand placeholder art pass..." pushed to main
+- TASKS_QUEUE.md marked [x]
