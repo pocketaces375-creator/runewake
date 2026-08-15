@@ -548,13 +548,18 @@ public partial class Main : Control
         const string supabaseKey = "placeholder-anon-key";
         CrashReporter.UploadPendingReports(supabaseUrl, supabaseKey);
 
-        // ═══ CAPTURE HOOK (gated): auto-navigate to duel screen ═══
+        // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
         {
             if (CampaignContext.CaptureMapScreenshot)
             {
                 // Navigate to map for map capture
                 Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
+            }
+            else if (CampaignContext.CaptureDeckBuilderScreenshot)
+            {
+                // Navigate to deck builder for deck capture
+                Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn")).CallDeferred();
             }
             else
             {

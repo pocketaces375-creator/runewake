@@ -2,6 +2,8 @@
 
 ## Completed Tasks
 
+**TASK-DK1 (2026-08-15):** Engine deck rules per DECK_SPEC.md — DeckRules class (min 30, max 40, singleton) in engine/State/DeckRules.cs, updated DeckValidator with specific error strings ("too few cards (N/30 minimum)", "too many cards (N/40 maximum)", "duplicate: <name>"), removed old RELIC/Strata/max-2-copy rules. New MatchConfig in engine/State/MatchConfig.cs with StartingVigor 20-30 clamped default 25, wired into GameConfig, GameState.Initialize reads it and sets PlayerState (both duel setup paths: campaign encounter + test game). 15 new unit tests: DeckRules boundary checks, MatchConfig clamping, size bounds, duplicate rejection, vigor config respected in Initialize (custom, clamped-low, clamped-high, null=default). All 714 tests green. Commit 9b6801a.
+
 **TASK-APK1 (2026-08-15):** Build debug APK — Godot 4.3.stable.mono ✓, Android templates ✓, JDK 21.0.11 ✓, SDK android-34 ✓. `--export-debug` → 117MB exports/Runewake.apk. Release: alpha-2026-08-15-1620. Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-15-1620/Runewake.apk. Telegram: posted to Adam DM.
 
 **TASK-AC1 (2026-08-15):** Data-driven Artifact visual states — added ArtifactVisualState enum (READY/CHARGED/SUPPRESSED/SPENT) with computed property on ArtifactSlot, no client-side guesswork. Added ApplyArtifactVisualState styling method in DuelScene (gold READY, blue-purple CHARGED, gray SUPPRESSED, muted SPENT). Artifact packs loaded at startup. Capture hook pre-places all four states (Sword=READY, Duskfang=CHARGED, Shield=SUPPRESSED, Wand=SPENT). Engine tests 699 green, build exit 0, capture gate exit 0 (4 hand + 10 board + art state checks).

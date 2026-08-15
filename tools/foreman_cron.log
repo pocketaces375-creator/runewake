@@ -2973,3 +2973,219 @@ Passed!  - Failed:     0, Passed:   699, Skipped:     0, Total:   699, Duration:
 [main 90d2099] foreman: heartbeat — HALT
  1 file changed, 2 insertions(+), 2 deletions(-)
 foreman already running (PID 167375) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 4/48 (4 full + 0 bus, 8/96 halves)
+  Top task: TASK-APK1
+
+=== Running: TASK-APK1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+→ Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-15-1620/Runewake.apk
+
+**Telegram:** Posted to Adam's DM ✓ (RuneWake group chat not found, likely stale ID)
+
+**Git:** `2c03c2c` committed + pushed to `origin/main`
+
+=== Regenerating capture ===
+
+  Godot not found at /home/fictive/Godot_v4.3-stable_linux.x86_64, skipping capture
+  Skipping capture regen
+
+=== Validation ===
+
+  New commit: 2c03c2c TASK-APK1: Build debug APK: verify Godot 4.3 mono + Android templates + JDK17 + SDK (show real command output; if tooling missing, BLOCKED entry naming exactly what, stop). Else export exports/Runewake.apk, gh release create alpha-<date> with the APK, post download URL to Telegram.
+  Task TASK-APK1 marked [x]
+  Pixel gate passed
+  No .NET/content changes — skipping dotnet gate
+  No Python changes — skipping pytest gate
+  Git push successful
+  Task TASK-APK1 complete! (5/48)
+[main 6fb06a4] foreman: state after TASK-APK1 (success)
+ 2 files changed, 33 insertions(+), 33 deletions(-)
+  Task TASK-APK1 complete — consecutive successes: 1
+  Chaining — budget 10/96 halves, next: TASK-DK1
+
+=== Iteration 2 — chain mode ===
+
+Already up to date.
+  Budget: 5/48 (5 full + 0 bus, 10/96 halves)
+  Top task: TASK-DK1
+
+=== Running: TASK-DK1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- MatchConfig clamping and defaults (7 tests)
+- DeckValidator: size bounds, singleton, specific error strings (12 tests, replaces old RELIC/Strata tests)
+- GameStateInit: vigor config propagation (4 tests: custom, clamped-low, clamped-high, null=default)
+
+**Commit:** `9b6801a` — pushed to `origin/main`
+
+=== Regenerating capture ===
+
+  Godot not found at /home/fictive/Godot_v4.3-stable_linux.x86_64, skipping capture
+  Skipping capture regen
+
+=== Validation ===
+
+  New commit: 9b6801a TASK-DK1: Engine deck rules per DECK_SPEC.md RULES: DeckRules class (min 30 / max 40 / singleton), extend existing deck validator with specific error strings; new MatchConfig with StartingVigor 20-30 clamped default 25, PlayerState reads it (both duel setup paths). Unit tests: size bounds, duplicate rejection, vigor config respected, all legacy tests green.
+  Task TASK-DK1 marked [x]
+  Pixel gate passed
+/home/fictive/runewake/engine/Diagnostics/CrashReportBuilder.cs(93,26): warning CS8600: Converting null literal or possible null value to non-nullable type. [/home/fictive/runewake/engine/Runewake.Engine.csproj]
+/home/fictive/runewake/engine/State/RunePage.cs(63,39): warning CS0618: 'RunePage.MaxBudget' is obsolete: 'Use GetBudgetForLevel(int) instead' [/home/fictive/runewake/engine/Runewake.Engine.csproj]
+/home/fictive/runewake/engine/State/RunePage.cs(115,50): warning CS0618: 'RunePage.MaxBudget' is obsolete: 'Use GetBudgetForLevel(int) instead' [/home/fictive/runewake/engine/Runewake.Engine.csproj]
+/home/fictive/runewake/engine/Engine/DuelEngine.cs(310,22): warning CS0219: The variable 'isUnearthed' is assigned but its value is never used [/home/fictive/runewake/engine/Runewake.Engine.csproj]
+/home/fictive/runewake/sim/CardValidator.cs(193,69): warning CS8604: Possible null reference argument for parameter 'item' in 'bool HashSet<string>.Contains(string item)'. [/home/fictive/runewake/sim/Runewake.Sim.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(68,9): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(87,9): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(151,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(152,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(153,21): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(181,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(183,21): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/CombatTests.cs(278,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/KeywordTests.cs(144,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(133,147): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(133,153): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(133,159): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(133,165): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(135,148): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(135,154): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(135,160): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(135,166): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(137,84): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(137,96): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(137,102): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(139,144): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(139,158): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(139,164): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(141,154): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(141,160): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(141,166): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(141,172): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(141,178): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(143,94): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(143,100): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(143,106): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(143,112): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(145,98): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(145,104): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(145,110): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(145,116): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(147,98): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(147,104): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(147,110): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(147,116): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(149,94): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(149,100): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(149,106): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(149,112): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(151,96): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(151,102): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(151,108): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(151,114): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(153,93): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(153,99): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(153,105): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(153,111): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(155,146): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(155,152): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(155,158): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(155,172): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(157,157): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(157,163): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(157,169): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(157,184): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(159,154): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(159,160): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(159,166): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(159,172): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(159,178): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(161,144): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(161,150): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(161,156): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(161,162): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(161,168): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(163,96): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(163,102): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(163,108): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(163,114): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(165,137): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(165,143): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(165,149): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(165,155): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(165,161): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(167,145): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(167,151): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(167,157): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(167,163): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(167,169): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(169,100): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(169,106): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(169,112): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(169,118): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(171,101): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(171,107): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(171,113): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(171,119): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(173,141): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(173,147): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(173,153): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(173,159): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(173,165): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(175,145): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(175,159): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(175,165): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(177,144): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(177,150): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(177,156): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(177,162): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(177,168): warning CS8625: Cannot convert null literal to non-nullable reference type. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Campaign/RegionOneIntegrationTests.cs(368,50): warning CS8604: Possible null reference argument for parameter 'key' in 'EncounterDef Dictionary<string, EncounterDef>.this[string key]'. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(248,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(259,26): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(342,38): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(362,40): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(372,40): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(405,33): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(446,25): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(456,26): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Cards/MapLoaderTests.cs(103,39): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Cards/MapLoaderTests.cs(104,35): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Cards/MapLoaderTests.cs(152,34): warning CS8602: Dereference of a possibly null reference. [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Cards/ContentManagerTests.cs(18,36): warning CS0414: The field 'ContentManagerTests._knownHash' is assigned but its value is never used [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/KeywordTests.cs(331,9): warning xUnit2017: Do not use Assert.True() to check if a value exists in a collection. Use Assert.Contains instead. (https://xunit.net/xunit.analyzers/rules/xUnit2017) [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/EffectExecutorTests.cs(187,16): warning xUnit1026: Theory method 'Op_Executes' on test class 'EffectExecutorTests' does not use parameter 'description'. Use the parameter, or remove the parameter and associated data. (https://xunit.net/xunit.analyzers/rules/xUnit1026) [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Cards/MapLoaderTests.cs(164,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Single instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/RuneEngineTests.cs(53,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+/home/fictive/runewake/tests/Engine/RuneEngineTests.cs(241,9): warning xUnit2013: Do not use Assert.Equal() to check for collection size. Use Assert.Empty instead. (https://xunit.net/xunit.analyzers/rules/xUnit2013) [/home/fictive/runewake/tests/Runewake.Tests.csproj]
+Test run for /home/fictive/runewake/tests/bin/Debug/net8.0/Runewake.Tests.dll (.NETCoreApp,Version=v8.0)
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   714, Skipped:     0, Total:   714, Duration: 6 s - Runewake.Tests.dll (net8.0)
+  Dotnet tests passed
+  No Python changes — skipping pytest gate
+  Git push successful
+  Task TASK-DK1 complete! (6/48)
+[main 1f2b777] foreman: state after TASK-DK1 (success)
+ 2 files changed, 31 insertions(+), 31 deletions(-)
+  Task TASK-DK1 complete — consecutive successes: 2
+  Chaining — budget 12/96 halves, next: TASK-DK2
+
+=== Iteration 3 — chain mode ===
+
+Already up to date.
+  Budget: 6/48 (6 full + 0 bus, 12/96 halves)
+  Top task: TASK-DK2
+
+=== Running: TASK-DK2 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
