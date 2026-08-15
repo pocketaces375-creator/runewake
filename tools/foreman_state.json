@@ -5,13 +5,13 @@
   "last_commit_sha": "1a932cd3114264a33d1c6c2d97f54df9908a914a",
   "retry_count": 1,
   "retry_task_id": "TASK-ARS-VERDANT",
-  "blocked_notified": false,
+  "blocked_notified": true,
   "consecutive_transients": 0,
   "transient_notified": false,
   "bus_last_seq": 0,
   "bus_session_count": 0,
   "no_progress_count": 0,
   "validated_count": 8,
-  "last_heartbeat_epoch": 1786830421,
-  "last_heartbeat_reason": "HALT"
+  "last_heartbeat_epoch": 1786837623,
+  "last_heartbeat_reason": "sticky_block"
 }
