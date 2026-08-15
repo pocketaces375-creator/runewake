@@ -36,4 +36,10 @@ public sealed class GameConfig
 
     /// <summary>Class name for player 1.</summary>
     public string Player1Class { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Per-match configuration (starting vigor, etc.).
+    /// When null, the engine uses default values (StartingVigor=25).
+    /// </summary>
+    public MatchConfig? MatchConfig { get; init; }
 }

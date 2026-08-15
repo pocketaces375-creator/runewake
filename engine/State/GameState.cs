@@ -88,7 +88,17 @@ public sealed class GameState
     /// </summary>
     public static GameState Initialize(GameConfig config)
     {
+        var matchConfig = config.MatchConfig ?? new MatchConfig();
+        int startingVigor = matchConfig.StartingVigor;
+
         var state = new GameState(config.Seed, config.ContentVersion);
+
+        // Apply starting vigor from MatchConfig before any deck processing
+        for (int p = 0; p < 2; p++)
+        {
+            state.Players[p].MaxVigor = startingVigor;
+            state.Players[p].Vigor = startingVigor;
+        }
 
         for (int p = 0; p < 2; p++)
         {

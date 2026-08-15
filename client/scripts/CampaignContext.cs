@@ -101,6 +101,12 @@ public static class CampaignContext
     public static string TutorialPlayerClass { get; set; } = string.Empty;
 
     /// <summary>
+    /// Per-match configuration (starting vigor, etc.).
+    /// Set by the pre-duel UI (brass dial); null uses engine defaults.
+    /// </summary>
+    public static MatchConfig? MatchConfig { get; set; }
+
+    /// <summary>
 
     /// <summary>
     /// Load all encounter packs from the content directory.

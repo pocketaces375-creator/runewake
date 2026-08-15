@@ -108,7 +108,8 @@ public partial class GameStateManager : Node
             Seed = seed,
             ContentVersion = 1,
             Player0DeckIds = allCards.ToList(),
-            Player1DeckIds = allCards.ToList()
+            Player1DeckIds = allCards.ToList(),
+            MatchConfig = new MatchConfig()
         };
 
         Initialize(config);

@@ -297,7 +297,8 @@ public partial class DuelScene : Control
                 Player1DeckIds = encounter.Deck,
                 RunePage = CampaignContext.CurrentRunePage,
                 Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds,
-                Player0Class = CampaignContext.TutorialPlayerClass
+                Player0Class = CampaignContext.TutorialPlayerClass,
+                MatchConfig = CampaignContext.MatchConfig ?? new MatchConfig()
             };
             _gsm.Initialize(config);
         }

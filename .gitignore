@@ -31,6 +31,10 @@ screenshots/
 # Capture artifacts (force-add individual files for commits)
 artifacts/captures/
 
+# Foreman logs (auto-generated)
+tools/foreman_cron.log
+tools/foreman_last_run.log
+
 # Godot specific
 client/.import/
 client/export_presets.cfg

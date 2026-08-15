@@ -300,6 +300,92 @@ public class GameStateInitTests
     }
 
     // ─────────────────────────────────────────────────────
+    //  MatchConfig — StartingVigor propagation
+    // ─────────────────────────────────────────────────────
+
+    [Fact]
+    public void Initialize_CustomMatchConfig_SetsStartingVigor()
+    {
+        CardRegistry.Clear();
+        RegisterTestCards();
+        var deckIds = BuildDeckIds();
+        var config = new GameConfig
+        {
+            Seed = 42,
+            ContentVersion = 1,
+            Player0DeckIds = deckIds,
+            Player1DeckIds = deckIds,
+            MatchConfig = new MatchConfig(28)
+        };
+        var state = GameState.Initialize(config);
+
+        Assert.Equal(28, state.Players[0].Vigor);
+        Assert.Equal(28, state.Players[1].Vigor);
+        Assert.Equal(28, state.Players[0].MaxVigor);
+        Assert.Equal(28, state.Players[1].MaxVigor);
+    }
+
+    [Fact]
+    public void Initialize_MatchConfigClampedLow_SetsMin()
+    {
+        CardRegistry.Clear();
+        RegisterTestCards();
+        var deckIds = BuildDeckIds();
+        var config = new GameConfig
+        {
+            Seed = 42,
+            ContentVersion = 1,
+            Player0DeckIds = deckIds,
+            Player1DeckIds = deckIds,
+            MatchConfig = new MatchConfig(12)
+        };
+        var state = GameState.Initialize(config);
+
+        Assert.Equal(20, state.Players[0].Vigor);
+        Assert.Equal(20, state.Players[0].MaxVigor);
+    }
+
+    [Fact]
+    public void Initialize_MatchConfigClampedHigh_SetsMax()
+    {
+        CardRegistry.Clear();
+        RegisterTestCards();
+        var deckIds = BuildDeckIds();
+        var config = new GameConfig
+        {
+            Seed = 42,
+            ContentVersion = 1,
+            Player0DeckIds = deckIds,
+            Player1DeckIds = deckIds,
+            MatchConfig = new MatchConfig(42)
+        };
+        var state = GameState.Initialize(config);
+
+        Assert.Equal(30, state.Players[0].Vigor);
+        Assert.Equal(30, state.Players[0].MaxVigor);
+    }
+
+    [Fact]
+    public void Initialize_NullMatchConfig_UsesDefault25()
+    {
+        CardRegistry.Clear();
+        RegisterTestCards();
+        var deckIds = BuildDeckIds();
+        var config = new GameConfig
+        {
+            Seed = 42,
+            ContentVersion = 1,
+            Player0DeckIds = deckIds,
+            Player1DeckIds = deckIds,
+            MatchConfig = null
+        };
+        var state = GameState.Initialize(config);
+
+        Assert.Equal(25, state.Players[0].Vigor);
+        Assert.Equal(25, state.Players[1].Vigor);
+    }
+
+    // ─────────────────────────────────────────────────────
     //  Error handling
     // ─────────────────────────────────────────────────────
 

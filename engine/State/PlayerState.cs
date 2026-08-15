@@ -155,11 +155,11 @@ public sealed class PlayerState
     /// </summary>
     public List<CostMod> CostMods { get; } = new();
 
-    public PlayerState(int index)
+    public PlayerState(int index, int startingVigor = 25)
     {
         Index = index;
-        MaxVigor = 25;
-        Vigor = 25;
+        MaxVigor = startingVigor;
+        Vigor = startingVigor;
         AttunementMax = 0;
         Attunement = 0;
         AttunementPerTurn = 1;
