@@ -20,13 +20,18 @@ public partial class AltarField : Control
     private const float BorderThickness = 2f;
     private const int Segments = 72;
 
+    // TASK-BD1: Board skin — skin ID maps to texture path via ThemeTokens
+    public string BoardSkinId { get; set; } = "default";
+    private string _loadedBoardSkinId = "";
+    private Texture2D? _boardTexture;
+
     public override void _Draw()
     {
         Vector2 center = Size / 2;
         float rx = Mathf.Max(1f, Size.X / 2);
         float ry = Mathf.Max(1f, Size.Y / 2);
 
-        // ── Fill ellipse via polygon ──
+        // ── Fill ellipse via polygon (TASK-BD1: textured with board skin, cover-crop) ──
         var fillPoints = new Vector2[Segments];
         for (int i = 0; i < Segments; i++)
         {
@@ -35,7 +40,43 @@ public partial class AltarField : Control
                 center.X + rx * Mathf.Cos(angle),
                 center.Y + ry * Mathf.Sin(angle));
         }
-        DrawColoredPolygon(fillPoints, FillColor);
+
+        // Load board skin texture (cached across frames)
+        string skinPath = ThemeTokens.GetBoardSkinPath(BoardSkinId);
+        if (!string.IsNullOrEmpty(skinPath) && (BoardSkinId != _loadedBoardSkinId || _boardTexture == null))
+        {
+            _boardTexture = ResourceLoader.Load<Texture2D>(skinPath);
+            _loadedBoardSkinId = BoardSkinId;
+        }
+
+        if (_boardTexture != null)
+        {
+            // Cover-crop: scale texture uniformly to cover the full control area
+            float tw = _boardTexture.GetWidth();
+            float th = _boardTexture.GetHeight();
+            float scale = Mathf.Max(Size.X / tw, Size.Y / th);
+            float dispW = tw * scale;
+            float dispH = th * scale;
+            float offX = (Size.X - dispW) * 0.5f;
+            float offY = (Size.Y - dispH) * 0.5f;
+
+            var uvs = new Vector2[Segments];
+            var colors = new Color[Segments];
+            for (int i = 0; i < Segments; i++)
+            {
+                float px = fillPoints[i].X;
+                float py = fillPoints[i].Y;
+                uvs[i] = new Vector2(
+                    (px - offX) / dispW,
+                    (py - offY) / dispH);
+                colors[i] = Colors.White;
+            }
+            DrawPolygon(fillPoints, colors, uvs, _boardTexture);
+        }
+        else
+        {
+            DrawColoredPolygon(fillPoints, FillColor);
+        }
 
         // ── Outer border — draw as connected line segments ──
         var prev = fillPoints[0];

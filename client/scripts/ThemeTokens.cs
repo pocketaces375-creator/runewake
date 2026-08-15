@@ -278,6 +278,21 @@ public static class ThemeTokens
     public const float OpacityDisabled = 0.5f; // greyed out
 
     // ════════════════════════════════════════════
+    // Board Skins (TASK-BD1)
+    // ════════════════════════════════════════════
+
+    private static readonly Dictionary<string, string> _boardSkins = new()
+    {
+        { "default", "res://content/art/board/default.png" }
+    };
+
+    /// <summary>Get the texture path for a board skin ID. Returns null for unknown IDs.</summary>
+    public static string? GetBoardSkinPath(string skinId)
+    {
+        return _boardSkins.TryGetValue(skinId, out var path) ? path : null;
+    }
+
+    // ════════════════════════════════════════════
     // Convenience — strata color lookup
     // ════════════════════════════════════════════
 
