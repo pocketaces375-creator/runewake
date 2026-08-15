@@ -3,26 +3,26 @@
   "expected_board_card_count": 10,
   "hand_cards": [
     {
-      "card_id": "tid_u_coral_guardian",
-      "name": "Coral Guardian",
+      "card_id": "vrd_c_root_warden",
+      "name": "Root Warden",
       "rect": { "x": 412.0, "y": 456.0, "w": 104.0, "h": 152.0 },
       "name_rect": { "x": 412.0, "y": 563.9, "w": 104.0, "h": 24.3 }
     },
     {
-      "card_id": "vrd_x_heartwood_relic",
-      "name": "Heartwood Relic",
+      "card_id": "emb_c_forgeguard_berserker",
+      "name": "Forgeguard Berserker",
       "rect": { "x": 550.0, "y": 456.0, "w": 104.0, "h": 152.0 },
       "name_rect": { "x": 550.0, "y": 563.9, "w": 104.0, "h": 24.3 }
     },
     {
-      "card_id": "dwn_r_sealing_light",
-      "name": "Sealing Light",
+      "card_id": "hol_c_skeletal_reaver",
+      "name": "Skeletal Reaver",
       "rect": { "x": 688.0, "y": 456.0, "w": 104.0, "h": 152.0 },
       "name_rect": { "x": 688.0, "y": 563.9, "w": 104.0, "h": 24.3 }
     },
     {
-      "card_id": "emb_r_magma_forger",
-      "name": "Magma Forger",
+      "card_id": "dwn_r_sealing_light",
+      "name": "Sealing Light",
       "rect": { "x": 826.0, "y": 456.0, "w": 104.0, "h": 152.0 },
       "name_rect": { "x": 826.0, "y": 563.9, "w": 104.0, "h": 24.3 }
     }

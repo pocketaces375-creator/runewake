@@ -59,14 +59,17 @@ public partial class AltarField : Control
                 DashedRingColor, 1f);
         }
 
-        // ── Radial glow (multiple concentric fades drawn as polygons) ──
-        for (int ring = 0; ring < 4; ring++)
+        // ── Smooth radial glow (32 rings — no banding, TASK-UI3e) ──
+        int glowRings = 32;
+        float glowPeakAlpha = GlowColor.A;
+        float alphaStep = glowPeakAlpha / glowRings;
+        for (int ring = 0; ring < glowRings; ring++)
         {
-            float t = 0.08f * (ring + 1);
-            float grx = rx * (1f - t);
-            float gry = ry * (1f - t);
-            float alpha = GlowColor.A * (1f - ring * 0.2f);
-            var c = new Color(GlowColor.R, GlowColor.G, GlowColor.B, Mathf.Max(0f, alpha));
+            float t = (float)ring / glowRings;
+            float grx = rx * (1f - t * 0.90f);
+            float gry = ry * (1f - t * 0.90f);
+
+            if (grx <= 1f || gry <= 1f) continue;
 
             var glowPoints = new Vector2[Segments];
             for (int i = 0; i < Segments; i++)
@@ -76,7 +79,7 @@ public partial class AltarField : Control
                     center.X + grx * Mathf.Cos(angle),
                     center.Y + gry * Mathf.Sin(angle));
             }
-            DrawColoredPolygon(glowPoints, c);
+            DrawColoredPolygon(glowPoints, new Color(GlowColor.R, GlowColor.G, GlowColor.B, alphaStep));
         }
 
         // ── Inset shadow: darker gradient at bottom edge ──
