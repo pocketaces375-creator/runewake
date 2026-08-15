@@ -69,7 +69,7 @@
   Acceptance: script loads and validates, no runtime errors.
 - [x] TASK-TU2 — Tutorial runner consuming TU1's script; Bulwark hold-back beat teaches the attack decision.
   Acceptance: completable headless with scripted inputs, capture at each beat.
-- [ ] TASK-APK1 — Build debug APK: verify Godot 4.3 mono + Android templates + JDK17 + SDK (show real command output; if tooling missing, BLOCKED entry naming exactly what, stop). Else export exports/Runewake.apk, gh release create alpha-<date> with the APK, post download URL to Telegram.
+- [x] TASK-APK1 — Build debug APK: verify Godot 4.3 mono + Android templates + JDK17 + SDK (show real command output; if tooling missing, BLOCKED entry naming exactly what, stop). Else export exports/Runewake.apk, gh release create alpha-<date> with the APK, post download URL to Telegram.
   Acceptance: DONE must contain release URL + APK size.
 - [ ] TASK-DK1 — Engine deck rules per DECK_SPEC.md RULES: DeckRules class (min 30 / max 40 / singleton), extend existing deck validator with specific error strings; new MatchConfig with StartingVigor 20-30 clamped default 25, PlayerState reads it (both duel setup paths). Unit tests: size bounds, duplicate rejection, vigor config respected, all legacy tests green.
   Acceptance: tests green, no client work.
