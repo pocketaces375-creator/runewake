@@ -8,6 +8,7 @@
 - ATTUNE op misfit: correct catch — engine ATTUNE raises AttunementMax, which is NOT a discount. The discount mechanic arrives in TASK-DSL-3 below as a new COST_MOD op; launch_artifacts.json entries currently using "ATTUNE" as discounts will be migrated in that same task.
 
 ## Queue
+# New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
 - [x] TASK-B-FIX — Hand-card green center bar. Root cause: green vigor badge stretched full-card-width by Container layout. Fix: wrapped absolute-positioned children in non-Container Control node. Corner badges now correctly bottom-left/bottom-right.
   Acceptance: harness capture committed, bar gone, badges visible in the PNG.
@@ -57,7 +58,7 @@
 - [x] TASK-UI3b — per TASK_UI3_SPEC.md §UI3b
 - [x] TASK-UI3c — per TASK_UI3_SPEC.md §UI3c
 - [x] TASK-UI3d — per TASK_UI3_SPEC.md §UI3d
+- [ ] TASK-UI3e — War Altar fix pass per this list: (a) atmosphere retune in ThemeTokens: glow opacities ≤0.15, smooth radial gradients (kill the banding rings), faint mist band, subtle vignette — card art must read true-color, no full-screen tint; (b) shrine repositioned clear of player arc; hand cards exactly 104×152; (c) outer arc slots pulled fully inside both screen edges; (d) move the YOUR TURN indicator out of the enemy name (suggest: small text above End Turn button). Acceptance: capture shows true-color art, zero group overlaps, zero clipped slots, zero text collisions; patched overlap assertion green; luminance gate green WITHOUT threshold changes.
 
 ## After TASK-S1
 After S1: continue into UI3 — Claude reviews metrics in parallel; do not stop. If mockups/board_c7.png absent at UI3d start, BLOCKED for UI3d only, take next task.
-- [ ] TASK-UI3e — War Altar fix pass per this list: (a) atmosphere retune in ThemeTokens: glow opacities ≤0.15, smooth radial gradients (kill the banding rings), faint mist band, subtle vignette — card art must read true-color, no full-screen tint; (b) shrine repositioned clear of player arc; hand cards exactly 104×152; (c) outer arc slots pulled fully inside both screen edges; (d) move the YOUR TURN indicator out of the enemy name (suggest: small text above End Turn button). Acceptance: capture shows true-color art, zero group overlaps, zero clipped slots, zero text collisions; patched overlap assertion green; luminance gate green WITHOUT threshold changes.
