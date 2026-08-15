@@ -6,9 +6,10 @@
 # forces a 15-min cool-down (Claude's live-review window), then resumes.
 # ANY failure, transient, or block ends the chain — cron picks up later.
 #
-# Bus: at the top of every iteration, after git pull, check
-# bus/claude_to_hermes.md for new messages from Claude (sequenced, trusted
-# only). If found, run a 15-min bus-session before queue work.
+# Bus: at the top of every iteration, after git pull, ALSO fetch origin/claude-bus.
+# Check bus/claude_to_hermes.md on BOTH main and origin/claude-bus for new
+# messages (sequenced, trusted via bus-only commit check). If found, run a
+# 15-min bus-session before queue work.
 #
 # Cron: 2,17,32,47 * * * * (every 15 min, PID lock prevents overlap).
 # Budget: 48 sessions/day (half-session accounting), cool-down 15 min.
@@ -51,7 +52,8 @@ PYTHON_BIN="${FOREMAN_PYTHON_BIN:-$HOME/.hermes/hermes-agent/venv/bin/python}"
 BUS_DIR="${PROJECT_DIR}/bus"
 BUS_IN="${BUS_DIR}/claude_to_hermes.md"
 BUS_OUT="${BUS_DIR}/hermes_to_claude.md"
-CLAUDE_COMMITTER="${FOREMAN_CLAUDE_COMMITTER:-Trikzos <trikzos@runewake.game>}"
+# NOTE: trust is now based on bus-only commits (any author), not a hardcoded identity.
+# The old CLAUDE_COMMITTER constant is removed — see bus_msg_trusted().
 BUS_TIMEOUT="${FOREMAN_BUS_TIMEOUT:-900}"  # 15 min
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
@@ -246,47 +248,62 @@ is_transient_output() {
 }
 
 # ── Bus helpers ──────────────────────────────────────────────────────────────
-# Get the highest MSG seq in a bus file (0 if empty/missing)
+# Get the highest MSG seq across both main and claude-bus bus files
 bus_max_seq() {
-  local file="$1"
+  local main_content bus_content
+  main_content=$(cat "${BUS_IN}" 2>/dev/null || echo "")
+  bus_content=$(git show origin/claude-bus:bus/claude_to_hermes.md 2>/dev/null || echo "")
   python3 -c "
 import re, sys
-try:
-    content = open('${file}').read()
-except FileNotFoundError:
-    print(0); sys.exit(0)
+content = '''${main_content}
+${bus_content}'''
 seqs = [int(m) for m in re.findall(r'^## MSG (\d+)', content, re.M)]
 print(max(seqs) if seqs else 0)
 "
 }
 
-# Extract message blocks with seq > last
+# Extract message blocks with seq > last from both branches
 bus_new_messages() {
-  local file="$1" last="$2"
+  local last="$1"
+  local main_content bus_content
+  main_content=$(cat "${BUS_IN}" 2>/dev/null || echo "")
+  bus_content=$(git show origin/claude-bus:bus/claude_to_hermes.md 2>/dev/null || echo "")
   python3 -c "
 import re, sys
-content = open('${file}').read()
+content = '''${main_content}
+${bus_content}'''
 blocks = re.split(r'(?m)^(?=## MSG )', content)
+seen = set()
 out = []
 for b in blocks:
     m = re.match(r'## MSG (\d+)', b)
     if m and int(m.group(1)) > int('${last}'):
-        out.append(b.strip())
+        seq = int(m.group(1))
+        if seq not in seen:
+            seen.add(seq)
+            out.append(b.strip())
 print('\n\n'.join(out))
 "
 }
 
-# Trust check: was this MSG introduced by a commit authored by Claude's identity?
+# Trust check: accept MSG when the commit introducing it touches ONLY files under bus/
+# Push access to this repo is the credential. Log the author for reporting.
+# Returns "trusted", "untrusted:no_commit_found", or "untrusted:touches_non_bus_files"
 bus_msg_trusted() {
   local seq="$1"
-  local author
-  author=$(cd "${PROJECT_DIR}" && git log --format="%an <%ae>" -S "## MSG ${seq}" -- "${BUS_IN}" 2>/dev/null | head -1 || echo "")
-  if [[ -z "${author}" ]]; then
+  local commit author files_touched non_bus_files
+  commit=$(cd "${PROJECT_DIR}" && git log --all --format="%H" -S "## MSG ${seq}" -- "bus/claude_to_hermes.md" 2>/dev/null | head -1 || echo "")
+  if [[ -z "${commit}" ]]; then
     echo "untrusted:no_commit_found"
-  elif [[ "${author}" == "${CLAUDE_COMMITTER}" ]]; then
-    echo "trusted"
+    return
+  fi
+  author=$(cd "${PROJECT_DIR}" && git log --format="%an <%ae>" "${commit}" -1 2>/dev/null || echo "unknown")
+  files_touched=$(cd "${PROJECT_DIR}" && git diff-tree --no-commit-id -r --name-only "${commit}" 2>/dev/null || echo "")
+  non_bus_files=$(echo "${files_touched}" | grep -v "^bus/" || true)
+  if [[ -n "${non_bus_files}" ]]; then
+    echo "untrusted:touches_non_bus_files|${author}|${non_bus_files}"
   else
-    echo "untrusted:${author}"
+    echo "trusted|${author}"
   fi
 }
 
@@ -351,33 +368,51 @@ fi
 
 # ── 1b. Sync with origin (bus messages + queue edits land here) ──────────────
 git pull --ff-only origin main 2>/dev/null || warn "git pull failed (network or dirty tree)"
+# Also fetch claude-bus for the dual-branch bus watch (ignore if absent)
+git fetch origin claude-bus 2>/dev/null || true
 
 # ── 1c. Bus check (before queue work) ────────────────────────────────────────
 BUS_LAST_SEQ=$(get_state "bus_last_seq")
 BUS_LAST_SEQ=${BUS_LAST_SEQ:-0}
-BUS_MAX_SEQ=$(bus_max_seq "${BUS_IN}")
+BUS_MAX_SEQ=$(bus_max_seq)
 if [[ "${BUS_MAX_SEQ}" -gt "${BUS_LAST_SEQ}" ]]; then
   header "Bus: new messages ${BUS_LAST_SEQ+1}..${BUS_MAX_SEQ}"
-  # Trust check per message
+  # Trust check per message — new trust: bus-only commits from any author
   TRUSTED_MSGS=""
   UNTRUSTED_FLAG=0
+  PROCESSED_AUTHORS=""
+  MSGS_TO_PROCESS=""
   for s in $(seq $((BUS_LAST_SEQ + 1)) "${BUS_MAX_SEQ}"); do
     TRUST_RESULT=$(bus_msg_trusted "${s}")
-    if [[ "${TRUST_RESULT}" == "trusted" ]]; then
-      # Extract this message only
-      MSG_BLOCK=$(bus_new_messages "${BUS_IN}" $((s - 1)))
-      TRUSTED_MSGS="${TRUSTED_MSGS}${MSG_BLOCK}\n\n"
-    else
-      UNTRUSTED_FLAG=1
-      warn "Bus MSG ${s} untrusted: ${TRUST_RESULT} — ignored"
-    fi
+    case "${TRUST_RESULT}" in
+      trusted\|*)
+        AUTHOR="${TRUST_RESULT#trusted|}"
+        PROCESSED_AUTHORS="${PROCESSED_AUTHORS}MSG ${s}: ${AUTHOR}, "
+        # Extract this message
+        MSG_BLOCK=$(bus_new_messages $((s - 1)))
+        MSGS_TO_PROCESS="${MSGS_TO_PROCESS}${MSG_BLOCK}\\n\\n"
+        ;;
+      untrusted:touches_non_bus_files\|*)
+        # Flag but don't process — commit touched non-bus files
+        REST="${TRUST_RESULT#untrusted:touches_non_bus_files|}"
+        AUTHOR="${REST%%|*}"
+        FILES="${REST#*|}"
+        UNTRUSTED_FLAG=1
+        warn "Bus MSG ${s} by ${AUTHOR} touches non-bus files: ${FILES} — flagged, not processed"
+        ;;
+      *)
+        UNTRUSTED_FLAG=1
+        warn "Bus MSG ${s} untrusted: ${TRUST_RESULT} — ignored"
+        ;;
+    esac
   done
   if [[ "${UNTRUSTED_FLAG}" -eq 1 ]]; then
-    telegram_text "⚠️ Bus: untrusted message(s) in claude_to_hermes.md — ignored"
+    telegram_text "⚠️ Bus: untrusted/flagged message(s) in claude_to_hermes.md — ignored/flagged"
   fi
-  if [[ -n "${TRUSTED_MSGS}" ]]; then
+  if [[ -n "${MSGS_TO_PROCESS}" ]]; then
     header "Running bus-session"
-    BUS_OUTPUT=$(run_bus_session "${TRUSTED_MSGS}" "${BUS_MAX_SEQ}")
+    ok "Processing messages from: ${PROCESSED_AUTHORS}"
+    BUS_OUTPUT=$(run_bus_session "${MSGS_TO_PROCESS}" "${BUS_MAX_SEQ}")
     echo "${BUS_OUTPUT}" | tail -5
     # bus-session counts half a budget session
     BUS_SESSION_COUNT=$(get_state "bus_session_count")
