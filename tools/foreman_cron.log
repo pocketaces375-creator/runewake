@@ -3394,3 +3394,37 @@ Already up to date.
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
 foreman already running (PID 633914) — exiting
+  Hermes session completed
+REMAINING (was interrupted)
+- `git commit -m 'TASK-DK3: Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig.'` then `git push`.
+- Note: `git add -A` was staged including tools/foreman_cron.log (205 lines of watcher noise) — that should be unstaged before commit. Also artifacts/captures doesn't show in git status, so title_deck.png/meta.json are likely gitignored — if previous capture commits used `git add -f`, do the same for the two new capture files to match protocol ("capture committed").
+
+One sentence: the build/tests/gates are green and status files are written; run the commit (excluding foreman_cron.log, force-add title_deck captures) + push and the task is fully closed.
+
+=== Regenerating capture ===
+
+  Godot not found at /home/fictive/Godot_v4.3-stable_linux.x86_64, skipping capture
+  Skipping capture regen
+
+=== Validation ===
+
+  No new commit
+  Task TASK-DK3 marked [x]
+  Pixel gate passed
+  dotnet not available or no worker commit
+  pipeline venv not found or no worker commit — skipping pytest gate
+  Retry (1/1): no_new_commit 
+  No failed worker commit — leaving tree untouched
+[main 5148e0a] foreman: state after TASK-DK3 (retry)
+ 10 files changed, 656 insertions(+), 30 deletions(-)
+  Chain ends — TASK-DK3 retry
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+  HALT file found at /home/fictive/runewake/FOREMAN_HALT
+  Heartbeat: parked — HALT (2026-08-15T21:47:01Z)
+[main 32a756d] foreman: heartbeat — HALT
+ 1 file changed, 1 insertion(+), 1 deletion(-)
