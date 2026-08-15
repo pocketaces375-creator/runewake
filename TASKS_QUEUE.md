@@ -63,9 +63,9 @@
   Acceptance: debug scene forces all four states, capture + gate green.
 - [x] TASK-UI3f — Fix remaining visual overlap between enemy arc slot-2 and player arc slot-2 (verify actual runtime rects, widen gap until clear). Harden gate: overlap assertion checks EVERY enemy-slot vs EVERY player-slot pair.
   Acceptance: capture shows zero overlaps, gate green.
-- [ ] TASK-AC2 — Charge pips live-bound on shrine artifacts + enemy HUD minis (0..max, ON_CHARGE_FULL pulse ≤0.5s, theme tokens; suppression freezes pip visuals per G3).
+- [x] TASK-AC2 — Charge pips live-bound on shrine artifacts + enemy HUD minis (0..max, ON_CHARGE_FULL pulse ≤0.5s, theme tokens; suppression freezes pip visuals per G3).
   Acceptance: capture shows pips on both shrines, pulse visible in debug, gate green.
-- [ ] TASK-TU1 — Tutorial script data per NOTES_FOR_HERMES §P2: Warrior duel, opponent's first 3 turns deterministic, act→consequence→one-line-rule beats, max ONE popup per action. Data + schema only.
+- [x] TASK-TU1 — Tutorial script data per NOTES_FOR_HERMES §P2: Warrior duel, opponent's first 3 turns deterministic, act→consequence→one-line-rule beats, max ONE popup per action. Data + schema only.
   Acceptance: script loads and validates, no runtime errors.
 - [ ] TASK-TU2 — Tutorial runner consuming TU1's script; Bulwark hold-back beat teaches the attack decision.
   Acceptance: completable headless with scripted inputs, capture at each beat.

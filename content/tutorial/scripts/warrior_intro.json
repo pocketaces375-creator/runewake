@@ -1,0 +1,157 @@
+{
+  "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
+  "tutorial_id": "warrior_intro",
+  "title": "The Warrior's Path",
+  "class": "warrior",
+  "description": "Learn the Warrior's Artifacts: Ancestral Blade (Sword) and Bulwark of the Line (Shield). Master when to attack and when to hold back.",
+  "artifacts": ["artf_warrior_sword", "artf_warrior_shield"],
+  "player_deck": [
+    "tut_c_student_of_embers",
+    "tut_c_student_of_embers",
+    "tut_c_verdant_initiate",
+    "tut_c_iron_apprentice",
+    "tut_c_verdant_initiate",
+    "tut_c_student_of_embers",
+    "tut_c_iron_apprentice",
+    "tut_c_verdant_initiate",
+    "tut_c_student_of_embers",
+    "tut_c_iron_apprentice"
+  ],
+  "opponent_deck": [
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token"
+  ],
+  "turns": [
+    {
+      "turn_number": 1,
+      "type": "player",
+      "player_hand_override": [
+        "tut_c_student_of_embers",
+        "tut_c_verdant_initiate",
+        "tut_c_iron_apprentice",
+        "tut_c_student_of_embers"
+      ],
+      "player_attunement_override": 4,
+      "player_beats": [
+        {
+          "id": "t1_summon",
+          "trigger_event": "SUMMON_CREATURE",
+          "highlight": ["hand_card_0", "lane_2"],
+          "popup": "Your Sword — Ancestral Blade — gives your creatures +1 Attack while they are attacking. Try attacking with your creature next."
+        },
+        {
+          "id": "t1_attack",
+          "trigger_event": "ATTACK_WITH_CREATURE",
+          "highlight": ["lane_2"],
+          "popup": "Your Sword's passive boosted that attack — your creature dealt extra damage. Every creature gets +1 Attack while attacking."
+        },
+        {
+          "id": "t1_end",
+          "trigger_event": "END_TURN",
+          "highlight": ["end_turn_button"],
+          "popup": "Good. Your turn ends and the opponent gets a turn. Watch what they do."
+        }
+      ]
+    },
+    {
+      "turn_number": 1,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "SUMMON",
+          "card_id": "tut_opponent_token",
+          "lane": 2,
+          "label": "Opponent summons a Thorn Sprout in the center lane."
+        },
+        {
+          "action": "END_TURN"
+        }
+      ]
+    },
+    {
+      "turn_number": 2,
+      "type": "player",
+      "player_hand_override": [
+        "tut_c_verdant_initiate",
+        "tut_c_iron_apprentice",
+        "tut_c_student_of_embers"
+      ],
+      "player_attunement_override": 5,
+      "player_beats": [
+        {
+          "id": "t2_summon",
+          "trigger_event": "SUMMON_CREATURE",
+          "highlight": ["artifact_shield", "hand_card_0"],
+          "popup": "Your Shield — Bulwark of the Line — rewards creatures that hold back. If you don't attack this turn, it gives +0/+1 to creatures that stayed behind."
+        },
+        {
+          "id": "t2_hold_back",
+          "trigger_event": "NO_ATTACK_END_TURN",
+          "condition": { "not_attacked_this_turn": true },
+          "highlight": ["end_turn_button"],
+          "restrict_actions_to": ["END_TURN", "SUMMON_CREATURE"],
+          "popup": "Your Shield just fortified your creatures that didn't attack — they gained +0/+1 and are tougher now. Sometimes holding back is stronger than swinging."
+        }
+      ]
+    },
+    {
+      "turn_number": 2,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "ATTACK",
+          "lane": 2,
+          "target_lane": 0,
+          "label": "Opponent attacks your leftmost creature with their Thorn Sprout."
+        },
+        {
+          "action": "END_TURN"
+        }
+      ]
+    },
+    {
+      "turn_number": 3,
+      "type": "player",
+      "player_attunement_override": 6,
+      "player_beats": [
+        {
+          "id": "t3_attack_all",
+          "trigger_event": "ATTACK_WITH_CREATURE",
+          "highlight": ["all_creatures_highlight"],
+          "popup": "Each attack gets +1 from your Sword. When 3+ creatures attack in one turn, your Sword gains Ancestral Shield — the first spell that would kill a creature instead leaves it at 1 health."
+        },
+        {
+          "id": "t3_end",
+          "trigger_event": "END_TURN",
+          "popup": "You control the field. Your Sword rewards aggression, your Shield rewards restraint. Choose wisely each turn."
+        }
+      ]
+    },
+    {
+      "turn_number": 3,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "SUMMON",
+          "card_id": "tut_opponent_token",
+          "lane": 4,
+          "label": "Opponent places another Thorn Sprout."
+        },
+        {
+          "action": "END_TURN"
+        }
+      ]
+    }
+  ]
+}

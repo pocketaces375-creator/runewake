@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://runewake.game/schema/tutorial_script.schema.json",
+  "title": "Runewake Tutorial Script",
+  "description": "Schema for tutorial script data: consequence-first tutorial beats with deterministic opponent turns. Each beat = player acts → see consequence → one-line rule popup. Maximum ONE popup per action.",
+  "type": "object",
+  "required": [
+    "tutorial_id",
+    "title",
+    "class",
+    "artifacts",
+    "turns"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "Self-reference to schema." },
+    "tutorial_id": {
+      "type": "string",
+      "pattern": "^[a-z]+_[a-z0-9_]+$",
+      "description": "Unique tutorial identifier, e.g. 'warrior_intro'."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "description": "Display title for the tutorial."
+    },
+    "class": {
+      "type": "string",
+      "description": "The class this tutorial teaches (e.g. 'warrior')."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Optional short description of what the tutorial covers."
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "string",
+        "description": "Artifact definition ID for one of this class's slots."
+      },
+      "description": "Artifact def IDs for the player's class loadout, in slot order."
+    },
+    "player_deck": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 30,
+      "items": { "type": "string" },
+      "description": "Full deck list for the player (card def IDs, in shuffle order). The deck is dealt deterministically (no shuffle) so the starting hand is known."
+    },
+    "opponent_deck": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 30,
+      "items": { "type": "string" },
+      "description": "Full deck list for the opponent. Not shuffled — deterministic order."
+    },
+    "turns": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/turn_script" },
+      "description": "Scripts for each turn. Opponent turns are fully deterministic. Player turns contain conditional beats that resolve based on the player's action."
+    }
+  },
+  "$defs": {
+    "turn_script": {
+      "type": "object",
+      "required": ["turn_number", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "turn_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Turn number in the duel (1-indexed)."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["player", "opponent"],
+          "description": "Which player acts this turn."
+        },
+        "player_hand_override": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "If set, override the player's hand to these exact card def IDs (in order). Used to guarantee the player has the right cards for the tutorial beat."
+        },
+        "opponent_hand_override": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "If set, override the opponent's hand to these exact card def IDs."
+        },
+        "player_attunement_override": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "If set, override the player's attunement for this turn."
+        },
+        "player_beats": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tutorial_beat" },
+          "description": "Sequential beats the player must complete this turn. Beats resolve in order; each must be satisfied before the next activates. At most one popup fires per beat."
+        },
+        "opponent_actions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/scripted_action" },
+          "description": "Deterministic scripted actions for the opponent's turn. These execute in order with no player input."
+        }
+      },
+      "anyOf": [
+        { "required": ["player_beats"] },
+        { "required": ["opponent_actions"] }
+      ]
+    },
+    "tutorial_beat": {
+      "type": "object",
+      "required": ["id", "trigger_event"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Unique beat identifier within this tutorial (e.g. 't1_summon', 't2_hold_back')."
+        },
+        "trigger_event": {
+          "$ref": "#/$defs/trigger_event",
+          "description": "The player action that triggers this beat's response."
+        },
+        "condition": {
+          "$ref": "#/$defs/beat_condition",
+          "description": "Optional additional constraints on when this beat activates (e.g. must not attack)."
+        },
+        "popup": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "The one-line popup text shown after the player acts. Explains the consequence and the rule. Max ONE popup per beat."
+        },
+        "highlight": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "UI element key to highlight (e.g. 'hand_card_0', 'artifact_sword', 'end_turn_button', 'lane_2')."
+          },
+          "maxItems": 3,
+          "description": "UI elements to highlight before the player acts (guides attention)."
+        },
+        "restrict_actions_to": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["SUMMON_CREATURE", "SUMMON_LANE_ANY", "SUMMON_LANE_0", "SUMMON_LANE_1", "SUMMON_LANE_2", "SUMMON_LANE_3", "SUMMON_LANE_4", "ATTACK_ANY", "ATTACK_LANE_0", "ATTACK_LANE_1", "ATTACK_LANE_2", "ATTACK_LANE_3", "ATTACK_LANE_4", "PLAY_SPELL", "END_TURN", "NO_ATTACK", "ANY"]
+            },
+          "description": "If set, restricts the player's valid actions to only these types during this beat. Used to force the teaching moment."
+        }
+      }
+    },
+    "trigger_event": {
+      "type": "string",
+      "enum": [
+        "SUMMON_CREATURE",
+        "ATTACK_WITH_CREATURE",
+        "PLAY_SPELL",
+        "END_TURN",
+        "TURN_START",
+        "CREATURE_DIES",
+        "DAMAGE_DEALT",
+        "DAMAGE_RECEIVED",
+        "NO_ATTACK_END_TURN",
+        "ANY"
+      ],
+      "description": "The event that triggers this beat's popup. 'ANY' = fires the first time the player does anything valid after the previous beat."
+    },
+    "beat_condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "not_attacked_this_turn": {
+          "type": "boolean",
+          "description": "If true, this beat only activates if the player has not attacked this turn."
+        },
+        "attacked_count_gte": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "This beat only activates if the player has attacked at least this many times this turn."
+        },
+        "creatures_summoned_gte": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "description": "This beat only activates if at least this many creatures have been summoned this turn."
+        }
+      }
+    },
+    "scripted_action": {
+      "type": "object",
+      "required": ["action"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["SUMMON", "ATTACK", "PLAY_SPELL", "END_TURN", "NO_OP"],
+          "description": "The action the opponent takes deterministically."
+        },
+        "card_id": {
+          "type": "string",
+          "description": "Card def ID to summon or play. Required for SUMMON and PLAY_SPELL."
+        },
+        "lane": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Lane index for SUMMON or ATTACK target."
+        },
+        "target_lane": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Lane index of the ATTACK target."
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional commentary shown to the player while the opponent acts (e.g. 'Your opponent summons a creature.')."
+        },
+        "delay_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000,
+          "default": 1200,
+          "description": "Delay before this action executes (for visual pacing)."
+        }
+      }
+    }
+  }
+}
