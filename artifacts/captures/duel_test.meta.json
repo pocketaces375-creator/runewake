@@ -55,7 +55,7 @@
       "artifact_id": "artf_thief_dagger_dusk",
       "name": "Duskfang",
       "visual_state": "CHARGED",
-      "charges": 2,
+      "charges": 3,
       "is_suppressed": false,
       "has_triggered": false,
       "rect": { "x": 12.0, "y": 652.0, "w": 86.0, "h": 120.0 }

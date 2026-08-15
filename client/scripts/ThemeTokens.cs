@@ -255,6 +255,21 @@ public static class ThemeTokens
     public const int BorderThick = 3;
 
     // ════════════════════════════════════════════
+    // Charge Pips (TASK-AC2)
+    // ════════════════════════════════════════════
+
+    /// <summary>Color for filled charge pips — warm bright gold</summary>
+    public static readonly Color ChargeFilled = Color.FromHtml("#D4B84C");
+    /// <summary>Color for empty charge pips — faint muted gold</summary>
+    public static readonly Color ChargeEmpty = Color.FromHtml("#5A5048");
+    /// <summary>Pulse color when charges reach max — bright arcane blue-white</summary>
+    public static readonly Color ChargeFullPulse = Color.FromHtml("#8AC4FF");
+    /// <summary>Pulse scale multiplier during animation</summary>
+    public const float ChargePulseScale = 1.4f;
+    /// <summary>Pulse duration in seconds (≤0.5s requirement)</summary>
+    public const float ChargePulseDuration = 0.35f;
+
+    // ════════════════════════════════════════════
     // Opacity
     // ════════════════════════════════════════════
 

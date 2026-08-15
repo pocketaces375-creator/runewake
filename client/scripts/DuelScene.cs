@@ -88,6 +88,12 @@ public partial class DuelScene : Control
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
+    // TASK-AC2: Previous charge values per artifact slot for pulse detection
+    private readonly int[] _prevPlayerCharges = new int[2];
+    private readonly int[] _prevEnemyCharges = new int[2];
+    // Tracks whether pulse is currently playing to avoid overlapping tweens
+    private readonly Godot.Tween?[] _chargePulseTweens = new Godot.Tween[4]; // 0=P0-0, 1=P0-1, 2=P1-0, 3=P1-1
+
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
@@ -1681,11 +1687,20 @@ public partial class DuelScene : Control
                     _enemyArtifactNameLabels[i].Text = artDef?.Name ?? "?";
                     int ch = slot.Charges;
                     int maxCh = slot.MaxCharges;
-                    _enemyArtifactChargeLabels[i].Text = maxCh > 0
-                        ? new string('•', System.Math.Min(ch, maxCh)) + new string('∘', maxCh - System.Math.Min(ch, maxCh))
-                        : "";
+                    string pips = RenderChargePips(ch, maxCh);
+                    _enemyArtifactChargeLabels[i].Text = pips;
                     // Apply visual state styling (TASK-AC1)
                     ApplyArtifactVisualState(_enemyArtifactMinis[i], _enemyArtifactNameLabels[i], _enemyArtifactChargeLabels[i], slot.VisualState);
+                    // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
+                    if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
+                    {
+                        int prevCh = _prevEnemyCharges[i];
+                        if (prevCh < maxCh)
+                        {
+                            PlayChargeFullPulse(_enemyArtifactChargeLabels[i], i, true);
+                        }
+                    }
+                    _prevEnemyCharges[i] = ch;
                 }
                 else
                 {
@@ -1720,12 +1735,21 @@ public partial class DuelScene : Control
                         _playerArtifactNameLabels[i].Text = artDef?.Name ?? "?";
                     int ch = slot.Charges;
                     int maxCh = slot.MaxCharges;
+                    string pips = RenderChargePips(ch, maxCh);
                     if (_playerArtifactChargeLabels[i] != null)
-                        _playerArtifactChargeLabels[i].Text = maxCh > 0
-                            ? new string('•', System.Math.Min(ch, maxCh)) + new string('∘', maxCh - System.Math.Min(ch, maxCh))
-                            : "";
+                        _playerArtifactChargeLabels[i].Text = pips;
                     // Apply visual state styling (TASK-AC1)
                     ApplyArtifactVisualState(_playerArtifactCards[i], _playerArtifactNameLabels[i], _playerArtifactChargeLabels[i], slot.VisualState);
+                    // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
+                    if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
+                    {
+                        int prevCh = _prevPlayerCharges[i];
+                        if (prevCh < maxCh)
+                        {
+                            PlayChargeFullPulse(_playerArtifactChargeLabels[i], i, false);
+                        }
+                    }
+                    _prevPlayerCharges[i] = ch;
                 }
                 else
                 {
@@ -2873,9 +2897,70 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// TASK-AC1: Pre-place artifact cards in the game state for capture testing.
+    /// TASK-AC2: Play a brief pulse animation on a charge label when charges reach max.
+    /// Scales up the label, shifts color to ChargeFullPulse, then snaps back in ≤0.5s.
+    /// Suppressed artifacts never pulse — the pip visuals freeze per G3.
+    /// </summary>
+    private void PlayChargeFullPulse(Label chargeLabel, int slotIndex, bool isEnemy)
+    {
+        if (chargeLabel == null || !IsInstanceValid(chargeLabel) || string.IsNullOrEmpty(chargeLabel.Text))
+            return;
+
+        int tweenIdx = (isEnemy ? 2 : 0) + slotIndex;
+        if (tweenIdx < _chargePulseTweens.Length)
+        {
+            // Kill any existing pulse on this slot
+            if (_chargePulseTweens[tweenIdx] != null && IsInstanceValid(_chargePulseTweens[tweenIdx]))
+            {
+                _chargePulseTweens[tweenIdx].Kill();
+                _chargePulseTweens[tweenIdx] = null;
+            }
+
+            // Reset to normal state first
+            chargeLabel.Scale = Vector2.One;
+            chargeLabel.Modulate = ChargeFilled;
+
+            var tween = CreateTween();
+            tween.SetParallel(true);
+            // Scale up
+            tween.TweenProperty(chargeLabel, "scale", Vector2.One * ChargePulseScale, ChargePulseDuration * 0.5f);
+            // Shift color to pulse
+            tween.TweenProperty(chargeLabel, "modulate", ChargeFullPulse, ChargePulseDuration * 0.5f);
+            tween.Chain();
+            tween.SetParallel(true);
+            // Scale back
+            tween.TweenProperty(chargeLabel, "scale", Vector2.One, ChargePulseDuration * 0.5f);
+            // Restore normal gold
+            tween.TweenProperty(chargeLabel, "modulate", ChargeFilled, ChargePulseDuration * 0.5f);
+            tween.TweenCallback(Callable.From(() =>
+            {
+                if (IsInstanceValid(chargeLabel))
+                {
+                    chargeLabel.Scale = Vector2.One;
+                    chargeLabel.Modulate = ChargeFilled;
+                }
+            }));
+
+            _chargePulseTweens[tweenIdx] = tween;
+        }
+    }
+
+    /// <summary>
+    /// TASK-AC2: Render charge pip text for an artifact slot.
+    /// Returns a string of filled (•) and empty (∘) pips.
+    /// When suppressed, pips keep their visual count but don't animate.
+    /// </summary>
+    private static string RenderChargePips(int charges, int maxCharges)
+    {
+        if (maxCharges <= 0) return "";
+        int filled = System.Math.Min(charges, maxCharges);
+        int empty = maxCharges - filled;
+        return new string('•', filled) + new string('∘', empty);
+    }
+
+    /// <summary>
     /// Sets up all four visual states across both players' artifact slots.
-    /// Player: Sword (READY), Duskfang (CHARGED with charges=2)
+    /// Player: Sword (READY), Duskfang (CHARGED at max=3/3 → pulse visible in capture)
     /// Enemy: Shield (SUPPRESSED, 2 turns remaining), Aura (SPENT, HasTriggeredThisTurn=true)
     /// </summary>
     private void PrePlaceArtifacts()
@@ -2925,11 +3010,11 @@ public partial class DuelScene : Control
                 slot.MaxCharges = 0;
                 slot.Charges = 0;
             }
-            // Second artifact: CHARGED
+            // Second artifact: CHARGED at max (TASK-AC2: max charges so pulse is visible in capture)
             else
             {
                 slot.MaxCharges = 3;
-                slot.Charges = 2; // partially charged
+                slot.Charges = 3; // max charges → triggers ON_CHARGE_FULL pulse
             }
 
             state.Players[0].ArtifactSlots[i] = slot;
