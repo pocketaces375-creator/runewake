@@ -427,6 +427,15 @@ public partial class GameStateManager : Node
     }
 
     /// <summary>
+    /// Fire StateChanged from outside the class. Used by TutorialRunner to
+    /// force a re-render after applying hand/attunement overrides.
+    /// </summary>
+    public void NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+    }
+
+    /// <summary>
     /// Log all creatures' exhaustion state for debugging.
     /// </summary>
     private void LogExhaustState(string prefix)

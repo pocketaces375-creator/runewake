@@ -91,6 +91,15 @@ public static class CampaignContext
     /// <summary>Fixed seed for deterministic capture tests. Null = random seed.</summary>
     public static ulong? DebugSeed { get; set; }
 
+    /// <summary>Tutorial script mode: set by DebugCapture for --tutorial CLI arg. Non-null = use TutorialRunner.</summary>
+    public static string? TutorialScriptId { get; set; }
+
+    /// <summary>Artifact def IDs for the player in tutorial script mode (set by TutorialRunner).</summary>
+    public static string[] TutorialPlayerArtifactIds { get; set; } = System.Array.Empty<string>();
+
+    /// <summary>Player class for tutorial script mode (set by TutorialRunner).</summary>
+    public static string TutorialPlayerClass { get; set; } = string.Empty;
+
     /// <summary>
 
     /// <summary>

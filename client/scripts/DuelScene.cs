@@ -28,6 +28,9 @@ public partial class DuelScene : Control
     private HBoxContainer _handFlow;
     private Button? _endTurnButton;
     private Label _turnIndicatorLabel = default!; // TASK-UI3e: small "YOUR TURN" above End Turn button
+    // TASK-TU2: Tutorial runner
+    private TutorialRunner? _tutorialRunner;
+    private bool _isTutorialScriptMode;
 
     // Health bar ColorRects
     private ColorRect _enemyHealthBar = default!;
@@ -246,8 +249,31 @@ public partial class DuelScene : Control
         }
 
         // Check if this is a tutorial encounter (uses campaign encounter with is_tutorial flag)
+        // or a tutorial script mode (--tutorial CLI arg)
         bool isTutorialEncounter = _isCampaignEncounter && encounter != null && encounter.IsTutorial;
-        if (isTutorialEncounter)
+        string? tutorialScriptId = CampaignContext.TutorialScriptId;
+        _isTutorialScriptMode = !string.IsNullOrEmpty(tutorialScriptId);
+
+        if (_isTutorialScriptMode)
+        {
+            // TASK-TU2: Tutorial runner — consumes tutorial script data
+            _tutorialRunner = new TutorialRunner();
+            AddChild(_tutorialRunner);
+            _tutorialRunner.Initialize(this, _gsm, _bot, isHeadless: true);
+
+            // Load and validate the script
+            if (!_tutorialRunner.LoadScript(tutorialScriptId!))
+            {
+                GD.PrintErr($"[DuelScene] Failed to load tutorial script: {tutorialScriptId}");
+                _tutorialRunner = null;
+                _isTutorialScriptMode = false;
+            }
+            else
+            {
+                GD.Print($"[DuelScene] Tutorial script mode: {tutorialScriptId}");
+            }
+        }
+        else if (isTutorialEncounter)
         {
             _tutorialPopup = new TutorialPopup();
             AddChild(_tutorialPopup);
@@ -269,7 +295,9 @@ public partial class DuelScene : Control
                 ContentVersion = 1,
                 Player0DeckIds = CampaignContext.PlayerDeckIds,
                 Player1DeckIds = encounter.Deck,
-                RunePage = CampaignContext.CurrentRunePage
+                RunePage = CampaignContext.CurrentRunePage,
+                Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds,
+                Player0Class = CampaignContext.TutorialPlayerClass
             };
             _gsm.Initialize(config);
         }
@@ -321,6 +349,12 @@ public partial class DuelScene : Control
         if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
         {
             Callable.From(ShowPopup1_Goal).CallDeferred();
+        }
+
+        // TASK-TU2: Start tutorial runner in script mode (after game init)
+        if (_tutorialRunner != null && _isTutorialScriptMode)
+        {
+            Callable.From(() => _tutorialRunner.Start()).CallDeferred();
         }
 
         // ═══ CAPTURE HOOK: auto-dismiss mulligan, wait, capture ═══
@@ -1514,6 +1548,9 @@ public partial class DuelScene : Control
             }
         }
 
+        // TASK-TU2: Notify TutorialRunner of state change
+        _tutorialRunner?.OnGameStateChanged();
+
         // Save for next render
         _prevEnemyBoard = newEnemyBoard;
         _prevPlayerBoard = newPlayerBoard;
@@ -2536,7 +2573,31 @@ public partial class DuelScene : Control
         btnHBox.AddChild(backToTitle);
     }
 
-    // ——— Tutorial helpers ———
+    // ——— Tutorial helpers (TASK-TU2) ———
+    /// <summary>Enable/disable the End Turn button. Used by TutorialRunner for action restrictions.</summary>
+    public void SetEndTurnEnabled(bool enabled)
+    {
+        if (_endTurnButton != null)
+            _endTurnButton.Disabled = !enabled;
+    }
+
+    /// <summary>Programmatically summon a card. Used by TutorialRunner headless auto-play.</summary>
+    public void PlayerSummonCard(string cardDefId, int laneIndex)
+    {
+        OnPlayCardRequested(cardDefId, laneIndex);
+    }
+
+    /// <summary>Programmatically attack. Used by TutorialRunner headless auto-play.</summary>
+    public void PlayerAttack(int sourceLane, int targetLane)
+    {
+        OnAttackRequested(sourceLane, targetLane);
+    }
+
+    /// <summary>Programmatically end turn. Used by TutorialRunner headless auto-play.</summary>
+    public void PlayerEndTurn()
+    {
+        OnEndTurnPressed();
+    }
 
     // ——— Public update methods ———
 

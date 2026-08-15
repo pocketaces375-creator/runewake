@@ -8,6 +8,7 @@ namespace Runewake.Client;
 /// <summary>
 /// DebugCapture autoload — enables deterministic screenshot captures for acceptance testing.
 /// Activated via CLI arg: --capture=duel_test
+/// Also handles --tutorial=<script_id> for TASK-TU2 headless tutorial runner.
 /// Sets up a fixed game state: 4 hand cards (some with art, some without),
 /// creatures on both board rows, partially spent attunement.
 /// </summary>
@@ -31,8 +32,6 @@ public partial class DebugCapture : Node
     {
         GD.Print("[DebugCapture] _Ready called");
         var args = OS.GetCmdlineArgs();
-        // Godot 4.3: args after "--" separator are user args, not visible via GetCmdlineArgs.
-        // Merge both sources so --capture=duel_test works with or without the separator.
         var userArgs = OS.GetCmdlineUserArgs();
         if (userArgs != null && userArgs.Length > 0)
         {
@@ -42,35 +41,43 @@ public partial class DebugCapture : Node
             args = combined;
         }
         GD.Print($"[DebugCapture] Cmdline args: {string.Join(", ", args)}");
+
+        // TASK-TU2: Handle --tutorial=<script_id> for headless tutorial runner
+        string? tutorialScriptId = null;
         foreach (var arg in args)
         {
             if (arg == "--capture=duel_test")
             {
                 _active = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=duel_test");
-                break;
             }
+            if (arg.StartsWith("--tutorial="))
+            {
+                tutorialScriptId = arg.Substring("--tutorial=".Length);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(tutorialScriptId))
+        {
+            GD.Print($"[DebugCapture] Tutorial script mode: {tutorialScriptId}");
+            SetUpTutorialEncounter(tutorialScriptId);
+            return; // Tutorial script mode handles its own flow
         }
 
         if (_active)
         {
-            // Create a deterministic test encounter in CampaignContext
-            // so DuelScene picks it up and creates the correct game state.
             SetUpTestEncounter();
         }
     }
 
     private void SetUpTestEncounter()
     {
-        // Build a 30-card deck that includes the specific cards needed for the test
         var deck = new List<string>
         {
-            // 4 hand cards at start + 26 filler cards
-            "tid_c_abyssal_gaze",   // cost 1, HAS art
-            "dwn_r_sealing_light",  // cost 4, HAS art (confirmed via dwn_r_sealing_light.webp)
-            "emb_c_cinder_runner",   // cost 2, HAS art
-            "vrd_x_heartwood_relic", // cost 4, NO art
-            // Filler cards for the rest of the deck (26 more = 30 total)
+            "tid_c_abyssal_gaze",
+            "dwn_r_sealing_light",
+            "emb_c_cinder_runner",
+            "vrd_x_heartwood_relic",
             "vrd_c_root_warden", "vrd_c_root_warden", "vrd_c_root_warden",
             "vrd_c_verdant_sproutling", "vrd_c_verdant_sproutling",
             "vrd_c_thornbark_defender", "vrd_c_thornbark_defender",
@@ -95,14 +102,13 @@ public partial class DebugCapture : Node
 
         GD.Print($"[DebugCapture] Setting up test encounter with deck of {deck.Count} cards");
 
-        // Set up CampaignContext so DuelScene uses this as a campaign encounter
         CampaignContext.PlayerDeckIds = deck;
         CampaignContext.CurrentEncounter = new EncounterDef
         {
             Id = "debug_test",
             Name = "Debug Test",
             IsTutorial = false,
-            Deck = deck, // Enemy gets the same deck
+            Deck = deck,
             Portrait = "",
             DialogueIntro = [],
             DialogueOutro = [],
@@ -114,17 +120,30 @@ public partial class DebugCapture : Node
         GD.Print("[DebugCapture] Set DebugSeed=42, AutoCaptureScreenshot=true");
     }
 
+    /// <summary>
+    /// TASK-TU2: Set up campaign context for headless tutorial run.
+    /// The TutorialRunner in DuelScene will read CampaignContext.TutorialScriptId
+    /// and take over the duel flow.
+    /// </summary>
+    private void SetUpTutorialEncounter(string scriptId)
+    {
+        // Set the flag that tells DuelScene to create a TutorialRunner
+        CampaignContext.TutorialScriptId = scriptId;
+        CampaignContext.AutoCaptureScreenshot = false;
+        CampaignContext.DebugSeed = 42;
+
+        GD.Print($"[DebugCapture] Tutorial mode set: {scriptId}");
+    }
+
     public override void _Process(double delta)
     {
         if (!_active || _captureDone) return;
 
-        // Find the duel scene once it's added to the tree
         if (_duelScene == null)
         {
             _duelScene = GetNodeOrNull<Node>("/root/DuelScene");
             if (_duelScene == null)
             {
-                // Look anywhere in the tree
                 _duelScene = GetTree().CurrentScene;
                 if (_duelScene != null && _duelScene.Name != "DuelScene")
                     _duelScene = null;

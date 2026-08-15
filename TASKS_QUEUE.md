@@ -67,7 +67,7 @@
   Acceptance: capture shows pips on both shrines, pulse visible in debug, gate green.
 - [x] TASK-TU1 — Tutorial script data per NOTES_FOR_HERMES §P2: Warrior duel, opponent's first 3 turns deterministic, act→consequence→one-line-rule beats, max ONE popup per action. Data + schema only.
   Acceptance: script loads and validates, no runtime errors.
-- [ ] TASK-TU2 — Tutorial runner consuming TU1's script; Bulwark hold-back beat teaches the attack decision.
+- [x] TASK-TU2 — Tutorial runner consuming TU1's script; Bulwark hold-back beat teaches the attack decision.
   Acceptance: completable headless with scripted inputs, capture at each beat.
 - [ ] TASK-APK1 — Build debug APK: verify Godot 4.3 mono + Android templates + JDK17 + SDK (show real command output; if tooling missing, BLOCKED entry naming exactly what, stop). Else export exports/Runewake.apk, gh release create alpha-<date> with the APK, post download URL to Telegram.
   Acceptance: DONE must contain release URL + APK size.
