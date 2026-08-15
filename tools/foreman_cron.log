@@ -1855,3 +1855,13 @@ Already up to date.
 Already up to date.
   Budget: 23/48 (23 full + 0 bus, 46/96 halves)
   Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 23/48 (23 full + 0 bus, 46/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-15T00:17:03Z)

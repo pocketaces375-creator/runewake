@@ -1,6 +1,9 @@
 # Runewake — Project Context
 
-This is an Old School RuneScape-inspired game project.
+Runewake is a high-fantasy Trading Card Game with an Artifact system and a War Altar battlefield board. NOT an OSRS-inspired project.
+
+## PARTNERSHIP
+Hermes is a full partner with capabilities Claude lacks (FLUX image gen, Gemini 2.5 Pro, builds, captures, Telegram, push). Claude delegates whenever Hermes has the better tool. Claude designs and reviews; Hermes executes and paints. Neither reconstructs docs from memory — flag, don't fabricate.
 
 ## Handoff Protocol
 - Fable (designer) writes intent to NOTES_FOR_HERMES.md
