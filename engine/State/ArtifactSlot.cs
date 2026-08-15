@@ -15,6 +15,22 @@ public sealed class ArtifactSlot
     public int Index { get; }
 
     /// <summary>
+    /// Computed visual state derived from engine data fields.
+    /// Priority: SUPPRESSED > CHARGED > SPENT > READY.
+    /// No client-side state guesswork — the engine always drives this.
+    /// </summary>
+    public ArtifactVisualState VisualState
+    {
+        get
+        {
+            if (IsSuppressed) return ArtifactVisualState.SUPPRESSED;
+            if (Charges > 0) return ArtifactVisualState.CHARGED;
+            if (HasTriggeredThisTurn) return ArtifactVisualState.SPENT;
+            return ArtifactVisualState.READY;
+        }
+    }
+
+    /// <summary>
     /// The Artifact occupying this slot, or null if empty.
     /// Artifacts are permanent and never leave their slot — this is null only
     /// during initialization before Artifacts are assigned.

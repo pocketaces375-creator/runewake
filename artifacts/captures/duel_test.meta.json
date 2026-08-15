@@ -37,6 +37,52 @@
       "rect": { "x": 0.0, "y": 0.0, "w": 1152.0, "h": 74.0 }
     }
   ],
+  "artifact_cards": [
+    {
+      "side": "player",
+      "slot": 0,
+      "artifact_id": "artf_warrior_sword",
+      "name": "Sword",
+      "visual_state": "READY",
+      "charges": 0,
+      "is_suppressed": false,
+      "has_triggered": false,
+      "rect": { "x": 12.0, "y": 528.0, "w": 86.0, "h": 120.0 }
+    },
+    {
+      "side": "player",
+      "slot": 1,
+      "artifact_id": "artf_thief_dagger_dusk",
+      "name": "Duskfang",
+      "visual_state": "CHARGED",
+      "charges": 2,
+      "is_suppressed": false,
+      "has_triggered": false,
+      "rect": { "x": 12.0, "y": 652.0, "w": 86.0, "h": 120.0 }
+    },
+    {
+      "side": "enemy",
+      "slot": 0,
+      "artifact_id": "artf_warrior_shield",
+      "name": "Shield",
+      "visual_state": "SUPPRESSED",
+      "charges": 0,
+      "is_suppressed": true,
+      "has_triggered": false,
+      "rect": { "x": 964.0, "y": 0.0, "w": 92.0, "h": 74.0 }
+    },
+    {
+      "side": "enemy",
+      "slot": 1,
+      "artifact_id": "artf_mage_wand",
+      "name": "Wand",
+      "visual_state": "SPENT",
+      "charges": 0,
+      "is_suppressed": false,
+      "has_triggered": true,
+      "rect": { "x": 1060.0, "y": 0.0, "w": 92.0, "h": 74.0 }
+    }
+  ],
   "board_cards": [
     {
       "slot": "player_0",

@@ -338,6 +338,9 @@ public partial class DuelScene : Control
                 // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
                 PrePlaceCreatures();
 
+                // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
+                PrePlaceArtifacts();
+
                 // Capture after board renders
                 var snapTimer = new Godot.Timer();
                 snapTimer.OneShot = true;
@@ -399,7 +402,49 @@ public partial class DuelScene : Control
                     meta.Append("    }\n");
                     meta.Append("  ],\n");
 
-                    // Capture board card info from player and enemy slots
+                    // ═══ TASK-AC1: Capture artifact slot info with visual states ═══
+                    meta.Append("  \"artifact_cards\": [\n");
+                    var stateRef = _gsm.State;
+                    if (stateRef != null)
+                    {
+                        for (int side = 0; side <= 1; side++)
+                        {
+                            var pl = stateRef.Players[side];
+                            int asCount = pl.ArtifactSlots?.Length ?? 0;
+                            for (int ai = 0; ai < asCount; ai++)
+                            {
+                                var slot = pl.ArtifactSlots[ai];
+                                var label = side == 0
+                                    ? (_playerArtifactNameLabels[ai] ?? null)
+                                    : (_enemyArtifactNameLabels[ai] ?? null);
+                                var ctrl = side == 0
+                                    ? (_playerArtifactCards[ai] ?? null)
+                                    : (_enemyArtifactMinis[ai] ?? null);
+                                var rect = new Rect2();
+                                if (ctrl != null && ctrl.IsInsideTree())
+                                {
+                                    var gp = ctrl.GetScreenTransform().Origin;
+                                    rect = new Rect2(gp, ctrl.Size);
+                                }
+
+                                meta.Append("    {\n");
+                                meta.Append($"      \"side\": \"{(side == 0 ? "player" : "enemy")}\",\n");
+                                meta.Append($"      \"slot\": {ai},\n");
+                                meta.Append($"      \"artifact_id\": \"{(pl.ArtifactDefIds.Length > ai ? pl.ArtifactDefIds[ai] : "?")}\",\n");
+                                meta.Append($"      \"name\": \"{(label != null ? label.Text : "?")}\",\n");
+                                meta.Append($"      \"visual_state\": \"{slot.VisualState}\",\n");
+                                meta.Append($"      \"charges\": {slot.Charges},\n");
+                                meta.Append($"      \"is_suppressed\": {slot.IsSuppressed.ToString().ToLower()},\n");
+                                meta.Append($"      \"has_triggered\": {slot.HasTriggeredThisTurn.ToString().ToLower()},\n");
+                                meta.Append($"      \"rect\": {{ \"x\": {rect.Position.X:F1}, \"y\": {rect.Position.Y:F1}, \"w\": {rect.Size.X:F1}, \"h\": {rect.Size.Y:F1} }}\n");
+                                meta.Append("    }");
+                                if (side < 1 || ai < asCount - 1)
+                                    meta.Append(",");
+                                meta.Append("\n");
+                            }
+                        }
+                    }
+                    meta.Append("  ],\n");
                     meta.Append("  \"board_cards\": [\n");
                     int bi = 0;
                     foreach (var slot in _playerSlots)
@@ -1189,25 +1234,44 @@ public partial class DuelScene : Control
     /// Load all card packs into the global CardRegistry.
     /// </summary>
     private static void LoadCardPacks()
+    {
+        // Use Godot's FileAccess to read from the embedded PCK (works in both editor and export)
+        var packs = new[]
         {
-            // Use Godot's FileAccess to read from the embedded PCK (works in both editor and export)
-            var packs = new[]
-            {
-                "res://content/cards/verdant.json",
-                "res://content/cards/ember.json",
-                "res://content/cards/tide.json",
-                "res://content/cards/hollow.json",
-                "res://content/cards/dawn.json",
-                "res://content/cards/tutorial_pack.json"
-            };
+            "res://content/cards/verdant.json",
+            "res://content/cards/ember.json",
+            "res://content/cards/tide.json",
+            "res://content/cards/hollow.json",
+            "res://content/cards/dawn.json",
+            "res://content/cards/tutorial_pack.json"
+        };
 
-            foreach (var pack in packs)
+        foreach (var pack in packs)
+        {
+            string json = Godot.FileAccess.GetFileAsString(pack);
+            var cards = CardLoader.LoadPackFromString(json);
+            CardRegistry.RegisterRange(cards);
+        }
+
+        // ─── Load Artifact definitions (FIELD_EFFECT_SPEC §3: open info from duel start) ───
+        try
+        {
+            string artJson = Godot.FileAccess.GetFileAsString("res://content/artifacts/launch_artifacts.json");
+            if (!string.IsNullOrEmpty(artJson))
             {
-                string json = Godot.FileAccess.GetFileAsString(pack);
-                var cards = CardLoader.LoadPackFromString(json);
-                CardRegistry.RegisterRange(cards);
+                int loaded = ArtifactLoader.LoadFromString(artJson);
+                GD.Print($"[DUEL] Loaded {loaded} artifact definitions");
+            }
+            else
+            {
+                GD.PrintErr("[DUEL] Failed to load artifacts JSON — file empty or missing");
             }
         }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[DUEL] Failed to load artifact definitions: {ex.Message}");
+        }
+    }
 
     /// <summary>
     /// Compute card sizes from viewport height (FIX 3a): hand ~180px at 1080p,
@@ -1605,7 +1669,7 @@ public partial class DuelScene : Control
             _enemyDeckValue.Text = p1.Deck.Count.ToString();
             _enemyBarrowValue.Text = p1.Barrow.Count.ToString();
 
-            // Artifact mini-cards: display name + charges (via stored label refs)
+            // Artifact mini-cards: display name + charges + visual state
             int artSlots = p1.ArtifactSlots?.Length ?? 0;
             for (int i = 0; i < 2; i++)
             {
@@ -1620,11 +1684,14 @@ public partial class DuelScene : Control
                     _enemyArtifactChargeLabels[i].Text = maxCh > 0
                         ? new string('•', System.Math.Min(ch, maxCh)) + new string('∘', maxCh - System.Math.Min(ch, maxCh))
                         : "";
+                    // Apply visual state styling (TASK-AC1)
+                    ApplyArtifactVisualState(_enemyArtifactMinis[i], _enemyArtifactNameLabels[i], _enemyArtifactChargeLabels[i], slot.VisualState);
                 }
                 else
                 {
                     _enemyArtifactNameLabels[i].Text = "—";
                     _enemyArtifactChargeLabels[i].Text = "";
+                    ApplyArtifactVisualState(_enemyArtifactMinis[i], _enemyArtifactNameLabels[i], _enemyArtifactChargeLabels[i], ArtifactVisualState.READY);
                 }
             }
         }
@@ -1640,7 +1707,7 @@ public partial class DuelScene : Control
             if (_playerShrineVigorLabel != null)
                 _playerShrineVigorLabel.Text = $"Vigor {p0.Vigor}";
 
-            // Player artifact cards: name + charge pips
+            // Player artifact cards: name + charge pips + visual state
             int artSlots = p0.ArtifactSlots?.Length ?? 0;
             for (int i = 0; i < 2; i++)
             {
@@ -1657,6 +1724,8 @@ public partial class DuelScene : Control
                         _playerArtifactChargeLabels[i].Text = maxCh > 0
                             ? new string('•', System.Math.Min(ch, maxCh)) + new string('∘', maxCh - System.Math.Min(ch, maxCh))
                             : "";
+                    // Apply visual state styling (TASK-AC1)
+                    ApplyArtifactVisualState(_playerArtifactCards[i], _playerArtifactNameLabels[i], _playerArtifactChargeLabels[i], slot.VisualState);
                 }
                 else
                 {
@@ -1664,6 +1733,7 @@ public partial class DuelScene : Control
                         _playerArtifactNameLabels[i].Text = "—";
                     if (_playerArtifactChargeLabels[i] != null)
                         _playerArtifactChargeLabels[i].Text = "";
+                    ApplyArtifactVisualState(_playerArtifactCards[i], _playerArtifactNameLabels[i], _playerArtifactChargeLabels[i], ArtifactVisualState.READY);
                 }
             }
         }
@@ -2736,5 +2806,182 @@ public partial class DuelScene : Control
         state.NextInstanceId = nextId;
 
         GD.Print("[CAPTURE] Pre-placed 3 creatures per side on the board");
+    }
+
+    /// <summary>
+    /// TASK-AC1: Apply visual state styling to an artifact card control.
+    /// Modifies border color, background tint, and label colors based on VisualState.
+    /// No client-side state guesswork — state comes from engine ArtifactSlot.VisualState.
+    /// </summary>
+    private static void ApplyArtifactVisualState(Control cardControl, Label nameLabel, Label chargeLabel, ArtifactVisualState state)
+    {
+        if (cardControl is PanelContainer panel)
+        {
+            var style = panel.GetThemeStylebox("panel") as StyleBoxFlat;
+            if (style == null)
+            {
+                // Create a default style if none exists
+                style = new StyleBoxFlat
+                {
+                    CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                    CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+                    BorderWidthLeft = 2, BorderWidthTop = 2,
+                    BorderWidthRight = 2, BorderWidthBottom = 2
+                };
+                panel.AddThemeStyleboxOverride("panel", style);
+            }
+
+            switch (state)
+            {
+                case ArtifactVisualState.READY:
+                    // Gold border (existing default), normal brightness
+                    style.BorderColor = Color.FromHtml("#8a763c");
+                    style.BgColor = new Color(0.12f, 0.10f, 0.08f, 0.85f);
+                    nameLabel.Modulate = new Color(0.85f, 0.75f, 0.45f, 0.9f);
+                    if (chargeLabel != null)
+                        chargeLabel.Modulate = new Color(0.6f, 0.5f, 0.25f, 0.8f);
+                    break;
+
+                case ArtifactVisualState.CHARGED:
+                    // Blue-purple border, slight glow on charges
+                    style.BorderColor = Color.FromHtml("#6b5b9c");
+                    style.BgColor = new Color(0.10f, 0.08f, 0.14f, 0.85f);
+                    nameLabel.Modulate = new Color(0.75f, 0.70f, 0.95f, 0.95f);
+                    if (chargeLabel != null)
+                        chargeLabel.Modulate = new Color(0.60f, 0.50f, 0.85f, 1.0f);
+                    break;
+
+                case ArtifactVisualState.SUPPRESSED:
+                    // Gray/silver border, dimmed background, frosted name
+                    style.BorderColor = new Color(0.4f, 0.4f, 0.45f, 0.5f);
+                    style.BgColor = new Color(0.06f, 0.05f, 0.06f, 0.70f);
+                    nameLabel.Modulate = new Color(0.5f, 0.5f, 0.55f, 0.6f);
+                    if (chargeLabel != null)
+                        chargeLabel.Modulate = new Color(0.4f, 0.4f, 0.45f, 0.4f);
+                    break;
+
+                case ArtifactVisualState.SPENT:
+                    // Muted amber border, slightly dimmed, spent look
+                    style.BorderColor = Color.FromHtml("#8a7a5c");
+                    style.BgColor = new Color(0.10f, 0.09f, 0.07f, 0.70f);
+                    nameLabel.Modulate = new Color(0.65f, 0.60f, 0.45f, 0.7f);
+                    if (chargeLabel != null)
+                        chargeLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// TASK-AC1: Pre-place artifact cards in the game state for capture testing.
+    /// Sets up all four visual states across both players' artifact slots.
+    /// Player: Sword (READY), Duskfang (CHARGED with charges=2)
+    /// Enemy: Shield (SUPPRESSED, 2 turns remaining), Aura (SPENT, HasTriggeredThisTurn=true)
+    /// </summary>
+    private void PrePlaceArtifacts()
+    {
+        var state = _gsm.State;
+        if (state == null)
+        {
+            GD.PrintErr("[CAPTURE] Cannot pre-place artifacts: game state is null");
+            return;
+        }
+
+        GD.Print("[CAPTURE] Pre-placing artifacts with all four visual states");
+
+        // Ensure artifact definitions are loaded
+        int nextId = state.NextInstanceId;
+
+        // ——— Player 0: 2 artifacts (READY + CHARGED) ———
+        var p0ArtIds = new[] { "artf_warrior_sword", "artf_thief_dagger_dusk" };
+        state.Players[0].ArtifactDefIds = p0ArtIds;
+        state.Players[0].ArtifactClass = "warrior";
+        state.Players[0].ArtifactSlots = new ArtifactSlot[2];
+
+        for (int i = 0; i < 2; i++)
+        {
+            var slot = new ArtifactSlot(i);
+            var artDef = ArtifactRegistry.Get(p0ArtIds[i])
+                ?? throw new InvalidOperationException($"Artifact '{p0ArtIds[i]}' not found in registry");
+
+            var instance = new CardInstance(nextId++, p0ArtIds[i], 0)
+            {
+                CardType = CardType.ARTIFACT,
+                Zone = Zone.ArtifactSlot,
+                ArtifactSlotIndex = i,
+                ArtifactClass = artDef.Class,
+                SlotPool = artDef.SlotPool,
+                Cost = 0,
+                BaseAttack = 0,
+                BaseVigor = 0,
+            };
+
+            slot.Occupant = instance;
+
+            // First artifact: READY (default state, no modifications)
+            if (i == 0)
+            {
+                // READY — leave all defaults
+                slot.MaxCharges = 0;
+                slot.Charges = 0;
+            }
+            // Second artifact: CHARGED
+            else
+            {
+                slot.MaxCharges = 3;
+                slot.Charges = 2; // partially charged
+            }
+
+            state.Players[0].ArtifactSlots[i] = slot;
+        }
+
+        // ——— Player 1: 2 artifacts (SUPPRESSED + SPENT) ———
+        var p1ArtIds = new[] { "artf_warrior_shield", "artf_mage_wand" };
+        state.Players[1].ArtifactDefIds = p1ArtIds;
+        state.Players[1].ArtifactClass = "mage";
+        state.Players[1].ArtifactSlots = new ArtifactSlot[2];
+
+        for (int i = 0; i < 2; i++)
+        {
+            var slot = new ArtifactSlot(i);
+            var artDef = ArtifactRegistry.Get(p1ArtIds[i]);
+
+            var instance = new CardInstance(nextId++, p1ArtIds[i], 1)
+            {
+                CardType = CardType.ARTIFACT,
+                Zone = Zone.ArtifactSlot,
+                ArtifactSlotIndex = i,
+                ArtifactClass = artDef?.Class ?? "warrior",
+                SlotPool = artDef?.SlotPool ?? "",
+                Cost = 0,
+                BaseAttack = 0,
+                BaseVigor = 0,
+            };
+
+            slot.Occupant = instance;
+
+            // First artifact: SUPPRESSED
+            if (i == 0)
+            {
+                slot.MaxCharges = 0;
+                slot.Charges = 0;
+                slot.IsSuppressed = true;
+                slot.SuppressionRemaining = 2;
+                slot.SuppressionSourceId = "artf_thief_dagger_dusk";
+            }
+            // Second artifact: SPENT (HasTriggeredThisTurn = true)
+            else
+            {
+                slot.MaxCharges = 3;
+                slot.Charges = 0;
+                slot.HasTriggeredThisTurn = true;
+            }
+
+            state.Players[1].ArtifactSlots[i] = slot;
+        }
+
+        state.NextInstanceId = nextId;
+
+        GD.Print("[CAPTURE] Pre-placed artifacts — Player: READY + CHARGED, Enemy: SUPPRESSED + SPENT");
     }
 }
