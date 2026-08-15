@@ -1,23 +1,3 @@
-**Tooling verification:**
-- Godot: `4.3.stable.mono.official.77dcf97d8` ✓
-- Android export templates: `android_debug.apk` at `~/.local/share/godot/export_templates/4.3.stable.mono/` ✓
-- JDK: `21.0.11` (not 17, but Godot 4.3 accepts it) ✓
-- SDK: `~/Android/Sdk/` — platform `android-34`, build-tools `34.0.0` ✓ (set `ANDROID_HOME` at export time)
-
-**Export:**
-```
-godot --headless --path client/ --export-debug "Android"
-```
-→ 117MB `client/exports/Runewake.apk` (also copied to `exports/Runewake.apk`)
-
-**Release:**
-```
-gh release create alpha-2026-08-15-1620 exports/Runewake.apk --prerelease
-```
-→ https://github.com/pocketaces375-creator/runewake/releases/tag/alpha-2026-08-15-1620
-→ Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-15-1620/Runewake.apk
-
-**Telegram:** Posted to Adam's DM ✓ (RuneWake group chat not found, likely stale ID)
 
 **Git:** `2c03c2c` committed + pushed to `origin/main`
 ========================================
@@ -47,4 +27,24 @@ TASK-DK1 complete. Summary:
 - GameStateInit: vigor config propagation (4 tests: custom, clamped-low, clamped-high, null=default)
 
 **Commit:** `9b6801a` — pushed to `origin/main`
+========================================
+=== foreman: 2026-08-15T20:46:25Z TASK-DK2 success ===
+Session: 7/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-DK2 complete. Here's what was done:
+
+**DeckBuilderScene.cs** — complete rebuild into weathered ancient tome two-page spread:
+- LEFT PAGE: card collection as bestiary entries with strata-color accents, ribbon-bookmark filters (strata/type/cost with active gold underline), page-turn navigation (prev/next arrows + page counter)
+- RIGHT PAGE: deck manifest as inked list with ×count badges, cost, and red-ink `☠` indicator for per-card validation errors; manifest header shows count/MaxSize
+- DK1 validation strings surface as red-ink annotations via `_validationAnnotations` (ThemeTokens.Ember)
+- Add/remove drift animation via CreateTween (0.35s quad ease-in-out card flyer from left→right page)
+- All colors from ThemeTokens (parchment CardFace, aged leather SurfaceMetal, gold, ember red)
+- Reuses existing LoadCards/Refresh/DeckValidator/OnSaveDeck — no persistence rewrite
+
+**Capture pipeline**:
+- `--capture=deck_test` CLI arg → DebugCapture sets deck state → Main.cs routes to DeckBuilderScene → scene writes meta.json + PNG after 0.8s render
+- `capture_gate.py validate_deck_test`: checks left/right page rects, spine, filter ribbons, red-ink annotation pixel ratio
+
+**Verification**: build exit 0, gate exit 0, 714 tests green, committed 16640f2 + pushed.
 ========================================
