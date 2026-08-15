@@ -27,6 +27,7 @@ public partial class DuelScene : Control
     private MarginContainer _handArea;
     private HBoxContainer _handFlow;
     private Button? _endTurnButton;
+    private Label _turnIndicatorLabel = default!; // TASK-UI3e: small "YOUR TURN" above End Turn button
 
     // Health bar ColorRects
     private ColorRect _enemyHealthBar = default!;
@@ -210,6 +211,23 @@ public partial class DuelScene : Control
             AddChild(_endTurnButton);
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
+
+        // TASK-UI3e: Turn indicator — small label above End Turn button
+        _turnIndicatorLabel = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _turnIndicatorLabel.AddThemeFontSizeOverride("font_size", FontSmall);
+        _turnIndicatorLabel.AddThemeColorOverride("font_color", Gold);
+        _turnIndicatorLabel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+        _turnIndicatorLabel.OffsetRight = -10;
+        _turnIndicatorLabel.OffsetLeft = -100;
+        _turnIndicatorLabel.OffsetBottom = -110;
+        _turnIndicatorLabel.OffsetTop = -126;
+        AddChild(_turnIndicatorLabel);
 
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
@@ -800,7 +818,7 @@ public partial class DuelScene : Control
 
         // Position: anchored 12px from left, bottom aligned with hand area floor (40px from viewport bottom)
         float leftX = 12f * scale;
-        float bottomY = vh - 40f * scale - artH; // align base of artifacts with hand floor
+        float bottomY = vh - 0f * scale - artH; // TASK-UI3e: sink shrine below player arc bottom
 
         // Root: HBox [Artifact VBox] [Stats Column]
         _playerShrine = new Control { Name = "PlayerShrine" };
@@ -1290,12 +1308,12 @@ public partial class DuelScene : Control
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
-        float spacing = 230f * scale;
+        float spacing = 215f * scale; // TASK-UI3e: tighter spread so outer slots clear both screen edges
 
         // Enemy baseline Y: top arc, centered within ellipse top half
-        float enemyBaseY = GetViewportRect().Size.Y * 0.195f;
-        // Player baseline Y: bottom arc
-        float playerBaseY = GetViewportRect().Size.Y * 0.59f;
+        float enemyBaseY = GetViewportRect().Size.Y * 0.18f;
+        // Player baseline Y: bottom arc — raised clear of hand cards (TASK-UI3e)
+        float playerBaseY = GetViewportRect().Size.Y * 0.46f;
 
         for (int i = 0; i < 5; i++)
         {
@@ -1659,14 +1677,12 @@ public partial class DuelScene : Control
         SetPlayerVigor(playerHud.Vigor);
         SetPlayerAttunement($"{playerHud.Attunement}/{playerHud.AttunementMax}");
 
-        // Turn indicator
+        // Turn indicator — TASK-UI3e: top label just shows turn number; "YOUR TURN" is near End Turn btn
         bool isMyTurn = _gsm.CurrentPlayerIndex == 0;
-        _turnLabel.Text = isMyTurn
-            ? $"YOUR TURN {_gsm.TurnNumber}"
-            : $"ENEMY TURN {_gsm.TurnNumber}";
-        _turnLabel.Modulate = isMyTurn
-            ? Gold
-            : Ember;
+        _turnLabel.Text = $"Turn {_gsm.TurnNumber}";
+        _turnLabel.Modulate = isMyTurn ? Gold : Ember;
+        _turnIndicatorLabel.Text = isMyTurn ? "YOUR TURN" : "ENEMY TURN";
+        _turnIndicatorLabel.Modulate = isMyTurn ? Gold : Ember;
     }
 
     /// <summary>Health bar color: moss > gold > ember as vigor drops.</summary>
@@ -1719,7 +1735,7 @@ public partial class DuelScene : Control
         float handSep = 34f;
         _handFlow.AddThemeConstantOverride("separation", (int)handSep);
         float availWidth = GetViewportRect().Size.X - 40f; // margin 20 each side; use viewport not _handArea (pre-layout)
-        float aspect = 110f / 168f;
+        float aspect = 104f / 152f; // TASK-UI3e: hand cards exactly 104×152 at design scale
         int n = hand.Count;
         float cardW = _handCardHeight * aspect;
         float required = n * cardW + (n - 1) * handSep;
@@ -1752,6 +1768,8 @@ public partial class DuelScene : Control
     private void OnBotTurnStarted()
     {
         _turnLabel.Text = $"Turn {_gsm.TurnNumber} — Enemy Thinking...";
+        _turnIndicatorLabel.Text = "ENEMY TURN";
+        _turnIndicatorLabel.Modulate = Ember;
     }
 
     private void OnBotTurnEnded()

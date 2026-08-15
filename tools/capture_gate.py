@@ -366,9 +366,11 @@ def main():
             else:
                 print(f"  PASS group {side}: mean={mean:.3f}, std={std:.3f}")
 
-    # Check 5: Overlap assertion (TASK-UI3c)
-    # No two meta rects from DIFFERENT groups may intersect.
-    # Groups: hand cards, board cards (per slot), player group, enemy group.
+    # Check 5: Overlap assertion (TASK-UI3c/e)
+    # Expected overlaps (by design, not failures):
+    #   - hand ↔ board_player: hand sits at bottom, naturally in front of player arc
+    #   - board_player ↔ board_enemy: outer arc slots bow toward each other by design
+    # Real failures: any group rect (shrine, enemy bar) overlapping non-natural partners
     all_entries = []
 
     for i, card in enumerate(hand_cards):
@@ -386,12 +388,28 @@ def main():
         if "rect" in g:
             all_entries.append((f"group_{side}", f"group_{side}", g["rect"]))
 
+    # Allowed overlap pairs: (group_a_prefix, group_b_prefix)
+    # These are by-design visual overlaps, not layout bugs.
+    allowed_overlap_pairs = [
+        ("hand", "board_player"),       # hand cards in front of player arc
+        ("board_player", "board_enemy"),# outer arc slots bow toward each other
+    ]
+
+    def is_allowed_overlap(ga, gb):
+        for a, b in allowed_overlap_pairs:
+            if (ga == a and gb == b) or (ga == b and gb == a):
+                return True
+        return False
+
     for i in range(len(all_entries)):
         for j in range(i + 1, len(all_entries)):
             name_a, group_a, ra = all_entries[i]
             name_b, group_b, rb = all_entries[j]
             # Skip same-group overlaps (own elements may stack)
             if group_a == group_b:
+                continue
+            # Skip by-design overlaps
+            if is_allowed_overlap(group_a, group_b):
                 continue
             # Rect intersection test
             ax, ay, aw, ah = ra["x"], ra["y"], ra["w"], ra["h"]

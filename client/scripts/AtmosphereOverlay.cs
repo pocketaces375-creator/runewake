@@ -12,7 +12,6 @@ namespace Runewake.Client;
 /// </summary>
 public partial class AtmosphereOverlay : Control
 {
-    private const int Segments = 36;
     private readonly Random _rng = new(12345); // fixed seed for deterministic captures
     private Vector2[] _dustMotePositions = Array.Empty<Vector2>();
     private float[] _dustMoteRadii = Array.Empty<float>();
@@ -56,8 +55,7 @@ public partial class AtmosphereOverlay : Control
             center: new Vector2(vw * AtmosphereEmberCenterX, vh * AtmosphereEmberCenterY),
             maxRadius: diag * AtmosphereEmberRadius,
             baseColor: AtmosphereEmberGlow,
-            peakAlpha: AtmosphereEmberAlpha,
-            rings: 6);
+            peakAlpha: AtmosphereEmberAlpha);
 
         // ════════════════════════════════════════
         // 2. Cool moon glow — upper-right corner
@@ -66,8 +64,7 @@ public partial class AtmosphereOverlay : Control
             center: new Vector2(vw * AtmosphereMoonCenterX, vh * AtmosphereMoonCenterY),
             maxRadius: diag * AtmosphereMoonRadius,
             baseColor: AtmosphereMoonGlow,
-            peakAlpha: AtmosphereMoonAlpha,
-            rings: 6);
+            peakAlpha: AtmosphereMoonAlpha);
 
         // ════════════════════════════════════════
         // 3. Mist band — horizontal across mid-field
@@ -88,51 +85,51 @@ public partial class AtmosphereOverlay : Control
         DrawRect(new Rect2(0, mistBot, vw, fadeH), mistFadeColor);
 
         // ════════════════════════════════════════
-        // 4. Vignette — darkened edges via 4 gradient strips
+        // 4. Vignette — subtle darkened edges via 3 soft strips per side (TASK-UI3e)
         // ════════════════════════════════════════
         float soft = AtmosphereVignetteSoftness;
-        float vignetteStep = AtmosphereVignetteAlpha / 5f;
+        float totalA = AtmosphereVignetteAlpha;
 
-        // Top vignette
-        for (int i = 0; i < 5; i++)
+        // Top vignette — 3 strips inward from top edge
+        for (int i = 0; i < 3; i++)
         {
-            float t = 1f - (float)i / 5f;
-            float stripH = vh * soft * (0.04f + 0.02f * t);
-            float stripY = vh * soft * i * 0.04f;
-            float alpha = vignetteStep * (5 - i);
+            float t = (float)i / 3f;
+            float stripH = vh * soft * (0.03f + 0.02f * (1f - t));
+            float stripY = vh * soft * t * 0.05f;
+            float alpha = totalA * (1f - t) * 0.5f;
             DrawRect(new Rect2(0, stripY, vw, stripH),
                 new Color(AtmosphereVignetteColor.R, AtmosphereVignetteColor.G, AtmosphereVignetteColor.B, alpha));
         }
 
         // Bottom vignette
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
-            float t = 1f - (float)i / 5f;
-            float stripH = vh * soft * (0.04f + 0.02f * t);
-            float stripY = vh - vh * soft * i * 0.04f - stripH;
-            float alpha = vignetteStep * (5 - i);
+            float t = (float)i / 3f;
+            float stripH = vh * soft * (0.03f + 0.02f * (1f - t));
+            float stripY = vh - vh * soft * t * 0.05f - stripH;
+            float alpha = totalA * (1f - t) * 0.5f;
             DrawRect(new Rect2(0, stripY, vw, stripH),
                 new Color(AtmosphereVignetteColor.R, AtmosphereVignetteColor.G, AtmosphereVignetteColor.B, alpha));
         }
 
         // Left vignette
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
-            float t = 1f - (float)i / 5f;
-            float stripW = vw * soft * (0.04f + 0.02f * t);
-            float stripX = vw * soft * i * 0.04f;
-            float alpha = vignetteStep * (5 - i);
+            float t = (float)i / 3f;
+            float stripW = vw * soft * (0.03f + 0.02f * (1f - t));
+            float stripX = vw * soft * t * 0.05f;
+            float alpha = totalA * (1f - t) * 0.5f;
             DrawRect(new Rect2(stripX, 0, stripW, vh),
                 new Color(AtmosphereVignetteColor.R, AtmosphereVignetteColor.G, AtmosphereVignetteColor.B, alpha));
         }
 
         // Right vignette
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 3; i++)
         {
-            float t = 1f - (float)i / 5f;
-            float stripW = vw * soft * (0.04f + 0.02f * t);
-            float stripX = vw - vw * soft * i * 0.04f - stripW;
-            float alpha = vignetteStep * (5 - i);
+            float t = (float)i / 3f;
+            float stripW = vw * soft * (0.03f + 0.02f * (1f - t));
+            float stripX = vw - vw * soft * t * 0.05f - stripW;
+            float alpha = totalA * (1f - t) * 0.5f;
             DrawRect(new Rect2(stripX, 0, stripW, vh),
                 new Color(AtmosphereVignetteColor.R, AtmosphereVignetteColor.G, AtmosphereVignetteColor.B, alpha));
         }
@@ -148,10 +145,11 @@ public partial class AtmosphereOverlay : Control
             float alpha = _dustMoteAlphas[i];
 
             // Draw filled circle using polygon approximation
-            var circlePoints = new Vector2[Segments];
-            for (int s = 0; s < Segments; s++)
+            int segs = Mathf.Max(12, Mathf.RoundToInt(radius * 6f));
+            var circlePoints = new Vector2[segs];
+            for (int s = 0; s < segs; s++)
             {
-                float angle = Mathf.Tau * s / Segments;
+                float angle = Mathf.Tau * s / segs;
                 circlePoints[s] = new Vector2(
                     px + radius * Mathf.Cos(angle),
                     py + radius * Mathf.Sin(angle));
@@ -162,27 +160,31 @@ public partial class AtmosphereOverlay : Control
 
     /// <summary>
     /// Draw a radial glow as concentric filled polygons fading outward.
+    /// Uses 32 rings with uniform alpha steps for a smooth gradient (no banding — TASK-UI3e).
+    /// Draws from outer to inner so alpha accumulates naturally toward the center.
     /// </summary>
-    private void DrawRadialGlow(Vector2 center, float maxRadius, Color baseColor, float peakAlpha, int rings)
+    private void DrawRadialGlow(Vector2 center, float maxRadius, Color baseColor, float peakAlpha)
     {
-        for (int ring = 0; ring < rings; ring++)
+        const int smoothRings = 32;
+        float alphaStep = peakAlpha / smoothRings;
+
+        for (int ring = 0; ring < smoothRings; ring++)
         {
-            float t = (float)ring / rings;
-            float radius = maxRadius * (1f - t * 0.85f); // inner = full, outer = 15% radius
-            float alpha = peakAlpha * (1f - t * 0.8f);
+            float t = (float)ring / smoothRings;
+            float radius = maxRadius * (1f - t * 0.90f);
 
-            if (alpha <= 0f) continue;
+            if (radius <= 1f) continue;
 
-            var points = new Vector2[Segments];
-            for (int i = 0; i < Segments; i++)
+            var points = new Vector2[36];
+            for (int i = 0; i < 36; i++)
             {
-                float angle = Mathf.Tau * i / Segments;
+                float angle = Mathf.Tau * i / 36;
                 points[i] = new Vector2(
                     center.X + radius * Mathf.Cos(angle),
                     center.Y + radius * Mathf.Sin(angle));
             }
 
-            DrawColoredPolygon(points, new Color(baseColor.R, baseColor.G, baseColor.B, alpha));
+            DrawColoredPolygon(points, new Color(baseColor.R, baseColor.G, baseColor.B, alphaStep));
         }
     }
 }

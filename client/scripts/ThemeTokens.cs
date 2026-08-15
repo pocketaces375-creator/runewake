@@ -66,8 +66,8 @@ public static class ThemeTokens
     // ── Vignette ──
     /// <summary>Vignette color — dark brown-black</summary>
     public static readonly Color AtmosphereVignetteColor = Color.FromHtml("#0A0907");
-    /// <summary>Vignette peak alpha at edges</summary>
-    public const float AtmosphereVignetteAlpha = 0.40f;
+    /// <summary>Vignette peak alpha at edges — subtle, card art reads true-color (TASK-UI3e)</summary>
+    public const float AtmosphereVignetteAlpha = 0.15f;
     /// <summary>Vignette softness as fraction of viewport (0=hard, 1=full soft)</summary>
     public const float AtmosphereVignetteSoftness = 0.35f;
 
@@ -80,8 +80,8 @@ public static class ThemeTokens
     public const float AtmosphereDustMoteMaxRadius = 3.0f;
     /// <summary>Dust mote color — warm faint gold</summary>
     public static readonly Color AtmosphereDustMoteColor = Color.FromHtml("#C9A84C");
-    /// <summary>Dust mote max opacity</summary>
-    public const float AtmosphereDustMoteAlpha = 0.35f;
+    /// <summary>Dust mote max opacity — subtle floating particles</summary>
+    public const float AtmosphereDustMoteAlpha = 0.20f;
 
     // ════════════════════════════════════════════
     // Text
@@ -165,10 +165,10 @@ public static class ThemeTokens
     // Card & Layout dimensions
     // ════════════════════════════════════════════
 
-    /// <summary>Hand card width (small, dense — phone-optimized)</summary>
-    public const int CardWidth = 75;
-    /// <summary>Hand card height</summary>
-    public const int CardHeight = 130;
+    /// <summary>Hand card width (TASK-UI3e: exactly 104 at design scale)</summary>
+    public const int CardWidth = 104;
+    /// <summary>Hand card height (TASK-UI3e: exactly 152 at design scale)</summary>
+    public const int CardHeight = 152;
     /// <summary>Art region height within the card</summary>
     public const int CardArtHeight = 55;
     /// <summary>How many pixels each successive card overlaps the previous</summary>
