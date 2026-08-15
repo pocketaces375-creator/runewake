@@ -11,8 +11,8 @@
 # messages (sequenced, trusted via bus-only commit check). If found, run a
 # 15-min bus-session before queue work.
 #
-# Cron: 2,17,32,47 * * * * (every 15 min, PID lock prevents overlap).
-# Budget: 48 sessions/day (half-session accounting), cool-down 15 min.
+# Cron: 17,47 * * * * (every 30 min, PID lock prevents overlap).
+# Budget: 16 sessions/day (half-session accounting), cool-down 15 min.
 #
 # Each iteration:
 #   1. Check circuit breakers (HALT, git pull, bus check, daily budget halves)
@@ -43,7 +43,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-48}"
+DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-16}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -322,6 +322,7 @@ if [[ -f "${LOCK_PID_FILE}" ]]; then
     echo "foreman already running (PID ${LOCK_PID}) — exiting"
     exit 0
   else
+    warn "Stale lock cleared (PID ${LOCK_PID} not alive)"
     rm -f "${LOCK_PID_FILE}"
   fi
 fi
@@ -475,6 +476,7 @@ if [[ "${SPENT_HALVES}" -ge "${BUDGET_HALVES}" ]]; then
   fi
   warn "Daily budget spent: ${SESSION_COUNT} full + ${BUS_SESSION_COUNT} bus = ${SPENT_FRAC}/${DAILY_BUDGET}"
   telegram_text "Budget spent — ${SPENT_FRAC}/${DAILY_BUDGET} sessions today"
+  write_parked_heartbeat "budget_spent"
   exit 0
 fi
 
@@ -600,6 +602,7 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   fi
 
   info "Transient skip logged — exiting 0 (task NOT charged a retry)"
+  write_parked_heartbeat "transient_skip"
   exit 0
 fi
 
