@@ -1,32 +1,3 @@
-                                       — "The Warrior's Path" tutorial data:
-                                          6 turn scripts (3 player + 3 opponent)
-                                          7 player beats (t1: summon→attack→end, 
-                                                            t2: summon→hold back,
-                                                            t3: attack all→end)
-                                          6 scripted opponent actions (1 summon + 1 end each)
-                                          Teaches Sword's +1 Attack passive and Shield's
-                                          hold-back reward per §P2 constraints
-  tools/validate_tutorial_script.py     — Python harness: schema validation + card ID checks
-                                          + structural constraints. Exits 0.
-
-Validations:
-  Schema vs data: PASSED
-  Card IDs against registry: all known tutorial card IDs verified
-  Opponent turns 1–3: all deterministic (scripted actions present)
-  Popup lengths: all ≤200 chars
-  Engine tests: 699/699 green (unchanged)
-  Commit 1604b4b pushed to origin/main
-```
-========================================
-=== foreman: 2026-08-15T19:31:58Z TASK-TU2 success ===
-Session: 4/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-## TASK-TU2 Complete
-
-### What was implemented
-
-**New files:**
 - `client/scripts/TutorialRunner.cs` — Godot Node state machine consuming TU1's `warrior_intro.json` script. Drives turn/beat flow: loads script, starts duel with correct decks/artifacts, executes player beats with condition matching (SUMMON/ATTACK/NO_ATTACK_END_TURN), shows popups via existing `TutorialPopup`, captures screenshots at each beat boundary, runs scripted opponent actions deterministically replacing the AI bot.
 - `client/scripts/TutorialScriptData.cs` — C# data models mirroring `tutorial_script.schema.json` (TutorialScript, TurnScript, TutorialBeat, BeatCondition, ScriptedAction).
 
@@ -47,4 +18,33 @@ Session: 4/48
 - Build: 0 errors
 - Capture gate: exit 0
 - Commit `64044e8`, pushed, TASKS_QUEUE.md marked `[x]`, HERMES_STATUS.md updated
+========================================
+=== foreman: 2026-08-15T20:23:30Z TASK-APK1 success ===
+Session: 5/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-APK1 complete. Full chain executed:
+
+**Tooling verification:**
+- Godot: `4.3.stable.mono.official.77dcf97d8` ✓
+- Android export templates: `android_debug.apk` at `~/.local/share/godot/export_templates/4.3.stable.mono/` ✓
+- JDK: `21.0.11` (not 17, but Godot 4.3 accepts it) ✓
+- SDK: `~/Android/Sdk/` — platform `android-34`, build-tools `34.0.0` ✓ (set `ANDROID_HOME` at export time)
+
+**Export:**
+```
+godot --headless --path client/ --export-debug "Android"
+```
+→ 117MB `client/exports/Runewake.apk` (also copied to `exports/Runewake.apk`)
+
+**Release:**
+```
+gh release create alpha-2026-08-15-1620 exports/Runewake.apk --prerelease
+```
+→ https://github.com/pocketaces375-creator/runewake/releases/tag/alpha-2026-08-15-1620
+→ Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-15-1620/Runewake.apk
+
+**Telegram:** Posted to Adam's DM ✓ (RuneWake group chat not found, likely stale ID)
+
+**Git:** `2c03c2c` committed + pushed to `origin/main`
 ========================================
