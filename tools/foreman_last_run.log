@@ -1,33 +1,3 @@
-Session: 2/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-**TASK-AC2 complete.** Here's what was implemented:
-
-**ThemeTokens.cs** — Added 5 charge pip design tokens:
-- `ChargeFilled` (#D4B84C warm gold), `ChargeEmpty` (#5A5048 muted)
-- `ChargeFullPulse` (#8AC4FF arcane blue-white), `ChargePulseScale` (1.4x), `ChargePulseDuration` (0.35s ≤0.5s)
-
-**DuelScene.cs** — Three additions:
-1. `RenderChargePips(charges, maxCharges)` — produces `•••∘∘` strings with proper filled/empty count for any charge level
-2. `PlayChargeFullPulse(label, slotIdx, isEnemy)` — tween-based animation: scale 1.4x + color shift to `ChargeFullPulse` → back in 0.35s total. Per-slot tween tracking prevents overlapping pulses
-3. `RenderHud()` updated for both enemy and player artifacts: uses `RenderChargePips`, detects charge-to-max transitions, fires pulse only when `!slot.IsSuppressed` (G3 freeze). `_prevPlayerCharges[]` / `_prevEnemyCharges[]` track deltas
-
-**PrePlaceArtifacts** — Duskfang (player slot 1) now at 3/3 max charges so the ON_CHARGE_FULL pulse is visible in debug capture
-
-**Acceptance:** Client build → Xvfb capture → pixel gate → layout verification → all exit 0. Commit `2fd57a3` on main (push blocked by network — will go when connected).
-========================================
-=== foreman: 2026-08-15T19:09:32Z TASK-TU1 success ===
-Session: 3/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-```text
-TASK-TU1: Complete.
-
-Delivered:
-  schema/tutorial_script.schema.json   — JSON Schema (draft 2020-12) for tutorial scripts:
-                                          deterministic opponent turns, act→consequence→
-                                          one-line-rule beats, max 1 popup/action, 200c cap
-  content/tutorial/scripts/warrior_intro.json
                                        — "The Warrior's Path" tutorial data:
                                           6 turn scripts (3 player + 3 opponent)
                                           7 player beats (t1: summon→attack→end, 
@@ -47,4 +17,34 @@ Validations:
   Engine tests: 699/699 green (unchanged)
   Commit 1604b4b pushed to origin/main
 ```
+========================================
+=== foreman: 2026-08-15T19:31:58Z TASK-TU2 success ===
+Session: 4/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+## TASK-TU2 Complete
+
+### What was implemented
+
+**New files:**
+- `client/scripts/TutorialRunner.cs` — Godot Node state machine consuming TU1's `warrior_intro.json` script. Drives turn/beat flow: loads script, starts duel with correct decks/artifacts, executes player beats with condition matching (SUMMON/ATTACK/NO_ATTACK_END_TURN), shows popups via existing `TutorialPopup`, captures screenshots at each beat boundary, runs scripted opponent actions deterministically replacing the AI bot.
+- `client/scripts/TutorialScriptData.cs` — C# data models mirroring `tutorial_script.schema.json` (TutorialScript, TurnScript, TutorialBeat, BeatCondition, ScriptedAction).
+
+**Modified files:**
+- `DebugCapture.cs` — handles `--tutorial=warrior_intro` CLI arg, sets `CampaignContext.TutorialScriptId`.
+- `CampaignContext.cs` — added `TutorialScriptId`, `TutorialPlayerArtifactIds`, `TutorialPlayerClass` static fields for script-mode duel config.
+- `DuelScene.cs` — detects tutorial script mode in `_Ready()`, creates `TutorialRunner`, calls `OnGameStateChanged()` after every state mutation. Added public API methods (`PlayerSummonCard`, `PlayerAttack`, `PlayerEndTurn`, `SetEndTurnEnabled`) for headless auto-play.
+- `GameStateManager.cs` — added `NotifyStateChanged()` public method so TutorialRunner can force re-renders after overrides.
+
+### Key design decisions
+- **Bulwark hold-back beat** (`t2_hold_back`): triggers on `NO_ATTACK_END_TURN` with condition `not_attacked_this_turn=true`. Player must end turn without attacking to see shield's +0/+1 fortify — teaches the attack-versus-restraint decision.
+- **Headless auto-play** matches each beat's `trigger_event` (summon cheapest playable, attack first occupied lane, end turn) so the tutorial can run unattended.
+- **Action restrictions** disable the End Turn button when `END_TURN` isn't in the beat's allowed actions.
+
+### Verification
+- Engine tests: 699 green
+- Schema validation: passes
+- Build: 0 errors
+- Capture gate: exit 0
+- Commit `64044e8`, pushed, TASKS_QUEUE.md marked `[x]`, HERMES_STATUS.md updated
 ========================================
