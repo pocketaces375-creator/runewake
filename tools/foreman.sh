@@ -12,7 +12,7 @@
 # 15-min bus-session before queue work.
 #
 # Cron: 17,47 * * * * (every 30 min, PID lock prevents overlap).
-# Budget: 16 sessions/day (half-session accounting), cool-down 15 min.
+# Budget: 48 sessions/day (half-session accounting), cool-down 15 min.
 #
 # Each iteration:
 #   1. Check circuit breakers (HALT, git pull, bus check, daily budget halves)
@@ -43,7 +43,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-16}"
+DAILY_BUDGET=48
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -139,6 +139,20 @@ write_parked_heartbeat() {
   local now_iso
   now_iso=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
   ok "Heartbeat: parked — ${reason} (${now_iso})"
+  # Git-commit and push so Claude's remote view sees every heartbeat immediately.
+  # Without this, the state.json change stays local and never reaches GitHub.
+  cd "${PROJECT_DIR}"
+  git add "${STATE_FILE}" 2>/dev/null || true
+  if ! git diff --cached --quiet 2>/dev/null; then
+    git commit -m "foreman: heartbeat — ${reason}" 2>/dev/null || true
+    if ! git push origin main 2>/dev/null; then
+      warn "Heartbeat push failed — retrying once after 5s"
+      sleep 5
+      if ! git push origin main 2>/dev/null; then
+        warn "Heartbeat push failed after retry — state change remains local only"
+      fi
+    fi
+  fi
 }
 
 # Find the top unchecked task in TASKS_QUEUE.md
