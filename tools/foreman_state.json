@@ -11,7 +11,7 @@
   "bus_last_seq": 0,
   "bus_session_count": 0,
   "no_progress_count": 0,
-  "validated_count": 1,
-  "last_heartbeat_epoch": 1786774624,
+  "validated_count": 0,
+  "last_heartbeat_epoch": 1786816024,
   "last_heartbeat_reason": "empty_queue"
 }
