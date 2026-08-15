@@ -1,35 +1,3 @@
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-UI3d complete. Summary:
-
-**Changes:**
-- `ThemeTokens.cs` — Added 25 atmosphere config constants (ember/moon glow colors/positions/radii/alphas, mist, vignette, dust motes) so art can retune without code
-- `AtmosphereOverlay.cs` (new) — Full-screen Control rendering via `_Draw`: concentric radial glow polygons (ember lower-left, moon upper-right), mist band across mid-field, 5-step vignette strips on all 4 edges, 7 static dust motes (fixed seed 12345 for deterministic captures)
-- `DuelScene.cs` — Wired AtmosphereOverlay into `_Ready()` after turn label, before background tap handler
-- `HandCard.tscn` — StyleBoxFlat shadow: size=10, offset=(3,4), color=black 0.5α
-- `LaneSlot.tscn` — StyleBoxFlat shadow: same parameters
-
-**Acceptance:**
-- Client build: 0 errors
-- Capture: `duel_test.png` saved (680KB, was 717KB — vignette compresses edges)
-- Pixel gate: all 4 hand cards + 10 board cards + 2 group rects pass (exit 0)
-- Layout verification: 0 failed
-- Atmosphere overlay confirmed loaded: `[ATMOSPHERE] TASK-UI3d: Atmosphere overlay ready`
-- Committed `331ab20` / pushed / DONE line written / queue marked `[x]`
-========================================
-=== foreman: 2026-08-15T04:27:03Z TASK-UI3e success ===
-Session: 1/16
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-**TASK-UI3e complete.** Summary of what was done:
-
-- **(a) Atmosphere retune** — verified glow opacities ≤0.15 (ember 0.12, moon 0.08, mist 0.06, vignette 0.15). AltarField.cs ellipse glow upgraded from 4→32 smooth rings (was visibly banded). Vignette alpha 0.15 ensures card art reads true-color with no full-screen tint.
-- **(b) Shrine clear of player arc** — shrine positioned at y=528 (1280x720), player arc bottom at y=564, 60px gap. Hand cards confirmed exactly 104×152 at design scale.
-- **(c) Outer arc slots inside screen edges** — spacing tightened to 215×scale, player arc raised to 0.46vh, leftmost slot edge at x=12, rightmost at x=1168, both fully inside 1280px viewport.
-- **(d) YOUR TURN indicator** — moved out of enemy name to small gold/ember label above End Turn button.
-
-**Layout verification:** 0 failures. **Pixel gate:** exit 0, all 4 hand + 10 board card checks pass, overlap assertion green, luminance thresholds unchanged (17.1% near-black, well under 85% limit). Committed + pushed.
-========================================
-=== foreman: 2026-08-15T18:56:03Z TASK-AC2 success ===
 Session: 2/48
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
@@ -47,4 +15,36 @@ Session: 2/48
 **PrePlaceArtifacts** — Duskfang (player slot 1) now at 3/3 max charges so the ON_CHARGE_FULL pulse is visible in debug capture
 
 **Acceptance:** Client build → Xvfb capture → pixel gate → layout verification → all exit 0. Commit `2fd57a3` on main (push blocked by network — will go when connected).
+========================================
+=== foreman: 2026-08-15T19:09:32Z TASK-TU1 success ===
+Session: 3/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+```text
+TASK-TU1: Complete.
+
+Delivered:
+  schema/tutorial_script.schema.json   — JSON Schema (draft 2020-12) for tutorial scripts:
+                                          deterministic opponent turns, act→consequence→
+                                          one-line-rule beats, max 1 popup/action, 200c cap
+  content/tutorial/scripts/warrior_intro.json
+                                       — "The Warrior's Path" tutorial data:
+                                          6 turn scripts (3 player + 3 opponent)
+                                          7 player beats (t1: summon→attack→end, 
+                                                            t2: summon→hold back,
+                                                            t3: attack all→end)
+                                          6 scripted opponent actions (1 summon + 1 end each)
+                                          Teaches Sword's +1 Attack passive and Shield's
+                                          hold-back reward per §P2 constraints
+  tools/validate_tutorial_script.py     — Python harness: schema validation + card ID checks
+                                          + structural constraints. Exits 0.
+
+Validations:
+  Schema vs data: PASSED
+  Card IDs against registry: all known tutorial card IDs verified
+  Opponent turns 1–3: all deterministic (scripted actions present)
+  Popup lengths: all ≤200 chars
+  Engine tests: 699/699 green (unchanged)
+  Commit 1604b4b pushed to origin/main
+```
 ========================================
