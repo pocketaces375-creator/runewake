@@ -16,6 +16,7 @@ namespace Runewake.Client;
 public partial class Main : Control
 {
     private Button _startButton = default!;
+    private Button _decksButton = default!;
     private Button _runeButton = default!;
     private Button _forgeButton = default!;
     private Label _statusLabel = default!;
@@ -222,7 +223,7 @@ public partial class Main : Control
         {
             Text = "Rune Page",
             AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.82f, AnchorBottom = 0.88f,
+            AnchorTop = 0.80f, AnchorBottom = 0.85f,
             Disabled = true
         };
         runeButton.AddThemeFontSizeOverride("font_size", 13);
@@ -235,12 +236,29 @@ public partial class Main : Control
         AddChild(runeButton);
         _runeButton = runeButton;
 
+        // Decks button
+        _decksButton = new Button
+        {
+            Text = "Decks",
+            AnchorLeft = 0.32f, AnchorRight = 0.68f,
+            AnchorTop = 0.86f, AnchorBottom = 0.91f,
+            Disabled = true
+        };
+        _decksButton.AddThemeFontSizeOverride("font_size", 13);
+        _decksButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
+        _decksButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+        _decksButton.AddThemeStyleboxOverride("normal", btnNormal);
+        _decksButton.AddThemeStyleboxOverride("hover", btnHover);
+        _decksButton.AddThemeStyleboxOverride("disabled", btnDisabled);
+        _decksButton.Pressed += OnOpenDecks;
+        AddChild(_decksButton);
+
         // Forge button
         var forgeButton = new Button
         {
             Text = "Rune Forge",
             AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.89f, AnchorBottom = 0.95f,
+            AnchorTop = 0.92f, AnchorBottom = 0.97f,
             Disabled = true
         };
         forgeButton.AddThemeFontSizeOverride("font_size", 13);
@@ -522,6 +540,7 @@ public partial class Main : Control
         _statusLabel.Text = "";
         _statusLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
         _startButton.Disabled = false;
+        _decksButton.Disabled = false;
         _runeButton.Disabled = false;
         _forgeButton.Disabled = false;
 
@@ -551,7 +570,51 @@ public partial class Main : Control
         // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
         {
-            if (CampaignContext.CaptureMapScreenshot)
+            if (CampaignContext.CaptureTitleDeckScreenshot)
+            {
+                // Capture title screen with Decks button visible, then navigate to deck builder
+                GD.Print("[Main] Title+Deck capture mode — will capture title screen then navigate");
+                var titleCapTimer = new Godot.Timer();
+                titleCapTimer.OneShot = true;
+                titleCapTimer.WaitTime = 1.0f;
+                titleCapTimer.Timeout += () =>
+                {
+                    // Capture title screen
+                    var img = GetViewport().GetTexture().GetImage();
+                    if (img != null)
+                        img.SavePng("/home/fictive/runewake/artifacts/captures/title_deck.png");
+                    GD.Print("[Main] title_deck.png saved");
+
+                    // Write meta for title screen
+                    var meta = new System.Text.StringBuilder();
+                    meta.Append("{\n");
+                    meta.Append("  \"capture_type\": \"title_deck\",\n");
+                    meta.Append("  \"view_width\": " + (int)GetViewportRect().Size.X + ",\n");
+                    meta.Append("  \"view_height\": " + (int)GetViewportRect().Size.Y + ",\n");
+                    meta.Append("  \"decks_button_rect\": { \"x\": " +
+                        (int)(GetViewportRect().Size.X * 0.32f) + ", \"y\": " +
+                        (int)(GetViewportRect().Size.Y * 0.86f) + ", \"w\": " +
+                        (int)(GetViewportRect().Size.X * 0.36f) + ", \"h\": " +
+                        (int)(GetViewportRect().Size.Y * 0.05f) + " },\n");
+                    meta.Append("  \"expected_deck_button_label\": \"Decks\"\n");
+                    meta.Append("}\n");
+
+                    var metaPath = "/home/fictive/runewake/artifacts/captures/title_deck.meta.json";
+                    using (var writer = new System.IO.StreamWriter(metaPath))
+                    {
+                        writer.Write(meta.ToString());
+                    }
+                    GD.Print("[Main] title_deck.meta.json saved");
+
+                    // Now navigate to deck builder for the tome capture
+                    GD.Print("[Main] Navigating to deck builder for tome capture");
+                    CampaignContext.CaptureDeckBuilderScreenshot = true;
+                    GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
+                };
+                AddChild(titleCapTimer);
+                titleCapTimer.Start();
+            }
+            else if (CampaignContext.CaptureMapScreenshot)
             {
                 // Navigate to map for map capture
                 Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
@@ -804,6 +867,11 @@ public partial class Main : Control
     private void OnOpenRunePage()
     {
         GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
+    }
+
+    private void OnOpenDecks()
+    {
+        GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
     }
 
     private void OnOpenForge()

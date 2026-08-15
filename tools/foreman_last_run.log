@@ -1,25 +1,3 @@
-
-**Git:** `2c03c2c` committed + pushed to `origin/main`
-========================================
-=== foreman: 2026-08-15T20:29:57Z TASK-DK1 success ===
-Session: 6/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-DK1 complete. Summary:
-
-**Engine:**
-- `engine/State/DeckRules.cs` — new single-source-of-truth: MinSize=30, MaxSize=40, IsSingleton=true
-- `engine/State/DeckValidator.cs` — updated rules: size 30-40 with specific error strings (`"too few cards (N/30 minimum)"`, `"too many cards (N/40 maximum)"`, `"duplicate: <name>"`), singleton (max 1 copy), removed old RELIC/Strata/max-2-copy rules
-- `engine/State/MatchConfig.cs` — new: StartingVigor 20-30 clamped, default 25
-- `engine/State/GameConfig.cs` — added `MatchConfig?` property
-- `engine/State/GameState.cs` — `Initialize()` reads MatchConfig, applies starting vigor to both players
-- `engine/State/PlayerState.cs` — constructor accepts optional `startingVigor` parameter (default 25)
-
-**Client (both duel setup paths):**
-- `client/scripts/GameStateManager.cs` — `InitializeTestGame()` includes default MatchConfig
-- `client/scripts/DuelScene.cs` — campaign encounter path includes `MatchConfig = CampaignContext.MatchConfig`
-- `client/scripts/CampaignContext.cs` — added `static MatchConfig?` property
-
 **Tests: 714 pass** (all 699 legacy + 15 new):
 - DeckRules boundary checks (5 tests)
 - MatchConfig clamping and defaults (7 tests)
@@ -47,4 +25,26 @@ TASK-DK2 complete. Here's what was done:
 - `capture_gate.py validate_deck_test`: checks left/right page rects, spine, filter ribbons, red-ink annotation pixel ratio
 
 **Verification**: build exit 0, gate exit 0, 714 tests green, committed 16640f2 + pushed.
+========================================
+=== foreman: 2026-08-15T21:18:32Z TASK-DK3 retry ===
+Session: 8/48
+Failures: no_new_commit 
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-DK3 is implemented and fully verified except the final commit/push, which got cut off before I could run it. Here's the state:
+
+DONE
+- Title screen "Decks" button (Main.cs) between Rune Page and Rune Forge — navigates to DeckBuilderScene, enabled after load.
+- Pre-duel StartingVigor brass dial (MapScene.cs). Triggered on "Challenge" from map: brass-toned overlay with HSlider 20-30, default 25, large gold value readout, Duel/Cancel. On Duel, writes CampaignContext.MatchConfig = new MatchConfig(vigor) then transitions to DuelScene. DuelScene already reads CampaignContext.MatchConfig in both campaign paths (was wired in DK1).
+- Capture mode --capture=title_deck: DebugCapture seeds the 31-card test deck, Main captures title_deck.png + meta.json (Decks button rect), then auto-navigates to deck builder where the existing deck_test capture fires. Both captures committed in the working tree.
+- capture_gate.py: new validate_title_deck_test (whole-frame dark ≤92%, Decks button contrast, bright-content ratio). Duel/deck validators untouched.
+- TASKS_QUEUE.md: TASK-DK3 flipped to [x].
+- HERMES_STATUS.md: DONE line written at top of Completed Tasks.
+- Build exit 0, all 714 unit tests green, all 3 gates pass (title_deck, deck_test, duel_test).
+
+REMAINING (was interrupted)
+- `git commit -m 'TASK-DK3: Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig.'` then `git push`.
+- Note: `git add -A` was staged including tools/foreman_cron.log (205 lines of watcher noise) — that should be unstaged before commit. Also artifacts/captures doesn't show in git status, so title_deck.png/meta.json are likely gitignored — if previous capture commits used `git add -f`, do the same for the two new capture files to match protocol ("capture committed").
+
+One sentence: the build/tests/gates are green and status files are written; run the commit (excluding foreman_cron.log, force-add title_deck captures) + push and the task is fully closed.
 ========================================

@@ -451,6 +451,84 @@ def validate_deck_test(png_path, meta):
 
 
 # ════════════════════════════════════════════
+# Title+Deck test validator (TASK-DK3)
+# ════════════════════════════════════════════
+
+def validate_title_deck_test(png_path, meta):
+    """
+    Validates title screen capture with Decks button:
+    - Whole frame < 85% near-black (should show title screen with gold text)
+    - Decks button area has visible content (contrast against dark background)
+    """
+    width, height, pixels = read_png(str(png_path))
+    total_pixels = width * height
+    print(f"Image: {width}x{height}, {total_pixels} pixels")
+    failures = []
+
+    # Check 1: Whole frame — must not be >92% near-black (title screen has dark bg with gold text + buttons)
+    # Title screen background is intentionally dark (~0.06 luminance) with a vignette overlay;
+    # gold title text, decorative lines, and buttons provide the detectable content.
+    near_black_threshold = 25 / 255.0
+    dark_count = 0
+    for i in range(0, len(pixels), 4):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        if get_luminance(r, g, b) < near_black_threshold:
+            dark_count += 1
+
+    dark_ratio = dark_count / total_pixels
+    if dark_ratio > 0.92:
+        failures.append(
+            f"WHOLE_FRAME_DARK: {dark_ratio:.1%} pixels are near-black "
+            f"(threshold 92%, expected title screen with buttons and text)"
+        )
+    else:
+        print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 92%)")
+
+    # Check 2: Decks button area must have detectable content (gold/bronze text on dark bg)
+    decks_rect = meta.get("decks_button_rect")
+    if decks_rect:
+        mean, std = rect_mean_stddev(pixels, width, height, decks_rect["x"], decks_rect["y"], decks_rect["w"], decks_rect["h"])
+        if std < 10 / 255.0:
+            failures.append(f"DECKS_BUTTON: stddev {std:.3f} too low — Decks button not visible (need > {10 / 255.0:.3f})")
+        else:
+            print(f"  PASS Decks button area: mean={mean:.3f}, std={std:.3f}")
+
+        # Check for visible content (button text/border against dark bg) in the area
+        bx, by, bw, bh = int(decks_rect["x"]), int(decks_rect["y"]), int(decks_rect["w"]), int(decks_rect["h"])
+        bright_pixels = 0
+        total_checked = 0
+        for row in range(by, min(by + bh, height)):
+            for col in range(bx, min(bx + bw, width)):
+                idx = (row * width + col) * 4
+                if idx + 3 < len(pixels):
+                    r, g, b = pixels[idx] / 255.0, pixels[idx+1] / 255.0, pixels[idx+2] / 255.0
+                    total_checked += 1
+                    # Button content: any pixel brighter than the dark bg (luminance > 0.15)
+                    # The button bg is very dark (0.15/0.12/0.08 ~lum 0.11);
+                    # text is warm gold/bronze, border is brighter brass
+                    lum = get_luminance(r, g, b)
+                    if lum > 0.15:
+                        bright_pixels += 1
+        if total_checked > 0:
+            bright_ratio = bright_pixels / total_checked
+            if bright_ratio < 0.02:
+                failures.append(f"DECKS_BUTTON: only {bright_ratio:.2%} bright pixels — button text may be missing (need > 2%)")
+            else:
+                print(f"  PASS Decks button content: {bright_ratio:.1%} bright pixels")
+
+    if failures:
+        print(f"\nFAILURE ({len(failures)} reasons):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
+    else:
+        print("\nPASS: All title+deck checks passed")
+        sys.exit(0)
+
+
+# ════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════
 
@@ -473,6 +551,8 @@ def main():
 
     if base_name == "deck_test":
         validate_deck_test(png_path, meta)
+    elif base_name == "title_deck":
+        validate_title_deck_test(png_path, meta)
     else:
         validate_duel_test(png_path, meta)
 

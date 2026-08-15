@@ -564,7 +564,193 @@ public partial class MapScene : Control
         }
 
         CampaignContext.CurrentEncounter = encounterDef;
-        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+
+        // ═══ StartingVigor brass dial (TASK-DK3) ═══
+        // Show a brass dial overlay for choosing 20-30 starting vigor, default 25.
+        // The selected value is written to CampaignContext.MatchConfig.
+        ShowVigorDial(encounterDef);
+    }
+
+    /// <summary>
+    /// Pre-duel StartingVigor brass dial (TASK-DK3).
+    /// Shows a brass-toned overlay with a slider from 20-30 (default 25).
+    /// On confirm, sets CampaignContext.MatchConfig and transitions to the duel scene.
+    /// </summary>
+    private void ShowVigorDial(EncounterDef encounter)
+    {
+        // Create the overlay panel
+        var overlay = new ColorRect
+        {
+            Color = new Color(0f, 0f, 0f, 0.7f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(overlay);
+
+        // Brass dial panel
+        var dialPanel = new Panel();
+        dialPanel.AnchorLeft = 0.28f; dialPanel.AnchorRight = 0.72f;
+        dialPanel.AnchorTop = 0.30f; dialPanel.AnchorBottom = 0.70f;
+
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.12f, 0.08f, 0.97f),
+            BorderColor = new Color(0.7f, 0.6f, 0.3f, 0.6f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 16, ContentMarginTop = 12,
+            ContentMarginRight = 16, ContentMarginBottom = 12
+        };
+        dialPanel.AddThemeStyleboxOverride("panel", panelStyle);
+        AddChild(dialPanel);
+
+        var vbox = new VBoxContainer();
+        vbox.AnchorLeft = 0f; vbox.AnchorRight = 1f;
+        vbox.AnchorTop = 0f; vbox.AnchorBottom = 1f;
+        vbox.AddThemeConstantOverride("separation", 8);
+        dialPanel.AddChild(vbox);
+
+        // Title
+        var titleLabel = new Label
+        {
+            Text = "Starting Vigor",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        titleLabel.AddThemeFontSizeOverride("font_size", 20);
+        titleLabel.Modulate = new Color(0.85f, 0.72f, 0.35f, 1f); // gold
+        vbox.AddChild(titleLabel);
+
+        // Decorative brass line
+        var brassLine = new ColorRect
+        {
+            Color = new Color(0.7f, 0.6f, 0.3f, 0.4f),
+            CustomMinimumSize = new Vector2(0, 1),
+            SizeFlagsHorizontal = (Control.SizeFlags)3
+        };
+        vbox.AddChild(brassLine);
+
+        // Description
+        var descLabel = new Label
+        {
+            Text = $"Set your starting life total for\n{encounter.Name}",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.Word
+        };
+        descLabel.AddThemeFontSizeOverride("font_size", 13);
+        descLabel.Modulate = new Color(0.7f, 0.65f, 0.5f, 0.8f);
+        vbox.AddChild(descLabel);
+
+        // Spacer
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+
+        // Value display (large brass number)
+        var valueLabel = new Label
+        {
+            Text = "25",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        valueLabel.AddThemeFontSizeOverride("font_size", 36);
+        valueLabel.Modulate = new Color(0.9f, 0.78f, 0.45f, 1f);
+        vbox.AddChild(valueLabel);
+
+        // Brass slider (HSlider styled with brass colors)
+        var slider = new HSlider
+        {
+            MinValue = MatchConfig.MinStartingVigor,
+            MaxValue = MatchConfig.MaxStartingVigor,
+            Value = MatchConfig.DefaultStartingVigor,
+            Step = 1,
+            SizeFlagsHorizontal = (Control.SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 28)
+        };
+        slider.AddThemeColorOverride("slide_color", new Color(0.3f, 0.25f, 0.15f, 0.5f)); // track
+        slider.AddThemeColorOverride("grabber_icon_color", new Color(0.9f, 0.78f, 0.45f, 1f)); // brass grabber
+        slider.AddThemeConstantOverride("grabber_highlight_inset", 2);
+        slider.ValueChanged += (value) =>
+        {
+            valueLabel.Text = ((int)value).ToString();
+        };
+        vbox.AddChild(slider);
+
+        // Min/Max labels
+        var rangeRow = new HBoxContainer();
+        rangeRow.SizeFlagsHorizontal = (Control.SizeFlags)3;
+        var minLabel = new Label { Text = "20", Modulate = new Color(0.5f, 0.45f, 0.35f, 0.6f) };
+        minLabel.AddThemeFontSizeOverride("font_size", 11);
+        rangeRow.AddChild(minLabel);
+        rangeRow.AddChild(new Control { SizeFlagsHorizontal = (Control.SizeFlags)3 });
+        var maxLabel = new Label { Text = "30", Modulate = new Color(0.5f, 0.45f, 0.35f, 0.6f) };
+        maxLabel.AddThemeFontSizeOverride("font_size", 11);
+        rangeRow.AddChild(maxLabel);
+        vbox.AddChild(rangeRow);
+
+        // Spacer
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+
+        // Button row
+        var buttonRow = new HBoxContainer();
+        buttonRow.AddThemeConstantOverride("separation", 12);
+        buttonRow.SizeFlagsHorizontal = (Control.SizeFlags)3;
+
+        var btnNormal = new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.15f, 0.1f, 1f),
+            BorderColor = new Color(0.7f, 0.6f, 0.3f, 1f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 12, ContentMarginTop = 4,
+            ContentMarginRight = 12, ContentMarginBottom = 4
+        };
+        var btnHover = new StyleBoxFlat
+        {
+            BgColor = new Color(0.3f, 0.22f, 0.14f, 1f),
+            BorderColor = new Color(0.9f, 0.78f, 0.45f, 1f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 12, ContentMarginTop = 4,
+            ContentMarginRight = 12, ContentMarginBottom = 4
+        };
+
+        // Confirm button
+        var confirmBtn = new Button { Text = "Duel" };
+        confirmBtn.AddThemeFontSizeOverride("font_size", 14);
+        confirmBtn.AddThemeColorOverride("font_color", new Color(0.95f, 0.88f, 0.65f, 1f));
+        confirmBtn.AddThemeStyleboxOverride("normal", btnNormal);
+        confirmBtn.AddThemeStyleboxOverride("hover", btnHover);
+        confirmBtn.SizeFlagsHorizontal = (Control.SizeFlags)3;
+        confirmBtn.Pressed += () =>
+        {
+            int vigor = (int)slider.Value;
+            CampaignContext.MatchConfig = new MatchConfig(vigor);
+            GD.Print($"[MapScene] StartingVigor set to {vigor} — transitioning to duel");
+
+            overlay.QueueFree();
+            dialPanel.QueueFree();
+            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        };
+        buttonRow.AddChild(confirmBtn);
+
+        // Cancel button
+        var cancelBtn = new Button { Text = "Cancel" };
+        cancelBtn.AddThemeFontSizeOverride("font_size", 13);
+        cancelBtn.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
+        cancelBtn.AddThemeStyleboxOverride("normal", btnNormal);
+        cancelBtn.AddThemeStyleboxOverride("hover", btnHover);
+        cancelBtn.Pressed += () =>
+        {
+            overlay.QueueFree();
+            dialPanel.QueueFree();
+        };
+        buttonRow.AddChild(cancelBtn);
+
+        vbox.AddChild(buttonRow);
     }
 
     // ——— Input: pan and zoom (mouse + touch) ———

@@ -75,7 +75,7 @@
   Acceptance: tests green, no client work.
 - [x] TASK-DK2 — Deck builder Ancient Tome rebuild per DECK_SPEC.md PRESENTATION, reusing DeckBuilderScene's existing data/filter/save logic (do not rewrite persistence). Two-page tome layout, ribbon-bookmark filters, manifest right page, add/remove drift animation, DK1 validation strings surfaced as red-ink annotations. All colors via ThemeTokens.
   Acceptance: build exit 0, capture of tome with 30+ card deck loaded + one forced duplicate error visible, gate green.
-- [ ] TASK-DK3 — Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig.
+- [x] TASK-DK3 — Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig.
   Acceptance: capture shows title screen with Decks button AND tome opened from it; duel starts with chosen vigor visible in HUD; gate green.
 
 ## After TASK-S1

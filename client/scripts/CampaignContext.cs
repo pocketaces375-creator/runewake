@@ -93,6 +93,11 @@ public static class CampaignContext
     /// </summary>
     public static bool CaptureDeckBuilderScreenshot { get; set; }
 
+    /// <summary>Test hook: capture title screen with Decks button, then navigate to deck builder.
+    /// Set by --capture=title_deck CLI arg via DebugCapture.
+    /// </summary>
+    public static bool CaptureTitleDeckScreenshot { get; set; }
+
     /// <summary>Fixed seed for deterministic capture tests. Null = random seed.</summary>
     public static ulong? DebugSeed { get; set; }
 

@@ -45,6 +45,7 @@ public partial class DebugCapture : Node
         // TASK-TU2: Handle --tutorial=<script_id> for headless tutorial runner
         string? tutorialScriptId = null;
         bool deckBuilderMode = false;
+        bool titleDeckMode = false;
         foreach (var arg in args)
         {
             if (arg == "--capture=duel_test")
@@ -57,6 +58,11 @@ public partial class DebugCapture : Node
                 deckBuilderMode = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=deck_test");
             }
+            if (arg == "--capture=title_deck")
+            {
+                titleDeckMode = true;
+                GD.Print("[DebugCapture] Capture mode enabled: --capture=title_deck");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);
@@ -67,6 +73,13 @@ public partial class DebugCapture : Node
         {
             GD.Print("[DebugCapture] Deck builder capture mode — setting up test deck state");
             SetUpDeckBuilderTest();
+            return;
+        }
+
+        if (titleDeckMode)
+        {
+            GD.Print("[DebugCapture] Title+Deck capture mode — showing title screen then navigating to deck builder");
+            SetUpTitleDeckTest();
             return;
         }
 
@@ -205,6 +218,73 @@ public partial class DebugCapture : Node
         CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.CaptureDeckBuilderScreenshot = true;
         CampaignContext.DebugSeed = 42;
+    }
+
+    /// <summary>
+    /// Title+Deck capture mode: set up deck card data, then set capture flags so
+    /// Main.cs first captures the title screen (with Decks button), then navigates
+    /// to the deck builder for the tome capture.
+    /// </summary>
+    private void SetUpTitleDeckTest()
+    {
+        var allCards = new List<CardDef>();
+        var packs = new[] {
+            "res://content/cards/verdant.json", "res://content/cards/ember.json",
+            "res://content/cards/tide.json", "res://content/cards/hollow.json",
+            "res://content/cards/dawn.json"
+        };
+        foreach (var pack in packs)
+        {
+            string json = Godot.FileAccess.GetFileAsString(pack);
+            allCards.AddRange(CardLoader.LoadPackFromString(json));
+        }
+
+        CampaignContext.Progression.Collection.Clear();
+        foreach (var card in allCards)
+            CampaignContext.Progression.Collection[card.Id] = 1;
+
+        var deck = new List<string>
+        {
+            "vrd_c_root_warden",
+            "vrd_c_verdant_sproutling",
+            "vrd_c_thornbark_defender",
+            "vrd_r_bloomweaver",
+            "vrd_u_grove_healer",
+            "vrd_x_heartwood_relic",
+            "vrd_c_wildwood_stalker",
+            "vrd_u_canopy_archer",
+            "vrd_u_saphoof_charger",
+            "vrd_u_elder_treant",
+            "emb_c_ember_hound",
+            "emb_c_cinder_runner",
+            "emb_c_forgeguard_berserker",
+            "emb_u_wildfire_adept",
+            "emb_u_lava_serpent",
+            "tid_c_tidal_scholar",
+            "tid_c_deep_one",
+            "tid_c_silt_reader",
+            "tid_u_brine_witch",
+            "hol_c_skeletal_reaver",
+            "hol_c_gravewrit_thrall",
+            "hol_c_ossuary_guard",
+            "dwn_r_sealing_light",
+            "dwn_c_dawn_warder",
+            "dwn_c_sunblade_recruit",
+            "dwn_u_purifying_light",
+            "dwn_c_golden_retainer",
+            "dwn_c_dawnbreaker_charger",
+            "dwn_u_steadfast_bulwark",
+            "tid_c_abyssal_gaze",
+            "vrd_c_root_warden"
+        };
+        CampaignContext.Progression.DeckCardIds.Clear();
+        CampaignContext.Progression.DeckCardIds.AddRange(deck);
+
+        CampaignContext.AutoCaptureScreenshot = true;
+        CampaignContext.CaptureTitleDeckScreenshot = true;
+        CampaignContext.DebugSeed = 42;
+
+        GD.Print($"[DebugCapture] Title+Deck test: {deck.Count} cards loaded");
     }
 
     /// <summary>
