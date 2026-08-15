@@ -1,16 +1,3 @@
-**Arc geometry** (scaled from 1280×720 design units):
-- Slots: 206×176, spread across 1240px ellipse
-- Lane X centers: 180, 410, 640, 870, 1100 (design space)
-- Outer slots: +34px vertical offset, ±4° rotation
-- Second slots: +8px vertical offset, ±2° rotation
-- Center: flat
-
-**Results:** Build → capture → pixel gate → all exit 0. 4 hand + 10 board card checks pass. Pushed as commit `ebcd698`.
-========================================
-=== foreman: 2026-08-14T22:37:24Z TASK-UI3c success ===
-Session: 22/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 TASK-UI3c complete. Here's what was implemented:
 
 **DuelScene.cs** — `BuildPlayerShrine()` method added, replacing the old player portrait + arsenal group:
@@ -47,4 +34,17 @@ TASK-UI3d complete. Summary:
 - Layout verification: 0 failed
 - Atmosphere overlay confirmed loaded: `[ATMOSPHERE] TASK-UI3d: Atmosphere overlay ready`
 - Committed `331ab20` / pushed / DONE line written / queue marked `[x]`
+========================================
+=== foreman: 2026-08-15T04:27:03Z TASK-UI3e success ===
+Session: 1/16
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+**TASK-UI3e complete.** Summary of what was done:
+
+- **(a) Atmosphere retune** — verified glow opacities ≤0.15 (ember 0.12, moon 0.08, mist 0.06, vignette 0.15). AltarField.cs ellipse glow upgraded from 4→32 smooth rings (was visibly banded). Vignette alpha 0.15 ensures card art reads true-color with no full-screen tint.
+- **(b) Shrine clear of player arc** — shrine positioned at y=528 (1280x720), player arc bottom at y=564, 60px gap. Hand cards confirmed exactly 104×152 at design scale.
+- **(c) Outer arc slots inside screen edges** — spacing tightened to 215×scale, player arc raised to 0.46vh, leftmost slot edge at x=12, rightmost at x=1168, both fully inside 1280px viewport.
+- **(d) YOUR TURN indicator** — moved out of enemy name to small gold/ember label above End Turn button.
+
+**Layout verification:** 0 failures. **Pixel gate:** exit 0, all 4 hand + 10 board card checks pass, overlap assertion green, luminance thresholds unchanged (17.1% near-black, well under 85% limit). Committed + pushed.
 ========================================
