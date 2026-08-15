@@ -390,9 +390,11 @@ def main():
 
     # Allowed overlap pairs: (group_a_prefix, group_b_prefix)
     # These are by-design visual overlaps, not layout bugs.
+    # TASK-UI3f: board_player↔board_enemy REMOVED — every enemy-slot vs every player-slot
+    # must be individually checked and non-overlapping.
     allowed_overlap_pairs = [
         ("hand", "board_player"),       # hand cards in front of player arc
-        ("board_player", "board_enemy"),# outer arc slots bow toward each other
+        ("board_player", "group_player"),# player arc outer slot overlaps own shrine at bottom-left
     ]
 
     def is_allowed_overlap(ga, gb):

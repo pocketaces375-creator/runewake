@@ -1374,10 +1374,10 @@ public partial class DuelScene : Control
         float centerX = vw / 2f;
         float spacing = 215f * scale; // TASK-UI3e: tighter spread so outer slots clear both screen edges
 
-        // Enemy baseline Y: top arc, centered within ellipse top half
-        float enemyBaseY = GetViewportRect().Size.Y * 0.18f;
-        // Player baseline Y: bottom arc — raised clear of hand cards (TASK-UI3e)
-        float playerBaseY = GetViewportRect().Size.Y * 0.46f;
+        // Enemy baseline Y: top arc, pushed up to widen gap from player arc (TASK-UI3f)
+        float enemyBaseY = GetViewportRect().Size.Y * 0.10f;
+        // Player baseline Y: bottom arc — pushed down to widen gap from enemy arc (TASK-UI3f)
+        float playerBaseY = GetViewportRect().Size.Y * 0.54f;
 
         for (int i = 0; i < 5; i++)
         {
