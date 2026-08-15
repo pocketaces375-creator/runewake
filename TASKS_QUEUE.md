@@ -61,7 +61,7 @@
 - [x] TASK-UI3e — War Altar fix pass per this list: (a) atmosphere retune in ThemeTokens: glow opacities ≤0.15, smooth radial gradients (kill the banding rings), faint mist band, subtle vignette — card art must read true-color, no full-screen tint; (b) shrine repositioned clear of player arc; hand cards exactly 104×152; (c) outer arc slots pulled fully inside both screen edges; (d) move the YOUR TURN indicator out of the enemy name (suggest: small text above End Turn button). Acceptance: capture shows true-color art, zero group overlaps, zero clipped slots, zero text collisions; patched overlap assertion green; luminance gate green WITHOUT threshold changes.
 - [x] TASK-AC1 — Data-driven Artifact visual states per FIELD_EFFECT_SPEC §9: READY / CHARGED (intensity scales with charges) / SUPPRESSED (desaturate + chain glyph) / TRIGGERED (≤0.8s non-blocking flash). No per-artifact code.
   Acceptance: debug scene forces all four states, capture + gate green.
-- [ ] TASK-UI3f — Fix remaining visual overlap between enemy arc slot-2 and player arc slot-2 (verify actual runtime rects, widen gap until clear). Harden gate: overlap assertion checks EVERY enemy-slot vs EVERY player-slot pair.
+- [x] TASK-UI3f — Fix remaining visual overlap between enemy arc slot-2 and player arc slot-2 (verify actual runtime rects, widen gap until clear). Harden gate: overlap assertion checks EVERY enemy-slot vs EVERY player-slot pair.
   Acceptance: capture shows zero overlaps, gate green.
 - [ ] TASK-AC2 — Charge pips live-bound on shrine artifacts + enemy HUD minis (0..max, ON_CHARGE_FULL pulse ≤0.5s, theme tokens; suppression freezes pip visuals per G3).
   Acceptance: capture shows pips on both shrines, pulse visible in debug, gate green.
