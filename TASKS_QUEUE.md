@@ -71,6 +71,12 @@
   Acceptance: completable headless with scripted inputs, capture at each beat.
 - [ ] TASK-APK1 — Build debug APK: verify Godot 4.3 mono + Android templates + JDK17 + SDK (show real command output; if tooling missing, BLOCKED entry naming exactly what, stop). Else export exports/Runewake.apk, gh release create alpha-<date> with the APK, post download URL to Telegram.
   Acceptance: DONE must contain release URL + APK size.
+- [ ] TASK-DK1 — Engine deck rules per DECK_SPEC.md RULES: DeckRules class (min 30 / max 40 / singleton), extend existing deck validator with specific error strings; new MatchConfig with StartingVigor 20-30 clamped default 25, PlayerState reads it (both duel setup paths). Unit tests: size bounds, duplicate rejection, vigor config respected, all legacy tests green.
+  Acceptance: tests green, no client work.
+- [ ] TASK-DK2 — Deck builder Ancient Tome rebuild per DECK_SPEC.md PRESENTATION, reusing DeckBuilderScene's existing data/filter/save logic (do not rewrite persistence). Two-page tome layout, ribbon-bookmark filters, manifest right page, add/remove drift animation, DK1 validation strings surfaced as red-ink annotations. All colors via ThemeTokens.
+  Acceptance: build exit 0, capture of tome with 30+ card deck loaded + one forced duplicate error visible, gate green.
+- [ ] TASK-DK3 — Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig.
+  Acceptance: capture shows title screen with Decks button AND tome opened from it; duel starts with chosen vigor visible in HUD; gate green.
 
 ## After TASK-S1
 After S1: continue into UI3 — Claude reviews metrics in parallel; do not stop. If mockups/board_c7.png absent at UI3d start, BLOCKED for UI3d only, take next task.
