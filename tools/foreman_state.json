@@ -13,5 +13,5 @@
   "no_progress_count": 0,
   "validated_count": 10,
   "last_heartbeat_epoch": 1786757522,
-  "last_heartbeat_reason": "HALT"
+  "last_heartbeat_reason": "UNHALT_lockfix_deployed"
 }
