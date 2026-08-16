@@ -22,7 +22,8 @@ if not API_KEY:
 
 BASE_URL = "https://openrouter.ai/api/v1"
 IMAGE_MODEL = "black-forest-labs/flux.2-pro"
-IMAGE_SIZE = 1024
+IMAGE_WIDTH = 832
+IMAGE_HEIGHT = 1216
 
 CLIENT_CARDS_DIR = Path("/home/fictive/runewake/client/content/cards")
 CLIENT_ART_DIR = Path("/home/fictive/runewake/client/content/art")
@@ -78,7 +79,7 @@ def generate_image(card: dict, prompt: str) -> bytes | None:
     full_prompt = f"{style}. {prompt}"
 
     print(f"  Prompt: {full_prompt[:120]}...")
-    print(f"  Model: {IMAGE_MODEL}, Size: {IMAGE_SIZE}x{IMAGE_SIZE}")
+    print(f"  Model: {IMAGE_MODEL}, Size: {IMAGE_WIDTH}x{IMAGE_HEIGHT}")
 
     resp = requests.post(
         f"{BASE_URL}/images/generations",
@@ -90,7 +91,7 @@ def generate_image(card: dict, prompt: str) -> bytes | None:
             "model": IMAGE_MODEL,
             "prompt": full_prompt,
             "n": 1,
-            "size": f"{IMAGE_SIZE}x{IMAGE_SIZE}",
+            "size": f"{IMAGE_WIDTH}x{IMAGE_HEIGHT}",
         },
         timeout=120,
     )

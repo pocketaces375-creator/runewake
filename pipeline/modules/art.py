@@ -92,9 +92,10 @@ STRATUM_GLYPH: dict[str, str] = {
 # ── Image generation parameters ───────────────────────────────────────────────
 
 DEFAULT_MODEL = "black-forest-labs/flux.2-pro"
-IMAGE_SIZE = 1024  # px
-MIP_LEVELS = [1024, 512]  # px (full + one mip)
-FALLBACK_SIZE = (1024, 1024)
+IMAGE_WIDTH = 832   # px — matches card aspect ratio 13:19 (was 1024x1024)
+IMAGE_HEIGHT = 1216  # px
+MIP_LEVELS = [1216, 608]  # px (full + one mip, scaled by longest edge)
+FALLBACK_SIZE = (832, 1216)
 
 # ── Commission queue ──────────────────────────────────────────────────────────
 # When API art generation fails for RARE or RELIC cards, they get flagged here
@@ -131,7 +132,8 @@ def generate_image(
     api_key: str,
     *,
     model: str = DEFAULT_MODEL,
-    size: int = IMAGE_SIZE,
+    width: int = IMAGE_WIDTH,
+    height: int = IMAGE_HEIGHT,
     timeout: int = 60,
 ) -> bytes | None:
     """Call OpenRouter's image generation API and return raw image bytes."""
@@ -144,7 +146,7 @@ def generate_image(
         "model": model,
         "prompt": prompt,
         "n": 1,
-        "size": f"{size}x{size}",
+        "size": f"{width}x{height}",
     }
 
     try:
@@ -175,16 +177,24 @@ def generate_image(
 
 
 def save_image(img_bytes: bytes, strata: str, card_name: str, art_dir: Path) -> dict[str, str]:
-    """Save image as WebP at multiple mip levels.
+    """Save image as WebP at multiple mip levels (preserving aspect ratio).
 
     Returns dict mapping mip level to file path.
     """
     slug = _slugify(card_name)
     img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    orig_w, orig_h = img.size
 
     assets: dict[str, str] = {}
     for mip_px in MIP_LEVELS:
-        resized = img.resize((mip_px, mip_px), Image.Resampling.LANCZOS)
+        # Scale so the longest edge = mip_px, preserving aspect ratio
+        if orig_w >= orig_h:
+            new_w = mip_px
+            new_h = max(1, int(orig_h * mip_px // orig_w))
+        else:
+            new_h = mip_px
+            new_w = max(1, int(orig_w * mip_px // orig_h))
+        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
         mip_name = f"{slug}_{mip_px}px.webp"
         mip_path = art_dir / mip_name
         resized.save(mip_path, "WEBP", quality=85)
@@ -278,7 +288,15 @@ def generate_fallback(strata: str, card_name: str, art_dir: Path) -> dict[str, s
     slug = _slugify(card_name)
     assets: dict[str, str] = {}
     for mip_px in MIP_LEVELS:
-        resized = img.resize((mip_px, mip_px), Image.Resampling.LANCZOS)
+        # Scale so the longest edge = mip_px, preserving aspect ratio
+        fw, fh = FALLBACK_SIZE
+        if fw >= fh:
+            new_w = mip_px
+            new_h = max(1, int(fh * mip_px // fw))
+        else:
+            new_h = mip_px
+            new_w = max(1, int(fw * mip_px // fh))
+        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
         mip_name = f"{slug}_fallback_{mip_px}px.webp"
         mip_path = art_dir / mip_name
         resized.save(mip_path, "WEBP", quality=85)
