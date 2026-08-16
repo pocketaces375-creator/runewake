@@ -8,7 +8,8 @@ namespace Runewake.Client;
 /// <summary>
 /// DebugCapture autoload — enables deterministic screenshot captures for acceptance testing.
 /// Activated via CLI arg: --capture=duel_test
-/// Also handles --tutorial=<script_id> for TASK-TU2 headless tutorial runner.
+/// Supports --resolution=WxH to override window resolution (e.g. --resolution=390x844 for portrait phone).
+/// Also handles --tutorial=<<script_id>> for TASK-TU2 headless tutorial runner.
 /// Sets up a fixed game state: 4 hand cards (some with art, some without),
 /// creatures on both board rows, partially spent attunement.
 /// </summary>

@@ -129,6 +129,15 @@ public partial class DuelScene : Control
 
         var board = GetNode("Board");
 
+        // ═══ TASK-UI3d: Atmosphere overlay — layered lighting, mist, vignette, dust motes ═══
+        // Added as a child of Board BEFORE the AltarField so it renders behind the altar
+        // decor but in front of the board background — field texture stays visible.
+        var atmosphere = new AtmosphereOverlay { Name = "AtmosphereOverlay" };
+        atmosphere.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        atmosphere.MouseFilter = Control.MouseFilterEnum.Ignore;
+        board.AddChild(atmosphere);
+        // ═══ END TASK-UI3d ═══
+
         // ── Stone-slab board surface ──
         // Seamless tileable stone texture behind the board lanes
         var boardBg = GetNode<TextureRect>("BoardBg");
@@ -333,11 +342,7 @@ public partial class DuelScene : Control
         _turnLabel.AddThemeFontSizeOverride("font_size", FontSmall);
         _turnLabel.AddThemeColorOverride("font_color", TextSecondary);
 
-        // ═══ TASK-UI3d: Atmosphere overlay — layered lighting, mist, vignette, dust motes ═══
-        var atmosphere = new AtmosphereOverlay { Name = "AtmosphereOverlay" };
-        atmosphere.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        AddChild(atmosphere);
-        // ═══ END TASK-UI3d ═══
+        // ═══ END TASK-UI3c ═══
 
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
@@ -400,6 +405,14 @@ public partial class DuelScene : Control
                     // Capture hand card info from _handCards
                     meta.Append("  \"expected_hand_card_count\": 4,\n");
                     meta.Append("  \"expected_board_card_count\": 10,\n");
+                    // UI-FIELD-FIX: altar ellipse bound for hand/field overlap check
+                    // These are design-time screen-space values matching BuildAltarField's math
+                    float scaleMeta = GetViewportRect().Size.Y / 648f;
+                    float ellipseCenterYMeta = GetViewportRect().Size.Y * 0.39f;
+                    float ellipseBottomMeta = ellipseCenterYMeta + 209f * scaleMeta;
+                    meta.Append("  \"altar_ellipse\": {\n");
+                    meta.Append($"    \"bottom_y\": {ellipseBottomMeta:F1}\n");
+                    meta.Append("  },\n");
                     meta.Append("  \"hand_cards\": [\n");
                     for (int ci = 0; ci < _handCards.Count; ci++)
                     {
@@ -1329,7 +1342,7 @@ public partial class DuelScene : Control
         _boardCardHeight = Mathf.Max(150f, 200f * scale);
 
         // Grow the hand area to fit larger cards (was 200px tall)
-        _handArea.OffsetTop = -(_handCardHeight + 40f);
+        _handArea.OffsetTop = -(_handCardHeight + 20f);
 
         // TASK-UI3c: Recentre hand beside the player shrine.
         // Shrine occupies ~240px of the left side at scale=1, so shift left margin past it.
@@ -2722,6 +2735,21 @@ public partial class DuelScene : Control
                     fails++;
                 }
             }
+        }
+
+        // — UI-FIELD-FIX: Hand tray vs altar ellipse overlap check —
+        float vhLayout = GetViewportRect().Size.Y;
+        float scaleLayout = vhLayout / 648f;
+        float ellipseBottom = vhLayout * 0.39f + 209f * scaleLayout;
+        float handAreaTop = _handArea.GetScreenTransform().Origin.Y;
+        if (handAreaTop < ellipseBottom)
+        {
+            GD.PrintErr($"[VERIFY] FAIL: Hand area top ({handAreaTop:F0}) overlaps altar ellipse bottom ({ellipseBottom:F0}) — gap must be positive");
+            fails++;
+        }
+        else
+        {
+            GD.Print($"[VERIFY] OK: Hand area top ({handAreaTop:F0}) is clear of altar ellipse bottom ({ellipseBottom:F0}), gap={handAreaTop - ellipseBottom:F0}px");
         }
 
         // — Board slot checks —

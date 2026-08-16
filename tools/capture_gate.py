@@ -324,6 +324,26 @@ def validate_duel_test(png_path, meta):
             if ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by:
                 failures.append(f"OVERLAP: {name_a} ({group_a}) intersects {name_b} ({group_b})")
 
+    # Check 7: Hand tray vs altar ellipse overlap (UI-FIELD-FIX)
+    altar_ellipse = meta.get("altar_ellipse")
+    if altar_ellipse and "bottom_y" in altar_ellipse:
+        ellipse_bottom = altar_ellipse["bottom_y"]
+        # Find the lowest player board card (highest Y) — if the hand area is above it, clear
+        hand_area_top = None
+        for card in hand_cards:
+            if "rect" in card:
+                r = card["rect"]
+                if hand_area_top is None or r["y"] < hand_area_top:
+                    hand_area_top = r["y"]
+        if hand_area_top is not None and hand_area_top < ellipse_bottom:
+            failures.append(
+                f"HAND_FIELD_OVERLAP: hand area top ({hand_area_top:.0f}) is above altar ellipse bottom "
+                f"({ellipse_bottom:.0f}) — hand tray overlaps the play field"
+            )
+        else:
+            print(f"  PASS hand/field clearance: hand top={hand_area_top:.0f}, ellipse bottom={ellipse_bottom:.0f}, "
+                  f"gap={hand_area_top - ellipse_bottom:.0f}px" if hand_area_top is not None else "  PASS hand/field: no hand rects to check")
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:
