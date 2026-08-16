@@ -1350,6 +1350,15 @@ public partial class DuelScene : Control
         float marginLeft = Mathf.Max(20f, shrineWidth + 24f * scale);
         _handArea.AddThemeConstantOverride("margin_left", (int)marginLeft);
 
+        // ART-STYLE-3: Hand must sit below the lowest player slot + 12px margin.
+        // Player slots sit inside the altar ellipse at playerBaseY=vh*0.54 with height=176*scale.
+        // The center slot (index 2) has no upward bow — its bottom is the lowest point.
+        float playerBaseY = viewportHeight * 0.54f;
+        float slotH = 176f * scale;
+        float lowestPlayerSlotBottom = playerBaseY + slotH;
+        float targetHandTop = lowestPlayerSlotBottom + 12f;
+        _handArea.OffsetTop = -(viewportHeight - targetHandTop);
+
         GD.Print($"[DUEL] viewport height {viewportHeight:F0} → hand {_handCardHeight:F0}px, board {_boardCardHeight:F0}px");
     }
 
@@ -2737,19 +2746,39 @@ public partial class DuelScene : Control
             }
         }
 
-        // — UI-FIELD-FIX: Hand tray vs altar ellipse overlap check —
+        // — ART-STYLE-3: Pairwise hand card rects vs player slot rects —
         float vhLayout = GetViewportRect().Size.Y;
         float scaleLayout = vhLayout / 648f;
-        float ellipseBottom = vhLayout * 0.39f + 209f * scaleLayout;
-        float handAreaTop = _handArea.GetScreenTransform().Origin.Y;
-        if (handAreaTop < ellipseBottom)
+        foreach (var hc in _handCards)
         {
-            GD.PrintErr($"[VERIFY] FAIL: Hand area top ({handAreaTop:F0}) overlaps altar ellipse bottom ({ellipseBottom:F0}) — gap must be positive");
-            fails++;
-        }
-        else
-        {
-            GD.Print($"[VERIFY] OK: Hand area top ({handAreaTop:F0}) is clear of altar ellipse bottom ({ellipseBottom:F0}), gap={handAreaTop - ellipseBottom:F0}px");
+            var hcRect = hc.GetRect();
+            var hcGp = hc.GetScreenTransform().Origin;
+            float hcLeft = hcGp.X;
+            float hcRight = hcGp.X + hcRect.Size.X;
+            float hcTop = hcGp.Y;
+            float hcBottom = hcGp.Y + hcRect.Size.Y;
+            foreach (var slot in _playerSlots)
+            {
+                var sRect = slot.GetRect();
+                var sGp = slot.GetScreenTransform().Origin;
+                float slLeft = sGp.X;
+                float slRight = sGp.X + sRect.Size.X;
+                float slTop = sGp.Y;
+                float slBottom = sGp.Y + sRect.Size.Y;
+                // Check AABB overlap
+                bool overlaps = hcLeft < slRight && hcRight > slLeft && hcTop < slBottom && hcBottom > slTop;
+                if (overlaps)
+                {
+                    GD.PrintErr($"[VERIFY] FAIL: Hand card \"{hc.CardName}\" overlaps player slot {slot.LaneIndex} — " +
+                        $"hand bottom={hcBottom:F0}, slot bottom={slBottom:F0}, overlap={slBottom - hcTop:F0}px");
+                    fails++;
+                }
+                else
+                {
+                    float gap = hcTop - slBottom;
+                    GD.Print($"[VERIFY] OK: Hand card \"{hc.CardName}\" clear of player slot {slot.LaneIndex} (gap={gap:F0}px)");
+                }
+            }
         }
 
         // — Board slot checks —

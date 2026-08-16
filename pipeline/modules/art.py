@@ -36,33 +36,32 @@ DEFAULT_CONFIG = HERE / "config.yaml"
 
 STRATUM_STYLES: dict[str, str] = {
     "VERDANT": (
-        "Dark fantasy oil painting, overgrown forest palette, "
-        "emerald and moss green with deep brown, "
-        "heavy impasto, dramatic rim light, medieval woodcut influence, "
+        "Dark fantasy oil painting, deep forest greens and earthy moss browns with golden highlights, "
+        "heavy impasto, dramatic rim light, "
         "no text, no border, centered subject"
     ),
     "EMBER": (
-        "Dark fantasy oil painting, ash and ember palette, "
-        "soot-black and molten orange, heavy impasto, "
-        "dramatic rim light, medieval woodcut influence, "
+        "Dark fantasy oil painting, charcoal greys and cool slate shadows "
+        "lit by molten orange and gold flame accents, "
+        "heavy impasto, dramatic rim light, "
         "no text, no border, centered subject"
     ),
     "TIDE": (
-        "Dark fantasy oil painting, deep ocean palette, "
-        "abyssal blue and teal with pale foam, "
-        "heavy impasto, dramatic rim light, medieval woodcut influence, "
+        "Dark fantasy oil painting, abyssal blue-teal depths with "
+        "pale foam edges and scattered sea-green light, "
+        "heavy impasto, dramatic rim light, "
         "no text, no border, centered subject"
     ),
     "HOLLOW": (
-        "Dark fantasy oil painting, decayed palette, "
-        "bone-white and murky violet with sickly green, "
-        "heavy impasto, dramatic rim light, medieval woodcut influence, "
+        "Dark fantasy oil painting, bone-white and murky violet "
+        "with patches of sickly green, shadow-heavy, "
+        "heavy impasto, dramatic rim light, "
         "no text, no border, centered subject"
     ),
     "DAWN": (
-        "Dark fantasy oil painting, radiant palette, "
-        "gold and pale cream with warm amber, "
-        "heavy impasto, dramatic rim light, medieval woodcut influence, "
+        "Dark fantasy oil painting, warm cream and pale gold "
+        "with soft amber light, dawn-sky tones, "
+        "heavy impasto, dramatic rim light, "
         "no text, no border, centered subject"
     ),
 }

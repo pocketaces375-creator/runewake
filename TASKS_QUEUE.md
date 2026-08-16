@@ -81,13 +81,16 @@
   Acceptance: build + capture + gate + layout verification all exit 0; capture shows painted stone under intact glow/glyphs.
 - [x] TASK-ARS-EMBER — SIX fresh Ember sample images per docs/ART_STYLE_SPEC.md (6 emb_* ids currently missing art in content/cards/ember.json; subjects from card name+flavor). FLUX 1024px. NO integration, no json edits. Commit to pipeline/work/samples_ember_s2/, post numbered to Telegram.
   Acceptance: 6 committed + posted, nothing else touched.
-|- [x] TASK-ARS-VERDANT — Same, 6 vrd_* ids missing art, Verdant palette → pipeline/work/samples_verdant_s1/.
+- [x] TASK-ARS-VERDANT — Same, 6 vrd_* ids missing art, Verdant palette → pipeline/work/samples_verdant_s1/.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-|- [ ] TASK-ARS-TIDE — Same, 6 tid_* ids, Tide palette → pipeline/work/samples_tide_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
+
+## HOLD until style lock
+Trikzos must approve a style probe result before these art batches run. See ART-STYLE-3 step 5 and style_probe_s1/.
+- [ ] TASK-ARS-TIDE — Same, 6 tid_* ids, Tide palette → pipeline/work/samples_tide_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-|- [ ] TASK-ARS-HOLLOW — Same, 6 hol_* ids, Hollow palette → pipeline/work/samples_hollow_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro. (HOLLOW content-filter canon: never soften prompts; on refusal use fallback frames and note the id in the DONE line).
+- [ ] TASK-ARS-HOLLOW — Same, 6 hol_* ids, Hollow palette → pipeline/work/samples_hollow_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro. (HOLLOW content-filter canon: never soften prompts; on refusal use fallback frames and note the id in the DONE line).
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-|- [ ] TASK-ARS-DAWN — Same, 6 dwn_* ids, Dawn palette → pipeline/work/samples_dawn_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
+- [ ] TASK-ARS-DAWN — Same, 6 dwn_* ids, Dawn palette → pipeline/work/samples_dawn_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
 
 ## After TASK-S1

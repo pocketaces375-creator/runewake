@@ -304,7 +304,6 @@ def validate_duel_test(png_path, meta):
             all_entries.append((f"group_{side}", f"group_{side}", g["rect"]))
 
     allowed_overlap_pairs = [
-        ("hand", "board_player"),
         ("board_player", "group_player"),
     ]
 
@@ -327,24 +326,51 @@ def validate_duel_test(png_path, meta):
             if ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by:
                 failures.append(f"OVERLAP: {name_a} ({group_a}) intersects {name_b} ({group_b})")
 
-    # Check 7: Hand tray vs altar ellipse overlap (UI-FIELD-FIX)
-    altar_ellipse = meta.get("altar_ellipse")
-    if altar_ellipse and "bottom_y" in altar_ellipse:
-        ellipse_bottom = altar_ellipse["bottom_y"]
-        hand_area_top = None
-        for card in hand_cards:
-            if "rect" in card:
-                r = card["rect"]
-                if hand_area_top is None or r["y"] < hand_area_top:
-                    hand_area_top = r["y"]
-        if hand_area_top is not None and hand_area_top < ellipse_bottom:
-            failures.append(
-                f"HAND_FIELD_OVERLAP: hand area top ({hand_area_top:.0f}) is above altar ellipse bottom "
-                f"({ellipse_bottom:.0f}) — hand tray overlaps the play field"
-            )
-        else:
-            print(f"  PASS hand/field clearance: hand top={hand_area_top:.0f}, ellipse bottom={ellipse_bottom:.0f}, "
-                  f"gap={hand_area_top - ellipse_bottom:.0f}px" if hand_area_top is not None else "  PASS hand/field: no hand rects to check")
+    # Check 7: Pairwise hand card rects vs player slot rects (ART-STYLE-3)
+    player_slots = [c for c in board_cards if c.get("slot", "").startswith("player")]
+    if not player_slots:
+        print("  PASS hand/field: no player board slots to check")
+    else:
+        overlap_found = False
+        for hc in hand_cards:
+            if "rect" not in hc:
+                continue
+            hr = hc["rect"]
+            for sc in player_slots:
+                if "rect" not in sc:
+                    continue
+                sr = sc["rect"]
+                # AABB overlap test
+                x_overlap = hr["x"] < sr["x"] + sr["w"] and hr["x"] + hr["w"] > sr["x"]
+                y_overlap = hr["y"] < sr["y"] + sr["h"] and hr["y"] + hr["h"] > sr["y"]
+                if x_overlap and y_overlap:
+                    slot_name = sc.get("slot", "?")
+                    hand_name = hc.get("name", "?")
+                    overlap_px = (sr["y"] + sr["h"]) - hr["y"]
+                    failures.append(
+                        f"HAND_FIELD_OVERLAP: hand card \"{hand_name}\" rect "
+                        f"({hr['x']:.0f},{hr['y']:.0f},{hr['w']:.0f},{hr['h']:.0f}) "
+                        f"overlaps player slot \"{slot_name}\" rect "
+                        f"({sr['x']:.0f},{sr['y']:.0f},{sr['w']:.0f},{sr['h']:.0f}) "
+                        f"— overlap={overlap_px:.0f}px"
+                    )
+                    overlap_found = True
+        if not overlap_found:
+            # Show the best gap
+            best_gap = float("inf")
+            for hc in hand_cards:
+                if "rect" not in hc:
+                    continue
+                hr = hc["rect"]
+                for sc in player_slots:
+                    if "rect" not in sc:
+                        continue
+                    sr = sc["rect"]
+                    gap = hr["y"] - (sr["y"] + sr["h"])
+                    if gap < best_gap:
+                        best_gap = gap
+            print(f"  PASS hand/field: all {len(hand_cards)} hand cards clear of {len(player_slots)} player slots, "
+                  f"best gap={best_gap:.0f}px")
 
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
