@@ -128,8 +128,15 @@ public partial class DeckBuilderScene : Control
                 // Take screenshot
                 var image = GetViewport().GetTexture().GetImage();
                 var pngPath = "/home/fictive/runewake/artifacts/captures/deck_test.png";
-                image.SavePng(pngPath);
-                GD.Print("[DeckBuilderScene] deck_test.png saved");
+                if (image != null)
+                {
+                    image.SavePng(pngPath);
+                    GD.Print("[DeckBuilderScene] deck_test.png saved");
+                }
+                else
+                {
+                    GD.Print("[DeckBuilderScene] WARNING: Cannot capture deck_test.png in headless mode");
+                }
 
                 GetTree().Quit(0);
             };

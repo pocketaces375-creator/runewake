@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Runewake.Client</RootNamespace>
     <ImplicitUsings>true</ImplicitUsings>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>

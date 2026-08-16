@@ -1,11 +1,11 @@
 {
   "date": "2026-08-15",
-  "session_count": 11,
-  "last_task_id": "TASK-ARS-EMBER",
-  "last_commit_sha": "1a932cd3114264a33d1c6c2d97f54df9908a914a",
-  "retry_count": 1,
-  "retry_task_id": "TASK-ARS-VERDANT",
-  "blocked_notified": true,
+  "session_count": 12,
+  "last_task_id": "CAPTURE-REVIVE-1",
+  "last_commit_sha": "HEAD",
+  "retry_count": 0,
+  "retry_task_id": "",
+  "blocked_notified": false,
   "consecutive_transients": 0,
   "transient_notified": false,
   "bus_last_seq": 0,
@@ -13,5 +13,5 @@
   "no_progress_count": 0,
   "validated_count": 8,
   "last_heartbeat_epoch": 1786843023,
-  "last_heartbeat_reason": "sticky_block"
+  "last_heartbeat_reason": "capture_revive"
 }

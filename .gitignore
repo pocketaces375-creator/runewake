@@ -41,4 +41,4 @@ client/export_presets.cfg
 
 # OS files
 *.o
-*.so
+*.soFOREMAN_HALT
