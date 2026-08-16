@@ -1345,19 +1345,9 @@ public partial class DuelScene : Control
         _handArea.OffsetTop = -(_handCardHeight + 20f);
 
         // TASK-UI3c: Recentre hand beside the player shrine.
-        // Shrine occupies ~240px of the left side at scale=1, so shift left margin past it.
         float shrineWidth = 86f * scale + 4f * scale + 46f * scale + 42f * scale + 4f * scale + 4f * scale; // art + gap + portrait + deck + barrow + gaps
         float marginLeft = Mathf.Max(20f, shrineWidth + 24f * scale);
         _handArea.AddThemeConstantOverride("margin_left", (int)marginLeft);
-
-        // ART-STYLE-3: Hand must sit below the lowest player slot + 12px margin.
-        // Player slots sit inside the altar ellipse at playerBaseY=vh*0.54 with height=176*scale.
-        // The center slot (index 2) has no upward bow — its bottom is the lowest point.
-        float playerBaseY = viewportHeight * 0.54f;
-        float slotH = 176f * scale;
-        float lowestPlayerSlotBottom = playerBaseY + slotH;
-        float targetHandTop = lowestPlayerSlotBottom + 12f;
-        _handArea.OffsetTop = -(viewportHeight - targetHandTop);
 
         GD.Print($"[DUEL] viewport height {viewportHeight:F0} → hand {_handCardHeight:F0}px, board {_boardCardHeight:F0}px");
     }
@@ -1439,8 +1429,8 @@ public partial class DuelScene : Control
 
         // Enemy baseline Y: top arc, pushed up to widen gap from player arc (TASK-UI3f)
         float enemyBaseY = GetViewportRect().Size.Y * 0.10f;
-        // Player baseline Y: bottom arc — pushed down to widen gap from enemy arc (TASK-UI3f)
-        float playerBaseY = GetViewportRect().Size.Y * 0.54f;
+        // Player baseline Y: bottom arc — moved up to 0.50 for hand clearance (OVERLAP-PROOF-1, was 0.54)
+        float playerBaseY = GetViewportRect().Size.Y * 0.50f;
 
         for (int i = 0; i < 5; i++)
         {
@@ -1484,6 +1474,23 @@ public partial class DuelScene : Control
         }
 
         GD.Print($"[DUEL] TASK-UI3b: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
+
+        // OVERLAP-PROOF-1: Push hand below lowest player slot + 12px margin.
+        // Must run AFTER slots are positioned and have valid screen-space rects.
+        float vhPop = GetViewportRect().Size.Y;
+        float scalePop = vhPop / 648f;
+        float lowestSlotBottom = 0f;
+        foreach (var slot in _playerSlots)
+        {
+            var sRect = slot.GetRect();
+            var sGp = slot.GetScreenTransform().Origin;
+            float sBottom = sGp.Y + sRect.Size.Y;
+            if (sBottom > lowestSlotBottom)
+                lowestSlotBottom = sBottom;
+        }
+        float targetHandTop = lowestSlotBottom + 12f;
+        _handArea.OffsetTop = -(vhPop - targetHandTop);
+        GD.Print($"[DUEL] Hand position: lowest slot bottom={lowestSlotBottom:F0}, hand top={targetHandTop:F0}, offset={_handArea.OffsetTop:F0}");
     }
 
     // ——— State-driven rendering ———

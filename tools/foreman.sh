@@ -630,6 +630,8 @@ if [[ -n "${NEW_COMMIT_SHA}" ]]; then
     if [[ -x "${GODOT_BIN}" ]]; then
       rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
       mkdir -p "${CAPTURE_DIR}"
+      # Ensure Debug build (Release DLLs cause Sqlite mismatch — per CAPTURE_RECIPE.md)
+      (cd "${PROJECT_DIR}" && dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null)
       CAPTURE_OUTPUT=$(cd "${PROJECT_DIR}" && timeout 120 xvfb-run -a "${GODOT_BIN}" --path client -- --capture=duel_test 2>&1 || true)
       FRESH_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
       if [[ -n "${FRESH_CAPTURE}" ]]; then

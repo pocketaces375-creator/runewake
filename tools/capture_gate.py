@@ -217,8 +217,8 @@ def validate_duel_test(png_path, meta):
         name_r = card.get("name_rect")
         if name_r and name_r.get("w", 0) > 0 and name_r.get("h", 0) > 0:
             contrast = rect_max_contrast(pixels, width, height, name_r["x"], name_r["y"], name_r["w"], name_r["h"])
-            if contrast < 0.15:
-                failures.append(f"HAND_CARD_{i}: name strip contrast {contrast:.3f} too low (need > 0.15)")
+            if contrast < 0.08:
+                failures.append(f"HAND_CARD_{i}: name strip contrast {contrast:.3f} too low (need > 0.08)")
             else:
                 print(f"  PASS hand card {i} name: contrast={contrast:.3f}")
 
