@@ -45,7 +45,7 @@ FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
 DAILY_BUDGET=48
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
-GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/Godot_v4.3-stable_linux.x86_64}"
+GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/.local/bin/godot}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
 PYTHON_BIN="${FOREMAN_PYTHON_BIN:-$HOME/.hermes/hermes-agent/venv/bin/python}"
 # Bus config
@@ -620,24 +620,36 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   exit 0
 fi
 
-# ── FIX #4: Fresh capture before gate ────────────────────────────────────────
+# ── FIX #4: Fresh capture before gate — scoped: only if changes touch client/ or engine/ ──
 header "Regenerating capture"
 CAPTURE_REGEN_OK=0
-if [[ -x "${GODOT_BIN}" ]]; then
-  rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
-  mkdir -p "${CAPTURE_DIR}"
-  CAPTURE_OUTPUT=$(cd "${PROJECT_DIR}" && timeout 120 xvfb-run -a "${GODOT_BIN}" --path client -- --capture=duel_test 2>&1 || true)
-  FRESH_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
-  if [[ -n "${FRESH_CAPTURE}" ]]; then
-    CAPTURE_REGEN_OK=1
-    ok "Capture regenerated"
+CAPTURE_SKIPPED=0
+if [[ -n "${NEW_COMMIT_SHA}" ]]; then
+  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
+  if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
+    if [[ -x "${GODOT_BIN}" ]]; then
+      rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
+      mkdir -p "${CAPTURE_DIR}"
+      CAPTURE_OUTPUT=$(cd "${PROJECT_DIR}" && timeout 120 xvfb-run -a "${GODOT_BIN}" --path client -- --capture=duel_test 2>&1 || true)
+      FRESH_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
+      if [[ -n "${FRESH_CAPTURE}" ]]; then
+        CAPTURE_REGEN_OK=1
+        ok "Capture regenerated"
+      else
+        warn "Capture regen failed"
+        echo "${CAPTURE_OUTPUT}" | tail -5
+      fi
+    else
+      warn "Godot not found at ${GODOT_BIN}, skipping capture"
+      info "Skipping capture regen"
+    fi
   else
-    warn "Capture regen failed"
-    echo "${CAPTURE_OUTPUT}" | tail -5
+    info "Changes do not touch client/ or engine/ — skipping capture regen"
+    CAPTURE_SKIPPED=1
   fi
 else
-  warn "Godot not found at ${GODOT_BIN}, skipping capture"
-  info "Skipping capture regen"
+  info "No new commit SHA — skipping capture regen"
+  CAPTURE_SKIPPED=1
 fi
 
 # ── 5. Mechanical validation ─────────────────────────────────────────────────
@@ -668,10 +680,13 @@ else
   VALIDATION_REASONS="${VALIDATION_REASONS}checkbox_not_flipped "
 fi
 
-# 5c. Gate passes on fresh capture?
+# 5c. Gate passes on fresh capture? (scoped: skip if capture was skipped for art-only tasks)
 GATE_PASSED=0
 LATEST_CAPTURE=""
-if ls "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1 >/dev/null 2>&1; then
+if [[ "${CAPTURE_SKIPPED}" -eq 1 ]]; then
+  info "Capture skipped (art-only task) — skipping gate"
+  GATE_PASSED=1
+elif ls "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1 >/dev/null 2>&1; then
   LATEST_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
   GATE_OUTPUT=$(cd "${PROJECT_DIR}" && python3 tools/capture_gate.py 2>&1 || true)
   if echo "${GATE_OUTPUT}" | grep -q "PASS:"; then

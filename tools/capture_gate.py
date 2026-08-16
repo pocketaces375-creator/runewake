@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
 """
 capture_gate.py — Acceptance gate for UI task screenshots.
+HARD RULE: no bypass flags. A capture without a real PNG is a FAILED capture.
+(Trikzos/Claude, 2026-08-16)
 
 Reads a PNG + meta.json pair from artifacts/captures/ and validates that:
   - duel_test: Whole frame < 85% near-black, hand/board card visibility, name contrast
   - deck_test: Tome layout visible, card entries readable, validation annotations present
 
 Usage: python3 tools/capture_gate.py [basename]
-
-In headless mode (no real GPU), set CAPTURE_GATE_PNG_MISSING_OK=1 to skip
-pixel-based checks and validate meta.json schema only.
 """
 
 import json
-import os
 import struct
 import sys
 import zlib
 from pathlib import Path
 
-# Allow headless mode: skip pixel-based checks when PNG is absent
-PNG_MISSING_OK = os.environ.get("CAPTURE_GATE_PNG_MISSING_OK", "").lower() in ("1", "true", "yes")
 
 def paeth_predictor(a, b, c):
     p = a + b - c
@@ -58,7 +54,6 @@ def read_png(filename):
         if not raw_data:
             raise ValueError('No IDAT chunks found')
         decompressed = zlib.decompress(raw_data)
-        # ColorType 2 = RGB (bpp=3), ColorType 6 = RGBA (bpp=4)
         if color_type == 2:
             bpp = 3
         elif color_type == 6:
@@ -97,7 +92,6 @@ def read_png(filename):
                     decoded[i] = (decoded[i] + paeth_predictor(left, up, up_left)) & 0xFF
             else:
                 raise ValueError(f'Unknown PNG filter type: {filter_type}')
-            # Convert RGB to RGBA if needed (consistent return format)
             if color_type == 2:
                 rgba_row = bytearray()
                 for i in range(0, len(decoded), 3):
@@ -173,12 +167,9 @@ def validate_duel_test(png_path, meta):
     expected_hand_count = meta.get("expected_hand_card_count", 4)
     expected_board_count = meta.get("expected_board_card_count", 10)
 
-    if not png_path.exists() and PNG_MISSING_OK:
-        print(f"PNG not found (headless mode): {png_path.name} — skipping pixel checks")
-        print(f"  PASS hand card count (from meta): {expected_hand_count}")
-        print(f"  PASS board card count (from meta): {expected_board_count}")
-        print(f"\nPASS: Meta-only validation (no pixel data in headless mode)")
-        sys.exit(0)
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
 
     width, height, pixels = read_png(str(png_path))
     total_pixels = width * height
@@ -340,7 +331,6 @@ def validate_duel_test(png_path, meta):
     altar_ellipse = meta.get("altar_ellipse")
     if altar_ellipse and "bottom_y" in altar_ellipse:
         ellipse_bottom = altar_ellipse["bottom_y"]
-        # Find the lowest player board card (highest Y) — if the hand area is above it, clear
         hand_area_top = None
         for card in hand_cards:
             if "rect" in card:
@@ -371,25 +361,15 @@ def validate_duel_test(png_path, meta):
 # ════════════════════════════════════════════
 
 def validate_deck_test(png_path, meta):
-    """
-    Validates deck builder Ancient Tome capture:
-    - Left page (collection) has readable card entries (not uniform dark)
-    - Right page (manifest) has readable deck entries
-    - Validation annotations (red ink) are visible
-    - Tome spine is visible in center
-    """
-    if not png_path.exists() and PNG_MISSING_OK:
-        print(f"PNG not found (headless mode): {png_path.name} — skipping pixel checks")
-        print(f"  PASS deck test meta validation (count={meta.get('expected_deck_count', '?')})")
-        print(f"\nPASS: Meta-only validation (no pixel data in headless mode)")
-        sys.exit(0)
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
 
     width, height, pixels = read_png(str(png_path))
     total_pixels = width * height
     print(f"Image: {width}x{height}, {total_pixels} pixels")
     failures = []
 
-    # Check 1: Whole frame — must not be >85% near-black (tome is parchment-colored)
     near_black_threshold = 20 / 255.0
     dark_count = 0
     for i in range(0, len(pixels), 4):
@@ -405,7 +385,6 @@ def validate_deck_test(png_path, meta):
     else:
         print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 85%)")
 
-    # Check 2: Left page rect (collection area) — must have readable content
     left_rect = meta.get("left_page_rect")
     if left_rect:
         mean, std = rect_mean_stddev(pixels, width, height, left_rect["x"], left_rect["y"], left_rect["w"], left_rect["h"])
@@ -416,7 +395,6 @@ def validate_deck_test(png_path, meta):
     else:
         failures.append("LEFT_PAGE: no rect in meta")
 
-    # Check 3: Right page rect (manifest area) — must have readable content
     right_rect = meta.get("right_page_rect")
     if right_rect:
         mean, std = rect_mean_stddev(pixels, width, height, right_rect["x"], right_rect["y"], right_rect["w"], right_rect["h"])
@@ -427,7 +405,6 @@ def validate_deck_test(png_path, meta):
     else:
         failures.append("RIGHT_PAGE: no rect in meta")
 
-    # Check 4: Validation annotations area — must contain red-ink text (high contrast)
     validation_rect = meta.get("validation_rect")
     if validation_rect:
         mean, std = rect_mean_stddev(pixels, width, height, validation_rect["x"], validation_rect["y"], validation_rect["w"], validation_rect["h"])
@@ -436,7 +413,6 @@ def validate_deck_test(png_path, meta):
         else:
             print(f"  PASS validation annotations: mean={mean:.3f}, std={std:.3f}")
 
-        # Check for red-ink pixels in the validation area
         vx, vy, vw, vh = int(validation_rect["x"]), int(validation_rect["y"]), int(validation_rect["w"]), int(validation_rect["h"])
         red_pixels = 0
         total_checked = 0
@@ -446,19 +422,17 @@ def validate_deck_test(png_path, meta):
                 if idx + 3 < len(pixels):
                     r, g, b = pixels[idx] / 255.0, pixels[idx+1] / 255.0, pixels[idx+2] / 255.0
                     total_checked += 1
-                    # Red ink: high red channel, low green/blue
                     if r > 0.5 and g < 0.3 and b < 0.3:
                         red_pixels += 1
         if total_checked > 0:
             red_ratio = red_pixels / total_checked
-            if red_ratio < 0.003:  # at least 0.3% red pixels in annotation area
+            if red_ratio < 0.003:
                 failures.append(f"VALIDATION: only {red_ratio:.3%} red pixels — duplicate error annotation may be missing (need > 0.5%)")
             else:
                 print(f"  PASS red-ink annotations: {red_ratio:.1%} red pixels")
     else:
         failures.append("VALIDATION: no rect in meta")
 
-    # Check 5: Spine area — must have visible content (not uniform void)
     spine_rect = meta.get("spine_rect")
     if spine_rect:
         mean, std = rect_mean_stddev(pixels, width, height, spine_rect["x"], spine_rect["y"], spine_rect["w"], spine_rect["h"])
@@ -469,7 +443,6 @@ def validate_deck_test(png_path, meta):
     else:
         failures.append("SPINE: no rect in meta")
 
-    # Check 6: Filter ribbon area — must have visible content
     ribbon_rect = meta.get("ribbon_rect")
     if ribbon_rect:
         mean, std = rect_mean_stddev(pixels, width, height, ribbon_rect["x"], ribbon_rect["y"], ribbon_rect["w"], ribbon_rect["h"])
@@ -493,25 +466,15 @@ def validate_deck_test(png_path, meta):
 # ════════════════════════════════════════════
 
 def validate_title_deck_test(png_path, meta):
-    """
-    Validates title screen capture with Decks button:
-    - Whole frame < 85% near-black (should show title screen with gold text)
-    - Decks button area has visible content (contrast against dark background)
-    """
-    if not png_path.exists() and PNG_MISSING_OK:
-        print(f"PNG not found (headless mode): {png_path.name} — skipping pixel checks")
-        print(f"  PASS title deck meta validation")
-        print(f"\nPASS: Meta-only validation (no pixel data in headless mode)")
-        sys.exit(0)
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
 
     width, height, pixels = read_png(str(png_path))
     total_pixels = width * height
     print(f"Image: {width}x{height}, {total_pixels} pixels")
     failures = []
 
-    # Check 1: Whole frame — must not be >92% near-black (title screen has dark bg with gold text + buttons)
-    # Title screen background is intentionally dark (~0.06 luminance) with a vignette overlay;
-    # gold title text, decorative lines, and buttons provide the detectable content.
     near_black_threshold = 25 / 255.0
     dark_count = 0
     for i in range(0, len(pixels), 4):
@@ -523,14 +486,10 @@ def validate_title_deck_test(png_path, meta):
 
     dark_ratio = dark_count / total_pixels
     if dark_ratio > 0.92:
-        failures.append(
-            f"WHOLE_FRAME_DARK: {dark_ratio:.1%} pixels are near-black "
-            f"(threshold 92%, expected title screen with buttons and text)"
-        )
+        failures.append(f"WHOLE_FRAME_DARK: {dark_ratio:.1%} pixels are near-black (threshold 92%, expected title screen with buttons and text)")
     else:
         print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 92%)")
 
-    # Check 2: Decks button area must have detectable content (gold/bronze text on dark bg)
     decks_rect = meta.get("decks_button_rect")
     if decks_rect:
         mean, std = rect_mean_stddev(pixels, width, height, decks_rect["x"], decks_rect["y"], decks_rect["w"], decks_rect["h"])

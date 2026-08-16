@@ -1,0 +1,7 @@
+{
+  "capture_type": "title_deck",
+  "view_width": 1152,
+  "view_height": 648,
+  "decks_button_rect": { "x": 368, "y": 557, "w": 414, "h": 32 },
+  "expected_deck_button_label": "Decks"
+}

@@ -55,4 +55,15 @@
 - 2026-08-15: TEMPO — 23 sessions yesterday, 10 validated.
 
 
-**TASK-ARS-EMBER (2026-08-15):** SIX fresh Ember sample images generated via xAI Grok Imagine (grok-imagine-image-2.0, 1024x1024) — Flame Javelin (emb_c_flame_javelin), Wildfire Adept (emb_u_wildfire_adept), Lava Serpent (emb_u_lava_serpent), Cinderstorm Elemental (emb_u_cinderstorm_elemental), Phoenix Ash (emb_r_phoenix_ash), The Last Ember (emb_x_the_last_ember). Subjects composed from card name + flavor per ART_STYLE_SPEC.md storybook brushwork style + Ember charcoal/flame palette. No integration, no JSON edits. Saved to pipeline/work/samples_ember_s2/, posted numbered to Telegram, gate passed. Commit 1a932cd.
+**TASK-ARS-EMBER (2026-08-15):** SIX fresh Ember sample images originally generated via xAI Grok Imagine. **Regenerated via FLUX.2 Pro (2026-08-16)** per Trikzos bake-off ruling — Flame Javelin (emb_c_flame_javelin), Wildfire Adept (emb_u_wildfire_adept), Lava Serpent (emb_u_lava_serpent), Cinderstorm Elemental (emb_u_cinderstorm_elemental), Phoenix Ash (emb_r_phoenix_ash), The Last Ember (emb_x_the_last_ember). Subjects composed per ART_STYLE_SPEC.md storybook brushwork + Ember charcoal/flame palette. No integration, no JSON edits. Saved to pipeline/work/samples_ember_s2/, all 6 posted individually to Telegram. Grok renders retired. Commit in ALPHA-LAUNCH-1.
+
+**TASK-ARS-VERDANT (2026-08-16):** SIX fresh Verdant sample images via FLUX.2 Pro (black-forest-labs/flux.2-pro via pipeline/gen_image_openrouter.py) — Thornbark Defender (vrd_c_thornbark_defender), Wildwood Stalker (vrd_c_wildwood_stalker), Canopy Archer (vrd_u_canopy_archer), Elder Treant (vrd_u_elder_treant), Nature's Renewal (vrd_r_natures_renewal), Heartwood Relic (vrd_x_heartwood_relic). Subjects composed from card name + flavor per ART_STYLE_SPEC.md storybook brushwork + Verdant green/gold palette. NO integration, no JSON edits. Saved to pipeline/work/samples_verdant_s1/ with batch script pipeline/work/gen_verdant_batch.py. Commit e3ba2fe (restored from revert 4b0f135 via cherry-pick).
+
+**ALPHA-LAUNCH-1 (2026-08-16):** Gate integrity + real captures + Ember FLUX redo + canon lock + alpha APK. Applied:
+- QUEUE HYGIENE: TASK-ARS-VERDANT [x] in TASKS_QUEUE.md, duplicates cleaned ✅
+- GATE INTEGRITY: capture_gate.py HARD RULE comment, no bypass flags, .gitignore broken line fixed ✅
+- ART-TASK EXEMPTION: foreman.sh capture-regen scoped to client/engine/ changes only ✅
+- REAL SCREENSHOTS: GODOT_BIN fixed ($HOME/.local/bin/godot), xvfb-run captures with real Vulkan renderer. duel_test PASS (15.8% dark, 4 hand+10 board, gap=14px), deck_test PASS (0.0% dark, pages+spine+ribbons+red-ink 0.5%), title_deck PASS (90.3% dark, Decks button detectable). All gates green with zero bypass ✅
+- EMBER FLUX REDO: All 6 Ember samples regenerated via FLUX.2 Pro (black-forest-labs/flux.2-pro), replacing Grok renders. Artist signature added to Negatives. Posted to Telegram individually ✅
+- FLUX CANON LOCK: ART_STYLE_SPEC.md updated — FLUX.2 Pro confirmed generator, do not relitigate ✅
+- ALPHA APK: Full clean build, 714 tests green, APK 118MB, release alpha-2026-08-16, download URL posted to Telegram ✅

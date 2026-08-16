@@ -1,0 +1,10 @@
+{
+  "capture_type": "deck_test",
+  "left_page_rect": { "x": 23, "y": 12, "w": 524, "h": 622 },
+  "right_page_rect": { "x": 604, "y": 12, "w": 524, "h": 622 },
+  "spine_rect": { "x": 552, "y": 12, "w": 46, "h": 622 },
+  "ribbon_rect": { "x": 23, "y": 51, "w": 524, "h": 32 },
+  "validation_rect": { "x": 610, "y": 51, "w": 506, "h": 64 },
+  "expected_deck_count": 31,
+  "expected_validation_errors": 1
+}
