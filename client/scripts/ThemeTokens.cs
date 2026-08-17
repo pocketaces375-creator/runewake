@@ -284,7 +284,8 @@ public static class ThemeTokens
     private static readonly Dictionary<string, string> _boardSkins = new()
     {
         { "default", "res://content/art/board/default.png" },
-        { "backdrop_default", "res://content/art/board/backdrop_default.png" }
+        { "backdrop_default", "res://content/art/board/backdrop_default.png" },
+        { "plate_default", "res://content/art/board/plate_default.png" }
     };
 
     /// <summary>Get the texture path for a board skin ID. Returns null for unknown IDs.</summary>
@@ -299,9 +300,31 @@ public static class ThemeTokens
         return _boardSkins.GetValueOrDefault("backdrop_default");
     }
 
+    /// <summary>Get the painted plate texture path — single-image battlefield with ring painted in.</summary>
+    public static string? GetPlatePath()
+    {
+        return _boardSkins.GetValueOrDefault("plate_default");
+    }
+
     // ════════════════════════════════════════════
-    // Convenience — strata color lookup
+    // Battlefield Ring Geometry (PAINTED-PLATE-1)
+    // Canonical constants — single source of truth.
+    // The painted ring center and radius, expressed as
+    // fractions of the board rect (BoardBg / Board Control).
+    // Slot arcs in PopulateLanes derive from these.
     // ════════════════════════════════════════════
+
+    /// <summary>Ring center X as fraction of board width</summary>
+    public const float RingCenterX = 0.50f;
+    /// <summary>Ring center Y as fraction of board height</summary>
+    public const float RingCenterY = 0.50f;
+    /// <summary>Ring radius as fraction of board width</summary>
+    public const float RingRadiusW = 0.40f;
+    /// <summary>Ring radius as fraction of board height</summary>
+    public const float RingRadiusH = 0.36f;
+
+    /// <summary>Number of lane slots per side</summary>
+    public const int LaneCount = 5;
 
     public static Color StrataColor(Strata strata) => strata switch
     {

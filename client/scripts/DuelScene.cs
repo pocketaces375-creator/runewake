@@ -139,30 +139,34 @@ public partial class DuelScene : Control
         // ═══ END TASK-UI3d ═══
 
         // ── Backdrop environment behind the altar field ──
-        // Landscape backdrop fills the full board rect, cover-cropped at any aspect.
-        // Zone variants can swap it via ThemeTokens.GetBackdropPath().
+        // PAINTED-PLATE-1: The battlefield is a single painted image (plate_default.png)
+        // that fills the full board rect, cover-cropped at any aspect.
+        // The altar ring, stone floor, roots, and lighting are all in the plate.
         var boardBg = GetNode<TextureRect>("BoardBg");
-        var backdropPath = ThemeTokens.GetBackdropPath();
-        if (backdropPath != null)
+        var platePath = ThemeTokens.GetPlatePath();
+        if (platePath != null)
         {
-            var backdropTex = GD.Load<Texture2D>(backdropPath);
-            if (backdropTex != null)
+            var plateTex = GD.Load<Texture2D>(platePath);
+            if (plateTex != null)
             {
-                boardBg.Texture = backdropTex;
+                boardBg.Texture = plateTex;
                 boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                // No Modulate — backdrop reads at native brightness.
-                // If a tint is wanted it must be >= 1.0 per channel so it lightens, not darkens.
+                // No Modulate — plate renders at native brightness.
+                // Atmosphere overlay above it provides ambient tint.
             }
         }
         else
         {
-            GD.PrintErr("[DuelScene] No backdrop texture — falling back to stone_board.png");
-            var stoneTex = GD.Load<Texture2D>("res://assets/stone_board.png");
-            if (stoneTex != null)
+            GD.PrintErr("[DuelScene] No painted plate — falling back to backdrop");
+            var fallbackPath = ThemeTokens.GetBackdropPath();
+            if (fallbackPath != null)
             {
-                boardBg.Texture = stoneTex;
-                boardBg.StretchMode = TextureRect.StretchModeEnum.Tile;
-                boardBg.Modulate = new Color(0.80f, 0.75f, 0.68f, 1.0f);
+                var fallbackTex = GD.Load<Texture2D>(fallbackPath);
+                if (fallbackTex != null)
+                {
+                    boardBg.Texture = fallbackTex;
+                    boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+                }
             }
         }
 
@@ -425,15 +429,17 @@ public partial class DuelScene : Control
                     var vpSize = GetViewportRect().Size;
                     meta.Append($"  \"viewport_width\": {vpSize.X:F0},\n");
                     meta.Append($"  \"viewport_height\": {vpSize.Y:F0},\n");
-                    // UI-FIELD-FIX: altar ellipse bound for hand/field overlap check
-                    // These are design-time screen-space values matching BuildAltarField's math
-                    float scaleMeta = GetViewportRect().Size.Y / 648f;
-                    float ellipseCenterYMeta = GetViewportRect().Size.Y * 0.39f;
-                    float ellipseBottomMeta = ellipseCenterYMeta + 209f * scaleMeta;
-                    meta.Append("  \"altar_ellipse\": {\n");
-                    meta.Append($"    \"bottom_y\": {ellipseBottomMeta:F1}\n");
-                    meta.Append("  },\n");
-                    meta.Append("  \"hand_cards\": [\n");
+                    // PAINTED-PLATE-1: ring bottom derived from canonical geometry
+                                        // Ring center (0.50, 0.50) of board rect, radius (0.40w, 0.36h).
+                                        // Board rect in screen coords: y=74 to y=vh-160.
+                                        float boardTopMeta = 74f;
+                                        float boardHMeta = vpSize.Y - 74f - 160f;
+                                        float ringCenterYMeta = boardTopMeta + boardHMeta * ThemeTokens.RingCenterY;
+                                        float ringBottomMeta = ringCenterYMeta + boardHMeta * ThemeTokens.RingRadiusH;
+                                        meta.Append("  \"altar_ellipse\": {\n");
+                                        meta.Append($"    \"bottom_y\": {ringBottomMeta:F1}\n");
+                                        meta.Append("  },\n");
+                                        meta.Append("  \"hand_cards\": [\n");
                     for (int ci = 0; ci < _handCards.Count; ci++)
                     {
                         var hc = _handCards[ci];
@@ -1385,11 +1391,10 @@ public partial class DuelScene : Control
     private void BuildAltarField()
     {
         var board = GetNode("Board");
-        float vw = GetViewportRect().Size.X;
-        float vh = GetViewportRect().Size.Y;
-        float scale = vh / 648f;
 
-        // ── Altar ellipse background ──
+        // AltarField — PAINTED-PLATE-1: no ellipse drawn, this is just a
+        // transparent container for geometry reference. The full-board
+        // painted plate (BoardBg) carries the visual ring.
         _altarField = new AltarField { Name = "AltarField" };
         _altarField.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _altarField.MouseFilter = Control.MouseFilterEnum.Ignore;
@@ -1400,34 +1405,6 @@ public partial class DuelScene : Control
         _altarContainer.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _altarContainer.MouseFilter = Control.MouseFilterEnum.Ignore;
         board.AddChild(_altarContainer);
-
-        // ── Rune glyphs around ellipse edge (6 unicode runic characters) ──
-        string runes = "ᚠᚢᚦᚨᚱᚲ"; // Fehu, Uruz, Thurisaz, Ansuz, Raidho, Kenaz
-        float ellipseRx = 620f * scale;
-        float ellipseRy = 209f * scale;
-        Vector2 ellipseCenter = new Vector2(vw / 2f, vh * 0.39f);
-
-        // 6 positions around the ellipse (top, top-right, right, bottom, bottom-left, left)
-        float[] runeAngles = { -Mathf.Pi / 2f, -Mathf.Pi / 6f, Mathf.Pi / 6f, Mathf.Pi / 2f, 5f * Mathf.Pi / 6f, -5f * Mathf.Pi / 6f };
-        for (int i = 0; i < 6 && i < runes.Length; i++)
-        {
-            float angle = runeAngles[i];
-            float rx = 630f * scale;
-            float ry = 215f * scale;
-            float gx = ellipseCenter.X + rx * Mathf.Cos(angle) - 8f;
-            float gy = ellipseCenter.Y + ry * Mathf.Sin(angle) - 8f;
-
-            var rune = new Label
-            {
-                Text = runes[i].ToString(),
-                Position = new Vector2(gx, gy),
-                CustomMinimumSize = new Vector2(16, 16),
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-            };
-            rune.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-            rune.AddThemeColorOverride("font_color", new Color(0.34f, 0.29f, 0.17f, 0.3f));
-            _altarContainer.AddChild(rune);
-        }
 
         // Populate arc slots
         PopulateLanes();
