@@ -112,3 +112,12 @@
 |- Fresh dual capture re-run: both gate exit 0 ✅
 |- APK: `exports/Runewake.apk` — 179MB, version code 3. Tag `alpha-2026-08-17-backdrop` pushed. Gh release pending API availability (currently 503). Posted to Runewake group with both captures ✅
 |- Backdrop measured brightness: avg 98/255, 69.7% mid-tones, 30.2% light, 0.1% near-black — reads as visible environment, NOT black ✅
+|
+|**PAINTED-PLATE-1 (2026-08-17):** Procedural ellipse retired, one painted plate fills board. Applied:
+|- TASK A — Retired AltarField._Draw() (no fill/border/rim/shadow). Removed rune glyphs from BuildAltarField(). All hardcoded ellipse constants deleted ✅
+|- TASK B — Canonical ring geometry in ThemeTokens: center (0.50, 0.50), radius (0.40w, 0.36h) of board rect. Zone plate docs added ✅
+|- TASK C — Plate generated: FLUX.2 Pro 1536×704, carved ring in ruin floor, avg brightness 87/255 raw (71/255 rendered), RULE 8 clean ✅
+|- TASK D — Full-bleed wire: BoardBg loads plate via GetPlatePath(), KeepAspectCovered. Atmosphere zeroed: vignette=0, ember/moon=0.02, mist=0.01 — plate carries own light ✅
+|- TASK E — Check 10: samples ring_interior_gap (158/255 1152×648, 159/255 1999×932) and slot_hand_gap (120/255, 63/255). Threshold 30/255 min, both pass ✅
+|- TASK F — Align capture produced, slot-ring alignment verified: 6/10 slot centers within ring, outer edge slots sit on ring boundary (expected for arc spread). Go decision ✅
+|- TASK G — APK 180MB, release alpha-2026-08-17-plate created. HTTP 200 verified at curl. Posted captures + URL to Runewake group ✅
