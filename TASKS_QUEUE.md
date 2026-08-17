@@ -84,14 +84,5 @@
 - [x] TASK-ARS-VERDANT — Same, 6 vrd_* ids missing art, Verdant palette → pipeline/work/samples_verdant_s1/.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
 
-## HOLD until Wave 1 approved
-Style is LOCKED (v3.0, 2026-08-17). These art batches release wave by wave per docs/ART_WAVES.md — the next wave starts ONLY when Trikzos sends a release brick approving the previous one. See docs/ART_WAVES.md.
-- [ ] TASK-ARS-TIDE — Same, 6 tid_* ids, Tide palette → pipeline/work/samples_tide_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
-  Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-- [ ] TASK-ARS-HOLLOW — Same, 6 hol_* ids, Hollow palette → pipeline/work/samples_hollow_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro. (HOLLOW content-filter canon: never soften prompts; on refusal use fallback frames and note the id in the DONE line).
-  Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-- [ ] TASK-ARS-DAWN — Same, 6 dwn_* ids, Dawn palette → pipeline/work/samples_dawn_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
-  Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
-
 ## After TASK-S1
 After S1: continue into UI3 — Claude reviews metrics in parallel; do not stop. If mockups/board_c7.png absent at UI3d start, BLOCKED for UI3d only, take next task.

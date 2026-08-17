@@ -407,6 +407,10 @@ public partial class DuelScene : Control
                     // Capture hand card info from _handCards
                     meta.Append("  \"expected_hand_card_count\": 4,\n");
                     meta.Append("  \"expected_board_card_count\": 10,\n");
+                    // FULL-DECK-2: Include viewport dims for capture_gate.py Check 8
+                    var vpSize = GetViewportRect().Size;
+                    meta.Append($"  \"viewport_width\": {vpSize.X:F0},\n");
+                    meta.Append($"  \"viewport_height\": {vpSize.Y:F0},\n");
                     // UI-FIELD-FIX: altar ellipse bound for hand/field overlap check
                     // These are design-time screen-space values matching BuildAltarField's math
                     float scaleMeta = GetViewportRect().Size.Y / 648f;

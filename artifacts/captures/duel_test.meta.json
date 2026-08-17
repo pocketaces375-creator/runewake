@@ -1,6 +1,8 @@
 {
   "expected_hand_card_count": 4,
   "expected_board_card_count": 10,
+  "viewport_width": 1152,
+  "viewport_height": 648,
   "altar_ellipse": {
     "bottom_y": 461.7
   },

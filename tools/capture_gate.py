@@ -372,18 +372,21 @@ def validate_duel_test(png_path, meta):
             print(f"  PASS hand/field: all {len(hand_cards)} hand cards clear of {len(player_slots)} player slots, "
                   f"best gap={best_gap:.0f}px")
 
-    # Check 8: Viewport containment (HAND-VIEWPORT-FIX-1R)
+    # Check 8: Viewport containment (HAND-VIEWPORT-FIX-1R, FULL-DECK-2)
     # Every hand card AND board card must be fully inside the project viewport.
-    # Dims are read from client/project.godot — no invented values, no bypass flags.
-    project_godot = Path(__file__).resolve().parent.parent / "client" / "project.godot"
-    vp_w = vp_h = None
-    if project_godot.exists():
-        for line in project_godot.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("window/size/viewport_width="):
-                vp_w = int(line.split("=", 1)[1])
-            elif line.startswith("window/size/viewport_height="):
-                vp_h = int(line.split("=", 1)[1])
+    # Dims are read from meta.json (viewport_width/height) if available, falling
+    # back to client/project.godot — no invented values, no bypass flags.
+    vp_w = meta.get("viewport_width")
+    vp_h = meta.get("viewport_height")
+    if vp_w is None or vp_h is None:
+        project_godot = Path(__file__).resolve().parent.parent / "client" / "project.godot"
+        if project_godot.exists():
+            for line in project_godot.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("window/size/viewport_width="):
+                    vp_w = int(line.split("=", 1)[1])
+                elif line.startswith("window/size/viewport_height="):
+                    vp_h = int(line.split("=", 1)[1])
     if vp_w is None or vp_h is None:
         failures.append(f"VIEWPORT_CONTAINMENT: could not read viewport dims from {project_godot}")
     else:
