@@ -39,7 +39,7 @@ public static class ThemeTokens
     /// <summary>Ember glow max radius as fraction of viewport diagonal</summary>
     public const float AtmosphereEmberRadius = 0.45f;
     /// <summary>Ember glow peak alpha (inner ring)</summary>
-    public const float AtmosphereEmberAlpha = 0.12f;
+    public const float AtmosphereEmberAlpha = 0.08f;
 
     // ── Cool moon glow (upper-right corner) ──
     /// <summary>Moon glow color — cool pale blue-white</summary>
@@ -51,7 +51,7 @@ public static class ThemeTokens
     /// <summary>Moon glow max radius as fraction of viewport diagonal</summary>
     public const float AtmosphereMoonRadius = 0.40f;
     /// <summary>Moon glow peak alpha (inner ring)</summary>
-    public const float AtmosphereMoonAlpha = 0.08f;
+    public const float AtmosphereMoonAlpha = 0.05f;
 
     // ── Mist band ──
     /// <summary>Mist band color — pale grey-blue at low opacity</summary>
@@ -61,7 +61,7 @@ public static class ThemeTokens
     /// <summary>Mist band total height as fraction of viewport height</summary>
     public const float AtmosphereMistHeight = 0.08f;
     /// <summary>Mist band max opacity</summary>
-    public const float AtmosphereMistAlpha = 0.06f;
+    public const float AtmosphereMistAlpha = 0.04f;
 
     // ── Vignette ──
     /// <summary>Vignette color — dark brown-black</summary>
@@ -283,13 +283,20 @@ public static class ThemeTokens
 
     private static readonly Dictionary<string, string> _boardSkins = new()
     {
-        { "default", "res://content/art/board/default.png" }
+        { "default", "res://content/art/board/default.png" },
+        { "backdrop_default", "res://content/art/board/backdrop_default.png" }
     };
 
     /// <summary>Get the texture path for a board skin ID. Returns null for unknown IDs.</summary>
     public static string? GetBoardSkinPath(string skinId)
     {
         return _boardSkins.TryGetValue(skinId, out var path) ? path : null;
+    }
+
+    /// <summary>Get the backdrop texture path — the landscape environment behind the altar field.</summary>
+    public static string? GetBackdropPath()
+    {
+        return _boardSkins.GetValueOrDefault("backdrop_default");
     }
 
     // ════════════════════════════════════════════

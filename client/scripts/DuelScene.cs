@@ -138,22 +138,32 @@ public partial class DuelScene : Control
         board.AddChild(atmosphere);
         // ═══ END TASK-UI3d ═══
 
-        // ── Stone-slab board surface ──
-        // Seamless tileable stone texture behind the board lanes
+        // ── Backdrop environment behind the altar field ──
+        // Landscape backdrop fills the full board rect, cover-cropped at any aspect.
+        // Zone variants can swap it via ThemeTokens.GetBackdropPath().
         var boardBg = GetNode<TextureRect>("BoardBg");
-        var stoneTex = GD.Load<Texture2D>("res://assets/stone_board.png");
-        if (stoneTex != null)
+        var backdropPath = ThemeTokens.GetBackdropPath();
+        if (backdropPath != null)
         {
-            boardBg.Texture = stoneTex;
-            // Floor must be darker than lanes and cards so it recedes.
-            // Texture is baked dark (~39 lum); this keeps a warm cast without lifting it.
-            // FULL-DECK-2: Lighten the board background so the moss granite field
-            // reads clearly on device. Warm parchment tone instead of dark stone.
-            boardBg.Modulate = new Color(0.80f, 0.75f, 0.68f, 1.0f);
+            var backdropTex = GD.Load<Texture2D>(backdropPath);
+            if (backdropTex != null)
+            {
+                boardBg.Texture = backdropTex;
+                boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+                // No Modulate — backdrop reads at native brightness.
+                // If a tint is wanted it must be >= 1.0 per channel so it lightens, not darkens.
+            }
         }
         else
         {
-            GD.PrintErr("[DuelScene] Failed to load stone_board.png — board background will be empty.");
+            GD.PrintErr("[DuelScene] No backdrop texture — falling back to stone_board.png");
+            var stoneTex = GD.Load<Texture2D>("res://assets/stone_board.png");
+            if (stoneTex != null)
+            {
+                boardBg.Texture = stoneTex;
+                boardBg.StretchMode = TextureRect.StretchModeEnum.Tile;
+                boardBg.Modulate = new Color(0.80f, 0.75f, 0.68f, 1.0f);
+            }
         }
 
         // Health bar track (player only — TASK-UI3a: enemy uses vigor chip instead)
