@@ -146,13 +146,16 @@ public partial class HandCard : PanelContainer
             {
                 _artRect.Texture = texture;
                 _noArtLabel.Visible = false;
+                _cardName.Show(); // name strip overlay on art
                 GD.Print($"[HANDCARD] {cardId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
+        // No card art — show centered placeholder label only
         _artRect.Texture = null;
         _noArtLabel.Visible = true;
         _noArtLabel.Text = _cardName.Text;
+        _cardName.Hide(); // no name strip when using placeholder
         GD.Print($"[HANDCARD] No art for {cardId} — placeholder shown");
         GD.Print($"[MISSING_ART] {cardId}");
     }

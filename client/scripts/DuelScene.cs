@@ -147,7 +147,9 @@ public partial class DuelScene : Control
             boardBg.Texture = stoneTex;
             // Floor must be darker than lanes and cards so it recedes.
             // Texture is baked dark (~39 lum); this keeps a warm cast without lifting it.
-            boardBg.Modulate = new Color(0.52f, 0.50f, 0.46f, 1.0f);
+            // FULL-DECK-2: Lighten the board background so the moss granite field
+            // reads clearly on device. Warm parchment tone instead of dark stone.
+            boardBg.Modulate = new Color(0.80f, 0.75f, 0.68f, 1.0f);
         }
         else
         {
@@ -715,6 +717,11 @@ public partial class DuelScene : Control
         _enemyTopBar.Size = new Vector2(0, barH);
         _enemyTopBar.Position = new Vector2(0, 0);
         AddChild(_enemyTopBar);
+
+        // FULL-DECK-2: Hide the TurnLabel behind the top bar — it was showing
+        // through the transparent center section (ghost text bleed). The turn
+        // number is shown in the _turnIndicatorLabel near the End Turn button.
+        _turnLabel.Visible = false;
 
         // Outer HBox: [LEFT_CLUSTER][CENTER][RIGHT_CLUSTER]
         var barRow = new HBoxContainer();

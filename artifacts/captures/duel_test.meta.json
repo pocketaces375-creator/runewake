@@ -9,25 +9,25 @@
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
       "rect": { "x": 412.0, "y": 484.0, "w": 104.0, "h": 152.0 },
-      "name_rect": { "x": 412.0, "y": 544.8, "w": 104.0, "h": 22.8 }
+      "name_rect": { "x": 412.0, "y": 605.6, "w": 104.0, "h": 18.2 }
     },
     {
       "card_id": "emb_c_forgeguard_berserker",
       "name": "Forgeguard Berserker",
       "rect": { "x": 550.0, "y": 484.0, "w": 104.0, "h": 152.0 },
-      "name_rect": { "x": 550.0, "y": 544.8, "w": 104.0, "h": 22.8 }
+      "name_rect": { "x": 550.0, "y": 605.6, "w": 104.0, "h": 18.2 }
     },
     {
       "card_id": "hol_c_skeletal_reaver",
       "name": "Skeletal Reaver",
       "rect": { "x": 688.0, "y": 484.0, "w": 104.0, "h": 152.0 },
-      "name_rect": { "x": 688.0, "y": 544.8, "w": 104.0, "h": 22.8 }
+      "name_rect": { "x": 688.0, "y": 605.6, "w": 104.0, "h": 18.2 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
       "rect": { "x": 826.0, "y": 484.0, "w": 104.0, "h": 152.0 },
-      "name_rect": { "x": 826.0, "y": 544.8, "w": 104.0, "h": 22.8 }
+      "name_rect": { "x": 826.0, "y": 605.6, "w": 104.0, "h": 18.2 }
     }
   ],
   "groups": [

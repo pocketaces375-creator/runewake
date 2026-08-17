@@ -170,14 +170,16 @@ public partial class LaneSlot : PanelContainer
             {
                 _artRect.Texture = texture;
                 _noArtLabel.Visible = false;
+                _cardName.Show(); // name strip overlay on art
                 GD.Print($"[LANESLOT] {cardDefId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
-        // No card art — show placeholder label
+        // No card art — show centered placeholder label only
         _artRect.Texture = null;
         _noArtLabel.Visible = true;
         _noArtLabel.Text = _cardName.Text;
+        _cardName.Hide(); // no name strip when using placeholder
         GD.Print($"[LANESLOT] No art for {cardDefId} — NoArtLabel shown");
         GD.Print($"[MISSING_ART] {cardDefId}");
     }
