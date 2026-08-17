@@ -372,6 +372,49 @@ def validate_duel_test(png_path, meta):
             print(f"  PASS hand/field: all {len(hand_cards)} hand cards clear of {len(player_slots)} player slots, "
                   f"best gap={best_gap:.0f}px")
 
+    # Check 8: Viewport containment (HAND-VIEWPORT-FIX-1R)
+    # Every hand card AND board card must be fully inside the project viewport.
+    # Dims are read from client/project.godot — no invented values, no bypass flags.
+    project_godot = Path(__file__).resolve().parent.parent / "client" / "project.godot"
+    vp_w = vp_h = None
+    if project_godot.exists():
+        for line in project_godot.read_text().splitlines():
+            line = line.strip()
+            if line.startswith("window/size/viewport_width="):
+                vp_w = int(line.split("=", 1)[1])
+            elif line.startswith("window/size/viewport_height="):
+                vp_h = int(line.split("=", 1)[1])
+    if vp_w is None or vp_h is None:
+        failures.append(f"VIEWPORT_CONTAINMENT: could not read viewport dims from {project_godot}")
+    else:
+        vp_violations = 0
+        for i, card in enumerate(hand_cards):
+            r = card.get("rect")
+            if not r:
+                continue
+            cx, cy, cw, ch = r["x"], r["y"], r["w"], r["h"]
+            if cx < 0 or cy < 0 or cx + cw > vp_w or cy + ch > vp_h:
+                name = card.get("name", f"hand_{i}")
+                failures.append(
+                    f"VIEWPORT_CONTAINMENT: hand card \"{name}\" rect "
+                    f"({cx:.0f},{cy:.0f},{cw:.0f},{ch:.0f}) exceeds viewport {vp_w}x{vp_h}"
+                )
+                vp_violations += 1
+        for i, card in enumerate(board_cards):
+            r = card.get("rect")
+            if not r:
+                continue
+            cx, cy, cw, ch = r["x"], r["y"], r["w"], r["h"]
+            if cx < 0 or cy < 0 or cx + cw > vp_w or cy + ch > vp_h:
+                slot = card.get("slot", f"board_{i}")
+                failures.append(
+                    f"VIEWPORT_CONTAINMENT: board card \"{slot}\" rect "
+                    f"({cx:.0f},{cy:.0f},{cw:.0f},{ch:.0f}) exceeds viewport {vp_w}x{vp_h}"
+                )
+                vp_violations += 1
+        if vp_violations == 0:
+            print(f"  PASS viewport containment: all {len(hand_cards)} hand + {len(board_cards)} board cards within {vp_w}x{vp_h}")
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:

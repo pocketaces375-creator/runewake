@@ -1341,8 +1341,9 @@ public partial class DuelScene : Control
         _handCardHeight = Mathf.Max(110f, 152f * scale);
         _boardCardHeight = Mathf.Max(150f, 200f * scale);
 
-        // Grow the hand area to fit larger cards (was 200px tall)
-        _handArea.OffsetTop = -(_handCardHeight + 20f);
+        // HAND-VIEWPORT-FIX-1R: Hand tray anchored to viewport bottom (hand top = vh - handCardH - 12).
+        // PopulateLanes re-affirms this after slot layout; this is the initial set.
+        _handArea.OffsetTop = -(_handCardHeight + 12f);
 
         // TASK-UI3c: Recentre hand beside the player shrine.
         float shrineWidth = 86f * scale + 4f * scale + 46f * scale + 42f * scale + 4f * scale + 4f * scale; // art + gap + portrait + deck + barrow + gaps
@@ -1420,17 +1421,28 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
         float scale = vh / 648f;
-        float slotH = 176f * scale;
+        // HAND-VIEWPORT-FIX-1R: Reduced slot height from 176 to 148 to leave room for
+        // the hand tray (anchored to viewport bottom at vh - handCardH - 12px).
+        float slotH = 148f * scale;
         float slotW = 206f * scale;
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
         float spacing = 215f * scale; // TASK-UI3e: tighter spread so outer slots clear both screen edges
 
-        // Enemy baseline Y: top arc, pushed up to widen gap from player arc (TASK-UI3f)
-        float enemyBaseY = GetViewportRect().Size.Y * 0.10f;
-        // Player baseline Y: bottom arc — moved up to 0.50 for hand clearance (OVERLAP-PROOF-1, was 0.54)
-        float playerBaseY = GetViewportRect().Size.Y * 0.50f;
+        // Enemy baseline Y: top arc, moved up to 0.06 to make room for the fixed hand tray (HAND-VIEWPORT-FIX-1R)
+        float enemyBaseY = GetViewportRect().Size.Y * 0.06f;
+        // Player baseline Y: computed so the lowest (center) player slot bottom sits at
+        // hand top - 12px. Hand top = vh - handCardH - 12. The board shrinks to fit —
+        // never the hand (HAND-VIEWPORT-FIX-1R).
+        float handCardH = Mathf.Max(110f, 152f * scale);
+        float handTop = vh - handCardH - 12f;
+        // Board node starts 74px below the viewport top (DuelScene.tscn offset_top=74);
+        // slots are children of the altar container (full-rect inside Board).
+        float boardTopOffset = 74f;
+        // Lowest slot = center slot (offset 0): screen bottom = boardTopOffset + playerBaseY + slotH
+        // Constraint: screen bottom <= handTop - 12
+        float playerBaseY = (handTop - 12f) - boardTopOffset - slotH;
 
         for (int i = 0; i < 5; i++)
         {
@@ -1438,7 +1450,8 @@ public partial class DuelScene : Control
             float x = xCenter - slotW / 2f;
 
             // ── Enemy slot (top arc, bowing downward) ──
-            float enemyYOffset = i switch { 0 or 4 => 34f, 1 or 3 => 8f, _ => 0f } * scale;
+            // HAND-VIEWPORT-FIX-1R: amplitude reduced 34→24 / 8→6 so arcs fit above the hand tray
+            float enemyYOffset = i switch { 0 or 4 => 24f, 1 or 3 => 6f, _ => 0f } * scale;
             float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
@@ -1456,7 +1469,8 @@ public partial class DuelScene : Control
             _enemySlots.Add(enemySlot);
 
             // ── Player slot (bottom arc, bowing upward) ──
-            float playerYOffset = i switch { 0 or 4 => 34f, 1 or 3 => 8f, _ => 0f } * scale;
+            // HAND-VIEWPORT-FIX-1R: amplitude reduced 34→24 / 8→6 so arcs fit above the hand tray
+            float playerYOffset = i switch { 0 or 4 => 24f, 1 or 3 => 6f, _ => 0f } * scale;
             float playerY = playerBaseY - playerYOffset;
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
@@ -1475,22 +1489,15 @@ public partial class DuelScene : Control
 
         GD.Print($"[DUEL] TASK-UI3b: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
 
-        // OVERLAP-PROOF-1: Push hand below lowest player slot + 12px margin.
-        // Must run AFTER slots are positioned and have valid screen-space rects.
+        // HAND-VIEWPORT-FIX-1R: Anchor hand tray to viewport bottom — hand top =
+        // viewport_height - handCardHeight - 12px. Always fully visible, regardless
+        // of board layout. Re-affirms the value set in ScaleCardSizes.
         float vhPop = GetViewportRect().Size.Y;
         float scalePop = vhPop / 648f;
-        float lowestSlotBottom = 0f;
-        foreach (var slot in _playerSlots)
-        {
-            var sRect = slot.GetRect();
-            var sGp = slot.GetScreenTransform().Origin;
-            float sBottom = sGp.Y + sRect.Size.Y;
-            if (sBottom > lowestSlotBottom)
-                lowestSlotBottom = sBottom;
-        }
-        float targetHandTop = lowestSlotBottom + 12f;
-        _handArea.OffsetTop = -(vhPop - targetHandTop);
-        GD.Print($"[DUEL] Hand position: lowest slot bottom={lowestSlotBottom:F0}, hand top={targetHandTop:F0}, offset={_handArea.OffsetTop:F0}");
+        float handCardHPop = Mathf.Max(110f, 152f * scalePop);
+        float handTopPop = vhPop - handCardHPop - 12f;
+        _handArea.OffsetTop = -(vhPop - handTopPop);
+        GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}");
     }
 
     // ——— State-driven rendering ———
