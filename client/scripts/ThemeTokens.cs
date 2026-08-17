@@ -38,8 +38,8 @@ public static class ThemeTokens
     public const float AtmosphereEmberCenterY = 0.92f;
     /// <summary>Ember glow max radius as fraction of viewport diagonal</summary>
     public const float AtmosphereEmberRadius = 0.45f;
-    /// <summary>Ember glow peak alpha (inner ring)</summary>
-    public const float AtmosphereEmberAlpha = 0.08f;
+    /// <summary>Ember glow peak alpha (inner ring) — minimal, plate carries own light</summary>
+    public const float AtmosphereEmberAlpha = 0.02f;
 
     // ── Cool moon glow (upper-right corner) ──
     /// <summary>Moon glow color — cool pale blue-white</summary>
@@ -50,8 +50,8 @@ public static class ThemeTokens
     public const float AtmosphereMoonCenterY = 0.08f;
     /// <summary>Moon glow max radius as fraction of viewport diagonal</summary>
     public const float AtmosphereMoonRadius = 0.40f;
-    /// <summary>Moon glow peak alpha (inner ring)</summary>
-    public const float AtmosphereMoonAlpha = 0.05f;
+    /// <summary>Moon glow peak alpha (inner ring) — minimal, plate carries own light</summary>
+    public const float AtmosphereMoonAlpha = 0.02f;
 
     // ── Mist band ──
     /// <summary>Mist band color — pale grey-blue at low opacity</summary>
@@ -60,14 +60,14 @@ public static class ThemeTokens
     public const float AtmosphereMistCenterY = 0.45f;
     /// <summary>Mist band total height as fraction of viewport height</summary>
     public const float AtmosphereMistHeight = 0.08f;
-    /// <summary>Mist band max opacity</summary>
-    public const float AtmosphereMistAlpha = 0.04f;
+    /// <summary>Mist band max opacity — minimal, plate carries own atmosphere</summary>
+    public const float AtmosphereMistAlpha = 0.01f;
 
     // ── Vignette ──
     /// <summary>Vignette color — dark brown-black</summary>
     public static readonly Color AtmosphereVignetteColor = Color.FromHtml("#0A0907");
-    /// <summary>Vignette peak alpha at edges — subtle, card art reads true-color (TASK-UI3e)</summary>
-    public const float AtmosphereVignetteAlpha = 0.15f;
+    /// <summary>Vignette peak alpha at edges — PAINTED-PLATE-1: plate carries its own light falloff, set to 0.</summary>
+    public const float AtmosphereVignetteAlpha = 0.0f;
     /// <summary>Vignette softness as fraction of viewport (0=hard, 1=full soft)</summary>
     public const float AtmosphereVignetteSoftness = 0.35f;
 
@@ -312,6 +312,11 @@ public static class ThemeTokens
     // The painted ring center and radius, expressed as
     // fractions of the board rect (BoardBg / Board Control).
     // Slot arcs in PopulateLanes derive from these.
+    //
+    // ZONE PLATES: Every future zone plate (painted battlefield image)
+    // MUST paint its ring to THIS EXACT geometry so slot alignment holds.
+    // Replace client/content/art/board/plate_default.png with the new zone
+    // plate — the same ring constants slot the cards correctly.
     // ════════════════════════════════════════════
 
     /// <summary>Ring center X as fraction of board width</summary>

@@ -398,10 +398,68 @@ public partial class DuelScene : Control
                 }
 
                 // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
-                PrePlaceCreatures();
+                if (!CampaignContext.DebugAlignMode)
+                    PrePlaceCreatures();
 
                 // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
-                PrePlaceArtifacts();
+                if (!CampaignContext.DebugAlignMode)
+                    PrePlaceArtifacts();
+
+                // ═══ PAINTED-PLATE-1: Debug slot overlay for align capture ═══
+                // Created here (before the snapTimer) so it renders for a full frame
+                // before the snapshot.
+                Control? debugOverlay = null;
+                if (CampaignContext.DebugAlignMode)
+                {
+                    debugOverlay = new Control();
+                    debugOverlay.Name = "DebugAlignOverlay";
+                    debugOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+                    debugOverlay.MouseFilter = Control.MouseFilterEnum.Ignore;
+                    debugOverlay.Draw += () =>
+                    {
+                        if (!IsInstanceValid(debugOverlay)) return;
+                        // Draw player slots as green outlines
+                        for (int i = 0; i < _playerSlots.Count; i++)
+                        {
+                            var s = _playerSlots[i];
+                            if (!IsInstanceValid(s)) continue;
+                            var gp = s.GetScreenTransform().Origin;
+                            DrawSlotOutline(debugOverlay, gp, s.Size, new Color(0.0f, 1.0f, 0.0f, 0.9f), i.ToString());
+                        }
+                        // Draw enemy slots as blue outlines
+                        for (int i = 0; i < _enemySlots.Count; i++)
+                        {
+                            var s = _enemySlots[i];
+                            if (!IsInstanceValid(s)) continue;
+                            var gp = s.GetScreenTransform().Origin;
+                            DrawSlotOutline(debugOverlay, gp, s.Size, new Color(0.0f, 0.5f, 1.0f, 0.9f), $"E{i}");
+                        }
+                        // Draw ring ellipse from canonical geometry
+                        var vp = GetViewportRect().Size;
+                        float boardTopDbg = 74f;
+                        float boardHDbg = vp.Y - boardTopDbg - 160f;
+                        float cx = vp.X / 2f;
+                        float cy = boardTopDbg + boardHDbg * ThemeTokens.RingCenterY;
+                        float rx = vp.X * ThemeTokens.RingRadiusW;
+                        float ry = boardHDbg * ThemeTokens.RingRadiusH;
+                        int segs = 72;
+                        var pts = new Vector2[segs];
+                        for (int si = 0; si < segs; si++)
+                        {
+                            float a = Mathf.Tau * si / segs;
+                            pts[si] = new Vector2(cx + rx * Mathf.Cos(a), cy + ry * Mathf.Sin(a));
+                        }
+                        var prev = pts[0];
+                        for (int si = 1; si <= segs; si++)
+                        {
+                            var cur = pts[si % segs];
+                            debugOverlay.DrawLine(prev, cur, new Color(1.0f, 0.8f, 0.0f, 0.7f), 2f);
+                            prev = cur;
+                        }
+                    };
+                    AddChild(debugOverlay);
+                    debugOverlay.QueueRedraw();
+                }
 
                 // Capture after board renders
                 var snapTimer = new Godot.Timer();
@@ -409,7 +467,14 @@ public partial class DuelScene : Control
                 snapTimer.WaitTime = 1.0f;
                 snapTimer.Timeout += () =>
                 {
-                    var captureSuffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+                    string captureSuffix;
+                    if (CampaignContext.DebugAlignMode)
+                        captureSuffix = "_align";
+                    else if (CampaignContext.WideCaptureMode)
+                        captureSuffix = "_wide";
+                    else
+                        captureSuffix = "";
+
                     var capturePath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.png";
                     var metaPath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.meta.json";
 
@@ -572,21 +637,28 @@ public partial class DuelScene : Control
                         bi++;
                     }
                     meta.Append("\n  ]\n");
-                    meta.Append("}\n");
+                                        meta.Append("}\n");
 
-                    using (var writer = new System.IO.StreamWriter(metaPath))
+                                        using (var writer = new System.IO.StreamWriter(metaPath))
+                                        {
+                                            writer.Write(meta.ToString());
+                                        }
+                                        GD.Print($"[CAPTURE] duel_test{captureSuffix}.meta.json saved");
+
+                                        // Run layout verification (skip in align mode — no cards)
+                    if (!CampaignContext.DebugAlignMode)
                     {
-                        writer.Write(meta.ToString());
+                        int failed = RunLayoutVerification();
+                        GD.Print($"[VERIFY] Layout checks: {failed} failed");
+                        if (failed > 0)
+                            GetTree().Quit(1);
+                        else
+                            GetTree().Quit(0);
                     }
-                    GD.Print($"[CAPTURE] duel_test{captureSuffix}.meta.json saved");
-
-                    // Run layout verification
-                    int failed = RunLayoutVerification();
-                    GD.Print($"[VERIFY] Layout checks: {failed} failed");
-                    if (failed > 0)
-                        GetTree().Quit(1);
                     else
+                    {
                         GetTree().Quit(0);
+                    }
                 };
                 AddChild(snapTimer);
                 snapTimer.Start();
@@ -1355,6 +1427,28 @@ public partial class DuelScene : Control
         {
             GD.PrintErr($"[DUEL] Failed to load artifact definitions: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// PAINTED-PLATE-1: Draw a debug slot outline on the given control — filled rect with
+    /// colored border + centered label. Used by align capture mode.
+    /// </summary>
+    private static void DrawSlotOutline(Control target, Vector2 origin, Vector2 size, Color color, string label)
+    {
+        float x = origin.X;
+        float y = origin.Y;
+        float w = size.X;
+        float h = size.Y;
+        // Fill with transparent color
+        target.DrawRect(new Rect2(x, y, w, h), new Color(color.R, color.G, color.B, 0.15f));
+        // Top edge
+        target.DrawLine(new Vector2(x, y), new Vector2(x + w, y), color, 2f);
+        // Bottom edge
+        target.DrawLine(new Vector2(x, y + h), new Vector2(x + w, y + h), color, 2f);
+        // Left edge
+        target.DrawLine(new Vector2(x, y), new Vector2(x, y + h), color, 2f);
+        // Right edge
+        target.DrawLine(new Vector2(x + w, y), new Vector2(x + w, y + h), color, 2f);
     }
 
     /// <summary>

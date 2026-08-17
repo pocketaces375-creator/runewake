@@ -62,6 +62,12 @@ public partial class DebugCapture : Node
                 // This flag tells DuelScene.cs to write to duel_test_wide.png/meta.json.
                 GD.Print("[DebugCapture] Wide capture mode enabled: --capture=duel_test_wide");
             }
+            if (arg == "--capture=duel_test_align")
+            {
+                _active = true;
+                CampaignContext.DebugAlignMode = true;
+                GD.Print("[DebugCapture] Align capture mode enabled: --capture=duel_test_align");
+            }
             if (arg == "--capture=deck_test")
             {
                 deckBuilderMode = true;

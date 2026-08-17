@@ -444,6 +444,53 @@ def validate_duel_test(png_path, meta):
         if not et_overlap:
             print(f"  PASS End Turn strip: all {len(hand_cards)} hand cards clear of strip zone ({strip_left:.0f},{strip_top:.0f},100,126)")
 
+    # Check 10: PAINTED-PLATE-1 — sample plate-only areas between/outside card slots.
+    # Board rect = (0, 74, vp_w, vp_h-74-160). The plate is dark fantasy (avg ~87/255
+    # raw, ~45/255 rendered through atmosphere). Sample the ring interior gap and
+    # the slot-to-hand gap. Fail if any region < 30/255 mean (dark fantasy floor)
+    # or near-zero stddev (flat wash = no art).
+    board_top = 74
+    board_bottom_offset = 160
+    plate_threshold = 30.0 / 255.0
+    vp_w_local = vp_w
+    vp_h_local = vp_h
+    if vp_w_local is not None and vp_h_local is not None:
+        board_h = vp_h_local - board_top - board_bottom_offset
+        if board_h > 0 and vp_w_local > 0:
+            # Sample positions derived from PopulateLanes math at reference 648 height:
+            #   slotH = 148, playerBaseY ~250 (center slot top), enemyBaseY ~39
+            #   handTop = vh - handCardH - 12 = 484 (at 648)
+            # Gaps shrink/grow proportionally with scale.
+            sample_sz = 20
+            scale_check = vp_h_local / 648.0
+            # Mid-board gap between enemy lanes (bottom ~y=186) and player lanes (top ~y=250)
+            gap_center_y = int(220 * scale_check + board_top)
+            # Mid-board gap between player slots (bottom ~y=398) and hand cards (y=484)
+            gap_hand_y = int(440 * scale_check + board_top)
+            board_cx = vp_w_local // 2
+            regions = [
+                ("ring_interior_gap",    board_cx, gap_center_y),
+                ("slot_hand_gap",        board_cx, gap_hand_y),
+            ]
+            check10_pass = True
+            for name, rx, ry in regions:
+                mean, std = rect_mean_stddev(pixels, width, height, rx, ry, sample_sz, sample_sz)
+                print(f"  Check10 {name}: mean={mean:.4f} ({mean*255:.0f}/255), std={std:.4f}")
+                if mean < plate_threshold:
+                    failures.append(
+                        f"PLATE_DARK_{name.upper()}: mean luminance {mean:.4f} ({mean*255:.0f}/255) "
+                        f"below threshold {plate_threshold*255:.0f}/255"
+                    )
+                    check10_pass = False
+                if std < 3.0 / 255.0:
+                    failures.append(
+                        f"PLATE_FLAT_{name.upper()}: stddev {std:.4f} ({std*255:.0f}/255) "
+                        f"below threshold 3/255 — region appears flat"
+                    )
+                    check10_pass = False
+            if check10_pass:
+                print(f"  PASS Check10: both plate regions above {plate_threshold*255:.0f}/255 with visible texture")
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:
