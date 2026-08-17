@@ -106,3 +106,9 @@
 |**BACKDROP-FIX-1 (2026-08-17):** Real dual-res capture + backdrop environment. Applied:
 |- TASK A — Dual-res capture: Added `--capture=duel_test_wide` mode to DebugCapture.cs + CampaignContext.WideCaptureMode. DuelScene.cs writes to duel_test_wide.png/meta.json when set. Shell wrapper `tools/capture_duel.sh` patches project.godot viewport for each resolution, runs both captures, restores. capture_gate.py validates both sets. Both 1152x648 and 1999x932 exit 0 ✅
 |- TASK B/C — Backdrop: Generated `client/content/art/board/backdrop_default.png` (1344x768, FLUX.2 Pro, RULE 8 clean). Wired via ThemeTokens.GetBackdropPath() with KeepAspectCovered. BoardBg Modulate removed (was darkening 0.80f). Atmosphere alphas reduced: ember 0.12→0.08, moon 0.08→0.05, mist 0.06→0.04. Vignette stays at edges only. Verified both captures pass gate ✅
+|
+|**BACKDROP-FIX-1 TASK D-F (2026-08-17):** Check 9 End Turn overlap, APK export, release. Applied:
+|- Check 9: Hand cards clear of End Turn strip verified at both 1152×648 (strip at 1052,522) and 1999×932 (strip at 1899,806). Hand bottom=920 with 12px viewport margin ✅
+|- Fresh dual capture re-run: both gate exit 0 ✅
+|- APK: `exports/Runewake.apk` — 179MB, version code 3. Tag `alpha-2026-08-17-backdrop` pushed. Gh release pending API availability (currently 503). Posted to Runewake group with both captures ✅
+|- Backdrop measured brightness: avg 98/255, 69.7% mid-tones, 30.2% light, 0.1% near-black — reads as visible environment, NOT black ✅
