@@ -2,6 +2,15 @@
 
 ## Completed Tasks
 
+**HOMESTRETCH-1 (2026-08-17):** Homestretch brick — APK + style lock + wave 1. Applied:
+- APK: fresh debug APK with HAND-VIEWPORT-FIX-1R (aad6bf7) — capture gate exit 0 (Check 7 hand/field gap=12px + Check 8 viewport containment within 1152x648), Godot VERIFY 0 failed, export 119MB → gh release alpha-2026-08-17-hand-fix "Alpha 2026-08-17 — hand tray fix" https://github.com/pocketaces375-creator/runewake/releases/tag/alpha-2026-08-17-hand-fix, URL+size posted to Telegram ✅
+- STYLE LOCK v3.0: docs/ART_STYLE_SPEC.md updated to v3.0 — blended spine (probes A+B+C: chiaroscuro + expressive brushwork + Renaissance tableau staging), all rules (1)-(7) + anchors + negatives kept, new RULE (8): visual pre-post corner check for painted signatures/lettering, regenerate once on finding, flag if persists. Pipeline STRATUM_STYLES (modules/art.py + generate_sample_art.py) synced to v3.0 spine ✅
+- WAVES: docs/ART_WAVES.md created — W1 Ember (done) → W2 Verdant portrait redo → W3 Tide → W4 Hollow → W5 Dawn → W6+ full batch. HARD RULE: production stops at end of every wave; next wave starts ONLY on Trikzos release brick; no self-releasing ✅
+- WAVE 1: 6 Ember samples regenerated in v3.0 style → pipeline/work/samples_ember_s3/: 01_emb_c_flame_javelin.jpg, 02_emb_u_wildfire_adept.jpg, 03_emb_u_lava_serpent.jpg, 04_emb_u_cinderstorm_elemental.jpg, 05_emb_r_phoenix_ash.jpg, 06_emb_x_the_last_ember.jpg (FLUX.2 Pro 832x1216, $0.22). RULE 8 corner checks applied (automated stddev + connected-component + OCR cross-check): 0 regenerations needed, all clean ✅
+- QUEUE: "## HOLD until style lock" → "## HOLD until Wave 1 approved" in TASKS_QUEUE.md, TIDE/HOLLOW/DAWN parked under it ✅
+- STOPPED after Wave 1 — Wave 2+ NOT started (awaiting Trikzos release brick) ✅
+
+
 **TASK-DK3 (2026-08-15):** Title screen "Decks" entry opening the tome + pre-duel StartingVigor brass dial (20-30, default 25) wired into MatchConfig. Main.cs: added "Decks" button between Rune Page and Rune Forge (navigates to DeckBuilderScene). MapScene: pre-duel brass dial overlay with HSlider (MinStartingVigor=20, MaxStartingVigor=30, default 25), gold/brass styling, "Starting Vigor" title, value display, Duel/Cancel buttons. CampaignContext.MatchConfig set on Duel confirm, picked up by DuelScene campaign path. New `--capture=title_deck` CLI arg via DebugCapture/Main: captures title screen (with Decks button visible), then auto-navigates to deck builder for tome capture. New capture_gate.py validate_title_deck_test: whole-frame dark ≤92%, Decks button area contrast + bright pixel checks. All 3 captures pass gate (title_deck, deck_test, duel_test). All 714 tests green.
 
 **OMNIBUS-1 (2026-08-15):** Multi-fix brick. Applied:

@@ -84,8 +84,8 @@
 - [x] TASK-ARS-VERDANT — Same, 6 vrd_* ids missing art, Verdant palette → pipeline/work/samples_verdant_s1/.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
 
-## HOLD until style lock
-Trikzos must approve a style probe result before these art batches run. See ART-STYLE-3 step 5 and style_probe_s1/.
+## HOLD until Wave 1 approved
+Style is LOCKED (v3.0, 2026-08-17). These art batches release wave by wave per docs/ART_WAVES.md — the next wave starts ONLY when Trikzos sends a release brick approving the previous one. See docs/ART_WAVES.md.
 - [ ] TASK-ARS-TIDE — Same, 6 tid_* ids, Tide palette → pipeline/work/samples_tide_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro.
   Acceptance: 6 committed, post EACH as a separate individual Telegram message to the Runewake chat (not a combined grid/contact sheet/album), nothing else touched.
 - [ ] TASK-ARS-HOLLOW — Same, 6 hol_* ids, Hollow palette → pipeline/work/samples_hollow_s1/. FLUX 832x1216 portrait via pipeline/gen_image_openrouter.py, model flux.2-pro. (HOLLOW content-filter canon: never soften prompts; on refusal use fallback frames and note the id in the DONE line).
