@@ -586,32 +586,51 @@ def validate_title_deck_test(png_path, meta):
 
 VALIDATORS = {
     "duel_test": validate_duel_test,
+    "duel_test_wide": validate_duel_test,
     "deck_test": validate_deck_test,
     "title_deck": validate_title_deck_test,
 }
 
 def main():
+    capture_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
+
     if len(sys.argv) > 1:
-        base = sys.argv[1]
+        bases = [sys.argv[1]]
     else:
-        base = "duel_test"
+        bases = ["duel_test", "duel_test_wide"]
 
-    if base not in VALIDATORS:
-        print(f"Unknown capture type '{base}'. Known: {', '.join(VALIDATORS.keys())}")
-        sys.exit(1)
+    # Resolve "duel_test" → both standards + wide
+    if "duel_test" in bases and "duel_test_wide" not in bases:
+        bases = ["duel_test", "duel_test_wide"]
+    elif "duel_test_wide" in bases and "duel_test" not in bases:
+        pass  # just wide
 
-    base_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
-    png_path = base_dir / f"{base}.png"
-    meta_path = base_dir / f"{base}.meta.json"
+    exit_code = 0
+    for base in bases:
+        if base not in VALIDATORS:
+            print(f"Unknown capture type '{base}'. Known: {', '.join(VALIDATORS.keys())}")
+            sys.exit(1)
 
-    if not meta_path.exists():
-        print(f"FAIL: Meta not found: {meta_path}")
-        sys.exit(1)
+        png_path = capture_dir / f"{base}.png"
+        meta_path = capture_dir / f"{base}.meta.json"
 
-    with open(meta_path) as f:
-        meta = json.load(f)
+        if not meta_path.exists():
+            print(f"FAIL: {base}: Meta not found: {meta_path}")
+            exit_code = 1
+            continue
 
-    VALIDATORS[base](png_path, meta)
+        with open(meta_path) as f:
+            meta = json.load(f)
+
+        print(f"\n═══ Validating: {base} ═══")
+        try:
+            VALIDATORS[base](png_path, meta)
+        except SystemExit as e:
+            if e.code != 0:
+                exit_code = 1
+
+    if exit_code != 0:
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

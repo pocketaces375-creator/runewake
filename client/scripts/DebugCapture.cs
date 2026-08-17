@@ -54,6 +54,14 @@ public partial class DebugCapture : Node
                 _active = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=duel_test");
             }
+            if (arg == "--capture=duel_test_wide")
+            {
+                _active = true;
+                CampaignContext.WideCaptureMode = true;
+                // Viewport resize is done via project.godot swap in the shell script wrapper.
+                // This flag tells DuelScene.cs to write to duel_test_wide.png/meta.json.
+                GD.Print("[DebugCapture] Wide capture mode enabled: --capture=duel_test_wide");
+            }
             if (arg == "--capture=deck_test")
             {
                 deckBuilderMode = true;

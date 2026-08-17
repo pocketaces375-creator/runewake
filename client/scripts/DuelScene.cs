@@ -395,10 +395,14 @@ public partial class DuelScene : Control
                 snapTimer.WaitTime = 1.0f;
                 snapTimer.Timeout += () =>
                 {
+                    var captureSuffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+                    var capturePath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.png";
+                    var metaPath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.meta.json";
+
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake/artifacts/captures/duel_test.png");
-                    GD.Print("[CAPTURE] duel_test.png saved");
+                        img.SavePng(capturePath);
+                    GD.Print($"[CAPTURE] duel_test{captureSuffix}.png saved");
 
                     // Write meta.json with screen-space card rects
                     var meta = new System.Text.StringBuilder();
@@ -554,12 +558,11 @@ public partial class DuelScene : Control
                     meta.Append("\n  ]\n");
                     meta.Append("}\n");
 
-                    var metaPath = "/home/fictive/runewake/artifacts/captures/duel_test.meta.json";
                     using (var writer = new System.IO.StreamWriter(metaPath))
                     {
                         writer.Write(meta.ToString());
                     }
-                    GD.Print("[CAPTURE] duel_test.meta.json saved");
+                    GD.Print($"[CAPTURE] duel_test{captureSuffix}.meta.json saved");
 
                     // Run layout verification
                     int failed = RunLayoutVerification();

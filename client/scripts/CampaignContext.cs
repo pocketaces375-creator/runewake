@@ -98,6 +98,10 @@ public static class CampaignContext
     /// </summary>
     public static bool CaptureTitleDeckScreenshot { get; set; }
 
+    /// <summary>Test hook: capture duel at wide aspect (1999×932) instead of standard (1152×648).
+    /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
+    public static bool WideCaptureMode { get; set; }
+
     /// <summary>Fixed seed for deterministic capture tests. Null = random seed.</summary>
     public static ulong? DebugSeed { get; set; }
 
