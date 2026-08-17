@@ -1,0 +1,22 @@
+{
+  "batch": "full_deck_portraits",
+  "total": 65,
+  "success": 64,
+  "failed": 1,
+  "cost": 4.39,
+  "lettering_flagged": [
+    "emb_u_wildfire_adept",
+    "hol_c_gravewrit_thrall",
+    "hol_u_crypt_crawler",
+    "hol_u_soul_harvest",
+    "hol_x_the_black_barrow",
+    "tid_c_silt_reader",
+    "tid_c_tidal_scholar",
+    "tid_c_abyssal_gaze",
+    "tid_u_coral_guardian",
+    "tid_r_hydrokinetic_adept",
+    "vrd_c_root_warden",
+    "vrd_r_undergrowth_eruption"
+  ],
+  "timestamp": "2026-08-17T16:01:16Z"
+}
