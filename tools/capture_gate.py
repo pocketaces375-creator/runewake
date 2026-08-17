@@ -418,6 +418,32 @@ def validate_duel_test(png_path, meta):
         if vp_violations == 0:
             print(f"  PASS viewport containment: all {len(hand_cards)} hand + {len(board_cards)} board cards within {vp_w}x{vp_h}")
 
+    # Check 9: Hand cards must not overlap the End Turn / YOUR TURN strip area
+    # End Turn button: BottomRight anchor, OffsetRight=-10, OffsetLeft=-100
+    #                  OffsetBottom=-70, OffsetTop=-106 (height 36)
+    # Turn indicator:  BottomRight, OffsetBottom=-110, OffsetTop=-126 (height 16)
+    # So the strip zone = rightmost 100px × bottommost 126px
+    if vp_w is not None and vp_h is not None:
+        strip_left = vp_w - 100
+        strip_top = vp_h - 126
+        et_overlap = False
+        for i, card in enumerate(hand_cards):
+            r = card.get("rect")
+            if not r:
+                continue
+            cx, cy, cw, ch = r["x"], r["y"], r["w"], r["h"]
+            # AABB overlap with strip zone
+            if cx < strip_left + 100 and cx + cw > strip_left and cy < strip_top + 126 and cy + ch > strip_top:
+                name = card.get("name", f"hand_{i}")
+                failures.append(
+                    f"END_TURN_OVERLAP: hand card \"{name}\" rect "
+                    f"({cx:.0f},{cy:.0f},{cw:.0f},{ch:.0f}) overlaps End Turn strip "
+                    f"({strip_left:.0f},{strip_top:.0f},100,126)"
+                )
+                et_overlap = True
+        if not et_overlap:
+            print(f"  PASS End Turn strip: all {len(hand_cards)} hand cards clear of strip zone ({strip_left:.0f},{strip_top:.0f},100,126)")
+
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
         for f in failures:
