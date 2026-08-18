@@ -120,4 +120,10 @@
 |- TASK D — Full-bleed wire: BoardBg loads plate via GetPlatePath(), KeepAspectCovered. Atmosphere zeroed: vignette=0, ember/moon=0.02, mist=0.01 — plate carries own light ✅
 |- TASK E — Check 10: samples ring_interior_gap (158/255 1152×648, 159/255 1999×932) and slot_hand_gap (120/255, 63/255). Threshold 30/255 min, both pass ✅
 |- TASK F — Align capture produced, slot-ring alignment verified: 6/10 slot centers within ring, outer edge slots sit on ring boundary (expected for arc spread). Go decision ✅
-|- TASK G — APK 180MB, release alpha-2026-08-17-plate created. HTTP 200 verified at curl. Posted captures + URL to Runewake group ✅
+||- TASK G — APK 180MB, release alpha-2026-08-17-plate created. HTTP 200 verified at curl. Posted captures + URL to Runewake group ✅
+
+**DELIVER-VIA-TELEGRAM-1 (2026-08-18):** Three delivery channels attempted for the 190MB APK. Applied:
+- TASK A (Telegram direct upload) — FAILED: Telegram Bot API `error_code: 413, description: "Request Entity Too Large"`. 50MB upload cap confirmed via raw API curl, not just Hermes abstraction ❌
+- TASK B (raw API confirmation) — CONFIRMED: Same 413 error from both Hermes send_message and direct curl to api.telegram.org. 50MB limit is a Telegram-side cap, not a Hermes issue ✅
+- TASK C (smaller build) — NOT FEASIBLE: APK size breakdown: native .so 80.7MB (Godot engine + Mono runtime), textures 79.6MB (card art), .NET DLLs 27.9MB, other 1.7MB. Engine runtime alone is 80MB — cannot reach sub-45MB without stripping the engine itself. No quick path to a Telegram-deliverable build ❌
+- Alternative delivered: APK served via local HTTP server on port 9099 (LAN: `http://192.168.1.116:9099/Runewake.apk`, public IPv6: `http://[2600:1702:6ae7:e610:ee0d:88f1:4687:9fe9]:9099/Runewake.apk`). Direct GitHub URL also re-posted to Runewake group. HTTP server stays up for ~10 min ✅
