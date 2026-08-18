@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cavui4wx1cn4o"
-valid=false
+uid="uid://chntp8svefe65"
+path="res://.godot/imported/hero_art.png-a5b4d912c646d0ce6855fc7bbd3356a2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/title/hero_art.png"
+dest_files=["res://.godot/imported/hero_art.png-a5b4d912c646d0ce6855fc7bbd3356a2.ctex"]
 
 [params]
 

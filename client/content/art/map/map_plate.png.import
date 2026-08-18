@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rf7v80mpkuv2"
-valid=false
+uid="uid://b7v53aaa22eo1"
+path="res://.godot/imported/map_plate.png-dd2dfb31e7cdad3d846b3933792e2058.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/map/map_plate.png"
+dest_files=["res://.godot/imported/map_plate.png-dd2dfb31e7cdad3d846b3933792e2058.ctex"]
 
 [params]
 

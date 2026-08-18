@@ -100,10 +100,11 @@ public partial class MapScene : Control
                 snapTimer.WaitTime = 0.8f; // let info panel + selection ring render
                 snapTimer.Timeout += () =>
                 {
+                    var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake/artifacts/captures/map_test.png");
-                    GD.Print("[MAPCAPTURE] map_test.png saved");
+                        img.SavePng($"/home/fictive/runewake/artifacts/captures/map_test{suffix}.png");
+                    GD.Print($"[MAPCAPTURE] map_test{suffix}.png saved");
                     GetTree().Quit(0);
                 };
                 AddChild(snapTimer);
@@ -181,7 +182,17 @@ public partial class MapScene : Control
             MouseFilter = MouseFilterEnum.Ignore
         };
         if (ResourceLoader.Exists("res://content/art/map/map_plate.png"))
-            mapPlate.Texture = ResourceLoader.Load<Texture2D>("res://content/art/map/map_plate.png");
+        {
+            var tex = ResourceLoader.Load<Texture2D>("res://content/art/map/map_plate.png");
+            if (tex != null)
+                mapPlate.Texture = tex;
+            else
+                GD.PrintErr("[ART-MISSING] map_plate.png: ResourceLoader.Load returned null");
+        }
+        else
+        {
+            GD.PrintErr("[ART-MISSING] map_plate.png: resource does not exist at res://content/art/map/map_plate.png");
+        }
         AddChild(mapPlate);
 
         // Map container (pannable layer with background and nodes)

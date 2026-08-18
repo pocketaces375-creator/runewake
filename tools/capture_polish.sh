@@ -29,16 +29,8 @@ cap_one() {
     xvfb-run -a "$GODOT_BIN" --path client -- "--capture=${capture_arg}" 2>&1
     local rc=$?
 
-    # Build the expected output filename
-    local out="${capture_arg%%_wide}"
-    out="${out%%_align}"
-    # Handle overlay captures
-    if [[ "$capture_arg" == *overlay* ]]; then
-        out="${capture_arg}"
-        if [[ "$capture_arg" == *wide* ]]; then
-            out="${capture_arg%_wide}"
-        fi
-    fi
+    # Build the expected output filename — use the capture_arg directly
+    local out="${capture_arg}"
 
     if [ -f "$CAPTURE_DIR/${out}.png" ]; then
         local pw ph
@@ -78,6 +70,8 @@ cap_one "victory_overlay" 1152 648 || RC=1
 cap_one "defeat_overlay" 1152 648 || RC=1
 
 # Wide (1999x932)
+cap_one "title_test_wide" 1999 932 || RC=1
+cap_one "map_test_wide" 1999 932 || RC=1
 cap_one "duel_test_wide" 1999 932 || RC=1
 cap_one "victory_overlay_wide" 1999 932 || RC=1
 cap_one "defeat_overlay_wide" 1999 932 || RC=1
@@ -94,12 +88,15 @@ ls -la "$CAPTURE_DIR"/title_test.png "$CAPTURE_DIR"/map_test.png \
       "$CAPTURE_DIR"/defeat_overlay.png "$CAPTURE_DIR"/defeat_overlay_wide.png 2>/dev/null
 
 echo ""
-echo "Gate: python3 ${ROOT}/tools/capture_gate.py"
-python3 "$ROOT/tools/capture_gate.py" 2>&1
+echo "Gate: python3 ${ROOT}/tools/capture_gate.py title_test title_test_wide map_test map_test_wide"
+python3 "$ROOT/tools/capture_gate.py" title_test title_test_wide map_test map_test_wide 2>&1
 GATE_RC=$?
-echo "Gate exit: $GATE_RC"
+echo "Title/Map gate exit: $GATE_RC"
+python3 "$ROOT/tools/capture_gate.py" 2>&1
+D_GATE_RC=$?
+echo "Duel gate exit: $D_GATE_RC"
 
-if [ $RC -eq 0 ] && [ $GATE_RC -eq 0 ]; then
+if [ $RC -eq 0 ] && [ $GATE_RC -eq 0 ] && [ $D_GATE_RC -eq 0 ]; then
     echo "ALL CAPTURES PASSED"
     exit 0
 else

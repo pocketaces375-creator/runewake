@@ -657,7 +657,75 @@ def validate_title_deck_test(png_path, meta):
 # Main dispatcher
 # ════════════════════════════════════════════
 
+# ════════════════════════════════════════════
+# Screen live validator (black-screen gate)
+# Used for title_test, map_test — FAIL if > 60%
+# of pixels are near-black (mean luminance < 12)
+# ════════════════════════════════════════════
+
+def validate_screen_live(png_path, meta):
+    """Generic black-screen gate for full-screen captures (title, map).
+    FAIL if > 60% of pixels have luminance < 12/255 (near-black).
+    The title/map art is dark fantasy (ambient ~40-56/255), so 12/255
+    is well below the legitimate floor."""
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
+
+    width, height, pixels = read_png(str(png_path))
+    total_pixels = width * height
+    print(f"Image: {width}x{height}, {total_pixels} pixels")
+
+    black_threshold = 12.0 / 255.0
+    dark_count = 0
+    for i in range(0, len(pixels), 4):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        if get_luminance(r, g, b) < black_threshold:
+            dark_count += 1
+
+    dark_ratio = dark_count / total_pixels
+    failures = []
+
+    if dark_ratio > 0.60:
+        failures.append(
+            f"BLACK_SCREEN: {dark_ratio:.1%} pixels are near-black "
+            f"(threshold 60%, luminance < {black_threshold*255:.0f}/255) — "
+            f"art is not rendering"
+        )
+    else:
+        print(f"  PASS black-screen: {dark_ratio:.1%} near-black pixels (limit 60%)")
+
+    # Also check the art area (center 70% of frame) isn't uniformly dark
+    margin_w = int(width * 0.15)
+    margin_h = int(height * 0.15)
+    cx, cy = margin_w, margin_h
+    cw, ch = width - 2 * margin_w, height - 2 * margin_h
+    if cw > 0 and ch > 0:
+        mean, std = rect_mean_stddev(pixels, width, height, cx, cy, cw, ch)
+        if std < 5.0 / 255.0:
+            failures.append(
+                f"ART_FLAT: center {cw}x{ch} region stddev {std:.3f} "
+                f"({std*255:.0f}/255) — too uniform (need > 5/255)"
+            )
+        else:
+            print(f"  PASS art region: mean={mean:.3f}, std={std:.3f}")
+
+    if failures:
+        print(f"\nFAILURE ({len(failures)} reasons):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
+    else:
+        print(f"\nPASS: All black-screen checks passed")
+
+
 VALIDATORS = {
+    "title_test": validate_screen_live,
+    "title_test_wide": validate_screen_live,
+    "map_test": validate_screen_live,
+    "map_test_wide": validate_screen_live,
     "duel_test": validate_duel_test,
     "duel_test_wide": validate_duel_test,
     "deck_test": validate_deck_test,
@@ -668,15 +736,22 @@ def main():
     capture_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
 
     if len(sys.argv) > 1:
-        bases = [sys.argv[1]]
+        bases = sys.argv[1:]
     else:
         bases = ["duel_test", "duel_test_wide"]
 
-    # Resolve "duel_test" → both standards + wide
-    if "duel_test" in bases and "duel_test_wide" not in bases:
-        bases = ["duel_test", "duel_test_wide"]
-    elif "duel_test_wide" in bases and "duel_test" not in bases:
-        pass  # just wide
+    # If "duel_test" is in bases, ensure both standards + wide are covered
+    resolved = []
+    for b in bases:
+        if b == "duel_test":
+            if "duel_test" not in resolved:
+                resolved.append("duel_test")
+            if "duel_test_wide" not in resolved:
+                resolved.append("duel_test_wide")
+        else:
+            if b not in resolved:
+                resolved.append(b)
+    bases = resolved
 
     exit_code = 0
     for base in bases:
@@ -687,13 +762,17 @@ def main():
         png_path = capture_dir / f"{base}.png"
         meta_path = capture_dir / f"{base}.meta.json"
 
-        if not meta_path.exists():
-            print(f"FAIL: {base}: Meta not found: {meta_path}")
+        meta = {}
+        if meta_path.exists():
+            with open(meta_path) as f:
+                meta = json.load(f)
+        else:
+            print(f"{base}: No meta.json found — using validate_screen_live defaults")
+
+        if not png_path.exists():
+            print(f"FAIL: {base}: PNG not found: {png_path}")
             exit_code = 1
             continue
-
-        with open(meta_path) as f:
-            meta = json.load(f)
 
         print(f"\n═══ Validating: {base} ═══")
         try:

@@ -38,8 +38,28 @@ public partial class Main : Control
             MouseFilter = MouseFilterEnum.Ignore
         };
         if (ResourceLoader.Exists("res://content/art/title/hero_art.png"))
-            heroArt.Texture = ResourceLoader.Load<Texture2D>("res://content/art/title/hero_art.png");
+        {
+            var tex = ResourceLoader.Load<Texture2D>("res://content/art/title/hero_art.png");
+            if (tex != null)
+                heroArt.Texture = tex;
+            else
+                GD.PrintErr("[ART-MISSING] hero_art.png: ResourceLoader.Load returned null");
+        }
+        else
+        {
+            GD.PrintErr("[ART-MISSING] hero_art.png: resource does not exist at res://content/art/title/hero_art.png");
+        }
         AddChild(heroArt);
+
+        // ——— Dark scrim behind title text for readability ———
+        var scrim = new ColorRect
+        {
+            Color = new Color(0.05f, 0.03f, 0.01f, 0.55f),  // very dark brown, 55% opaque
+            AnchorLeft = 0.15f, AnchorRight = 0.85f,
+            AnchorTop = 0.06f, AnchorBottom = 0.30f,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(scrim);
 
         // ——— Title "RUNEWAKE" (large Cinzel, upper third, gold #D4B84C) ———
         var title = new Label
@@ -105,6 +125,17 @@ public partial class Main : Control
             ContentMarginLeft = 16, ContentMarginTop = 16,
             ContentMarginRight = 16, ContentMarginBottom = 16
         };
+        var stonePressed = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#2A2520"),
+            BorderColor = Color.FromHtml("#A08838"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 16, ContentMarginTop = 16,
+            ContentMarginRight = 16, ContentMarginBottom = 16
+        };
 
         Button MakeStoneButton(string text)
         {
@@ -112,13 +143,14 @@ public partial class Main : Control
             {
                 Text = text,
                 AnchorLeft = 0.40f, AnchorRight = 0.60f,
-                Disabled = true
             };
             btn.AddThemeFontSizeOverride("font_size", 15);
             btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
-            btn.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+            btn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
+            btn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
             btn.AddThemeStyleboxOverride("normal", stoneNormal);
             btn.AddThemeStyleboxOverride("hover", stoneHover);
+            btn.AddThemeStyleboxOverride("pressed", stonePressed);
             btn.AddThemeStyleboxOverride("disabled", stoneNormal);
             var labelFont = ThemeTokens.GetHeaderFont(15);
             if (labelFont != null)
@@ -173,26 +205,29 @@ public partial class Main : Control
         _saveWarningLabel.AddThemeFontSizeOverride("font_size", 12);
         AddChild(_saveWarningLabel);
 
-        // Diagnostics button (always available, even during loading)
-        _diagButton = new Button
+        // Diagnostics button (debug builds only — never shown in release/exported)
+        if (OS.IsDebugBuild())
         {
-            Text = "Diag",
-            Position = new Vector2(8, 8),
-            Size = new Vector2(60, 32)
-        };
-        _diagButton.AddThemeFontSizeOverride("font_size", 10);
-        _diagButton.AddThemeColorOverride("font_color", new Color(0.5f, 0.45f, 0.35f, 0.6f));
-        _diagButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.1f, 0.08f, 0.06f, 0.5f),
-            BorderColor = new Color(0.3f, 0.25f, 0.15f, 0.3f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
-        });
-        _diagButton.Pressed += OnDiagnosticsPressed;
-        AddChild(_diagButton);
+            _diagButton = new Button
+            {
+                Text = "Diag",
+                Position = new Vector2(8, 8),
+                Size = new Vector2(60, 32)
+            };
+            _diagButton.AddThemeFontSizeOverride("font_size", 10);
+            _diagButton.AddThemeColorOverride("font_color", new Color(0.5f, 0.45f, 0.35f, 0.6f));
+            _diagButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+            {
+                BgColor = new Color(0.1f, 0.08f, 0.06f, 0.5f),
+                BorderColor = new Color(0.3f, 0.25f, 0.15f, 0.3f),
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
+                CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
+            });
+            _diagButton.Pressed += OnDiagnosticsPressed;
+            AddChild(_diagButton);
+        }
 
         // Begin loading
         // Check for --verify flag to enable layout verification gate
@@ -464,10 +499,11 @@ public partial class Main : Control
                 titleCapTimer.WaitTime = 1.0f;
                 titleCapTimer.Timeout += () =>
                 {
+                    var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake/artifacts/captures/title_test.png");
-                    GD.Print("[Main] title_test.png saved");
+                        img.SavePng($"/home/fictive/runewake/artifacts/captures/title_test{suffix}.png");
+                    GD.Print($"[Main] title_test{suffix}.png saved");
                     GetTree().Quit();
                 };
                 AddChild(titleCapTimer);

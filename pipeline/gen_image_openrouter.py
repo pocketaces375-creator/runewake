@@ -15,6 +15,37 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from io import BytesIO
+
+
+try:
+    from PIL import Image as PILImage
+    HAS_PIL = True
+except ImportError:
+    PILImage = None  # type: ignore
+    HAS_PIL = False
+
+
+def ensure_true_png(path: str) -> None:
+    """Check magic bytes of saved image. If JPEG data was saved with .png
+    extension (known FLUX.2 Pro behaviour), re-encode as true PNG via PIL.
+    Logs and mutates the file in place."""
+    if not HAS_PIL:
+        print("[ensure_true_png] WARNING: PIL not available — skipping magic-byte check", file=sys.stderr)
+        return
+
+    with open(path, "rb") as f:
+        magic = f.read(4)
+
+    # JPEG magic bytes: FF D8 FF
+    if magic[:3] == b"\xff\xd8\xff":
+        print(f"[ensure_true_png] Detected JPEG data in {path} — re-encoding to true PNG", file=sys.stderr)
+        img = PILImage.open(path)
+        img.save(path, "PNG")
+        size = os.path.getsize(path)
+        print(f"[ensure_true_png] Re-encoded {path} ({size} bytes, format={img.mode})", file=sys.stderr)
+    elif magic[:4] != b"\x89PNG":
+        print(f"[ensure_true_png] WARNING: {path} has unexpected magic bytes {magic.hex()} — not JPEG or PNG", file=sys.stderr)
 
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
@@ -67,12 +98,14 @@ def generate_image(prompt: str, output_path: str, model: str = DEFAULT_MODEL,
                     img_bytes = base64.b64decode(entry["b64_json"])
                     with open(output_path, "wb") as f:
                         f.write(img_bytes)
+                    ensure_true_png(output_path)
                     size = os.path.getsize(output_path)
                     print(f"Saved: {output_path} ({size} bytes)")
                     return status
                 if "url" in entry:
                     img_url = entry["url"]
                     urllib.request.urlretrieve(img_url, output_path)
+                    ensure_true_png(output_path)
                     size = os.path.getsize(output_path)
                     print(f"Saved: {output_path} ({size} bytes)")
                     return status

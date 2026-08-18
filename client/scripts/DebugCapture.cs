@@ -85,12 +85,28 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Title screen capture mode enabled: --capture=title_test");
             }
+            if (arg == "--capture=title_test_wide")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureTitleTestScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Title screen wide capture mode enabled: --capture=title_test_wide");
+            }
             if (arg == "--capture=map_test")
             {
                 CampaignContext.AutoCaptureScreenshot = true;
                 CampaignContext.CaptureMapScreenshot = true;
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Map screen capture mode enabled: --capture=map_test");
+            }
+            if (arg == "--capture=map_test_wide")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen wide capture mode enabled: --capture=map_test_wide");
             }
             if (arg == "--capture=victory_overlay")
             {
