@@ -92,6 +92,36 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Map screen capture mode enabled: --capture=map_test");
             }
+            if (arg == "--capture=victory_overlay")
+            {
+                _active = true;
+                CampaignContext.CaptureVictoryOverlay = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Victory overlay capture mode enabled: --capture=victory_overlay");
+            }
+            if (arg == "--capture=victory_overlay_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureVictoryOverlay = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Victory overlay (wide) capture mode enabled: --capture=victory_overlay_wide");
+            }
+            if (arg == "--capture=defeat_overlay")
+            {
+                _active = true;
+                CampaignContext.CaptureDefeatOverlay = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Defeat overlay capture mode enabled: --capture=defeat_overlay");
+            }
+            if (arg == "--capture=defeat_overlay_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureDefeatOverlay = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Defeat overlay (wide) capture mode enabled: --capture=defeat_overlay_wide");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);
@@ -161,18 +191,23 @@ public partial class DebugCapture : Node
         CampaignContext.CurrentEncounter = new EncounterDef
         {
             Id = "debug_test",
-            Name = "Debug Test",
+            Name = "The Wayfarer",
             IsTutorial = false,
             Deck = deck,
             Portrait = "",
             DialogueIntro = [],
-            DialogueOutro = [],
-            ShardReward = 0,
-            DigChargeReward = 0
+            DialogueOutro = ["A worthy challenge...", "The ember burns brighter within you."],
+            ShardReward = 15,
+            DigChargeReward = 2,
+            FragmentReward = "ember:1"
         };
         CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.DebugSeed = 42;
         GD.Print("[DebugCapture] Set DebugSeed=42, AutoCaptureScreenshot=true");
+
+        // For victory/defeat overlay captures: the duel will auto-end via
+        // DuelScene._Ready() which checks CaptureVictoryOverlay/DefeatOverlay.
+        // The encounter name "The Wayfarer" will appear in the overlay headline.
     }
 
     /// <summary>

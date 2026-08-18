@@ -102,6 +102,12 @@ public static class CampaignContext
     /// Set by --capture=title_test CLI arg via DebugCapture.</summary>
     public static bool CaptureTitleTestScreenshot { get; set; }
 
+    /// <summary>Test hook: capture duel VICTORY overlay with encounter name. Auto-ends duel as win.</summary>
+    public static bool CaptureVictoryOverlay { get; set; }
+
+    /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
+    public static bool CaptureDefeatOverlay { get; set; }
+
     /// <summary>Test hook: capture duel at wide aspect (1999×932) instead of standard (1152×648).
     /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
     public static bool WideCaptureMode { get; set; }

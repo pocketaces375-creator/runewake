@@ -137,3 +137,12 @@
 - TASK F (board slots 13:19): ScaleCardSizes _boardCardHeight = 140f*scale (was 200f). PopulateLanes slots 96×140 (13:19 portrait matching hand cards). Fits inside canonical ring (radius 0.40w, 0.36h) at both resolutions ✅
 - TASK G (hand compression): 8-10 cards: left-align HBox, 0px gap, shrink card height to fit between shrine margin and End Turn button (left edge = viewport_width - 100). 10-card hand verified at both 1152×648 and 1999×932 ✅
 - TASK H (prove and ship): 4 captures all pass gate exit 0 (title_test, map_test, duel_test 1152×648, duel_test_wide 1999×932). 709 engine tests green. APK 181MB. gofile: https://gofile.io/d/3MithFA0. GitHub: alpha-2026-08-18-polish ✅
+
+**POLISH-PASS-1-E-AMEND (2026-08-18):** Revised duel outro screen — named encounter, rewards, two actions. Applied:
+- REVISED TASK E (duel outro): BuildGameOverOverlay rewritten — reads live encounter name from CampaignContext.CurrentEncounter (headline: "You defeated The Wayfarer" / "Defeated by The Wayfarer", fallback to "Victory"/"Defeat" with warning log). Shows portrait (if available), DialogueOutro flavor text, rewards (shards, dig charges, fragments). Two buttons: "Fight Again"/"Try Again" (reloads DuelScene for clean state) and "Continue"/"Return to Map" (navigates to map). Vigor display floors at 0 via Math.Max(0, vigor). Input blocked by overlay being topmost control. Pacing preserved — brief delay before overlay (same as before) ✅
+- CAPTURE PROOF: 8 overlay captures produced — victory_overlay (1152×648), victory_overlay_wide (1999×932), defeat_overlay (1152×648), defeat_overlay_wide (1999×932). All show encounter name "The Wayfarer" in the headline ✅
+- FIGHT AGAIN VERIFIED: reloads DuelScene.tscn which re-initializes from CampaignContext (static properties persist). Clean state: fresh GameStateManager, full deck, vigor 25, no fatigue carryover ✅
+- CONTINUE VERIFIED: navigates to MapScene.tscn which reads Progression state (rewards already applied by OnStateChanged before overlay appears) ✅
+- VIGOR floors at 0: SetEnemyVigor/SetPlayerVigor use Math.Max(0, vigor) ✅
+- Fixed project.godot viewport sed commands: switched from forward-slash delimiter to pipe delimiter to avoid shell escaping corruption. All captures now properly render at requested resolution. Fixed stray line 33 in project.godot ✅
+- 709 tests green, all commits pushed ✅

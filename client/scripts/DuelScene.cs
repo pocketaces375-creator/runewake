@@ -401,7 +401,7 @@ public partial class DuelScene : Control
                 }
 
                 // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
-                if (!CampaignContext.DebugAlignMode)
+                if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
                     PrePlaceCreatures();
 
                 // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
@@ -409,7 +409,7 @@ public partial class DuelScene : Control
                     PrePlaceArtifacts();
 
                 // ═══ TASK-G: Inflate player hand to 10 cards for worst-case compression test ═══
-                if (!CampaignContext.DebugAlignMode)
+                if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
                     InflateHandTo10();
 
                 // ═══ PAINTED-PLATE-1: Debug slot overlay for align capture ═══
@@ -468,6 +468,25 @@ public partial class DuelScene : Control
                     debugOverlay.QueueRedraw();
                 }
 
+                // ═══ POLISH-PASS-1-E: Victory/defeat overlay capture — force game-over ═══
+                if (CampaignContext.CaptureVictoryOverlay || CampaignContext.CaptureDefeatOverlay)
+                {
+                    // Force game over by dropping vigor to 0 through the engine
+                    // This triggers OnStateChanged which shows the overlay
+                    bool playerWins = CampaignContext.CaptureVictoryOverlay;
+                    int targetPlayer = playerWins ? 1 : 0; // enemy loses (1) or player loses (0)
+                    if (_gsm != null && _gsm.State != null && _gsm.State.Players.Length > targetPlayer)
+                    {
+                        // Apply lethal damage through the engine
+                        _gsm.State.Players[targetPlayer].Vigor = 0;
+                        _gsm.State.IsGameOver = true;
+                        _gsm.State.WinnerIndex = playerWins ? 0 : 1;
+                        // Notify the scene to render the overlay
+                        OnStateChanged();
+                        GD.Print($"[DuelScene] Forced game-over for overlay capture: {(playerWins ? "VICTORY" : "DEFEAT")}");
+                    }
+                }
+
                 // Capture after board renders
                 var snapTimer = new Godot.Timer();
                 snapTimer.OneShot = true;
@@ -482,7 +501,11 @@ public partial class DuelScene : Control
                     else
                         captureSuffix = "";
 
-                    var capturePath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.png";
+                    var capturePath = CampaignContext.CaptureVictoryOverlay
+                        ? $"/home/fictive/runewake/artifacts/captures/victory_overlay{captureSuffix}.png"
+                        : CampaignContext.CaptureDefeatOverlay
+                        ? $"/home/fictive/runewake/artifacts/captures/defeat_overlay{captureSuffix}.png"
+                        : $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.png";
                     var metaPath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.meta.json";
 
                     var img = GetViewport().GetTexture().GetImage();
@@ -1658,16 +1681,17 @@ public partial class DuelScene : Control
         bool isGameOver = _gsm.IsGameOver;
         if (isGameOver)
         {
-            if (_gameOverOverlay == null)
-                BuildGameOverOverlay();
+            // Destroy and rebuild each time (encounter data can change)
+            if (_gameOverOverlay != null)
+            {
+                _gameOverOverlay.QueueFree();
+                _gameOverOverlay = null;
+            }
+            BuildGameOverOverlay();
             _gameOverOverlay!.Show();
             // Bring to top so it captures all input
             if (_gameOverOverlay.GetParent() != null)
                 MoveChild(_gameOverOverlay, GetChildCount() - 1);
-        }
-        else if (_gameOverOverlay != null)
-        {
-            _gameOverOverlay.Hide();
         }
 
         // Tutorial: detect first summon to trigger Popup 4a
@@ -2752,11 +2776,12 @@ public partial class DuelScene : Control
         btnHBox.AddChild(backToTitle);
     }
 
-    // ═══ TASK-E: Full-screen game-over overlay (lazy-built, shown/hidden by OnStateChanged) ═══
+    // ═══ TASK-E (REVISED): Duel outro screen — named encounter, rewards, two actions ═══
     
     /// <summary>
-    /// Build the full-screen game-over overlay once. Shown/hidden by OnStateChanged
-    /// when IsGameOver transitions. Captures all input via topmost MouseFilter position.
+    /// Build the outro overlay with encounter name, portrait, dialogue, rewards,
+    /// and two action buttons (Fight Again / Continue).
+    /// Destroyed and rebuilt each time so encounter data is always fresh.
     /// </summary>
     private void BuildGameOverOverlay()
     {
@@ -2773,105 +2798,185 @@ public partial class DuelScene : Control
 
         // Determine winner: player is index 0
         int winner = -1;
-        if (_gsm.State != null)
-        {
-            // WinnerIndex = 0 → player won, 1 → enemy won
-            winner = _gsm.WinnerIndex;
-        }
+        if (_gsm.State != null) winner = _gsm.WinnerIndex;
         bool playerWon = winner == 0;
 
-        // VICTORY / DEFEAT label
-        var titleLabel = new Label
+        // Read encounter data from CampaignContext
+        var encounter = CampaignContext.CurrentEncounter;
+        string encName = encounter?.Name ?? "";
+        if (string.IsNullOrEmpty(encName))
         {
-            Text = playerWon ? "VICTORY" : "DEFEAT",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.Off,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        titleLabel.AddThemeFontSizeOverride("font_size", 56);
-        ApplyHeaderFont(titleLabel, 56);
-        titleLabel.Modulate = playerWon
+            GD.Print("[DuelScene] Warning: CampaignContext.CurrentEncounter.Name is null/empty — falling back to generic label");
+            encName = playerWon ? "Victory" : "Defeat";
+        }
+        Color headlineColor = playerWon
             ? Color.FromHtml("#D4B84C")  // gold
             : Color.FromHtml("#8B3A3A"); // muted red
-        titleLabel.SetAnchorsPreset(Control.LayoutPreset.Center);
-        titleLabel.OffsetTop = -60;
-        titleLabel.OffsetBottom = -60;
-        _gameOverOverlay.AddChild(titleLabel);
+        string headline = playerWon
+            ? $"You defeated {encName}"
+            : $"Defeated by {encName}";
+        string flavor = playerWon && encounter?.DialogueOutro != null && encounter.DialogueOutro.Count > 0
+            ? string.Join("\n", encounter.DialogueOutro)
+            : "";
 
-        // Subtitle description
-        var descLabel = new Label
+        // ── Vertical container for centered layout ──
+        var vbox = new VBoxContainer
         {
-            Text = playerWon ? "The battle is won." : "You have fallen.",
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Alignment = BoxContainer.AlignmentMode.Center,
+        };
+        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        vbox.AddThemeConstantOverride("separation", 8);
+
+        // Spacer (top)
+        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+
+        // Portrait (if encounter has one)
+        if (playerWon && encounter?.Portrait != null && !string.IsNullOrEmpty(encounter.Portrait))
+        {
+            var portrait = new TextureRect
+            {
+                Texture = ResourceLoader.Load<Texture2D>(encounter.Portrait),
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                CustomMinimumSize = new Vector2(100, 100),
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            };
+            vbox.AddChild(portrait);
+        }
+
+        // Headline
+        var titleLabel = new Label
+        {
+            Text = headline,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.Word,
             MouseFilter = Control.MouseFilterEnum.Ignore,
         };
-        descLabel.AddThemeFontSizeOverride("font_size", 22);
-        ApplyBodyFont(descLabel, 22);
-        descLabel.Modulate = TextSecondary;
-        descLabel.SetAnchorsPreset(Control.LayoutPreset.Center);
-        descLabel.OffsetTop = 10;
-        descLabel.OffsetBottom = 10;
-        _gameOverOverlay.AddChild(descLabel);
+        titleLabel.AddThemeFontSizeOverride("font_size", 36);
+        ApplyHeaderFont(titleLabel, 36);
+        titleLabel.Modulate = headlineColor;
+        titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+        vbox.AddChild(titleLabel);
 
-        // Continue button — stone-styled, anchored to bottom third
-        var continueBtn = new Button
+        // Flavor text (DialogueOutro)
+        if (!string.IsNullOrEmpty(flavor))
         {
-            Text = "Continue",
-            MouseFilter = Control.MouseFilterEnum.Stop,
-        };
-        continueBtn.AddThemeFontSizeOverride("font_size", 24);
-        ApplyHeaderFont(continueBtn, 24);
-        // Stone button styling
-        var btnStyle = new StyleBoxFlat
+            var flavorLabel = new Label
+            {
+                Text = flavor,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                AutowrapMode = TextServer.AutowrapMode.Word,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            flavorLabel.AddThemeFontSizeOverride("font_size", 20);
+            ApplyBodyFont(flavorLabel, 20);
+            flavorLabel.Modulate = Color.FromHtml("#C8B88A"); // warm beige
+            flavorLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+            vbox.AddChild(flavorLabel);
+        }
+
+        // Rewards (player won only)
+        if (playerWon && encounter != null)
         {
-            BgColor = Color.FromHtml("#3A3530"),
-            BorderColor = Color.FromHtml("#7A7060"),
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 20,
-            ContentMarginTop = 8,
-            ContentMarginRight = 20,
-            ContentMarginBottom = 8,
-        };
-        continueBtn.AddThemeStyleboxOverride("normal", btnStyle);
-        // Hover style (slightly lighter)
-        var hoverStyle = new StyleBoxFlat
+            string rewardsStr = "";
+            if (encounter.ShardReward > 0)
+                rewardsStr += $"  Shards: {encounter.ShardReward}";
+            if (encounter.DigChargeReward > 0)
+                rewardsStr += $"  Dig Charges: {encounter.DigChargeReward}";
+            if (!string.IsNullOrEmpty(encounter.FragmentReward))
+                rewardsStr += $"  Fragments: {encounter.FragmentReward}";
+            if (!string.IsNullOrEmpty(rewardsStr))
+            {
+                var rewardLabel = new Label
+                {
+                    Text = rewardsStr.TrimStart(),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AutowrapMode = TextServer.AutowrapMode.Word,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                };
+                rewardLabel.AddThemeFontSizeOverride("font_size", 18);
+                ApplyBodyFont(rewardLabel, 18);
+                rewardLabel.Modulate = Color.FromHtml("#B8A67A"); // muted gold
+                rewardLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+                vbox.AddChild(rewardLabel);
+            }
+        }
+
+        // Spacer
+        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+
+        // ── Button row ──
+        var btnHBox = new HBoxContainer
         {
-            BgColor = Color.FromHtml("#4A4540"),
-            BorderColor = Color.FromHtml("#9A9080"),
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 20,
-            ContentMarginTop = 8,
-            ContentMarginRight = 20,
-            ContentMarginBottom = 8,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Alignment = BoxContainer.AlignmentMode.Center,
+            AnchorLeft = 0f, AnchorRight = 1f,
         };
-        continueBtn.AddThemeStyleboxOverride("hover", hoverStyle);
-        continueBtn.Modulate = TextPrimary;
-        continueBtn.Size = new Vector2(180, 48);
-        continueBtn.Position = new Vector2(
-            GetViewportRect().Size.X / 2f - 90f,
-            GetViewportRect().Size.Y * 0.72f);
+        btnHBox.AddThemeConstantOverride("separation", 24);
+
+        // Helper to create a stone-styled button
+        Button MakeStoneButton(string text)
+        {
+            var btn = new Button
+            {
+                Text = text,
+                MouseFilter = Control.MouseFilterEnum.Stop,
+                CustomMinimumSize = new Vector2(180, 52),
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            };
+            btn.AddThemeFontSizeOverride("font_size", 20);
+            ApplyHeaderFont(btn, 20);
+            var normal = new StyleBoxFlat
+            {
+                BgColor = Color.FromHtml("#3A3530"),
+                BorderColor = Color.FromHtml("#7A7060"),
+                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                ContentMarginLeft = 20, ContentMarginTop = 8, ContentMarginRight = 20, ContentMarginBottom = 8,
+            };
+            btn.AddThemeStyleboxOverride("normal", normal);
+            var hover = new StyleBoxFlat
+            {
+                BgColor = Color.FromHtml("#4A4540"),
+                BorderColor = Color.FromHtml("#9A9080"),
+                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                ContentMarginLeft = 20, ContentMarginTop = 8, ContentMarginRight = 20, ContentMarginBottom = 8,
+            };
+            btn.AddThemeStyleboxOverride("hover", hover);
+            btn.Modulate = TextPrimary;
+            return btn;
+        }
+
+        // "Fight Again" / "Try Again" — restart this encounter
+        var fightAgainBtn = MakeStoneButton(playerWon ? "Fight Again" : "Try Again");
+        fightAgainBtn.Pressed += () =>
+        {
+            // Reload the duel scene to get a clean state
+            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        };
+        btnHBox.AddChild(fightAgainBtn);
+
+        // "Continue" / "Return to Map"
+        var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
         continueBtn.Pressed += () =>
         {
             GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
         };
-        _gameOverOverlay.AddChild(continueBtn);
+        btnHBox.AddChild(continueBtn);
 
+        vbox.AddChild(btnHBox);
+
+        // Bottom spacer
+        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+
+        _gameOverOverlay.AddChild(vbox);
         AddChild(_gameOverOverlay);
     }
 

@@ -20,9 +20,9 @@ capture_one() {
 
     echo "=== Capture: duel_test${suffix} (${width}x${height}) ==="
 
-    # Patch project.godot viewport
-    sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=${width}/" "$PROJECT_GODOT"
-    sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=${height}/" "$PROJECT_GODOT"
+    # Patch project.godot viewport (key=value format under [display])
+    sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width='"${width}"'|' "$PROJECT_GODOT"
+    sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height='"${height}"'|' "$PROJECT_GODOT"
 
     # Run capture
     xvfb-run -a "$GODOT_BIN" --path client -- "--capture=duel_test${suffix}" 2>&1
@@ -33,7 +33,7 @@ capture_one() {
         local pw ph
         read pw ph <<< "$(python3 -c "
 import struct
-with open('$CAPTURE_DIR/duel_test${suffix}.png','rb') as f:
+with open('${CAPTURE_DIR}/duel_test${suffix}.png','rb') as f:
     f.read(8)
     while True:
         cl = struct.unpack('>I', f.read(4))[0]
