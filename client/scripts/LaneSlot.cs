@@ -205,16 +205,16 @@ public partial class LaneSlot : PanelContainer
 
     /// <summary>
     /// Scale the lane slot to a target height (px in viewport space), keeping
-    /// the ~2:3 aspect ratio (matching board-card proportions, TASK-UI2).
+    /// the 13:19 portrait ratio (96×140 base, matching board-card proportions, TASK-F).
     /// Fonts scale proportionally.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 110f / 168f; // ~2:3, matching hand card proportions
+        float aspect = 96f / 140f; // 13:19 portrait ratio (TASK-F)
         CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
         Size = CustomMinimumSize;
 
-        float scale = targetHeight / 168f;
+        float scale = targetHeight / 140f;
         int nameSize = Mathf.Max(12, Mathf.RoundToInt(14 * scale));
         int statSize = Mathf.Max(14, Mathf.RoundToInt(16 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);

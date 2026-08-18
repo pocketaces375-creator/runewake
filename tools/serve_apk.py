@@ -6,7 +6,7 @@ import socket
 
 APK_PATH = "/home/fictive/runewake/client/exports/Runewake.apk"
 APK_SIZE = os.path.getsize(APK_PATH)
-PORT = 9099
+PORT = 9100  # different port to avoid conflicts
 
 class APKServer(http.server.HTTPServer):
     allow_reuse_address = True
@@ -22,7 +22,6 @@ class APKHandler(http.server.BaseHTTPRequestHandler):
             with open(APK_PATH, "rb") as f:
                 self.wfile.write(f.read())
             return
-        # Root page
         self.send_response(200)
         self.send_header("Content-Type", "text/html")
         self.end_headers()
@@ -34,13 +33,12 @@ class APKHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print(fmt % args, flush=True)
 
-# Get local IP
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 local_ip = s.getsockname()[0]
 s.close()
 
 server = APKServer(("0.0.0.0", PORT), APKHandler)
-print(f"SERVING: http://{local_ip}:{PORT}/Runewake.apk", flush=True)
-print(f"PORT: {PORT}", flush=True)
+print(f"SERVING_APK at port {PORT}", flush=True)
+print(f"LOCAL_IP={local_ip}", flush=True)
 server.serve_forever()

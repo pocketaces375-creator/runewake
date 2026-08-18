@@ -29,247 +29,135 @@ public partial class Main : Control
     {
         AssertProjectSettings();
 
-        // ——— Atmospheric background ———
-        var bg = new ColorRect
+        // ——— Hero art background (full-bleed) ———
+        var heroArt = new TextureRect
         {
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f,
-            Color = new Color(0.07f, 0.06f, 0.05f, 1f)
-        };
-        AddChild(bg);
-
-        // Subtle gradient overlay (darker edges)
-        var vignette = new ColorRect
-        {
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 1f,
-            Color = new Color(0f, 0f, 0f, 0.4f),
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        AddChild(vignette);
+        if (ResourceLoader.Exists("res://content/art/title/hero_art.png"))
+            heroArt.Texture = ResourceLoader.Load<Texture2D>("res://content/art/title/hero_art.png");
+        AddChild(heroArt);
 
-        // Decorative frame border (thin gold line around screen edge)
-        var frameTop = new ColorRect
-        {
-            AnchorLeft = 0.02f, AnchorRight = 0.98f,
-            AnchorTop = 0.01f, AnchorBottom = 0.012f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(frameTop);
-
-        var frameBottom = new ColorRect
-        {
-            AnchorLeft = 0.02f, AnchorRight = 0.98f,
-            AnchorTop = 0.988f, AnchorBottom = 0.99f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(frameBottom);
-
-        var frameLeft = new ColorRect
-        {
-            AnchorLeft = 0.01f, AnchorRight = 0.012f,
-            AnchorTop = 0.01f, AnchorBottom = 0.99f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.15f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(frameLeft);
-
-        var frameRight = new ColorRect
-        {
-            AnchorLeft = 0.988f, AnchorRight = 0.99f,
-            AnchorTop = 0.01f, AnchorBottom = 0.99f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.15f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(frameRight);
-
-        // Decorative runic line at top
-        var topLine = new ColorRect
-        {
-            AnchorLeft = 0.3f, AnchorRight = 0.7f,
-            AnchorTop = 0.25f, AnchorBottom = 0.255f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.3f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(topLine);
-
-        // Decorative runic line at bottom
-        var bottomLine = new ColorRect
-        {
-            AnchorLeft = 0.3f, AnchorRight = 0.7f,
-            AnchorTop = 0.65f, AnchorBottom = 0.655f,
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.3f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        AddChild(bottomLine);
-
-        // ——— Title ———
+        // ——— Title "RUNEWAKE" (large Cinzel, upper third, gold #D4B84C) ———
         var title = new Label
         {
             Text = "RUNEWAKE",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.28f, AnchorBottom = 0.50f,
+            AnchorTop = 0.08f, AnchorBottom = 0.22f,
             AutoTranslate = false
         };
-        title.AddThemeFontSizeOverride("font_size", 64);
-        title.Modulate = new Color(0.85f, 0.72f, 0.35f, 1f); // gold
+        ThemeTokens.ApplyHeaderFont(title, 54);
+        title.Modulate = Color.FromHtml("#D4B84C"); // gold
         AddChild(title);
 
-        // Title glow (duplicate behind, slightly larger, transparent)
-        var titleGlow = new Label
-        {
-            Text = "RUNEWAKE",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.27f, AnchorBottom = 0.51f,
-            AutoTranslate = false
-        };
-        titleGlow.AddThemeFontSizeOverride("font_size", 66);
-        titleGlow.Modulate = new Color(0.6f, 0.5f, 0.2f, 0.2f);
-        AddChild(titleGlow);
-        // Move glow behind title
-        RemoveChild(titleGlow);
-        AddChild(titleGlow);
-        MoveChild(titleGlow, 0);
-
-        // Subtitle
+        // ——— Subtitle "The Buried Age" (smaller Cinzel, warm beige #C8B88A) ———
         var subtitle = new Label
         {
             Text = "The Buried Age",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.50f, AnchorBottom = 0.62f,
+            AnchorTop = 0.22f, AnchorBottom = 0.28f,
             AutoTranslate = false
         };
-        subtitle.AddThemeFontSizeOverride("font_size", 20);
-        subtitle.Modulate = new Color(0.6f, 0.55f, 0.4f, 0.7f);
+        ThemeTokens.ApplyHeaderFont(subtitle, ThemeTokens.FontSubtitle);
+        subtitle.Modulate = Color.FromHtml("#C8B88A"); // warm beige
         AddChild(subtitle);
 
-        // Status label (loading feedback)
+        // ——— Status label (loading feedback, at very bottom, slightly transparent) ———
         _statusLabel = new Label
         {
             Text = "",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.66f, AnchorBottom = 0.72f
+            AnchorTop = 0.93f, AnchorBottom = 0.97f
         };
-        _statusLabel.AddThemeFontSizeOverride("font_size", 14);
-        _statusLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.6f);
+        _statusLabel.AddThemeFontSizeOverride("font_size", 12);
+        _statusLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.4f);
         AddChild(_statusLabel);
 
-        // -- Styled buttons with shared StyleBox --
-
-        // Build a shared button style
-        var btnNormal = new StyleBoxFlat
+        // ——— Stone-styled buttons (Play, Decks, Settings) ———
+        var stoneNormal = new StyleBoxFlat
         {
-            BgColor = new Color(0.15f, 0.12f, 0.08f, 1f),
-            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+            BgColor = Color.FromHtml("#3A3530"),
+            BorderColor = Color.FromHtml("#5A5048"),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
             CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 12, ContentMarginTop = 4,
-            ContentMarginRight = 12, ContentMarginBottom = 4
+            ContentMarginLeft = 16, ContentMarginTop = 16,
+            ContentMarginRight = 16, ContentMarginBottom = 16
         };
-        var btnHover = new StyleBoxFlat
+        var stoneHover = new StyleBoxFlat
         {
-            BgColor = new Color(0.2f, 0.16f, 0.1f, 1f),
-            BorderColor = new Color(0.8f, 0.68f, 0.35f, 0.8f),
+            BgColor = Color.FromHtml("#4A4540"),
+            BorderColor = Color.FromHtml("#C9A84C"),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
             CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 12, ContentMarginTop = 4,
-            ContentMarginRight = 12, ContentMarginBottom = 4
-        };
-        var btnDisabled = new StyleBoxFlat
-        {
-            BgColor = new Color(0.08f, 0.06f, 0.04f, 1f),
-            BorderColor = new Color(0.3f, 0.25f, 0.15f, 0.3f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 12, ContentMarginTop = 4,
-            ContentMarginRight = 12, ContentMarginBottom = 4
+            ContentMarginLeft = 16, ContentMarginTop = 16,
+            ContentMarginRight = 16, ContentMarginBottom = 16
         };
 
-        // Start Campaign button
-        _startButton = new Button
+        Button MakeStoneButton(string text)
         {
-            Text = "Start Campaign",
-            AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.74f, AnchorBottom = 0.80f,
-            Disabled = true
-        };
-        _startButton.AddThemeFontSizeOverride("font_size", 15);
-        _startButton.AddThemeColorOverride("font_color", new Color(0.85f, 0.78f, 0.6f, 1f));
-        _startButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
-        _startButton.AddThemeStyleboxOverride("normal", btnNormal);
-        _startButton.AddThemeStyleboxOverride("hover", btnHover);
-        _startButton.AddThemeStyleboxOverride("disabled", btnDisabled);
-        _startButton.Pressed += OnStartCampaign;
-        AddChild(_startButton);
+            var btn = new Button
+            {
+                Text = text,
+                AnchorLeft = 0.40f, AnchorRight = 0.60f,
+                Disabled = true
+            };
+            btn.AddThemeFontSizeOverride("font_size", 15);
+            btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
+            btn.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
+            btn.AddThemeStyleboxOverride("normal", stoneNormal);
+            btn.AddThemeStyleboxOverride("hover", stoneHover);
+            btn.AddThemeStyleboxOverride("disabled", stoneNormal);
+            var labelFont = ThemeTokens.GetHeaderFont(15);
+            if (labelFont != null)
+                btn.AddThemeFontOverride("font", labelFont);
+            return btn;
+        }
 
-        // Rune Page button
-        var runeButton = new Button
-        {
-            Text = "Rune Page",
-            AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.80f, AnchorBottom = 0.85f,
-            Disabled = true
-        };
-        runeButton.AddThemeFontSizeOverride("font_size", 13);
-        runeButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
-        runeButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
-        runeButton.AddThemeStyleboxOverride("normal", btnNormal);
-        runeButton.AddThemeStyleboxOverride("hover", btnHover);
-        runeButton.AddThemeStyleboxOverride("disabled", btnDisabled);
-        runeButton.Pressed += OnOpenRunePage;
-        AddChild(runeButton);
-        _runeButton = runeButton;
+        // Play button → Start Campaign
+        var playButton = MakeStoneButton("Play");
+        playButton.AnchorTop = 0.55f;
+        playButton.AnchorBottom = 0.63f;
+        playButton.Pressed += OnStartCampaign;
+        AddChild(playButton);
+        _startButton = playButton;
 
         // Decks button
-        _decksButton = new Button
-        {
-            Text = "Decks",
-            AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.86f, AnchorBottom = 0.91f,
-            Disabled = true
-        };
-        _decksButton.AddThemeFontSizeOverride("font_size", 13);
-        _decksButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
-        _decksButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
-        _decksButton.AddThemeStyleboxOverride("normal", btnNormal);
-        _decksButton.AddThemeStyleboxOverride("hover", btnHover);
-        _decksButton.AddThemeStyleboxOverride("disabled", btnDisabled);
-        _decksButton.Pressed += OnOpenDecks;
-        AddChild(_decksButton);
+        var decksButton = MakeStoneButton("Decks");
+        decksButton.AnchorTop = 0.65f;
+        decksButton.AnchorBottom = 0.73f;
+        decksButton.Pressed += OnOpenDecks;
+        AddChild(decksButton);
+        _decksButton = decksButton;
 
-        // Forge button
-        var forgeButton = new Button
-        {
-            Text = "Rune Forge",
-            AnchorLeft = 0.32f, AnchorRight = 0.68f,
-            AnchorTop = 0.92f, AnchorBottom = 0.97f,
-            Disabled = true
-        };
-        forgeButton.AddThemeFontSizeOverride("font_size", 13);
-        forgeButton.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.5f, 1f));
-        forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.4f, 0.35f, 0.25f, 0.5f));
-        forgeButton.AddThemeStyleboxOverride("normal", btnNormal);
-        forgeButton.AddThemeStyleboxOverride("hover", btnHover);
-        forgeButton.AddThemeStyleboxOverride("disabled", btnDisabled);
-        forgeButton.Pressed += OnOpenForge;
-        AddChild(forgeButton);
-        _forgeButton = forgeButton;
+        // Settings button
+        var settingsButton = MakeStoneButton("Settings");
+        settingsButton.AnchorTop = 0.75f;
+        settingsButton.AnchorBottom = 0.83f;
+        settingsButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        AddChild(settingsButton);
+
+        // Rune Page button (hidden — accessible from Decks/Settings screens)
+        _runeButton = new Button { Visible = false, Disabled = false };
+        _runeButton.Pressed += OnOpenRunePage;
+        AddChild(_runeButton);
+
+        // Forge button (hidden — accessible from Decks/Settings screens)
+        _forgeButton = new Button { Visible = false, Disabled = false };
+        _forgeButton.Pressed += OnOpenForge;
+        AddChild(_forgeButton);
 
         // Persistent save warning label (hidden until/unless a save error occurs)
         _saveWarningLabel = new Label
@@ -327,9 +215,6 @@ public partial class Main : Control
             }
         }
         Callable.From(LoadGameData).CallDeferred();
-
-        // Store rune button reference for enabling after load
-        _runeButton = runeButton;
     }
 
     /// <summary>
@@ -570,6 +455,25 @@ public partial class Main : Control
         // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
         {
+            if (CampaignContext.CaptureTitleTestScreenshot)
+            {
+                // Capture title screen only
+                GD.Print("[Main] Title test capture mode");
+                var titleCapTimer = new Godot.Timer();
+                titleCapTimer.OneShot = true;
+                titleCapTimer.WaitTime = 1.0f;
+                titleCapTimer.Timeout += () =>
+                {
+                    var img = GetViewport().GetTexture().GetImage();
+                    if (img != null)
+                        img.SavePng("/home/fictive/runewake/artifacts/captures/title_test.png");
+                    GD.Print("[Main] title_test.png saved");
+                    GetTree().Quit();
+                };
+                AddChild(titleCapTimer);
+                titleCapTimer.Start();
+                return;
+            }
             if (CampaignContext.CaptureTitleDeckScreenshot)
             {
                 // Capture title screen with Decks button visible, then navigate to deck builder

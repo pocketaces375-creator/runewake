@@ -109,7 +109,7 @@ public partial class GameStateManager : Node
             ContentVersion = 1,
             Player0DeckIds = allCards.ToList(),
             Player1DeckIds = allCards.ToList(),
-            MatchConfig = new MatchConfig()
+            MatchConfig = null
         };
 
         Initialize(config);

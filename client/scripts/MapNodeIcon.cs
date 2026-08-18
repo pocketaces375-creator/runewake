@@ -56,6 +56,7 @@ public partial class MapNodeIcon : Button
     public override void _Ready()
     {
         CustomMinimumSize = new Vector2(140, 150);
+        Size = new Vector2(140, 150); // explicit size ensures clickable rect is set even in Node2D parent
         _nameLabel = GetNode<Label>("NameLabel");
         _iconCircle = GetNode<ColorRect>("IconCircle");
         _typeChar = GetNode<Label>("TypeChar");

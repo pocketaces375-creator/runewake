@@ -88,8 +88,7 @@ public sealed class GameState
     /// </summary>
     public static GameState Initialize(GameConfig config)
     {
-        var matchConfig = config.MatchConfig ?? new MatchConfig();
-        int startingVigor = matchConfig.StartingVigor;
+        int startingVigor = 25;
 
         var state = new GameState(config.Seed, config.ContentVersion);
 

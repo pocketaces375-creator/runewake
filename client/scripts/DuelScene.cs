@@ -105,6 +105,9 @@ public partial class DuelScene : Control
     private bool _tutorialAwaitingCreatureSelect;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
+    
+    // TASK-E: Game-over overlay (lazy-created on first IsGameOver=true)
+    private Control? _gameOverOverlay;
 
     // Mulligan state
     private Control? _mulliganPanel;
@@ -323,7 +326,7 @@ public partial class DuelScene : Control
                 RunePage = CampaignContext.CurrentRunePage,
                 Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds,
                 Player0Class = CampaignContext.TutorialPlayerClass,
-                MatchConfig = CampaignContext.MatchConfig ?? new MatchConfig()
+                MatchConfig = null
             };
             _gsm.Initialize(config);
         }
@@ -404,6 +407,10 @@ public partial class DuelScene : Control
                 // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
                 if (!CampaignContext.DebugAlignMode)
                     PrePlaceArtifacts();
+
+                // ═══ TASK-G: Inflate player hand to 10 cards for worst-case compression test ═══
+                if (!CampaignContext.DebugAlignMode)
+                    InflateHandTo10();
 
                 // ═══ PAINTED-PLATE-1: Debug slot overlay for align capture ═══
                 // Created here (before the snapTimer) so it renders for a full frame
@@ -488,7 +495,7 @@ public partial class DuelScene : Control
                     meta.Append("{\n");
 
                     // Capture hand card info from _handCards
-                    meta.Append("  \"expected_hand_card_count\": 4,\n");
+                    meta.Append("  \"expected_hand_card_count\": 10,\n");
                     meta.Append("  \"expected_board_card_count\": 10,\n");
                     // FULL-DECK-2: Include viewport dims for capture_gate.py Check 8
                     var vpSize = GetViewportRect().Size;
@@ -1463,7 +1470,8 @@ public partial class DuelScene : Control
         float scale = viewportHeight / reference;
 
         _handCardHeight = Mathf.Max(110f, 152f * scale);
-        _boardCardHeight = Mathf.Max(150f, 200f * scale);
+        // TASK-F: Board cards use 13:19 portrait ratio (= hand card ratio), base 96×140
+        _boardCardHeight = Mathf.Max(100f, 140f * scale);
 
         // HAND-VIEWPORT-FIX-1R: Hand tray anchored to viewport bottom (hand top = vh - handCardH - 12).
         // PopulateLanes re-affirms this after slot layout; this is the initial set.
@@ -1516,10 +1524,9 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
         float scale = vh / 648f;
-        // HAND-VIEWPORT-FIX-1R: Reduced slot height from 176 to 148 to leave room for
-        // the hand tray (anchored to viewport bottom at vh - handCardH - 12px).
-        float slotH = 148f * scale;
-        float slotW = 206f * scale;
+        // TASK-F: Board slots use 13:19 portrait ratio (= hand card ratio), base 96×140
+        float slotH = 140f * scale;
+        float slotW = 96f * scale;
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
@@ -1645,6 +1652,22 @@ public partial class DuelScene : Control
         {
             AnimateBoardDiffs(_prevEnemyBoard, _prevPlayerBoard, newEnemyBoard, newPlayerBoard);
             AnimateVigorDiffs();
+        }
+
+        // ═══ TASK-E: Game-over overlay — check after rendering each frame ═══
+        bool isGameOver = _gsm.IsGameOver;
+        if (isGameOver)
+        {
+            if (_gameOverOverlay == null)
+                BuildGameOverOverlay();
+            _gameOverOverlay!.Show();
+            // Bring to top so it captures all input
+            if (_gameOverOverlay.GetParent() != null)
+                MoveChild(_gameOverOverlay, GetChildCount() - 1);
+        }
+        else if (_gameOverOverlay != null)
+        {
+            _gameOverOverlay.Hide();
         }
 
         // Tutorial: detect first summon to trigger Popup 4a
@@ -1995,11 +2018,35 @@ public partial class DuelScene : Control
 
         // Compute dynamic card sizing so all cards fit with consistent spacing
         // (FIX: hand overlaps — auto-shrink when hand is full)
-        float handSep = 34f;
-        _handFlow.AddThemeConstantOverride("separation", (int)handSep);
-        float availWidth = GetViewportRect().Size.X - 40f; // margin 20 each side; use viewport not _handArea (pre-layout)
-        float aspect = 104f / 152f; // TASK-UI3e: hand cards exactly 104×152 at design scale
         int n = hand.Count;
+        float aspect = 104f / 152f; // TASK-UI3e: hand cards exactly 104×152 at design scale
+        float availWidth = GetViewportRect().Size.X - 40f; // margin 20 each side
+
+        // TASK-G: Hand fan compression — dynamic spacing based on card count
+        float handSep;
+        if (n <= 3) { handSep = 8f; }
+        else if (n <= 5) { handSep = 4f; }
+        else if (n <= 7) { handSep = 2f; }
+        else
+        {
+            // 8-10 cards: left-align and shrink to keep clear of End Turn button
+            handSep = 0f;
+            _handFlow.Alignment = BoxContainer.AlignmentMode.Begin;
+            float cardW_else = _handCardHeight * aspect;
+            float endTurnLeft = GetViewportRect().Size.X - 100f;
+            float marginLeft = GetViewportRect().Size.X * 0.19f;
+            float available = endTurnLeft - 8f - marginLeft;
+            float totalCardsWidth = n * cardW_else;
+            if (totalCardsWidth > available)
+            {
+                float newCardW = available / n;
+                _handCardHeight = newCardW / aspect;
+                _handCardHeight = Mathf.Max(90f, _handCardHeight);
+            }
+        }
+        handSep = Mathf.Clamp(handSep, 0f, 12f); // keep spacing reasonable
+        _handFlow.AddThemeConstantOverride("separation", (int)handSep);
+
         float cardW = _handCardHeight * aspect;
         float required = n * cardW + (n - 1) * handSep;
         float fitHeight = _handCardHeight;
@@ -2705,6 +2752,129 @@ public partial class DuelScene : Control
         btnHBox.AddChild(backToTitle);
     }
 
+    // ═══ TASK-E: Full-screen game-over overlay (lazy-built, shown/hidden by OnStateChanged) ═══
+    
+    /// <summary>
+    /// Build the full-screen game-over overlay once. Shown/hidden by OnStateChanged
+    /// when IsGameOver transitions. Captures all input via topmost MouseFilter position.
+    /// </summary>
+    private void BuildGameOverOverlay()
+    {
+        _gameOverOverlay = new Control { Name = "GameOverOverlay" };
+        _gameOverOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        _gameOverOverlay.MouseFilter = Control.MouseFilterEnum.Pass;
+
+        // Semi-transparent dark panel dimming the board
+        var dim = new ColorRect();
+        dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        dim.Color = new Color(0, 0, 0, 0.7f);
+        dim.MouseFilter = Control.MouseFilterEnum.Ignore;
+        _gameOverOverlay.AddChild(dim);
+
+        // Determine winner: player is index 0
+        int winner = -1;
+        if (_gsm.State != null)
+        {
+            // WinnerIndex = 0 → player won, 1 → enemy won
+            winner = _gsm.WinnerIndex;
+        }
+        bool playerWon = winner == 0;
+
+        // VICTORY / DEFEAT label
+        var titleLabel = new Label
+        {
+            Text = playerWon ? "VICTORY" : "DEFEAT",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.Off,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        titleLabel.AddThemeFontSizeOverride("font_size", 56);
+        ApplyHeaderFont(titleLabel, 56);
+        titleLabel.Modulate = playerWon
+            ? Color.FromHtml("#D4B84C")  // gold
+            : Color.FromHtml("#8B3A3A"); // muted red
+        titleLabel.SetAnchorsPreset(Control.LayoutPreset.Center);
+        titleLabel.OffsetTop = -60;
+        titleLabel.OffsetBottom = -60;
+        _gameOverOverlay.AddChild(titleLabel);
+
+        // Subtitle description
+        var descLabel = new Label
+        {
+            Text = playerWon ? "The battle is won." : "You have fallen.",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        descLabel.AddThemeFontSizeOverride("font_size", 22);
+        ApplyBodyFont(descLabel, 22);
+        descLabel.Modulate = TextSecondary;
+        descLabel.SetAnchorsPreset(Control.LayoutPreset.Center);
+        descLabel.OffsetTop = 10;
+        descLabel.OffsetBottom = 10;
+        _gameOverOverlay.AddChild(descLabel);
+
+        // Continue button — stone-styled, anchored to bottom third
+        var continueBtn = new Button
+        {
+            Text = "Continue",
+            MouseFilter = Control.MouseFilterEnum.Stop,
+        };
+        continueBtn.AddThemeFontSizeOverride("font_size", 24);
+        ApplyHeaderFont(continueBtn, 24);
+        // Stone button styling
+        var btnStyle = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#3A3530"),
+            BorderColor = Color.FromHtml("#7A7060"),
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 20,
+            ContentMarginTop = 8,
+            ContentMarginRight = 20,
+            ContentMarginBottom = 8,
+        };
+        continueBtn.AddThemeStyleboxOverride("normal", btnStyle);
+        // Hover style (slightly lighter)
+        var hoverStyle = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#4A4540"),
+            BorderColor = Color.FromHtml("#9A9080"),
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 20,
+            ContentMarginTop = 8,
+            ContentMarginRight = 20,
+            ContentMarginBottom = 8,
+        };
+        continueBtn.AddThemeStyleboxOverride("hover", hoverStyle);
+        continueBtn.Modulate = TextPrimary;
+        continueBtn.Size = new Vector2(180, 48);
+        continueBtn.Position = new Vector2(
+            GetViewportRect().Size.X / 2f - 90f,
+            GetViewportRect().Size.Y * 0.72f);
+        continueBtn.Pressed += () =>
+        {
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        };
+        _gameOverOverlay.AddChild(continueBtn);
+
+        AddChild(_gameOverOverlay);
+    }
+
     // ——— Tutorial helpers (TASK-TU2) ———
     /// <summary>Enable/disable the End Turn button. Used by TutorialRunner for action restrictions.</summary>
     public void SetEndTurnEnabled(bool enabled)
@@ -2733,9 +2903,9 @@ public partial class DuelScene : Control
 
     // ——— Public update methods ———
 
-    public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = vigor.ToString();
+    public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = Math.Max(0, vigor).ToString();
         public void SetEnemyAttunement(string text) => _enemyAttuneValue.Text = text;
-        public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = vigor.ToString();
+        public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = Math.Max(0, vigor).ToString();
         public void SetPlayerAttunement(string text) => _playerAttuneValue.Text = text;
 
     public void ClearBoard()
@@ -3296,5 +3466,54 @@ public partial class DuelScene : Control
         state.NextInstanceId = nextId;
 
         GD.Print("[CAPTURE] Pre-placed artifacts — Player: READY + CHARGED, Enemy: SUPPRESSED + SPENT");
+    }
+
+    /// <summary>
+    /// TASK-G: Inflate player hand to 10 cards for worst-case compression test in captures.
+    /// Copies cards already in hand until we have 10, using card defs from the registry.
+    /// </summary>
+    private void InflateHandTo10()
+    {
+        var state = _gsm.State;
+        if (state == null || state.Players.Length == 0)
+        {
+            GD.PrintErr("[CAPTURE] Cannot inflate hand: game state is null");
+            return;
+        }
+
+        var hand = state.Players[0].Hand;
+        int targetCount = 10;
+        if (hand.Count >= targetCount)
+        {
+            GD.Print($"[CAPTURE] Hand already has {hand.Count} cards, no inflation needed");
+            return;
+        }
+
+        int nextId = state.NextInstanceId;
+        var templateCards = hand.ToList(); // snapshot existing hand cards
+        int srcIdx = 0;
+
+        while (hand.Count < targetCount)
+        {
+            var src = templateCards[srcIdx % templateCards.Count];
+            var def = CardRegistry.Get(src.CardDefId);
+            if (def != null)
+            {
+                var copy = new CardInstance(nextId++, src.CardDefId, 0)
+                {
+                    CardType = CardType.CREATURE,
+                    Cost = def.Cost,
+                    Strata = def.Strata,
+                    BaseAttack = def.Attack ?? 0,
+                    BaseVigor = def.Vigor ?? 0,
+                    Zone = Zone.Hand,
+                };
+                hand.Add(copy);
+            }
+            srcIdx++;
+        }
+
+        state.NextInstanceId = nextId;
+        GD.Print($"[CAPTURE] Inflated player hand from {templateCards.Count} to {hand.Count} cards");
     }
 }

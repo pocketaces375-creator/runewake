@@ -78,6 +78,20 @@ public partial class DebugCapture : Node
                 titleDeckMode = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=title_deck");
             }
+            if (arg == "--capture=title_test")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureTitleTestScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Title screen capture mode enabled: --capture=title_test");
+            }
+            if (arg == "--capture=map_test")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen capture mode enabled: --capture=map_test");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);

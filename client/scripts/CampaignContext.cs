@@ -97,6 +97,10 @@ public static class CampaignContext
     /// Set by --capture=title_deck CLI arg via DebugCapture.
     /// </summary>
     public static bool CaptureTitleDeckScreenshot { get; set; }
+    
+    /// <summary>Test hook: capture title screen only (captures and quits).
+    /// Set by --capture=title_test CLI arg via DebugCapture.</summary>
+    public static bool CaptureTitleTestScreenshot { get; set; }
 
     /// <summary>Test hook: capture duel at wide aspect (1999×932) instead of standard (1152×648).
     /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
@@ -119,8 +123,7 @@ public static class CampaignContext
     public static string TutorialPlayerClass { get; set; } = string.Empty;
 
     /// <summary>
-    /// Per-match configuration (starting vigor, etc.).
-    /// Set by the pre-duel UI (brass dial); null uses engine defaults.
+    /// Reserved — starting vigor is always 25.
     /// </summary>
     public static MatchConfig? MatchConfig { get; set; }
 
