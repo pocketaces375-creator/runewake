@@ -145,4 +145,13 @@
 - CONTINUE VERIFIED: navigates to MapScene.tscn which reads Progression state (rewards already applied by OnStateChanged before overlay appears) ✅
 - VIGOR floors at 0: SetEnemyVigor/SetPlayerVigor use Math.Max(0, vigor) ✅
 - Fixed project.godot viewport sed commands: switched from forward-slash delimiter to pipe delimiter to avoid shell escaping corruption. All captures now properly render at requested resolution. Fixed stray line 33 in project.godot ✅
-- 709 tests green, all commits pushed ✅
+|- 709 tests green, all commits pushed ✅
+
+**TITLE-ART-FIX-1R (2026-08-18):** Hero art visible + PNG guard + black-screen gate. Applied:
+|- TASK A (pipeline guard): Added `ensure_true_png()` to `pipeline/gen_image_openrouter.py` — after every download, checks magic bytes. If JPEG data is saved with .png extension (known FLUX.2 Pro behaviour), re-encodes via PIL to true PNG. Logs when conversion happens. Installed at both base64 and URL save paths. `grep ensure_true_png` confirms guard present at lines 29, 101, 108. Every generation from now is protected ✅
+|- TASK B (fix broken files): `hero_art.png` (1536×704) and `map_plate.png` (1536×704) were JPEG bytes with .png extension. Re-encoded via PIL. `Image.open(f).format` = PNG for both. Sweep of `client/content/art/` found zero additional JPEG-as-PNG files. `board/plate_default.png` verified PNG ✅
+|- TASK C (silent black screens killed): [ART-MISSING] loud errors added to Main.cs hero_art.Load and MapScene.cs map_plate.Load — never silently render nothing. Black-screen gate: `validate_screen_live()` in capture_gate.py — FAIL if > 60% of pixels are near-black (mean luminance < 12/255). Applied to title_test, title_test_wide, map_test, map_test_wide. Title capture added to pipeline at both 1152×648 and 1999×932 ✅
+|- TASK D (title polish): Hero art full-bleed KeepAspectCovered. Dark scrim (Color(0.05,0.03,0.01,0.55)) behind title text. Play/Decks/Settings buttons **enabled** (removed Disabled=true from MakeStoneButton) with pressed state (StyleBoxFlat #2A2520/#A08838) and hover font colors. Diag button wrapped in `if (OS.IsDebugBuild())` — hidden in release/exported builds. Settings opens `res://scenes/settings/SettingsScene.tscn` ✅
+|- TASK E (captures + gate): Title (0.2% near-black), title_wide (1.8%), map (0.1%), map_wide (0.4%), duel (10h+10b+12px gap), duel_wide — ALL gates exit 0. APK exported (184MB, SHA-256: 1ebb2a4f). gofile: https://gofile.io/d/eqrroK3N. GitHub: alpha-2026-08-18-title. Posted to Runewake group ✅
+|- VERIFICATION: hero_art.png format=PNG, map_plate.png format=PNG, plate_default.png format=PNG (all PIL-verified). ensure_true_png guard grepped at 3 definition lines + 2 call sites. Black-screen values: title 0.2%, map 0.1% (limit 60%). No ART-MISSING in latest capture logs. `OS.IsDebugBuild()` guard in Main.cs line 216 ✅
+|- FOREMAN_HALT deleted as final act ✅
