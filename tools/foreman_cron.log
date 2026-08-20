@@ -4624,3 +4624,653 @@ Already up to date.
   Heartbeat: parked — HALT (2026-08-18T19:47:02Z)
 [main 7685127] foreman: heartbeat — HALT
  1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+  HALT file found at /home/fictive/runewake/FOREMAN_HALT
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-18T21:17:04Z)
+[main 774e07a] foreman: heartbeat — empty_queue
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-18T22:17:04Z)
+[main f94e022] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-18T23:47:04Z)
+[main d8e3798] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T00:47:04Z)
+[main 3a20b19] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T01:47:04Z)
+[main 8a536cf] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T03:17:04Z)
+[main ed1096f] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T04:17:05Z)
+[main 3837aa8] foreman: heartbeat — empty_queue
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T05:17:07Z)
+[main f4e815a] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T06:47:04Z)
+[main 6939422] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T07:47:04Z)
+[main f5664d9] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T08:47:04Z)
+[main d2848d2] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T10:17:04Z)
+[main 1bdaf4e] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T11:17:04Z)
+[main 50e4fe2] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T12:47:05Z)
+[main 16f21b8] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T14:17:04Z)
+[main 303c0e6] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T15:17:04Z)
+[main 0158aa5] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T16:47:04Z)
+[main 3d9aa30] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T17:47:04Z)
+[main 27bf02a] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T18:47:04Z)
+[main 1e072c0] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T19:47:05Z)
+[main f6e5141] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T21:17:03Z)
+[main c1cd29d] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T22:17:04Z)
+[main 3b1fa7f] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-19T23:17:05Z)
+[main 584aa7f] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-20T00:17:04Z)
+[main f64629d] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-20T01:47:03Z)
+[main c565ec2] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-20T02:47:03Z)
+[main 454aebf] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+  HALT file found at /home/fictive/runewake/FOREMAN_HALT

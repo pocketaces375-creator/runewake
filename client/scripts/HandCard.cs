@@ -16,10 +16,16 @@ public partial class HandCard : PanelContainer
     private TextureRect _artRect;
     private PanelContainer _badgePanel;
     private ColorRect _desatOverlay;
+    private ColorRect _vigorBar;
     private Label _attackBadge;
     private Label _vigorBadge;
     private Label _noArtLabel;
     private bool _isHovered;
+    private int _currentMaxVigor = 0;
+
+    /// <summary>Current vigor for health bar display.</summary>
+    public int CurrentVigor { get; private set; }
+    public int MaxVigor { get; private set; }
 
     /// <summary>Card's unique identifier from the engine.</summary>
     public string CardId { get; private set; } = "";
@@ -42,7 +48,9 @@ public partial class HandCard : PanelContainer
         _costLabel = GetNode<Label>("Content/CostBadge/CostLabel");
 
         ApplyHeaderFont(_cardName, FontLargeBody);
-        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+        _cardName.AddThemeConstantOverride("outline_size", 2);
+        _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
         ApplyBodyFont(_costLabel, FontLargeBody);
 
         _badgePanel = GetNode<PanelContainer>("Content/CostBadge");
@@ -64,6 +72,27 @@ public partial class HandCard : PanelContainer
         // Keep the veil above the art but below the name/badge so text stays crisp
         var artIdx = GetNode("Content/ArtTexture").GetIndex();
         GetNode("Content").MoveChild(_desatOverlay, artIdx + 1);
+
+        // CARD-POLISH-1: Health/vigor bar behind the name strip
+        _vigorBar = new ColorRect
+        {
+            Color = new Color(0.15f, 0.50f, 0.20f), // deep green at full health
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        // Match CardName anchor positions
+        _vigorBar.AnchorLeft = 0f;
+        _vigorBar.AnchorRight = 1f;
+        _vigorBar.AnchorTop = 0.80f;
+        _vigorBar.AnchorBottom = 0.96f;
+        _vigorBar.OffsetLeft = 0;
+        _vigorBar.OffsetRight = 0;
+        _vigorBar.OffsetTop = 0;
+        _vigorBar.OffsetBottom = 0;
+        var content = GetNode<Control>("Content");
+        content.AddChild(_vigorBar);
+        // Move behind CardName so text renders on top
+        var nameIdx = _cardName.GetIndex();
+        content.MoveChild(_vigorBar, nameIdx);
 
         // Style cost badge
         ApplyBadgeStyle(Gold, Gold);
@@ -132,6 +161,13 @@ public partial class HandCard : PanelContainer
 
         LoadArt(cardId);
 
+        // CARD-POLISH-1: Initialize health bar at max vigor
+        if (CardVigor.HasValue)
+        {
+            _vigorBar.Scale = new Vector2(1f, 1f); // reset from previous use
+            SetVigor(CardVigor.Value, CardVigor.Value);
+        }
+
         // TASK-UI3c: Auto-shrink name font to fit
         FitCardName(_cardName.GetThemeFontSize("font_size"));
     }
@@ -184,7 +220,7 @@ public partial class HandCard : PanelContainer
     /// <summary>
     /// Scale the card to a target height (px in viewport space), keeping the
     /// 104:152 aspect ratio (TASK-UI3c). Fonts scale proportionally so stats stay readable.
-    /// Auto-shrinks the name font so full names fit (min 8px, then ellipsize).
+    /// CARD-POLISH-1: 2-line name strip with auto-shrink to fit.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
@@ -194,12 +230,16 @@ public partial class HandCard : PanelContainer
 
         // Scale fonts proportionally from the base 152px design
         float scale = targetHeight / 152f;
-        int nameSize = Mathf.Max(11, Mathf.RoundToInt(13 * scale));
+        int nameSize = Mathf.Max(10, Mathf.RoundToInt(12 * scale));
         int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _costLabel.AddThemeFontSizeOverride("font_size", costSize);
 
-        // TASK-UI3c: Auto-shrink name font until text fits single line or hits min 8px
+        // CARD-POLISH-1: Allow 2-line names — strip grows taller (anchor 0.80 → 0.96)
+        _cardName.AnchorTop = 0.80f;
+        _cardName.AnchorBottom = 0.96f;
+
+        // Fit name: try 2 lines first, shrink font if needed
         FitCardName(nameSize);
 
         // Hover pivot: bottom-center so card enlarges upward, not off-screen bottom
@@ -237,6 +277,43 @@ public partial class HandCard : PanelContainer
             fontSize--;
         }
         _cardName.AddThemeFontSizeOverride("font_size", 8); // floor at 8px
+    }
+
+    /// <summary>
+    /// CARD-POLISH-1: Update the health/vigor bar fill and color.
+    /// Bar fills full width (ratio=1.0) at max vigor, draining right-to-left as
+    /// damage is taken. Color transitions green→amber→red with damage.
+    /// Animated briefly when vigor changes.
+    /// </summary>
+    public void SetVigor(int current, int max)
+    {
+        if (_vigorBar == null) return;
+        CurrentVigor = current;
+        MaxVigor = max;
+        if (max <= 0) return;
+
+        float ratio = Mathf.Clamp((float)current / max, 0f, 1f);
+
+        // Color: green (>66%) → amber (>33%) → red
+        Color barColor;
+        if (ratio > 0.66f)
+            barColor = new Color(0.15f + 0.35f * (1f - ratio) * 3f, 0.50f, 0.10f, 0.85f);
+        else if (ratio > 0.33f)
+            barColor = new Color(0.60f, 0.40f + 0.10f * (0.66f - ratio) * 3f, 0.08f, 0.85f);
+        else
+            barColor = new Color(0.65f, 0.15f + 0.10f * ratio * 3f, 0.05f, 0.85f);
+
+        // Brief tween for the drain animation
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(_vigorBar, "scale:x", ratio, 0.2f)
+            .SetEase(Tween.EaseType.Out)
+            .SetTrans(Tween.TransitionType.Quad);
+        tween.TweenProperty(_vigorBar, "color", barColor, 0.2f)
+            .SetEase(Tween.EaseType.Out);
+
+        // Update the corner vigor badge too
+        _vigorBadge.Text = current.ToString();
     }
 
     // ——— Hand hover: enlarge ~1.8x, anchored above the hand (FIX 3d) ———

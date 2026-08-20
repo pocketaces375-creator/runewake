@@ -1,4 +1,5 @@
 using Godot;
+using Runewake.Engine.Cards;
 using static ThemeTokens;
 
 namespace Runewake.Client;
@@ -18,8 +19,10 @@ public partial class LaneSlot : PanelContainer
     private TextureRect _artRect;
     private Label _attackBadge;
     private Label _vigorBadge;
+    private ColorRect _vigorBar;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
+    private bool _vigorBarInitialized = false;
 
     /// <summary>
     /// Emitted when a card is dropped onto this lane slot.
@@ -63,7 +66,9 @@ public partial class LaneSlot : PanelContainer
 
         // Apply header font to creature name
         ApplyHeaderFont(_cardName, FontLargeBody);
-        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+        _cardName.AddThemeConstantOverride("outline_size", 2);
+        _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
 
         // Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
@@ -78,6 +83,26 @@ public partial class LaneSlot : PanelContainer
         _faceLabel.MouseFilter = MouseFilterEnum.Ignore;
         _faceLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         GetNode<Control>("Content").AddChild(_faceLabel);
+
+        // CARD-POLISH-1: Health/vigor bar behind the name strip
+        _vigorBar = new ColorRect
+        {
+            Color = new Color(0.15f, 0.50f, 0.20f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _vigorBar.AnchorLeft = 0f;
+        _vigorBar.AnchorRight = 1f;
+        _vigorBar.AnchorTop = 0.80f;
+        _vigorBar.AnchorBottom = 0.96f;
+        _vigorBar.OffsetLeft = 0;
+        _vigorBar.OffsetRight = 0;
+        _vigorBar.OffsetTop = 0;
+        _vigorBar.OffsetBottom = 0;
+        var content = GetNode<Control>("Content");
+        content.AddChild(_vigorBar);
+        // Move behind CardName so text is on top
+        var nameIdx = _cardName.GetIndex();
+        content.MoveChild(_vigorBar, nameIdx);
 
         // Connect touch area (expanded hit region) for touch input
         var touchArea = GetNodeOrNull<Control>("TouchArea");
@@ -144,6 +169,23 @@ public partial class LaneSlot : PanelContainer
         _attackBadge.Text = attack.ToString();
         _vigorBadge.Text = vigor.ToString();
 
+        // CARD-POLISH-1: Reset and initialize health bar (only on first use)
+        _vigorBar.Show();
+
+        // Look up max vigor from card definition for correct bar fill
+        int maxVigor = vigor;
+        var def = CardRegistry.Get(cardDefId);
+        if (def != null && def.Vigor.HasValue)
+            maxVigor = def.Vigor.Value;
+
+        // On first call, set scale to full before tweening to current fill
+        if (!_vigorBarInitialized)
+        {
+            _vigorBar.Scale = new Vector2(1f, 1f);
+            _vigorBarInitialized = true;
+        }
+        SetVigor(vigor, maxVigor);
+
         // Position stat badges at bottom corners
         float h = CustomMinimumSize.Y;
         float w = CustomMinimumSize.X;
@@ -195,6 +237,11 @@ public partial class LaneSlot : PanelContainer
         _cardName.Hide();
         _attackBadge.Hide();
         _vigorBadge.Hide();
+        if (_vigorBar != null)
+        {
+            _vigorBar.Hide();
+            _vigorBarInitialized = false;
+        }
         _artRect.Texture = null;
         _noArtLabel.Visible = false;
         if (_faceLabel != null)
@@ -205,17 +252,17 @@ public partial class LaneSlot : PanelContainer
 
     /// <summary>
     /// Scale the lane slot to a target height (px in viewport space), keeping
-    /// the 13:19 portrait ratio (96×140 base, matching board-card proportions, TASK-F).
+    /// the 13:19 portrait ratio (124×180 base, CARD-POLISH-1).
     /// Fonts scale proportionally.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 96f / 140f; // 13:19 portrait ratio (TASK-F)
+        float aspect = 124f / 180f; // 13:19 portrait ratio (CARD-POLISH-1)
         CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
         Size = CustomMinimumSize;
 
-        float scale = targetHeight / 140f;
-        int nameSize = Mathf.Max(12, Mathf.RoundToInt(14 * scale));
+        float scale = targetHeight / 180f;
+        int nameSize = Mathf.Max(10, Mathf.RoundToInt(12 * scale));
         int statSize = Mathf.Max(14, Mathf.RoundToInt(16 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _attackBadge.AddThemeFontSizeOverride("font_size", statSize);
@@ -226,6 +273,37 @@ public partial class LaneSlot : PanelContainer
     /// Previous vigor value for computing damage/heal diffs.
     /// </summary>
     public int PreviousVigor { get; set; } = -1;
+
+    /// <summary>
+    /// CARD-POLISH-1: Update the health/vigor bar fill and color.
+    /// Animated drain and color transition from green→amber→red.
+    /// </summary>
+    public void SetVigor(int current, int max)
+    {
+        if (_vigorBar == null) return;
+        if (max <= 0) return;
+
+        float ratio = Mathf.Clamp((float)current / max, 0f, 1f);
+
+        // Color: green (>66%) → amber (>33%) → red
+        Color barColor;
+        if (ratio > 0.66f)
+            barColor = new Color(0.15f + 0.35f * (1f - ratio) * 3f, 0.50f, 0.10f, 0.85f);
+        else if (ratio > 0.33f)
+            barColor = new Color(0.60f, 0.40f + 0.10f * (0.66f - ratio) * 3f, 0.08f, 0.85f);
+        else
+            barColor = new Color(0.65f, 0.15f + 0.10f * ratio * 3f, 0.05f, 0.85f);
+
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(_vigorBar, "scale:x", ratio, 0.2f)
+            .SetEase(Tween.EaseType.Out)
+            .SetTrans(Tween.TransitionType.Quad);
+        tween.TweenProperty(_vigorBar, "color", barColor, 0.2f)
+            .SetEase(Tween.EaseType.Out);
+
+        _vigorBadge.Text = current.ToString();
+    }
 
     /// <summary>
     /// Show visual feedback for being a valid attack target (highlight border).
