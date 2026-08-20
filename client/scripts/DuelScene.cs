@@ -1553,7 +1553,7 @@ public partial class DuelScene : Control
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
-        float spacing = 215f * scale; // TASK-UI3e: tighter spread so outer slots clear both screen edges
+        float spacing = 240f * scale; // CARD-POLISH-1: wider spacing for bigger slots
 
         // Enemy baseline Y: top arc, moved up to 0.06 to make room for the fixed hand tray (HAND-VIEWPORT-FIX-1R)
         float enemyBaseY = GetViewportRect().Size.Y * 0.06f;
@@ -1575,8 +1575,8 @@ public partial class DuelScene : Control
             float x = xCenter - slotW / 2f;
 
             // ── Enemy slot (top arc, bowing downward) ──
-            // HAND-VIEWPORT-FIX-1R: amplitude reduced 34→24 / 8→6 so arcs fit above the hand tray
-            float enemyYOffset = i switch { 0 or 4 => 24f, 1 or 3 => 6f, _ => 0f } * scale;
+            // CARD-POLISH-1: amplitude reduced to 8 so bigger slots fit without overlap
+            float enemyYOffset = i switch { 0 or 4 => 8f, 1 or 3 => 4f, _ => 0f } * scale;
             float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
@@ -1594,8 +1594,8 @@ public partial class DuelScene : Control
             _enemySlots.Add(enemySlot);
 
             // ── Player slot (bottom arc, bowing upward) ──
-            // HAND-VIEWPORT-FIX-1R: amplitude reduced 34→24 / 8→6 so arcs fit above the hand tray
-            float playerYOffset = i switch { 0 or 4 => 24f, 1 or 3 => 6f, _ => 0f } * scale;
+            // CARD-POLISH-1: amplitude reduced to 8 so bigger slots fit without overlap
+            float playerYOffset = i switch { 0 or 4 => 8f, 1 or 3 => 4f, _ => 0f } * scale;
             float playerY = playerBaseY - playerYOffset;
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
