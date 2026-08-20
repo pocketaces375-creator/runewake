@@ -252,17 +252,17 @@ public partial class LaneSlot : PanelContainer
 
     /// <summary>
     /// Scale the lane slot to a target height (px in viewport space), keeping
-    /// the 13:19 portrait ratio (124×180 base, CARD-POLISH-1).
+    /// the 13:19 portrait ratio (106×155 base, CARD-POLISH-1).
     /// Fonts scale proportionally.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 124f / 180f; // 13:19 portrait ratio (CARD-POLISH-1)
+        float aspect = 106f / 155f; // 13:19 portrait ratio (CARD-POLISH-1)
         CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
         Size = CustomMinimumSize;
 
-        float scale = targetHeight / 180f;
-        int nameSize = Mathf.Max(10, Mathf.RoundToInt(12 * scale));
+        float scale = targetHeight / 155f;
+        int nameSize = Mathf.Max(9, Mathf.RoundToInt(12 * scale));
         int statSize = Mathf.Max(14, Mathf.RoundToInt(16 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _attackBadge.AddThemeFontSizeOverride("font_size", statSize);

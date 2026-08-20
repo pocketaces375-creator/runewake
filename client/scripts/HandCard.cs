@@ -230,7 +230,7 @@ public partial class HandCard : PanelContainer
 
         // Scale fonts proportionally from the base 152px design
         float scale = targetHeight / 152f;
-        int nameSize = Mathf.Max(10, Mathf.RoundToInt(12 * scale));
+        int nameSize = Mathf.Max(9, Mathf.RoundToInt(12 * scale));
         int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
         _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _costLabel.AddThemeFontSizeOverride("font_size", costSize);

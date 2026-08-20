@@ -1492,9 +1492,9 @@ public partial class DuelScene : Control
         float reference = 648f;
         float scale = viewportHeight / reference;
 
-        _handCardHeight = Mathf.Max(110f, 196f * scale);
-        // TASK-F + CARD-POLISH-1: Board cards use 13:19 portrait ratio, base 124×180 (+29%)
-        _boardCardHeight = Mathf.Max(100f, 180f * scale);
+        _handCardHeight = Mathf.Max(110f, 170f * scale);
+        // CARD-POLISH-1: Board cards use 13:19 portrait ratio, base 106×155 (+10%)
+        _boardCardHeight = Mathf.Max(100f, 155f * scale);
 
         // HAND-VIEWPORT-FIX-1R: Hand tray anchored to viewport bottom (hand top = vh - handCardH - 12).
         // PopulateLanes re-affirms this after slot layout; this is the initial set.
@@ -1547,9 +1547,9 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
         float scale = vh / 648f;
-        // CARD-POLISH-1: Board slots 13:19 portrait, base 124×180 (+29%)
-        float slotH = 180f * scale;
-        float slotW = 124f * scale;
+        // CARD-POLISH-1: Board slots 13:19 portrait, base 106×155 (+10%)
+        float slotH = 155f * scale;
+        float slotW = 106f * scale;
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
@@ -1560,7 +1560,7 @@ public partial class DuelScene : Control
         // Player baseline Y: computed so the lowest (center) player slot bottom sits at
         // hand top - 12px. Hand top = vh - handCardH - 12. The board shrinks to fit —
         // never the hand (HAND-VIEWPORT-FIX-1R).
-        float handCardH = Mathf.Max(110f, 196f * scale);
+        float handCardH = Mathf.Max(110f, 170f * scale);
         float handTop = vh - handCardH - 12f;
         // Board node starts 74px below the viewport top (DuelScene.tscn offset_top=74);
         // slots are children of the altar container (full-rect inside Board).
@@ -1619,7 +1619,7 @@ public partial class DuelScene : Control
         // of board layout. Re-affirms the value set in ScaleCardSizes.
         float vhPop = GetViewportRect().Size.Y;
         float scalePop = vhPop / 648f;
-        float handCardHPop = Mathf.Max(110f, 196f * scalePop);
+        float handCardHPop = Mathf.Max(110f, 170f * scalePop);
         float handTopPop = vhPop - handCardHPop - 12f;
         _handArea.OffsetTop = -(vhPop - handTopPop);
         GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}");
