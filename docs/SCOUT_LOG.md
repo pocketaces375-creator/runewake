@@ -1,0 +1,23 @@
+# Scout Log
+
+Daily research and self-audit logs.
+
+## Daily Scout — 2026-08-21
+
+### Research Sweep
+
+**Godot:** • Miisan-png/godot-liquid-ui — 81★ — code only ui design and feel framework for godot • GamePhanes/GamePhanes — 32★ — An open-source game coding agent environment and benchmark for Godot. • Rytelier/Godot-Color-Grading — 24★ — Color grading compositor effect for Godot • yurne91/Godot-Secure-Build-Pipeline — 24★ — Build a custom Godot 4.7.1 editor and matching export templates for either a C#/.NET or GDScript project using Godot Sec • guangyuspace/sequence-decipher — 9★ — Godot 4 直立式 8×8 消線自動戰鬥放置 RPG，含完整原始碼、美術、音效與測試。 
+**LLM Agents:** • browser-use/macos-harness — 640★ — The simplest, thinnest harness that gives an LLM complete freedom to control a Mac. • Vistyy/nopus — 161★ — Deterministic prose checks for clearer coding-agent responses • squall01337/mixamo-llm-mocap — 131★ — Turn any video into a Mixamo-rig animation - GVHMR estimator, spec-driven retarget, FK apply in Blender via MCP. Works w • turkiyeyapayzekaakademisi/llm-rag-memory-ai-agents — 109★ — no description • elie222/botdirectory.ai — 99★ — Open-source directory of agent-bot prompts for Grok Bot, Rakazo, and any agent — botdirectory.ai 
+**Image Gen:** • ZSeven-W/dsh-crew — 92★ — DeepSeek Harness (DSH) plugin: dispatch work to DSH agents from Claude Code / Codex — native subagent progress, in-host  • WNJXYK/dsh-codex-oauth — 13★ — Use your OpenAI subscription with DeepSeek Harness to access GPT models, image generation, and web search. • dickpy/dsh-imagegen — 8★ — DSH (DeepSeek Harness) Web GUI AI image generation plugin: text-to-image & image-to-image via OpenAI-compatible endpoint • lyhBshinde/smart-document-workbench — 5★ — A browser-based offline document workbench that provides secure PDF processing, image utilities, multilingual support, a • PandaBean18/sir-pixelot — 4★ — An image generation model that runs on Shrike lite with 264KB of RAM 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
