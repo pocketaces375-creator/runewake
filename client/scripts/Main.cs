@@ -27,6 +27,20 @@ public partial class Main : Control
 
     public override void _Ready()
     {
+        // ——— Force landscape orientation at runtime (mobile fallback) ———
+        // This hard-locks landscape even if the AndroidManifest merge doesn't
+        // apply the project setting correctly on some devices.
+        try
+        {
+            if (DisplayServer.ScreenGetOrientation() != ScreenOrientation.Landscape)
+                DisplayServer.ScreenSetOrientation(ScreenOrientation.Landscape);
+        }
+        catch
+        {
+            // Non-mobile platforms may not support runtime orientation change;
+            // that's fine — the project setting handles desktop correctly.
+        }
+
         AssertProjectSettings();
 
         // ——— Hero art background (full-bleed) ———
