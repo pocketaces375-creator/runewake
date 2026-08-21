@@ -32,8 +32,8 @@ public partial class Main : Control
         // apply the project setting correctly on some devices.
         try
         {
-            if (DisplayServer.ScreenGetOrientation() != ScreenOrientation.Landscape)
-                DisplayServer.ScreenSetOrientation(ScreenOrientation.Landscape);
+            if (DisplayServer.ScreenGetOrientation() != DisplayServer.ScreenOrientation.Landscape)
+                DisplayServer.ScreenSetOrientation(DisplayServer.ScreenOrientation.Landscape);
         }
         catch
         {
