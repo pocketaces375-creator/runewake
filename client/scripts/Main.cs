@@ -796,7 +796,8 @@ public partial class Main : Control
 
     private void OnStartCampaign()
     {
-        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        // Route through ChooseYourPath screen for class selection
+        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
     }
 
     /// <summary>
