@@ -8,24 +8,20 @@ namespace Runewake.Client;
 /// A card in the player's hand, rendered as a framed card thumbnail.
 /// Root is PanelContainer — draws the "panel" theme style for card background and border.
 /// Click/tap via GuiInput override, drag via _GetDragData override.
+/// Now uses CardPlate for the uniform bottom plate with name and stat badges.
 /// </summary>
 public partial class HandCard : PanelContainer
 {
-    private Label _cardName;
+    private CardPlate _cardPlate;
     private Label _costLabel;
     private TextureRect _artRect;
     private PanelContainer _badgePanel;
     private ColorRect _desatOverlay;
-    private ColorRect _vigorBar;
-    private Label _attackBadge;
-    private Label _vigorBadge;
     private Label _noArtLabel;
     private bool _isHovered;
-    private int _currentMaxVigor = 0;
 
-    /// <summary>Current vigor for health bar display.</summary>
-    public int CurrentVigor { get; private set; }
-    public int MaxVigor { get; private set; }
+    private float _cardWidth;
+    private float _cardHeight;
 
     /// <summary>Card's unique identifier from the engine.</summary>
     public string CardId { get; private set; } = "";
@@ -42,25 +38,21 @@ public partial class HandCard : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("Content/CardName");
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
         _costLabel = GetNode<Label>("Content/CostBadge/CostLabel");
 
-        ApplyHeaderFont(_cardName, FontLargeBody);
-        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-        _cardName.AddThemeConstantOverride("outline_size", 2);
-        _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
         ApplyBodyFont(_costLabel, FontLargeBody);
 
         _badgePanel = GetNode<PanelContainer>("Content/CostBadge");
 
-        // High-contrast stat corner badges (FIX 3c) — attack bottom-left, vigor bottom-right
-        _attackBadge = MakeStatBadge(new Color(0.72f, 0.18f, 0.10f));
-        _vigorBadge = MakeStatBadge(new Color(0.20f, 0.55f, 0.30f));
+        // CardPlate — uniform bottom plate with name and stat badges
+        _cardPlate = new CardPlate();
+        _cardPlate.Name = "CardPlate";
+        var content = GetNode<Control>("Content");
+        content.AddChild(_cardPlate);
 
         // Desaturation overlay for unplayable cards — global rule: NEVER black out.
-        // A 30% gray veil desaturates the art while keeping it clearly visible.
         _desatOverlay = new ColorRect
         {
             Color = new Color(0.5f, 0.5f, 0.5f, 0.3f),
@@ -68,36 +60,14 @@ public partial class HandCard : PanelContainer
             Visible = false
         };
         _desatOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        GetNode<Control>("Content").AddChild(_desatOverlay);
-        // Keep the veil above the art but below the name/badge so text stays crisp
+        content.AddChild(_desatOverlay);
         var artIdx = GetNode("Content/ArtTexture").GetIndex();
-        GetNode("Content").MoveChild(_desatOverlay, artIdx + 1);
-
-        // CARD-POLISH-1: Health/vigor bar behind the name strip
-        _vigorBar = new ColorRect
-        {
-            Color = new Color(0.15f, 0.50f, 0.20f), // deep green at full health
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        // Match CardName anchor positions
-        _vigorBar.AnchorLeft = 0f;
-        _vigorBar.AnchorRight = 1f;
-        _vigorBar.AnchorTop = 0.80f;
-        _vigorBar.AnchorBottom = 0.96f;
-        _vigorBar.OffsetLeft = 0;
-        _vigorBar.OffsetRight = 0;
-        _vigorBar.OffsetTop = 0;
-        _vigorBar.OffsetBottom = 0;
-        var content = GetNode<Control>("Content");
-        content.AddChild(_vigorBar);
-        // Move behind CardName so text renders on top
-        var nameIdx = _cardName.GetIndex();
-        content.MoveChild(_vigorBar, nameIdx);
+        content.MoveChild(_desatOverlay, artIdx + 1);
 
         // Style cost badge
         ApplyBadgeStyle(Gold, Gold);
 
-        // Hover enlarge (FIX 3d) — desktop pointer only; touch uses tap+detail popup
+        // Hover enlarge — desktop pointer only; touch uses tap+detail popup
         MouseEntered += OnHoverEntered;
         MouseExited += OnHoverExited;
 
@@ -128,7 +98,6 @@ public partial class HandCard : PanelContainer
         CardCost = cost;
         CardStrata = strata;
 
-        _cardName.Text = name;
         _costLabel.Text = cost.ToString();
 
         var def = CardRegistry.Get(cardId);
@@ -156,20 +125,15 @@ public partial class HandCard : PanelContainer
         };
         AddThemeStyleboxOverride("panel", cardStyle);
 
-        // Fill corner stat badges
-        UpdateStatBadges();
+        // CardPlate handles name + stat badges
+        var plateW = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
+        var plateH = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
+        if (plateW <= 0) plateW = _cardWidth > 0 ? _cardWidth : 104;
+        if (plateH <= 0) plateH = _cardHeight > 0 ? _cardHeight : 152;
+
+        _cardPlate.Setup(name, CardAttack, CardVigor, strata, plateW, plateH);
 
         LoadArt(cardId);
-
-        // CARD-POLISH-1: Initialize health bar at max vigor
-        if (CardVigor.HasValue)
-        {
-            _vigorBar.Scale = new Vector2(1f, 1f); // reset from previous use
-            SetVigor(CardVigor.Value, CardVigor.Value);
-        }
-
-        // TASK-UI3c: Auto-shrink name font to fit
-        FitCardName(_cardName.GetThemeFontSize("font_size"));
     }
 
     private void LoadArt(string cardId)
@@ -182,7 +146,6 @@ public partial class HandCard : PanelContainer
             {
                 _artRect.Texture = texture;
                 _noArtLabel.Visible = false;
-                _cardName.Show(); // name strip overlay on art
                 GD.Print($"[HANDCARD] {cardId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
@@ -190,17 +153,13 @@ public partial class HandCard : PanelContainer
         // No card art — show centered placeholder label only
         _artRect.Texture = null;
         _noArtLabel.Visible = true;
-        _noArtLabel.Text = _cardName.Text;
-        _cardName.Hide(); // no name strip when using placeholder
+        _noArtLabel.Text = CardName;
         GD.Print($"[HANDCARD] No art for {cardId} — placeholder shown");
         GD.Print($"[MISSING_ART] {cardId}");
     }
 
     /// <summary>
     /// Set whether this card is playable (cost <= available attunement).
-    /// Playable = full brightness, gold cost badge.
-    /// Unplayable = art visible with ≤30% desaturation, red cost badge.
-    /// NEVER dim-to-black per global UI directive.
     /// </summary>
     public void SetPlayable(bool playable)
     {
@@ -219,104 +178,29 @@ public partial class HandCard : PanelContainer
 
     /// <summary>
     /// Scale the card to a target height (px in viewport space), keeping the
-    /// 104:152 aspect ratio (TASK-UI3c). Fonts scale proportionally so stats stay readable.
-    /// CARD-POLISH-1: 2-line name strip with auto-shrink to fit.
+    /// 104:152 aspect ratio. CardPlate repositions itself via Setup.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
         float aspect = 104f / 152f;
-        CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
+        _cardWidth = targetHeight * aspect;
+        _cardHeight = targetHeight;
+        CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
 
-        // Scale fonts proportionally from the base 152px design
+        // Scale cost badge font
         float scale = targetHeight / 152f;
-        int nameSize = Mathf.Max(9, Mathf.RoundToInt(12 * scale));
         int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
-        _cardName.AddThemeFontSizeOverride("font_size", nameSize);
         _costLabel.AddThemeFontSizeOverride("font_size", costSize);
 
-        // CARD-POLISH-1: Allow 2-line names — strip grows taller (anchor 0.80 → 0.96)
-        _cardName.AnchorTop = 0.80f;
-        _cardName.AnchorBottom = 0.96f;
+        // Re-setup CardPlate with new dimensions
+        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight);
 
-        // Fit name: try 2 lines first, shrink font if needed
-        FitCardName(nameSize);
-
-        // Hover pivot: bottom-center so card enlarges upward, not off-screen bottom
+        // Hover pivot: bottom-center so card enlarges upward
         PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);
-
-        // Reposition stat badges for the new size
-        UpdateStatBadges();
     }
 
-    /// <summary>
-    /// TASK-UI3c: Auto-shrink the card name font so the full text fits in the label.
-    /// Measures text width against the label's available width and reduces font size
-    /// until it fits or hits minimum 8px. The label's clip_text=true handles remainder.
-    /// </summary>
-    private void FitCardName(int startSize)
-    {
-        if (_cardName.Text.Length == 0) return;
-
-        float availWidth = _cardName.Size.X;
-        if (availWidth <= 0)
-            availWidth = CustomMinimumSize.X - 8f; // fallback: card width minus margins
-
-        int fontSize = startSize;
-        while (fontSize >= 8)
-        {
-            _cardName.AddThemeFontSizeOverride("font_size", fontSize);
-            var font = _cardName.GetThemeDefaultFont();
-            if (font != null)
-            {
-                float textWidth = font.GetStringSize(_cardName.Text,
-                    HorizontalAlignment.Left, -1, fontSize).X;
-                if (textWidth <= availWidth + 2f)
-                    return; // fits
-            }
-            fontSize--;
-        }
-        _cardName.AddThemeFontSizeOverride("font_size", 8); // floor at 8px
-    }
-
-    /// <summary>
-    /// CARD-POLISH-1: Update the health/vigor bar fill and color.
-    /// Bar fills full width (ratio=1.0) at max vigor, draining right-to-left as
-    /// damage is taken. Color transitions green→amber→red with damage.
-    /// Animated briefly when vigor changes.
-    /// </summary>
-    public void SetVigor(int current, int max)
-    {
-        if (_vigorBar == null) return;
-        CurrentVigor = current;
-        MaxVigor = max;
-        if (max <= 0) return;
-
-        float ratio = Mathf.Clamp((float)current / max, 0f, 1f);
-
-        // Color: green (>66%) → amber (>33%) → red
-        Color barColor;
-        if (ratio > 0.66f)
-            barColor = new Color(0.15f + 0.35f * (1f - ratio) * 3f, 0.50f, 0.10f, 0.85f);
-        else if (ratio > 0.33f)
-            barColor = new Color(0.60f, 0.40f + 0.10f * (0.66f - ratio) * 3f, 0.08f, 0.85f);
-        else
-            barColor = new Color(0.65f, 0.15f + 0.10f * ratio * 3f, 0.05f, 0.85f);
-
-        // Brief tween for the drain animation
-        var tween = CreateTween();
-        tween.SetParallel();
-        tween.TweenProperty(_vigorBar, "scale:x", ratio, 0.2f)
-            .SetEase(Tween.EaseType.Out)
-            .SetTrans(Tween.TransitionType.Quad);
-        tween.TweenProperty(_vigorBar, "color", barColor, 0.2f)
-            .SetEase(Tween.EaseType.Out);
-
-        // Update the corner vigor badge too
-        _vigorBadge.Text = current.ToString();
-    }
-
-    // ——— Hand hover: enlarge ~1.8x, anchored above the hand (FIX 3d) ———
+    // ——— Hand hover: enlarge ~1.8x, anchored above the hand ———
 
     private void OnHoverEntered()
     {
@@ -335,79 +219,6 @@ public partial class HandCard : PanelContainer
         tween.TweenProperty(this, "scale", new Vector2(1f, 1f), 0.12f)
             .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
         tween.TweenCallback(Callable.From(() => ZIndex = 0));
-    }
-
-    /// <summary>
-    /// Create a high-contrast corner stat badge (FIX 3c).
-    /// </summary>
-    private Label MakeStatBadge(Color accent)
-    {
-        var badge = new Label
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Text = ""
-        };
-        badge.AddThemeColorOverride("font_color", Colors.White);
-        badge.AddThemeColorOverride("font_outline_color", Colors.Black);
-        badge.AddThemeConstantOverride("outline_size", 4);
-        var style = new StyleBoxFlat
-        {
-            BgColor = accent.Darkened(0.35f),
-            BorderColor = accent,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4,
-            CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4,
-            CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 4,
-            ContentMarginTop = 1,
-            ContentMarginRight = 4,
-            ContentMarginBottom = 1
-        };
-        badge.AddThemeStyleboxOverride("normal", style);
-        GetNode<Control>("Content").AddChild(badge);
-        // Explicit positioning — opt out of Container layout so the PanelContainer
-        // doesn't stretch labels full card width (the root cause of the green bar bug).
-        badge.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-        badge.SizeFlagsHorizontal = 0;
-        badge.SizeFlagsVertical = 0;
-        return badge;
-    }
-
-    /// <summary>
-    /// Position + fill the stat corner badges after the card is sized.
-    /// </summary>
-    private void UpdateStatBadges()
-    {
-        if (_attackBadge == null || _vigorBadge == null) return;
-
-        float h = CustomMinimumSize.Y;
-        float w = CustomMinimumSize.X;
-        float badgeSize = Mathf.Max(26f, h * 0.16f);
-
-        bool hasAttack = CardAttack.HasValue;
-        bool hasVigor = CardVigor.HasValue;
-
-        _attackBadge.Visible = hasAttack;
-        _vigorBadge.Visible = hasVigor;
-
-        if (hasAttack)
-        {
-            _attackBadge.Text = CardAttack.Value.ToString();
-            _attackBadge.Position = new Vector2(2, h - badgeSize - 2);
-            _attackBadge.Size = new Vector2(badgeSize, badgeSize);
-        }
-        if (hasVigor)
-        {
-            _vigorBadge.Text = CardVigor.Value.ToString();
-            _vigorBadge.Position = new Vector2(w - badgeSize - 2, h - badgeSize - 2);
-            _vigorBadge.Size = new Vector2(badgeSize, badgeSize);
-        }
     }
 
     /// <summary>

@@ -539,14 +539,13 @@ public partial class DuelScene : Control
                     {
                         var hc = _handCards[ci];
                         var r = hc.GetRect();
-                        // GetRect returns local coords; to get global need GlobalPosition
                         var gp = hc.GetScreenTransform().Origin;
-                        var nameR = hc.GetNodeOrNull<Label>("Content/CardName");
+                        var cardPlate = hc.GetNodeOrNull<CardPlate>("Content/CardPlate");
                         var nameRect = new Rect2();
-                        if (nameR != null)
+                        if (cardPlate?.GetNameLabel() != null)
                         {
-                            var np = nameR.GetScreenTransform().Origin;
-                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                            var np = cardPlate.GetNameLabel()!.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, cardPlate.GetNameLabel()!.Size.X, cardPlate.GetNameLabel()!.Size.Y);
                         }
 
                         meta.Append("    {\n");
@@ -626,12 +625,12 @@ public partial class DuelScene : Control
                     {
                         var r = slot.GetRect();
                         var gp = slot.GetScreenTransform().Origin;
-                        var nameR = slot.GetNodeOrNull<Label>("Content/CardName");
+                        var cardPlate = slot.GetNodeOrNull<CardPlate>("Content/CardPlate");
                         var nameRect = new Rect2();
-                        if (nameR != null)
+                        if (cardPlate?.GetNameLabel() != null)
                         {
-                            var np = nameR.GetScreenTransform().Origin;
-                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                            var np = cardPlate.GetNameLabel()!.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, cardPlate.GetNameLabel()!.Size.X, cardPlate.GetNameLabel()!.Size.Y);
                         }
 
                         meta.Append("    {\n");
@@ -647,12 +646,12 @@ public partial class DuelScene : Control
                     {
                         var r = slot.GetRect();
                         var gp = slot.GetScreenTransform().Origin;
-                        var nameR = slot.GetNodeOrNull<Label>("Content/CardName");
+                        var cardPlate = slot.GetNodeOrNull<CardPlate>("Content/CardPlate");
                         var nameRect = new Rect2();
-                        if (nameR != null)
+                        if (cardPlate?.GetNameLabel() != null)
                         {
-                            var np = nameR.GetScreenTransform().Origin;
-                            nameRect = new Rect2(np.X, np.Y, nameR.Size.X, nameR.Size.Y);
+                            var np = cardPlate.GetNameLabel()!.GetScreenTransform().Origin;
+                            nameRect = new Rect2(np.X, np.Y, cardPlate.GetNameLabel()!.Size.X, cardPlate.GetNameLabel()!.Size.Y);
                         }
 
                         meta.Append("    {\n");

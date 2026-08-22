@@ -79,51 +79,13 @@ max_lines_visible = 2
 text = ""
 
 [node name="CardName" type="Label" parent="Content"]
+visible = false
 anchors_preset = 0
 anchor_left = 0.0
 anchor_top = 0.80
 anchor_right = 1.0
 anchor_bottom = 0.96
-size_flags_horizontal = 3
-size_flags_vertical = 0
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.95, 0.92, 0.85, 1)
-theme_override_styles/normal = SubResource(4)
-text = ""
-autowrap_mode = 2
-max_lines_visible = 2
 mouse_filter = 2
-
-[node name="AttackBadge" type="Label" parent="Content"]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-mouse_filter = 2
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-text = ""
-
-[node name="VigorBadge" type="Label" parent="Content"]
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-mouse_filter = 2
-horizontal_alignment = 1
-vertical_alignment = 1
-theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
 text = ""
 
 [node name="TouchArea" type="Control" parent="."]

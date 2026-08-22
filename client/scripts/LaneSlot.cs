@@ -5,24 +5,25 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// A single lane slot on the board. Shows full-bleed card art with overlay
-/// name strip and stat badges when occupied, or a visible empty frame/border
-/// when empty so slots never read as voids (TASK-UI2).
+/// A single lane slot on the board. Shows full-bleed card art with CardPlate
+/// bottom plate (uniform name + stat layout) when occupied, or a visible empty
+/// frame/border when empty so slots never read as voids (TASK-UI2).
 /// Supports drag-and-drop for playing cards from hand, and tap selection
 /// for attack targeting.
+/// Now uses CardPlate for the uniform bottom plate with name and stat badges.
 /// </summary>
 public partial class LaneSlot : PanelContainer
 {
-    private Label _cardName;
-    private Label _faceLabel;
-    private Label _noArtLabel;
+    private CardPlate _cardPlate;
     private TextureRect _artRect;
-    private Label _attackBadge;
-    private Label _vigorBadge;
-    private ColorRect _vigorBar;
+    private Label _noArtLabel;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
-    private bool _vigorBarInitialized = false;
+    private Label _faceLabel;
+
+    private float _cardWidth;
+    private float _cardHeight;
+    private string _currentCardId = "";
 
     /// <summary>
     /// Emitted when a card is dropped onto this lane slot.
@@ -48,15 +49,8 @@ public partial class LaneSlot : PanelContainer
 
     public override void _Ready()
     {
-        _cardName = GetNode<Label>("Content/CardName");
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
-        _attackBadge = GetNode<Label>("Content/AttackBadge");
-        _vigorBadge = GetNode<Label>("Content/VigorBadge");
-
-        // Style stat badges with accent-colored backgrounds
-        ApplyStatBadgeStyle(_attackBadge, new Color(0.72f, 0.18f, 0.10f)); // red for attack
-        ApplyStatBadgeStyle(_vigorBadge, new Color(0.20f, 0.55f, 0.30f)); // green for vigor
 
         // NoArtLabel — card name placeholder when art file is missing
         _noArtLabel.Visible = false;
@@ -64,11 +58,11 @@ public partial class LaneSlot : PanelContainer
 
         SetEmpty();
 
-        // Apply header font to creature name
-        ApplyHeaderFont(_cardName, FontLargeBody);
-        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-        _cardName.AddThemeConstantOverride("outline_size", 2);
-        _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
+        // CardPlate — uniform bottom plate with name and stat badges
+        _cardPlate = new CardPlate();
+        _cardPlate.Name = "CardPlate";
+        var content = GetNode<Control>("Content");
+        content.AddChild(_cardPlate);
 
         // Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
@@ -82,29 +76,9 @@ public partial class LaneSlot : PanelContainer
         _faceLabel.AddThemeFontSizeOverride("font_size", 14);
         _faceLabel.MouseFilter = MouseFilterEnum.Ignore;
         _faceLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        GetNode<Control>("Content").AddChild(_faceLabel);
+        content.AddChild(_faceLabel);
 
-        // CARD-POLISH-1: Health/vigor bar behind the name strip
-        _vigorBar = new ColorRect
-        {
-            Color = new Color(0.15f, 0.50f, 0.20f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _vigorBar.AnchorLeft = 0f;
-        _vigorBar.AnchorRight = 1f;
-        _vigorBar.AnchorTop = 0.80f;
-        _vigorBar.AnchorBottom = 0.96f;
-        _vigorBar.OffsetLeft = 0;
-        _vigorBar.OffsetRight = 0;
-        _vigorBar.OffsetTop = 0;
-        _vigorBar.OffsetBottom = 0;
-        var content = GetNode<Control>("Content");
-        content.AddChild(_vigorBar);
-        // Move behind CardName so text is on top
-        var nameIdx = _cardName.GetIndex();
-        content.MoveChild(_vigorBar, nameIdx);
-
-        // Connect touch area (expanded hit region) for touch input
+        // Connect touch area for touch input
         var touchArea = GetNodeOrNull<Control>("TouchArea");
         if (touchArea != null)
             touchArea.GuiInput += OnTouchAreaInput;
@@ -117,28 +91,6 @@ public partial class LaneSlot : PanelContainer
             if (stoneTex != null)
                 slotBg.Texture = stoneTex;
         }
-    }
-
-    private static void ApplyStatBadgeStyle(Label badge, Color accent)
-    {
-        var style = new StyleBoxFlat
-        {
-            BgColor = accent.Darkened(0.35f),
-            BorderColor = accent,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3,
-            ContentMarginLeft = 3,
-            ContentMarginTop = 0,
-            ContentMarginRight = 3,
-            ContentMarginBottom = 0
-        };
-        badge.AddThemeStyleboxOverride("normal", style);
     }
 
     /// <summary>
@@ -158,47 +110,24 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void SetCard(string cardDefId, string name, int attack, int vigor, bool isExhausted = false)
     {
-        _cardName.Text = name;
+        _currentCardId = cardDefId;
         _state = NodeState.Occupied;
 
-        _cardName.Show();
-        _attackBadge.Show();
-        _vigorBadge.Show();
+        // Determine card dimensions from current size
+        float w = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
+        float h = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
+        if (w <= 0) w = 106; if (h <= 0) h = 155;
 
-        // Update stat badges
-        _attackBadge.Text = attack.ToString();
-        _vigorBadge.Text = vigor.ToString();
+        _cardWidth = w;
+        _cardHeight = h;
 
-        // CARD-POLISH-1: Reset and initialize health bar (only on first use)
-        _vigorBar.Show();
+        // CardPlate handles name + stat badges + plate background
+        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h);
+        _cardPlate.Show();
 
-        // Look up max vigor from card definition for correct bar fill
-        int maxVigor = vigor;
-        var def = CardRegistry.Get(cardDefId);
-        if (def != null && def.Vigor.HasValue)
-            maxVigor = def.Vigor.Value;
-
-        // On first call, set scale to full before tweening to current fill
-        if (!_vigorBarInitialized)
-        {
-            _vigorBar.Scale = new Vector2(1f, 1f);
-            _vigorBarInitialized = true;
-        }
-        SetVigor(vigor, maxVigor);
-
-        // Position stat badges at bottom corners
-        float h = CustomMinimumSize.Y;
-        float w = CustomMinimumSize.X;
-        float badgeSize = Mathf.Max(22f, h * 0.15f);
-        _attackBadge.Position = new Vector2(2, h - badgeSize - 2);
-        _attackBadge.Size = new Vector2(badgeSize, badgeSize);
-        _vigorBadge.Position = new Vector2(w - badgeSize - 2, h - badgeSize - 2);
-        _vigorBadge.Size = new Vector2(badgeSize, badgeSize);
-
-        // Load card art
         LoadArt(cardDefId);
 
-        // Visual: exhausted creatures get a subtle desaturation marker (not darkness — see global rule)
+        // Visual: exhausted creatures get subtle desaturation
         Modulate = isExhausted ? new Color(0.85f, 0.85f, 0.85f, 1f) : Colors.White;
     }
 
@@ -212,97 +141,44 @@ public partial class LaneSlot : PanelContainer
             {
                 _artRect.Texture = texture;
                 _noArtLabel.Visible = false;
-                _cardName.Show(); // name strip overlay on art
                 GD.Print($"[LANESLOT] {cardDefId} art via TextureRect, tex={texture.GetSize()}");
                 return;
             }
         }
-        // No card art — show centered placeholder label only
         _artRect.Texture = null;
         _noArtLabel.Visible = true;
-        _noArtLabel.Text = _cardName.Text;
-        _cardName.Hide(); // no name strip when using placeholder
+        _noArtLabel.Text = _cardPlate == null ? nameof(_cardPlate) : "";
         GD.Print($"[LANESLOT] No art for {cardDefId} — NoArtLabel shown");
         GD.Print($"[MISSING_ART] {cardDefId}");
     }
 
     /// <summary>
-    /// Clear this lane slot back to empty — shows visible border/frame
-    /// so it reads as a card place, not a void (TASK-UI2).
+    /// Clear this lane slot back to empty.
     /// </summary>
     public void SetEmpty()
     {
-        _cardName.Text = "";
-
-        _cardName.Hide();
-        _attackBadge.Hide();
-        _vigorBadge.Hide();
-        if (_vigorBar != null)
-        {
-            _vigorBar.Hide();
-            _vigorBarInitialized = false;
-        }
+        _currentCardId = "";
+        _state = NodeState.Empty;
         _artRect.Texture = null;
         _noArtLabel.Visible = false;
         if (_faceLabel != null)
             _faceLabel.Visible = false;
-        _state = NodeState.Empty;
+        if (_cardPlate != null)
+            _cardPlate.Hide();
         Modulate = Colors.White;
     }
 
     /// <summary>
-    /// Scale the lane slot to a target height (px in viewport space), keeping
-    /// the 13:19 portrait ratio (106×155 base, CARD-POLISH-1).
-    /// Fonts scale proportionally.
+    /// Scale the lane slot to a target height (px), keeping 13:19 portrait ratio.
+    /// CardPlate repositions itself via Setup.
     /// </summary>
     public void ScaleTo(float targetHeight)
     {
-        float aspect = 106f / 155f; // 13:19 portrait ratio (CARD-POLISH-1)
-        CustomMinimumSize = new Vector2(targetHeight * aspect, targetHeight);
+        float aspect = 106f / 155f;
+        _cardWidth = targetHeight * aspect;
+        _cardHeight = targetHeight;
+        CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
-
-        float scale = targetHeight / 155f;
-        int nameSize = Mathf.Max(9, Mathf.RoundToInt(12 * scale));
-        int statSize = Mathf.Max(14, Mathf.RoundToInt(16 * scale));
-        _cardName.AddThemeFontSizeOverride("font_size", nameSize);
-        _attackBadge.AddThemeFontSizeOverride("font_size", statSize);
-        _vigorBadge.AddThemeFontSizeOverride("font_size", statSize);
-    }
-
-    /// <summary>
-    /// Previous vigor value for computing damage/heal diffs.
-    /// </summary>
-    public int PreviousVigor { get; set; } = -1;
-
-    /// <summary>
-    /// CARD-POLISH-1: Update the health/vigor bar fill and color.
-    /// Animated drain and color transition from green→amber→red.
-    /// </summary>
-    public void SetVigor(int current, int max)
-    {
-        if (_vigorBar == null) return;
-        if (max <= 0) return;
-
-        float ratio = Mathf.Clamp((float)current / max, 0f, 1f);
-
-        // Color: green (>66%) → amber (>33%) → red
-        Color barColor;
-        if (ratio > 0.66f)
-            barColor = new Color(0.15f + 0.35f * (1f - ratio) * 3f, 0.50f, 0.10f, 0.85f);
-        else if (ratio > 0.33f)
-            barColor = new Color(0.60f, 0.40f + 0.10f * (0.66f - ratio) * 3f, 0.08f, 0.85f);
-        else
-            barColor = new Color(0.65f, 0.15f + 0.10f * ratio * 3f, 0.05f, 0.85f);
-
-        var tween = CreateTween();
-        tween.SetParallel();
-        tween.TweenProperty(_vigorBar, "scale:x", ratio, 0.2f)
-            .SetEase(Tween.EaseType.Out)
-            .SetTrans(Tween.TransitionType.Quad);
-        tween.TweenProperty(_vigorBar, "color", barColor, 0.2f)
-            .SetEase(Tween.EaseType.Out);
-
-        _vigorBadge.Text = current.ToString();
     }
 
     /// <summary>
@@ -316,7 +192,6 @@ public partial class LaneSlot : PanelContainer
 
     /// <summary>
     /// Show that this empty lane is a valid face-attack target.
-    /// Displays a → FACE label with gold highlight.
     /// </summary>
     public void HighlightAsFaceTarget()
     {
@@ -331,51 +206,6 @@ public partial class LaneSlot : PanelContainer
     {
         _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 1, 1);
-    }
-
-    // ——— Animation effects ———
-
-    /// <summary>
-    /// Play a summon animation: scale from 0 to 1 with a brief strata-colored flash.
-    /// State update happens before this, so animations never block gameplay.
-    /// </summary>
-    public void PlaySummonEffect()
-    {
-        Scale = new Vector2(0, 0);
-        Modulate = new Color(2, 2, 2, 1); // brief bright flash
-
-        var tween = CreateTween();
-        tween.SetParallel();
-        tween.TweenProperty(this, "scale", new Vector2(1, 1), 0.3f)
-            .SetEase(Tween.EaseType.Out)
-            .SetTrans(Tween.TransitionType.Back);
-        tween.TweenProperty(this, "modulate", new Color(1, 1, 1, 1), 0.2f);
-    }
-
-    /// <summary>
-    /// Play a death animation: flash red, then fade out and shrink.
-    /// Resets scale and alpha for reuse when the lane slot is re-populated.
-    /// State update happens before this — the visual is purely cosmetic.
-    /// </summary>
-    public void PlayDeathEffect()
-    {
-        // Flash red
-        Modulate = new Color(1, 0.2f, 0.2f, 1);
-
-        var tween = CreateTween();
-        tween.TweenInterval(0.1f); // hold red flash
-        tween.SetParallel();
-        tween.TweenProperty(this, "modulate:a", 0.0f, 0.4f);
-        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.4f)
-            .SetEase(Tween.EaseType.In)
-            .SetTrans(Tween.TransitionType.Back);
-        tween.SetParallel(false);
-        tween.TweenCallback(Callable.From(() =>
-        {
-            // Reset for reuse when a new creature is summoned
-            Modulate = new Color(1, 1, 1, 1);
-            Scale = new Vector2(1, 1);
-        }));
     }
 
     /// <summary>
@@ -402,17 +232,44 @@ public partial class LaneSlot : PanelContainer
         ft.ShowAt($"+{amount}", new Color(0.2f, 1, 0.2f), GlobalPosition + new Vector2(32, 0));
     }
 
+    // ——— Animation effects ———
+
+    public void PlaySummonEffect()
+    {
+        Scale = new Vector2(0, 0);
+        Modulate = new Color(2, 2, 2, 1);
+        var tween = CreateTween();
+        tween.SetParallel();
+        tween.TweenProperty(this, "scale", new Vector2(1, 1), 0.3f)
+            .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Back);
+        tween.TweenProperty(this, "modulate", new Color(1, 1, 1, 1), 0.2f);
+    }
+
+    public void PlayDeathEffect()
+    {
+        Modulate = new Color(1, 0.2f, 0.2f, 1);
+        var tween = CreateTween();
+        tween.TweenInterval(0.1f);
+        tween.SetParallel();
+        tween.TweenProperty(this, "modulate:a", 0.0f, 0.4f);
+        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.4f)
+            .SetEase(Tween.EaseType.In).SetTrans(Tween.TransitionType.Back);
+        tween.SetParallel(false);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            Modulate = new Color(1, 1, 1, 1);
+            Scale = new Vector2(1, 1);
+        }));
+    }
+
     // ——— Drag-and-drop target ———
 
     public override bool _CanDropData(Vector2 atPosition, Variant data)
     {
-        // Only accept drops on player lane slots (row 1) that are empty
         if (Row != 1 || _state == NodeState.Occupied)
             return false;
-
         if (data.VariantType != Variant.Type.Dictionary)
             return false;
-
         var dict = data.AsGodotDictionary();
         return dict.ContainsKey("type") && dict["type"].AsString() == "hand_card";
     }
