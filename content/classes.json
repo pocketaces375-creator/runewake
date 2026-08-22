@@ -1,0 +1,44 @@
+[
+  {
+    "id": "warrior",
+    "name": "WARRIOR",
+    "strata": "EMBER",
+    "town": "Emberhold",
+    "description": "Steel and fire. The warrior forges victory from the anvil of battle.",
+    "blurb": "Tempered in the forge-fires of Emberhold, warriors carry the ancient craft of war into every fight.",
+    "core_cards": [
+      "emb_c_forgeguard_berserker",
+      "emb_c_ember_hound",
+      "emb_c_cinder_runner",
+      "emb_u_wildfire_adept"
+    ]
+  },
+  {
+    "id": "necromancer",
+    "name": "NECROMANCER",
+    "strata": "HOLLOW",
+    "town": "Palewatch",
+    "description": "Bone and bargain. The necromancer commands what others fear to wake.",
+    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
+    "core_cards": [
+      "hol_c_gravewrit_thrall",
+      "hol_c_skeletal_reaver",
+      "hol_c_ossuary_guard",
+      "hol_c_deathspeaker"
+    ]
+  },
+  {
+    "id": "druid",
+    "name": "DRUID",
+    "strata": "VERDANT",
+    "town": "Mossgrave",
+    "description": "Root and renewal. The druid speaks the language of the living earth.",
+    "blurb": "Deep in the canopies of Mossgrave, druids tend the old growth and awaken the deep roots.",
+    "core_cards": [
+      "vrd_c_root_warden",
+      "vrd_c_verdant_sproutling",
+      "vrd_c_wildwood_stalker",
+      "vrd_u_grove_healer"
+    ]
+  }
+]

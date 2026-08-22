@@ -129,15 +129,25 @@ public static class CampaignContext
     public static string TutorialPlayerClass { get; set; } = string.Empty;
 
     /// <summary>
-    /// Reserved — starting vigor is always 25.
-    /// </summary>
-    public static MatchConfig? MatchConfig { get; set; }
+        /// Reserved — starting vigor is always 25.
+        /// </summary>
+        public static MatchConfig? MatchConfig { get; set; }
 
-    /// <summary>
+        /// <summary>
+        /// Chosen class from ChooseYourPath screen (e.g. "warrior").
+        /// </summary>
+        public static string ChosenClass { get; set; } = "";
 
-    /// <summary>
-    /// Load all encounter packs from the content directory.
-    /// Call once at title screen.
+        /// <summary>
+        /// Chosen town from ChooseYourPath screen (e.g. "Emberhold").
+        /// </summary>
+        public static string ChosenTown { get; set; } = "";
+
+        /// <summary>
+        /// [[ Hole left by earlier refactor — keep as sentinel. ]]
+        /// </summary>
+        /// <summary>
+        /// Load all encounter packs
     /// </summary>
     public static void LoadEncounters()
     {
