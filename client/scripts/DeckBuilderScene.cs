@@ -104,6 +104,12 @@ public partial class DeckBuilderScene : Control
             CampaignContext.CoreCardIds = null;
         }
 
+        // Default strata filter for cross-strata classes (RANGER, OCCULTIST)
+        string chosen = CampaignContext.ChosenClass;
+        if (chosen == "ranger" || chosen == "occultist" || string.IsNullOrEmpty(chosen))
+            _selectedStrataIdx = 0; // ALL
+        UpdateFilterChips();
+
         // Apply any core cards set via SetCoreCards before _Ready
         if (_pendingCoreCards != null)
         {
