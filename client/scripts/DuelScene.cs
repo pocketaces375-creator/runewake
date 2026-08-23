@@ -1892,7 +1892,8 @@ public partial class DuelScene : Control
         }
         else
         {
-            if (_playerHealthBar != null && IsInsideTree())
+            // Health bar shake — removed in WORLD-POLISH-1
+            /*
             {
                 var origPos = _playerHealthBar.Position;
                 var shake = CreateTween();
@@ -1901,12 +1902,13 @@ public partial class DuelScene : Control
                 shake.TweenProperty(_playerHealthBar, "position", origPos + new Vector2(4, 0), 0.04f);
                 shake.TweenProperty(_playerHealthBar, "position", origPos, 0.04f);
             }
+            */
         }
 
         if (isEnemy)
             pos = _enemyVigorValue.GlobalPosition + new Vector2(40, -10);
         else
-            pos = _playerVigorValue.GlobalPosition + new Vector2(40, -20);
+            pos = _playerShrineVigorLabel?.GlobalPosition ?? new Vector2(100, 500) + new Vector2(40, -20);
 
         ft.ShowLargeAt(prefixAndAmount, color, pos);
     }
@@ -2022,12 +2024,6 @@ public partial class DuelScene : Control
                 }
             }
         }
-
-        // Player health bar
-        float playerRatio = (float)playerHud.Vigor / playerHud.MaxVigor;
-        float fullWidth = GetViewportRect().Size.X;
-        _playerHealthBar.Size = new Vector2(fullWidth * Math.Clamp(playerRatio, 0, 1), 36);
-        _playerHealthBar.Color = HealthBarColor(playerRatio);
 
         SetPlayerVigor(playerHud.Vigor);
         SetPlayerAttunement($"{playerHud.Attunement}/{playerHud.AttunementMax}");
