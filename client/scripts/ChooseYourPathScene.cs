@@ -371,26 +371,32 @@ public partial class ChooseYourPathScene : Control
 
     /// <summary>
     /// Layout self-check: every panel rect fully inside container, center panel full size.
+    /// Uses global coordinates for proper containment check.
     /// </summary>
     private void RunVerify()
     {
         int failed = 0;
-        var containerRect = new Rect2(
-            _carouselPanelContainer.Position,
-            _carouselPanelContainer.Size
-        );
+        var containerGlobal = _carouselPanelContainer.GetRect();
 
         for (int i = 0; i < _panelNodes.Count; i++)
         {
             var panel = _panelNodes[i];
-            var panelRect = new Rect2(panel.Position, panel.Size);
+            // Panel's global rect = container global position + panel local position
+            var panelGlobal = new Rect2(
+                containerGlobal.Position + panel.Position,
+                panel.Size
+            );
 
             // Check containment in carousel container
-            if (!containerRect.Encloses(panelRect))
+            if (!containerGlobal.Encloses(panelGlobal))
             {
-                GD.Print($"[VERIFY] Panel {i}: position={panel.Position}, size={panel.Size}, " +
-                         $"container_rect={containerRect} — NOT fully inside container");
+                GD.Print($"[VERIFY] Panel {i}: global_pos={panelGlobal.Position}, " +
+                         $"size={panel.Size}, container={containerGlobal} — outside");
                 failed++;
+            }
+            else
+            {
+                GD.Print($"[VERIFY] Panel {i}: OK (pos={panel.Position}, size={panel.Size})");
             }
         }
 
