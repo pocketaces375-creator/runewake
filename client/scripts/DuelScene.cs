@@ -70,6 +70,7 @@ public partial class DuelScene : Control
     private Label _playerShrineDeckLabel = default!;
     private Label _playerShrineBarrowLabel = default!;
     private Label _playerShrineVigorLabel = default!;
+    private Label _playerShrineAttuneLabel = default!;
 
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
@@ -173,24 +174,13 @@ public partial class DuelScene : Control
             }
         }
 
-        // Health bar track (player only — TASK-UI3a: enemy uses vigor chip instead)
-        var playerTrack = new ColorRect { Name = "PlayerHealthTrack", Color = new Color(0.06f, 0.05f, 0.04f, 0.6f), MouseFilter = MouseFilterEnum.Ignore };
-        playerTrack.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
-        playerTrack.OffsetTop = -36;
-        AddChild(playerTrack);
-
-        _playerHealthBar = new ColorRect { Name = "PlayerHealthBar", Color = Colors.Transparent, MouseFilter = MouseFilterEnum.Ignore };
-        _playerHealthBar.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
-        _playerHealthBar.OffsetTop = -36;
-        AddChild(_playerHealthBar);
-
         // TASK-UI3a: Build enemy top bar (74px, replaces old EnemyHUD + arsenal group + portrait)
         BuildEnemyTopBar();
 
-        // Move player HUD in front of health bar
-        var playerHud = GetNode<CenterContainer>("PlayerHUD");
-        RemoveChild(playerHud);
-        AddChild(playerHud);
+        // PlayerHUD at bottom-center — HIDDEN (stats moved to left shrine) — WORLD-POLISH-1
+        var playerHud = GetNodeOrNull<CenterContainer>("PlayerHUD");
+        if (playerHud != null)
+            playerHud.Visible = false;
 
         // TASK-UI3b: Build altar battlefield (replaces straight HBox lanes)
         BuildAltarField();
@@ -1194,6 +1184,18 @@ public partial class DuelScene : Control
         _playerShrineVigorLabel.AddThemeColorOverride("font_color", Moss);
         statsVBox.AddChild(_playerShrineVigorLabel);
 
+        // Attune number under vigor (Cinzel small caps)
+        _playerShrineAttuneLabel = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(11 * scale));
+        _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.2f, 1));
+        statsVBox.AddChild(_playerShrineAttuneLabel);
+
         // Set _playerGroupRect to the shrine for capture meta.json compatibility
         _playerGroupRect = _playerShrine;
 
@@ -1491,18 +1493,18 @@ public partial class DuelScene : Control
         float reference = 648f;
         float scale = viewportHeight / reference;
 
-        _handCardHeight = Mathf.Max(110f, 170f * scale);
-        // CARD-POLISH-1: Board cards use 13:19 portrait ratio, base 106×155 (+10%)
-        _boardCardHeight = Mathf.Max(100f, 155f * scale);
+        _handCardHeight = Mathf.Max(90f, 152f * scale);
+        // CARD-POLISH-1: Board cards use 13:19 portrait ratio, base 88×129
+        _boardCardHeight = Mathf.Max(70f, 129f * scale);
 
         // HAND-VIEWPORT-FIX-1R: Hand tray anchored to viewport bottom (hand top = vh - handCardH - 12).
         // PopulateLanes re-affirms this after slot layout; this is the initial set.
         _handArea.OffsetTop = -(_handCardHeight + 12f);
 
-        // TASK-UI3c: Recentre hand beside the player shrine.
-        float shrineWidth = 86f * scale + 4f * scale + 46f * scale + 42f * scale + 4f * scale + 4f * scale; // art + gap + portrait + deck + barrow + gaps
-        float marginLeft = Mathf.Max(20f, shrineWidth + 24f * scale);
-        _handArea.AddThemeConstantOverride("margin_left", (int)marginLeft);
+        // WORLD-POLISH-1: Hand max width = viewport_width - 380 (leaves left stone cluster and right End Turn zone)
+        float marginLeft = Mathf.Max(380f, 380f * scale);
+        _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
+        _handArea.AddThemeConstantOverride("margin_right", 80);
 
         GD.Print($"[DUEL] viewport height {viewportHeight:F0} → hand {_handCardHeight:F0}px, board {_boardCardHeight:F0}px");
     }
@@ -1546,36 +1548,28 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
         float scale = vh / 648f;
-        // CARD-POLISH-1: Board slots 13:19 portrait, base 106×155 (+10%)
-        float slotH = 155f * scale;
-        float slotW = 106f * scale;
+        // WORLD-POLISH-1: Board slots 88x129, band layout
+        float slotH = 129f * scale;
+        float slotW = 88f * scale;
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
-        float spacing = 240f * scale; // CARD-POLISH-1: wider spacing for bigger slots
+        float spacing = 130f * scale; // maintains >= 18px min gap between adjacent slots
 
-        // Enemy baseline Y: top arc, moved up to 0.06 to make room for the fixed hand tray (HAND-VIEWPORT-FIX-1R)
-        float enemyBaseY = GetViewportRect().Size.Y * 0.06f;
-        // Player baseline Y: computed so the lowest (center) player slot bottom sits at
-        // hand top - 12px. Hand top = vh - handCardH - 12. The board shrinks to fit —
-        // never the hand (HAND-VIEWPORT-FIX-1R).
-        float handCardH = Mathf.Max(110f, 170f * scale);
-        float handTop = vh - handCardH - 12f;
-        // Board node starts 74px below the viewport top (DuelScene.tscn offset_top=74);
-        // slots are children of the altar container (full-rect inside Board).
+        // WORLD-POLISH-1: Band layout at reference 1152x648
+        // Enemy row: screen Y 72..238, player row: screen Y 264..430
+        // Board node has offset_top=74 from DuelScene.tscn
         float boardTopOffset = 74f;
-        // Lowest slot = center slot (offset 0): screen bottom = boardTopOffset + playerBaseY + slotH
-        // Constraint: screen bottom <= handTop - 12
-        float playerBaseY = (handTop - 12f) - boardTopOffset - slotH;
+        float enemyBaseY = (72f - boardTopOffset) * scale; // = -2 at scale 1
+        float playerBaseY = (430f - boardTopOffset) * scale - slotH; // = 227 at scale 1 (row fits 264-430)
 
         for (int i = 0; i < 5; i++)
         {
             float xCenter = centerX + (i - 2) * spacing;
             float x = xCenter - slotW / 2f;
 
-            // ── Enemy slot (top arc, bowing downward) ──
-            // CARD-POLISH-1: amplitude reduced to 8 so bigger slots fit without overlap
-            float enemyYOffset = i switch { 0 or 4 => 8f, 1 or 3 => 4f, _ => 0f } * scale;
+            // ── Enemy slot (top arc, slight bowing) ──
+            float enemyYOffset = i switch { 0 or 4 => 6f, 1 or 3 => 3f, _ => 0f } * scale;
             float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
@@ -1611,17 +1605,67 @@ public partial class DuelScene : Control
             _playerSlots.Add(playerSlot);
         }
 
-        GD.Print($"[DUEL] TASK-UI3b: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
+        GD.Print($"[DUEL] WORLD-POLISH-1: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
 
         // HAND-VIEWPORT-FIX-1R: Anchor hand tray to viewport bottom — hand top =
         // viewport_height - handCardHeight - 12px. Always fully visible, regardless
         // of board layout. Re-affirms the value set in ScaleCardSizes.
         float vhPop = GetViewportRect().Size.Y;
         float scalePop = vhPop / 648f;
-        float handCardHPop = Mathf.Max(110f, 170f * scalePop);
+        float handCardHPop = Mathf.Max(90f, 152f * scalePop); // WORLD-POLISH-1: hand card 104x152
         float handTopPop = vhPop - handCardHPop - 12f;
         _handArea.OffsetTop = -(vhPop - handTopPop);
         GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}");
+
+        // [VERIFY] Band layout assertions — WORLD-POLISH-1
+        bool verifyFailed = false;
+        foreach (var slot in _enemySlots)
+        {
+            float absTop = boardTopOffset + slot.Position.Y;
+            float absBottom = absTop + slot.Size.Y;
+            if (absTop < 72f * scale - 2f || absBottom > 238f * scale + 2f)
+            {
+                GD.PrintErr($"[VERIFY] Enemy slot at screen Y {absTop:F0}-{absBottom:F0} outside band 72-{238f * scale:F0}");
+                verifyFailed = true;
+            }
+        }
+        foreach (var slot in _playerSlots)
+        {
+            float absTop = boardTopOffset + slot.Position.Y;
+            float absBottom = absTop + slot.Size.Y;
+            if (absTop < 264f * scale - 2f || absBottom > 430f * scale + 2f)
+            {
+                GD.PrintErr($"[VERIFY] Player slot at screen Y {absTop:F0}-{absBottom:F0} outside band 264-{430f * scale:F0}");
+                verifyFailed = true;
+            }
+        }
+        // Min gap between rows
+        float enemyBottom = boardTopOffset + _enemySlots.Max(s => s.Position.Y + s.Size.Y);
+        float playerTop = boardTopOffset + _playerSlots.Min(s => s.Position.Y);
+        float gapBetween = playerTop - enemyBottom;
+        if (gapBetween < 26f * scale)
+        {
+            GD.PrintErr($"[VERIFY] Gap {gapBetween:F0}px < min 26px between rows");
+            verifyFailed = true;
+        }
+        // Hand top never enters player row band
+        if (handTopPop < 430f * scalePop)
+        {
+            GD.PrintErr($"[VERIFY] Hand top {handTopPop:F0} enters player row band (band bottom = {430f * scalePop:F0})");
+            verifyFailed = true;
+        }
+        // Min horizontal gap between adjacent board cards
+        for (int i = 1; i < _enemySlots.Count; i++)
+        {
+            float gap_adj = _enemySlots[i].Position.X - (_enemySlots[i-1].Position.X + _enemySlots[i-1].Size.X);
+            if (gap_adj < 18f * scale - 1f)
+            {
+                GD.PrintErr($"[VERIFY] Enemy slot horizontal gap {gap_adj:F0}px < min 18px (idx {i-1}-{i})");
+                verifyFailed = true;
+            }
+        }
+        if (!verifyFailed)
+            GD.Print("[VERIFY] duel band layout: 0 failed");
     }
 
     // ——— State-driven rendering ———
@@ -1936,6 +1980,8 @@ public partial class DuelScene : Control
                 _playerShrineBarrowLabel.Text = p0.Barrow.Count.ToString();
             if (_playerShrineVigorLabel != null)
                 _playerShrineVigorLabel.Text = $"Vigor {p0.Vigor}";
+            if (_playerShrineAttuneLabel != null)
+                _playerShrineAttuneLabel.Text = $"ATTUNE {playerHud.Attunement}/{playerHud.AttunementMax}";
 
             // Player artifact cards: name + charge pips + visual state
             int artSlots = p0.ArtifactSlots?.Length ?? 0;
@@ -3010,8 +3056,8 @@ public partial class DuelScene : Control
 
     public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = Math.Max(0, vigor).ToString();
         public void SetEnemyAttunement(string text) => _enemyAttuneValue.Text = text;
-        public void SetPlayerVigor(int vigor) => _playerVigorValue.Text = Math.Max(0, vigor).ToString();
-        public void SetPlayerAttunement(string text) => _playerAttuneValue.Text = text;
+        public void SetPlayerVigor(int vigor) { if (_playerShrineVigorLabel != null) _playerShrineVigorLabel.Text = $"Vigor {Math.Max(0, vigor)}"; }
+        public void SetPlayerAttunement(string text) { if (_playerShrineAttuneLabel != null) _playerShrineAttuneLabel.Text = text; }
 
     public void ClearBoard()
     {
