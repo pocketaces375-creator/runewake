@@ -211,7 +211,7 @@ public partial class Main : Control
         CampaignContext.LoadCampaignProfile();
         if (CampaignContext.HasSavedCampaign)
         {
-            var profile = CampaignContext.Profile!;
+            var profile = CampaignContext.ActiveProfile!;
             string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
             string townName = profile.TownName;
             _startButton.Text = $"CONTINUE — {className} of {townName}";

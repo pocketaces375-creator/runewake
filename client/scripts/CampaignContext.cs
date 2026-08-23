@@ -155,99 +155,198 @@ public static class CampaignContext
 
         /// <summary>Path to campaign profile JSON (user:// sandbox).</summary>
         private const string CampaignProfilePath = "user://campaign.json";
+        private const string ProfilesPathV2 = "user://profiles.json";
 
         /// <summary>
-        /// Saved campaign profile — persists chosen class/town across restarts.
-        /// Null when no campaign has been started.
+        /// All saved campaign profiles. Null when no campaigns exist.
         /// </summary>
-        public static CampaignProfile? Profile { get; set; }
+        public static List<CampaignProfile> Profiles { get; set; } = new();
 
-        /// <summary>True when a campaign profile exists on disk.</summary>
-        public static bool HasSavedCampaign => Profile != null;
+        /// <summary>The currently active profile slot, or -1 if none.</summary>
+        public static int ActiveProfileSlot { get; set; } = -1;
 
-        /// <summary>Save the current campaign choice to disk.</summary>
+        /// <summary>True when at least one campaign profile exists on disk.</summary>
+        public static bool HasSavedCampaign => Profiles.Count > 0;
+
+        /// <summary>Get the currently active profile, or null.</summary>
+        public static CampaignProfile? ActiveProfile =>
+            ActiveProfileSlot >= 0 && ActiveProfileSlot < Profiles.Count ? Profiles[ActiveProfileSlot] : null;
+
+        /// <summary>Save ALL profiles to disk.</summary>
         public static void SaveCampaignProfile()
         {
             try
             {
-                var profile = new CampaignProfile
-                {
-                    ClassId = ChosenClass,
-                    TownName = ChosenTown,
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                };
-                string json = System.Text.Json.JsonSerializer.Serialize(profile, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Write);
+                var data = new ProfilesData { Profiles = Profiles };
+                string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                using var file = Godot.FileAccess.Open(ProfilesPathV2, Godot.FileAccess.ModeFlags.Write);
                 if (file != null)
                 {
                     file.StoreString(json);
-                    Profile = profile;
-                    GD.Print($"[CampaignContext] Campaign profile saved: class={ChosenClass}, town={ChosenTown}");
+                    GD.Print($"[CampaignContext] {Profiles.Count} profiles saved");
                 }
                 else
-                    GD.PrintErr("[CampaignContext] Failed to save campaign profile");
+                    GD.PrintErr("[CampaignContext] Failed to save profiles");
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"[CampaignContext] Save campaign profile failed: {ex.Message}");
+                GD.PrintErr($"[CampaignContext] Save profiles failed: {ex.Message}");
             }
         }
 
-        /// <summary>Load the campaign profile from disk.</summary>
+        /// <summary>Load profiles from disk with migration from old format.</summary>
         public static void LoadCampaignProfile()
         {
+            Profiles = new List<CampaignProfile>();
+            ActiveProfileSlot = -1;
+
             try
             {
-                if (!Godot.FileAccess.FileExists(CampaignProfilePath))
+                // Try new v2 format first (profiles array)
+                if (Godot.FileAccess.FileExists(ProfilesPathV2))
                 {
-                    Profile = null;
-                    return;
+                    using var file = Godot.FileAccess.Open(ProfilesPathV2, Godot.FileAccess.ModeFlags.Read);
+                    if (file != null)
+                    {
+                        string json = file.GetAsText().Trim();
+                        if (json.Length > 2)
+                        {
+                            var data = System.Text.Json.JsonSerializer.Deserialize<ProfilesData>(json);
+                            if (data?.Profiles != null && data.Profiles.Count > 0)
+                            {
+                                Profiles = data.Profiles;
+                                ActiveProfileSlot = 0;
+                                ChosenClass = Profiles[0].ClassId;
+                                ChosenTown = Profiles[0].TownName ?? "";
+                                GD.Print($"[CampaignContext] {Profiles.Count} profiles loaded (v2 format)");
+                                return;
+                            }
+                        }
+                    }
                 }
-                using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Read);
-                if (file == null)
+
+                // Try migration from old v1 format (single profile in campaign.json)
+                if (Godot.FileAccess.FileExists(CampaignProfilePath))
                 {
-                    Profile = null;
-                    return;
+                    using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Read);
+                    if (file != null)
+                    {
+                        string json = file.GetAsText().Trim();
+                        if (json.Length > 2)
+                        {
+                            // Try as old CampaignProfile format
+                            var old = System.Text.Json.JsonSerializer.Deserialize<CampaignProfile>(json);
+                            if (old != null && !string.IsNullOrEmpty(old.ClassId))
+                            {
+                                old.Slot = 0;
+                                old.ActiveDeckId = "";
+                                old.MapProgress = "";
+                                old.StoryFlags = "";
+                                Profiles.Add(old);
+                                ActiveProfileSlot = 0;
+                                ChosenClass = old.ClassId;
+                                ChosenTown = old.TownName ?? "";
+                                // Save to new format immediately
+                                SaveCampaignProfile();
+                                GD.Print($"[CampaignContext] Migrated v1 profile to v2: {old.ClassId}");
+                                return;
+                            }
+                        }
+                    }
                 }
-                string json = file.GetAsText();
-                var profile = System.Text.Json.JsonSerializer.Deserialize<CampaignProfile>(json);
-                if (profile != null && !string.IsNullOrEmpty(profile.ClassId))
-                {
-                    Profile = profile;
-                    ChosenClass = profile.ClassId;
-                    ChosenTown = profile.TownName ?? "";
-                    GD.Print($"[CampaignContext] Campaign profile loaded: class={profile.ClassId}, town={profile.TownName}");
-                }
-                else
-                    Profile = null;
             }
             catch (System.Exception ex)
             {
-                Profile = null;
-                GD.PrintErr($"[CampaignContext] Load campaign profile failed: {ex.Message}");
+                GD.PrintErr($"[CampaignContext] Load profiles failed: {ex.Message}");
+            }
+
+            GD.Print("[CampaignContext] No profiles found");
+        }
+
+        /// <summary>Add or update a profile in the list (max 3 slots).</summary>
+        public static void AddOrUpdateProfile(string classId, string townName, int slot = -1)
+        {
+            if (slot >= 0 && slot < Profiles.Count)
+            {
+                // Update existing
+                var p = Profiles[slot];
+                p.ClassId = classId;
+                p.TownName = townName;
+                ActiveProfileSlot = slot;
+            }
+            else
+            {
+                // Add new — find first empty slot or append
+                int newSlot = 0;
+                for (int i = 0; i < Profiles.Count; i++)
+                {
+                    if (Profiles[i].Slot == -1 || Profiles[i].Slot == Profiles.Count)
+                        newSlot = i;
+                }
+                if (Profiles.Count >= 3)
+                {
+                    GD.PrintErr("[CampaignContext] Max 3 profiles reached — replacing oldest");
+                    Profiles.RemoveAt(0);
+                }
+                var profile = new CampaignProfile
+                {
+                    Slot = Profiles.Count,
+                    ClassId = classId,
+                    TownName = townName,
+                    CreatedAt = DateTime.UtcNow.ToString("O"),
+                    ActiveDeckId = "",
+                    MapProgress = "",
+                    StoryFlags = ""
+                };
+                Profiles.Add(profile);
+                ActiveProfileSlot = Profiles.Count - 1;
+            }
+
+            // Sync static fields
+            ChosenClass = classId;
+            ChosenTown = townName;
+            SaveCampaignProfile();
+        }
+
+        /// <summary>Delete a profile by slot.</summary>
+        public static void DeleteProfile(int slot)
+        {
+            if (slot >= 0 && slot < Profiles.Count)
+            {
+                Profiles.RemoveAt(slot);
+                if (ActiveProfileSlot == slot)
+                {
+                    ActiveProfileSlot = -1;
+                    ChosenClass = "";
+                    ChosenTown = "";
+                }
+                else if (ActiveProfileSlot > slot)
+                    ActiveProfileSlot--;
+                SaveCampaignProfile();
+                GD.Print($"[CampaignContext] Deleted profile slot {slot}");
             }
         }
 
-        /// <summary>Delete the saved campaign profile (new game).</summary>
+        /// <summary>Delete the active profile. Kept for backward compat.</summary>
         public static void DeleteCampaignProfile()
         {
-            try
+            if (ActiveProfileSlot >= 0)
+                DeleteProfile(ActiveProfileSlot);
+            else
             {
-                if (Godot.FileAccess.FileExists(CampaignProfilePath))
-                {
-                    // Godot doesn't expose directory delete — overwrite with empty
-                    using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Write);
-                    file?.StoreString("");
-                }
-                Profile = null;
+                Profiles.Clear();
                 ChosenClass = "";
                 ChosenTown = "";
-                GD.Print("[CampaignContext] Campaign profile deleted");
+                SaveCampaignProfile();
             }
-            catch (System.Exception ex)
-            {
-                GD.PrintErr($"[CampaignContext] Delete campaign profile failed: {ex.Message}");
-            }
+        }
+
+        /// <summary>
+        /// Serializable wrapper for the profiles array
+        /// </summary>
+        public class ProfilesData
+        {
+            public List<CampaignProfile> Profiles { get; set; } = new();
         }
 
         /// <summary>
@@ -255,8 +354,12 @@ public static class CampaignContext
         /// </summary>
         public class CampaignProfile
         {
+            public int Slot { get; set; } = 0;
             public string ClassId { get; set; } = "";
             public string TownName { get; set; } = "";
+            public string MapProgress { get; set; } = "";
+            public string StoryFlags { get; set; } = "";
+            public string ActiveDeckId { get; set; } = "";
             public string CreatedAt { get; set; } = "";
         }
 
