@@ -28,6 +28,10 @@ public partial class MapScene : Control
     private Button _backButton;
     private Label _shardLabel;
 
+    // Deck chip
+    private Control _deckChip = default!;
+    private Label _deckChipLabel = default!;
+
     // Side buttons
     private Button _settingsBtn;
     private Button _runePageBtn;
@@ -265,6 +269,67 @@ public partial class MapScene : Control
         _shardLabel.AddThemeFontSizeOverride("font_size", 14);
         _shardLabel.Modulate = new Color(0.85f, 0.72f, 0.35f, 0.8f); // gold
         AddChild(_shardLabel);
+
+        // Deck chip (top bar, right side — shows active deck name)
+        _deckChip = new HBoxContainer
+        {
+            AnchorLeft = 0.85f, AnchorRight = 0.97f,
+            AnchorTop = 0.008f, AnchorBottom = 0.047f
+        };
+
+        var chipPanel = new PanelContainer();
+        var chipStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.16f, 0.12f, 0.9f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 6, ContentMarginTop = 2,
+            ContentMarginRight = 6, ContentMarginBottom = 2
+        };
+        chipPanel.AddThemeStyleboxOverride("panel", chipStyle);
+
+        var chipInner = new HBoxContainer();
+        chipInner.AddThemeConstantOverride("separation", 4);
+
+        // Colored class dot
+        var dot = new ColorRect
+        {
+            CustomMinimumSize = new Vector2(8, 8),
+            Color = GetClassColor(),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        chipInner.AddChild(dot);
+
+        // Deck name label (Cinzel 10px)
+        _deckChipLabel = new Label();
+        _deckChipLabel.AddThemeFontSizeOverride("font_size", 10);
+        ThemeTokens.ApplyHeaderFont(_deckChipLabel, 10);
+        _deckChipLabel.MouseFilter = MouseFilterEnum.Ignore;
+        chipInner.AddChild(_deckChipLabel);
+
+        chipPanel.AddChild(chipInner);
+        _deckChip.AddChild(chipPanel);
+
+        // Tap overlay (transparent button covering the chip)
+        var tapBtn = new Button
+        {
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f
+        };
+        var emptyStyle = new StyleBoxEmpty();
+        tapBtn.AddThemeStyleboxOverride("normal", emptyStyle);
+        tapBtn.AddThemeStyleboxOverride("hover", emptyStyle);
+        tapBtn.AddThemeStyleboxOverride("pressed", emptyStyle);
+        tapBtn.Pressed += ShowDeckPopup;
+        _deckChip.AddChild(tapBtn);
+
+        AddChild(_deckChip);
+
+        // Set initial chip text
+        UpdateDeckChipText();
     }
 
     // ── Side buttons ─────────────────────────────────────────────────────
@@ -718,5 +783,130 @@ public partial class MapScene : Control
         Vector2 newOffset = offset * (_zoom / oldZoom);
         _mapContainer.Position = mousePos - newOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
+    }
+
+    // ── Deck chip helpers ───────────────────────────────────────────
+
+    private Color GetClassColor()
+    {
+        string classId = GetActiveClass();
+        return classId.ToLowerInvariant() switch
+        {
+            "warrior" => new Color(0.85f, 0.20f, 0.15f, 1f),
+            "mage" => new Color(0.25f, 0.40f, 0.85f, 1f),
+            "rogue" => new Color(0.20f, 0.70f, 0.25f, 1f),
+            "hunter" => new Color(0.65f, 0.40f, 0.15f, 1f),
+            "cleric" => new Color(0.95f, 0.85f, 0.40f, 1f),
+            _ => new Color(0.60f, 0.50f, 0.25f, 1f)
+        };
+    }
+
+    private string GetActiveClass()
+    {
+        return CampaignContext.ActiveProfile?.ClassId ?? CampaignContext.ChosenClass;
+    }
+
+    private void UpdateDeckChipText()
+    {
+        string deckName = "Deck: —";
+        var profile = CampaignContext.ActiveProfile;
+        if (profile != null && !string.IsNullOrEmpty(profile.ActiveDeckId))
+        {
+            var deck = CampaignContext.DeckLibrary.FirstOrDefault(d => d.DeckId == profile.ActiveDeckId);
+            if (deck != null)
+                deckName = $"Deck: {deck.Name}";
+        }
+        _deckChipLabel.Text = deckName;
+    }
+
+    private void ShowDeckPopup()
+    {
+        string classId = GetActiveClass();
+        var decks = CampaignContext.GetDecksForClass(classId);
+
+        var popup = new PanelContainer();
+        var popupStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.10f, 0.07f, 0.95f),
+            BorderColor = new Color(0.60f, 0.50f, 0.25f, 0.60f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 10, ContentMarginTop = 8,
+            ContentMarginRight = 10, ContentMarginBottom = 8
+        };
+        popup.AddThemeStyleboxOverride("panel", popupStyle);
+        popup.CustomMinimumSize = new Vector2(250, 200);
+
+        // Position near the chip
+        var chipRect = _deckChip.GetGlobalRect();
+        popup.Position = new Vector2(chipRect.Position.X - 60, chipRect.Position.Y + chipRect.Size.Y + 4);
+
+        var vbox = new VBoxContainer();
+
+        // Title
+        var title = new Label { Text = "Select Deck", HorizontalAlignment = HorizontalAlignment.Center };
+        title.Modulate = new Color(0.90f, 0.82f, 0.55f, 1f);
+        ThemeTokens.ApplyHeaderFont(title, 14);
+        vbox.AddChild(title);
+
+        // Separator
+        var sep = new ColorRect
+        {
+            CustomMinimumSize = new Vector2(0, 1),
+            Color = new Color(0.60f, 0.50f, 0.25f, 0.40f)
+        };
+        vbox.AddChild(sep);
+
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+
+        // Deck buttons
+        if (decks.Count == 0)
+        {
+            var noDecks = new Label
+            {
+                Text = "No decks saved yet.",
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            noDecks.AddThemeFontSizeOverride("font_size", 11);
+            noDecks.Modulate = new Color(0.70f, 0.65f, 0.50f, 0.80f);
+            vbox.AddChild(noDecks);
+        }
+        else
+        {
+            foreach (var deck in decks)
+            {
+                var deckBtn = new Button
+                {
+                    Text = $"{deck.Name} ({deck.Cards.Count} cards)",
+                    CustomMinimumSize = new Vector2(0, 28)
+                };
+                deckBtn.AddThemeFontSizeOverride("font_size", 11);
+                string capturedDeckId = deck.DeckId;
+                deckBtn.Pressed += () =>
+                {
+                    if (CampaignContext.ActiveProfile != null)
+                    {
+                        CampaignContext.ActiveProfile.ActiveDeckId = capturedDeckId;
+                        CampaignContext.SaveCampaignProfile();
+                        UpdateDeckChipText();
+                    }
+                    popup.QueueFree();
+                };
+                vbox.AddChild(deckBtn);
+            }
+        }
+
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+
+        // Close button
+        var closeBtn = new Button { Text = "Close" };
+        closeBtn.AddThemeFontSizeOverride("font_size", 10);
+        closeBtn.Pressed += () => popup.QueueFree();
+        vbox.AddChild(closeBtn);
+
+        popup.AddChild(vbox);
+        AddChild(popup);
     }
 }

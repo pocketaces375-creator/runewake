@@ -23,6 +23,8 @@ public partial class Main : Control
     private Label _saveWarningLabel = default!;
     private Button _diagButton = default!;
     private Button _newPathButton = default!;
+    private Control? _pathsOverlay;
+    private Button _pathsButton = default!;
     private Panel? _diagPanel;
     private bool _loading;
 
@@ -207,24 +209,22 @@ public partial class Main : Control
         _forgeButton.Pressed += OnOpenForge;
         AddChild(_forgeButton);
 
-        // ── Campaign profile (CONTINUE state) ──
+        // ── Campaign profile (CONTINUE state + Paths picker) ──
         CampaignContext.LoadCampaignProfile();
+        CampaignContext.LoadDeckLibrary();
         if (CampaignContext.HasSavedCampaign)
         {
-            var profile = CampaignContext.ActiveProfile!;
-            string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
-            string townName = profile.TownName;
-            _startButton.Text = $"CONTINUE — {className} of {townName}";
+            _startButton.Text = $"CONTINUE";
 
-            // New Path button (smaller, below the Decks button)
-            _newPathButton = MakeStoneButton("New Path");
-            _newPathButton.AnchorTop = 0.84f;
-            _newPathButton.AnchorBottom = 0.92f;
-            _newPathButton.AddThemeFontSizeOverride("font_size", 12);
-            _newPathButton.Modulate = new Color(1, 1, 1, 0.7f);
-            _newPathButton.Pressed += OnNewPath;
-            AddChild(_newPathButton);
-            GD.Print($"[Main] Campaign profile found — CONTINUE: {className} of {townName}");
+            // PATHS button (stone-style, below Decks button)
+            _pathsButton = MakeStoneButton("PATHS");
+            _pathsButton.AnchorTop = 0.84f;
+            _pathsButton.AnchorBottom = 0.92f;
+            _pathsButton.AddThemeFontSizeOverride("font_size", 12);
+            _pathsButton.Modulate = new Color(1, 1, 1, 0.7f);
+            _pathsButton.Pressed += OnOpenPathsOverlay;
+            AddChild(_pathsButton);
+            GD.Print($"[Main] Campaign profile found — {CampaignContext.Profiles.Count} path(s) saved");
         }
 
         // Persistent save warning label (hidden until/unless a save error occurs)
@@ -839,26 +839,395 @@ public partial class Main : Control
         }
     }
 
-    private void OnNewPath()
+    private void OnStartNewPath()
     {
-        // Confirm dialog: starting a new path replaces the current one
-        var dialog = new ConfirmationDialog
+        CampaignContext.AddOrUpdateProfile("", "");
+        CampaignContext.ChosenClass = "";
+        CampaignContext.ChosenTown = "";
+        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+    }
+
+    private void OnOpenPathsOverlay()
+    {
+        if (_pathsOverlay != null && IsInstanceValid(_pathsOverlay))
         {
-            DialogText = "Start a new path?\nYour current campaign will be replaced.",
-            OkButtonText = "Start New",
-            CancelButtonText = "Cancel",
-            Title = "New Campaign"
-        };
-        dialog.Confirmed += () =>
+            _pathsOverlay.QueueFree();
+            _pathsOverlay = null;
+        }
+
+        // Full-screen dim
+        var dim = new ColorRect
         {
-            CampaignContext.DeleteCampaignProfile();
-            _startButton.Text = "Play";
-            if (_newPathButton != null)
-                _newPathButton.QueueFree();
-            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+            Color = new Color(0, 0, 0, 0.5f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Stop
         };
-        AddChild(dialog);
-        dialog.PopupCentered();
+        AddChild(dim);
+        _pathsOverlay = dim;
+
+        // Close overlay when clicking the dim background
+        dim.GuiInput += (InputEvent @event) =>
+        {
+            if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+            {
+                ClosePathsOverlay();
+            }
+        };
+
+        // Centered panel container
+        var anchorLeft = 0.28f;
+        var anchorRight = 0.72f;
+        var anchorTop = 0.20f;
+        var anchorBottom = 0.80f;
+
+        var panelContainer = new PanelContainer
+        {
+            AnchorLeft = anchorLeft,
+            AnchorRight = anchorRight,
+            AnchorTop = anchorTop,
+            AnchorBottom = anchorBottom,
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        var panelBg = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#2A2520"),
+            BorderColor = Color.FromHtml("#5A5048"),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 16, ContentMarginTop = 16,
+            ContentMarginRight = 16, ContentMarginBottom = 16
+        };
+        panelContainer.AddThemeStyleboxOverride("panel", panelBg);
+        dim.AddChild(panelContainer);
+
+        // VBox for vertical layout
+        var vbox = new VBoxContainer
+        {
+            CustomMinimumSize = new Vector2(0, 0),
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
+            SizeFlagsVertical = Control.SizeFlags.Fill
+        };
+        panelContainer.AddChild(vbox);
+
+        // Title "Paths"
+        var titleLabel = new Label
+        {
+            Text = "Paths",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AutoTranslate = false
+        };
+        ThemeTokens.ApplyHeaderFont(titleLabel, 28);
+        titleLabel.Modulate = Color.FromHtml("#D4B84C"); // gold
+        vbox.AddChild(titleLabel);
+
+        // Spacer
+        vbox.AddChild(new ColorRect
+        {
+            Color = new Color(0, 0, 0, 0),
+            CustomMinimumSize = new Vector2(0, 4)
+        });
+
+        // Build slot cards
+        RefreshPathsOverlayCards(vbox);
+
+        // Close button at bottom (stone-style)
+        var closeBtn = new Button
+        {
+            Text = "Close",
+            CustomMinimumSize = new Vector2(0, 36)
+        };
+        closeBtn.AddThemeFontSizeOverride("font_size", 13);
+        closeBtn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
+        closeBtn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
+        closeBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+        var closeNormal = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#3A3530"),
+            BorderColor = Color.FromHtml("#5A5048"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 16, ContentMarginTop = 4,
+            ContentMarginRight = 16, ContentMarginBottom = 4
+        };
+        var closeHover = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#4A4540"),
+            BorderColor = Color.FromHtml("#C9A84C"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 16, ContentMarginTop = 4,
+            ContentMarginRight = 16, ContentMarginBottom = 4
+        };
+        var closePressed = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#2A2520"),
+            BorderColor = Color.FromHtml("#A08838"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 16, ContentMarginTop = 4,
+            ContentMarginRight = 16, ContentMarginBottom = 4
+        };
+        closeBtn.AddThemeStyleboxOverride("normal", closeNormal);
+        closeBtn.AddThemeStyleboxOverride("hover", closeHover);
+        closeBtn.AddThemeStyleboxOverride("pressed", closePressed);
+        closeBtn.Pressed += ClosePathsOverlay;
+        vbox.AddChild(closeBtn);
+    }
+
+    private void RefreshPathsOverlayCards(VBoxContainer vbox)
+    {
+        // Remove existing slot cards (keep title, spacer, and close button)
+        for (int i = vbox.GetChildCount() - 1; i >= 0; i--)
+        {
+            var child = vbox.GetChild(i);
+            if (child is Panel slotPanel && slotPanel.HasMeta("slot_index"))
+                slotPanel.QueueFree();
+        }
+
+        var profiles = CampaignContext.Profiles;
+
+        for (int i = 0; i < 3; i++)
+        {
+            int slotIdx = i;
+            var slotCard = new Panel
+            {
+                CustomMinimumSize = new Vector2(0, 130),
+                SizeFlagsHorizontal = Control.SizeFlags.Fill,
+                MouseFilter = MouseFilterEnum.Stop
+            };
+            slotCard.SetMeta("slot_index", i);
+
+            var slotStyle = new StyleBoxFlat
+            {
+                BgColor = i < profiles.Count
+                    ? Color.FromHtml("#3A3530")
+                    : new Color(0.25f, 0.22f, 0.18f, 0.6f),
+                BorderColor = Color.FromHtml("#5A5048"),
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+                ContentMarginLeft = 12, ContentMarginTop = 8,
+                ContentMarginRight = 12, ContentMarginBottom = 8
+            };
+            slotCard.AddThemeStyleboxOverride("panel", slotStyle);
+
+            var hbox = new HBoxContainer
+            {
+                SizeFlagsHorizontal = Control.SizeFlags.Fill,
+                SizeFlagsVertical = Control.SizeFlags.Fill
+            };
+            slotCard.AddChild(hbox);
+
+            if (i < profiles.Count)
+            {
+                // ── Occupied slot (existing path) ──
+                var profile = profiles[i];
+                string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
+                string townName = profile.TownName;
+
+                // Look up active deck name from DeckLibrary
+                string deckName = "Default";
+                if (!string.IsNullOrEmpty(profile.ActiveDeckId))
+                {
+                    var deck = CampaignContext.DeckLibrary.Find(d => d.DeckId == profile.ActiveDeckId);
+                    if (deck != null)
+                        deckName = deck.Name;
+                }
+
+                // Info side (left)
+                var infoVbox = new VBoxContainer
+                {
+                    SizeFlagsHorizontal = Control.SizeFlags.Expand | Control.SizeFlags.Fill,
+                    SizeFlagsVertical = Control.SizeFlags.Fill
+                };
+
+                var classLabel = new Label
+                {
+                    Text = className,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AutoTranslate = false
+                };
+                classLabel.AddThemeFontSizeOverride("font_size", 16);
+                classLabel.Modulate = Color.FromHtml("#E8DCC8");
+                infoVbox.AddChild(classLabel);
+
+                var townLabel = new Label
+                {
+                    Text = townName,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AutoTranslate = false
+                };
+                townLabel.AddThemeFontSizeOverride("font_size", 13);
+                townLabel.Modulate = Color.FromHtml("#C8B88A");
+                infoVbox.AddChild(townLabel);
+
+                string progress = string.IsNullOrEmpty(profile.MapProgress) ? "No progress" : profile.MapProgress;
+                var progressLabel = new Label
+                {
+                    Text = progress,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AutoTranslate = false
+                };
+                progressLabel.AddThemeFontSizeOverride("font_size", 11);
+                progressLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
+                infoVbox.AddChild(progressLabel);
+
+                var deckLabel = new Label
+                {
+                    Text = $"Deck: {deckName}",
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    AutoTranslate = false
+                };
+                deckLabel.AddThemeFontSizeOverride("font_size", 11);
+                deckLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
+                infoVbox.AddChild(deckLabel);
+
+                hbox.AddChild(infoVbox);
+
+                // Buttons side (right)
+                var btnVbox = new VBoxContainer
+                {
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkEnd,
+                    SizeFlagsVertical = Control.SizeFlags.ShrinkCenter
+                };
+
+                // Resume button (gold)
+                var resumeBtn = new Button
+                {
+                    Text = "Resume",
+                    CustomMinimumSize = new Vector2(90, 30)
+                };
+                resumeBtn.AddThemeFontSizeOverride("font_size", 13);
+                resumeBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
+                resumeBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+                var resumeNormal = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.3f, 0.25f, 0.1f, 0.5f),
+                    BorderColor = Color.FromHtml("#C9A84C"),
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                    CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+                };
+                resumeBtn.AddThemeStyleboxOverride("normal", resumeNormal);
+                int capturedSlot = slotIdx;
+                resumeBtn.Pressed += () =>
+                {
+                    if (capturedSlot < CampaignContext.Profiles.Count)
+                    {
+                        CampaignContext.ActiveProfileSlot = capturedSlot;
+                        var p = CampaignContext.Profiles[capturedSlot];
+                        CampaignContext.ChosenClass = p.ClassId;
+                        CampaignContext.ChosenTown = p.TownName ?? "";
+                        _startButton.Text = $"CONTINUE";
+                        ClosePathsOverlay();
+                    }
+                };
+                btnVbox.AddChild(resumeBtn);
+
+                // Abandon button (muted)
+                var abandonBtn = new Button
+                {
+                    Text = "Abandon",
+                    CustomMinimumSize = new Vector2(90, 30)
+                };
+                abandonBtn.AddThemeFontSizeOverride("font_size", 11);
+                abandonBtn.AddThemeColorOverride("font_color", new Color(0.6f, 0.55f, 0.45f, 0.6f));
+                abandonBtn.AddThemeColorOverride("font_hover_color", new Color(0.9f, 0.3f, 0.2f));
+                var abandonNormal = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.2f, 0.18f, 0.15f, 0.4f),
+                    BorderColor = new Color(0.4f, 0.35f, 0.25f, 0.3f),
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
+                    CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
+                };
+                abandonBtn.AddThemeStyleboxOverride("normal", abandonNormal);
+                int abandonSlot = slotIdx;
+                abandonBtn.Pressed += () =>
+                {
+                    var dialog = new ConfirmationDialog
+                    {
+                        DialogText = "Abandon this path? All progress will be lost.",
+                        OkButtonText = "Abandon",
+                        CancelButtonText = "Cancel",
+                        Title = "Abandon Path"
+                    };
+                    int capturedAbandonSlot = abandonSlot;
+                    dialog.Confirmed += () =>
+                    {
+                        CampaignContext.DeleteProfile(capturedAbandonSlot);
+                        RefreshPathsOverlayCards(vbox);
+                        // If no profiles remain, close overlay and reset button
+                        if (CampaignContext.Profiles.Count == 0)
+                        {
+                            ClosePathsOverlay();
+                            _startButton.Text = "Play";
+                            if (_pathsButton != null && IsInstanceValid(_pathsButton))
+                                _pathsButton.QueueFree();
+                        }
+                    };
+                    AddChild(dialog);
+                    dialog.PopupCentered();
+                };
+                btnVbox.AddChild(abandonBtn);
+
+                hbox.AddChild(btnVbox);
+            }
+            else
+            {
+                // ── Empty slot — "A new path awaits" ──
+                slotCard.MouseFilter = MouseFilterEnum.Stop;
+                slotCard.GuiInput += (InputEvent @event) =>
+                {
+                    if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+                    {
+                        ClosePathsOverlay();
+                        OnStartNewPath();
+                    }
+                };
+
+                var emptyLabel = new Label
+                {
+                    Text = "A new path awaits",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    SizeFlagsHorizontal = Control.SizeFlags.Fill,
+                    SizeFlagsVertical = Control.SizeFlags.Fill,
+                    AutoTranslate = false
+                };
+                emptyLabel.AddThemeFontSizeOverride("font_size", 14);
+                emptyLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f); // muted
+                hbox.AddChild(emptyLabel);
+            }
+
+            vbox.AddChild(slotCard);
+        }
+    }
+
+    private void ClosePathsOverlay()
+    {
+        if (_pathsOverlay != null && IsInstanceValid(_pathsOverlay))
+        {
+            _pathsOverlay.QueueFree();
+            _pathsOverlay = null;
+        }
     }
 
     /// <summary>

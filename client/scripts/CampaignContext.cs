@@ -363,6 +363,121 @@ public static class CampaignContext
             public string CreatedAt { get; set; } = "";
         }
 
+        // ════════════════════════════════════════════════════════════════
+        // DECK LIBRARY — account-wide, independent of paths
+        // ════════════════════════════════════════════════════════════════
+
+        /// <summary>Path to deck library JSON (user:// sandbox).</summary>
+        private const string DeckLibraryPath = "user://decks.json";
+
+        /// <summary>All saved decks (account-wide).</summary>
+        public static List<DeckProfile> DeckLibrary { get; set; } = new();
+
+        /// <summary>
+        /// Config constant: when true, each deck is locked to the path that created it.
+        /// Default false — any path can use any class-matching deck.
+        /// Flip in docs/COMMS.md or campaign config when Trikzos decides.
+        /// </summary>
+        public static bool DecksLockedToPath { get; set; } = false;
+
+        /// <summary>Save all decks to disk.</summary>
+        public static void SaveDeckLibrary()
+        {
+            try
+            {
+                var data = new DeckLibraryData { Decks = DeckLibrary };
+                string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                using var file = Godot.FileAccess.Open(DeckLibraryPath, Godot.FileAccess.ModeFlags.Write);
+                if (file != null)
+                {
+                    file.StoreString(json);
+                    GD.Print($"[CampaignContext] {DeckLibrary.Count} decks saved");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] Save deck library failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>Load all decks from disk.</summary>
+        public static void LoadDeckLibrary()
+        {
+            DeckLibrary = new List<DeckProfile>();
+            try
+            {
+                if (!Godot.FileAccess.FileExists(DeckLibraryPath))
+                {
+                    GD.Print("[CampaignContext] No deck library found — starting fresh");
+                    return;
+                }
+                using var file = Godot.FileAccess.Open(DeckLibraryPath, Godot.FileAccess.ModeFlags.Read);
+                if (file == null) return;
+                string json = file.GetAsText().Trim();
+                if (json.Length <= 2) return;
+                var data = System.Text.Json.JsonSerializer.Deserialize<DeckLibraryData>(json);
+                if (data?.Decks != null)
+                    DeckLibrary = data.Decks;
+                GD.Print($"[CampaignContext] {DeckLibrary.Count} decks loaded");
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] Load deck library failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Add or update a deck in the library. Tags it with the class it was built under.
+        /// </summary>
+        public static string SaveDeck(string name, string classId, List<string> cardIds)
+        {
+            string deckId = $"{classId}_{name.ToLowerInvariant().Replace(" ", "_")}";
+            var existing = DeckLibrary.FindIndex(d => d.DeckId == deckId);
+            var deck = new DeckProfile
+            {
+                DeckId = deckId,
+                Name = name,
+                ClassId = classId.ToLowerInvariant(),
+                Cards = new List<string>(cardIds)
+            };
+            if (existing >= 0)
+                DeckLibrary[existing] = deck;
+            else
+                DeckLibrary.Add(deck);
+            SaveDeckLibrary();
+            GD.Print($"[CampaignContext] Deck saved: {deckId} ({cardIds.Count} cards)");
+            return deckId;
+        }
+
+        /// <summary>Get decks whose class matches a given class ID.</summary>
+        public static List<DeckProfile> GetDecksForClass(string classId)
+        {
+            string cid = classId.ToLowerInvariant();
+            return DeckLibrary.Where(d => d.ClassId == cid).ToList();
+        }
+
+        /// <summary>Get all decks (no class filter).</summary>
+        public static List<DeckProfile> GetAllDecks() => new(DeckLibrary);
+
+        /// <summary>
+        /// Serializable deck library wrapper
+        /// </summary>
+        public class DeckLibraryData
+        {
+            public List<DeckProfile> Decks { get; set; } = new();
+        }
+
+        /// <summary>
+        /// A single saved deck profile.
+        /// </summary>
+        public class DeckProfile
+        {
+            public string DeckId { get; set; } = "";
+            public string Name { get; set; } = "";
+            public string ClassId { get; set; } = "";
+            public List<string> Cards { get; set; } = new();
+        }
+
         /// <summary>
         /// [[ Hole left by earlier refactor — keep as sentinel. ]]
         /// </summary>

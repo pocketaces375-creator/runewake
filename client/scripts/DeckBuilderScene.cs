@@ -1281,6 +1281,22 @@ public partial class DeckBuilderScene : Control
         var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
         if (!validation.IsValid) return;
 
+        string deckName = string.IsNullOrWhiteSpace(_deckName) ? "My Deck" : _deckName;
+        string classId = CampaignContext.ChosenClass;
+        if (string.IsNullOrEmpty(classId))
+            classId = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior";
+
+        // Save to account-wide deck library
+        string deckId = CampaignContext.SaveDeck(deckName, classId, _deckCardIds);
+
+        // Update the active profile with the deck
+        if (CampaignContext.ActiveProfile != null)
+        {
+            CampaignContext.ActiveProfile.ActiveDeckId = deckId;
+            CampaignContext.SaveCampaignProfile();
+        }
+
+        // Legacy save for backward compat
         var prog = CampaignContext.Progression;
         prog.DeckCardIds.Clear();
         prog.DeckCardIds.AddRange(_deckCardIds);
