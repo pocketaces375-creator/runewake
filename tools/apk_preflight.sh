@@ -130,9 +130,26 @@ else
     report PASS "Size: $(echo "scale=1; $CUR_SIZE / 1048576" | bc)MB (no previous APK to compare)"
 fi
 
-# ─── CHECK 5: SHA-256 ──────────────────────────────────────────────────────
+# ─── CHECK 5: .import file completeness ────────────────────────────────────
 echo ""
-echo "[5/5] SHA-256 hash"
+echo "[5/7] Asset .import completeness"
+ORPHANS=0
+while IFS= read -r -d '' asset; do
+    import_file="${asset}.import"
+    if [ ! -f "$import_file" ]; then
+        echo "  ❌ Missing .import: $asset"
+        ORPHANS=$((ORPHANS + 1))
+    fi
+done < <(find "client/content/art" -type f \( -name "*.png" -o -name "*.webp" \) -print0)
+if [ "$ORPHANS" -eq 0 ]; then
+    report PASS "All client/content/art assets have .import files"
+else
+    report FAIL "$ORPHANS asset(s) missing .import files (listed above)"
+fi
+
+# ─── CHECK 6: SHA-256 ──────────────────────────────────────────────────────
+echo ""
+echo "[6/7] SHA-256 hash"
 SHA=$(sha256sum "$APK" | cut -d' ' -f1)
 echo "  SHA-256: $SHA"
 report PASS "SHA-256 recorded"
