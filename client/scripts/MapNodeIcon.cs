@@ -1,282 +1,423 @@
 using Godot;
+using System;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// A single icon on the campaign map. Shows node type, lock state, and name.
-/// Clickable — emits NodeSelected when tapped.
-/// States follow the global UI rule: NEVER communicate state through darkness
-/// alone. Locked = icon stays visible + padlock marker + mild desaturation.
-/// Selected = persistent gold glow ring.
+/// WORLD-POLISH-1: 56px round stone/bronze medallion on the campaign map.
+/// States: available=lit bronze, cleared=gold ring+check, locked=dark.
+/// Vector-drawn icons (no font glyphs — the tofu-box era is over).
 /// </summary>
 public partial class MapNodeIcon : Button
 {
     private Label _nameLabel;
-    private ColorRect _iconCircle;
-    private Label _typeChar;
-    private ColorRect _glowBorder;
-    private ColorRect _selectedGlow;
-    private ColorRect _lockOverlay;
-    private Label _clearMark;
-
-    // Padlock parts (drawn in code to avoid font dependency)
-    private ColorRect _lockShackleTop;
-    private ColorRect _lockShackleLeft;
-    private ColorRect _lockShackleRight;
-    private ColorRect _lockBody;
-
+    private ColorRect _medallion;
+    private Control _checkMark;
+    private Control _selectedRing;
+    private Control _iconContainer;
+    
+    // Lock padlock (ColorRect assembly)
+    private Control _lockGroup;
+    
     /// <summary>Node ID from the map region JSON.</summary>
     public string NodeId { get; private set; } = string.Empty;
-
-    /// <summary>Display name for this node.</summary>
     public string NodeName { get; private set; } = string.Empty;
-
-    /// <summary>Whether this node is currently locked.</summary>
     public bool IsLocked { get; private set; } = true;
-
     private bool _isCleared;
     private bool _isSelected;
 
-    /// <summary>Emits the node ID when the icon is clicked.</summary>
     [Signal]
     public delegate void NodeSelectedEventHandler(string nodeId);
 
-    private static readonly Dictionary<string, (string symbol, Color color)> TypeConfig = new()
-    {
-        ["Duel"] = ("\u2694", new Color(0.3f, 0.6f, 0.3f)),       // crossed swords
-        ["Elite"] = ("\u26A1", new Color(0.8f, 0.4f, 0.2f)),      // lightning
-        ["Warden"] = ("\u265B", new Color(0.9f, 0.7f, 0.1f)),     // chess queen (crown)
-        ["WardenBoss"] = ("\u2620", new Color(0.9f, 0.2f, 0.1f)), // skull
-        ["Dig"] = ("\u26CF", new Color(0.5f, 0.3f, 0.1f)),        // pick
-        ["Shrine"] = ("\u2726", new Color(0.3f, 0.5f, 0.8f)),     // four-pointed star
-        ["Cache"] = ("?", new Color(0.7f, 0.4f, 0.7f)),           // question mark
-        ["Merchant"] = ("$", new Color(0.8f, 0.7f, 0.3f)),        // dollar sign
-    };
+    // Node type configuration
+    private string _nodeType = "Duel";
 
     public override void _Ready()
     {
-        CustomMinimumSize = new Vector2(140, 150);
-        Size = new Vector2(140, 150); // explicit size ensures clickable rect is set even in Node2D parent
-        _nameLabel = GetNode<Label>("NameLabel");
-        _iconCircle = GetNode<ColorRect>("IconCircle");
-        _typeChar = GetNode<Label>("TypeChar");
-        _glowBorder = GetNode<ColorRect>("GlowBorder");
-        _selectedGlow = GetNode<ColorRect>("SelectedGlow");
-        _lockOverlay = GetNode<ColorRect>("LockOverlay");
-        _clearMark = GetNode<Label>("ClearMark");
+        // Minimal container — 56px medallion + auto-fit name chip below
+        CustomMinimumSize = new Vector2(80, 80);
+        Size = new Vector2(80, 80);
+        MouseFilter = MouseFilterEnum.Pass;
 
-        // Build padlock from ColorRects (reliable, no font dependency)
-        Color lockColor = new Color(1, 1, 1, 0.95f);
-        _lockShackleTop = new ColorRect
+        // Name label (parchment chip) — positioned below medallion
+        _nameLabel = new Label
         {
-            Color = lockColor,
-            Position = new Vector2(52, 28),
-            Size = new Vector2(12, 5),
+            Name = "NameLabel",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AutowrapMode = TextServer.AutowrapMode.Off
+        };
+        _nameLabel.AddThemeFontSizeOverride("font_size", 9);
+        _nameLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f, 1));
+        _nameLabel.Position = new Vector2(-20, 56);
+        _nameLabel.Size = new Vector2(120, 18);
+        AddChild(_nameLabel);
+
+        // Medallion background (56px round)
+        _medallion = new ColorRect
+        {
+            Name = "Medallion",
+            Color = new Color(0.35f, 0.28f, 0.15f, 1), // dark bronze
+            Position = new Vector2(12, 4),
+            Size = new Vector2(56, 56),
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _lockShackleLeft = new ColorRect
+        // Rounded corners via StyleBoxFlat on a container
+        var medPanel = new PanelContainer();
+        medPanel.Position = new Vector2(12, 4);
+        medPanel.Size = new Vector2(56, 56);
+        medPanel.MouseFilter = MouseFilterEnum.Ignore;
+        var medStyle = new StyleBoxFlat
         {
-            Color = lockColor,
-            Position = new Vector2(52, 28),
-            Size = new Vector2(4, 14),
+            BgColor = new Color(0.35f, 0.28f, 0.15f, 1),
+            BorderColor = new Color(0.55f, 0.45f, 0.25f, 1),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 28, CornerRadiusTopRight = 28,
+            CornerRadiusBottomLeft = 28, CornerRadiusBottomRight = 28
+        };
+        medPanel.AddThemeStyleboxOverride("panel", medStyle);
+        AddChild(medPanel);
+
+        // Icon container — for vector-drawn shapes
+        _iconContainer = new Control();
+        _iconContainer.Position = new Vector2(12, 4);
+        _iconContainer.Size = new Vector2(56, 56);
+        _iconContainer.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(_iconContainer);
+
+        // Selection ring (hidden until selected)
+        _selectedRing = new ColorRect
+        {
+            Name = "SelectedRing",
+            Color = Colors.Transparent,
+            Position = new Vector2(8, 0),
+            Size = new Vector2(64, 64),
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _lockShackleRight = new ColorRect
+        var ringStyle = new StyleBoxFlat
         {
-            Color = lockColor,
-            Position = new Vector2(60, 28),
-            Size = new Vector2(4, 14),
-            MouseFilter = MouseFilterEnum.Ignore
+            BgColor = Colors.Transparent,
+            BorderColor = new Color(1f, 0.85f, 0.2f, 0.7f),
+            BorderWidthLeft = 3, BorderWidthTop = 3,
+            BorderWidthRight = 3, BorderWidthBottom = 3,
+            CornerRadiusTopLeft = 32, CornerRadiusTopRight = 32,
+            CornerRadiusBottomLeft = 32, CornerRadiusBottomRight = 32
         };
-        _lockBody = new ColorRect
+        var ringPanel = new PanelContainer();
+        ringPanel.Position = new Vector2(8, 0);
+        ringPanel.Size = new Vector2(64, 64);
+        ringPanel.MouseFilter = MouseFilterEnum.Ignore;
+        ringPanel.AddThemeStyleboxOverride("panel", ringStyle);
+        ringPanel.Visible = false;
+        AddChild(ringPanel);
+        // Store reference for visibility
+        _selectedRing = ringPanel;
+        
+        // Check mark (cleared state)
+        _checkMark = new ColorRect
         {
-            Color = lockColor,
-            Position = new Vector2(50, 42),
-            Size = new Vector2(16, 14),
-            MouseFilter = MouseFilterEnum.Ignore
+            Name = "CheckMark",
+            Color = Colors.Transparent,
+            Position = new Vector2(32, 24),
+            Size = new Vector2(16, 16),
+            MouseFilter = MouseFilterEnum.Ignore,
+            Visible = false
         };
+        var checkStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.3f, 0.7f, 0.3f, 0.9f),
+            BorderColor = new Color(0.1f, 0.5f, 0.1f, 1),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
+        };
+        var checkPanel = new PanelContainer();
+        checkPanel.Position = new Vector2(32, 24);
+        checkPanel.Size = new Vector2(16, 16);
+        checkPanel.MouseFilter = MouseFilterEnum.Ignore;
+        checkPanel.AddThemeStyleboxOverride("panel", checkStyle);
+        checkPanel.Visible = false;
+        AddChild(checkPanel);
+        _checkMark = checkPanel;
 
-        // Group padlock parts under a hidden container (shown when locked)
-        var lockGroup = new Control();
-        lockGroup.Name = "LockGroup";
-        lockGroup.AddChild(_lockShackleTop);
-        lockGroup.AddChild(_lockShackleLeft);
-        lockGroup.AddChild(_lockShackleRight);
-        lockGroup.AddChild(_lockBody);
-        AddChild(lockGroup);
+        // Lock group
+        _lockGroup = new Control { Name = "LockGroup" };
+        _lockGroup.Position = new Vector2(12, 4);
+        AddChild(_lockGroup);
+        BuildLockIcon();
+        _lockGroup.Hide();
 
-        // Hide lock group initially (will be shown by ApplyLockState)
-        lockGroup.Hide();
-
-        // Hover: brighten the whole icon (button hover style handles the frame)
-        MouseEntered += OnHoverEntered;
-        MouseExited += OnHoverExited;
+        // Click detection
+        GuiInput += OnGuiInput;
     }
 
-    private void OnHoverEntered()
+    private void BuildLockIcon()
     {
-        if (IsLocked || _isCleared) return;
-        _iconCircle.Modulate = new Color(1.15f, 1.15f, 1.15f, 1f);
+        Color lc = new Color(0.8f, 0.8f, 0.8f, 0.95f);
+        // Shackle
+        var shackle = new ColorRect { Color = lc, Position = new Vector2(24, 18), Size = new Vector2(8, 12), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(shackle);
+        var shL = new ColorRect { Color = lc, Position = new Vector2(22, 18), Size = new Vector2(2, 12), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(shL);
+        var shR = new ColorRect { Color = lc, Position = new Vector2(32, 18), Size = new Vector2(2, 12), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(shR);
+        // Body
+        var body = new ColorRect { Color = lc, Position = new Vector2(21, 30), Size = new Vector2(14, 12), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(body);
+        // Keyhole
+        var kh = new ColorRect { Color = new Color(0.2f, 0.15f, 0.1f, 1), Position = new Vector2(27, 33), Size = new Vector2(3, 4), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(kh);
     }
 
-    private void OnHoverExited()
+    private void OnGuiInput(InputEvent @event)
     {
-        if (_isSelected)
+        if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
         {
-            _iconCircle.Modulate = new Color(1.08f, 1.08f, 1.08f, 1f);
-            return;
+            EmitSignal(SignalName.NodeSelected, NodeId);
+            GetViewport().SetInputAsHandled();
         }
-        if (IsLocked)
-        {
-            _iconCircle.Modulate = new Color(0.72f, 0.72f, 0.72f, 1f);
-            return;
-        }
-        _iconCircle.Modulate = new Color(1, 1, 1, 1);
     }
 
-    /// <summary>
-    /// Configure this icon from a map node definition.
-    /// </summary>
     public void Setup(string nodeId, string displayName, string nodeType, bool locked)
     {
         NodeId = nodeId;
         NodeName = displayName;
         IsLocked = locked;
+        _nodeType = nodeType;
         _nameLabel.Text = TruncateName(displayName);
-
-        // Look up type config
-        if (TypeConfig.TryGetValue(nodeType, out var cfg))
-        {
-            _typeChar.Text = cfg.symbol;
-            _iconCircle.Color = cfg.color;
-        }
-        else
-        {
-            _typeChar.Text = "?";
-            _iconCircle.Color = new Color(0.5f, 0.5f, 0.5f);
-        }
-
+        DrawNodeIcon(nodeType);
         ApplyLockState(locked);
     }
 
-    /// <summary>
-    /// Update the lock state without re-creating the icon.
-    /// </summary>
+    private void DrawNodeIcon(string nodeType)
+    {
+        // Clear previous icon
+        foreach (var c in _iconContainer.GetChildren())
+            c.QueueFree();
+
+        float cx = 28f;
+        float cy = 28f;
+        var iconColor = new Color(0.9f, 0.85f, 0.7f, 0.9f); // gold icon on dark bronze
+        var subColor = new Color(0.95f, 0.7f, 0.3f, 0.8f);
+
+        switch (nodeType)
+        {
+            case "Duel": // Crossed swords
+                DrawLine(cx - 7, cy - 10, cx + 7, cy + 10, iconColor, 2.5f); // blade 1
+                DrawLine(cx + 7, cy - 10, cx - 7, cy + 10, iconColor, 2.5f); // blade 2
+                // hilts
+                DrawLine(cx - 7, cy + 10, cx - 5, cy + 13, iconColor, 2f);
+                DrawLine(cx + 7, cy + 10, cx + 5, cy + 13, iconColor, 2f);
+                // crossguards
+                DrawLine(cx - 11, cy - 3, cx - 3, cy - 3, iconColor, 1.5f);
+                DrawLine(cx + 11, cy - 3, cx + 3, cy - 3, iconColor, 1.5f);
+                break;
+
+            case "Elite": // Star burst
+                for (int i = 0; i < 4; i++)
+                {
+                    float a1 = i * Mathf.Pi / 2f;
+                    float a2 = a1 + Mathf.Pi / 4f;
+                    DrawLine(cx + 10 * Mathf.Cos(a1), cy + 10 * Mathf.Sin(a1),
+                             cx + 4 * Mathf.Cos(a2), cy + 4 * Mathf.Sin(a2), iconColor, 2f);
+                }
+                break;
+
+            case "Warden":
+            case "WardenBoss": // Crown
+                DrawLine(cx - 10, cy + 10, cx - 10, cy + 3, iconColor, 2f);
+                DrawLine(cx - 10, cy + 3, cx - 6, cy - 5, iconColor, 2f);
+                DrawLine(cx - 6, cy - 5, cx, cy - 10, iconColor, 2f);
+                DrawLine(cx, cy - 10, cx + 6, cy - 5, iconColor, 2f);
+                DrawLine(cx + 6, cy - 5, cx + 10, cy + 3, iconColor, 2f);
+                DrawLine(cx + 10, cy + 3, cx + 10, cy + 10, iconColor, 2f);
+                // Base
+                DrawLine(cx - 10, cy + 10, cx + 10, cy + 10, iconColor, 2f);
+                if (nodeType == "WardenBoss")
+                {
+                    // Inner skull hint
+                    DrawCircle(cx, cy - 2, 5, subColor);
+                }
+                break;
+
+            case "Dig": // Pick
+                DrawLine(cx - 12, cy + 10, cx, cy - 8, iconColor, 2.5f);
+                DrawLine(cx, cy - 8, cx + 10, cy + 10, iconColor, 2.5f);
+                DrawLine(cx - 12, cy + 10, cx - 8, cy + 12, iconColor, 2f);
+                DrawLine(cx + 10, cy + 10, cx + 6, cy + 12, iconColor, 2f);
+                // Handle
+                DrawLine(cx, cy - 8, cx, cy - 12, new Color(0.5f, 0.4f, 0.25f, 0.9f), 2.5f);
+                break;
+
+            case "Shrine": // Flame
+                DrawLine(cx, cy - 6, cx - 3, cy + 2, subColor, 2f); // left flame
+                DrawLine(cx - 3, cy + 2, cx - 6, cy + 6, subColor, 1.5f);
+                DrawLine(cx, cy - 6, cx + 3, cy + 2, subColor, 2f); // right flame
+                DrawLine(cx + 3, cy + 2, cx + 6, cy + 6, subColor, 1.5f);
+                DrawLine(cx - 1, cy - 3, cx + 1, cy - 3, subColor, 1.5f); // flame tip
+                // Base altar stone
+                DrawLine(cx - 7, cy + 8, cx + 7, cy + 8, new Color(0.5f, 0.4f, 0.3f, 0.8f), 2f);
+                break;
+
+            case "Cache": // Question mark curve
+                // Simplified ? curve
+                DrawCircle(cx - 2, cy - 3, 3, iconColor); // top circle
+                DrawArc(new Vector2(cx - 2, cy + 3), 4, 0.5f, 1f, iconColor, 1.5f);
+                DrawLine(cx - 2, cy + 6, cx - 2, cy + 9, iconColor, 1.5f);
+                break;
+
+            case "Merchant": // Coin
+                DrawCircle(cx, cy, 10, iconColor);
+                DrawLine(cx - 5, cy, cx + 5, cy, subColor, 2f);
+                break;
+
+            default: // Generic diamond
+                DrawLine(cx, cy - 10, cx + 10, cy, iconColor, 2.5f);
+                DrawLine(cx + 10, cy, cx, cy + 10, iconColor, 2.5f);
+                DrawLine(cx, cy + 10, cx - 10, cy, iconColor, 2.5f);
+                DrawLine(cx - 10, cy, cx, cy - 10, iconColor, 2.5f);
+                break;
+        }
+    }
+
+    private void DrawLine(float x1, float y1, float x2, float y2, Color color, float width)
+    {
+        // Use ColorRect rotated — Godot has no built-in CanvasItem line in Control
+        // We use a thin ColorRect with rotation
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float len = Mathf.Sqrt(dx * dx + dy * dy);
+        if (len < 1f) return;
+        var rect = new ColorRect
+        {
+            Color = color,
+            Position = new Vector2(x1, y1 - width / 2f),
+            Size = new Vector2(len, width),
+            MouseFilter = MouseFilterEnum.Ignore,
+            PivotOffset = new Vector2(0, width / 2f)
+        };
+        rect.Rotation = Mathf.Atan2(dy, dx);
+        _iconContainer.AddChild(rect);
+    }
+
+    private void DrawCircle(float cx, float cy, float radius, Color color)
+    {
+        // Approximate as a ColorRect with rounded style
+        var circle = new PanelContainer();
+        circle.Position = new Vector2(cx - radius, cy - radius);
+        circle.Size = new Vector2(radius * 2, radius * 2);
+        circle.MouseFilter = MouseFilterEnum.Ignore;
+        var style = new StyleBoxFlat
+        {
+            BgColor = color,
+            BorderColor = color,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(radius),
+            CornerRadiusTopRight = Mathf.RoundToInt(radius),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(radius),
+            CornerRadiusBottomRight = Mathf.RoundToInt(radius)
+        };
+        circle.AddThemeStyleboxOverride("panel", style);
+        _iconContainer.AddChild(circle);
+    }
+
+    private void DrawArc(Vector2 center, float radius, float startAngle, float endAngle, Color color, float width)
+    {
+        // Simple arc via thin line segments
+        int steps = 8;
+        float aStep = (endAngle - startAngle) / steps;
+        float x1 = center.X + radius * Mathf.Cos(startAngle);
+        float y1 = center.Y + radius * Mathf.Sin(startAngle);
+        for (int i = 1; i <= steps; i++)
+        {
+            float a = startAngle + i * aStep;
+            float x2 = center.X + radius * Mathf.Cos(a);
+            float y2 = center.Y + radius * Mathf.Sin(a);
+            DrawLine(x1, y1, x2, y2, color, width);
+            x1 = x2; y1 = y2;
+        }
+    }
+
     public void SetLocked(bool locked)
     {
         IsLocked = locked;
         ApplyLockState(locked);
     }
 
-    /// <summary>
-    /// Mark this node as cleared (completed). Shows a green checkmark.
-    /// Icon stays fully visible — cleared is communicated by the check + dimmed name, not a blackout.
-    /// </summary>
     public void SetCleared()
     {
         _isCleared = true;
         IsLocked = false;
         _isSelected = false;
-
-        // Slight desaturation only — icon remains clearly visible
-        Color baseColor = _iconCircle.Color;
-        float gray = baseColor.R * 0.3f + baseColor.G * 0.59f + baseColor.B * 0.11f;
-        _iconCircle.Color = new Color(
-            Mathf.Lerp(baseColor.R, gray, 0.45f),
-            Mathf.Lerp(baseColor.G, gray, 0.45f),
-            Mathf.Lerp(baseColor.B, gray, 0.45f),
-            0.85f);
-
-        // Hide lock overlay
-        _lockOverlay.Hide();
-        HideLockGroup();
-
-        // Show checkmark
-        _clearMark.Show();
-
-        // Remove glow border and selection ring
-        _glowBorder.Color = new Color(0, 0, 0, 0);
-        _glowBorder.Modulate = new Color(1, 1, 1, 0.2f);
-        _selectedGlow.Visible = false;
-
-        // Dim name label slightly
+        _checkMark.Visible = true;
+        _lockGroup.Hide();
+        _selectedRing.Visible = false;
         _nameLabel.Modulate = new Color(0.75f, 0.75f, 0.7f, 0.9f);
-
-        // Type char stays visible
-        _typeChar.Modulate = new Color(1, 1, 1, 0.8f);
+        // Dim the medallion slightly
+        UpdateMedallionAppearance();
     }
 
-    /// <summary>
-    /// Persistent selection ring — gold glow around the icon. First click selects;
-    /// the ring stays until another node is selected.
-    /// </summary>
     public void SetSelected(bool selected)
     {
         _isSelected = selected;
         if (_isCleared) return;
-
+        _selectedRing.Visible = selected;
         if (selected)
-        {
-            _selectedGlow.Visible = true;
-            _selectedGlow.Color = new Color(1f, 0.85f, 0.2f, 0.55f);
-            _iconCircle.Modulate = new Color(1.1f, 1.1f, 1.1f, 1f);
-            // Also raise the availability glow
-            _glowBorder.Color = new Color(1f, 0.85f, 0.3f, 0.5f);
-            _glowBorder.Modulate = new Color(1, 1, 1, 1);
-        }
-        else
-        {
-            _selectedGlow.Visible = false;
-            _iconCircle.Modulate = IsLocked ? new Color(0.72f, 0.72f, 0.72f, 1f) : new Color(1, 1, 1, 1);
-        }
+            UpdateMedallionAppearance();
     }
 
     private void ApplyLockState(bool locked)
     {
         if (locked)
         {
-            // LOCKED: icon stays visible (global rule — no blackout), padlock badge
-            // marks the state. Mild desaturation keeps the type readable.
-            _iconCircle.Modulate = new Color(0.72f, 0.72f, 0.72f, 1f);
-            _typeChar.Modulate = new Color(1, 1, 1, 0.9f);
-            _lockOverlay.Hide(); // no dark veil — padlock is the marker
-            ShowLockGroup();
-            _clearMark.Hide();
-            _glowBorder.Color = new Color(0, 0, 0, 0);
-            _selectedGlow.Visible = false;
-            _nameLabel.Modulate = new Color(0.55f, 0.52f, 0.48f, 0.95f);
+            _selectedRing.Visible = false;
+            _checkMark.Visible = false;
+            _lockGroup.Show();
         }
         else
         {
-            // Available state: full saturated color, gold glow, white type char
-            _iconCircle.Modulate = new Color(1, 1, 1, 1);
-            _typeChar.Modulate = new Color(1, 1, 1, 1);
-            _lockOverlay.Hide();
-            HideLockGroup();
-            _clearMark.Hide();
-            _glowBorder.Color = new Color(1f, 0.85f, 0.3f, 0.4f); // gold glow
-            _glowBorder.Modulate = new Color(1, 1, 1, 1);
-            _selectedGlow.Visible = false;
-            _nameLabel.Modulate = new Color(1, 1, 0.9f, 1); // bright white-gold text
+            _lockGroup.Hide();
         }
+        UpdateMedallionAppearance();
     }
 
-    private void ShowLockGroup()
+    private void UpdateMedallionAppearance()
     {
-        var g = GetNodeOrNull<Control>("LockGroup");
-        if (g != null) g.Show();
+        // Get the medallion PanelContainer (first child)
+        var medPanel = GetChild(1) as PanelContainer;
+        if (medPanel == null) return;
+        var style = medPanel.GetThemeStylebox("panel") as StyleBoxFlat ?? new StyleBoxFlat();
+        var s = new StyleBoxFlat
+        {
+            CornerRadiusTopLeft = 28, CornerRadiusTopRight = 28,
+            CornerRadiusBottomLeft = 28, CornerRadiusBottomRight = 28,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2
+        };
+
+        if (_isCleared)
+        {
+            s.BgColor = new Color(0.5f, 0.45f, 0.3f, 0.9f); // muted gold
+            s.BorderColor = new Color(0.8f, 0.7f, 0.3f, 1);
+        }
+        else if (IsLocked)
+        {
+            s.BgColor = new Color(0.2f, 0.18f, 0.12f, 0.9f); // dark
+            s.BorderColor = new Color(0.3f, 0.25f, 0.15f, 1);
+        }
+        else // available — lit bronze
+        {
+            s.BgColor = new Color(0.45f, 0.35f, 0.2f, 1);
+            s.BorderColor = new Color(0.7f, 0.6f, 0.3f, 1);
+        }
+        medPanel.AddThemeStyleboxOverride("panel", s);
     }
 
-    private void HideLockGroup()
-    {
-        var g = GetNodeOrNull<Control>("LockGroup");
-        if (g != null) g.Hide();
-    }
-
-    /// <summary>
-    /// Truncate a name to fit the icon width, adding ellipsis if needed.
-    /// </summary>
-    private static string TruncateName(string name, int maxLen = 10)
+    private static string TruncateName(string name, int maxLen = 12)
     {
         if (name.Length <= maxLen) return name;
         return name[..(maxLen - 1)] + "\u2026";

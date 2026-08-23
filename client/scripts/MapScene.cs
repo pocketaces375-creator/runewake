@@ -15,7 +15,6 @@ public partial class MapScene : Control
 {
     // Map container (the pannable/zoomable surface)
     private Node2D _mapContainer;
-    private Sprite2D _mapBackground;
 
     // Node info panel
     private Panel _infoPanel;
@@ -200,19 +199,24 @@ public partial class MapScene : Control
         _mapContainer = new Node2D();
         AddChild(_mapContainer);
 
-        // Map background texture (parchment-style map with towns and terrain)
-        _mapBackground = new Sprite2D();
-        if (ResourceLoader.Exists("res://content/map/map_background.png"))
-        {
-            var tex = ResourceLoader.Load<Texture2D>("res://content/map/map_background.png");
-            _mapBackground.Texture = tex;
-            _mapBackground.Modulate = new Color(1, 1, 1, 0.85f);
-        }
-        _mapContainer.AddChild(_mapBackground);
-
-        // Line drawer (edges between nodes)
+        // Line drawer (edges between nodes) — sits directly on map art
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
+
+        // Runic glyph label over the top-right cartouche area — WORLD-POLISH-1
+        var runeLabel = new Label
+        {
+            Text = "\u16A1\u16A2\u16AE\u16DA\u16E1\u16B7\u16B2",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AnchorLeft = 0.80f, AnchorRight = 0.98f,
+            AnchorTop = 0.02f, AnchorBottom = 0.07f
+        };
+        runeLabel.AddThemeFontSizeOverride("font_size", 20);
+        runeLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.72f, 0.35f, 0.55f));
+        AddChild(runeLabel);
+        GD.Print("[MAP] Runic glyph label placed in top-right cartouche");
     }
 
     // ── Top bar ──────────────────────────────────────────────────────────
@@ -327,13 +331,6 @@ public partial class MapScene : Control
         float centerX = (minX + maxX) / 2f;
         float centerY = (minY + maxY) / 2f;
 
-        // Position background sprite at the map center
-        _mapBackground.Position = new Vector2(0, 0);
-        // Scale background to cover the node area with some margin
-        float bgScaleX = mapWidth / 1000f;
-        float bgScaleY = mapHeight / 800f;
-        _mapBackground.Scale = new Vector2(bgScaleX * 1.3f, bgScaleY * 1.3f);
-
         // Create node icons
         foreach (var mapNode in _region.Nodes)
         {
@@ -379,9 +376,9 @@ public partial class MapScene : Control
     {
         _infoPanel = new Panel();
         _infoPanel.AnchorLeft = 0.05f;
-        _infoPanel.AnchorRight = 0.55f;
-        _infoPanel.AnchorTop = 0.65f;
-        _infoPanel.AnchorBottom = 0.95f;
+        _infoPanel.AnchorRight = 0.30f;
+        _infoPanel.AnchorTop = 0.75f;
+        _infoPanel.AnchorBottom = 0.92f;
 
         var panelStyle = new StyleBoxFlat
         {
@@ -425,14 +422,14 @@ public partial class MapScene : Control
         var buttonRow = new HBoxContainer();
         infoVbox.AddChild(buttonRow);
 
-        _infoGoButton = new Button { Text = "Go" };
+        _infoGoButton = new Button { Text = "CHALLENGE", CustomMinimumSize = new Vector2(100, 44) };
         StyleButton(_infoGoButton, 14);
         _infoGoButton.Pressed += OnGoButtonPressed;
         buttonRow.AddChild(_infoGoButton);
 
         buttonRow.AddChild(new Control { CustomMinimumSize = new Vector2(8, 0) });
 
-        _infoCloseButton = new Button { Text = "Close" };
+        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(80, 44) };
         StyleButton(_infoCloseButton, 12, goldText: false);
         _infoCloseButton.Pressed += () => _infoPanel.Hide();
         buttonRow.AddChild(_infoCloseButton);
