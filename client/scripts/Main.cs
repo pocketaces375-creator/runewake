@@ -49,6 +49,7 @@ public partial class Main : Control
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             MouseFilter = MouseFilterEnum.Ignore
         };
         if (ResourceLoader.Exists("res://content/art/title/hero_art.png"))

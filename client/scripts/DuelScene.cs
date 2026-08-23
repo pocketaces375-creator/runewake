@@ -2837,6 +2837,7 @@ public partial class DuelScene : Control
             {
                 Texture = ResourceLoader.Load<Texture2D>(encounter.Portrait),
                 StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
                 CustomMinimumSize = new Vector2(100, 100),
                 MouseFilter = Control.MouseFilterEnum.Ignore,
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,

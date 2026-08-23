@@ -11,6 +11,12 @@ All Runewake artifacts, reports, captures, APK links, and scout digests **post t
 - No script in `tools/` or `pipeline/` hardcodes a DM chat ID.
 - APK deliver scripts (`apk_deliver.sh`, `serve_apk.py`, `serve_apk_v6.py`) do not send Telegram messages — they upload files and print to stdout; the foreman or agent delivers the announcement.
 
+## Standing Rule: TextureRect ExpandMode
+
+Every `TextureRect` created anywhere in the client **must** set `ExpandMode = ExpandModeEnum.IgnoreSize` explicitly. A TextureRect's minimum size defaults to its texture's native size (e.g. 832×1216), and Controls do NOT clip children — omitting this causes panel/container explosion that pushes sibling UI off-screen.
+
+Code-created `new TextureRect() { ... ExpandMode = ...IgnoreSize }` and scene-GetNode'd TextureRects must have it in their `.tscn` definition. Three scenes were bitten by this (DeckBuilderScene, ChooseYourPathScene, CardView scene).
+
 ## Exceptions
 
 - `daily_scout.sh` logs to `docs/SCOUT_LOG.md` and prints to stdout; its cron job delivers the digest via the configured cron delivery target.

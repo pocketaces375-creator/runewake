@@ -626,6 +626,7 @@ public partial class DeckBuilderScene : Control
         artRect.SetAnchorsPreset(LayoutPreset.FullRect);
         artRect.MouseFilter = MouseFilterEnum.Ignore;
         artRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+        artRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
         string artPath = $"res://content/art/{card.Id}.webp";
         if (ResourceLoader.Exists(artPath))
         {
