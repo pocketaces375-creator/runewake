@@ -195,75 +195,84 @@ public partial class DeckBuilderScene : Control
         };
         AddChild(bg);
 
-        // ── Top bar (64px) ──
-        _topBar = new Control();
-        _topBar.AnchorLeft = 0; _topBar.AnchorRight = 1;
-        _topBar.AnchorTop = 0;
-        _topBar.CustomMinimumSize = new Vector2(0, 64);
-        _topBar.Size = new Vector2(GetViewportRect().Size.X, 64);
-        AddChild(_topBar);
+        // ── Top bar (64px) — HBox layout ──
+                _topBar = new Control();
+                _topBar.AnchorLeft = 0; _topBar.AnchorRight = 1;
+                _topBar.AnchorTop = 0;
+                _topBar.CustomMinimumSize = new Vector2(0, 64);
+                _topBar.Size = new Vector2(GetViewportRect().Size.X, 64);
+                AddChild(_topBar);
 
-        // Top bar background
-        var topBg = new ColorRect
-        {
-            Color = SurfaceStone,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        topBg.SetAnchorsPreset(LayoutPreset.FullRect);
-        _topBar.AddChild(topBg);
+                // Top bar background
+                var topBg = new ColorRect
+                {
+                    Color = SurfaceStone,
+                    MouseFilter = MouseFilterEnum.Ignore
+                };
+                topBg.SetAnchorsPreset(LayoutPreset.FullRect);
+                _topBar.AddChild(topBg);
 
-        // Title
-        var title = new Label
-        {
-            Text = "DECK FORGE",
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(title, FontSubtitle);
-        title.AddThemeColorOverride("font_color", Gold);
-        title.Position = new Vector2(16, 0);
-        title.Size = new Vector2(200, 64);
-        _topBar.AddChild(title);
+                // Inner HBox: [Title] [Search] [spacer] [Chips]
+                var topBarRow = new HBoxContainer();
+                topBarRow.SetAnchorsPreset(LayoutPreset.FullRect);
+                topBarRow.AddThemeConstantOverride("separation", 8);
+                topBarRow.OffsetLeft = 12;
+                topBarRow.OffsetRight = -12;
+                _topBar.AddChild(topBarRow);
 
-        // Search field
-        _searchField = new LineEdit
-        {
-            PlaceholderText = "Search cards...",
-            CustomMinimumSize = new Vector2(200, 32),
-            SizeFlagsHorizontal = (SizeFlags)3
-        };
-        _searchField.AddThemeColorOverride("font_color", TextPrimary);
-        _searchField.AddThemeColorOverride("placeholder_color", TextMuted);
-        _searchField.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#1C1712"),
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
-        });
-        _searchField.TextChanged += (text) => { _searchText = text; RefreshCardGrid(); };
-        _searchField.Position = new Vector2(220, 16);
-        _searchField.Size = new Vector2(200, 32);
-        _topBar.AddChild(_searchField);
+                // Title
+                var title = new Label
+                {
+                    Text = "DECK FORGE",
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                ApplyHeaderFont(title, FontSubtitle);
+                title.AddThemeColorOverride("font_color", Gold);
+                title.SizeFlagsHorizontal = (SizeFlags)0;
+                title.CustomMinimumSize = new Vector2(140, 64);
+                topBarRow.AddChild(title);
 
-        // Filter chips row (scrollable at narrow widths)
-        var chipScroll = new ScrollContainer();
-        chipScroll.SizeFlagsHorizontal = (SizeFlags)3;
-        chipScroll.SizeFlagsVertical = (SizeFlags)0;
-        chipScroll.HorizontalScrollMode = (ScrollContainer.ScrollMode)1;
-        chipScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
+                // Search field — max-width 250
+                _searchField = new LineEdit
+                {
+                    PlaceholderText = "Search cards...",
+                    CustomMinimumSize = new Vector2(140, 32)
+                };
+                _searchField.SizeFlagsHorizontal = (SizeFlags)0;
+                _searchField.AddThemeColorOverride("font_color", TextPrimary);
+                _searchField.AddThemeColorOverride("placeholder_color", TextMuted);
+                _searchField.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+                {
+                    BgColor = Color.FromHtml("#1C1712"),
+                    BorderColor = BorderStandard,
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                    CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                    ContentMarginLeft = 8, ContentMarginTop = 4,
+                    ContentMarginRight = 8, ContentMarginBottom = 4
+                });
+                _searchField.TextChanged += (text) => { _searchText = text; RefreshCardGrid(); };
+                topBarRow.AddChild(_searchField);
+
+                // Spacer — pushes chips to right
+                var spacer = new Control();
+                spacer.SizeFlagsHorizontal = (SizeFlags)3; // Expand + Fill
+                topBarRow.AddChild(spacer);
+
+                // Filter chips row (scrollable horizontally when overflow)
+                var chipScroll = new ScrollContainer();
+                chipScroll.SizeFlagsVertical = (SizeFlags)4; // Shrink Center
+                chipScroll.SizeFlagsHorizontal = (SizeFlags)3; // Expand + Fill
+                chipScroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Auto;
+                chipScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
+                chipScroll.CustomMinimumSize = new Vector2(200, 44);
         _filterChipRow = new HBoxContainer();
         _filterChipRow.AddThemeConstantOverride("separation", 8);
         _filterChipRow.CustomMinimumSize = new Vector2(0, 44);
         _filterChipRow.SizeFlagsVertical = (SizeFlags)0;
         chipScroll.AddChild(_filterChipRow);
-        chipScroll.Position = new Vector2(440, 10);
-        chipScroll.Size = new Vector2(600, 44);
-        _topBar.AddChild(chipScroll);
+        topBarRow.AddChild(chipScroll);
 
         for (int i = 0; i < StrataOptions.Length; i++)
         {
@@ -493,33 +502,33 @@ public partial class DeckBuilderScene : Control
         {
             Flat = false,
             Text = "", // we build custom content
-            CustomMinimumSize = new Vector2(0, 44)
+            CustomMinimumSize = new Vector2(0, 44) // 44px hit target (36px chip + 4px each side)
         };
 
-        // Pill shape style — full rounded corners
+        // Pill shape — exact spec: corner radius 18, padding 14, colors per spec
         var baseStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 1),
-            BorderColor = selected ? Gold : BorderSubtle,
+            BgColor = Color.FromHtml("#26201A"),
+            BorderColor = selected ? Color.FromHtml("#D4B84C") : Color.FromHtml("#4A4238"),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 22, CornerRadiusTopRight = 22,
-            CornerRadiusBottomLeft = 22, CornerRadiusBottomRight = 22,
-            ContentMarginLeft = 10, ContentMarginTop = 0,
-            ContentMarginRight = 14, ContentMarginBottom = 0
+            CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
+            CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+            ContentMarginLeft = 14, ContentMarginTop = 4,  // 14px pad + 4 top/bottom margin = 36px visual
+            ContentMarginRight = 14, ContentMarginBottom = 4
         };
         btn.AddThemeStyleboxOverride("normal", baseStyle);
         btn.AddThemeStyleboxOverride("hover", baseStyle);
         btn.AddThemeStyleboxOverride("pressed", baseStyle);
 
-        // Inner HBox: dot + label
+        // Inner HBox: [dot] + [label]
         var inner = new HBoxContainer();
         inner.SetAnchorsPreset(LayoutPreset.FullRect);
         inner.MouseFilter = MouseFilterEnum.Ignore;
         inner.AddThemeConstantOverride("separation", 6);
         btn.AddChild(inner);
 
-        // Strata color dot
+        // Strata color dot (10px × 10px)
         var dot = new ColorRect
         {
             Color = accent,
@@ -529,15 +538,19 @@ public partial class DeckBuilderScene : Control
         };
         inner.AddChild(dot);
 
-        // Label with Cinzel font
+        // Label — Cinzel 11px, never clipped
+        var font = GetHeaderFont(FontBody); // reuse Cinzel font
         var chipLabel = new Label
         {
             Text = label,
             VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (SizeFlags)0,
+            AutowrapMode = TextServer.AutowrapMode.Off
         };
-        ApplyHeaderFont(chipLabel, FontBody);
-        chipLabel.AddThemeColorOverride("font_color", selected ? Gold : TextMuted);
+        chipLabel.AddThemeFontSizeOverride("font_size", 11);
+        chipLabel.AddThemeFontOverride("font", font);
+        chipLabel.AddThemeColorOverride("font_color", selected ? Color.FromHtml("#D4B84C") : Color.FromHtml("#CFC4AE"));
         inner.AddChild(chipLabel);
 
         return btn;
@@ -567,17 +580,17 @@ public partial class DeckBuilderScene : Control
 
                 bool selected = idx >= 0 && idx == _selectedStrataIdx;
 
-                // Update button style
+                // Update button style — exact spec colors
                 var style = new StyleBoxFlat
                 {
-                    BgColor = selected ? new Color(0.2f, 0.18f, 0.14f, 1) : new Color(0.15f, 0.13f, 0.10f, 1),
-                    BorderColor = selected ? Gold : BorderSubtle,
+                    BgColor = selected ? Color.FromHtml("#2A2114") : Color.FromHtml("#26201A"),
+                    BorderColor = selected ? Color.FromHtml("#D4B84C") : Color.FromHtml("#4A4238"),
                     BorderWidthLeft = 1, BorderWidthTop = 1,
                     BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 22, CornerRadiusTopRight = 22,
-                    CornerRadiusBottomLeft = 22, CornerRadiusBottomRight = 22,
-                    ContentMarginLeft = 10, ContentMarginTop = 0,
-                    ContentMarginRight = 14, ContentMarginBottom = 0
+                    CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
+                    CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+                    ContentMarginLeft = 14, ContentMarginTop = 4,
+                    ContentMarginRight = 14, ContentMarginBottom = 4
                 };
                 btn.AddThemeStyleboxOverride("normal", style);
                 btn.AddThemeStyleboxOverride("hover", style);
@@ -587,7 +600,8 @@ public partial class DeckBuilderScene : Control
                 if (btn.GetChildCount() > 0 && btn.GetChild(0) is HBoxContainer innerHbox
                     && innerHbox.GetChildCount() > 1 && innerHbox.GetChild(1) is Label lbl)
                 {
-                    lbl.AddThemeColorOverride("font_color", selected ? Gold : TextMuted);
+                    lbl.AddThemeColorOverride("font_color", selected ? Color.FromHtml("#D4B84C") : Color.FromHtml("#CFC4AE"));
+                    lbl.AddThemeFontSizeOverride("font_size", 11);
                 }
             }
         }
