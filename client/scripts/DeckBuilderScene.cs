@@ -241,12 +241,20 @@ public partial class DeckBuilderScene : Control
         _searchField.Size = new Vector2(200, 32);
         _topBar.AddChild(_searchField);
 
-        // Filter chips row
+        // Filter chips row (scrollable at narrow widths)
+        var chipScroll = new ScrollContainer();
+        chipScroll.SizeFlagsHorizontal = (SizeFlags)3;
+        chipScroll.SizeFlagsVertical = (SizeFlags)0;
+        chipScroll.HorizontalScrollMode = (ScrollContainer.ScrollMode)1;
+        chipScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
         _filterChipRow = new HBoxContainer();
-        _filterChipRow.AddThemeConstantOverride("separation", 6);
-        _filterChipRow.Position = new Vector2(440, 12);
-        _filterChipRow.Size = new Vector2(600, 40);
-        _topBar.AddChild(_filterChipRow);
+        _filterChipRow.AddThemeConstantOverride("separation", 8);
+        _filterChipRow.CustomMinimumSize = new Vector2(0, 44);
+        _filterChipRow.SizeFlagsVertical = (SizeFlags)0;
+        chipScroll.AddChild(_filterChipRow);
+        chipScroll.Position = new Vector2(440, 10);
+        chipScroll.Size = new Vector2(600, 44);
+        _topBar.AddChild(chipScroll);
 
         for (int i = 0; i < StrataOptions.Length; i++)
         {
@@ -464,58 +472,61 @@ public partial class DeckBuilderScene : Control
     }
 
     /// <summary>
-    /// Create a strata filter chip (pill-shaped).
+    /// Create a strata filter chip (pill-shaped, >= 44px touch target).
     /// </summary>
     private Button MakeFilterChip(string label, Color accent, bool selected)
     {
         var btn = new Button
         {
-            Text = label,
-            Flat = true,
-            CustomMinimumSize = new Vector2(0, 32)
+            Flat = false,
+            Text = "", // we build custom content
+            CustomMinimumSize = new Vector2(0, 44)
         };
-        btn.AddThemeFontSizeOverride("font_size", 11);
-        btn.AddThemeConstantOverride("outline_size", 0);
+
+        // Pill shape style — full rounded corners
+        var baseStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.13f, 0.10f, 1),
+            BorderColor = selected ? Gold : BorderSubtle,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 22, CornerRadiusTopRight = 22,
+            CornerRadiusBottomLeft = 22, CornerRadiusBottomRight = 22,
+            ContentMarginLeft = 10, ContentMarginTop = 0,
+            ContentMarginRight = 14, ContentMarginBottom = 0
+        };
+        btn.AddThemeStyleboxOverride("normal", baseStyle);
+        btn.AddThemeStyleboxOverride("hover", baseStyle);
+        btn.AddThemeStyleboxOverride("pressed", baseStyle);
+
+        // Inner HBox: dot + label
+        var inner = new HBoxContainer();
+        inner.SetAnchorsPreset(LayoutPreset.FullRect);
+        inner.MouseFilter = MouseFilterEnum.Ignore;
+        inner.AddThemeConstantOverride("separation", 6);
+        btn.AddChild(inner);
 
         // Strata color dot
         var dot = new ColorRect
         {
             Color = accent,
-            Size = new Vector2(8, 8),
-            Position = new Vector2(4, 12),
+            CustomMinimumSize = new Vector2(10, 10),
+            Size = new Vector2(10, 10),
             MouseFilter = MouseFilterEnum.Ignore
         };
-        btn.AddChild(dot);
+        inner.AddChild(dot);
 
-        if (selected)
+        // Label with Cinzel font
+        var chipLabel = new Label
         {
-            btn.AddThemeColorOverride("font_color", Gold);
-            btn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-            {
-                BgColor = new Color(0.2f, 0.18f, 0.14f, 1),
-                BorderColor = Gold,
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16,
-                CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16
-            });
-        }
-        else
-        {
-            btn.AddThemeColorOverride("font_color", TextMuted);
-            btn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-            {
-                BgColor = new Color(0.15f, 0.13f, 0.10f, 1),
-                BorderColor = BorderSubtle,
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16,
-                CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16
-            });
-        }
-        // Copy to hover
-        btn.AddThemeStyleboxOverride("hover", btn.GetThemeStylebox("normal"));
-        btn.AddThemeStyleboxOverride("pressed", btn.GetThemeStylebox("normal"));
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        ApplyHeaderFont(chipLabel, FontBody);
+        chipLabel.AddThemeColorOverride("font_color", selected ? Gold : TextMuted);
+        inner.AddChild(chipLabel);
+
         return btn;
     }
 
@@ -525,22 +536,46 @@ public partial class DeckBuilderScene : Control
         {
             if (child is Button btn)
             {
-                // Rebuild the chip style based on selection state
                 int idx = Array.IndexOf(StrataOptions, btn.Text);
-                bool selected = idx == _selectedStrataIdx;
+                // With the new layout, btn.Text is "" — find the label inside
+                if (idx < 0 && btn.GetChildCount() > 0)
+                {
+                    // Get the inner HBox's child label
+                    var inner = btn.GetChild(0) as HBoxContainer;
+                    if (inner != null && inner.GetChildCount() > 1)
+                    {
+                        var chipLabel = inner.GetChild(1) as Label;
+                        if (chipLabel != null)
+                        {
+                            idx = Array.IndexOf(StrataOptions, chipLabel.Text);
+                        }
+                    }
+                }
+
+                bool selected = idx >= 0 && idx == _selectedStrataIdx;
+
+                // Update button style
                 var style = new StyleBoxFlat
                 {
                     BgColor = selected ? new Color(0.2f, 0.18f, 0.14f, 1) : new Color(0.15f, 0.13f, 0.10f, 1),
                     BorderColor = selected ? Gold : BorderSubtle,
                     BorderWidthLeft = 1, BorderWidthTop = 1,
                     BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16,
-                    CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16
+                    CornerRadiusTopLeft = 22, CornerRadiusTopRight = 22,
+                    CornerRadiusBottomLeft = 22, CornerRadiusBottomRight = 22,
+                    ContentMarginLeft = 10, ContentMarginTop = 0,
+                    ContentMarginRight = 14, ContentMarginBottom = 0
                 };
                 btn.AddThemeStyleboxOverride("normal", style);
                 btn.AddThemeStyleboxOverride("hover", style);
                 btn.AddThemeStyleboxOverride("pressed", style);
-                btn.AddThemeColorOverride("font_color", selected ? Gold : TextMuted);
+
+                // Update label color
+                if (btn.GetChildCount() > 0 && btn.GetChild(0) is HBoxContainer innerHbox
+                    && innerHbox.GetChildCount() > 1 && innerHbox.GetChild(1) is Label lbl)
+                {
+                    lbl.AddThemeColorOverride("font_color", selected ? Gold : TextMuted);
+                }
             }
         }
     }
