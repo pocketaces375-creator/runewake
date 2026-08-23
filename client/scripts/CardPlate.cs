@@ -142,8 +142,8 @@ public partial class CardPlate : Control
         _plateTopBorder.Position = Vector2.Zero;
         _plateTopBorder.Size = new Vector2(cardWidth, 1);
 
-        // Name label — centered in plate with padding
-        float padX = chipSize * 0.8f;
+        // Name label — centered in plate, inset from both sides by chip width + gap
+        float padX = chipSize + 4f;
         _cardName.Position = new Vector2(padX, 2);
         _cardName.Size = new Vector2(cardWidth - padX * 2, plateH - 4);
 
