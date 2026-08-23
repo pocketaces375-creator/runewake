@@ -99,10 +99,14 @@ public static class CampaignContext
     public static bool CaptureTitleDeckScreenshot { get; set; }
     
     /// <summary>Test hook: capture title screen only (captures and quits).
-    /// Set by --capture=title_test CLI arg via DebugCapture.</summary>
-    public static bool CaptureTitleTestScreenshot { get; set; }
-
-    /// <summary>Test hook: capture duel VICTORY overlay with encounter name. Auto-ends duel as win.</summary>
+        /// Set by --capture=title_test CLI arg via DebugCapture.</summary>
+        public static bool CaptureTitleTestScreenshot { get; set; }
+    
+        /// <summary>Test hook: capture choose path screenshot.
+        /// Set by --capture=choose_path CLI arg via DebugCapture.</summary>
+        public static bool CaptureChoosePathScreenshot { get; set; }
+    
+        /// <summary>Test hook: capture duel VICTORY overlay with encounter name. Auto-ends duel as win.</summary>
     public static bool CaptureVictoryOverlay { get; set; }
 
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>

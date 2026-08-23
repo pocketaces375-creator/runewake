@@ -578,6 +578,15 @@ public partial class Main : Control
                 // Navigate to deck builder for deck capture
                 Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn")).CallDeferred();
             }
+            else if (CampaignContext.CaptureChoosePathScreenshot)
+            {
+                // Navigate to choose your path for carousel capture
+                GD.Print("[Main] Navigating to ChooseYourPath for carousel capture");
+                Callable.From(() =>
+                {
+                    GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+                }).CallDeferred();
+            }
             else
             {
                 // Navigate to duel for duel capture

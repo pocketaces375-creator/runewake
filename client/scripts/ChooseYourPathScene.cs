@@ -293,7 +293,17 @@ public partial class ChooseYourPathScene : Control
         if (CampaignContext.AutoCaptureScreenshot)
         {
             _captureMode = true;
-            var timer = GetTree().CreateTimer(0.8f);
+
+            // If choose-path specific capture, auto-select Tidecaller for proof
+            if (CampaignContext.CaptureChoosePathScreenshot)
+            {
+                _selectedIdx = Mathf.Min(3, _classes.Count - 1);
+                UpdateCarousel();
+                UpdateUI();
+                RunVerify();
+            }
+
+            var timer = GetTree().CreateTimer(1.0f);
             timer.Timeout += () =>
             {
                 var image = GetViewport().GetTexture().GetImage();

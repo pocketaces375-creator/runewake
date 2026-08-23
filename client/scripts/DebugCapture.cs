@@ -138,6 +138,21 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Defeat overlay (wide) capture mode enabled: --capture=defeat_overlay_wide");
             }
+            if (arg == "--capture=choose_path")
+            {
+                CampaignContext.CaptureChoosePathScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] ChoosePath capture mode enabled: --capture=choose_path");
+            }
+            if (arg == "--capture=choose_path_wide")
+            {
+                CampaignContext.CaptureChoosePathScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] ChoosePath wide capture mode enabled: --capture=choose_path_wide");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);
