@@ -64,6 +64,9 @@ public partial class DeckBuilderScene : Control
     // Capture mode
     private bool _captureMode;
 
+    // Track unsaved changes
+    private bool _modified;
+
     public override void _Ready()
     {
         // Ensure campaign data is loaded
@@ -466,7 +469,7 @@ public partial class DeckBuilderScene : Control
         };
         _backButton.AddThemeFontSizeOverride("font_size", 12);
         _backButton.AddThemeColorOverride("font_color", TextMuted);
-        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        _backButton.Pressed += () => OnBack();
         railVbox.AddChild(_backButton);
     }
 
@@ -1032,6 +1035,7 @@ public partial class DeckBuilderScene : Control
         if (!result.IsValid) return;
 
         _deckCardIds.Add(cardId);
+        _modified = true;
         RefreshCardGrid();
         RefreshDeckList();
         RefreshCurve();
@@ -1045,10 +1049,114 @@ public partial class DeckBuilderScene : Control
         if (idx < 0) return;
 
         _deckCardIds.RemoveAt(idx);
+        _modified = true;
         RefreshCardGrid();
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // BACK — with unsaved-changes confirmation
+    // ════════════════════════════════════════════════════════════════
+
+    private void OnBack()
+    {
+        if (!_modified)
+        {
+            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+            return;
+        }
+
+        // Stone confirmation dialog
+        var dialog = new PanelContainer();
+        dialog.Name = "ConfirmDialog";
+        dialog.Position = new Vector2(GetViewportRect().Size.X / 2f - 140, GetViewportRect().Size.Y / 2f - 50);
+        dialog.Size = new Vector2(280, 100);
+        dialog.MouseFilter = MouseFilterEnum.Pass;
+        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.95f),
+            BorderColor = BorderStandard,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 8, ContentMarginTop = 8,
+            ContentMarginRight = 8, ContentMarginBottom = 8
+        });
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
+        vbox.AddThemeConstantOverride("separation", 6);
+        dialog.AddChild(vbox);
+
+        var msg = new Label
+        {
+            Text = "Unsaved changes will be lost.",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyBodyFont(msg, FontSmall);
+        msg.AddThemeColorOverride("font_color", TextPrimary);
+        vbox.AddChild(msg);
+
+        var btnRow = new HBoxContainer();
+        btnRow.AddThemeConstantOverride("separation", 8);
+        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
+        btnRow.SizeFlagsVertical = (SizeFlags)3;
+        vbox.AddChild(btnRow);
+
+        // Keep editing button
+        var keepBtn = new Button
+        {
+            Text = "Keep editing",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        keepBtn.AddThemeColorOverride("font_color", Gold);
+        keepBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = SurfaceStone,
+            BorderColor = BorderStandard,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        keepBtn.Pressed += () =>
+        {
+            if (IsInstanceValid(dialog))
+                dialog.QueueFree();
+        };
+        btnRow.AddChild(keepBtn);
+
+        // Discard button
+        var discardBtn = new Button
+        {
+            Text = "Discard",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        discardBtn.AddThemeColorOverride("font_color", TextMuted);
+        discardBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.08f, 0.05f, 1),
+            BorderColor = BorderSubtle,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        discardBtn.Pressed += () =>
+        {
+            if (IsInstanceValid(dialog))
+                dialog.QueueFree();
+            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        };
+        btnRow.AddChild(discardBtn);
+
+        AddChild(dialog);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -1066,9 +1174,59 @@ public partial class DeckBuilderScene : Control
         CampaignContext.PlayerDeckIds.Clear();
         CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
         CampaignContext.SaveManager.Save();
+        _modified = false;
 
-        _forgeButton.Text = "Forged!";
-        var timer = GetTree().CreateTimer(1.5f);
-        timer.Timeout += () => _forgeButton.Text = "FORGE DECK";
+        // Gold toast
+        ShowToast("Deck forged.");
+
+        // Return after brief delay
+        var timer = GetTree().CreateTimer(1.0f);
+        timer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+    }
+
+    /// <summary>
+    /// Show a brief gold toast message centered on screen.
+    /// </summary>
+    private void ShowToast(string message)
+    {
+        var toast = new PanelContainer();
+        toast.Name = "Toast";
+        toast.Position = new Vector2(GetViewportRect().Size.X / 2f - 100, GetViewportRect().Size.Y / 2f - 20);
+        toast.Size = new Vector2(200, 40);
+        toast.MouseFilter = MouseFilterEnum.Ignore;
+        toast.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.18f, 0.14f, 0.9f),
+            BorderColor = Gold,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 12, ContentMarginTop = 6,
+            ContentMarginRight = 12, ContentMarginBottom = 6
+        });
+
+        var toastLabel = new Label
+        {
+            Text = message,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyHeaderFont(toastLabel, FontBody);
+        toastLabel.AddThemeColorOverride("font_color", Gold);
+        toastLabel.SetAnchorsPreset(LayoutPreset.FullRect);
+        toast.AddChild(toastLabel);
+
+        AddChild(toast);
+
+        // Fade out after 1s
+        var tween = CreateTween();
+        tween.TweenInterval(0.8f);
+        tween.TweenProperty(toast, "modulate", new Color(1, 1, 1, 0), 0.3f);
+        tween.TweenCallback(Callable.From(() =>
+        {
+            if (IsInstanceValid(toast))
+                toast.QueueFree();
+        }));
     }
 }
