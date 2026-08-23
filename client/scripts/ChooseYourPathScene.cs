@@ -8,25 +8,78 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// "CHOOSE YOUR PATH" screen — campaign entry point.
-/// Displays class panels with art, blurb, and core cards.
-/// Selection feeds into the deck builder with core cards pre-slotted and locked.
+/// "CHOOSE YOUR PATH" screen — campaign entry point with looping class carousel.
 /// </summary>
 public partial class ChooseYourPathScene : Control
 {
     // ── Data ──
     private readonly List<ClassDef> _classes = new();
-    private int _selectedIdx = -1;
+    private int _selectedIdx = 0; // center = selected
     private Control _beginButton;
-    private Control _classPanelRow;
-    private Control _coreCardsArea;
     private Label _beginLabel;
+    private ColorRect _dotsArea;
+    private readonly List<ColorRect> _dotIndicators = new();
+    private Control _coreCardsArea;
+    private Label _coreLabel;
+    private HBoxContainer _coreCardRow;
+    private Control _carouselPanelContainer;
+    private readonly List<Control> _panelNodes = new();
+
+    // Carousel drag state
+    private bool _dragging;
+    private float _dragStartX;
+    private float _dragOffset; // accumulated offset from dragging
+
+    // Arrow buttons
+    private Button _leftArrow;
+    private Button _rightArrow;
+
+    // Layout constants (set in _Ready based on viewport)
+    private float _panelFullW = 220f;
+    private float _panelFullH = 310f;
+    private float _centerX;
 
     // Capture
     private bool _captureMode;
 
+    // ── Class data types ──
+    private class ClassJson
+    {
+        public string id { get; set; } = "";
+        public string name { get; set; } = "";
+        public string strata { get; set; } = "";
+        public string town { get; set; } = "";
+        public string description { get; set; } = "";
+        public string blurb { get; set; } = "";
+        public List<string> core_cards { get; set; } = new();
+    }
+
+    public class ClassDef
+    {
+        public string Id { get; set; } = "";
+        public string Name { get; set; } = "";
+        public Strata Strata { get; set; }
+        public string Town { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Blurb { get; set; } = "";
+        public List<string> CoreCardIds { get; set; } = new();
+    }
+
+    // ════════════════════════════════════════════════
+    // _Ready
+    // ════════════════════════════════════════════════
+
     public override void _Ready()
     {
+        var vp = GetViewportRect().Size;
+        float w = vp.X;
+        float h = vp.Y;
+
+        // Sizing: panels scale with viewport
+        _panelFullW = Mathf.Min(240f, w * 0.14f);
+        _panelFullH = _panelFullW * 310f / 220f; // ~1.4 aspect
+        _centerX = w / 2f;
+
         // Dark background
         var bg = new ColorRect
         {
@@ -39,7 +92,7 @@ public partial class ChooseYourPathScene : Control
         // Load class data
         LoadClasses();
 
-        // Hero art background (darkened) — real path: content/art/title/hero_art.png
+        // Hero art background
         var heroArt = new TextureRect();
         heroArt.SetAnchorsPreset(LayoutPreset.FullRect);
         heroArt.MouseFilter = MouseFilterEnum.Ignore;
@@ -49,20 +102,20 @@ public partial class ChooseYourPathScene : Control
             heroArt.Texture = GD.Load<Texture2D>(heroPath);
         else
             GD.Print("[ART-MISSING] title/hero_art.png");
-        heroArt.Modulate = new Color(0.62f, 0.62f, 0.62f, 0.8f); // ~38% darken
+        heroArt.Modulate = new Color(0.62f, 0.62f, 0.62f, 0.75f);
         AddChild(heroArt);
 
-        // Dark gradient toward bottom
+        // Dark gradient
         var gradient = new ColorRect
         {
-            Color = new Color(0.04f, 0.03f, 0.02f, 0.6f),
+            Color = new Color(0.04f, 0.03f, 0.02f, 0.55f),
             MouseFilter = MouseFilterEnum.Ignore
         };
         gradient.AnchorLeft = 0; gradient.AnchorRight = 1;
-        gradient.AnchorTop = 0.6f; gradient.AnchorBottom = 1;
+        gradient.AnchorTop = 0.5f; gradient.AnchorBottom = 1;
         AddChild(gradient);
 
-        // Title
+        // ── Title ──
         var title = new Label
         {
             Text = "CHOOSE YOUR PATH",
@@ -73,14 +126,15 @@ public partial class ChooseYourPathScene : Control
         title.AddThemeColorOverride("font_color", Gold);
         title.AddThemeConstantOverride("outline_size", 2);
         title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.Position = new Vector2(0, 30);
-        title.Size = new Vector2(GetViewportRect().Size.X, 48);
+        title.Position = new Vector2(0, 20);
+        title.Size = new Vector2(w, 48);
         AddChild(title);
 
-        // Subtitle
+        // ── Subtitle ──
+        float subY = 72;
         var subtitle = new Label
         {
-            Text = "Each path begins in its own town, with its own tale — all roads may yet cross.",
+            Text = "Each path begins in its own town, with its own tale.",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word
@@ -89,60 +143,101 @@ public partial class ChooseYourPathScene : Control
         subtitle.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         subtitle.AddThemeColorOverride("font_outline_color", Colors.Black);
         subtitle.AddThemeConstantOverride("outline_size", 1);
-        subtitle.Position = new Vector2(60, 80);
-        subtitle.Size = new Vector2(GetViewportRect().Size.X - 120, 30);
+        subtitle.Position = new Vector2(40, subY);
+        subtitle.Size = new Vector2(w - 80, 28);
         AddChild(subtitle);
 
-        // Class panel row
-        _classPanelRow = new HBoxContainer();
-        _classPanelRow.AddThemeConstantOverride("separation", 24);
-        float rowY = 130f;
-        _classPanelRow.Position = new Vector2(60, rowY);
-        _classPanelRow.Size = new Vector2(GetViewportRect().Size.X - 120, 300);
-        AddChild(_classPanelRow);
+        // ── Carousel area ──
+        float carouselY = subY + 36;
+        float carouselH = _panelFullH + 20;
+        _carouselPanelContainer = new Control();
+        _carouselPanelContainer.Position = new Vector2(0, carouselY);
+        _carouselPanelContainer.Size = new Vector2(w, carouselH);
+        AddChild(_carouselPanelContainer);
 
+        // Build panels
         for (int i = 0; i < _classes.Count; i++)
         {
+            var panel = MakeCarouselPanel(_classes[i], i);
+            _carouselPanelContainer.AddChild(panel);
+            _panelNodes.Add(panel);
+            // Click handler on the panel itself
             int idx = i;
-            var panel = MakeClassPanel(_classes[i]);
-            // Add click overlay to the panel
-            var clickOverlay = new Button();
-            clickOverlay.SetAnchorsPreset(LayoutPreset.FullRect);
-            clickOverlay.MouseDefaultCursorShape = CursorShape.PointingHand;
-            var transStyle = new StyleBoxFlat { BgColor = Colors.Transparent };
-            clickOverlay.AddThemeStyleboxOverride("normal", transStyle);
-            clickOverlay.AddThemeStyleboxOverride("hover", transStyle);
-            clickOverlay.AddThemeStyleboxOverride("pressed", transStyle);
-            clickOverlay.Pressed += () => SelectClass(idx);
-            panel.AddChild(clickOverlay);
-            _classPanelRow.AddChild(panel);
+            panel.GuiInput += (@event) =>
+            {
+                if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+                    SnapToIndex(idx);
+            };
         }
 
-        // Core cards area
+        // Arrow buttons
+        float arrowY = carouselY + carouselH / 2f - 22f;
+        _leftArrow = new Button
+        {
+            Text = "\u25C0",
+            Flat = true,
+            CustomMinimumSize = new Vector2(44, 44),
+            Position = new Vector2(8, arrowY)
+        };
+        _leftArrow.AddThemeFontSizeOverride("font_size", 20);
+        _leftArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        _leftArrow.Pressed += () => { _selectedIdx = (_selectedIdx - 1 + _classes.Count) % _classes.Count; UpdateCarousel(); UpdateUI(); };
+        AddChild(_leftArrow);
+
+        _rightArrow = new Button
+        {
+            Text = "\u25B6",
+            Flat = true,
+            CustomMinimumSize = new Vector2(44, 44),
+            Position = new Vector2(w - 52, arrowY)
+        };
+        _rightArrow.AddThemeFontSizeOverride("font_size", 20);
+        _rightArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        _rightArrow.Pressed += () => { _selectedIdx = (_selectedIdx + 1) % _classes.Count; UpdateCarousel(); UpdateUI(); };
+        AddChild(_rightArrow);
+
+        // ── Dot indicators ──
+        float dotsY = carouselY + carouselH + 4;
+        _dotsArea = new ColorRect
+        {
+            Color = Colors.Transparent,
+            MouseFilter = MouseFilterEnum.Ignore,
+            Position = new Vector2(0, dotsY),
+            Size = new Vector2(w, 12)
+        };
+        AddChild(_dotsArea);
+
+        float dotSpacing = 14f;
+        float dotsTotal = (_classes.Count - 1) * dotSpacing;
+        float dotsStartX = (w - dotsTotal) / 2f;
+        for (int i = 0; i < _classes.Count; i++)
+        {
+            var dot = new ColorRect
+            {
+                Color = i == _selectedIdx ? Gold : TextInactive,
+                Size = new Vector2(8, 8),
+                Position = new Vector2(dotsStartX + i * dotSpacing, 2),
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            _dotsArea.AddChild(dot);
+            _dotIndicators.Add(dot);
+        }
+
+        // ── Core cards area ──
+        float coreY = dotsY + 16;
+        float coreH = 120f;
         _coreCardsArea = new Control();
-        _coreCardsArea.Position = new Vector2(0, rowY + 310);
-        _coreCardsArea.Size = new Vector2(GetViewportRect().Size.X, 120);
+        _coreCardsArea.Position = new Vector2(0, coreY);
+        _coreCardsArea.Size = new Vector2(w, coreH);
         AddChild(_coreCardsArea);
 
-        // Core cards label
-        var coreLabel = new Label
-        {
-            Text = "CLASS CORE — four sworn cards every class carries",
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyBodyFont(coreLabel, FontSmall);
-        coreLabel.AddThemeColorOverride("font_color", TextSecondary);
-        coreLabel.Position = new Vector2(0, 0);
-        coreLabel.Size = new Vector2(GetViewportRect().Size.X, 24);
-        _coreCardsArea.AddChild(coreLabel);
-
-        // BEGIN button
+        // ── BEGIN button ──
+        float beginY = coreY + coreH + 4;
         _beginButton = new PanelContainer();
-        _beginButton.Position = new Vector2(GetViewportRect().Size.X / 2f - 120, rowY + 440);
-        _beginButton.Size = new Vector2(240, 44);
-        _beginButton.CustomMinimumSize = new Vector2(240, 44);
+        _beginButton.Position = new Vector2(w / 2f - 140, beginY);
+        _beginButton.Size = new Vector2(280, 46);
+        _beginButton.CustomMinimumSize = new Vector2(280, 46);
         _beginButton.MouseDefaultCursorShape = CursorShape.PointingHand;
-        _beginButton.Modulate = new Color(1, 1, 1, 0.4f); // disabled until selection
         _beginButton.AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
             BgColor = SurfaceStone,
@@ -160,7 +255,7 @@ public partial class ChooseYourPathScene : Control
             VerticalAlignment = VerticalAlignment.Center
         };
         ApplyHeaderFont(_beginLabel, FontBody);
-        _beginLabel.AddThemeColorOverride("font_color", TextMuted);
+        _beginLabel.AddThemeColorOverride("font_color", Gold);
         _beginLabel.SetAnchorsPreset(LayoutPreset.FullRect);
         _beginButton.AddChild(_beginLabel);
 
@@ -172,10 +267,12 @@ public partial class ChooseYourPathScene : Control
         beginClick.AddThemeStyleboxOverride("hover", btnTransparent);
         beginClick.AddThemeStyleboxOverride("pressed", btnTransparent);
         beginClick.Pressed += OnBegin;
-        beginClick.Disabled = true; // disabled until selection
         _beginButton.AddChild(beginClick);
-
         AddChild(_beginButton);
+
+        // Initial carousel render
+        UpdateCarousel();
+        UpdateUI();
 
         // Capture hook
         if (CampaignContext.AutoCaptureScreenshot)
@@ -198,169 +295,147 @@ public partial class ChooseYourPathScene : Control
         }
     }
 
-    private void LoadClasses()
-    {
-        string json = Godot.FileAccess.GetFileAsString("res://content/classes.json");
-        var data = System.Text.Json.JsonSerializer.Deserialize<List<ClassJson>>(json);
-        if (data == null) return;
+    // ════════════════════════════════════════════════
+    // Carousel
+    // ════════════════════════════════════════════════
 
-        foreach (var c in data)
+    private void UpdateCarousel()
+    {
+        int total = _panelNodes.Count;
+        float spacing = _panelFullW * 0.55f;
+        float overlapMargin = _panelFullW * 0.22f;
+
+        for (int i = 0; i < total; i++)
         {
-            _classes.Add(new ClassDef
-            {
-                Id = c.id,
-                Name = c.name,
-                Strata = Enum.Parse<Strata>(c.strata, ignoreCase: true),
-                Town = c.town,
-                Description = c.description,
-                Blurb = c.blurb,
-                CoreCardIds = c.core_cards
-            });
+            var panel = _panelNodes[i];
+            // Distance from center (wrapping both directions, take shortest)
+            int rawDist = i - _selectedIdx;
+            int dist = rawDist;
+            if (dist > total / 2) dist -= total;
+            else if (dist < -total / 2) dist += total;
+
+            float absDist = Mathf.Abs(dist);
+
+            // Scale: center=1.0, neighbors=0.78, others shrink further
+            float scale = 1f - absDist * 0.22f;
+            if (scale < 0.5f) scale = 0.5f;
+
+            // Brightness: center=1.0, neighbors=0.55, further dim
+            float bright = 1f - absDist * 0.45f;
+            if (bright < 0.3f) bright = 0.3f;
+
+            // Z index: center on top
+            panel.ZIndex = (int)(total - absDist);
+
+            float panelW = _panelFullW * scale;
+            float panelH = _panelFullH * scale;
+
+            // X position: center plus offset for this panel's slot
+            float xPos = _centerX - panelW / 2f + dist * spacing;
+            if (dist > 0) xPos += overlapMargin; // right neighbors shifted right a bit more
+            else if (dist < 0) xPos -= overlapMargin; // left neighbors shifted left
+
+            panel.Position = new Vector2(xPos, _carouselPanelContainer.Size.Y / 2f - panelH / 2f);
+            panel.Size = new Vector2(panelW, panelH);
+            panel.Scale = Vector2.One;
+            panel.Modulate = new Color(bright, bright, bright, 1f);
+
+            // Visible if reasonably on screen
+            panel.Visible = xPos + panelW > -50 && xPos < _centerX * 2 + 50;
+        }
+
+        // Update dots
+        for (int i = 0; i < _dotIndicators.Count; i++)
+        {
+            _dotIndicators[i].Color = i == _selectedIdx ? Gold : TextInactive;
         }
     }
 
-    /// <summary>
-    /// Create a selectable class panel.
-    /// </summary>
-    private PanelContainer MakeClassPanel(ClassDef cls)
-    {
-        var panel = new PanelContainer();
-        panel.CustomMinimumSize = new Vector2(280, 280);
-        panel.SizeFlagsHorizontal = (SizeFlags)3;
-        panel.SizeFlagsVertical = (SizeFlags)3;
-        panel.MouseDefaultCursorShape = CursorShape.PointingHand;
-
-        var strataColor = StrataColor(cls.Strata);
-        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.9f),
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
-        });
-
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        vbox.OffsetLeft = 8; vbox.OffsetRight = -8;
-        vbox.OffsetTop = 8; vbox.OffsetBottom = -8;
-        vbox.AddThemeConstantOverride("separation", 6);
-        panel.AddChild(vbox);
-
-        // Class portrait art (full-bleed, cover-cropped)
-        var classArt = new TextureRect
-        {
-            CustomMinimumSize = new Vector2(0, 100),
-            SizeFlagsHorizontal = (SizeFlags)3,
-            SizeFlagsVertical = (SizeFlags)3,
-            MouseFilter = MouseFilterEnum.Ignore,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered
-        };
-        string classArtPath = $"res://content/art/classes/{cls.Id}.png";
-        if (ResourceLoader.Exists(classArtPath))
-        {
-            var tex = ResourceLoader.Load<Texture2D>(classArtPath);
-            if (tex != null)
-                classArt.Texture = tex;
-        }
-        else
-        {
-            // Fallback: strata-colored placeholder
-            classArt.Modulate = strataColor.Darkened(0.5f);
-            GD.Print($"[ART-MISSING] classes/{cls.Id}.png");
-        }
-        vbox.AddChild(classArt);
-
-        // Class name
-        var nameLabel = new Label
-        {
-            Text = cls.Name,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyHeaderFont(nameLabel, FontSubtitle);
-        nameLabel.AddThemeColorOverride("font_color", Gold);
-        vbox.AddChild(nameLabel);
-
-        // Blurb
-        var blurbLabel = new Label
-        {
-            Text = cls.Blurb,
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyBodyFont(blurbLabel, FontSmall);
-        blurbLabel.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
-        blurbLabel.CustomMinimumSize = new Vector2(0, 40);
-        vbox.AddChild(blurbLabel);
-
-        // Origin line
-        var originLabel = new Label
-        {
-            Text = $"Origin \u00b7 {cls.Town}",
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyBodyFont(originLabel, FontTiny);
-        originLabel.AddThemeColorOverride("font_color", TextMuted);
-        vbox.AddChild(originLabel);
-
-        return panel;
-    }
-
-    private void SelectClass(int idx)
+    private void SnapToIndex(int idx)
     {
         _selectedIdx = idx;
-        var cls = _classes[idx];
-        var strataColor = StrataColor(cls.Strata);
+        UpdateCarousel();
+        UpdateUI();
+    }
 
-        // Update all panels
-        int childIdx = 0;
-        foreach (var child in _classPanelRow.GetChildren())
+    // ════════════════════════════════════════════════
+    // Drag handling (GuiInput on carousel area)
+    // ════════════════════════════════════════════════
+
+    public override void _GuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton mb)
         {
-            if (child is PanelContainer panel)
+            if (mb.ButtonIndex == MouseButton.Left)
             {
-                bool selected = childIdx == idx;
-                panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+                if (mb.Pressed)
                 {
-                    BgColor = new Color(0.15f, 0.13f, 0.10f, 0.9f),
-                    BorderColor = selected ? Gold : BorderStandard,
-                    BorderWidthLeft = selected ? 2 : 1,
-                    BorderWidthTop = selected ? 2 : 1,
-                    BorderWidthRight = selected ? 2 : 1,
-                    BorderWidthBottom = selected ? 2 : 1,
-                    CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-                    CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
-                });
-
-                if (selected)
-                    panel.Scale = new Vector2(1.05f, 1.05f);
-                else
-                    panel.Scale = Vector2.One;
+                    _dragging = true;
+                    _dragStartX = mb.Position.X;
+                    _dragOffset = 0;
+                }
+                else if (_dragging)
+                {
+                    _dragging = false;
+                    // Snap: if dragged more than 1/4 panel width, advance
+                    float threshold = _panelFullW * 0.25f;
+                    int dir = _dragOffset > threshold ? 1 : (_dragOffset < -threshold ? -1 : 0);
+                    if (dir != 0)
+                    {
+                        _selectedIdx = (_selectedIdx + dir + _classes.Count) % _classes.Count;
+                    }
+                    UpdateCarousel();
+                    UpdateUI();
+                }
             }
-            childIdx++;
+            return;
         }
 
-        // Update core cards area
+        if (_dragging && @event is InputEventMouseMotion mm)
+        {
+            float dx = mm.Relative.X;
+            _dragOffset += dx;
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    // UI updates
+    // ════════════════════════════════════════════════
+
+    private void UpdateUI()
+    {
+        if (_selectedIdx < 0 || _selectedIdx >= _classes.Count) return;
+        var cls = _classes[_selectedIdx];
+
+        // Update dots
+        for (int i = 0; i < _dotIndicators.Count; i++)
+            _dotIndicators[i].Color = i == _selectedIdx ? Gold : TextInactive;
+
+        // Update core cards
         foreach (var child in _coreCardsArea.GetChildren())
             child.QueueFree();
 
-        var coreLabel = new Label
+        var strataColor = StrataColor(cls.Strata);
+
+        _coreLabel = new Label
         {
             Text = $"CLASS CORE \u2014 four sworn cards every {cls.Name} carries",
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        ApplyBodyFont(coreLabel, FontSmall);
-        coreLabel.AddThemeColorOverride("font_color", TextSecondary);
-        coreLabel.Position = new Vector2(0, 0);
-        coreLabel.Size = new Vector2(GetViewportRect().Size.X, 24);
-        _coreCardsArea.AddChild(coreLabel);
+        ApplyBodyFont(_coreLabel, FontSmall);
+        _coreLabel.AddThemeColorOverride("font_color", TextSecondary);
+        _coreLabel.Position = new Vector2(0, 0);
+        _coreLabel.Size = new Vector2(GetViewportRect().Size.X, 22);
+        _coreCardsArea.AddChild(_coreLabel);
 
         // Show 4 mini cards
-        var cardRow = new HBoxContainer();
-        cardRow.AddThemeConstantOverride("separation", 12);
-        cardRow.Position = new Vector2(GetViewportRect().Size.X / 2f - 4 * 55, 28);
-        cardRow.Size = new Vector2(8 * 55, 80);
-        _coreCardsArea.AddChild(cardRow);
+        _coreCardRow = new HBoxContainer();
+        _coreCardRow.AddThemeConstantOverride("separation", 10);
+        float w = GetViewportRect().Size.X;
+        float minisTotal = cls.CoreCardIds.Count * 90f + (cls.CoreCardIds.Count - 1) * 10f;
+        _coreCardRow.Position = new Vector2(w / 2f - minisTotal / 2f, 26);
+        _coreCardRow.Size = new Vector2(minisTotal, 90);
+        _coreCardsArea.AddChild(_coreCardRow);
 
         foreach (var cardId in cls.CoreCardIds)
         {
@@ -389,7 +464,7 @@ public partial class ChooseYourPathScene : Control
             content.SetAnchorsPreset(LayoutPreset.FullRect);
             miniCard.AddChild(content);
 
-            // Mini card art (full-bleed)
+            // Mini card art
             var miniArt = new TextureRect();
             miniArt.SetAnchorsPreset(LayoutPreset.FullRect);
             miniArt.MouseFilter = MouseFilterEnum.Ignore;
@@ -412,55 +487,155 @@ public partial class ChooseYourPathScene : Control
             content.AddChild(plate);
             plate.Setup(def.Name, def.Attack, def.Vigor, def.Strata, miniW, miniH);
 
-            cardRow.AddChild(miniCard);
+            _coreCardRow.AddChild(miniCard);
         }
 
-        // Enable BEGIN button
+        // BEGIN button
         _beginLabel.Text = $"BEGIN IN {cls.Town}";
         _beginLabel.AddThemeColorOverride("font_color", Gold);
         _beginButton.Modulate = Colors.White;
 
-        // Re-enable the click area
         var clickArea = _beginButton.GetChild<Button>(_beginButton.GetChildCount() - 1);
         if (clickArea != null)
             clickArea.Disabled = false;
     }
 
+    // ════════════════════════════════════════════════
+    // Carousel panel builder
+    // ════════════════════════════════════════════════
+
+    private Control MakeCarouselPanel(ClassDef cls, int index)
+    {
+        var panel = new Control();
+        panel.MouseFilter = MouseFilterEnum.Pass;
+        panel.MouseDefaultCursorShape = CursorShape.PointingHand;
+
+        // Background with border
+        var panelRect = new ColorRect();
+        panelRect.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelRect.MouseFilter = MouseFilterEnum.Ignore;
+        panelRect.Color = new Color(0.12f, 0.10f, 0.08f, 0.95f);
+        panel.AddChild(panelRect);
+
+        // Border (gold if selected, strata otherwise)
+        var strataColor = StrataColor(cls.Strata);
+        var border = new ColorRect
+        {
+            Color = Colors.Transparent,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        border.SetAnchorsPreset(LayoutPreset.FullRect);
+        panel.AddChild(border);
+
+        // Art area (upper portion)
+        var artRect = new TextureRect
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorTop = 0,
+            SizeFlagsVertical = (SizeFlags)3
+        };
+        string artPath = $"res://content/art/classes/{cls.Id}.png";
+        if (ResourceLoader.Exists(artPath))
+        {
+            var tex = ResourceLoader.Load<Texture2D>(artPath);
+            if (tex != null)
+                artRect.Texture = tex;
+        }
+        panel.AddChild(artRect);
+
+        // Inner VBox for text content (overlaid on lower portion)
+        var vbox = new VBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            AnchorLeft = 0, AnchorRight = 1,
+            AnchorBottom = 1,
+            OffsetLeft = 6, OffsetRight = -6,
+            OffsetBottom = -6
+        };
+        panel.AddChild(vbox);
+
+        // Class name
+        var nameLabel = new Label
+        {
+            Text = cls.Name,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyHeaderFont(nameLabel, FontBody);
+        nameLabel.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
+        nameLabel.AddThemeConstantOverride("outline_size", 1);
+        nameLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
+        vbox.AddChild(nameLabel);
+
+        // Blurb
+        var blurbLabel = new Label
+        {
+            Text = cls.Blurb,
+            AutowrapMode = TextServer.AutowrapMode.Word,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        ApplyBodyFont(blurbLabel, FontTiny);
+        blurbLabel.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        blurbLabel.AddThemeConstantOverride("outline_size", 1);
+        blurbLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
+        vbox.AddChild(blurbLabel);
+
+        // Origin
+        var originLabel = new Label
+        {
+            Text = $"Origin \u00b7 {cls.Town}",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyBodyFont(originLabel, FontTiny);
+        originLabel.AddThemeColorOverride("font_color", TextMuted);
+        originLabel.AddThemeConstantOverride("outline_size", 1);
+        originLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
+        vbox.AddChild(originLabel);
+
+        return panel;
+    }
+
+    // ════════════════════════════════════════════════
+    // Data loading
+    // ════════════════════════════════════════════════
+
+    private void LoadClasses()
+    {
+        string json = Godot.FileAccess.GetFileAsString("res://content/classes.json");
+        var data = System.Text.Json.JsonSerializer.Deserialize<List<ClassJson>>(json);
+        if (data == null) return;
+
+        foreach (var c in data)
+        {
+            _classes.Add(new ClassDef
+            {
+                Id = c.id,
+                Name = c.name,
+                Strata = Enum.Parse<Strata>(c.strata, ignoreCase: true),
+                Town = c.town,
+                Description = c.description,
+                Blurb = c.blurb,
+                CoreCardIds = c.core_cards
+            });
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    // Begin
+    // ════════════════════════════════════════════════
+
     private void OnBegin()
     {
-        if (_selectedIdx < 0) return;
+        if (_selectedIdx < 0 || _selectedIdx >= _classes.Count) return;
         var cls = _classes[_selectedIdx];
 
-        // Save chosen class and core cards to CampaignContext
         CampaignContext.ChosenClass = cls.Id;
         CampaignContext.ChosenTown = cls.Town;
         CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
 
-        // Navigate to deck builder — it reads CampaignContext.CoreCardIds in _Ready
         GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
-    }
-
-    // ── Data types ──
-
-    private class ClassJson
-    {
-        public string id { get; set; } = "";
-        public string name { get; set; } = "";
-        public string strata { get; set; } = "";
-        public string town { get; set; } = "";
-        public string description { get; set; } = "";
-        public string blurb { get; set; } = "";
-        public List<string> core_cards { get; set; } = new();
-    }
-
-    public class ClassDef
-    {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public Strata Strata { get; set; }
-        public string Town { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Blurb { get; set; } = "";
-        public List<string> CoreCardIds { get; set; } = new();
     }
 }
