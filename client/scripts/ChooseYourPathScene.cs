@@ -711,6 +711,7 @@ public partial class ChooseYourPathScene : Control
         CampaignContext.ChosenClass = cls.Id;
         CampaignContext.ChosenTown = cls.Town;
         CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
+        CampaignContext.SaveCampaignProfile();
 
         GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
     }

@@ -153,6 +153,113 @@ public static class CampaignContext
         /// </summary>
         public static List<string>? CoreCardIds { get; set; }
 
+        /// <summary>Path to campaign profile JSON (user:// sandbox).</summary>
+        private const string CampaignProfilePath = "user://campaign.json";
+
+        /// <summary>
+        /// Saved campaign profile — persists chosen class/town across restarts.
+        /// Null when no campaign has been started.
+        /// </summary>
+        public static CampaignProfile? Profile { get; set; }
+
+        /// <summary>True when a campaign profile exists on disk.</summary>
+        public static bool HasSavedCampaign => Profile != null;
+
+        /// <summary>Save the current campaign choice to disk.</summary>
+        public static void SaveCampaignProfile()
+        {
+            try
+            {
+                var profile = new CampaignProfile
+                {
+                    ClassId = ChosenClass,
+                    TownName = ChosenTown,
+                    CreatedAt = DateTime.UtcNow.ToString("O")
+                };
+                string json = System.Text.Json.JsonSerializer.Serialize(profile, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Write);
+                if (file != null)
+                {
+                    file.StoreString(json);
+                    Profile = profile;
+                    GD.Print($"[CampaignContext] Campaign profile saved: class={ChosenClass}, town={ChosenTown}");
+                }
+                else
+                    GD.PrintErr("[CampaignContext] Failed to save campaign profile");
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] Save campaign profile failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>Load the campaign profile from disk.</summary>
+        public static void LoadCampaignProfile()
+        {
+            try
+            {
+                if (!Godot.FileAccess.FileExists(CampaignProfilePath))
+                {
+                    Profile = null;
+                    return;
+                }
+                using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Read);
+                if (file == null)
+                {
+                    Profile = null;
+                    return;
+                }
+                string json = file.GetAsText();
+                var profile = System.Text.Json.JsonSerializer.Deserialize<CampaignProfile>(json);
+                if (profile != null && !string.IsNullOrEmpty(profile.ClassId))
+                {
+                    Profile = profile;
+                    ChosenClass = profile.ClassId;
+                    ChosenTown = profile.TownName ?? "";
+                    GD.Print($"[CampaignContext] Campaign profile loaded: class={profile.ClassId}, town={profile.TownName}");
+                }
+                else
+                    Profile = null;
+            }
+            catch (System.Exception ex)
+            {
+                Profile = null;
+                GD.PrintErr($"[CampaignContext] Load campaign profile failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>Delete the saved campaign profile (new game).</summary>
+        public static void DeleteCampaignProfile()
+        {
+            try
+            {
+                if (Godot.FileAccess.FileExists(CampaignProfilePath))
+                {
+                    // Godot doesn't expose directory delete — overwrite with empty
+                    using var file = Godot.FileAccess.Open(CampaignProfilePath, Godot.FileAccess.ModeFlags.Write);
+                    file?.StoreString("");
+                }
+                Profile = null;
+                ChosenClass = "";
+                ChosenTown = "";
+                GD.Print("[CampaignContext] Campaign profile deleted");
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] Delete campaign profile failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Serializable campaign profile data
+        /// </summary>
+        public class CampaignProfile
+        {
+            public string ClassId { get; set; } = "";
+            public string TownName { get; set; } = "";
+            public string CreatedAt { get; set; } = "";
+        }
+
         /// <summary>
         /// [[ Hole left by earlier refactor — keep as sentinel. ]]
         /// </summary>

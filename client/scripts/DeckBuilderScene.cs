@@ -232,6 +232,47 @@ public partial class DeckBuilderScene : Control
                 title.CustomMinimumSize = new Vector2(140, 64);
                 topBarRow.AddChild(title);
 
+                // ── Class banner (visible when campaign class is set) ──
+                if (!string.IsNullOrEmpty(CampaignContext.ChosenClass))
+                {
+                    var classBanner = new HBoxContainer();
+                    classBanner.SizeFlagsHorizontal = (SizeFlags)0;
+                    classBanner.Alignment = BoxContainer.AlignmentMode.Center;
+                    classBanner.AddThemeConstantOverride("separation", 4);
+                    classBanner.CustomMinimumSize = new Vector2(0, 44);
+
+                    // Strata dot for class
+                    Color classDotColor = Gold; // fallback
+                    string cls = CampaignContext.ChosenClass.ToLowerInvariant();
+                    if (cls == "warrior") classDotColor = StrataEmber;
+                    else if (cls == "necromancer" || cls == "occultist") classDotColor = StrataHollow;
+                    else if (cls == "druid" || cls == "ranger") classDotColor = StrataVerdant;
+                    else if (cls == "tidecaller") classDotColor = StrataTide;
+                    else if (cls == "dawnward") classDotColor = StrataDawn;
+
+                    var classDot = new ColorRect
+                    {
+                        Color = classDotColor,
+                        CustomMinimumSize = new Vector2(8, 8),
+                        Size = new Vector2(8, 8),
+                        MouseFilter = MouseFilterEnum.Ignore
+                    };
+                    classBanner.AddChild(classDot);
+
+                    var className = char.ToUpper(CampaignContext.ChosenClass[0]) + CampaignContext.ChosenClass.Substring(1);
+                    var classLabel = new Label
+                    {
+                        Text = className,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        MouseFilter = MouseFilterEnum.Ignore
+                    };
+                    classLabel.AddThemeFontSizeOverride("font_size", 12);
+                    classLabel.AddThemeColorOverride("font_color", TextMuted);
+                    classBanner.AddChild(classLabel);
+
+                    topBarRow.AddChild(classBanner);
+                }
+
                 // Search field — max-width 250
                 _searchField = new LineEdit
                 {

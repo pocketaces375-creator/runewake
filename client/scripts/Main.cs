@@ -22,6 +22,7 @@ public partial class Main : Control
     private Label _statusLabel = default!;
     private Label _saveWarningLabel = default!;
     private Button _diagButton = default!;
+    private Button _newPathButton = default!;
     private Panel? _diagPanel;
     private bool _loading;
 
@@ -205,6 +206,26 @@ public partial class Main : Control
         _forgeButton = new Button { Visible = false, Disabled = false };
         _forgeButton.Pressed += OnOpenForge;
         AddChild(_forgeButton);
+
+        // ── Campaign profile (CONTINUE state) ──
+        CampaignContext.LoadCampaignProfile();
+        if (CampaignContext.HasSavedCampaign)
+        {
+            var profile = CampaignContext.Profile!;
+            string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
+            string townName = profile.TownName;
+            _startButton.Text = $"CONTINUE — {className} of {townName}";
+
+            // New Path button (smaller, below the Decks button)
+            _newPathButton = MakeStoneButton("New Path");
+            _newPathButton.AnchorTop = 0.84f;
+            _newPathButton.AnchorBottom = 0.92f;
+            _newPathButton.AddThemeFontSizeOverride("font_size", 12);
+            _newPathButton.Modulate = new Color(1, 1, 1, 0.7f);
+            _newPathButton.Pressed += OnNewPath;
+            AddChild(_newPathButton);
+            GD.Print($"[Main] Campaign profile found — CONTINUE: {className} of {townName}");
+        }
 
         // Persistent save warning label (hidden until/unless a save error occurs)
         _saveWarningLabel = new Label
@@ -806,8 +827,38 @@ public partial class Main : Control
 
     private void OnStartCampaign()
     {
-        // Route through ChooseYourPath screen for class selection
-        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        if (CampaignContext.HasSavedCampaign)
+        {
+            // Continue existing campaign — go straight to map
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        }
+        else
+        {
+            // New campaign — route through ChooseYourPath
+            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        }
+    }
+
+    private void OnNewPath()
+    {
+        // Confirm dialog: starting a new path replaces the current one
+        var dialog = new ConfirmationDialog
+        {
+            DialogText = "Start a new path?\nYour current campaign will be replaced.",
+            OkButtonText = "Start New",
+            CancelButtonText = "Cancel",
+            Title = "New Campaign"
+        };
+        dialog.Confirmed += () =>
+        {
+            CampaignContext.DeleteCampaignProfile();
+            _startButton.Text = "Play";
+            if (_newPathButton != null)
+                _newPathButton.QueueFree();
+            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        };
+        AddChild(dialog);
+        dialog.PopupCentered();
     }
 
     /// <summary>
