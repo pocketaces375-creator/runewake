@@ -3050,8 +3050,8 @@ public partial class DuelScene : Control
 
     // ——— Public update methods ———
 
-    public void SetEnemyVigor(int vigor) => _enemyVigorValue.Text = Math.Max(0, vigor).ToString();
-        public void SetEnemyAttunement(string text) => _enemyAttuneValue.Text = text;
+    public void SetEnemyVigor(int vigor) { if (_enemyVigorValue != null) _enemyVigorValue.Text = Math.Max(0, vigor).ToString(); }
+        public void SetEnemyAttunement(string text) { if (_enemyAttuneValue != null) _enemyAttuneValue.Text = text; }
         public void SetPlayerVigor(int vigor) { if (_playerShrineVigorLabel != null) _playerShrineVigorLabel.Text = $"Vigor {Math.Max(0, vigor)}"; }
         public void SetPlayerAttunement(string text) { if (_playerShrineAttuneLabel != null) _playerShrineAttuneLabel.Text = text; }
 
