@@ -11,61 +11,61 @@
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
       "rect": { "x": 210.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 210.0, "y": 579.6, "w": 82.5, "h": 22.7 }
+      "name_rect": { "x": 219.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "emb_c_forgeguard_berserker",
       "name": "Forgeguard Berserker",
       "rect": { "x": 292.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 292.0, "y": 579.6, "w": 82.5, "h": 25.0 }
+      "name_rect": { "x": 301.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "hol_c_skeletal_reaver",
       "name": "Skeletal Reaver",
       "rect": { "x": 374.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 374.0, "y": 579.6, "w": 82.5, "h": 31.0 }
+      "name_rect": { "x": 383.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
       "rect": { "x": 456.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 456.0, "y": 579.6, "w": 82.5, "h": 22.7 }
+      "name_rect": { "x": 465.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
       "rect": { "x": 538.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 538.0, "y": 579.6, "w": 82.5, "h": 22.7 }
+      "name_rect": { "x": 547.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "emb_c_forgeguard_berserker",
       "name": "Forgeguard Berserker",
       "rect": { "x": 620.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 620.0, "y": 579.6, "w": 82.5, "h": 25.0 }
+      "name_rect": { "x": 629.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "hol_c_skeletal_reaver",
       "name": "Skeletal Reaver",
       "rect": { "x": 702.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 702.0, "y": 579.6, "w": 82.5, "h": 31.0 }
+      "name_rect": { "x": 711.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
       "rect": { "x": 784.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 784.0, "y": 579.6, "w": 82.5, "h": 22.7 }
+      "name_rect": { "x": 793.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
       "rect": { "x": 866.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 866.0, "y": 579.6, "w": 82.5, "h": 22.7 }
+      "name_rect": { "x": 875.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     },
     {
       "card_id": "emb_c_forgeguard_berserker",
       "name": "Forgeguard Berserker",
       "rect": { "x": 948.0, "y": 466.0, "w": 82.5, "h": 142.0 },
-      "name_rect": { "x": 948.0, "y": 579.6, "w": 82.5, "h": 25.0 }
+      "name_rect": { "x": 957.9, "y": 562.1, "w": 62.7, "h": 29.0 }
     }
   ],
   "groups": [
@@ -128,61 +128,61 @@
     {
       "slot": "player_0",
       "rect": { "x": 37.7, "y": 294.9, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 46.4, "y": 418.6, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 59.0, "y": 416.6, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "player_1",
       "rect": { "x": 280.3, "y": 296.9, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 284.7, "y": 420.8, "w": 106.0, "h": 37.0 },
+      "name_rect": { "x": 297.3, "y": 419.3, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "player_2",
       "rect": { "x": 523.0, "y": 299.0, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 523.0, "y": 423.0, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 535.7, "y": 421.9, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "player_3",
       "rect": { "x": 765.7, "y": 293.2, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 761.4, "y": 417.1, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "player_4",
       "rect": { "x": 1008.5, "y": 287.5, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 999.9, "y": 411.2, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_0",
       "rect": { "x": 48.5, "y": 117.4, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 39.9, "y": 241.1, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 52.7, "y": 240.9, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "enemy_1",
       "rect": { "x": 285.7, "y": 115.1, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 281.4, "y": 239.0, "w": 106.0, "h": 37.0 },
+      "name_rect": { "x": 294.2, "y": 238.3, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "enemy_2",
       "rect": { "x": 523.0, "y": 112.9, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 523.0, "y": 236.9, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 535.7, "y": 235.8, "w": 80.6, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "enemy_3",
       "rect": { "x": 760.3, "y": 118.8, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 764.7, "y": 242.7, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_4",
       "rect": { "x": 997.7, "y": 124.8, "w": 106.0, "h": 155.0 },
-      "name_rect": { "x": 1006.4, "y": 248.5, "w": 106.0, "h": 24.8 },
+      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     }
 

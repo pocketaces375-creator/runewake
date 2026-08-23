@@ -8,6 +8,13 @@ using static ThemeTokens;
 
 namespace Runewake.Client;
 
+// ── Parchment placeholder color for missing card art ──
+internal static class CardArtColors
+{
+    internal static readonly Color Parchment = Color.FromHtml("#D4C4A0");
+    internal static readonly Color ParchmentDark = Color.FromHtml("#A89870");
+}
+
 /// <summary>
 /// ARMORY RAIL deck builder — replaces the Ancient Tome layout.
 /// Top bar with search + strata filter chips.
@@ -573,6 +580,27 @@ public partial class DeckBuilderScene : Control
         var content = new Control();
         content.SetAnchorsPreset(LayoutPreset.FullRect);
         container.AddChild(content);
+
+        // ── Card art (full-bleed, cover-cropped) ──
+        var artRect = new TextureRect();
+        artRect.SetAnchorsPreset(LayoutPreset.FullRect);
+        artRect.MouseFilter = MouseFilterEnum.Ignore;
+        artRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+        string artPath = $"res://content/art/{card.Id}.webp";
+        if (ResourceLoader.Exists(artPath))
+        {
+            var texture = ResourceLoader.Load<Texture2D>(artPath);
+            if (texture != null)
+                artRect.Texture = texture;
+            else
+                artRect.Modulate = CardArtColors.Parchment;
+        }
+        else
+        {
+            artRect.Modulate = CardArtColors.Parchment;
+            GD.Print($"[ART-MISSING] {card.Id}");
+        }
+        content.AddChild(artRect);
 
         // Cost badge
         var costBadge = new PanelContainer();

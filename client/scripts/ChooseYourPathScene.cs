@@ -9,7 +9,7 @@ namespace Runewake.Client;
 
 /// <summary>
 /// "CHOOSE YOUR PATH" screen — campaign entry point.
-/// Displays three class panels with art, blurb, and core cards.
+/// Displays class panels with art, blurb, and core cards.
 /// Selection feeds into the deck builder with core cards pre-slotted and locked.
 /// </summary>
 public partial class ChooseYourPathScene : Control
@@ -39,13 +39,16 @@ public partial class ChooseYourPathScene : Control
         // Load class data
         LoadClasses();
 
-        // Hero art background (darkened) — use title art if available
+        // Hero art background (darkened) — real path: content/art/title/hero_art.png
         var heroArt = new TextureRect();
         heroArt.SetAnchorsPreset(LayoutPreset.FullRect);
         heroArt.MouseFilter = MouseFilterEnum.Ignore;
         heroArt.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-        if (ResourceLoader.Exists("res://content/art/title_hero.png"))
-            heroArt.Texture = GD.Load<Texture2D>("res://content/art/title_hero.png");
+        string heroPath = "res://content/art/title/hero_art.png";
+        if (ResourceLoader.Exists(heroPath))
+            heroArt.Texture = GD.Load<Texture2D>(heroPath);
+        else
+            GD.Print("[ART-MISSING] title/hero_art.png");
         heroArt.Modulate = new Color(0.62f, 0.62f, 0.62f, 0.8f); // ~38% darken
         AddChild(heroArt);
 
@@ -245,15 +248,29 @@ public partial class ChooseYourPathScene : Control
         vbox.AddThemeConstantOverride("separation", 6);
         panel.AddChild(vbox);
 
-        // Placeholder art area (strata-colored)
-        var artRect = new ColorRect
+        // Class portrait art (full-bleed, cover-cropped)
+        var classArt = new TextureRect
         {
-            Color = strataColor.Darkened(0.5f),
             CustomMinimumSize = new Vector2(0, 100),
             SizeFlagsHorizontal = (SizeFlags)3,
-            SizeFlagsVertical = (SizeFlags)3
+            SizeFlagsVertical = (SizeFlags)3,
+            MouseFilter = MouseFilterEnum.Ignore,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered
         };
-        vbox.AddChild(artRect);
+        string classArtPath = $"res://content/art/classes/{cls.Id}.png";
+        if (ResourceLoader.Exists(classArtPath))
+        {
+            var tex = ResourceLoader.Load<Texture2D>(classArtPath);
+            if (tex != null)
+                classArt.Texture = tex;
+        }
+        else
+        {
+            // Fallback: strata-colored placeholder
+            classArt.Modulate = strataColor.Darkened(0.5f);
+            GD.Print($"[ART-MISSING] classes/{cls.Id}.png");
+        }
+        vbox.AddChild(classArt);
 
         // Class name
         var nameLabel = new Label
@@ -371,6 +388,25 @@ public partial class ChooseYourPathScene : Control
             var content = new Control();
             content.SetAnchorsPreset(LayoutPreset.FullRect);
             miniCard.AddChild(content);
+
+            // Mini card art (full-bleed)
+            var miniArt = new TextureRect();
+            miniArt.SetAnchorsPreset(LayoutPreset.FullRect);
+            miniArt.MouseFilter = MouseFilterEnum.Ignore;
+            miniArt.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+            string miniArtPath = $"res://content/art/{cardId}.webp";
+            if (ResourceLoader.Exists(miniArtPath))
+            {
+                var tex = ResourceLoader.Load<Texture2D>(miniArtPath);
+                if (tex != null)
+                    miniArt.Texture = tex;
+            }
+            else
+            {
+                miniArt.Modulate = CardArtColors.Parchment;
+                GD.Print($"[ART-MISSING] {cardId} (core mini)");
+            }
+            content.AddChild(miniArt);
 
             var plate = new CardPlate();
             content.AddChild(plate);
