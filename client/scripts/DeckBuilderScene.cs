@@ -46,6 +46,7 @@ public partial class DeckBuilderScene : Control
 
     // Locked core cards (set by ChooseYourPath flow)
     private readonly HashSet<string> _lockedCardIds = new();
+    private List<string>? _pendingCoreCards; // set before _Ready, applied during _Ready
 
     private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
     private static readonly Color[] StrataColors = {
@@ -86,6 +87,20 @@ public partial class DeckBuilderScene : Control
         RefreshCurve();
         UpdateCount();
 
+        // Apply core cards from CampaignContext (set by ChooseYourPath)
+        if (CampaignContext.CoreCardIds != null && CampaignContext.CoreCardIds.Count > 0)
+        {
+            ApplyCoreCardsInternal(CampaignContext.CoreCardIds);
+            CampaignContext.CoreCardIds = null;
+        }
+
+        // Apply any core cards set via SetCoreCards before _Ready
+        if (_pendingCoreCards != null)
+        {
+            ApplyCoreCardsInternal(_pendingCoreCards);
+            _pendingCoreCards = null;
+        }
+
         // Capture hook
         if (_captureMode)
         {
@@ -109,9 +124,25 @@ public partial class DeckBuilderScene : Control
         }
     }
 
-    public void SetSaveState(ProgressionState state) { _saveState = state; RefreshCardGrid(); }
+    public void SetSaveState(ProgressionState state)
+    {
+        _saveState = state;
+        if (_cardGrid != null)
+            RefreshCardGrid();
+    }
     public List<string> GetDeckCardIds() => new(_deckCardIds);
     public void SetCoreCards(List<string> coreIds)
+    {
+        // If _Ready hasn't run yet, defer the work
+        if (_cardGrid == null)
+        {
+            _pendingCoreCards = new List<string>(coreIds);
+            return;
+        }
+        ApplyCoreCardsInternal(coreIds);
+    }
+
+    private void ApplyCoreCardsInternal(List<string> coreIds)
     {
         _coreCardIds.Clear();
         _lockedCardIds.Clear();

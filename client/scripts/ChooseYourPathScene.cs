@@ -395,19 +395,13 @@ public partial class ChooseYourPathScene : Control
         if (_selectedIdx < 0) return;
         var cls = _classes[_selectedIdx];
 
-        // Save chosen class to CampaignContext
+        // Save chosen class and core cards to CampaignContext
         CampaignContext.ChosenClass = cls.Id;
         CampaignContext.ChosenTown = cls.Town;
+        CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
 
-        // Navigate to deck builder with core cards pre-loaded
-        var deckScene = GD.Load<PackedScene>("res://scenes/deck/DeckBuilderScene.tscn");
-        var deckBuilder = deckScene.Instantiate<DeckBuilderScene>();
-        GetTree().Root.AddChild(deckBuilder);
-        deckBuilder.SetCoreCards(new List<string>(cls.CoreCardIds));
-        deckBuilder.SetSaveState(CampaignContext.Progression);
-
-        // Remove this scene
-        QueueFree();
+        // Navigate to deck builder — it reads CampaignContext.CoreCardIds in _Ready
+        GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
     }
 
     // ── Data types ──

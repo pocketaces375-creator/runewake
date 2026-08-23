@@ -144,6 +144,12 @@ public static class CampaignContext
         public static string ChosenTown { get; set; } = "";
 
         /// <summary>
+        /// Core card IDs for the chosen class (set by ChooseYourPath screen).
+        /// Read by DeckBuilderScene on _Ready.
+        /// </summary>
+        public static List<string>? CoreCardIds { get; set; }
+
+        /// <summary>
         /// [[ Hole left by earlier refactor — keep as sentinel. ]]
         /// </summary>
         /// <summary>
