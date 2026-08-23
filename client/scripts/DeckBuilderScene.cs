@@ -286,17 +286,22 @@ public partial class DeckBuilderScene : Control
         _leftPanel.OffsetTop = 64; // below top bar
         AddChild(_leftPanel);
 
-        // Grid scroll area
+        // Grid scroll area (with subtle scrollbar)
         _gridScroll = new ScrollContainer();
         _gridScroll.SetAnchorsPreset(LayoutPreset.FullRect);
         _gridScroll.SizeFlagsHorizontal = (SizeFlags)3;
         _gridScroll.SizeFlagsVertical = (SizeFlags)3;
+        _gridScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Auto;
+        // Subtle gold-tinted scrollbar
+        var scrollbar = new StyleBoxEmpty();
+        _gridScroll.AddThemeStyleboxOverride("scroll", scrollbar);
+        _gridScroll.AddThemeColorOverride("scroll_color", new Color(0.83f, 0.72f, 0.45f, 0.3f));
         _leftPanel.AddChild(_gridScroll);
 
         // Dynamic grid container (not GridContainer — we lay out rows manually for proper fill)
         _cardGrid = new VBoxContainer();
         _cardGrid.SizeFlagsHorizontal = (SizeFlags)3;
-        _cardGrid.AddThemeConstantOverride("separation", 8);
+        _cardGrid.AddThemeConstantOverride("separation", 18);
         _cardGrid.CustomMinimumSize = new Vector2(0, 0);
         _gridScroll.AddChild(_cardGrid);
 
@@ -593,7 +598,7 @@ public partial class DeckBuilderScene : Control
     /// </summary>
     private Control MakeGridCard(CardDef card, int ownedCount, int inDeckCount, float gridW)
     {
-        float gridH = gridW * 152f / 104f; // maintain aspect ratio
+        float gridH = gridW * 219f / 150f; // 13:19 aspect ratio
 
         var container = new PanelContainer();
         container.CustomMinimumSize = new Vector2(gridW, gridH);
@@ -729,6 +734,49 @@ public partial class DeckBuilderScene : Control
         clickArea.Disabled = isUnowned || isAtLimit;
         clickArea.Pressed += () => AddToDeck(card.Id);
 
+        // Hover: gold border
+        bool isHovered = false;
+        container.MouseEntered += () =>
+        {
+            if (!isUnowned && !isAtLimit)
+            {
+                isHovered = true;
+                var hoverStyle = (StyleBoxFlat)cardStyle.Duplicate();
+                hoverStyle.BorderColor = Gold;
+                container.AddThemeStyleboxOverride("panel", hoverStyle);
+            }
+        };
+        container.MouseExited += () =>
+        {
+            isHovered = false;
+            container.RemoveThemeStyleboxOverride("panel");
+        };
+
+        // Press: gold border + lift shadow
+        clickArea.ButtonDown += () =>
+        {
+            if (!isUnowned && !isAtLimit)
+            {
+                var pressStyle = (StyleBoxFlat)cardStyle.Duplicate();
+                pressStyle.BorderColor = Gold;
+                pressStyle.ShadowSize = 6;
+                pressStyle.ShadowColor = new Color(0, 0, 0, 0.35f);
+                pressStyle.ShadowOffset = new Vector2(0, 2);
+                container.AddThemeStyleboxOverride("panel", pressStyle);
+            }
+        };
+        clickArea.ButtonUp += () =>
+        {
+            if (isHovered && !isUnowned && !isAtLimit)
+            {
+                var hoverStyle = (StyleBoxFlat)cardStyle.Duplicate();
+                hoverStyle.BorderColor = Gold;
+                container.AddThemeStyleboxOverride("panel", hoverStyle);
+            }
+            else
+                container.RemoveThemeStyleboxOverride("panel");
+        };
+
         // Long-press to inspect (using pressed-hold detection)
         // For simplicity, we rely on the existing card detail popup
 
@@ -809,26 +857,29 @@ public partial class DeckBuilderScene : Control
             return;
         }
 
-        // Compute dynamic columns from available width
-        float availWidth = _leftPanel.Size.X - 16; // 8px padding each side
-        if (availWidth <= 0) availWidth = 800; // fallback before layout
+        // Compute dynamic columns from available width — 150x219 at 1152x648, scaled
+        float availWidth = _leftPanel.Size.X - 40; // 20px margins each side
+        if (availWidth <= 0) availWidth = 800;
 
-        float gap = 8f;
-        float targetCardW = 110f;
-        int columns = Mathf.Max(2, Mathf.FloorToInt((availWidth + gap) / (targetCardW + gap)));
-        columns = Mathf.Min(columns, 6);
+        float gap = 18f;
+        float ratio = GetViewportRect().Size.Y / 648f;
+        float baseCellW = 150f;
+        float cellW = baseCellW * Mathf.Max(0.6f, Mathf.Min(1.4f, ratio));
+        int columns = Mathf.Max(1, Mathf.FloorToInt((availWidth + gap) / (cellW + gap)));
 
-        // Card width = (availWidth - (columns-1) * gap) / columns
+        // Actual card width to fill available space evenly
         float cardW = (availWidth - (columns - 1) * gap) / columns;
-        cardW = Mathf.Min(cardW, 140f); // don't get too wide
 
         for (int i = 0; i < filtered.Count; i += columns)
         {
+            // CenterContainer horizontally centers its single child (the HBox row)
+            var rowOuter = new CenterContainer();
+            rowOuter.SizeFlagsHorizontal = (SizeFlags)3;
+            _cardGrid.AddChild(rowOuter);
+
             var row = new HBoxContainer();
-            row.SizeFlagsHorizontal = (SizeFlags)3;
             row.AddThemeConstantOverride("separation", Mathf.RoundToInt(gap));
-            row.CustomMinimumSize = new Vector2(0, 0);
-            _cardGrid.AddChild(row);
+            rowOuter.AddChild(row);
 
             for (int j = 0; j < columns && i + j < filtered.Count; j++)
             {
