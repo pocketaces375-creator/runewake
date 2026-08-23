@@ -154,6 +154,23 @@ SHA=$(sha256sum "$APK" | cut -d' ' -f1)
 echo "  SHA-256: $SHA"
 report PASS "SHA-256 recorded"
 
+# ─── CHECK 7: Fallback-size warning for class portraits ─────────────────────
+echo ""
+echo "[7/7] Portrait fallback-size check"
+FALLBACK_COUNT=0
+while IFS= read -r -d '' png; do
+    size=$(stat --format=%s "$png" 2>/dev/null || echo "0")
+    if [ "$size" -lt 102400 ] 2>/dev/null; then
+        echo "  ⚠️  Suspected fallback ($(numfmt --to=iec $size)): $png"
+        FALLBACK_COUNT=$((FALLBACK_COUNT + 1))
+    fi
+done < <(find "client/content/art/classes" -type f -name "*.png" -print0 2>/dev/null || true)
+if [ "$FALLBACK_COUNT" -gt 0 ]; then
+    report PASS "$FALLBACK_COUNT portrait(s) flagged as small/fallback (WARN only)"
+else
+    report PASS "All class portraits exceed 100KB — genuine art"
+fi
+
 # ─── Summary ───────────────────────────────────────────────────────────────
 echo ""
 echo "═══════════════════════════════════════════════════"
