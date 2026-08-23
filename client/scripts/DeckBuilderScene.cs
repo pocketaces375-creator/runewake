@@ -27,7 +27,7 @@ public partial class DeckBuilderScene : Control
     // ── Nodes ──
     private LineEdit _searchField;
     private Control _filterChipRow;
-    private GridContainer _cardGrid;
+    private VBoxContainer _cardGrid;
     private ScrollContainer _gridScroll;
     private Label _deckNameLabel;
     private LineEdit _deckNameEdit;
@@ -284,11 +284,10 @@ public partial class DeckBuilderScene : Control
         _gridScroll.SizeFlagsVertical = (SizeFlags)3;
         _leftPanel.AddChild(_gridScroll);
 
-        _cardGrid = new GridContainer();
-        _cardGrid.Columns = 4; // 4 per row at 1152x648
+        // Dynamic grid container (not GridContainer — we lay out rows manually for proper fill)
+        _cardGrid = new VBoxContainer();
         _cardGrid.SizeFlagsHorizontal = (SizeFlags)3;
-        _cardGrid.AddThemeConstantOverride("h_separation", 8);
-        _cardGrid.AddThemeConstantOverride("v_separation", 8);
+        _cardGrid.AddThemeConstantOverride("separation", 8);
         _cardGrid.CustomMinimumSize = new Vector2(0, 0);
         _gridScroll.AddChild(_cardGrid);
 
@@ -583,11 +582,8 @@ public partial class DeckBuilderScene : Control
     /// <summary>
     /// Create a grid card item using the CardPlate template.
     /// </summary>
-    private Control MakeGridCard(CardDef card, int ownedCount, int inDeckCount)
+    private Control MakeGridCard(CardDef card, int ownedCount, int inDeckCount, float gridW)
     {
-        float gridW = _cardGrid.CustomMinimumSize.X > 0
-            ? Mathf.Min(130f, (_cardGrid.Size.X - 24) / 4f)
-            : 110f;
         float gridH = gridW * 152f / 104f; // maintain aspect ratio
 
         var container = new PanelContainer();
@@ -789,18 +785,6 @@ public partial class DeckBuilderScene : Control
             .ThenBy(c => c.Name)
             .ToList();
 
-        // Adjust columns based on viewport width
-        float viewW = GetViewportRect().Size.X;
-        _cardGrid.Columns = viewW > 1600 ? 5 : 4;
-
-        foreach (var card in filtered)
-        {
-            int owned = 1; // all cards owned in demo
-            int inDeck = _deckCardIds.Count(id => id == card.Id);
-            var item = MakeGridCard(card, owned, inDeck);
-            _cardGrid.AddChild(item);
-        }
-
         if (filtered.Count == 0)
         {
             var emptyLabel = new Label
@@ -812,6 +796,38 @@ public partial class DeckBuilderScene : Control
             emptyLabel.AddThemeColorOverride("font_color", TextMuted);
             emptyLabel.CustomMinimumSize = new Vector2(200, 60);
             _cardGrid.AddChild(emptyLabel);
+            return;
+        }
+
+        // Compute dynamic columns from available width
+        float availWidth = _leftPanel.Size.X - 16; // 8px padding each side
+        if (availWidth <= 0) availWidth = 800; // fallback before layout
+
+        float gap = 8f;
+        float targetCardW = 110f;
+        int columns = Mathf.Max(2, Mathf.FloorToInt((availWidth + gap) / (targetCardW + gap)));
+        columns = Mathf.Min(columns, 6);
+
+        // Card width = (availWidth - (columns-1) * gap) / columns
+        float cardW = (availWidth - (columns - 1) * gap) / columns;
+        cardW = Mathf.Min(cardW, 140f); // don't get too wide
+
+        for (int i = 0; i < filtered.Count; i += columns)
+        {
+            var row = new HBoxContainer();
+            row.SizeFlagsHorizontal = (SizeFlags)3;
+            row.AddThemeConstantOverride("separation", Mathf.RoundToInt(gap));
+            row.CustomMinimumSize = new Vector2(0, 0);
+            _cardGrid.AddChild(row);
+
+            for (int j = 0; j < columns && i + j < filtered.Count; j++)
+            {
+                var card = filtered[i + j];
+                int owned = 1;
+                int inDeck = _deckCardIds.Count(id => id == card.Id);
+                var item = MakeGridCard(card, owned, inDeck, cardW);
+                row.AddChild(item);
+            }
         }
     }
 
