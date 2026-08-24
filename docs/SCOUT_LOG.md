@@ -112,3 +112,41 @@ _(none — scout does not propose changes without explicit brick approval)_
 ### Recommendations
 _(none — scout does not propose changes without explicit brick approval)_
 
+## Daily Scout — 2026-08-24
+
+### Research Sweep
+
+**Godot:** • GamePhanes/GamePhanes — 224★ — An open-source game coding agent environment and benchmark for Godot. • zimo-xiao-zheng/godot-ui-integration — 11★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • Wadan3/shadow-survivors — 8★ — 2D top-down survival shooter built with Godot 4.7 • paufau/godot-interaction-feedback — 7★ — no description • BlodyxCZ/Swift-Inventory-Godot-Addon — 3★ — A small, data-driven inventory system for Godot 4. Build inventories with unmatched speed. 
+**LLM Agents:** • Zyrexnn/Cybermes — 323★ — Autonomous Offensive Security, Bug Bounty & Red Teaming Agent Framework powered by Hermes Agent, specialized reasoning s • only-cli/oc — 247★ — Turn any website into a compact CLI tailored for AI agents. Browse the web in hundreds of tokens, not tens of thousands. • rome-os/rome — 149★ — Rome is the agentic OS. • turkiyeyapayzekaakademisi/llm-rag-memory-ai-agents — 117★ — no description • agents-universe/agents-universe — 86★ — 让智能体像人一样学习和工作，共享智能体和项目记忆 
+**Image Gen:** • Cripacx/mediagen — 54★ — AI image and video generation skill for Claude Code and other coding agents — Gemini, OpenAI and Kie AI behind one CLI a • filthycodon/meta-ai-llama-crack-2026 — 14★ — Meta AI Llama 4 cracked — unlimited chat, image generation, and Imagine feature free. • regularhyphen/freepik-ai-crack-2026 — 12★ — Freepik Premium cracked — unlimited AI image generation and premium asset downloads. • T8mars/Comfyui-SenseNova-U1.5-Wrapper-T8 — 6★ — Native ComfyUI nodes for SenseNova U1.5 image generation and multi-reference image editing. • kamalesh404/VisionCraft — 6★ — Multi-modal AI workspace — image generation, analysis, OCR, and style transfer in one platform 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-24
+
+### Research Sweep
+
+**Godot:** • GamePhanes/GamePhanes — 224★ — An open-source game coding agent environment and benchmark for Godot. • zimo-xiao-zheng/godot-ui-integration — 11★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • Wadan3/shadow-survivors — 8★ — 2D top-down survival shooter built with Godot 4.7 • paufau/godot-interaction-feedback — 7★ — no description • BlodyxCZ/Swift-Inventory-Godot-Addon — 3★ — A small, data-driven inventory system for Godot 4. Build inventories with unmatched speed. 
+**LLM Agents:** • Zyrexnn/Cybermes — 323★ — Autonomous Offensive Security, Bug Bounty & Red Teaming Agent Framework powered by Hermes Agent, specialized reasoning s • only-cli/oc — 247★ — Turn any website into a compact CLI tailored for AI agents. Browse the web in hundreds of tokens, not tens of thousands. • rome-os/rome — 150★ — Rome is the agentic OS. • turkiyeyapayzekaakademisi/llm-rag-memory-ai-agents — 117★ — no description • agents-universe/agents-universe — 86★ — 让智能体像人一样学习和工作，共享智能体和项目记忆 
+**Image Gen:** • Cripacx/mediagen — 54★ — AI image and video generation skill for Claude Code and other coding agents — Gemini, OpenAI and Kie AI behind one CLI a • filthycodon/meta-ai-llama-crack-2026 — 14★ — Meta AI Llama 4 cracked — unlimited chat, image generation, and Imagine feature free. • regularhyphen/freepik-ai-crack-2026 — 12★ — Freepik Premium cracked — unlimited AI image generation and premium asset downloads. • T8mars/Comfyui-SenseNova-U1.5-Wrapper-T8 — 6★ — Native ComfyUI nodes for SenseNova U1.5 image generation and multi-reference image editing. • kamalesh404/VisionCraft — 6★ — Multi-modal AI workspace — image generation, analysis, OCR, and style transfer in one platform 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
