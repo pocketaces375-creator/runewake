@@ -713,6 +713,10 @@ public partial class ChooseYourPathScene : Control
         CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
         CampaignContext.AddOrUpdateProfile(cls.Id, cls.Town);
 
-        GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
+        // Every class ships with a prebuilt starter deck — new players go
+        // straight to the map and start playing. The Forge stays available
+        // from the map/title for whenever they want to customize.
+        CampaignContext.EnsureStarterDeck(cls.Id);
+        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
     }
 }

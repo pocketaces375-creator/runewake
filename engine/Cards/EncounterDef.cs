@@ -45,6 +45,15 @@ public class EncounterDef
     [JsonPropertyName("fragment_reward")]
     public string? FragmentReward { get; set; }
 
+    /// <summary>
+    /// Card granted on first victory. Either a concrete card id, or the
+    /// sentinel "CLASS_SIGNATURE" which resolves to the player class's
+    /// signature card (defined in starter_decks.json). Bosses usually
+    /// carry one of these.
+    /// </summary>
+    [JsonPropertyName("card_reward")]
+    public string? CardReward { get; set; }
+
     /// <summary>Optional difficulty modifier for ELITE and WARDEN encounters.</summary>
     [JsonPropertyName("modifier")]
     public string? Modifier { get; set; }

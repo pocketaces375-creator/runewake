@@ -235,7 +235,8 @@
       "rewards": [
         "shard:150",
         "fragment:dawn:3",
-        "dig_charge:3"
+        "dig_charge:3",
+        "card:signature"
       ]
     },
     {

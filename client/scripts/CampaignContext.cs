@@ -478,6 +478,118 @@ public static class CampaignContext
             public List<string> Cards { get; set; } = new();
         }
 
+        // ════════════════════════════════════════════════════════════════
+        // STARTER DECKS — every class ships with a prebuilt deck so the
+        // first thing a new player sees is the MAP, not the deck builder.
+        // Content: res://content/decks/starter_decks.json
+        // ════════════════════════════════════════════════════════════════
+
+        /// <summary>One class's prebuilt starter deck + its first-boss signature card.</summary>
+        public class StarterDeckDef
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("class_id")]
+            public string ClassId { get; set; } = "";
+            [System.Text.Json.Serialization.JsonPropertyName("deck_name")]
+            public string DeckName { get; set; } = "";
+            [System.Text.Json.Serialization.JsonPropertyName("signature_card")]
+            public string SignatureCard { get; set; } = "";
+            [System.Text.Json.Serialization.JsonPropertyName("cards")]
+            public List<string> Cards { get; set; } = new();
+        }
+
+        /// <summary>Serializable wrapper for starter_decks.json.</summary>
+        public class StarterDecksData
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("starters")]
+            public List<StarterDeckDef> Starters { get; set; } = new();
+        }
+
+        /// <summary>Loaded starter decks keyed by class id (lowercase).</summary>
+        public static readonly Dictionary<string, StarterDeckDef> StarterDeckIndex = new();
+
+        /// <summary>Load starter deck content (idempotent).</summary>
+        public static void LoadStarterDecks()
+        {
+            if (StarterDeckIndex.Count > 0) return;
+            string json = Godot.FileAccess.GetFileAsString("res://content/decks/starter_decks.json");
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                GD.PrintErr("[CampaignContext] starter_decks.json missing or empty");
+                return;
+            }
+            try
+            {
+                var data = System.Text.Json.JsonSerializer.Deserialize<StarterDecksData>(json);
+                if (data?.Starters != null)
+                    foreach (var s in data.Starters)
+                        StarterDeckIndex[s.ClassId.ToLowerInvariant()] = s;
+                GD.Print($"[CampaignContext] {StarterDeckIndex.Count} starter decks loaded");
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] starter_decks.json parse failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Guarantee the given class has a playable deck: create the class
+        /// starter in the library if the class has no decks yet, make it the
+        /// active profile's deck if none is set, load it as the duel deck,
+        /// and register its cards in the collection so the Forge shows them.
+        /// Safe to call every time a campaign starts or resumes.
+        /// </summary>
+        public static void EnsureStarterDeck(string classId)
+        {
+            if (string.IsNullOrEmpty(classId)) return;
+            LoadStarterDecks();
+            string cid = classId.ToLowerInvariant();
+            StarterDeckIndex.TryGetValue(cid, out var starter);
+
+            // Prefer the profile's own active deck when it exists and matches the class
+            var classDecks = GetDecksForClass(cid);
+            DeckProfile? deck = null;
+            var active = ActiveProfile;
+            if (active != null && !string.IsNullOrEmpty(active.ActiveDeckId))
+                deck = classDecks.Find(d => d.DeckId == active.ActiveDeckId);
+            if (deck == null && classDecks.Count > 0)
+                deck = classDecks[0];
+            if (deck == null && starter != null)
+            {
+                string deckId = SaveDeck(starter.DeckName, cid, starter.Cards);
+                deck = DeckLibrary.Find(d => d.DeckId == deckId);
+                GD.Print($"[CampaignContext] Starter deck created for {cid}: {starter.DeckName}");
+            }
+            if (deck == null)
+            {
+                GD.PrintErr($"[CampaignContext] No deck available for class '{cid}' and no starter defined");
+                return;
+            }
+
+            if (active != null && active.ActiveDeckId != deck.DeckId)
+            {
+                active.ActiveDeckId = deck.DeckId;
+                SaveCampaignProfile();
+            }
+
+            if (deck.Cards.Count >= DeckRules.MinSize)
+                PlayerDeckIds = new List<string>(deck.Cards);
+
+            // Starter cards belong to the collection so the Forge can edit freely
+            foreach (var c in deck.Cards)
+                if (!Progression.Collection.ContainsKey(c))
+                    Progression.AddCard(c);
+        }
+
+        /// <summary>The class's signature card id (first-boss reward), or null.</summary>
+        public static string? GetSignatureCardId(string classId)
+        {
+            if (string.IsNullOrEmpty(classId)) return null;
+            LoadStarterDecks();
+            return StarterDeckIndex.TryGetValue(classId.ToLowerInvariant(), out var s) && s.SignatureCard.Length > 0
+                ? s.SignatureCard
+                : null;
+        }
+
         /// <summary>
         /// [[ Hole left by earlier refactor — keep as sentinel. ]]
         /// </summary>

@@ -2617,6 +2617,9 @@ public partial class DuelScene : Control
         }
     }
 
+    /// <summary>Display name of the card granted by this victory (null = none).</summary>
+    private string? _grantedCardName;
+
     private void OnGameOver(int winnerIndex)
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
@@ -2648,6 +2651,48 @@ public partial class DuelScene : Control
                 var parts = enc.FragmentReward.Split(':');
                 if (parts.Length == 2 && int.TryParse(parts[1], out int fragCount))
                     prog.AddFragments(parts[0], fragCount);
+            }
+
+            // ── Card reward (bosses usually carry one) ──
+            // "CLASS_SIGNATURE" resolves to the player class's signature card.
+            _grantedCardName = null;
+            if (!string.IsNullOrEmpty(enc.CardReward))
+            {
+                string? rewardCardId = enc.CardReward == "CLASS_SIGNATURE"
+                    ? CampaignContext.GetSignatureCardId(
+                        CampaignContext.ActiveProfile?.ClassId ?? CampaignContext.ChosenClass)
+                    : enc.CardReward;
+
+                var rewardDef = rewardCardId != null ? CardRegistry.Get(rewardCardId) : null;
+                if (rewardDef == null)
+                {
+                    GD.PrintErr($"[DuelScene] card_reward '{enc.CardReward}' did not resolve to a known card");
+                }
+                else
+                {
+                    bool firstTime = !prog.Collection.ContainsKey(rewardCardId!);
+                    if (firstTime)
+                        prog.AddCard(rewardCardId!);
+
+                    // Slot it straight into the active deck when legal
+                    // (singleton respected, 40-card ceiling respected)
+                    var activeDeckId = CampaignContext.ActiveProfile?.ActiveDeckId;
+                    var deck = !string.IsNullOrEmpty(activeDeckId)
+                        ? CampaignContext.DeckLibrary.Find(d => d.DeckId == activeDeckId)
+                        : null;
+                    if (deck != null && !deck.Cards.Contains(rewardCardId!)
+                        && deck.Cards.Count < DeckRules.MaxSize)
+                    {
+                        deck.Cards.Add(rewardCardId!);
+                        CampaignContext.SaveDeckLibrary();
+                        CampaignContext.PlayerDeckIds = new List<string>(deck.Cards);
+                        GD.Print($"[DuelScene] Card reward {rewardCardId} added to deck {deck.DeckId}");
+                    }
+
+                    if (firstTime)
+                        _grantedCardName = rewardDef.Name;
+                    GD.Print($"[DuelScene] Card reward granted: {rewardCardId} (firstTime={firstTime})");
+                }
             }
 
             // Mint Lost Relic if this encounter qualifies (WARDEN_BOSS or rare find)
@@ -2722,6 +2767,7 @@ public partial class DuelScene : Control
                 Text = $"+{enc.ShardReward} shards" +
                        (enc.DigChargeReward > 0 ? $"\n+{enc.DigChargeReward} dig charge(s)" : "") +
                        (enc.FragmentReward != null ? $"\n+{enc.FragmentReward} fragments" : "") +
+                       (!string.IsNullOrEmpty(_grantedCardName) ? $"\nNew card earned: {_grantedCardName}" : "") +
                        $"\n+{enc.Deck.Count} new card(s) unlocked to collection",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -2930,6 +2976,8 @@ public partial class DuelScene : Control
                 rewardsStr += $"  Dig Charges: {encounter.DigChargeReward}";
             if (!string.IsNullOrEmpty(encounter.FragmentReward))
                 rewardsStr += $"  Fragments: {encounter.FragmentReward}";
+            if (!string.IsNullOrEmpty(_grantedCardName))
+                rewardsStr += $"  New Card: {_grantedCardName}";
             if (!string.IsNullOrEmpty(rewardsStr))
             {
                 var rewardLabel = new Label

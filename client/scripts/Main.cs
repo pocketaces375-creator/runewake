@@ -829,7 +829,12 @@ public partial class Main : Control
     {
         if (CampaignContext.HasSavedCampaign)
         {
-            // Continue existing campaign — go straight to map
+            // Continue existing campaign — go straight to map.
+            // EnsureStarterDeck also heals older profiles that predate
+            // class starter decks (creates + activates one if missing).
+            var activeProfile = CampaignContext.ActiveProfile;
+            if (activeProfile != null && !string.IsNullOrEmpty(activeProfile.ClassId))
+                CampaignContext.EnsureStarterDeck(activeProfile.ClassId);
             GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
         }
         else

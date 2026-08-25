@@ -138,6 +138,12 @@ public partial class MapScene : Control
             CampaignContext.LoadEncounters();
             CampaignContext.LoadDigSites();
         }
+
+        // Whatever route led here (new game, continue, deep link, capture),
+        // the active class always has a playable deck before the map shows.
+        var profile = CampaignContext.ActiveProfile;
+        if (profile != null && !string.IsNullOrEmpty(profile.ClassId))
+            CampaignContext.EnsureStarterDeck(profile.ClassId);
     }
 
     // ── Shared button styles ─────────────────────────────────────────────
@@ -562,6 +568,8 @@ public partial class MapScene : Control
                 string n = parts.Length > 1 ? parts[1] : "1";
                 return n == "1" ? "1 Dig Charge" : $"{n} Dig Charges";
             }
+            case "card":
+                return "A Signature Card";
             case "fragment":
             {
                 if (parts.Length > 2)
