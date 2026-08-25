@@ -11,7 +11,7 @@ namespace Runewake.Client;
 public partial class MapNodeIcon : Button
 {
     private Label _nameLabel;
-    private ColorRect _medallion;
+    private PanelContainer _medPanel;
     private Control _checkMark;
     private Control _selectedRing;
     private Control _iconContainer;
@@ -38,8 +38,9 @@ public partial class MapNodeIcon : Button
         CustomMinimumSize = new Vector2(80, 80);
         Size = new Vector2(80, 80);
         MouseFilter = MouseFilterEnum.Pass;
+        FocusMode = FocusModeEnum.None;
 
-        // Name label (parchment chip) — positioned below medallion
+        // Name label — Cinzel with dark outline so it reads over the painted map
         _nameLabel = new Label
         {
             Name = "NameLabel",
@@ -48,22 +49,15 @@ public partial class MapNodeIcon : Button
             MouseFilter = MouseFilterEnum.Ignore,
             AutowrapMode = TextServer.AutowrapMode.Off
         };
-        _nameLabel.AddThemeFontSizeOverride("font_size", 9);
-        _nameLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f, 1));
-        _nameLabel.Position = new Vector2(-20, 56);
-        _nameLabel.Size = new Vector2(120, 18);
+        ThemeTokens.ApplyHeaderFont(_nameLabel, 10);
+        _nameLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.9f, 0.76f, 1));
+        _nameLabel.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
+        _nameLabel.AddThemeConstantOverride("outline_size", 6);
+        _nameLabel.Position = new Vector2(-30, 60);
+        _nameLabel.Size = new Vector2(140, 18);
         AddChild(_nameLabel);
 
-        // Medallion background (56px round)
-        _medallion = new ColorRect
-        {
-            Name = "Medallion",
-            Color = new Color(0.35f, 0.28f, 0.15f, 1), // dark bronze
-            Position = new Vector2(12, 4),
-            Size = new Vector2(56, 56),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        // Rounded corners via StyleBoxFlat on a container
+        // Medallion background (56px round) via StyleBoxFlat on a container
         var medPanel = new PanelContainer();
         medPanel.Position = new Vector2(12, 4);
         medPanel.Size = new Vector2(56, 56);
@@ -79,6 +73,7 @@ public partial class MapNodeIcon : Button
         };
         medPanel.AddThemeStyleboxOverride("panel", medStyle);
         AddChild(medPanel);
+        _medPanel = medPanel;
 
         // Icon container — for vector-drawn shapes
         _iconContainer = new Control();
@@ -156,19 +151,25 @@ public partial class MapNodeIcon : Button
 
     private void BuildLockIcon()
     {
-        Color lc = new Color(0.8f, 0.8f, 0.8f, 0.95f);
-        // Shackle
-        var shackle = new ColorRect { Color = lc, Position = new Vector2(24, 18), Size = new Vector2(8, 12), MouseFilter = MouseFilterEnum.Ignore };
-        _lockGroup.AddChild(shackle);
-        var shL = new ColorRect { Color = lc, Position = new Vector2(22, 18), Size = new Vector2(2, 12), MouseFilter = MouseFilterEnum.Ignore };
+        Color lc = new Color(0.82f, 0.78f, 0.68f, 0.95f);
+        // Shackle — open arch: two posts + a top bar (no solid fill)
+        var shTop = new ColorRect { Color = lc, Position = new Vector2(23, 19), Size = new Vector2(10, 3), MouseFilter = MouseFilterEnum.Ignore };
+        _lockGroup.AddChild(shTop);
+        var shL = new ColorRect { Color = lc, Position = new Vector2(23, 19), Size = new Vector2(3, 11), MouseFilter = MouseFilterEnum.Ignore };
         _lockGroup.AddChild(shL);
-        var shR = new ColorRect { Color = lc, Position = new Vector2(32, 18), Size = new Vector2(2, 12), MouseFilter = MouseFilterEnum.Ignore };
+        var shR = new ColorRect { Color = lc, Position = new Vector2(30, 19), Size = new Vector2(3, 11), MouseFilter = MouseFilterEnum.Ignore };
         _lockGroup.AddChild(shR);
-        // Body
-        var body = new ColorRect { Color = lc, Position = new Vector2(21, 30), Size = new Vector2(14, 12), MouseFilter = MouseFilterEnum.Ignore };
+        // Body — slightly wider than the shackle, rounded
+        var body = new PanelContainer { Position = new Vector2(19, 30), Size = new Vector2(18, 14), MouseFilter = MouseFilterEnum.Ignore };
+        body.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = lc,
+            CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
+        });
         _lockGroup.AddChild(body);
         // Keyhole
-        var kh = new ColorRect { Color = new Color(0.2f, 0.15f, 0.1f, 1), Position = new Vector2(27, 33), Size = new Vector2(3, 4), MouseFilter = MouseFilterEnum.Ignore };
+        var kh = new ColorRect { Color = new Color(0.22f, 0.18f, 0.12f, 1), Position = new Vector2(26.5f, 34), Size = new Vector2(3, 6), MouseFilter = MouseFilterEnum.Ignore };
         _lockGroup.AddChild(kh);
     }
 
@@ -387,16 +388,17 @@ public partial class MapNodeIcon : Button
 
     private void UpdateMedallionAppearance()
     {
-        // Get the medallion PanelContainer (first child)
-        var medPanel = GetChild(1) as PanelContainer;
+        var medPanel = _medPanel;
         if (medPanel == null) return;
-        var style = medPanel.GetThemeStylebox("panel") as StyleBoxFlat ?? new StyleBoxFlat();
         var s = new StyleBoxFlat
         {
             CornerRadiusTopLeft = 28, CornerRadiusTopRight = 28,
             CornerRadiusBottomLeft = 28, CornerRadiusBottomRight = 28,
             BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            ShadowColor = new Color(0f, 0f, 0f, 0.45f),
+            ShadowSize = 5,
+            ShadowOffset = new Vector2(0, 2)
         };
 
         if (_isCleared)
@@ -417,7 +419,7 @@ public partial class MapNodeIcon : Button
         medPanel.AddThemeStyleboxOverride("panel", s);
     }
 
-    private static string TruncateName(string name, int maxLen = 12)
+    private static string TruncateName(string name, int maxLen = 16)
     {
         if (name.Length <= maxLen) return name;
         return name[..(maxLen - 1)] + "\u2026";

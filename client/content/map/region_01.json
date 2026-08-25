@@ -8,8 +8,8 @@
       "id": "r1_n01",
       "type": "Duel",
       "position": [
-        400,
-        80
+        700,
+        190
       ],
       "connects": [
         "r1_n02",
@@ -24,8 +24,8 @@
       "id": "r1_n02",
       "type": "Duel",
       "position": [
-        240,
-        190
+        500,
+        300
       ],
       "connects": [
         "r1_n04"
@@ -46,8 +46,8 @@
       "id": "r1_n03",
       "type": "Shrine",
       "position": [
-        560,
-        190
+        880,
+        272
       ],
       "connects": [
         "r1_n05"
@@ -63,8 +63,8 @@
       "id": "r1_n04",
       "type": "Elite",
       "position": [
-        160,
-        340
+        330,
+        418
       ],
       "connects": [
         "r1_n06",
@@ -87,8 +87,8 @@
       "id": "r1_n05",
       "type": "Duel",
       "position": [
-        560,
-        340
+        1052,
+        352
       ],
       "connects": [
         "r1_n07",
@@ -109,8 +109,8 @@
       "id": "r1_n06",
       "type": "Duel",
       "position": [
-        320,
-        480
+        556,
+        448
       ],
       "connects": [
         "r1_n09",
@@ -131,8 +131,8 @@
       "id": "r1_n07",
       "type": "Dig",
       "position": [
-        480,
-        480
+        760,
+        420
       ],
       "connects": [
         "r1_n09",
@@ -154,8 +154,8 @@
       "id": "r1_n08",
       "type": "Merchant",
       "position": [
-        640,
-        480
+        1156,
+        434
       ],
       "connects": [
         "r1_n10"
@@ -171,8 +171,8 @@
       "id": "r1_n09",
       "type": "Elite",
       "position": [
-        320,
-        600
+        648,
+        512
       ],
       "connects": [
         "r1_n11"
@@ -195,8 +195,8 @@
       "id": "r1_n10",
       "type": "Duel",
       "position": [
-        560,
-        600
+        872,
+        502
       ],
       "connects": [
         "r1_n11"
@@ -218,8 +218,8 @@
       "id": "r1_n11",
       "type": "Warden",
       "position": [
-        440,
-        720
+        982,
+        548
       ],
       "connects": [
         "r1_n12"
@@ -242,8 +242,8 @@
       "id": "r1_n12",
       "type": "WardenBoss",
       "position": [
-        440,
-        820
+        772,
+        586
       ],
       "unlock": {
         "op": "NODES_CLEARED",

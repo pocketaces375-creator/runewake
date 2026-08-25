@@ -10,6 +10,9 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-SHIP-MAP2 — Ship the map polish pass (already committed by Claude as MAP-POLISH-2; verified with local captures at 1152x648 + 1999x932). No code changes needed — this is a BUILD + SHIP task only: pull, dotnet build, run map capture at both resolutions to confirm (green squares gone, medallions on terrain, cartouche shows calligraphy + THE FALLOW REACH, info panel bottom-right clear of the Forge/Rune Page/Settings stack), export APK, preflight, release, post captures + URL to the Runewake group.
+  Acceptance: gate/captures pass, APK released, posted to group.
+
 - [x] TASK-B-FIX — Hand-card green center bar. Root cause: green vigor badge stretched full-card-width by Container layout. Fix: wrapped absolute-positioned children in non-Container Control node. Corner badges now correctly bottom-left/bottom-right.
   Acceptance: harness capture committed, bar gone, badges visible in the PNG.
 

@@ -40,10 +40,18 @@ public partial class LineDrawer : Node2D
 
     public override void _Draw()
     {
+        // Hand-inked trail look: dark sepia dashes with a faint parchment
+        // under-stroke, drawn between exact medallion centers.
+        var under = new Color(0.9f, 0.82f, 0.6f, 0.18f);
+        var ink = new Color(0.16f, 0.11f, 0.06f, 0.75f);
         foreach (var (from, to) in _edges)
         {
-            DrawLine(from + new Vector2(36, 36), to + new Vector2(36, 36),
-                new Color(0.4f, 0.4f, 0.5f, 0.6f), 2.0f);
+            // Trim the ends so dashes don't poke out from under the medallions
+            Vector2 dir = (to - from).Normalized();
+            Vector2 a = from + dir * 26f;
+            Vector2 b = to - dir * 26f;
+            DrawLine(a, b, under, 5.0f);
+            DrawDashedLine(a, b, ink, 2.4f, 9.0f);
         }
     }
 }

@@ -50,9 +50,15 @@ public partial class MapScene : Control
 
     // Zoom
     private float _zoom = 1.0f;
-    private const float MinZoom = 0.6f;
+    private float _minZoom = 0.6f;   // set dynamically: fit-to-viewport
     private const float MaxZoom = 3.0f;
     private const float ZoomStep = 0.1f;
+
+    // Painted map plate (lives INSIDE the pannable container so nodes stay
+    // glued to the terrain at any pan/zoom). Node positions in region JSON
+    // are authored in plate pixel coordinates (1536×704).
+    private Sprite2D _platePlate;
+    private Vector2 _plateSize = new(1536, 704);
 
     // Touch pan state
     private int _touchDragId = -1;
@@ -176,20 +182,33 @@ public partial class MapScene : Control
 
     private void BuildBackground()
     {
-        // Map plate background (full-bleed painted map texture)
-        var mapPlate = new TextureRect
+        // Dark table-top backdrop behind the plate (visible only if the player
+        // zooms out past the plate edges)
+        var backdrop = new ColorRect
         {
+            Color = new Color(0.07f, 0.055f, 0.04f, 1f),
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 1f,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             MouseFilter = MouseFilterEnum.Ignore
         };
+        AddChild(backdrop);
+
+        // Map container (pannable layer with the painted plate and nodes)
+        _mapContainer = new Node2D();
+        AddChild(_mapContainer);
+
+        // The painted map plate rides INSIDE the container so node icons stay
+        // glued to the terrain under every pan/zoom. Container origin = plate center.
+        // The region title is baked into the plate's cartouche art.
+        _platePlate = new Sprite2D { Centered = true, Position = Vector2.Zero };
         if (ResourceLoader.Exists("res://content/art/map/map_plate.png"))
         {
             var tex = ResourceLoader.Load<Texture2D>("res://content/art/map/map_plate.png");
             if (tex != null)
-                mapPlate.Texture = tex;
+            {
+                _platePlate.Texture = tex;
+                _plateSize = tex.GetSize();
+            }
             else
                 GD.PrintErr("[ART-MISSING] map_plate.png: ResourceLoader.Load returned null");
         }
@@ -197,30 +216,11 @@ public partial class MapScene : Control
         {
             GD.PrintErr("[ART-MISSING] map_plate.png: resource does not exist at res://content/art/map/map_plate.png");
         }
-        AddChild(mapPlate);
-
-        // Map container (pannable layer with background and nodes)
-        _mapContainer = new Node2D();
-        AddChild(_mapContainer);
+        _mapContainer.AddChild(_platePlate);
 
         // Line drawer (edges between nodes) — sits directly on map art
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
-
-        // Runic glyph label over the top-right cartouche area — WORLD-POLISH-1
-        var runeLabel = new Label
-        {
-            Text = "\u16A1\u16A2\u16AE\u16DA\u16E1\u16B7\u16B2",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore,
-            AnchorLeft = 0.80f, AnchorRight = 0.98f,
-            AnchorTop = 0.02f, AnchorBottom = 0.07f
-        };
-        runeLabel.AddThemeFontSizeOverride("font_size", 20);
-        runeLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.72f, 0.35f, 0.55f));
-        AddChild(runeLabel);
-        GD.Print("[MAP] Runic glyph label placed in top-right cartouche");
     }
 
     // ── Top bar ──────────────────────────────────────────────────────────
@@ -380,23 +380,13 @@ public partial class MapScene : Control
 
         var iconScene = GD.Load<PackedScene>("res://scenes/components/MapNodeIcon.tscn");
 
-        // Calculate map bounds for centering
-        float minX = float.MaxValue, maxX = float.MinValue;
-        float minY = float.MaxValue, maxY = float.MinValue;
-        foreach (var node in _region.Nodes)
-        {
-            if (node.Position[0] < minX) minX = node.Position[0];
-            if (node.Position[0] > maxX) maxX = node.Position[0];
-            if (node.Position[1] < minY) minY = node.Position[1];
-            if (node.Position[1] > maxY) maxY = node.Position[1];
-        }
+        // Node positions are authored in plate pixel coordinates (1536×704).
+        // The container origin is the plate CENTER, so shift by half the plate.
+        float centerX = _plateSize.X / 2f;
+        float centerY = _plateSize.Y / 2f;
 
-        float mapWidth = maxX - minX + 200;
-        float mapHeight = maxY - minY + 200;
-        float centerX = (minX + maxX) / 2f;
-        float centerY = (minY + maxY) / 2f;
-
-        // Create node icons
+        // Create node icons — the JSON position is the medallion CENTER point
+        // on the terrain; the icon's medallion center sits at local (40, 32).
         foreach (var mapNode in _region.Nodes)
         {
             var icon = iconScene.Instantiate<MapNodeIcon>();
@@ -409,7 +399,7 @@ public partial class MapScene : Control
 
             float x = mapNode.Position[0] - centerX;
             float y = mapNode.Position[1] - centerY;
-            icon.Position = new Vector2(x, y);
+            icon.Position = new Vector2(x - 40f, y - 32f);
 
             icon.NodeSelected += OnNodeSelected;
             icon.Pressed += () => OnNodeSelected(mapNode.Id);
@@ -421,40 +411,67 @@ public partial class MapScene : Control
 
         _lineDrawer.SetNodes(_region.Nodes, centerX, centerY);
 
-        // Auto-frame: zoom to fit
+        // Auto-frame: fill the screen with the plate (cover), like the old
+        // full-bleed background — but now the nodes are welded to the art.
         Vector2 viewport = GetViewportRect().Size;
-        float fitZoomW = (viewport.X - 100f) / mapWidth;
-        float fitZoomH = (viewport.Y - 140f) / mapHeight;
-        _zoom = Mathf.Clamp(Mathf.Min(fitZoomW, fitZoomH), MinZoom, MaxZoom);
+        float coverZoom = Mathf.Max(viewport.X / _plateSize.X, viewport.Y / _plateSize.Y);
+        float fitZoom = Mathf.Min(viewport.X / _plateSize.X, viewport.Y / _plateSize.Y);
+        _minZoom = fitZoom;                       // zoom out far enough to see the whole plate
+        _zoom = Mathf.Clamp(coverZoom, _minZoom, MaxZoom);
 
-        _mapOffset = new Vector2(
-            GetViewportRect().Size.X / 2f,
-            GetViewportRect().Size.Y / 2f
-        );
+        _mapOffset = viewport / 2f;
         _mapContainer.Position = _mapOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
+        ClampPan();
+    }
+
+    /// <summary>
+    /// Keep the plate covering the viewport: no dead space past an edge while
+    /// the plate is larger than the screen; center the axis when it is smaller.
+    /// </summary>
+    private void ClampPan()
+    {
+        Vector2 viewport = GetViewportRect().Size;
+        Vector2 half = _plateSize * _zoom / 2f;
+        Vector2 pos = _mapContainer.Position;
+
+        if (half.X * 2f >= viewport.X)
+            pos.X = Mathf.Clamp(pos.X, viewport.X - half.X, half.X);
+        else
+            pos.X = viewport.X / 2f;
+
+        if (half.Y * 2f >= viewport.Y)
+            pos.Y = Mathf.Clamp(pos.Y, viewport.Y - half.Y, half.Y);
+        else
+            pos.Y = viewport.Y / 2f;
+
+        _mapContainer.Position = pos;
     }
 
     // ── Info panel ───────────────────────────────────────────────────────
 
     private void BuildInfoPanel()
     {
+        // Bottom-RIGHT so it never overlaps the Forge/Rune Page/Settings
+        // stack in the bottom-left. Sized to its content, not the map.
         _infoPanel = new Panel();
-        _infoPanel.AnchorLeft = 0.05f;
-        _infoPanel.AnchorRight = 0.30f;
-        _infoPanel.AnchorTop = 0.75f;
-        _infoPanel.AnchorBottom = 0.92f;
+        _infoPanel.AnchorLeft = 0.665f;
+        _infoPanel.AnchorRight = 0.985f;
+        _infoPanel.AnchorTop = 0.665f;
+        _infoPanel.AnchorBottom = 0.955f;
 
         var panelStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.12f, 0.1f, 0.07f, 0.95f),
-            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 10, ContentMarginTop = 8,
-            ContentMarginRight = 10, ContentMarginBottom = 8
+            BgColor = new Color(0.085f, 0.07f, 0.05f, 0.96f),
+            BorderColor = new Color(0.72f, 0.6f, 0.3f, 0.65f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10,
+            CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+            ContentMarginLeft = 16, ContentMarginTop = 12,
+            ContentMarginRight = 16, ContentMarginBottom = 12,
+            ShadowColor = new Color(0f, 0f, 0f, 0.5f),
+            ShadowSize = 10
         };
         _infoPanel.AddThemeStyleboxOverride("panel", panelStyle);
         AddChild(_infoPanel);
@@ -462,44 +479,103 @@ public partial class MapScene : Control
         var infoVbox = new VBoxContainer();
         infoVbox.AnchorLeft = 0f; infoVbox.AnchorRight = 1f;
         infoVbox.AnchorTop = 0f; infoVbox.AnchorBottom = 1f;
+        infoVbox.OffsetLeft = 16; infoVbox.OffsetRight = -16;
+        infoVbox.OffsetTop = 12; infoVbox.OffsetBottom = -12;
+        infoVbox.AddThemeConstantOverride("separation", 2);
         _infoPanel.AddChild(infoVbox);
 
+        // Name — Cinzel gold
         _infoName = new Label();
-        _infoName.AddThemeFontSizeOverride("font_size", 18);
-        _infoName.Modulate = new Color(0.9f, 0.82f, 0.55f, 1f); // gold
+        ThemeTokens.ApplyHeaderFont(_infoName, 19);
+        _infoName.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 1f));
         infoVbox.AddChild(_infoName);
 
+        // Encounter type — small warm gray
         _infoType = new Label();
-        _infoType.AddThemeFontSizeOverride("font_size", 13);
-        _infoType.Modulate = new Color(0.7f, 0.65f, 0.5f, 0.8f);
+        _infoType.AddThemeFontSizeOverride("font_size", 12);
+        _infoType.AddThemeColorOverride("font_color", new Color(0.72f, 0.66f, 0.52f, 0.9f));
         infoVbox.AddChild(_infoType);
 
         infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
 
+        // Divider
+        var divider = new ColorRect
+        {
+            CustomMinimumSize = new Vector2(0, 1),
+            Color = new Color(0.72f, 0.6f, 0.3f, 0.35f),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        infoVbox.AddChild(divider);
+
+        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
+
+        // Rewards — pretty text, not raw tokens
         _infoRewards = new Label();
         _infoRewards.AddThemeFontSizeOverride("font_size", 12);
-        _infoRewards.Modulate = new Color(0.6f, 0.7f, 0.5f, 0.8f);
+        _infoRewards.AddThemeColorOverride("font_color", new Color(0.65f, 0.72f, 0.5f, 0.95f));
         _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
         infoVbox.AddChild(_infoRewards);
 
-        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
+        // Spacer pushes buttons to the panel bottom
+        var spacer = new Control { SizeFlagsVertical = SizeFlags.ExpandFill };
+        infoVbox.AddChild(spacer);
 
         var buttonRow = new HBoxContainer();
+        buttonRow.Alignment = BoxContainer.AlignmentMode.End;
+        buttonRow.AddThemeConstantOverride("separation", 10);
         infoVbox.AddChild(buttonRow);
 
-        _infoGoButton = new Button { Text = "CHALLENGE", CustomMinimumSize = new Vector2(100, 44) };
+        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(88, 44) };
+        StyleButton(_infoCloseButton, 12, goldText: false);
+        _infoCloseButton.Pressed += HideInfoPanel;
+        buttonRow.AddChild(_infoCloseButton);
+
+        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(126, 44) };
         StyleButton(_infoGoButton, 14);
         _infoGoButton.Pressed += OnGoButtonPressed;
         buttonRow.AddChild(_infoGoButton);
 
-        buttonRow.AddChild(new Control { CustomMinimumSize = new Vector2(8, 0) });
-
-        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(80, 44) };
-        StyleButton(_infoCloseButton, 12, goldText: false);
-        _infoCloseButton.Pressed += () => _infoPanel.Hide();
-        buttonRow.AddChild(_infoCloseButton);
-
         _infoPanel.Hide();
+    }
+
+    private void HideInfoPanel()
+    {
+        _infoPanel.Hide();
+        if (_selectedNodeId != null && _nodeIcons.TryGetValue(_selectedNodeId, out var icon))
+            icon.SetSelected(false);
+        _selectedNodeId = null;
+    }
+
+    /// <summary>
+    /// Turn a raw reward token ("shard:30", "fragment:verdant:2", "dig_charge:1")
+    /// into player-readable text.
+    /// </summary>
+    private static string PrettifyReward(string raw)
+    {
+        var parts = raw.Split(':');
+        switch (parts[0])
+        {
+            case "shard":
+                return parts.Length > 1 ? $"{parts[1]} Shards" : "Shards";
+            case "dig_charge":
+            {
+                string n = parts.Length > 1 ? parts[1] : "1";
+                return n == "1" ? "1 Dig Charge" : $"{n} Dig Charges";
+            }
+            case "fragment":
+            {
+                if (parts.Length > 2)
+                {
+                    string strata = parts[1].Length > 0
+                        ? char.ToUpperInvariant(parts[1][0]) + parts[1][1..]
+                        : parts[1];
+                    return $"{parts[2]} {strata} Fragments";
+                }
+                return "Fragments";
+            }
+            default:
+                return raw.Replace("_", " ").Replace(":", " ");
+        }
     }
 
     // ── State updates ────────────────────────────────────────────────────
@@ -578,8 +654,8 @@ public partial class MapScene : Control
         _infoType.Text = typeStr;
 
         string rewardsStr = mapNode.Rewards is { Count: > 0 }
-            ? string.Join("\n", mapNode.Rewards)
-            : "None";
+            ? "Rewards:  " + string.Join("  ·  ", mapNode.Rewards.Select(PrettifyReward))
+            : "Rewards:  —";
         _infoRewards.Text = rewardsStr;
 
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
@@ -685,6 +761,7 @@ public partial class MapScene : Control
         {
             Vector2 delta = motion.Position - _dragStart;
             _mapContainer.Position = _containerStartPos + delta;
+            ClampPan();
         }
 
         // Pinch to zoom
@@ -726,6 +803,7 @@ public partial class MapScene : Control
         {
             Vector2 delta = drag.Position - _touchDragStart;
             _mapContainer.Position = _containerStartPos + delta;
+            ClampPan();
             return;
         }
 
@@ -777,12 +855,13 @@ public partial class MapScene : Control
     private void SetZoom(float newZoom, Vector2 mousePos)
     {
         float oldZoom = _zoom;
-        _zoom = Mathf.Clamp(newZoom, MinZoom, MaxZoom);
+        _zoom = Mathf.Clamp(newZoom, _minZoom, MaxZoom);
 
         Vector2 offset = mousePos - _mapContainer.Position;
         Vector2 newOffset = offset * (_zoom / oldZoom);
         _mapContainer.Position = mousePos - newOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
+        ClampPan();
     }
 
     // ── Deck chip helpers ───────────────────────────────────────────
