@@ -10,6 +10,12 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-SHIP-STARTERS — Ship the starter-deck onboarding pass (committed by Claude as STARTER-DECKS-1, on top of MAP-POLISH-2). BUILD + VERIFY + SHIP:
+  pull, dotnet build, run engine tests (Claude's sandbox lacks nuget access — confirm 709+ green), capture choose_path and map
+  (map chip must read "Deck: <class starter name>" for a fresh profile), spot-check the Warden Aelin signature-card grant if a play hook exists, export APK,
+  preflight, release, post captures + URL to the Runewake group.
+  Acceptance: tests green, captures pass, APK released, posted to group.
+
 - [x] TASK-SHIP-MAP2 — Ship the map polish pass (already committed by Claude as MAP-POLISH-2; verified with local captures at 1152x648 + 1999x932). No code changes needed — this is a BUILD + SHIP task only: pull, dotnet build, run map capture at both resolutions to confirm (green squares gone, medallions on terrain, cartouche shows calligraphy + THE FALLOW REACH, info panel bottom-right clear of the Forge/Rune Page/Settings stack), export APK, preflight, release, post captures + URL to the Runewake group.
   Acceptance: gate/captures pass, APK released, posted to group.
 
