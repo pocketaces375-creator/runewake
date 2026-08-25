@@ -342,10 +342,35 @@ public partial class DeckBuilderScene : Control
         _gridScroll.SizeFlagsHorizontal = (SizeFlags)3;
         _gridScroll.SizeFlagsVertical = (SizeFlags)3;
         _gridScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Auto;
-        // Subtle gold-tinted scrollbar
-        var scrollbar = new StyleBoxEmpty();
-        _gridScroll.AddThemeStyleboxOverride("scroll", scrollbar);
-        _gridScroll.AddThemeColorOverride("scroll_color", new Color(0.83f, 0.72f, 0.45f, 0.3f));
+        // Touch tuning: small drags press cards, longer drags scroll the grid
+        _gridScroll.ScrollDeadzone = 24;
+        // Visible-but-elegant scrollbar: slim gold grabber on a faint track
+        var vsb = _gridScroll.GetVScrollBar();
+        vsb.CustomMinimumSize = new Vector2(8, 0);
+        vsb.CustomStep = 120;
+        vsb.AddThemeStyleboxOverride("scroll", new StyleBoxFlat
+        {
+            BgColor = new Color(0f, 0f, 0f, 0.18f),
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        var grabber = new StyleBoxFlat
+        {
+            BgColor = new Color(0.83f, 0.72f, 0.45f, 0.55f),
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        };
+        var grabberHi = new StyleBoxFlat
+        {
+            BgColor = new Color(0.9f, 0.8f, 0.5f, 0.85f),
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        };
+        vsb.AddThemeStyleboxOverride("grabber", grabber);
+        vsb.AddThemeStyleboxOverride("grabber_highlight", grabberHi);
+        vsb.AddThemeStyleboxOverride("grabber_pressed", grabberHi);
+        // Smooth animated wheel scrolling (touch drag keeps native inertia)
+        _gridScroll.GuiInput += OnGridScrollInput;
         _leftPanel.AddChild(_gridScroll);
 
         // Dynamic grid container (not GridContainer — we lay out rows manually for proper fill)
@@ -467,6 +492,7 @@ public partial class DeckBuilderScene : Control
 
         // Deck list scroll
         _deckListScroll = new ScrollContainer();
+        _deckListScroll.ScrollDeadzone = 24;
         _deckListScroll.SizeFlagsVertical = (SizeFlags)3;
         _deckListScroll.SizeFlagsHorizontal = (SizeFlags)3;
         railVbox.AddChild(_deckListScroll);
@@ -882,8 +908,54 @@ public partial class DeckBuilderScene : Control
     // REFRESH
     // ════════════════════════════════════════════════════════════════
 
-    private void RefreshCardGrid()
+    // ── Smooth scrolling state ──
+    private Tween _gridScrollTween;
+    private float _gridScrollTarget = -1f;
+
+    /// <summary>
+    /// Animated mouse-wheel scrolling for the card grid. Consumes the raw
+    /// wheel event (so the ScrollContainer's instant jump never runs) and
+    /// tweens toward an accumulating target for a seamless glide.
+    /// Touch drag/fling is untouched — that keeps native inertia.
+    /// </summary>
+    private void OnGridScrollInput(InputEvent @event)
     {
+        if (@event is not InputEventMouseButton mb || !mb.Pressed) return;
+        if (mb.ButtonIndex != MouseButton.WheelUp && mb.ButtonIndex != MouseButton.WheelDown) return;
+
+        var bar = _gridScroll.GetVScrollBar();
+        float max = Mathf.Max(0f, (float)(bar.MaxValue - bar.Page));
+        float step = 170f * (mb.Factor > 0f ? mb.Factor : 1f);
+        float from = _gridScrollTarget >= 0f ? _gridScrollTarget : _gridScroll.ScrollVertical;
+        _gridScrollTarget = Mathf.Clamp(
+            from + (mb.ButtonIndex == MouseButton.WheelUp ? -step : step), 0f, max);
+
+        _gridScrollTween?.Kill();
+        _gridScrollTween = CreateTween();
+        _gridScrollTween.TweenProperty(_gridScroll, "scroll_vertical", (int)_gridScrollTarget, 0.16f)
+            .SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+        _gridScrollTween.Finished += () => _gridScrollTarget = -1f;
+
+        _gridScroll.AcceptEvent();
+    }
+
+    /// <summary>
+    /// Restore the grid's scroll offset after a rebuild, once the new layout
+    /// has settled (two frames: QueueFree flush + container re-layout).
+    /// Without this, every card tap yanked the list back to the top.
+    /// </summary>
+    private async void RestoreGridScroll(int value)
+    {
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        if (IsInstanceValid(_gridScroll))
+            _gridScroll.ScrollVertical = value;
+    }
+
+    private void RefreshCardGrid(bool preserveScroll = false)
+    {
+        int keepScroll = preserveScroll && _gridScroll != null ? _gridScroll.ScrollVertical : 0;
+
         foreach (var child in _cardGrid.GetChildren())
             child.QueueFree();
 
@@ -945,6 +1017,9 @@ public partial class DeckBuilderScene : Control
                 row.AddChild(item);
             }
         }
+
+        if (preserveScroll && keepScroll > 0)
+            RestoreGridScroll(keepScroll);
     }
 
     private void RefreshDeckList()
@@ -1149,7 +1224,7 @@ public partial class DeckBuilderScene : Control
 
         _deckCardIds.Add(cardId);
         _modified = true;
-        RefreshCardGrid();
+        RefreshCardGrid(preserveScroll: true);
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();
@@ -1163,7 +1238,7 @@ public partial class DeckBuilderScene : Control
 
         _deckCardIds.RemoveAt(idx);
         _modified = true;
-        RefreshCardGrid();
+        RefreshCardGrid(preserveScroll: true);
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();

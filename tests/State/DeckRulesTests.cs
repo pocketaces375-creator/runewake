@@ -15,9 +15,9 @@ public class DeckRulesTests
     }
 
     [Fact]
-    public void MaxSize_Is40()
+    public void MaxSize_Is30()
     {
-        Assert.Equal(40, DeckRules.MaxSize);
+        Assert.Equal(30, DeckRules.MaxSize);
     }
 
     [Fact]
@@ -33,9 +33,9 @@ public class DeckRulesTests
     }
 
     [Fact]
-    public void RangeSpan_Is11()
+    public void RangeSpan_Is1()
     {
-        // 30..40 inclusive = 11 possible sizes
-        Assert.Equal(11, DeckRules.MaxSize - DeckRules.MinSize + 1);
+        // exactly 30 — a single legal size
+        Assert.Equal(1, DeckRules.MaxSize - DeckRules.MinSize + 1);
     }
 }

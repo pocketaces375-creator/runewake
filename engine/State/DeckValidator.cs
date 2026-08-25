@@ -25,7 +25,7 @@ public sealed class DeckValidationResult
 /// Engine-owned deck legality rules.
 ///
 /// A legal deck must satisfy ALL of:
-///   • 30 to 40 cards inclusive
+///   • exactly 30 cards (DeckRules.MinSize == DeckRules.MaxSize)
 ///   • Singleton: at most 1 copy of any card id
 ///
 /// Rules are defined in <see cref="DeckRules"/> — the single source of truth.

@@ -2674,8 +2674,9 @@ public partial class DuelScene : Control
                     if (firstTime)
                         prog.AddCard(rewardCardId!);
 
-                    // Slot it straight into the active deck when legal
-                    // (singleton respected, 40-card ceiling respected)
+                    // Slot it straight into the active deck when legal.
+                    // With the hard 30-card rule a full deck stays untouched —
+                    // the card lands in the collection for the Forge instead.
                     var activeDeckId = CampaignContext.ActiveProfile?.ActiveDeckId;
                     var deck = !string.IsNullOrEmpty(activeDeckId)
                         ? CampaignContext.DeckLibrary.Find(d => d.DeckId == activeDeckId)

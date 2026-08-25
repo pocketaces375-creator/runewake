@@ -9,7 +9,7 @@ namespace Runewake.Tests.State;
 public class DeckValidatorTests
 {
     // Build enough unique cards that we can construct valid decks within singleton rules.
-    // We need at least 40 unique Verdant COMMON cards to test max-size scenarios.
+    // We need more than 30 unique Verdant COMMON cards to test max-size scenarios.
     private static readonly List<CardDef> VerdantCards;
     private static readonly List<CardDef> EmberCards;
 
@@ -73,11 +73,13 @@ public class DeckValidatorTests
     }
 
     [Fact]
-    public void Validate_40Cards_IsValid()
+    public void Validate_31Cards_TooMany()
     {
-        var deck = BuildDeck(VerdantCards, 40);
+        var deck = BuildDeck(VerdantCards, 31);
         var result = DeckValidator.Validate(deck, Lookup);
-        Assert.True(result.IsValid);
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("too many cards")
+            && e.Contains("/30 maximum"));
     }
 
     [Fact]
@@ -87,7 +89,7 @@ public class DeckValidatorTests
         var result = DeckValidator.Validate(deck, Lookup);
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Contains("too many cards")
-            && e.Contains("/40 maximum"));
+            && e.Contains("/30 maximum"));
     }
 
     // ——— Singleton ———
