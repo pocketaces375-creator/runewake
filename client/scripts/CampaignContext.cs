@@ -112,6 +112,14 @@ public static class CampaignContext
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
     public static bool CaptureDefeatOverlay { get; set; }
 
+    /// <summary>BOT-FIX-1: headless bot-duel harness — passive P0 auto-ends turns,
+    /// bot plays P1; logs per-turn actions and vigor, then quits. Set by --capture=bot_duel.</summary>
+    public static bool BotDuelTest { get; set; }
+
+    /// <summary>BOT-FIX-1: bot_duel harness uses the Wayfarer tutorial encounter
+    /// (30 Thorn Sprout tokens, IsTutorial=true) to mirror campaign node 1.</summary>
+    public static bool BotDuelTutorialVariant { get; set; }
+
     /// <summary>Test hook: capture duel at wide aspect (1999×932) instead of standard (1152×648).
     /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
     public static bool WideCaptureMode { get; set; }

@@ -10,6 +10,15 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-UI4-ARSENAL — Implement the approved board layout + unified card frame system (Trikzos picked OPTION 2, see artifacts/mockups/place2.png + framespec.png + refined.png):
+  (1) Unified card frame everywhere (board, hand, artifacts): gold two-layer border, cost rune hex top-left INSIDE the frame, name in a fixed-height band, attack/vigor in a stat rail docked inside the bottom edge — nothing overhangs the card silhouette, nothing clips at screen edges (hand fan fully on-screen).
+  (2) ARSENAL GROUP per player: the two Artifact frames + deck pile + barrow pile form one bordered group — player's lower-left with portrait medallion above it, opponent's mirrored upper-right. Supersedes the current TASK-H side-group placement details; keep group rects in duel_test.meta.json.
+  (3) Artifact frames use the teal-gold rim + ARTIFACT tag + charge-pip rail; suppressed = desaturated/ashen art state.
+  Acceptance: gate exit 0, capture matches the mockup layout (eyeball vs artifacts/mockups/place2.png), Telegram capture to Trikzos for taste-check.
+
+- [ ] TASK-ARTF-P2 — Artifacts playable end-to-end (P2 gate): close remaining DSL gaps for launch_artifacts.json (COST_MOD migration per the ATTUNE misfit answer above, charge gain/spend ops, SET_PREY/prey flow), port rulings T1–T4 into engine tests, and wire client Artifact states to real engine state (charges shown as lit pips, suppression graying the art, trigger flash on fire) on the TASK-UI4-ARSENAL frames.
+  Acceptance: rulings tests green, any 2 of 7 classes playable in a duel with artifacts active, capture shows live charge pips + a suppressed state.
+
 - [ ] TASK-SHIP-STARTERS — Ship the starter-deck onboarding pass (committed by Claude as STARTER-DECKS-1, on top of MAP-POLISH-2). BUILD + VERIFY + SHIP:
   pull, dotnet build, run engine tests (Claude's sandbox lacks nuget access — confirm 709+ green), capture choose_path and map
   (map chip must read "Deck: <class starter name>" for a fresh profile), spot-check the Warden Aelin signature-card grant if a play hook exists, export APK,

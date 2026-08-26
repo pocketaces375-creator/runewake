@@ -390,6 +390,13 @@ public partial class DuelScene : Control
                     Callable.From(OnStateChanged).CallDeferred();
                 }
 
+                // ═══ BOT-FIX-1: headless bot-duel harness — no capture, no pre-place ═══
+                if (CampaignContext.BotDuelTest)
+                {
+                    StartBotDuelTest();
+                    return;
+                }
+
                 // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
                 if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
                     PrePlaceCreatures();
@@ -2379,6 +2386,50 @@ public partial class DuelScene : Control
             foreach (var slot in _playerSlots)
                 slot.Unhighlight();
         }
+    }
+
+    /// <summary>
+    /// BOT-FIX-1: headless bot-duel harness. P0 is a passive player that just
+    /// ends its turn; the BotController plays P1 exactly as in a real duel
+    /// (same timers, same dispatch path). Logs per-cycle vigor and quits after
+    /// the game ends or 14 P0 turns, whichever comes first.
+    /// </summary>
+    private void StartBotDuelTest()
+    {
+        GD.Print("[BotDuelTest] starting — passive P0, live BotController P1");
+        int p0Turns = 0;
+        var t = new Godot.Timer();
+        t.OneShot = false;
+        t.WaitTime = 0.3f;
+        t.Timeout += () =>
+        {
+            if (_gsm == null) return;
+            if (_gsm.IsGameOver)
+            {
+                var st = _gsm.State;
+                GD.Print($"[BotDuelTest] RESULT gameOver turn={st.TurnNumber} winner={st.WinnerIndex} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
+                GetTree().Quit();
+                return;
+            }
+            if (_gsm.CurrentPlayerIndex == 0 && !_bot.IsThinking)
+            {
+                var st = _gsm.State;
+                int p1Board = 0;
+                for (int i = 0; i < 5; i++) if (st.Players[1].Lanes[i].Occupant != null) p1Board++;
+                GD.Print($"[BotDuelTest] cycle={p0Turns} turn={st.TurnNumber} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor} p1Board={p1Board} p1AttacksLastTurn={st.Players[1].AttackCountLastTurn}");
+                if (p0Turns++ >= 14)
+                {
+                    GD.Print($"[BotDuelTest] RESULT budget-exhausted turn={st.TurnNumber} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
+                    GetTree().Quit();
+                    return;
+                }
+                var res = _gsm.TryEndTurn();
+                if (!res.Success)
+                    GD.Print($"[BotDuelTest] TryEndTurn failed: {res.ErrorMessage}");
+            }
+        };
+        AddChild(t);
+        t.Start();
     }
 
     /// <summary>

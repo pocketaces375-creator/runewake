@@ -54,6 +54,19 @@ public partial class DebugCapture : Node
                 _active = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=duel_test");
             }
+            if (arg == "--capture=bot_duel")
+            {
+                _active = true;
+                CampaignContext.BotDuelTest = true;
+                GD.Print("[DebugCapture] BOT-FIX-1: bot duel harness enabled: --capture=bot_duel");
+            }
+            if (arg == "--capture=bot_duel_tut")
+            {
+                _active = true;
+                CampaignContext.BotDuelTest = true;
+                CampaignContext.BotDuelTutorialVariant = true;
+                GD.Print("[DebugCapture] BOT-FIX-1: bot duel harness (Wayfarer tutorial variant) enabled");
+            }
             if (arg == "--capture=duel_test_wide")
             {
                 _active = true;
@@ -183,6 +196,17 @@ public partial class DebugCapture : Node
         if (_active)
         {
             SetUpTestEncounter();
+
+            // BOT-FIX-1: Wayfarer variant — enemy runs 30 Thorn Sprout tokens with
+            // the tutorial flag on, exactly like campaign node 1.
+            if (CampaignContext.BotDuelTutorialVariant && CampaignContext.CurrentEncounter != null)
+            {
+                var tokens = new List<string>();
+                for (int i = 0; i < 30; i++) tokens.Add("tut_opponent_token");
+                CampaignContext.CurrentEncounter.Deck = tokens;
+                CampaignContext.CurrentEncounter.IsTutorial = true;
+                GD.Print("[DebugCapture] BOT-FIX-1: encounter deck overridden to 30x tut_opponent_token, IsTutorial=true");
+            }
         }
     }
 
