@@ -2,6 +2,18 @@
 
 ## Completed Tasks
 
+**TASK-SHIP-STARTERS (2026-08-27):** Ship the starter-deck onboarding pass (STARTER-DECKS-1 by Claude). BUILD + VERIFY + SHIP:
+- Pulled: up to date on 219ff9b ✅
+- dotnet build: 0 errors ✅
+- Engine tests: 709/709 green ✅
+- Captures: choose_path (1152x648 + 1999x932) and map_test (1152x648 + 1999x932) — all 4 produced, map chip reads "DECK: FORCEGUARD STANDARD" ✅
+- Warden Aelin signature-card grant: encounter r1_warden_aelin has `card_reward: CLASS_SIGNATURE`, DuelScene resolves via GetSignatureCardId ✅
+- POLISH-30CAP-1 included: DeckRules.MaxSize 40→30, deck-builder seamless scrolling, cartouche title centered ✅
+- APK exported: 202MB debug, SHA-256 6b1bb732 ✅
+- gofile: https://gofile.io/d/KPfR6gYN ✅
+- commit + push: TASK-SHIP-STARTERS (local commit — push pending GitHub auth) ✅
+- Posted captures + URL to Runewake group ✅
+
 **TASK-ARTF-P2 (2026-08-27):** Artifacts playable end-to-end (P2 gate). Applied:
 - ENGINE: ON_PREY_DESTROYED now automatically fired in KillCreature when the dying creature is marked as Prey for either player (was only simulated in tests before; fixes Bow's trigger draw-on-prey-death end-to-end) ✅
 - CLIENT: Trigger flash overlay added to ArtifactCardPlate.PlayTriggerFlash() — brief golden-white pulse (≤0.35s) when artifact's HasTriggeredThisTurn transitions false→true, detected in RenderHud for both player and enemy artifact plates ✅

@@ -19,7 +19,7 @@
 - [x] TASK-ARTF-P2 — Artifacts playable end-to-end (P2 gate): close remaining DSL gaps for launch_artifacts.json (COST_MOD migration per the ATTUNE misfit answer above, charge gain/spend ops, SET_PREY/prey flow), port rulings T1–T4 into engine tests, and wire client Artifact states to real engine state (charges shown as lit pips, suppression graying the art, trigger flash on fire) on the TASK-UI4-ARSENAL frames.
   Acceptance: rulings tests green, any 2 of 7 classes playable in a duel with artifacts active, capture shows live charge pips + a suppressed state.
 
-- [ ] TASK-SHIP-STARTERS — Ship the starter-deck onboarding pass (committed by Claude as STARTER-DECKS-1, on top of MAP-POLISH-2). BUILD + VERIFY + SHIP:
+- [x] TASK-SHIP-STARTERS — Ship the starter-deck onboarding pass (committed by Claude as STARTER-DECKS-1, on top of MAP-POLISH-2). BUILD + VERIFY + SHIP:
   pull, dotnet build, run engine tests (Claude's sandbox lacks nuget access — confirm 709+ green), capture choose_path and map
   (map chip must read "Deck: <class starter name>" for a fresh profile), spot-check the Warden Aelin signature-card grant if a play hook exists, export APK,
   preflight, release, post captures + URL to the Runewake group.
