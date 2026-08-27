@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-UI4-ARSENAL — Implement the approved board layout + unified card frame system (Trikzos picked OPTION 2, see artifacts/mockups/place2.png + framespec.png + refined.png):
+- [x] TASK-UI4-ARSENAL — Implement the approved board layout + unified card frame system (Trikzos picked OPTION 2, see artifacts/mockups/place2.png + framespec.png + refined.png):
   (1) Unified card frame everywhere (board, hand, artifacts): gold two-layer border, cost rune hex top-left INSIDE the frame, name in a fixed-height band, attack/vigor in a stat rail docked inside the bottom edge — nothing overhangs the card silhouette, nothing clips at screen edges (hand fan fully on-screen).
   (2) ARSENAL GROUP per player: the two Artifact frames + deck pile + barrow pile form one bordered group — player's lower-left with portrait medallion above it, opponent's mirrored upper-right. Supersedes the current TASK-H side-group placement details; keep group rects in duel_test.meta.json.
   (3) Artifact frames use the teal-gold rim + ARTIFACT tag + charge-pip rail; suppressed = desaturated/ashen art state.

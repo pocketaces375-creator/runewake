@@ -156,5 +156,17 @@
 |- VERIFICATION: hero_art.png format=PNG, map_plate.png format=PNG, plate_default.png format=PNG (all PIL-verified). ensure_true_png guard grepped at 3 definition lines + 2 call sites. Black-screen values: title 0.2%, map 0.1% (limit 60%). No ART-MISSING in latest capture logs. `OS.IsDebugBuild()` guard in Main.cs line 216 ✅
 - FOREMAN_HALT deleted as final act ✅
 
+**TASK-UI4-ARSENAL (2026-08-27):** Implement the approved board layout + unified card frame system (OPTION 2). Applied:
+- Created ArtifactCardPlate.cs — unified artifact card frame with teal-gold rim (#5A8A7A), ARTIFACT tag top-center, fixed-height name band, charge-pip rail (•/∘), and suppressed overlay (ashen desaturation). Mirrors CardPlate anatomy for visual consistency.
+- Added ThemeTokens artifact frame colors: ArtifactFrameOuter/Inner/Fill, ArtifactTagColor, ArtifactSuppressedOverlay/Border.
+- Rebuilt player arsenal group (BuildPlayerArsenalGroup): bordered PanelContainer (Sx6 corner, 0.5 alpha bg, gold edge) containing two ArtifactCardPlate frames (72×96) side by side, with deck/barrow chips + vigor/attune labels in a right column, and a circular portrait medallion (44×48, rounded) above the group. Positioned lower-left near hand area.
+- Rebuilt enemy arsenal group (BuildEnemyArsenalGroup): mirrored layout upper-right, replacing the old 74px full-width top bar. Circular portrait + name below it, bordered group with artifact frames + deck/barrow chips.
+- Updated RenderHud: drives ArtifactCardPlate.Setup() (name, charges, suppressed state) instead of old label-based _playerArtifactNameLabels/_enemyArtifactNameLabels. Charge-full pulse targets the card's name label.
+- Updated capture meta.json to use _playerArsenalPanels/_enemyArsenalPanels for artifact rect capture.
+- Updated RunLayoutVerification: shrine→arsenal overlap check.
+- Fixed hand overflow: changed DuelScene.tscn margin_left from 20→220 (was 380 in code) to account for narrower arsenal group — 10-card hand now fits within viewport without End Turn overlap.
+- Build exit 0, 709 tests green, gate exit 0 (both 1152×648 and 1999×932).
+- Commit e1181d4 (local, not pushed — no GitHub credentials available).
+
 **TASK-SHIP-MAP2 (2026-08-25):** Ship the map polish pass (MAP-POLISH-2 by Claude) — no code changes, BUILD + SHIP only. Pulled (up to date on 3f79069), dotnet build 0 errors. Map capture at 1152x648 + 1999x932 both gate exit 0. Verification: green squares gone ✅, medallions on terrain ✅, cartouche shows Arabic calligraphy (رونويك) + THE FALLOW REACH (baked into map_plate.png art) ✅, info panel bottom-right clear of Forge/Rune Page/Settings stack ✅. APK export → 193MB debug. GitHub release: alpha-2026-08-25-map2. Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-25-map2/Runewake.apk. Posted captures + URL to Adam DM (bot not yet added to Runewake group).
 - 2026-08-27: TEMPO — 1 sessions yesterday, 0 validated.
