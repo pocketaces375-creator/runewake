@@ -81,6 +81,11 @@ public partial class MapScene : Control
         // ═══ MAP CAPTURE HOOK (--capture-map): select first unlocked node, capture, quit ═══
         if (CampaignContext.CaptureMapScreenshot)
         {
+            // Provision a starter deck so the deck chip reads "Deck: Forgeguard Standard"
+            CampaignContext.AddOrUpdateProfile("warrior", "The Fallow Reach");
+            CampaignContext.EnsureStarterDeck("warrior");
+            UpdateDeckChipText(); // refresh now that we have a starter deck
+
             var capTimer = new Godot.Timer();
             capTimer.OneShot = true;
             capTimer.WaitTime = 1.2f; // let map + icons render

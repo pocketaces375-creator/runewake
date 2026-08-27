@@ -138,6 +138,66 @@ public static class ThemeTokens
     public static readonly Color BorderHighlight = Color.FromHtml("#C9A84C");
 
     // ════════════════════════════════════════════
+    // Unified Card Frame (TASK-UI4-ARSENAL)
+    // Gold two-layer border system shared by all card types
+    // ════════════════════════════════════════════
+
+    /// <summary>Outer gold border — warm rich gold</summary>
+    public static readonly Color FrameGoldOuter = Color.FromHtml("#C9A84C");
+    /// <summary>Inner gold border highlight — brighter accent</summary>
+    public static readonly Color FrameGoldInner = Color.FromHtml("#E8D48C");
+
+    // ════════════════════════════════════════════
+    // Artifact Card Frame (TASK-UI4-ARSENAL)
+    // Teal-gold rim for artifact identity — distinct from creature gold
+    // ════════════════════════════════════════════
+
+    /// <summary>Artifact outer border — teal-gold blend</summary>
+    public static readonly Color ArtifactFrameOuter = Color.FromHtml("#5A8A7A");
+    /// <summary>Artifact inner border highlight — brighter teal-gold</summary>
+    public static readonly Color ArtifactFrameInner = Color.FromHtml("#7AB8A8");
+    /// <summary>Artifact fill inside the teal-gold border</summary>
+    public static readonly Color ArtifactFrameFill = Color.FromHtml("#1E2420");
+    /// <summary>ARTIFACT tag text color</summary>
+    public static readonly Color ArtifactTagColor = Color.FromHtml("#6AAAAA");
+    /// <summary>Suppressed art overlay — ashen desaturated tint</summary>
+    public static readonly Color ArtifactSuppressedOverlay = Color.FromHtml("#2A2A2A");
+    /// <summary>Suppressed border — muted greyed teal</summary>
+    public static readonly Color ArtifactSuppressedBorder = Color.FromHtml("#3A3A3A");
+    /// <summary>Card face fill inside the gold border</summary>
+    public static readonly Color FrameFill = Color.FromHtml("#2C2824");
+    /// <summary>Name band background — semi-transparent dark</summary>
+    public static readonly Color FrameNameBand = Color.FromHtml("#1A1816");
+    /// <summary>Name band text color</summary>
+    public static readonly Color FrameNameText = Color.FromHtml("#E8DCC8");
+    /// <summary>Stat rail background — dark stone</summary>
+    public static readonly Color FrameStatRail = Color.FromHtml("#201E1A");
+    /// <summary>Attack stat color — deep ember red</summary>
+    public static readonly Color FrameStatAttack = Color.FromHtml("#A83A2A");
+    /// <summary>Vigor stat color — faded moss</summary>
+    public static readonly Color FrameStatVigor = Color.FromHtml("#5A8A4A");
+    /// <summary>Stat text color (over stat chip)</summary>
+    public static readonly Color FrameStatText = Color.FromHtml("#FFFFFF");
+    /// <summary>Hex cost badge fill</summary>
+    public static readonly Color FrameHexFill = Color.FromHtml("#2A2418");
+    /// <summary>Hex cost badge border — gold</summary>
+    public static readonly Color FrameHexBorder = Color.FromHtml("#C9A84C");
+    /// <summary>Hex cost text</summary>
+    public static readonly Color FrameHexText = Color.FromHtml("#E8DCC8");
+    /// <summary>Name band height as fraction of card height</summary>
+    public const float FrameNameBandFraction = 0.18f;
+    /// <summary>Stat rail height as fraction of card height</summary>
+    public const float FrameStatRailFraction = 0.12f;
+    /// <summary>Card gold border width in px</summary>
+    public const float FrameBorderWidth = 2.0f;
+    /// <summary>Inner highlight line width in px</summary>
+    public const float FrameInnerBorderWidth = 1.0f;
+    /// <summary>Hex cost badge width as fraction of card width</summary>
+    public const float FrameHexSizeFraction = 0.18f;
+    /// <summary>Stat chip width as fraction of card width</summary>
+    public const float FrameStatChipFraction = 0.16f;
+
+    // ════════════════════════════════════════════
     // Type Scale
     // ════════════════════════════════════════════
 

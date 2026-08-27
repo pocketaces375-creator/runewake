@@ -52,25 +52,24 @@ public partial class DuelScene : Control
     private float _handCardHeight = 180f;
     private float _boardCardHeight = 200f;
 
-    // TASK-UI3a: Enemy top bar (replaces arsenal group + portrait + old EnemyHUD)
-    private Control _enemyTopBar = default!;
-    private Label _enemyDeckValue = default!;
-    private Label _enemyBarrowValue = default!;
+    // TASK-UI4-ARSENAL: Arsenal group per player — bordered group with artifact frames + deck + barrow
+    // Player: lower-left with portrait medallion above; Enemy: mirrored upper-right
+    private Control _playerArsenalGroup = default!;
+    private Control _enemyArsenalGroup = default!;
+    private Control _playerPortrait = default!;
+    private Control _enemyPortrait = default!;
     private Label _enemyNameLabel = default!;
     private Label _enemySubtitleLabel = default!;
-    private readonly Control[] _enemyArtifactMinis = new Control[2];
-    private readonly Label[] _enemyArtifactNameLabels = new Label[2];
-    private readonly Label[] _enemyArtifactChargeLabels = new Label[2];
-
-    // TASK-UI3c: Player shrine (replaces player arsenal group + portrait)
-    private Control _playerShrine = default!;
-    private readonly Control[] _playerArtifactCards = new Control[2];
-    private readonly Label[] _playerArtifactNameLabels = new Label[2];
-    private readonly Label[] _playerArtifactChargeLabels = new Label[2];
+    private Label _enemyDeckValue = default!;
+    private Label _enemyBarrowValue = default!;
     private Label _playerShrineDeckLabel = default!;
     private Label _playerShrineBarrowLabel = default!;
     private Label _playerShrineVigorLabel = default!;
     private Label _playerShrineAttuneLabel = default!;
+    private readonly ArtifactCardPlate[] _playerArtifactPlates = new ArtifactCardPlate[2];
+    private readonly ArtifactCardPlate[] _enemyArtifactPlates = new ArtifactCardPlate[2];
+    private readonly Control[] _playerArsenalPanels = new Control[2];
+    private readonly Control[] _enemyArsenalPanels = new Control[2];
 
     private InputController _input = default!;
     private GameStateManager _gsm = default!;
@@ -175,7 +174,8 @@ public partial class DuelScene : Control
         }
 
         // TASK-UI3a: Build enemy top bar (74px, replaces old EnemyHUD + arsenal group + portrait)
-        BuildEnemyTopBar();
+        // TASK-UI4-ARSENAL: Build enemy arsenal group (upper-right)
+        BuildEnemyArsenalGroup();
 
         // PlayerHUD at bottom-center — HIDDEN (stats moved to left shrine) — WORLD-POLISH-1
         var playerHud = GetNodeOrNull<CenterContainer>("PlayerHUD");
@@ -356,8 +356,8 @@ public partial class DuelScene : Control
         // Enable background tap to cancel selection
         GuiInput += OnBackgroundGuiInput;
 
-        // ═══ TASK-H/UI3a: Player arsenal group (portrait + deck + artifact frames) ═══
-        AddArtifactSlotFrames();
+        // ═══ TASK-H/UI4-ARSENAL: Player and Enemy arsenal groups (bordered groups with artifact frames + deck + barrow) ═══
+        AddArsenalGroups();
         // ═══ END TASK-H ═══
 
         // Start tutorial popup sequence if this is a tutorial encounter
@@ -586,11 +586,11 @@ public partial class DuelScene : Control
                             {
                                 var slot = pl.ArtifactSlots[ai];
                                 var label = side == 0
-                                    ? (_playerArtifactNameLabels[ai] ?? null)
-                                    : (_enemyArtifactNameLabels[ai] ?? null);
+                                    ? (_playerArtifactPlates[ai]?.GetNameLabel() ?? null)
+                                    : (_enemyArtifactPlates[ai]?.GetNameLabel() ?? null);
                                 var ctrl = side == 0
-                                    ? (_playerArtifactCards[ai] ?? null)
-                                    : (_enemyArtifactMinis[ai] ?? null);
+                                    ? (_playerArsenalPanels[ai] ?? null)
+                                    : (_enemyArsenalPanels[ai] ?? null);
                                 var rect = new Rect2();
                                 if (ctrl != null && ctrl.IsInsideTree())
                                 {
@@ -820,393 +820,327 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// TASK-UI3a: Build the enemy top bar — 74px full-width bar replacing old EnemyHUD, arsenal, and portrait.
-    /// LEFT: portrait chip + stat chips (vigor, attune, deck, barrow — 50x50 rounded, label under value)
-    /// CENTER: enemy name (small-caps ~23px) over subtitle line
-    /// RIGHT: two Artifact mini-cards (92x56: glyph + one-word name + charge pips bottom-right)
-    /// All values are live-bound through fields set here and updated in RenderHud().
-    /// _enemyGroupRect is set to this bar for capture meta.json compatibility.
+    /// TASK-UI4-ARSENAL: Build the enemy Arsenal Group — upper-right bordered group
+    /// containing two Artifact card frames (ArtifactCardPlate) + deck pile + barrow pile,
+    /// with portrait medallion above. Mirrored from the player layout.
+    /// All values are live-bound through RenderHud().
+    /// _enemyGroupRect is set to the arsenal group container for capture meta.json.
     /// </summary>
-    private void BuildEnemyTopBar()
-    {
-        float barH = 74f;
-        float vw = GetViewportRect().Size.X;
-
-        // Root container
-        _enemyTopBar = new Control { Name = "EnemyTopBar" };
-        _enemyTopBar.SetAnchorsPreset(Control.LayoutPreset.TopWide);
-        _enemyTopBar.Size = new Vector2(0, barH);
-        _enemyTopBar.Position = new Vector2(0, 0);
-        AddChild(_enemyTopBar);
-
-        // FULL-DECK-2: Hide the TurnLabel behind the top bar — it was showing
-        // through the transparent center section (ghost text bleed). The turn
-        // number is shown in the _turnIndicatorLabel near the End Turn button.
-        _turnLabel.Visible = false;
-
-        // Outer HBox: [LEFT_CLUSTER][CENTER][RIGHT_CLUSTER]
-        var barRow = new HBoxContainer();
-        barRow.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand fill
-        barRow.SizeFlagsVertical = (Control.SizeFlags)3;
-        barRow.AnchorLeft = 0f;
-        barRow.AnchorRight = 1f;
-        barRow.AnchorTop = 0f;
-        barRow.AnchorBottom = 1f;
-        barRow.AddThemeConstantOverride("separation", 6);
-        _enemyTopBar.AddChild(barRow);
-
-        // ═══ LEFT CLUSTER ═══
-        var leftCluster = new HBoxContainer();
-        leftCluster.SizeFlagsHorizontal = 0; // no expand
-        leftCluster.AddThemeConstantOverride("separation", 4);
-        barRow.AddChild(leftCluster);
-
-        // Portrait chip (52x56)
-        var portraitChip = new PanelContainer();
-        portraitChip.CustomMinimumSize = new Vector2(52, 56);
-        portraitChip.MouseFilter = MouseFilterEnum.Ignore;
-        var portraitStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.15f, 0.12f, 0.09f, 0.85f),
-            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6
-        };
-        portraitChip.AddThemeStyleboxOverride("panel", portraitStyle);
-        var pLabel = new Label { Text = "?", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-        pLabel.AddThemeFontSizeOverride("font_size", 20);
-        pLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
-        portraitChip.AddChild(pLabel);
-        leftCluster.AddChild(portraitChip);
-
-        // Stat chips: Vigor (red-tinted), Attune, Deck, Barrow — 50x50 rounded, label under value
-        var chipDefs = new[] {
-            // field: value label setter, name
-            ("vigor", new Color(0.6f, 0.25f, 0.15f, 0.3f), "VIGOR"),
-            ("attune", new Color(0.6f, 0.5f, 0.2f, 0.3f), "ATTUNE"),
-            ("deck", new Color(0.4f, 0.4f, 0.35f, 0.25f), "DECK"),
-            ("barrow", new Color(0.35f, 0.3f, 0.4f, 0.25f), "BARROW")
-        };
-
-        Label vigorValue = null!, attuneValue = null!, deckValue = null!, barrowValue = null!;
-
-        foreach (var (field, tint, labelText) in chipDefs)
-        {
-            var chip = new PanelContainer();
-            chip.CustomMinimumSize = new Vector2(50, 50);
-            chip.MouseFilter = MouseFilterEnum.Ignore;
-            var chipStyle = new StyleBoxFlat
-            {
-                BgColor = tint,
-                BorderColor = new Color(0.5f, 0.45f, 0.35f, 0.5f),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6
-            };
-            chip.AddThemeStyleboxOverride("panel", chipStyle);
-
-            var vbox = new VBoxContainer();
-            vbox.MouseFilter = MouseFilterEnum.Ignore;
-            chip.AddChild(vbox);
-
-            var valLabel = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, MouseFilter = MouseFilterEnum.Ignore };
-            valLabel.AddThemeFontSizeOverride("font_size", FontBody);
-            valLabel.AddThemeColorOverride("font_color", TextPrimary);
-            vbox.AddChild(valLabel);
-
-            var nameLabel = new Label { Text = labelText, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, MouseFilter = MouseFilterEnum.Ignore };
-            nameLabel.AddThemeFontSizeOverride("font_size", FontTiny);
-            nameLabel.AddThemeColorOverride("font_color", TextMuted);
-            vbox.AddChild(nameLabel);
-
-            leftCluster.AddChild(chip);
-
-            // Store references for live binding
-            switch (field)
-            {
-                case "vigor": vigorValue = valLabel; _enemyVigorValue = valLabel; break;
-                case "attune": attuneValue = valLabel; _enemyAttuneValue = valLabel; break;
-                case "deck": deckValue = valLabel; break;
-                case "barrow": barrowValue = valLabel; break;
-            }
-        }
-        _enemyDeckValue = deckValue!;
-        _enemyBarrowValue = barrowValue!;
-
-        // ═══ CENTER: enemy name over subtitle ═══
-        var centerVbox = new VBoxContainer();
-        centerVbox.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
-        centerVbox.SizeFlagsVertical = (Control.SizeFlags)4; // center
-        centerVbox.MouseFilter = MouseFilterEnum.Ignore;
-        barRow.AddChild(centerVbox);
-
-        _enemyNameLabel = new Label { Text = "Enemy", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, MouseFilter = MouseFilterEnum.Ignore };
-        _enemyNameLabel.AddThemeFontSizeOverride("font_size", 23);
-        _enemyNameLabel.AddThemeColorOverride("font_color", TextPrimary);
-        _enemyNameLabel.AddThemeConstantOverride("line_spacing", -2);
-        ApplyHeaderFont(_enemyNameLabel, 23);
-        centerVbox.AddChild(_enemyNameLabel);
-
-        _enemySubtitleLabel = new Label { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, MouseFilter = MouseFilterEnum.Ignore };
-        _enemySubtitleLabel.AddThemeFontSizeOverride("font_size", FontSmall);
-        _enemySubtitleLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyBodyFont(_enemySubtitleLabel, FontSmall);
-        centerVbox.AddChild(_enemySubtitleLabel);
-
-        // ═══ RIGHT CLUSTER: Artifact mini-cards (92x56 each) ═══
-        var rightCluster = new HBoxContainer();
-        rightCluster.SizeFlagsHorizontal = 0; // no expand
-        rightCluster.AddThemeConstantOverride("separation", 4);
-        barRow.AddChild(rightCluster);
-
-        for (int i = 0; i < 2; i++)
-        {
-            var mini = new PanelContainer();
-            mini.CustomMinimumSize = new Vector2(92, 56);
-            mini.MouseFilter = MouseFilterEnum.Ignore;
-            mini.SizeFlagsHorizontal = 0;
-            var miniStyle = new StyleBoxFlat
-            {
-                BgColor = new Color(0.12f, 0.10f, 0.08f, 0.8f),
-                BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.4f),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            mini.AddThemeStyleboxOverride("panel", miniStyle);
-
-            var miniInner = new HBoxContainer();
-            miniInner.MouseFilter = MouseFilterEnum.Ignore;
-            mini.AddChild(miniInner);
-
-            // Glyph placeholder
-            var glyph = new Label { Text = "◇", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-            glyph.AddThemeFontSizeOverride("font_size", FontSubtitle);
-            glyph.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
-            glyph.CustomMinimumSize = new Vector2(28, 0);
-            miniInner.AddChild(glyph);
-
-            // Name + charges
-            var nameChargeVbox = new VBoxContainer();
-            nameChargeVbox.MouseFilter = MouseFilterEnum.Ignore;
-            nameChargeVbox.SizeFlagsHorizontal = (Control.SizeFlags)3;
-            miniInner.AddChild(nameChargeVbox);
-
-            var artName = new Label { Text = "—", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, MouseFilter = MouseFilterEnum.Ignore };
-            artName.AddThemeFontSizeOverride("font_size", FontTiny);
-            artName.AddThemeColorOverride("font_color", TextMuted);
-            nameChargeVbox.AddChild(artName);
-
-            // Charge pips (bottom-right area within mini)
-            var chargeLabel = new Label { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, MouseFilter = MouseFilterEnum.Ignore };
-            chargeLabel.AddThemeFontSizeOverride("font_size", 7);
-            chargeLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.7f));
-            nameChargeVbox.AddChild(chargeLabel);
-
-            _enemyArtifactMinis[i] = mini;
-            _enemyArtifactNameLabels[i] = artName;
-            _enemyArtifactChargeLabels[i] = chargeLabel;
-            rightCluster.AddChild(mini);
-        }
-
-        // Set _enemyGroupRect to the top bar for capture meta.json compatibility
-        _enemyGroupRect = _enemyTopBar;
-
-        // Point legacy fields to new bar elements (tutorial popup uses _enemyName/VigorValue/AttuneValue)
-        _enemyName = _enemyNameLabel;
-
-        GD.Print("[DUEL] TASK-UI3a: Enemy top bar built (74px)");
-    }
-
-    /// <summary>
-    /// TASK-UI3c: Build the Player Shrine — bottom-left group replacing old portrait + arsenal.
-    /// Two Artifact cards (86×120, gold-glow border #8a763c) + compact column:
-    /// portrait 46×58, deck 42×50 + barrow 42×50 side by side, vigor number under.
-    /// Anchored 12px left, 40px up from the bottom. Hand is recentered beside it.
-    /// </summary>
-    private void BuildPlayerShrine()
+    private void BuildEnemyArsenalGroup()
     {
         float vh = GetViewportRect().Size.Y;
         float vw = GetViewportRect().Size.X;
         float scale = vh / 648f;
 
         // Design-unit sizes, scaled
-        float artW = 86f * scale;
-        float artH = 120f * scale;
-        float portraitW = 46f * scale;
-        float portraitH = 58f * scale;
-        float chipW = 42f * scale;
-        float chipH = 50f * scale;
+        float artW = 72f * scale;
+        float artH = 96f * scale;
+        float portraitW = 44f * scale;
+        float portraitH = 48f * scale;
+        float chipW = 36f * scale;
+        float chipH = 40f * scale;
         float gap = 4f * scale;
+        float pad = 6f * scale;
 
-        // Position: anchored 12px from left, bottom aligned with hand area floor (40px from viewport bottom)
-        float leftX = 12f * scale;
-        float bottomY = vh - 0f * scale - artH; // TASK-UI3e: sink shrine below player arc bottom
+        // ——— Root: VBox [Portrait] + [Arsenal Group Border] ———
+        var rootVBox = new VBoxContainer { Name = "EnemyArsenalRoot" };
+        rootVBox.MouseFilter = MouseFilterEnum.Ignore;
+        rootVBox.AddThemeConstantOverride("separation", (int)gap);
+        rootVBox.Position = new Vector2(vw - (pad * 2 + artW * 2 + chipW + gap * 2) - 12f * scale, 74f + 4f * scale);
+        AddChild(rootVBox);
 
-        // Root: HBox [Artifact VBox] [Stats Column]
-        _playerShrine = new Control { Name = "PlayerShrine" };
-        _playerShrine.Position = new Vector2(leftX, bottomY);
-        // Give the shrine an explicit size so it encloses its children (capture meta rect + overlap checks)
-        float shrineW = artW + gap * 2f + Mathf.Max(portraitW, chipW * 2f + gap);
-        float shrineH = artH * 2f + gap;
-        _playerShrine.CustomMinimumSize = new Vector2(shrineW, shrineH);
-        _playerShrine.Size = new Vector2(shrineW, shrineH);
-        AddChild(_playerShrine);
-
-        // ── Left VBox: Two Artifact Cards (86×120 each) ──
-        var artVBox = new VBoxContainer();
-        artVBox.AddThemeConstantOverride("separation", (int)gap);
-        artVBox.MouseFilter = MouseFilterEnum.Ignore;
-        _playerShrine.AddChild(artVBox);
-
-        for (int i = 0; i < 2; i++)
-        {
-            var artCard = new PanelContainer();
-            artCard.CustomMinimumSize = new Vector2(artW, artH);
-            artCard.MouseFilter = MouseFilterEnum.Ignore;
-            artCard.SizeFlagsHorizontal = 0;
-            artCard.SizeFlagsVertical = 0;
-            // Gold-glow border #8a763c
-            var artStyle = new StyleBoxFlat
-            {
-                BgColor = new Color(0.12f, 0.10f, 0.08f, 0.85f),
-                BorderColor = Color.FromHtml("#8a763c"),
-                BorderWidthLeft = 2, BorderWidthTop = 2,
-                BorderWidthRight = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            artCard.AddThemeStyleboxOverride("panel", artStyle);
-
-            // Inner: VBox [Glyph] [Name] [Charge Pips at bottom]
-            var innerVBox = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-            artCard.AddChild(innerVBox);
-
-            // Glyph
-            var glyph = new Label
-            {
-                Text = "◇",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            glyph.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(14 * scale));
-            glyph.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.6f));
-            glyph.SizeFlagsVertical = (Control.SizeFlags)3;
-            innerVBox.AddChild(glyph);
-
-            // One-word name
-            var nameLabel = new Label
-            {
-                Text = "—",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Top,
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            int nameSize = Mathf.Max(7, Mathf.RoundToInt(10 * scale));
-            nameLabel.AddThemeFontSizeOverride("font_size", nameSize);
-            nameLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.45f, 0.9f));
-            innerVBox.AddChild(nameLabel);
-
-            // Charge pips (bottom of card)
-            var chargeLabel = new Label
-            {
-                Text = "",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            chargeLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(6 * scale));
-            chargeLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.8f));
-            chargeLabel.SizeFlagsVertical = (Control.SizeFlags)3;
-            innerVBox.AddChild(chargeLabel);
-
-            _playerArtifactCards[i] = artCard;
-            _playerArtifactNameLabels[i] = nameLabel;
-            _playerArtifactChargeLabels[i] = chargeLabel;
-            artVBox.AddChild(artCard);
-        }
-
-        // ── Right Stats Column: [Portrait 46×58] [HBox(Deck, Barrow)] [Vigor #] ──
-        var statsVBox = new VBoxContainer();
-        statsVBox.Position = new Vector2(artW + gap * 2, 0);
-        statsVBox.MouseFilter = MouseFilterEnum.Ignore;
-        _playerShrine.AddChild(statsVBox);
-
-        // Portrait chip (46×58)
-        var portrait = new PanelContainer();
-        portrait.CustomMinimumSize = new Vector2(portraitW, portraitH);
-        portrait.MouseFilter = MouseFilterEnum.Ignore;
+        // ── Portrait medallion (above the group) ──
+        _enemyPortrait = new PanelContainer { Name = "EnemyPortrait" };
+        _enemyPortrait.CustomMinimumSize = new Vector2(portraitW, portraitH);
+        _enemyPortrait.MouseFilter = MouseFilterEnum.Ignore;
+        _enemyPortrait.SizeFlagsHorizontal = 0;
         var portStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.15f, 0.12f, 0.09f, 0.85f),
             BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6
+            CornerRadiusTopLeft = 30, CornerRadiusTopRight = 30,
+            CornerRadiusBottomLeft = 30, CornerRadiusBottomRight = 30
         };
-        portrait.AddThemeStyleboxOverride("panel", portStyle);
-        var pIcon = new Label
+        _enemyPortrait.AddThemeStyleboxOverride("panel", portStyle);
+        var pLabel = new Label
         {
             Text = "?",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        pIcon.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
-        pIcon.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
-        portrait.AddChild(pIcon);
-        statsVBox.AddChild(portrait);
+        pLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        pLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
+        _enemyPortrait.AddChild(pLabel);
 
-        // HBox: Deck chip + Barrow chip side by side
-        var chipRow = new HBoxContainer();
-        chipRow.MouseFilter = MouseFilterEnum.Ignore;
-        chipRow.AddThemeConstantOverride("separation", (int)gap);
-        statsVBox.AddChild(chipRow);
+        // Enemy name below portrait
+        _enemyNameLabel = new Label
+        {
+            Text = "Enemy",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _enemyNameLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(10 * scale));
+        _enemyNameLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(_enemyNameLabel, Mathf.RoundToInt(10 * scale));
+        _enemyNameLabel.SizeFlagsHorizontal = (Control.SizeFlags)3;
+        _enemyPortrait.AddChild(_enemyNameLabel);
 
-        // Deck chip (42×50)
+        rootVBox.AddChild(_enemyPortrait);
+
+        // ── Bordered Arsenal Group ──
+        _enemyArsenalGroup = new PanelContainer { Name = "EnemyArsenalGroup" };
+        var groupStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.5f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.3f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = (int)pad, ContentMarginTop = (int)pad,
+            ContentMarginRight = (int)pad, ContentMarginBottom = (int)pad
+        };
+        _enemyArsenalGroup.AddThemeStyleboxOverride("panel", groupStyle);
+        rootVBox.AddChild(_enemyArsenalGroup);
+
+        // ——— Arsenal HBox: [Art Card 1] [Art Card 2] [Deck + Barrow] ———
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", (int)gap);
+        row.MouseFilter = MouseFilterEnum.Ignore;
+        _enemyArsenalGroup.AddChild(row);
+
+        for (int i = 0; i < 2; i++)
+        {
+            BuildEnemyArsenalArtifact(row, i, artW, artH, scale);
+        }
+
+        // ── Right column: Deck + Barrow chips ──
+        var deckBarrowVBox = new VBoxContainer();
+        deckBarrowVBox.MouseFilter = MouseFilterEnum.Ignore;
+        deckBarrowVBox.SizeFlagsHorizontal = 0;
+        deckBarrowVBox.AddThemeConstantOverride("separation", (int)gap);
+        row.AddChild(deckBarrowVBox);
+
+        // Deck chip
+        var deckChip = MakeChip(chipW, chipH, "0", "DECK", new Color(0.4f, 0.4f, 0.35f, 0.25f));
+        _enemyDeckValue = deckChip.ValueLabel;
+        deckBarrowVBox.AddChild(deckChip.Root);
+
+        // Barrow chip
+        var barrowChip = MakeChip(chipW, chipH, "0", "BARROW", new Color(0.35f, 0.3f, 0.4f, 0.25f));
+        _enemyBarrowValue = barrowChip.ValueLabel;
+        deckBarrowVBox.AddChild(barrowChip.Root);
+
+        // Set _enemyGroupRect to the arsenal group for capture meta.json compatibility
+        _enemyGroupRect = _enemyArsenalGroup;
+
+        // Legacy field for tutorial/other references
+        _enemyName = _enemyNameLabel;
+
+        GD.Print("[DUEL] TASK-UI4-ARSENAL: Enemy arsenal group built (upper-right)");
+    }
+
+    /// <summary>Build a single enemy artifact frame using ArtifactCardPlate.</summary>
+    private void BuildEnemyArsenalArtifact(HBoxContainer parent, int index, float w, float h, float scale)
+    {
+        var panel = new PanelContainer();
+        panel.CustomMinimumSize = new Vector2(w, h);
+        panel.MouseFilter = MouseFilterEnum.Ignore;
+        panel.SizeFlagsHorizontal = 0;
+        panel.SizeFlagsVertical = 0;
+        var artStyle = new StyleBoxFlat
+        {
+            BgColor = ArtifactFrameFill,
+            BorderColor = ArtifactFrameOuter,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 0, ContentMarginTop = 0,
+            ContentMarginRight = 0, ContentMarginBottom = 0
+        };
+        panel.AddThemeStyleboxOverride("panel", artStyle);
+
+        // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
+        var plate = new ArtifactCardPlate();
+        plate.Name = $"ArtPlateE{index}";
+        plate.Setup("—", w, h, 0, 0, false);
+        panel.AddChild(plate);
+
+        _enemyArtifactPlates[index] = plate;
+        _enemyArsenalPanels[index] = panel;
+        parent.AddChild(panel);
+    }
+
+    /// <summary>
+    /// TASK-UI4-ARSENAL: Build the Player Arsenal Group — lower-left bordered group
+    /// containing two Artifact card frames (ArtifactCardPlate) + deck pile + barrow pile,
+    /// with portrait medallion above. Directly implements OPTION 2 mockup layout.
+    /// Anchored 12px left, near bottom. Hand recentered beside it.
+    /// _playerGroupRect is set to the arsenal group for capture meta.json.
+    /// </summary>
+    private void BuildPlayerArsenalGroup()
+    {
+        float vh = GetViewportRect().Size.Y;
+        float vw = GetViewportRect().Size.X;
+        float scale = vh / 648f;
+
+        // Design-unit sizes, scaled
+        float artW = 72f * scale;
+        float artH = 96f * scale;
+        float portraitW = 44f * scale;
+        float portraitH = 48f * scale;
+        float chipW = 36f * scale;
+        float chipH = 40f * scale;
+        float gap = 4f * scale;
+        float pad = 6f * scale;
+
+        // Position: anchored from the bottom-left
+        float leftX = 12f * scale;
+        float bottomY = vh - 0f * scale - artH - portraitH - gap * 3 - 70f; // above the End Turn area
+
+        // ——— Root: VBox [Portrait] + [Arsenal Group Border] ———
+        var rootVBox = new VBoxContainer { Name = "PlayerArsenalRoot" };
+        rootVBox.MouseFilter = MouseFilterEnum.Ignore;
+        rootVBox.AddThemeConstantOverride("separation", (int)gap);
+        rootVBox.Position = new Vector2(leftX, bottomY);
+        AddChild(rootVBox);
+
+        // ── Portrait medallion (above the group) ──
+        _playerPortrait = new PanelContainer { Name = "PlayerPortrait" };
+        _playerPortrait.CustomMinimumSize = new Vector2(portraitW, portraitH);
+        _playerPortrait.MouseFilter = MouseFilterEnum.Ignore;
+        _playerPortrait.SizeFlagsHorizontal = 0;
+        var portStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.12f, 0.09f, 0.85f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 30, CornerRadiusTopRight = 30,
+            CornerRadiusBottomLeft = 30, CornerRadiusBottomRight = 30
+        };
+        _playerPortrait.AddThemeStyleboxOverride("panel", portStyle);
+        var pLabel = new Label
+        {
+            Text = "?",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        pLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        pLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.25f, 0.5f));
+        _playerPortrait.AddChild(pLabel);
+        rootVBox.AddChild(_playerPortrait);
+
+        // ── Bordered Arsenal Group ──
+        _playerArsenalGroup = new PanelContainer { Name = "PlayerArsenalGroup" };
+        var groupStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.5f),
+            BorderColor = new Color(0.6f, 0.5f, 0.25f, 0.3f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = (int)pad, ContentMarginTop = (int)pad,
+            ContentMarginRight = (int)pad, ContentMarginBottom = (int)pad
+        };
+        _playerArsenalGroup.AddThemeStyleboxOverride("panel", groupStyle);
+        rootVBox.AddChild(_playerArsenalGroup);
+
+        // ——— Arsenal HBox: [Art Card 1] [Art Card 2] [Deck + Barrow column] ———
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", (int)gap);
+        row.MouseFilter = MouseFilterEnum.Ignore;
+        _playerArsenalGroup.AddChild(row);
+
+        for (int i = 0; i < 2; i++)
+        {
+            BuildPlayerArsenalArtifact(row, i, artW, artH, scale);
+        }
+
+        // ── Right column: Deck + Barrow chips + Vigor + Attune ──
+        var deckBarrowVBox = new VBoxContainer();
+        deckBarrowVBox.MouseFilter = MouseFilterEnum.Ignore;
+        deckBarrowVBox.SizeFlagsHorizontal = 0;
+        deckBarrowVBox.AddThemeConstantOverride("separation", (int)gap);
+        row.AddChild(deckBarrowVBox);
+
+        // Deck chip
         var deckChip = MakeChip(chipW, chipH, "0", "DECK", new Color(0.4f, 0.4f, 0.35f, 0.25f));
         _playerShrineDeckLabel = deckChip.ValueLabel;
-        chipRow.AddChild(deckChip.Root);
+        deckBarrowVBox.AddChild(deckChip.Root);
 
-        // Barrow chip (42×50)
+        // Barrow chip
         var barrowChip = MakeChip(chipW, chipH, "0", "BARROW", new Color(0.35f, 0.3f, 0.4f, 0.25f));
         _playerShrineBarrowLabel = barrowChip.ValueLabel;
-        chipRow.AddChild(barrowChip.Root);
+        deckBarrowVBox.AddChild(barrowChip.Root);
 
-        // Vigor number under chips
+        // Vigor label under chips
         _playerShrineVigorLabel = new Label
         {
-            Text = "",
+            Text = "Vigor 25",
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineVigorLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(11 * scale));
+        _playerShrineVigorLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         _playerShrineVigorLabel.AddThemeColorOverride("font_color", Moss);
-        statsVBox.AddChild(_playerShrineVigorLabel);
+        deckBarrowVBox.AddChild(_playerShrineVigorLabel);
 
-        // Attune number under vigor (Cinzel small caps)
+        // Attune label under vigor
         _playerShrineAttuneLabel = new Label
         {
-            Text = "",
+            Text = "ATTUNE 3/5",
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(11 * scale));
+        _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.2f, 1));
-        statsVBox.AddChild(_playerShrineAttuneLabel);
+        deckBarrowVBox.AddChild(_playerShrineAttuneLabel);
 
-        // Set _playerGroupRect to the shrine for capture meta.json compatibility
-        _playerGroupRect = _playerShrine;
+        // Set _playerGroupRect to the arsenal group for capture meta.json compatibility
+        _playerGroupRect = _playerArsenalGroup;
 
-        GD.Print("[DUEL] TASK-UI3c: Player shrine built (86×120 artifacts + stat column)");
+        GD.Print("[DUEL] TASK-UI4-ARSENAL: Player arsenal group built (lower-left)");
+    }
+
+    /// <summary>Build a single player artifact frame using ArtifactCardPlate.</summary>
+    private void BuildPlayerArsenalArtifact(HBoxContainer parent, int index, float w, float h, float scale)
+    {
+        var panel = new PanelContainer();
+        panel.CustomMinimumSize = new Vector2(w, h);
+        panel.MouseFilter = MouseFilterEnum.Ignore;
+        panel.SizeFlagsHorizontal = 0;
+        panel.SizeFlagsVertical = 0;
+        var artStyle = new StyleBoxFlat
+        {
+            BgColor = ArtifactFrameFill,
+            BorderColor = ArtifactFrameOuter,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 0, ContentMarginTop = 0,
+            ContentMarginRight = 0, ContentMarginBottom = 0
+        };
+        panel.AddThemeStyleboxOverride("panel", artStyle);
+
+        // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
+        var plate = new ArtifactCardPlate();
+        plate.Name = $"ArtPlateP{index}";
+        plate.Setup("—", w, h, 0, 0, false);
+        panel.AddChild(plate);
+
+        _playerArtifactPlates[index] = plate;
+        _playerArsenalPanels[index] = panel;
+        parent.AddChild(panel);
     }
 
     /// <summary>
@@ -1265,18 +1199,21 @@ public partial class DuelScene : Control
     /// The group rects are stored in _playerGroupRect/_enemyGroupRect and written to duel_test.meta.json.
     /// TASK-UI3a: Enemy side removed — replaced by top bar.
     /// </summary>
-    private void AddArtifactSlotFrames()
+    /// <summary>
+    /// TASK-UI4-ARSENAL: Build both arsenal groups (player lower-left, enemy upper-right).
+    /// </summary>
+    private void AddArsenalGroups()
     {
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
 
-        // ═══ PLAYER: Replace arsenal group with Player Shrine (TASK-UI3c) ═══
-        BuildPlayerShrine();
+        // ═══ PLAYER: Lower-left arsenal group with portrait medallion above ═══
+        BuildPlayerArsenalGroup();
 
-        // ═══ TASK-UI3a: Enemy arsenal group removed — replaced by top bar ═══
-        // _enemyGroupRect is now set in BuildEnemyTopBar() to point to the top bar.
+        // ═══ ENEMY: Upper-right arsenal group with portrait medallion above ═══
+        BuildEnemyArsenalGroup();
 
-        GD.Print($"[DUEL] TASK-H deck+artifact groups: player shrine built (enemy group moved to top bar)");
+        GD.Print($"[DUEL] TASK-UI4-ARSENAL: Both arsenal groups built (player bottom-left, enemy upper-right)");
     }
 
     /// <summary>Portrait placeholder frame (kept from FIX-5, artifacts no longer flank it).</summary>
@@ -1303,8 +1240,8 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// Build one arsenal group: a subtle container rect holding the deck pile and two artifact frames.
-    /// Player order (left→right): [Deck][Art][Art]; enemy order is mirrored: [Art][Art][Deck].
+    /// TASK-UI4-ARSENAL: Build both arsenal groups (player lower-left, enemy upper-right).
+    /// Remove the old BuildArsenalGroup, MakeDeckPile, MakeArtifactFrame helpers — they're superseded.
     /// </summary>
     private Control BuildArsenalGroup(float x, float y, float deckW, float deckH, float artW, float artH, float gap, float pad, bool isPlayer)
     {
@@ -1508,8 +1445,8 @@ public partial class DuelScene : Control
         // PopulateLanes re-affirms this after slot layout; this is the initial set.
         _handArea.OffsetTop = -(_handCardHeight + 12f);
 
-        // WORLD-POLISH-1: Hand max width = viewport_width - 380 (leaves left stone cluster and right End Turn zone)
-        float marginLeft = Mathf.Max(380f, 380f * scale);
+        // TASK-UI4-ARSENAL: Hand max width = viewport_width - 220 (narrower player arsenal group at ~192px + gap)
+        float marginLeft = Mathf.Max(220f, 220f * scale);
         _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
         _handArea.AddThemeConstantOverride("margin_right", 80);
 
@@ -1943,7 +1880,7 @@ public partial class DuelScene : Control
             _enemyDeckValue.Text = p1.Deck.Count.ToString();
             _enemyBarrowValue.Text = p1.Barrow.Count.ToString();
 
-            // Artifact mini-cards: display name + charges + visual state
+            // TASK-UI4-ARSENAL: Artifact frames via ArtifactCardPlate — teal-gold rim, charge rail, suppressed state
             int artSlots = p1.ArtifactSlots?.Length ?? 0;
             for (int i = 0; i < 2; i++)
             {
@@ -1952,29 +1889,35 @@ public partial class DuelScene : Control
                     var slot = p1.ArtifactSlots[i];
                     var occ = slot.Occupant;
                     var artDef = ArtifactRegistry.Get(occ.CardDefId);
-                    _enemyArtifactNameLabels[i].Text = artDef?.Name ?? "?";
+                    string artName = artDef?.Name ?? "?";
                     int ch = slot.Charges;
                     int maxCh = slot.MaxCharges;
-                    string pips = RenderChargePips(ch, maxCh);
-                    _enemyArtifactChargeLabels[i].Text = pips;
-                    // Apply visual state styling (TASK-AC1)
-                    ApplyArtifactVisualState(_enemyArtifactMinis[i], _enemyArtifactNameLabels[i], _enemyArtifactChargeLabels[i], slot.VisualState);
+                    bool suppressed = slot.VisualState == ArtifactVisualState.SUPPRESSED;
+                    // Update ArtifactCardPlate name, charges, suppressed state
+                    if (_enemyArtifactPlates[i] != null)
+                    {
+                        _enemyArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                    }
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
                     {
                         int prevCh = _prevEnemyCharges[i];
                         if (prevCh < maxCh)
                         {
-                            PlayChargeFullPulse(_enemyArtifactChargeLabels[i], i, true);
+                            if (_enemyArtifactPlates[i] != null)
+                            {
+                                var chargeLabel = _enemyArtifactPlates[i].GetNameLabel();
+                                if (chargeLabel != null)
+                                    PlayChargeFullPulse(chargeLabel, i, true);
+                            }
                         }
                     }
                     _prevEnemyCharges[i] = ch;
                 }
                 else
                 {
-                    _enemyArtifactNameLabels[i].Text = "—";
-                    _enemyArtifactChargeLabels[i].Text = "";
-                    ApplyArtifactVisualState(_enemyArtifactMinis[i], _enemyArtifactNameLabels[i], _enemyArtifactChargeLabels[i], ArtifactVisualState.READY);
+                    if (_enemyArtifactPlates[i] != null)
+                        _enemyArtifactPlates[i].Setup("—", 72f, 96f, 0, 0, false);
                 }
             }
         }
@@ -1992,7 +1935,7 @@ public partial class DuelScene : Control
             if (_playerShrineAttuneLabel != null)
                 _playerShrineAttuneLabel.Text = $"ATTUNE {playerHud.Attunement}/{playerHud.AttunementMax}";
 
-            // Player artifact cards: name + charge pips + visual state
+            // TASK-UI4-ARSENAL: Player artifact frames via ArtifactCardPlate
             int artSlots = p0.ArtifactSlots?.Length ?? 0;
             for (int i = 0; i < 2; i++)
             {
@@ -2001,33 +1944,35 @@ public partial class DuelScene : Control
                     var slot = p0.ArtifactSlots[i];
                     var occ = slot.Occupant;
                     var artDef = ArtifactRegistry.Get(occ.CardDefId);
-                    if (_playerArtifactNameLabels[i] != null)
-                        _playerArtifactNameLabels[i].Text = artDef?.Name ?? "?";
+                    string artName = artDef?.Name ?? "?";
                     int ch = slot.Charges;
                     int maxCh = slot.MaxCharges;
-                    string pips = RenderChargePips(ch, maxCh);
-                    if (_playerArtifactChargeLabels[i] != null)
-                        _playerArtifactChargeLabels[i].Text = pips;
-                    // Apply visual state styling (TASK-AC1)
-                    ApplyArtifactVisualState(_playerArtifactCards[i], _playerArtifactNameLabels[i], _playerArtifactChargeLabels[i], slot.VisualState);
+                    bool suppressed = slot.VisualState == ArtifactVisualState.SUPPRESSED;
+                    // Update ArtifactCardPlate name, charges, suppressed state
+                    if (_playerArtifactPlates[i] != null)
+                    {
+                        _playerArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                    }
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
                     {
                         int prevCh = _prevPlayerCharges[i];
                         if (prevCh < maxCh)
                         {
-                            PlayChargeFullPulse(_playerArtifactChargeLabels[i], i, false);
+                            if (_playerArtifactPlates[i] != null)
+                            {
+                                var chargeLabel = _playerArtifactPlates[i].GetNameLabel();
+                                if (chargeLabel != null)
+                                    PlayChargeFullPulse(chargeLabel, i, false);
+                            }
                         }
                     }
                     _prevPlayerCharges[i] = ch;
                 }
                 else
                 {
-                    if (_playerArtifactNameLabels[i] != null)
-                        _playerArtifactNameLabels[i].Text = "—";
-                    if (_playerArtifactChargeLabels[i] != null)
-                        _playerArtifactChargeLabels[i].Text = "";
-                    ApplyArtifactVisualState(_playerArtifactCards[i], _playerArtifactNameLabels[i], _playerArtifactChargeLabels[i], ArtifactVisualState.READY);
+                    if (_playerArtifactPlates[i] != null)
+                        _playerArtifactPlates[i].Setup("—", 72f, 96f, 0, 0, false);
                 }
             }
         }
@@ -3383,25 +3328,25 @@ public partial class DuelScene : Control
             }
         }
 
-        // TASK-UI3c: Overlap assertion — shrine group rect must not intersect any hand card rect
-        GD.Print("[VERIFY] === Overlap check (TASK-UI3c) ===");
-        if (_playerShrine != null && _handCards.Count > 0)
+        // TASK-UI4-ARSENAL: Overlap assertion — arsenal group rect must not intersect any hand card rect
+        GD.Print("[VERIFY] === Overlap check (TASK-UI4-ARSENAL) ===");
+        if (_playerArsenalGroup != null && _handCards.Count > 0)
         {
-            var shrineRect = new Rect2(_playerShrine.GetScreenTransform().Origin, _playerShrine.Size);
+            var arsenalRect = new Rect2(_playerArsenalGroup.GetScreenTransform().Origin, _playerArsenalGroup.Size);
             bool hasOverlap = false;
             foreach (var card in _handCards)
             {
                 var cardRect = new Rect2(card.GetScreenTransform().Origin, card.Size);
-                if (shrineRect.Intersects(cardRect))
+                if (arsenalRect.Intersects(cardRect))
                 {
-                    GD.PrintErr($"[VERIFY] FAIL: Shrine {shrineRect} intersects hand card \"{card.CardName}\" at {cardRect}");
+                    GD.PrintErr($"[VERIFY] FAIL: Arsenal {arsenalRect} intersects hand card \"{card.CardName}\" at {cardRect}");
                     fails++;
                     hasOverlap = true;
                     break;
                 }
             }
             if (!hasOverlap)
-                GD.Print($"[VERIFY] OK: Shrine {shrineRect} does not overlap any hand card");
+                GD.Print($"[VERIFY] OK: Arsenal {arsenalRect} does not overlap any hand card");
         }
 
         GD.Print($"[VERIFY] === {fails} check(s) failed ===");

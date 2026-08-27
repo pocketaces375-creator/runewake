@@ -6,16 +6,14 @@ namespace Runewake.Client;
 
 /// <summary>
 /// A card in the player's hand, rendered as a framed card thumbnail.
-/// Root is PanelContainer — draws the "panel" theme style for card background and border.
+/// Root is PanelContainer — draws the gold two-layer border via StyleBoxFlat.
 /// Click/tap via GuiInput override, drag via _GetDragData override.
-/// Now uses CardPlate for the uniform bottom plate with name and stat badges.
+/// Uses CardPlate for the unified card frame: hex cost, name band, stat rail.
 /// </summary>
 public partial class HandCard : PanelContainer
 {
     private CardPlate _cardPlate;
-    private Label _costLabel;
     private TextureRect _artRect;
-    private PanelContainer _badgePanel;
     private ColorRect _desatOverlay;
     private Label _noArtLabel;
     private bool _isHovered;
@@ -40,13 +38,8 @@ public partial class HandCard : PanelContainer
     {
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
-        _costLabel = GetNode<Label>("Content/CostBadge/CostLabel");
 
-        ApplyBodyFont(_costLabel, FontLargeBody);
-
-        _badgePanel = GetNode<PanelContainer>("Content/CostBadge");
-
-        // CardPlate — uniform bottom plate with name and stat badges
+        // CardPlate — unified card frame: hex cost, name band, stat rail
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
@@ -64,17 +57,15 @@ public partial class HandCard : PanelContainer
         var artIdx = GetNode("Content/ArtTexture").GetIndex();
         content.MoveChild(_desatOverlay, artIdx + 1);
 
-        // Style cost badge
-        ApplyBadgeStyle(Gold, Gold);
-
         // Hover enlarge — desktop pointer only; touch uses tap+detail popup
         MouseEntered += OnHoverEntered;
         MouseExited += OnHoverExited;
 
-        // Card face style
+        // Card face style — gold two-layer border
         var cardStyle = new StyleBoxFlat
         {
-            BgColor = Color.FromHtml("#332E28"),
+            BgColor = FrameFill,
+            BorderColor = FrameGoldOuter,
             BorderWidthLeft = 2,
             BorderWidthTop = 2,
             BorderWidthRight = 2,
@@ -98,18 +89,15 @@ public partial class HandCard : PanelContainer
         CardCost = cost;
         CardStrata = strata;
 
-        _costLabel.Text = cost.ToString();
-
         var def = CardRegistry.Get(cardId);
         CardAttack = def?.Attack;
         CardVigor = def?.Vigor;
 
-        // Strata border
-        var strataColor = StrataColor(strata);
+        // Gold two-layer border — always gold, not strata-colored
         var cardStyle = new StyleBoxFlat
         {
-            BgColor = Color.FromHtml("#332E28"),
-            BorderColor = strataColor.Darkened(0.4f),
+            BgColor = FrameFill,
+            BorderColor = FrameGoldOuter,
             BorderWidthLeft = 2,
             BorderWidthTop = 2,
             BorderWidthRight = 2,
@@ -125,13 +113,13 @@ public partial class HandCard : PanelContainer
         };
         AddThemeStyleboxOverride("panel", cardStyle);
 
-        // CardPlate handles name + stat badges
+        // CardPlate handles hex cost, name band, stat rail
         var plateW = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
         var plateH = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
         if (plateW <= 0) plateW = _cardWidth > 0 ? _cardWidth : 104;
         if (plateH <= 0) plateH = _cardHeight > 0 ? _cardHeight : 152;
 
-        _cardPlate.Setup(name, CardAttack, CardVigor, strata, plateW, plateH);
+        _cardPlate.Setup(name, CardAttack, CardVigor, strata, plateW, plateH, cost);
 
         LoadArt(cardId);
     }
@@ -164,16 +152,7 @@ public partial class HandCard : PanelContainer
     public void SetPlayable(bool playable)
     {
         _desatOverlay.Visible = !playable;
-        if (playable)
-        {
-            ApplyBadgeStyle(Gold, Gold);
-            Modulate = Colors.White;
-        }
-        else
-        {
-            ApplyBadgeStyle(new Color(0.8f, 0.18f, 0.12f), new Color(0.95f, 0.3f, 0.2f));
-            Modulate = Colors.White;
-        }
+        Modulate = Colors.White;
     }
 
     /// <summary>
@@ -188,13 +167,8 @@ public partial class HandCard : PanelContainer
         CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
 
-        // Scale cost badge font
-        float scale = targetHeight / 152f;
-        int costSize = Mathf.Max(16, Mathf.RoundToInt(18 * scale));
-        _costLabel.AddThemeFontSizeOverride("font_size", costSize);
-
         // Re-setup CardPlate with new dimensions
-        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight);
+        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight, CardCost);
 
         // Hover pivot: bottom-center so card enlarges upward
         PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);
@@ -219,28 +193,6 @@ public partial class HandCard : PanelContainer
         tween.TweenProperty(this, "scale", new Vector2(1f, 1f), 0.12f)
             .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
         tween.TweenCallback(Callable.From(() => ZIndex = 0));
-    }
-
-    /// <summary>
-    /// Apply a border + text color to the cost badge.
-    /// </summary>
-    private void ApplyBadgeStyle(Color borderColor, Color textColor)
-    {
-        var style = new StyleBoxFlat
-        {
-            BgColor = BgVoid,
-            BorderColor = borderColor,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 3,
-            CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3,
-            CornerRadiusBottomRight = 3
-        };
-        _badgePanel.AddThemeStyleboxOverride("panel", style);
-        _costLabel.AddThemeColorOverride("font_color", textColor);
     }
 
     // ——— Click handling via GuiInput ———

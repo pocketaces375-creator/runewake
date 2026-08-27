@@ -6,11 +6,12 @@ namespace Runewake.Client;
 
 /// <summary>
 /// A single lane slot on the board. Shows full-bleed card art with CardPlate
-/// bottom plate (uniform name + stat layout) when occupied, or a visible empty
-/// frame/border when empty so slots never read as voids (TASK-UI2).
+/// unified frame (gold border, hex cost top-left, name band, stat rail) when
+/// occupied, or a visible empty frame/border when empty so slots never read as
+/// voids (TASK-UI2).
 /// Supports drag-and-drop for playing cards from hand, and tap selection
 /// for attack targeting.
-/// Now uses CardPlate for the uniform bottom plate with name and stat badges.
+/// Now uses CardPlate for the unified card frame system.
 /// </summary>
 public partial class LaneSlot : PanelContainer
 {
@@ -58,7 +59,7 @@ public partial class LaneSlot : PanelContainer
 
         SetEmpty();
 
-        // CardPlate — uniform bottom plate with name and stat badges
+        // CardPlate — unified card frame: hex cost, name band, stat rail
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
@@ -91,6 +92,26 @@ public partial class LaneSlot : PanelContainer
             if (stoneTex != null)
                 slotBg.Texture = stoneTex;
         }
+
+        // Apply gold two-layer border
+        var goldStyle = new StyleBoxFlat
+        {
+            BgColor = FrameFill,
+            BorderColor = FrameGoldOuter,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 0,
+            ContentMarginTop = 0,
+            ContentMarginRight = 0,
+            ContentMarginBottom = 0
+        };
+        AddThemeStyleboxOverride("panel", goldStyle);
     }
 
     /// <summary>
@@ -121,8 +142,13 @@ public partial class LaneSlot : PanelContainer
         _cardWidth = w;
         _cardHeight = h;
 
-        // CardPlate handles name + stat badges + plate background
-        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h);
+        // Get cost from card definition
+        int cost = 0;
+        var def = CardRegistry.Get(cardDefId);
+        if (def != null) cost = def.Cost;
+
+        // CardPlate handles hex cost, name, stat rail
+        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost);
         _cardPlate.Show();
 
         LoadArt(cardDefId);

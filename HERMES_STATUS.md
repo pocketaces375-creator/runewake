@@ -157,3 +157,4 @@
 - FOREMAN_HALT deleted as final act ✅
 
 **TASK-SHIP-MAP2 (2026-08-25):** Ship the map polish pass (MAP-POLISH-2 by Claude) — no code changes, BUILD + SHIP only. Pulled (up to date on 3f79069), dotnet build 0 errors. Map capture at 1152x648 + 1999x932 both gate exit 0. Verification: green squares gone ✅, medallions on terrain ✅, cartouche shows Arabic calligraphy (رونويك) + THE FALLOW REACH (baked into map_plate.png art) ✅, info panel bottom-right clear of Forge/Rune Page/Settings stack ✅. APK export → 193MB debug. GitHub release: alpha-2026-08-25-map2. Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-25-map2/Runewake.apk. Posted captures + URL to Adam DM (bot not yet added to Runewake group).
+- 2026-08-27: TEMPO — 1 sessions yesterday, 0 validated.
