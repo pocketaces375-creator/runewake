@@ -96,6 +96,9 @@ public partial class DuelScene : Control
     private readonly int[] _prevEnemyCharges = new int[2];
     // Tracks whether pulse is currently playing to avoid overlapping tweens
     private readonly Godot.Tween?[] _chargePulseTweens = new Godot.Tween[4]; // 0=P0-0, 1=P0-1, 2=P1-0, 3=P1-1
+    // TASK-ARTF-P2: Previous trigger state per artifact slot for trigger-flash detection
+    private readonly bool[] _prevPlayerTriggered = new bool[2];
+    private readonly bool[] _prevEnemyTriggered = new bool[2];
 
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
@@ -1913,6 +1916,15 @@ public partial class DuelScene : Control
                         }
                     }
                     _prevEnemyCharges[i] = ch;
+
+                    // TASK-ARTF-P2: Trigger flash — detect HasTriggeredThisTurn rising edge
+                    bool nowTriggered = slot.HasTriggeredThisTurn;
+                    if (nowTriggered && !_prevEnemyTriggered[i])
+                    {
+                        if (_enemyArtifactPlates[i] != null)
+                            _enemyArtifactPlates[i].PlayTriggerFlash();
+                    }
+                    _prevEnemyTriggered[i] = nowTriggered;
                 }
                 else
                 {
@@ -1968,6 +1980,15 @@ public partial class DuelScene : Control
                         }
                     }
                     _prevPlayerCharges[i] = ch;
+
+                    // TASK-ARTF-P2: Trigger flash — detect HasTriggeredThisTurn rising edge
+                    bool nowTriggered = slot.HasTriggeredThisTurn;
+                    if (nowTriggered && !_prevPlayerTriggered[i])
+                    {
+                        if (_playerArtifactPlates[i] != null)
+                            _playerArtifactPlates[i].PlayTriggerFlash();
+                    }
+                    _prevPlayerTriggered[i] = nowTriggered;
                 }
                 else
                 {

@@ -787,5 +787,15 @@ public static class EffectExecutor
         TriggerBus.FireDeathEvents(state, card, owner.Index);
         // Fire global ON_CREATURE_DIES for all abilities (Artifact triggers, etc.)
         TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, owner.Index);
+
+        // Fire ON_PREY_DESTROYED if this creature was marked as Prey for either player
+        for (int pi = 0; pi < state.Players.Length; pi++)
+        {
+            if (state.Players[pi].PreyTargetId == card.InstanceId)
+            {
+                for (int si = 0; si < state.Players[pi].ArtifactSlots.Length; si++)
+                    TriggerBus.FireArtifactSlot(state, Trigger.ON_PREY_DESTROYED, pi, si);
+            }
+        }
     }
 }

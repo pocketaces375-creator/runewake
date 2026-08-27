@@ -2,6 +2,13 @@
 
 ## Completed Tasks
 
+**TASK-ARTF-P2 (2026-08-27):** Artifacts playable end-to-end (P2 gate). Applied:
+- ENGINE: ON_PREY_DESTROYED now automatically fired in KillCreature when the dying creature is marked as Prey for either player (was only simulated in tests before; fixes Bow's trigger draw-on-prey-death end-to-end) ✅
+- CLIENT: Trigger flash overlay added to ArtifactCardPlate.PlayTriggerFlash() — brief golden-white pulse (≤0.35s) when artifact's HasTriggeredThisTurn transitions false→true, detected in RenderHud for both player and enemy artifact plates ✅
+- CLIENT: Backward-compatible setup — all four visual states (READY/CHARGED/SUPPRESSED/SPENT) continue working, charge pips live-bound to real engine state via RenderHud ✅
+- VERIFIED: 709 engine tests green, gate exit 0, capture shows live charge pips + suppressed state ✅
+- Committed as TASK-ARTF-P2
+
 **HOMESTRETCH-1 (2026-08-17):** Homestretch brick — APK + style lock + wave 1. Applied:
 - APK: fresh debug APK with HAND-VIEWPORT-FIX-1R (aad6bf7) — capture gate exit 0 (Check 7 hand/field gap=12px + Check 8 viewport containment within 1152x648), Godot VERIFY 0 failed, export 119MB → gh release alpha-2026-08-17-hand-fix "Alpha 2026-08-17 — hand tray fix" https://github.com/pocketaces375-creator/runewake/releases/tag/alpha-2026-08-17-hand-fix, URL+size posted to Telegram ✅
 - STYLE LOCK v3.0: docs/ART_STYLE_SPEC.md updated to v3.0 — blended spine (probes A+B+C: chiaroscuro + expressive brushwork + Renaissance tableau staging), all rules (1)-(7) + anchors + negatives kept, new RULE (8): visual pre-post corner check for painted signatures/lettering, regenerate once on finding, flag if persists. Pipeline STRATUM_STYLES (modules/art.py + generate_sample_art.py) synced to v3.0 spine ✅

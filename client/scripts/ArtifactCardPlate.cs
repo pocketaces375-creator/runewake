@@ -37,6 +37,9 @@ public partial class ArtifactCardPlate : Control
     private float _designCardHeight;
     private string _cardNameText = "";
 
+    // TASK-ARTF-P2: Trigger flash overlay — bright gold-white pulse when artifact trigger fires
+    private ColorRect? _triggerFlashOverlay;
+
     // Use same proportions as CardPlate for consistency
     private const float NameBandFraction = 0.20f;
     private const float ChargeRailFraction = 0.12f;
@@ -148,6 +151,16 @@ public partial class ArtifactCardPlate : Control
             };
             _suppressedOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_suppressedOverlay);
+
+            // ── Trigger flash overlay — brief bright pulse when trigger fires ──
+            _triggerFlashOverlay = new ColorRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                Color = new Color(1.0f, 0.95f, 0.7f, 0.0f),
+                Visible = true
+            };
+            _triggerFlashOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            AddChild(_triggerFlashOverlay);
         }
 
         // ═══ LAYOUT ═══
@@ -329,4 +342,29 @@ public partial class ArtifactCardPlate : Control
 
     /// <summary>Get the name label node for metadata capture purposes.</summary>
     public Label? GetNameLabel() => _cardName;
+
+    /// <summary>
+    /// TASK-ARTF-P2: Brief bright flash when this artifact's trigger fires.
+    /// <0.5s golden-white pulse that fades out.
+    /// </summary>
+    public void PlayTriggerFlash()
+    {
+        if (_triggerFlashOverlay == null || !IsInstanceValid(_triggerFlashOverlay))
+            return;
+
+        // Kill any existing flash tween
+        var existing = _triggerFlashOverlay.GetMeta("flash_tween", Variant.From<Godot.Tween?>(null));
+        if (existing.VariantType != Variant.Type.Nil)
+        {
+            var tween = existing.AsGodotObject() as Godot.Tween;
+            if (tween != null && IsInstanceValid(tween))
+                tween.Kill();
+        }
+
+        _triggerFlashOverlay.Modulate = new Color(1.0f, 0.95f, 0.75f, 0.55f);
+        var flash = CreateTween();
+        flash.TweenProperty(_triggerFlashOverlay, "modulate",
+            new Color(1.0f, 0.95f, 0.75f, 0.0f), 0.35f);
+        flash.SetMeta("flash_tween", Variant.From(flash));
+    }
 }
