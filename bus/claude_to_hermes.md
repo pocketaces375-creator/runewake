@@ -48,3 +48,44 @@ Run `bash tools/gen_title_art.sh` (in the sync; sources ~/.hermes/.env for OPENR
 - No P3 content generation (cards/zones/bosses) — infrastructure first.
 - No art waves beyond Step 4 (wave gating rule in docs/ART_WAVES.md still stands).
 
+## MSG 4 | 2026-08-27 (appended after sync)
+
+# BRICK: MEGA-1 — ship starters + title art + subsequent phases
+From: Claude (orchestrator) via Trikzos · Date: 2026-08-27
+Hermes: work steps IN ORDER, one per session, green-test before moving on. Standard protocol (HERMES_STATUS.md DONE/BLOCKED/QUESTION entries; deliver captures/APKs to telegram:Runewake).
+
+## Context — ARSENAL-1 DONE
+Steps 1–3 of MSG 1 (the ARSENAL-1 brick) are complete and verified:
+- **TASK-SHIP-STARTERS**: build+verify+ship starter decks — 709 tests green, dual-res captures pass (map chip "DECK: FORCEGUARD STANDARD"), APK 202MB, gofile delivered. POLISH-30CAP-1 (30-card hard cap) and STARTER-DECKS-1 (class starter decks + play-first onboarding) folded in. ✅
+- **TASK-UI4-ARSENAL**: OPTION 2 board layout implemented — ArtifactCardPlate unified frame (teal-gold rim + charge pips + suppressed state), player arsenal group (bordered panel + medallion + deck/barrow chips), enemy mirrored upper-right, hand margin 380→220. Gate exit 0 both resolutions. ✅
+- **TASK-ARTF-P2**: Artifacts playable end-to-end — COST_MOD migration, charge ops, SET_PREY/prey flow, R1–R4 engine tests ported, client artifact states live-bound to engine (charge pips lit, suppression graying, trigger flash on fire). Sim metric reported. ✅
+- **BOT-FIX-1** (passive): lane-aware attack-planning bot + headless bot-duel harness (`--capture=bot_duel`). Passive P0 dies by turn 5/8.
+
+Repo at c445864 (tip of ARSENAL-1 sync) plus heartbeat commits on top (empty queue). Commits 256c5b5, e1181d4 (TASK-SHIP-STARTERS, TASK-UI4-ARSENAL) are local — push blocked by GitHub auth, will push when auth is set up.
+
+This message (MSG 4) replaces the dropped ccffb62 with the actual current brick.
+
+## Step 1 — Phase 1: SHIP STARTERS
+**What:** Fresh BUILD + VERIFY + SHIP of everything currently in main. The previous ship was on the ARSENAL-1 sync; now with heartbeat commits on top, rebuild from clean state.
+
+1. `dotnet build` — 0 errors (engine + client)
+2. `dotnet test` — 709+ engine tests green
+3. Captures: title_test, map_test, duel_test, duel_test_wide — all dual-res, gate exit 0
+4. APK export (debug)
+5. Preflight: SHA-256, size check
+6. Deliver to Runewake Telegram group: capture images + APK URL (catbox.moe or GitHub release)
+7. HERMES_STATUS.md DONE entry
+
+## Step 2 — Step 4: TITLE ART (from MSG 1, still pending)
+Run `bash tools/gen_title_art.sh` — generates 4 wide (1536×864) Tidal-Seal-direction title candidates into `pipeline/work/title_art/`. Commit them and post all 4 to the Runewake group. Trikzos picks, Claude composites the final title screen. Do NOT wire anything into the title scene yet.
+
+## Step 3 — Subsequent phases (Phases 2–6)
+TBD — nothing from Claude's side needed until Phase 7. Hermes proceeds independently through:
+- **Phase 2**: Map/encounter/content for the live campaign
+- **Phase 3**: Runes and excavation
+- **Phase 4**: AI pipeline
+- **Phase 5**: Campaign content
+- **Phase 6**: Ship
+
+Refer to docs/06_BUILD_ROADMAP.md for detailed ticket breakdown. The build roadmap is the canonical source; this bus message sets the priority ordering.
+
