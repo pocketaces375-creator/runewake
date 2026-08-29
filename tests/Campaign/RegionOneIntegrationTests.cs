@@ -173,6 +173,23 @@ public class RegionOneIntegrationTests : IDisposable
     }
 
     [Fact]
+    public void AllEncounterDecks_HaveNoDuplicateCardIds()
+    {
+        var encounters = LoadAllEncounters();
+        foreach (var enc in encounters)
+        {
+            var duplicates = enc.Deck
+                .GroupBy(cid => cid)
+                .Where(g => g.Count() > 1)
+                .Select(g => $"{g.Key} appears {g.Count()} times")
+                .ToList();
+            Assert.True(
+                duplicates.Count == 0,
+                $"Encounter '{enc.Id}' ({enc.Name}) has duplicate card IDs: {string.Join("; ", duplicates)}");
+        }
+    }
+
+    [Fact]
     public void RegionOneMap_AllEncounterRefs_Resolve()
     {
         var region = LoadRegion();
