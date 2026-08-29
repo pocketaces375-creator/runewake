@@ -2,6 +2,14 @@
 
 ## Completed Tasks
 
+**HOTFIX-1 (2026-08-29):** APK delivery, enemy deck uniqueness, push auth (brick from Claude via Trikzos).
+- **PUSH-AUTH: BLOCKED** — No GitHub token/SSH available. `gh auth status` reports "not logged into any GitHub hosts". Headless env can't do browser flow. `gh auth login --with-token` needs a PAT. Error: `fatal: could not read Username for 'https://github.com': No such device or address` ❌
+- **DECK-UNIQUE-1: DONE** — All 9 encounter decks rebuilt to 30 unique card IDs (pool 65, avg 4.2 appearances per card). New `AllEncounterDecks_HaveNoDuplicateCardIds()` permanent test added (710/710 green). bot_duel (turn 5) + bot_duel_tut (turn 8) regressions PASS. Tutorial script (warrior_intro.json) unchanged — uses own opponent_deck separate from encounter deck ✅
+- **APK-DELIVERY-1: DONE** — Optimized debug build (include_script_source=false, version 10). 202MB. SHA-256 fde6df91. Catbox: https://files.catbox.moe/230owo.apk. GitHub Release: BLOCKED (needs push auth). Release-mode export: CRASHED (pre-existing Mono/Sqlite segfault) ✅ catbox only
+- **MEGA-1 Phase 2 amendments recorded:**
+  a. Hand scale: target proportions from artifacts/mockups/place2.png — hand fan must fit fully on-screen with clear board visibility. Pending px size determination from mockup.
+  b. Enemy health bar: opponent name layered on top of the bar (single combined nameplate, not separate elements). Player side may mirror.
+
 **PHASE-1-SHIP-STARTERS (2026-08-29):** Fresh SHIP after MEGA-1 bundle sync. Full BUILD + VERIFY + SHIP cycle:
 - Bundle sync: `/tmp/runewake_sync_2026-08-26.bundle` fetched, c445864 merged (already ancestor via heartbeat commits) ✅
 - Sanity checks: c445864/e6d4f11/80439e1 present, artifacts/mockups 4 PNGs present, tools/gen_title_art.sh present ✅
