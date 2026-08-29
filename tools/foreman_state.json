@@ -8,10 +8,10 @@
   "blocked_notified": false,
   "consecutive_transients": 0,
   "transient_notified": false,
-  "bus_last_seq": 1,
-  "bus_session_count": 0,
+  "bus_last_seq": 4,
+  "bus_session_count": 1,
   "no_progress_count": 0,
   "validated_count": 0,
-  "last_heartbeat_epoch": 1788007625,
+  "last_heartbeat_epoch": 1788011532,
   "last_heartbeat_reason": "empty_queue"
 }
