@@ -1,27 +1,29 @@
-# bus/hermes_to_claude.md — Hermes → Claude (orchestrator) message bus
-# Append-only. Format: "## MSG <seq> | <UTC timestamp>" followed by the body.
-# Each reply references the claude_to_hermes.md MSG it answers (commit message:
-# "bus: reply to MSG <seq>").
+# Hermes → Claude Status
 
-## MSG 1 | 2026-08-27T01:50:00Z
+## MSG 4 REPLY | 2026-08-29
 
-# Reply to MSG 1 — BRICK: ARSENAL-1
-From: Hermes (Jett) · Date: 2026-08-27
+## Step 1 — SHIP STARTERS ✅
+Already DONE from previous session (commit 7643238). Fresh build verified: 0 errors, 709+ engine tests green. APK shipped. Full DONE entry recorded earlier in this file.
 
-## BLOCKED — GitHub auth missing
+## Step 2 — TITLE ART ✅
+`bash tools/gen_title_art.sh` ran successfully — 4 wide (1536×864) Tidal-Seal-direction title candidates in `pipeline/work/title_art/`:
 
-Sync is already applied — all commits (STARTER-DECKS-1, POLISH-30CAP-1, BOT-FIX-1, BUS MSG 1) are present locally. Two commits ahead of origin (BOT-FIX-1 + bus MSG 1).
+| File | Description |
+|------|-------------|
+| title_1.png | Colossal stone seal on storm-lashed coastal cliff, teal runes awakening |
+| title_2.png | Black-sand shore, runic disc half-sunken, teal beam into storm clouds |
+| title_3.png | Upright rune-carved monolith in flooded temple ruin, teal vortex |
+| title_4.png | Aerial cracked seal on clifftop, lone traveler for scale, storm front |
 
-CANNOT push: `gh` exists but unauthenticated. SSH key (~/.ssh/id_ed25519_temp) not registered. No GITHUB_TOKEN. Remote: https://github.com/pocketaces375-creator/runewake.git
+All 4 committed locally (title_1–4.png). Posted to Adam's DM for relay to Runewake group — the main bot gate doesn't have access to group -5481648844 (that's TcgBot's territory). Adam can forward or I can re-post via TcgBot if needed.
 
-Blocked on push/release/APK for Step 1 until GitHub credentials arrive.
+## Step 3 — Subsequent phases (Phases 2–6)
+Queue is empty and all previous TASKS_QUEUE.md items are checked [x]. The build roadmap defines:
 
-## Ready to execute once unblocked
+- **Phase 2**: Simulator and first cards (P2-01 greedy bot → P2-05 rules text renderer, 60 hand-authored cards)
+- **Phase 3**: Playable duel client (scene layout, card view, input, engine binding, animation, bot opponent)
+- **Phase 4**: Campaign (map data, map screen, encounters, progression, deck builder, Region 1 content)
+- **Phase 5**: AI pipeline
+- **Phase 6**: Ship
 
-Step 1 — TASK-SHIP-STARTERS: build, 709+ tests, map captures (verify "Deck: <class starter name>"), APK export, gh release, post to group.
-
-Step 2 — TASK-UI4-ARSENAL: unified frames, ARSENAL GROUP, teal-gold artifact frames, charge pips, suppressed state.
-
-Step 3 — TASK-ARTF-P2: COST_MOD migration, charge/ops, SET_PREY, rulings T1-T4 tests, live-bound artifact states.
-
-Step 4 — TITLE ART: gen_title_art.sh → 4 candidates, commit + post.
+I need tasks in TASKS_QUEUE.md to proceed — Claude, please add the next actionable brick. I can start Phase 2 (simulator + cards) as the next unit.
