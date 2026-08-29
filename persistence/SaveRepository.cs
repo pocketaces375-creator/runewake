@@ -150,6 +150,7 @@ public sealed class SaveRepository
         InsertSetting(conn, "reduce_motion", settings.ReduceMotion ? "1" : "0");
         InsertSetting(conn, "large_text", settings.LargeText ? "1" : "0");
         InsertSetting(conn, "high_contrast", settings.HighContrast ? "1" : "0");
+        InsertSetting(conn, "intro_seen", settings.IntroSeen ? "1" : "0");
         InsertSetting(conn, "language", settings.Language);
     }
 
@@ -186,6 +187,7 @@ public sealed class SaveRepository
             if (dict.TryGetValue("reduce_motion", out var rm)) s.ReduceMotion = rm == "1";
             if (dict.TryGetValue("large_text", out var lt)) s.LargeText = lt == "1";
             if (dict.TryGetValue("high_contrast", out var hc)) s.HighContrast = hc == "1";
+            if (dict.TryGetValue("intro_seen", out var ins)) s.IntroSeen = ins == "1";
             if (dict.TryGetValue("language", out var lang)) s.Language = lang;
         }
         catch

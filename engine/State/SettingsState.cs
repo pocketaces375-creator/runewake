@@ -27,6 +27,9 @@ public class SettingsState
     /// <summary>Language code (reserved for i18n).</summary>
     public string Language { get; set; } = "en";
 
+    /// <summary>Whether the player has seen the story intro splash.</summary>
+    public bool IntroSeen { get; set; } = false;
+
     /// <summary>
     /// Creates a shallow clone. Mutable fields (string) are reference types,
     /// but Language is set-once in practice so shallow copy is sufficient.

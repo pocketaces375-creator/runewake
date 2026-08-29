@@ -512,6 +512,37 @@ public partial class Main : Control
         CampaignContext.Settings = CampaignContext.SaveManager!.LoadSettings();
         ApplyAudioSettings(CampaignContext.Settings);
 
+        // ═══ INTRO SPLASH (first-launch only, skipped during capture mode) ═══
+        // Show the story intro page full-bleed on top of everything. Tap/key
+        // dismisses instantly, marks seen, and saves so it never shows again.
+        if (!CampaignContext.Settings.IntroSeen && !CampaignContext.AutoCaptureScreenshot)
+        {
+            var introOverlay = new TextureRect
+            {
+                Texture = GD.Load<Texture2D>("res://content/art/title/intro_splash.png"),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+                AnchorsPreset = (int)LayoutPreset.FullRect,
+                MouseFilter = MouseFilterEnum.Stop
+            };
+            AddChild(introOverlay);
+            // Raise to top so it's above all title screen UI
+            MoveChild(introOverlay, GetChildCount() - 1);
+
+            introOverlay.GuiInput += (InputEvent @event) =>
+            {
+                if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }
+                    || @event is InputEventKey { Pressed: true, KeyLabel: Key.Space or Key.Enter })
+                {
+                    RemoveChild(introOverlay);
+                    introOverlay.QueueFree();
+                    CampaignContext.Settings.IntroSeen = true;
+                    CampaignContext.SaveManager!.SaveSettings(CampaignContext.Settings);
+                    GD.Print("[Main] Intro dismissed — marking seen");
+                }
+            };
+        }
+
         // Initialize telemetry service
         var telemetry = new TelemetryService();
         AddChild(telemetry);
