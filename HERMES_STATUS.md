@@ -2,6 +2,18 @@
 
 ## Completed Tasks
 
+**PHASE-1-SHIP-STARTERS (2026-08-29):** Fresh SHIP after MEGA-1 bundle sync. Full BUILD + VERIFY + SHIP cycle:
+- Bundle sync: `/tmp/runewake_sync_2026-08-26.bundle` fetched, c445864 merged (already ancestor via heartbeat commits) ✅
+- Sanity checks: c445864/e6d4f11/80439e1 present, artifacts/mockups 4 PNGs present, tools/gen_title_art.sh present ✅
+- MSG 4 written: bus/claude_to_hermes.md appended with MEGA-1 brick (replaces dropped ccffb62), commit 349d54c ✅
+- dotnet build: 0 errors (engine + client) ✅
+- Engine tests: 709/709 green ✅
+- Captures: duel_test (1152×648), duel_test_wide (1999×932), title_deck, map_test — all gate exit 0 ✅
+- APK exported: 202MB debug, SHA-256 81c777be0e9e94bbf7d8c399bee359d31ad4a1c7069e333769ed4368c502df51 ✅
+- catbox.moe upload: https://files.catbox.moe/scqdyv.apk ✅
+- Posted captures + URL to Runewake group (msg 5159) ✅
+- Push: blocked by GitHub auth (same as previous commits) — pending auth setup
+
 **TASK-SHIP-STARTERS (2026-08-27):** Ship the starter-deck onboarding pass (STARTER-DECKS-1 by Claude). BUILD + VERIFY + SHIP:
 - Pulled: up to date on 219ff9b ✅
 - dotnet build: 0 errors ✅
@@ -189,3 +201,4 @@
 
 **TASK-SHIP-MAP2 (2026-08-25):** Ship the map polish pass (MAP-POLISH-2 by Claude) — no code changes, BUILD + SHIP only. Pulled (up to date on 3f79069), dotnet build 0 errors. Map capture at 1152x648 + 1999x932 both gate exit 0. Verification: green squares gone ✅, medallions on terrain ✅, cartouche shows Arabic calligraphy (رونويك) + THE FALLOW REACH (baked into map_plate.png art) ✅, info panel bottom-right clear of Forge/Rune Page/Settings stack ✅. APK export → 193MB debug. GitHub release: alpha-2026-08-25-map2. Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-25-map2/Runewake.apk. Posted captures + URL to Adam DM (bot not yet added to Runewake group).
 - 2026-08-27: TEMPO — 1 sessions yesterday, 0 validated.
+- 2026-08-28: TEMPO — 4 sessions yesterday, 0 validated.
