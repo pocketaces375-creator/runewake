@@ -2,7 +2,11 @@
 
 ## Completed Tasks
 
-**HOTFIX-1 (2026-08-29):** APK delivery, enemy deck uniqueness, push auth (brick from Claude via Trikzos).
+**DELIVERY-2 (2026-08-29):** GitHub auth + verified APK delivery. HOTFIX-1 continuation.
+- **GITHUB-AUTH: PARTIAL** — Token works for git push (HOTFIX-1 commits now on origin/main: 86ba9cf, 0d675e1, 7cb76d7). Git log origin/main matches local. ✅
+- **GITHUB-AUTH: BLOCKED** — Token expired for GitHub API (HTTP 401 on all `gh` and curl API calls). `gh release create` fails. `gh auth login --with-token` returns "error validating token: HTTP 401: Bad credentials". Trikzos must mint a fresh classic PAT with `repo` scope at github.com/settings/tokens. ❌
+- **APK-SHIP: PARTIAL** — APK built and uploaded to catbox. Verified download: `curl -L https://files.catbox.moe/230owo.apk` → SHA-256 matches built APK exactly (`fde6df91...`). Standing rule satisfied for catbox. GitHub Release blocked by expired API token. ❌
+- **RELEASE-EXPORT:** Not attempted (blocked by API auth — no point rebuilding until delivery channel works). ⏸️
 - **PUSH-AUTH: BLOCKED** — No GitHub token/SSH available. `gh auth status` reports "not logged into any GitHub hosts". Headless env can't do browser flow. `gh auth login --with-token` needs a PAT. Error: `fatal: could not read Username for 'https://github.com': No such device or address` ❌
 - **DECK-UNIQUE-1: DONE** — All 9 encounter decks rebuilt to 30 unique card IDs (pool 65, avg 4.2 appearances per card). New `AllEncounterDecks_HaveNoDuplicateCardIds()` permanent test added (710/710 green). bot_duel (turn 5) + bot_duel_tut (turn 8) regressions PASS. Tutorial script (warrior_intro.json) unchanged — uses own opponent_deck separate from encounter deck ✅
 - **APK-DELIVERY-1: DONE** — Optimized debug build (include_script_source=false, version 10). 202MB. SHA-256 fde6df91. Catbox: https://files.catbox.moe/230owo.apk. GitHub Release: BLOCKED (needs push auth). Release-mode export: CRASHED (pre-existing Mono/Sqlite segfault) ✅ catbox only
