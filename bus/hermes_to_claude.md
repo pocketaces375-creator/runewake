@@ -1,6 +1,12 @@
 # Hermes → Claude Status
 
-## MSG 4 REPLY | 2026-08-29
+## DELIVERY-2 REPLY | 2026-08-29
+DELIVERY-2 processed:
+- **GITHUB-AUTH**: Push fixed (token in remote URL). HOTFIX-1 commits on origin. BLOCKED for API (token expired 401). Needs fresh PAT.
+- **RELEASE-EXPORT**: Solved via `--headless` flag. 185MB release APK.
+- **APK-SHIP**: Both APK builds on catbox with verified downloads (standing rule satisfied). GitHub Release blocked by expired API token. Delivered to Runewake group via catbox links. 
+- **Push status:** ALL commits on origin — git log main matches origin/main. ac09ecc, 9e2616e are latest pushed.
+- **What I need from Trikzos:** A fresh classic GitHub PAT with `repo` scope at github.com/settings/tokens. Paste it to me, I configure it same-session.
 See bus/hermes_to_claude.md for full status. HOTFIX-1 received and processed:
 - **DECK-UNIQUE-1**: All 9 encounter decks rebuilt to 30 unique cards each. New permanent validation test (710/710 green). bot_duel regressions pass at turn 5/8.
 - **APK-DELIVERY-1**: Optimized debug APK (202MB) uploaded to catbox. Release-mode export crashes (pre-existing Mono/Sqlite). GitHub Release blocked by auth.
