@@ -15,6 +15,12 @@ public class SettingsState
     /// <summary>SFX volume (0.0–1.0).</summary>
     public float SfxVolume { get; set; } = 1.0f;
 
+    /// <summary>Ambient volume (0.0–1.0).</summary>
+    public float AmbientVolume { get; set; } = 0.5f;
+
+    /// <summary>Master mute override — silences all audio when true.</summary>
+    public bool MasterMute { get; set; } = false;
+
     /// <summary>Reduce motion: skip scale/fade animations.</summary>
     public bool ReduceMotion { get; set; } = false;
 

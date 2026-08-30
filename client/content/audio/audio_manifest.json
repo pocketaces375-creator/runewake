@@ -1,0 +1,6 @@
+{
+  "comment": "Audio manifest — maps string IDs to resource paths, bus assignments, and default volumes. Missing IDs log a warning and are safely ignored.",
+  "music": {},
+  "sfx": {},
+  "ambient": {}
+}

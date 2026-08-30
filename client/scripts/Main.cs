@@ -1274,7 +1274,10 @@ public partial class Main : Control
     {
         int masterIdx = AudioServer.GetBusIndex("Master");
         if (masterIdx >= 0)
+        {
             AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
+            AudioServer.SetBusMute(masterIdx, s.MasterMute);
+        }
 
         int musicIdx = AudioServer.GetBusIndex("Music");
         if (musicIdx >= 0)
@@ -1283,6 +1286,10 @@ public partial class Main : Control
         int sfxIdx = AudioServer.GetBusIndex("SFX");
         if (sfxIdx >= 0)
             AudioServer.SetBusVolumeDb(sfxIdx, Mathf.LinearToDb(s.SfxVolume));
+
+        int ambIdx = AudioServer.GetBusIndex("Ambient");
+        if (ambIdx >= 0)
+            AudioServer.SetBusVolumeDb(ambIdx, Mathf.LinearToDb(s.AmbientVolume));
     }
 
     private void OnOpenRunePage()

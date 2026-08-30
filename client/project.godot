@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 TutorialController="*res://scripts/TutorialController.cs"
 CrashReporter="*res://scripts/CrashReporter.cs"
 DebugCapture="*res://scripts/DebugCapture.cs"
+AudioManager="*res://scripts/audio/AudioManager.cs"
 
 [crash_reporter]
 
