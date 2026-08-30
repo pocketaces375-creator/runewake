@@ -10,6 +10,45 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-BORDER-1 — Root-Bound card border + name auto-fit (Trikzos LOCKED both). Supersedes the gold two-layer frame from TASK-UI4-ARSENAL; arsenal GROUP layout from UI4 is unchanged.
+  (1) BORDER: 9-slice asset in client/content/art/border/rootbound_*.png (4 corners, 4 edges, + rootbound_full.png reference). Spec + exact window rect in client/content/art/border/rootbound_9slice.json.
+      Band thickness is COMPUTED, never authored: band_px = round(card_width * 0.07). Corners draw at band_px square (never stretched); edges stretch along their length ONLY. Same border on board cards, hand cards, and artifact minis — only card_width differs, so the band scales with it.
+      Godot: NinePatchRect with patch margins from the json, or an equivalent manual 9-slice. Do NOT scale the whole PNG to size — that is the bug this replaces.
+  (2) NAME AUTO-FIT — this is a hard rule, not a nicety. Reference implementation: tools/namefit.py (port it, don't reinvent).
+      Safe zone = art window inset by buffer = max(6% of card_width, 10px @ 236px width) on EACH side. Text may never render outside it at any card size.
+      Base size 24px at 236px card width, scaled linearly with card width. Shrink to fit; floor = 62% of base.
+      If it still won't fit at floor: split into TWO lines balanced by character count, restart at base-2, shrink to hard minimum 12 (8 on artifact minis). Single unbreakable word: shrink to hard minimum.
+      Test names that MUST render clean: "Bloomweaver", "Gravewrit Thrall", "Herald of the Seventh Winter Dawn", "The Undying Root of the Fallow Reach".
+  (3) Cost rune stays top-RIGHT inside the frame (moved from UI4's top-left — the Root-Bound corner motif owns the top-left). Stat rail unchanged.
+  Reference images IN REPO: artifacts/mockups/duel_target_final.png is the target screen — eyeball against it. artifacts/mockups/namefit_proof.png shows the autofit at both normal and 6-word-name extremes. tools/mock_duel_target.py regenerates the target if you need to diff.
+  Acceptance: gate exit 0; capture eyeball-matches duel_target_final.png; capture includes at least one card whose name wraps to two lines AND one artifact mini, with NO text touching or crossing any border at any of the three card sizes; Telegram the capture to the group for Trikzos taste-check.
+
+- [ ] TASK-AUDIO-HOOK-1 — The game is silent. AUDIO-SYS built AudioManager (PlaySfx/PlayMusic/PlayAmbient/CrossfadeMusic), AUDIO-SRC delivered 81 files and a 13-event manifest — and there are currently ZERO call sites outside AudioManager.cs. Wire them.
+Minimum event map (manifest IDs already exist, use them as-is): card played from hand → card_play; card drawn → card_draw; duel start shuffle → card_shuffle; attack connects → hit_light (atk ≤3) / hit_heavy (atk ≥4); creature takes damage → damage; creature dies → death; spell resolves → spell; artifact charge fills (ON_CHARGE_FULL) → metal_clink; button/menu press → click; map node unlock → unlock; duel screen enter → ambient wind_reach + music ambient_reach.
+  Rules: never more than one SFX per discrete game event (no stacking on multi-target effects — one sound per resolution, not per target); all playback goes through AudioManager (no direct AudioStreamPlayer nodes in gameplay scripts); missing manifest ID must stay a warning, never a crash; respect the existing Settings volume/mute state.
+  Acceptance: build exit 0, engine tests green, headless --capture=bot_duel completes with no audio errors in the log, and a short DONE entry listing which event → which manifest ID you wired. Trikzos hears sound on next APK.
+
+- [ ] TASK-SAVE-1 — Save hardening. These are bugs Trikzos actually hit: blank screen on launch, and deck-select being skipped.
+  (1) Versioned save format with an explicit schema version field + forward-compatible loader.
+  (2) Auto-repair on load: a corrupt/partial profile falls back to a valid default rather than a blank screen; log what was repaired.
+  (3) Init-race guard: profile load MUST complete before the first scene reads it — that race is the suspected root cause of skipped deck-select. Find the actual race, don't just add a delay.
+  Acceptance: new unit tests covering (a) load of a truncated/corrupt save, (b) load of an older-version save, (c) the init ordering; all legacy tests green; a headless launch from a deliberately corrupted profile reaches the title screen instead of blank.
+
+- [ ] TASK-SOAK-1 — Stability soak + warning cleanup.
+  (1) Run 5 CONSECUTIVE bot-vs-bot duels headless (--capture=bot_duel) with different seeds; all must complete with no crash, no exception in the log, no hang. Log the seeds used.
+  (2) Compiler warnings: baseline is ~129. Get under 30. Fix real ones (unused/nullability/async), do NOT blanket-suppress with pragmas — if a category is genuinely noise-only, say so in the DONE entry and suppress that category explicitly at project level with a one-line justification.
+  Acceptance: 5/5 duels clean with seeds listed, warning count before/after in the DONE entry, all tests green.
+
+- [ ] TASK-TUT-BUILD-1 — Build the walkthrough tutorial against the FINAL duel layout. BLOCKED until TASK-BORDER-1 is [x] — highlight rects must target the real post-border layout or they will all be wrong. If BORDER-1 is not done, skip this and take the next task.
+  Script + schema already exist (TASK-TU1/TU2). Remaining: highlight/spotlight rects resolved against the live layout rather than hardcoded, the 9 approved beats firing in order, and the standing constraints from NOTES_FOR_HERMES §P2 held — max ONE popup per player action, act → consequence → one line naming the rule, never explain a rule before the player experiences it.
+  Acceptance: completable headless with scripted inputs, a capture at each of the 9 beats with the highlight visibly on the correct element, gate green.
+
+- [ ] TASK-SIMGATE-1 — Balance sim gate: the pass/fail gate every future card batch must clear.
+  (1) Full 7×7 matchup matrix (49 pairings, fixed seeds, both play orders) producing a winrate table.
+  (2) Bot telemetry per pairing: avg turns to finish, % non-empty combat turns where chosen attack set ≠ all-legal-attackers (the TASK-S1 metric, target ≥25%), cards-in-hand at end.
+  (3) A GATE script that takes the matrix and PASSES/FAILS on explicit thresholds — seed it with: no class winrate outside 35–65% vs the field, no single pairing outside 25–75%, decision metric ≥25%. Thresholds live in one config block at the top, easy for Claude to retune.
+Write results to sim/balance_matrix.md. NO balance changes to cards — numbers are Claude's to move. Report outliers, don't fix them.
+
 - [x] TASK-UI4-ARSENAL — Implement the approved board layout + unified card frame system (Trikzos picked OPTION 2, see artifacts/mockups/place2.png + framespec.png + refined.png):
   (1) Unified card frame everywhere (board, hand, artifacts): gold two-layer border, cost rune hex top-left INSIDE the frame, name in a fixed-height band, attack/vigor in a stat rail docked inside the bottom edge — nothing overhangs the card silhouette, nothing clips at screen edges (hand fan fully on-screen).
   (2) ARSENAL GROUP per player: the two Artifact frames + deck pile + barrow pile form one bordered group — player's lower-left with portrait medallion above it, opponent's mirrored upper-right. Supersedes the current TASK-H side-group placement details; keep group rects in duel_test.meta.json.

@@ -1,0 +1,24 @@
+{
+  "asset": "rootbound (border option 5, locked 2026-08-30)",
+  "source_px": [
+    832,
+    1216
+  ],
+  "window_px": [
+    148,
+    172,
+    675,
+    1019
+  ],
+  "band": {
+    "fraction_of_card_width": 0.07,
+    "rule": "band_px = round(card_width * 0.07); corners drawn at band_px square, edges stretched along their length only"
+  },
+  "name_autofit": {
+    "safe_zone": "art window inset by buffer = max(6% of card width, 10px at 236w scale) on each side",
+    "base_size": "24px at 236px card width, scale linearly with card width",
+    "floor": "62% of base size",
+    "overflow": "if single line will not fit at floor, split into two lines balanced by character count, start at base-2, shrink to hard minimum 12 (8 on minis)",
+    "never": "text must never render outside the safe zone at any size"
+  }
+}
