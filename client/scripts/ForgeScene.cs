@@ -97,7 +97,11 @@ public partial class ForgeScene : Control
             AnchorLeft = 0.02f, AnchorRight = 0.12f,
             AnchorTop = 0.02f, AnchorBottom = 0.07f
         };
-        backBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        backBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        };
         AddChild(backBtn);
 
         // Scrollable rune list
@@ -173,6 +177,7 @@ public partial class ForgeScene : Control
                     var capturedStrata = strata;
                     btn.Pressed += () =>
                     {
+                        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                         // Forge the rune: spend 4 fragments, add to owned
                         prog.AddFragments(capturedStrata, -4);
                         prog.AddOwnedRune(capturedRuneId);

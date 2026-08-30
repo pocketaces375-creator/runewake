@@ -20,7 +20,9 @@
     "stone_rumble": { "path": "res://content/audio/sfx/stones_03.ogg",  "bus": "SFX", "volume": 0.0 },
     "spell":        { "path": "res://content/audio/sfx/spell_01.ogg",   "bus": "SFX", "volume": 0.0 },
     "unlock":       { "path": "res://content/audio/sfx/lock_01.ogg",    "bus": "SFX", "volume": 0.0 },
-    "metal_clink":  { "path": "res://content/audio/sfx/metal_01.ogg",   "bus": "SFX", "volume": 0.0 }
+    "metal_clink":  { "path": "res://content/audio/sfx/metal_01.ogg",   "bus": "SFX", "volume": 0.0 },
+    "victory":      { "path": "res://content/audio/sfx/victory.ogg",    "bus": "SFX", "volume": 0.0 },
+    "defeat":       { "path": "res://content/audio/sfx/defeat.ogg",     "bus": "SFX", "volume": 0.0 }
   },
   "ambient": {
     "wind_reach": {

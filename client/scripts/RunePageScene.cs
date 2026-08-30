@@ -171,7 +171,11 @@ public partial class RunePageScene : Control
             AnchorLeft = 0.02f, AnchorRight = 0.12f,
             AnchorTop = 0.02f, AnchorBottom = 0.07f
         };
-        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        _backButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        };
         AddChild(_backButton);
 
         // ── Save button ──
@@ -183,6 +187,7 @@ public partial class RunePageScene : Control
         };
         saveButton.Pressed += () =>
         {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             CampaignContext.SaveCurrentRunePage();
             CampaignContext.SaveManager.Save();
             GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
@@ -263,6 +268,7 @@ public partial class RunePageScene : Control
                 // Tapping an equipped rune unequips it
                 btn.Pressed += () =>
                 {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                     _page.Unequip(slotType, idx);
                     RefreshUI();
                 };
@@ -273,7 +279,11 @@ public partial class RunePageScene : Control
                 btn.AddThemeFontSizeOverride("font_size", 14);
                 btn.Modulate = new Color(0.4f, 0.4f, 0.6f);
                 // Tapping an empty slot opens the rune picker
-                btn.Pressed += () => ShowRunePicker(slotType);
+                btn.Pressed += () =>
+                {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+                    ShowRunePicker(slotType);
+                };
             }
 
             grid.AddChild(btn);
@@ -332,7 +342,11 @@ public partial class RunePageScene : Control
             AnchorLeft = 0.05f, AnchorRight = 0.3f,
             AnchorTop = 0.02f, AnchorBottom = 0.08f
         };
-        closeBtn.Pressed += () => _runePicker.Visible = false;
+        closeBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            _runePicker.Visible = false;
+        };
         container.AddChild(closeBtn);
 
         // Scrollable rune list
@@ -398,6 +412,7 @@ public partial class RunePageScene : Control
             var captured = rune;
             btn.Pressed += () =>
             {
+                GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                 _page.Equip(captured);
                 _runePicker.Visible = false;
                 RefreshUI();

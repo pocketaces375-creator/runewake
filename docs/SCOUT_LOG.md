@@ -174,3 +174,202 @@ Scout items from the 2026-08-25 daily run, reviewed against current priorities
   not applied from scout output. Flagged for his attention only.
 
 No stack changes made from this scout run.
+## Daily Scout — 2026-08-27
+
+### Research Sweep
+
+**Godot:** • GamePhanes/GamePhanes — 340★ — An open-source game coding agent environment and benchmark for Godot. • zimo-xiao-zheng/godot-ui-integration — 26★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • ziv/godotiles — 26★ — 3D Geospatial engine for Godot • Wadan3/shadow-survivors — 14★ — 2D top-down survival shooter built with Godot 4.7 • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • rome-os/rome — 366★ — Rome is the agentic OS. • UditAkhourii/cdaf — 82★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • BraxisAI/braxis-blueprint — 80★ — The $0 AI Empire Playbook — 140+ agents, 20+ free LLM lanes, 1,800+ songs, a living 3D world, all on free tiers. Real sc • DavidCarliez/cover — 42★ — Keep private data, internal infrastructure and secrets out of cloud coding agents without breaking your workflow. • mrpulor-gh/nuphus — 37★ — Nuphus — 本地优先的 AI Agent：真实桌面执行力 + 手机第二块屏幕。Local-first AI agent with real desktop execution and dual-device real-time syn 
+**Image Gen:** • wide-trace/open-higgsfield — 650★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • Cripacx/mediagen — 56★ — AI image and video generation skill for Claude Code and other coding agents — Gemini, OpenAI and Kie AI behind one CLI a • T8mars/Comfyui-SenseNova-U1.5-Wrapper-T8 — 14★ — Native ComfyUI nodes for SenseNova U1.5 image generation and multi-reference image editing. • zidniryi/open-source-ai-models — 13★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • confusedrhin/Leonardo-Desktop---Leonardo-AI-Image-Studio-2026 — 10★ — Leonardo-Desktop - AI image studio with Phoenix model, real-time canvas, and unlimited generations. 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-27 (analysis)
+
+### Notable Finds
+
+**open-higgsfield** (650★) — A studio for image AND video generation. Wraps multiple models behind one prompt bar with per-model settings. For Runewake: potential supplement to FLUX pipeline for animated card reveals, trailer snippets, or promo loops. Video-gen could unlock promotional material that static card art can't cover. Keep on radar; not ready for integration (650★, early-stage).
+
+**mediagen** (56★) — AI image/video gen skill for Claude Code / coding agents. Conceptually interesting as an agentic image gen lane (fallback or complement to FLUX). Low stars; watch for growth.
+
+### Self-Audit Status
+- All systems nominal — Foreman, capture gates, FLUX Pro, DeepSeek V4 Flash, APK pipeline, Telegram relay all at baseline.
+- APK pipeline upgraded today (preflight checks + round-trip verify).
+- DeepSeek V4 Flash stability being monitored; no swap actioned.
+
+### Proposals
+**Brick: `scout/investigate-open-higgsfield`** — If approved, this brick would:
+1. Spin up open-higgsfield locally or via API (check model support — FLUX? SDXL? Video models?)
+2. Generate 3 test image outputs + 1 short video clip
+3. Compare quality/speed/cost against current FLUX pipeline
+4. Report findings
+
+No installs or modifications applied. Scout reports findings only — changes require explicit brick approval.
+
+## Daily Scout — 2026-08-28
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 41★ — Godot shaders for accurate PSX rendering • zimo-xiao-zheng/godot-ui-integration — 32★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • ziv/godotiles — 27★ — 3D Geospatial engine for Godot • Wadan3/shadow-survivors — 16★ — 2D top-down survival shooter built with Godot 4.7 • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • rome-os/rome — 380★ — Rome is the agentic OS. • S1N6H/pentest-harness — 99★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • UditAkhourii/cdaf — 96★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • BraxisAI/braxis-blueprint — 83★ — The $0 AI Empire Playbook — 140+ agents, 20+ free LLM lanes, 1,800+ songs, a living 3D world, all on free tiers. Real sc • baidu-baige/LoongSage — 31★ — A production-grade, high-efficiency Agentic RL framework for LLMs with validated recipes. 
+**Image Gen:** • wide-trace/open-higgsfield — 906★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • Cripacx/mediagen — 56★ — AI image and video generation skill for Claude Code and other coding agents — Gemini, OpenAI and Kie AI behind one CLI a • andy7076/image_prompt — 16★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • confusedrhin/Leonardo-Desktop---Leonardo-AI-Image-Studio-2026 — 10★ — Leonardo-Desktop - AI image studio with Phoenix model, real-time canvas, and unlimited generations. 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-28
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 41★ — Godot shaders for accurate PSX rendering • zimo-xiao-zheng/godot-ui-integration — 32★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • ziv/godotiles — 27★ — 3D Geospatial engine for Godot • Wadan3/shadow-survivors — 16★ — 2D top-down survival shooter built with Godot 4.7 • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • rome-os/rome — 380★ — Rome is the agentic OS. • S1N6H/pentest-harness — 99★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • UditAkhourii/cdaf — 96★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • BraxisAI/braxis-blueprint — 83★ — The $0 AI Empire Playbook — 140+ agents, 20+ free LLM lanes, 1,800+ songs, a living 3D world, all on free tiers. Real sc • baidu-baige/LoongSage — 31★ — A production-grade, high-efficiency Agentic RL framework for LLMs with validated recipes. 
+**Image Gen:** • wide-trace/open-higgsfield — 906★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • Cripacx/mediagen — 56★ — AI image and video generation skill for Claude Code and other coding agents — Gemini, OpenAI and Kie AI behind one CLI a • andy7076/image_prompt — 16★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • confusedrhin/Leonardo-Desktop---Leonardo-AI-Image-Studio-2026 — 10★ — Leonardo-Desktop - AI image studio with Phoenix model, real-time canvas, and unlimited generations. 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+
+## Digest — 2026-08-28
+
+### Research Sweep
+- **open-higgsfield** (906★) — unified open-source image/video gen studio, 40 models, self-hostable. Files under "worth watching" for future video-gen integration. Does not beat FLUX.2 Pro for painterly quality.
+- **LoongSage** (31★) — agentic RL framework from Baidu. Niche; not immediately applicable.
+- **Rome OS** (380★) — agentic OS. Conceptually interesting but no practical overlap.
+- **BraxisAI blueprint** (83★) — free-tier empire playbook. Hype-heavy; no action.
+- **mediagen** (56★) — Claude Code skill for image/video gen via Gemini/OpenAI/Kie. Edge option.
+
+### Self-Audit
+- All systems: ✅ still best-in-slot (Foreman, Capture gates, FLUX Pro, APK pipeline, Telegram relay)
+- Model watch: deepseek/deepseek-v4-flash — monitoring mid-task deaths. Fallback: claude-sonnet-4-20250514 if persistent.
+
+### Recommendations
+- No brick proposal today. Stack is solid. open-higgsfield tracked for future eval when video-gen becomes a priority.
+## Daily Scout — 2026-08-29
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 54★ — Godot shaders for accurate PSX rendering • zimo-xiao-zheng/godot-ui-integration — 39★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • Wadan3/shadow-survivors — 16★ — 2D top-down survival shooter built with Godot 4.7 • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • rome-os/rome — 384★ — Rome is the agentic OS. • S1N6H/pentest-harness — 245★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • UditAkhourii/cdaf — 99★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • usedotai/dot-reflex — 97★ — Open-source agent execution-recovery controller for coding and tool-using AI agents. • BraxisAI/braxis-blueprint — 84★ — The $0 AI Empire Playbook — 140+ agents, 20+ free LLM lanes, 1,800+ songs, a living 3D world, all on free tiers. Real sc 
+**Image Gen:** • wide-trace/open-higgsfield — 1010★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 29★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • confusedrhin/Leonardo-Desktop---Leonardo-AI-Image-Studio-2026 — 10★ — Leonardo-Desktop - AI image studio with Phoenix model, real-time canvas, and unlimited generations. 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-29
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 54★ — Godot shaders for accurate PSX rendering • zimo-xiao-zheng/godot-ui-integration — 39★ — A Codex skill for building Godot UI from approved designs with editor-visible scenes and runtime visual-parity checks. • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • Wadan3/shadow-survivors — 16★ — 2D top-down survival shooter built with Godot 4.7 • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • rome-os/rome — 384★ — Rome is the agentic OS. • S1N6H/pentest-harness — 245★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • UditAkhourii/cdaf — 99★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • usedotai/dot-reflex — 97★ — Open-source agent execution-recovery controller for coding and tool-using AI agents. • BraxisAI/braxis-blueprint — 84★ — The $0 AI Empire Playbook — 140+ agents, 20+ free LLM lanes, 1,800+ songs, a living 3D world, all on free tiers. Real sc 
+**Image Gen:** • wide-trace/open-higgsfield — 1010★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 29★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • confusedrhin/Leonardo-Desktop---Leonardo-AI-Image-Studio-2026 — 10★ — Leonardo-Desktop - AI image studio with Phoenix model, real-time canvas, and unlimited generations. 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+
+### Hermes Analysis · 2026-08-29
+**Actionable Findings:**
+- **rome-os/rome** (384★) — "Agentic OS." Too early to adopt, but worth watching for architectural patterns that could inform our agent orchestration layer.
+- **usedotai/dot-reflex** (97★) — Agent execution-recovery controller. Directly relevant to the mid-task death issue flagged in self-audit. **Proposed as evaluation brick** — 1-session spike to assess execution recovery and resumption fit with Foreman.
+- **open-higgsfield** (1010★) — Multi-model gen studio. Monitor for FLUX.2 Pro or v3.x painterly integration; could simplify our art pipeline tooling.
+- **Godot sector:** Nothing actionable. PSX shaders, geospatial engine, and a DeepSeek harness — none align with Runewake's TCG UI needs at this time.
+
+**Decision:** No changes applied. All stacks nominal. dot-reflex queued for future brick evaluation.
+
+**HARD RULE:** Scout does not install/update/modify — only proposes.
+## Daily Scout — 2026-08-30
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 56★ — Godot shaders for accurate PSX rendering • steamhato1-beep/soaring-kiwi-pigeonry — 55★ — Elite OpenPigeon Trainer Suite 2026: Master 8 Games With 36 Pro Toggles • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 • kiwijuice56/lucid-blocks-gdblocks — 4★ — Lucid Blocks' voxel gdextension 
+**LLM Agents:** • S1N6H/pentest-harness — 295★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • JordyZomer/lemmalog — 168★ — A Datalog engine for LLM agent memory: stratified rules, provenance-tracked facts, incremental derivation, and an MCP se • UditAkhourii/cdaf — 99★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • useagenthq/useagent — 85★ — Hand off the work. Get back the result. The open-source AI coworker for your team: agents with their own cloud computer, • usedotai/dot-reflex — 80★ — Open-source agent execution-recovery controller for coding and tool-using AI agents. 
+**Image Gen:** • wide-trace/open-higgsfield — 1036★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 31★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • fajrisilmi12-cyber/hermes-socmed-function — 13★ — Custom Hermes Agent skills: AI image generation (9Router) + multi-platform social media posting (Zernio + Cloudinary) +  
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-30
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 56★ — Godot shaders for accurate PSX rendering • steamhato1-beep/soaring-kiwi-pigeonry — 55★ — Elite OpenPigeon Trainer Suite 2026: Master 8 Games With 36 Pro Toggles • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 • kiwijuice56/lucid-blocks-gdblocks — 4★ — Lucid Blocks' voxel gdextension 
+**LLM Agents:** • S1N6H/pentest-harness — 295★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • JordyZomer/lemmalog — 168★ — A Datalog engine for LLM agent memory: stratified rules, provenance-tracked facts, incremental derivation, and an MCP se • UditAkhourii/cdaf — 99★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S • useagenthq/useagent — 85★ — Hand off the work. Get back the result. The open-source AI coworker for your team: agents with their own cloud computer, • usedotai/dot-reflex — 80★ — Open-source agent execution-recovery controller for coding and tool-using AI agents. 
+**Image Gen:** • wide-trace/open-higgsfield — 1036★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 31★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi • fajrisilmi12-cyber/hermes-socmed-function — 13★ — Custom Hermes Agent skills: AI image generation (9Router) + multi-platform social media posting (Zernio + Cloudinary) +  
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+
+### Analysis & Brick Proposal — 2026-08-30
+**Actionable find: `usedotai/dot-reflex`** (80★) — Open-source agent execution-recovery controller. Directly addresses the "mid-task death" problem flagged in the OpenRouter self-audit (deepseek/deepseek-v4-flash). Dot-reflex adds execution checkpointing and recovery for coding/tool-using AI agents — exactly what we’d need if mid-task failures escalate.
+
+**Proposed BRICK: AGENT-RECOVERY-1 — dot-reflex execution recovery harness**
+- Integrate `usedotai/dot-reflex` as an optional recovery controller for critical Hermes bricks
+- Wraps long-running agent tasks with checkpoint/resume — if the model dies mid-stream, the task resumes from last checkpoint instead of restarting
+- Only activate for bricks where failure cost is high (APK builds, multi-step art pipelines). Default: off.
+- Estimate: 1d integration, 1d hardening. Requires Python 3.10+ (available).
+
+**Other sweeps:**
+- `JordyZomer/lemmalog` (168★) — Datalog engine for LLM memory. Interesting for long-term Hermes knowledge, but not a priority over execution recovery.
+- `open-higgsfield` (1036★) — Image/video gen studio. Not replacing our settled FLUX Pro pipeline.
+
+**Self-audit: All systems green.** APK pipeline upgraded yesterday with preflight checks. Telegram relay working (occasional httpx.ReadError reconnects — normal). Foreman, capture gates, FLUX pipeline all status quo.
+
+**Recommendation:** Approve AGENT-RECOVERY-1 if mid-task deaths on deepseek-v4-flash exceed 2/week. Currently monitoring.

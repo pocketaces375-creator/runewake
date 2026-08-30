@@ -155,7 +155,11 @@ public partial class DigScene : Control
             AnchorLeft = 0.1f, AnchorRight = 0.45f,
             AnchorTop = 0.88f, AnchorBottom = 0.96f
         };
-        _backButton.Pressed += OnBackPressed;
+        _backButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            OnBackPressed();
+        };
         AddChild(_backButton);
 
         // Collect button (hidden until complete)
@@ -166,7 +170,11 @@ public partial class DigScene : Control
             AnchorTop = 0.88f, AnchorBottom = 0.96f,
             Visible = false
         };
-        _collectButton.Pressed += OnCollectPressed;
+        _collectButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            OnCollectPressed();
+        };
         AddChild(_collectButton);
     }
 

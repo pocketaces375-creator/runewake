@@ -266,7 +266,10 @@ public partial class MapScene : Control
             AnchorTop = 0.002f, AnchorBottom = 0.053f
         };
         StyleButton(_backButton, 11, goldText: true);
-        _backButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        _backButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        };
         AddChild(_backButton);
 
         // Shard display (top-right)
@@ -334,7 +337,11 @@ public partial class MapScene : Control
         tapBtn.AddThemeStyleboxOverride("normal", emptyStyle);
         tapBtn.AddThemeStyleboxOverride("hover", emptyStyle);
         tapBtn.AddThemeStyleboxOverride("pressed", emptyStyle);
-        tapBtn.Pressed += ShowDeckPopup;
+        tapBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            ShowDeckPopup();
+        };
         _deckChip.AddChild(tapBtn);
 
         AddChild(_deckChip);
@@ -357,7 +364,10 @@ public partial class MapScene : Control
             AnchorTop = 0.79f, AnchorBottom = 0.86f
         };
         StyleButton(_forgeBtn, 11, goldText: false);
-        _forgeBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+        _forgeBtn.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+        };
         AddChild(_forgeBtn);
 
         _runePageBtn = new Button
@@ -367,7 +377,10 @@ public partial class MapScene : Control
             AnchorTop = 0.86f, AnchorBottom = 0.93f
         };
         StyleButton(_runePageBtn, 11, goldText: false);
-        _runePageBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
+        _runePageBtn.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
+        };
         AddChild(_runePageBtn);
 
         _settingsBtn = new Button
@@ -377,7 +390,10 @@ public partial class MapScene : Control
             AnchorTop = 0.93f, AnchorBottom = 1f
         };
         StyleButton(_settingsBtn, 11, goldText: false);
-        _settingsBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        _settingsBtn.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        };
         AddChild(_settingsBtn);
     }
 
@@ -538,12 +554,20 @@ public partial class MapScene : Control
 
         _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(88, 44) };
         StyleButton(_infoCloseButton, 12, goldText: false);
-        _infoCloseButton.Pressed += HideInfoPanel;
+        _infoCloseButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            HideInfoPanel();
+        };
         buttonRow.AddChild(_infoCloseButton);
 
         _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(126, 44) };
         StyleButton(_infoGoButton, 14);
-        _infoGoButton.Pressed += OnGoButtonPressed;
+        _infoGoButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            OnGoButtonPressed();
+        };
         buttonRow.AddChild(_infoGoButton);
 
         _infoPanel.Hide();
@@ -676,6 +700,10 @@ public partial class MapScene : Control
         bool isDig = mapNode.Type == MapNodeType.Dig;
         bool isDuel = mapNode.Type is MapNodeType.Duel or MapNodeType.Elite or MapNodeType.Warden or MapNodeType.WardenBoss;
         bool hasEncounter = mapNode.Encounter != null && CampaignContext.EncounterIndex.ContainsKey(mapNode.Encounter);
+
+        // TASK-AUDIO-HOOK-1: Unlock sound when selecting an unlocked, non-cleared node
+        if (!isLocked && !isCleared)
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("unlock");
 
         _infoGoButton.Disabled = isCleared || isLocked || (!isDig && !hasEncounter);
 
@@ -978,6 +1006,7 @@ public partial class MapScene : Control
                 string capturedDeckId = deck.DeckId;
                 deckBtn.Pressed += () =>
                 {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                     if (CampaignContext.ActiveProfile != null)
                     {
                         CampaignContext.ActiveProfile.ActiveDeckId = capturedDeckId;
@@ -995,7 +1024,11 @@ public partial class MapScene : Control
         // Close button
         var closeBtn = new Button { Text = "Close" };
         closeBtn.AddThemeFontSizeOverride("font_size", 10);
-        closeBtn.Pressed += () => popup.QueueFree();
+        closeBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            popup.QueueFree();
+        };
         vbox.AddChild(closeBtn);
 
         popup.AddChild(vbox);

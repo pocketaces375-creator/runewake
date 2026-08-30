@@ -99,6 +99,9 @@ public partial class DuelScene : Control
     // TASK-ARTF-P2: Previous trigger state per artifact slot for trigger-flash detection
     private readonly bool[] _prevPlayerTriggered = new bool[2];
     private readonly bool[] _prevEnemyTriggered = new bool[2];
+    // TASK-AUDIO-HOOK-1: Track hand size for card_draw detection
+    private int _prevHandSize;
+    private int _prevPlayerChargesFull; // tracks which slots were at max charges last render
 
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
@@ -387,6 +390,12 @@ public partial class DuelScene : Control
         {
             Callable.From(() => _tutorialRunner.Start()).CallDeferred();
         }
+
+        // ═══ TASK-AUDIO-HOOK-1: Start ambient + music on duel screen entry ═══
+        var audio = GetNode<AudioManager>("/root/AudioManager");
+        audio.PlayAmbient("wind_reach");
+        audio.PlayMusic("ambient_reach");
+        _prevHandSize = _gsm?.GetHand(0).Count ?? 0;
 
         // ═══ CAPTURE HOOK: auto-dismiss mulligan, wait, capture ═══
         if (CampaignContext.AutoCaptureScreenshot)
@@ -1681,6 +1690,37 @@ public partial class DuelScene : Control
         RenderBoard();
         RenderHand();
 
+        // ═══ TASK-AUDIO-HOOK-1: Detect card draw ═══
+        if (state != null && state.Players.Length > 0)
+        {
+            int currentHandSize = state.Players[0].Hand.Count;
+            if (currentHandSize > _prevHandSize)
+            {
+                var audio = GetNode<AudioManager>("/root/AudioManager");
+                audio.PlaySfx("card_draw");
+            }
+            _prevHandSize = currentHandSize;
+        }
+
+        // ═══ TASK-AUDIO-HOOK-1: Detect artifact charge full ═══
+        if (state != null)
+        {
+            int fullMask = 0;
+            for (int side = 0; side <= 1; side++)
+            for (int ai = 0; ai < (state.Players[side].ArtifactSlots?.Length ?? 0); ai++)
+            {
+                var slot = state.Players[side].ArtifactSlots[ai];
+                if (slot.Occupant != null && slot.MaxCharges > 0 && slot.Charges >= slot.MaxCharges)
+                    fullMask |= (1 << (side * 2 + ai));
+            }
+            if (fullMask != 0 && fullMask != _prevPlayerChargesFull)
+            {
+                var audio = GetNode<AudioManager>("/root/AudioManager");
+                audio.PlaySfx("metal_clink");
+            }
+            _prevPlayerChargesFull = fullMask;
+        }
+
         // Compute diffs and trigger animations using the previous snapshot
         if (!_firstRender)
         {
@@ -1771,6 +1811,9 @@ public partial class DuelScene : Control
     private void AnimateBoardDiffs(BoardSnapshot[] oldEnemy, BoardSnapshot[] oldPlayer,
         BoardSnapshot[] newEnemy, BoardSnapshot[] newPlayer)
     {
+        // TASK-AUDIO-HOOK-1: one sound per resolution, not per target
+        bool audioPlayed = false;
+
         for (int i = 0; i < 5; i++)
         {
             var slot = _enemySlots[i];
@@ -1780,11 +1823,26 @@ public partial class DuelScene : Control
             if (prev.IsEmpty && !cur.IsEmpty)
                 slot.PlaySummonEffect();
             else if (!prev.IsEmpty && cur.IsEmpty)
+            {
                 slot.PlayDeathEffect();
+                if (!audioPlayed)
+                {
+                    audioPlayed = true;
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
+                }
+            }
             else if (!prev.IsEmpty && !cur.IsEmpty)
             {
                 int dmg = prev.Vigor - cur.Vigor;
-                if (dmg > 0 && !CampaignContext.ReduceMotion) slot.ShowDamageNumber(dmg);
+                if (dmg > 0 && !CampaignContext.ReduceMotion)
+                {
+                    slot.ShowDamageNumber(dmg);
+                    if (!audioPlayed)
+                    {
+                        audioPlayed = true;
+                        GetNode<AudioManager>("/root/AudioManager").PlaySfx("damage");
+                    }
+                }
                 else if (dmg < 0 && !CampaignContext.ReduceMotion) slot.ShowHealNumber(-dmg);
             }
         }
@@ -1798,11 +1856,26 @@ public partial class DuelScene : Control
             if (prev.IsEmpty && !cur.IsEmpty)
                 slot.PlaySummonEffect();
             else if (!prev.IsEmpty && cur.IsEmpty)
+            {
                 slot.PlayDeathEffect();
+                if (!audioPlayed)
+                {
+                    audioPlayed = true;
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
+                }
+            }
             else if (!prev.IsEmpty && !cur.IsEmpty)
             {
                 int dmg = prev.Vigor - cur.Vigor;
-                if (dmg > 0 && !CampaignContext.ReduceMotion) slot.ShowDamageNumber(dmg);
+                if (dmg > 0 && !CampaignContext.ReduceMotion)
+                {
+                    slot.ShowDamageNumber(dmg);
+                    if (!audioPlayed)
+                    {
+                        audioPlayed = true;
+                        GetNode<AudioManager>("/root/AudioManager").PlaySfx("damage");
+                    }
+                }
                 else if (dmg < 0 && !CampaignContext.ReduceMotion) slot.ShowHealNumber(-dmg);
             }
         }
@@ -1817,12 +1890,24 @@ public partial class DuelScene : Control
         {
             int diff = _prevEnemyVigor - enemyHud.Vigor;
             ShowFaceDamage(true, diff);
+            // TASK-AUDIO-HOOK-1: hit_light (dmg ≤3) / hit_heavy (dmg ≥4)
+            if (diff > 0)
+            {
+                var audio = GetNode<AudioManager>("/root/AudioManager");
+                audio.PlaySfx(diff <= 3 ? "hit_light" : "hit_heavy");
+            }
         }
 
         if (_prevPlayerVigor >= 0 && playerHud.Vigor != _prevPlayerVigor)
         {
             int diff = _prevPlayerVigor - playerHud.Vigor;
             ShowFaceDamage(false, diff);
+            // TASK-AUDIO-HOOK-1: hit_light (dmg ≤3) / hit_heavy (dmg ≥4)
+            if (diff > 0)
+            {
+                var audio = GetNode<AudioManager>("/root/AudioManager");
+                audio.PlaySfx(diff <= 3 ? "hit_light" : "hit_heavy");
+            }
         }
 
         _prevEnemyVigor = enemyHud.Vigor;
@@ -2284,6 +2369,16 @@ public partial class DuelScene : Control
             ShowToast(result.ErrorMessage ?? "Cannot play that card.",
                 Gold);
         }
+        else
+        {
+            // TASK-AUDIO-HOOK-1: Play sfx for card played / spell resolved
+            var audio = GetNode<AudioManager>("/root/AudioManager");
+            var def = Runewake.Engine.Cards.CardRegistry.Get(cardId);
+            if (def != null && def.Type == Runewake.Engine.Cards.CardType.RITUAL)
+                audio.PlaySfx("spell");
+            else
+                audio.PlaySfx("card_play");
+        }
     }
 
     private void OnCreatureSelectedForAttack(int attackerLane)
@@ -2427,6 +2522,9 @@ public partial class DuelScene : Control
         if (_bot.IsThinking) return;
         if (_gsm.CurrentPlayerIndex != 0) return;
 
+        // TASK-AUDIO-HOOK-1: Button click
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+
         var result = _gsm.TryEndTurn();
         if (!result.Success)
         {
@@ -2491,6 +2589,9 @@ public partial class DuelScene : Control
         _mulliganSelection.Clear();
         _mulliganPanel = BuildMulliganOverlay();
         AddChild(_mulliganPanel);
+
+        // TASK-AUDIO-HOOK-1: Shuffle sound on mulligan entry
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("card_shuffle");
 
         // Bot auto-mulligan: redraw any card costing 4 or more
         var botHand = _gsm.GetHand(1);
@@ -2664,6 +2765,10 @@ public partial class DuelScene : Control
         _turnLabel.Modulate = winnerIndex == 0
             ? Gold
             : Ember;
+
+        // TASK-AUDIO-HOOK-1: Victory/defeat sound
+        var audio = GetNode<AudioManager>("/root/AudioManager");
+        audio.PlaySfx(winnerIndex == 0 ? "victory" : "defeat");
 
         if (_isCampaignEncounter && !_isGameOverHandled)
         {
@@ -2889,7 +2994,11 @@ public partial class DuelScene : Control
         var playAgain = new Button();
         playAgain.Text = "Play Again";
         playAgain.CustomMinimumSize = new Vector2(130, 40);
-        playAgain.Pressed += () => GetTree().ReloadCurrentScene();
+        playAgain.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ReloadCurrentScene();
+        };
         btnHBox.AddChild(playAgain);
 
         // Spacer between buttons
@@ -2898,7 +3007,11 @@ public partial class DuelScene : Control
         var backToTitle = new Button();
         backToTitle.Text = "Back to Title";
         backToTitle.CustomMinimumSize = new Vector2(130, 40);
-        backToTitle.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+        backToTitle.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+        };
         btnHBox.AddChild(backToTitle);
     }
 
@@ -3086,18 +3199,20 @@ public partial class DuelScene : Control
         // "Fight Again" / "Try Again" — restart this encounter
         var fightAgainBtn = MakeStoneButton(playerWon ? "Fight Again" : "Try Again");
         fightAgainBtn.Pressed += () =>
-        {
-            // Reload the duel scene to get a clean state
-            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-        };
-        btnHBox.AddChild(fightAgainBtn);
+                {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+                    // Reload the duel scene to get a clean state
+                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+                };
+                btnHBox.AddChild(fightAgainBtn);
 
-        // "Continue" / "Return to Map"
-        var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
-        continueBtn.Pressed += () =>
-        {
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-        };
+                // "Continue" / "Return to Map"
+                var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
+                continueBtn.Pressed += () =>
+                {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+                    GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                };"
         btnHBox.AddChild(continueBtn);
 
         vbox.AddChild(btnHBox);

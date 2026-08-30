@@ -187,6 +187,7 @@ public partial class ChooseYourPathScene : Control
         _leftArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         _leftArrow.Pressed += () =>
         {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             _selectedIdx = (_selectedIdx - 1 + _classes.Count) % _classes.Count;
             UpdateCarousel();
             UpdateUI();
@@ -204,6 +205,7 @@ public partial class ChooseYourPathScene : Control
         _rightArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         _rightArrow.Pressed += () =>
         {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             _selectedIdx = (_selectedIdx + 1) % _classes.Count;
             UpdateCarousel();
             UpdateUI();
@@ -705,6 +707,7 @@ public partial class ChooseYourPathScene : Control
 
     private void OnBegin()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         if (_selectedIdx < 0 || _selectedIdx >= _classes.Count) return;
         var cls = _classes[_selectedIdx];
 

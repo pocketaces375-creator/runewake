@@ -136,7 +136,11 @@ public partial class SettingsScene : Control
 
         _backBtn = MakeStoneButton("Back");
         _backBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
-        _backBtn.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        _backBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        };
         btnHbox.AddChild(_backBtn);
     }
 
@@ -315,14 +319,16 @@ public partial class SettingsScene : Control
 
     private void OnReplayIntro()
     {
-        CampaignContext.Settings.IntroSeen = false;
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        if (CampaignContext.HasSavedCampaign)
         CampaignContext.SaveManager!.SaveSettings(CampaignContext.Settings);
         GD.Print("[Settings] IntroSeen reset — next launch will show intro");
     }
 
     private void OnSavePressed()
     {
-        var s = CampaignContext.Settings;
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        if (!_dirty)
 
         if (_musicSlider != null) s.MusicVolume = (float)_musicSlider.Value / 100f;
         if (_sfxSlider != null) s.SfxVolume = (float)_sfxSlider.Value / 100f;

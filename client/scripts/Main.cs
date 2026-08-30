@@ -196,7 +196,10 @@ public partial class Main : Control
         var settingsButton = MakeStoneButton("Settings");
         settingsButton.AnchorTop = 0.75f;
         settingsButton.AnchorBottom = 0.83f;
-        settingsButton.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        settingsButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        };
         AddChild(settingsButton);
 
         // Rune Page button (hidden — accessible from Decks/Settings screens)
@@ -694,6 +697,7 @@ public partial class Main : Control
     /// </summary>
     private void OnDiagnosticsPressed()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         if (_diagPanel != null)
         {
             // Toggle off if already showing
@@ -858,6 +862,7 @@ public partial class Main : Control
 
     private void OnStartCampaign()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         if (CampaignContext.HasSavedCampaign)
         {
             // Continue existing campaign — go straight to map.
@@ -885,6 +890,7 @@ public partial class Main : Control
 
     private void OnOpenPathsOverlay()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         if (_pathsOverlay != null && IsInstanceValid(_pathsOverlay))
         {
             _pathsOverlay.QueueFree();
@@ -1016,7 +1022,11 @@ public partial class Main : Control
         closeBtn.AddThemeStyleboxOverride("normal", closeNormal);
         closeBtn.AddThemeStyleboxOverride("hover", closeHover);
         closeBtn.AddThemeStyleboxOverride("pressed", closePressed);
-        closeBtn.Pressed += ClosePathsOverlay;
+        closeBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            ClosePathsOverlay();
+        };
         vbox.AddChild(closeBtn);
     }
 
@@ -1164,6 +1174,7 @@ public partial class Main : Control
                 int capturedSlot = slotIdx;
                 resumeBtn.Pressed += () =>
                 {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                     if (capturedSlot < CampaignContext.Profiles.Count)
                     {
                         CampaignContext.ActiveProfileSlot = capturedSlot;
@@ -1198,6 +1209,7 @@ public partial class Main : Control
                 int abandonSlot = slotIdx;
                 abandonBtn.Pressed += () =>
                 {
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                     var dialog = new ConfirmationDialog
                     {
                         DialogText = "Abandon this path? All progress will be lost.",
@@ -1294,16 +1306,19 @@ public partial class Main : Control
 
     private void OnOpenRunePage()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
     }
 
     private void OnOpenDecks()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
     }
 
     private void OnOpenForge()
     {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
     }
 
