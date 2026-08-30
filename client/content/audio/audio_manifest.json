@@ -1,6 +1,32 @@
 {
   "comment": "Audio manifest — maps string IDs to resource paths, bus assignments, and default volumes. Missing IDs log a warning and are safely ignored.",
-  "music": {},
-  "sfx": {},
-  "ambient": {}
+  "music": {
+    "ambient_reach": {
+      "path": "res://content/audio/music/ambient_reach.ogg",
+      "bus": "Music",
+      "volume": 0.0
+    }
+  },
+  "sfx": {
+    "card_play":    { "path": "res://content/audio/sfx/blade_01.ogg",    "bus": "SFX", "volume": 0.0 },
+    "card_draw":    { "path": "res://content/audio/sfx/book_01.ogg",    "bus": "SFX", "volume": 0.0 },
+    "card_shuffle": { "path": "res://content/audio/sfx/book_03.ogg",    "bus": "SFX", "volume": 0.0 },
+    "hit_light":    { "path": "res://content/audio/sfx/item_stone_01.ogg", "bus": "SFX", "volume": 0.0 },
+    "hit_heavy":    { "path": "res://content/audio/sfx/stones_01.ogg",  "bus": "SFX", "volume": 0.0 },
+    "damage":       { "path": "res://content/audio/sfx/creature_hurt_01.ogg", "bus": "SFX", "volume": 0.0 },
+    "death":        { "path": "res://content/audio/sfx/creature_die_01.ogg", "bus": "SFX", "volume": 0.0 },
+    "coins":        { "path": "res://content/audio/sfx/item_coins_01.ogg", "bus": "SFX", "volume": 0.0 },
+    "click":        { "path": "res://content/audio/sfx/misc_01.ogg",    "bus": "SFX", "volume": 0.0 },
+    "stone_rumble": { "path": "res://content/audio/sfx/stones_03.ogg",  "bus": "SFX", "volume": 0.0 },
+    "spell":        { "path": "res://content/audio/sfx/spell_01.ogg",   "bus": "SFX", "volume": 0.0 },
+    "unlock":       { "path": "res://content/audio/sfx/lock_01.ogg",    "bus": "SFX", "volume": 0.0 },
+    "metal_clink":  { "path": "res://content/audio/sfx/metal_01.ogg",   "bus": "SFX", "volume": 0.0 }
+  },
+  "ambient": {
+    "wind_reach": {
+      "path": "res://content/audio/music/ambient_reach.ogg",
+      "bus": "Ambient",
+      "volume": 0.0
+    }
+  }
 }
