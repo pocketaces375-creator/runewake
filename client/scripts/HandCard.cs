@@ -6,9 +6,10 @@ namespace Runewake.Client;
 
 /// <summary>
 /// A card in the player's hand, rendered as a framed card thumbnail.
-/// Root is PanelContainer — draws the gold two-layer border via StyleBoxFlat.
+/// Root is PanelContainer — background fill only (border is now RootBoundBorder).
 /// Click/tap via GuiInput override, drag via _GetDragData override.
-/// Uses CardPlate for the unified card frame: hex cost, name band, stat rail.
+/// Uses CardPlate for the unified card frame: name band, stat rail.
+/// Cost rune is at top-right (Root-Bound corner motif owns the top-left).
 /// </summary>
 public partial class HandCard : PanelContainer
 {
@@ -16,6 +17,8 @@ public partial class HandCard : PanelContainer
     private TextureRect _artRect;
     private ColorRect _desatOverlay;
     private Label _noArtLabel;
+    private Label _costLabel;
+    private RootBoundBorder _rootBound;
     private bool _isHovered;
 
     private float _cardWidth;
@@ -39,11 +42,23 @@ public partial class HandCard : PanelContainer
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
 
-        // CardPlate — unified card frame: hex cost, name band, stat rail
+        // Root-Bound 9-slice border overlay
+        _rootBound = new RootBoundBorder();
+        _rootBound.Name = "RootBoundBorder";
+        AddChild(_rootBound);
+        _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
+        _rootBound.AttachTo(this);
+
+        // CardPlate — unified card frame: name band, stat rail
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
+
+        // Cost rune — top-right inside Root-Bound border
+        _costLabel = CardPlate.MakeCostRune(0, CustomMinimumSize.X, CustomMinimumSize.Y, out _);
+        _costLabel.Name = "CostRune";
+        content.AddChild(_costLabel);
 
         // Desaturation overlay for unplayable cards — global rule: NEVER black out.
         _desatOverlay = new ColorRect
@@ -61,19 +76,14 @@ public partial class HandCard : PanelContainer
         MouseEntered += OnHoverEntered;
         MouseExited += OnHoverExited;
 
-        // Card face style — gold two-layer border
+        // Card face background — dark fill, no border (RootBoundBorder handles that)
         var cardStyle = new StyleBoxFlat
         {
             BgColor = FrameFill,
-            BorderColor = FrameGoldOuter,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
+            BorderWidthLeft = 0,
+            BorderWidthTop = 0,
+            BorderWidthRight = 0,
+            BorderWidthBottom = 0,
             ContentMarginLeft = 0,
             ContentMarginTop = 0,
             ContentMarginRight = 0,
@@ -93,19 +103,14 @@ public partial class HandCard : PanelContainer
         CardAttack = def?.Attack;
         CardVigor = def?.Vigor;
 
-        // Gold two-layer border — always gold, not strata-colored
+        // Background fill (no border — RootBoundBorder handles that)
         var cardStyle = new StyleBoxFlat
         {
             BgColor = FrameFill,
-            BorderColor = FrameGoldOuter,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
+            BorderWidthLeft = 0,
+            BorderWidthTop = 0,
+            BorderWidthRight = 0,
+            BorderWidthBottom = 0,
             ContentMarginLeft = 0,
             ContentMarginTop = 0,
             ContentMarginRight = 0,
@@ -113,13 +118,35 @@ public partial class HandCard : PanelContainer
         };
         AddThemeStyleboxOverride("panel", cardStyle);
 
-        // CardPlate handles hex cost, name band, stat rail
-        var plateW = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
-        var plateH = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
-        if (plateW <= 0) plateW = _cardWidth > 0 ? _cardWidth : 104;
-        if (plateH <= 0) plateH = _cardHeight > 0 ? _cardHeight : 152;
+        // Update RootBound border for current size
+        float w = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
+        float h = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
+        if (w <= 0) w = 104; if (h <= 0) h = 152;
+        _rootBound.Setup(w, h);
 
-        _cardPlate.Setup(name, CardAttack, CardVigor, strata, plateW, plateH, cost);
+        // CardPlate handles name band, stat rail
+        _cardPlate.Setup(name, CardAttack, CardVigor, strata, w, h, cost);
+
+        // Cost rune at top-right
+        float costW = _costLabel.Size.X;
+        if (cost > 0)
+        {
+            _costLabel.Visible = true;
+            _costLabel.Text = cost.ToString();
+            // Reposition for current card size
+            int bandPx = Mathf.Max(1, Mathf.RoundToInt(w * 0.07f));
+            float hexSize = w * FrameHexSizeFraction;
+            float hexX = w - bandPx - hexSize - 2f;
+            float hexY = bandPx + 2f;
+            _costLabel.Position = new Vector2(hexX, hexY);
+            _costLabel.Size = new Vector2(hexSize, hexSize);
+            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
+            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
+        }
+        else
+        {
+            _costLabel.Visible = false;
+        }
 
         LoadArt(cardId);
     }
@@ -167,8 +194,24 @@ public partial class HandCard : PanelContainer
         CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
 
+        // Update RootBound border
+        _rootBound.Setup(_cardWidth, _cardHeight);
+
         // Re-setup CardPlate with new dimensions
         _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight, CardCost);
+
+        // Reposition cost rune
+        if (CardCost > 0 && _costLabel != null)
+        {
+            int bandPx = Mathf.Max(1, Mathf.RoundToInt(_cardWidth * 0.07f));
+            float hexSize = _cardWidth * FrameHexSizeFraction;
+            float hexX = _cardWidth - bandPx - hexSize - 2f;
+            float hexY = bandPx + 2f;
+            _costLabel.Position = new Vector2(hexX, hexY);
+            _costLabel.Size = new Vector2(hexSize, hexSize);
+            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
+            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
+        }
 
         // Hover pivot: bottom-center so card enlarges upward
         PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);

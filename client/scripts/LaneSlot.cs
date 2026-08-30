@@ -6,18 +6,20 @@ namespace Runewake.Client;
 
 /// <summary>
 /// A single lane slot on the board. Shows full-bleed card art with CardPlate
-/// unified frame (gold border, hex cost top-left, name band, stat rail) when
-/// occupied, or a visible empty frame/border when empty so slots never read as
+/// unified frame (Root-Bound border, name band, stat rail) when occupied,
+/// or a visible empty frame/border when empty so slots never read as
 /// voids (TASK-UI2).
 /// Supports drag-and-drop for playing cards from hand, and tap selection
 /// for attack targeting.
-/// Now uses CardPlate for the unified card frame system.
+/// Root-Bound 9-slice border replaces the old gold two-layer StyleBoxFlat.
 /// </summary>
 public partial class LaneSlot : PanelContainer
 {
     private CardPlate _cardPlate;
     private TextureRect _artRect;
     private Label _noArtLabel;
+    private Label _costLabel;
+    private RootBoundBorder _rootBound;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
     private Label _faceLabel;
@@ -59,11 +61,23 @@ public partial class LaneSlot : PanelContainer
 
         SetEmpty();
 
-        // CardPlate — unified card frame: hex cost, name band, stat rail
+        // Root-Bound 9-slice border overlay
+        _rootBound = new RootBoundBorder();
+        _rootBound.Name = "RootBoundBorder";
+        AddChild(_rootBound);
+        _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
+        _rootBound.AttachTo(this);
+
+        // CardPlate — unified card frame: name band, stat rail
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
+
+        // Cost rune — top-right inside Root-Bound border
+        _costLabel = CardPlate.MakeCostRune(0, CustomMinimumSize.X, CustomMinimumSize.Y, out _);
+        _costLabel.Name = "CostRune";
+        content.AddChild(_costLabel);
 
         // Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
@@ -93,25 +107,20 @@ public partial class LaneSlot : PanelContainer
                 slotBg.Texture = stoneTex;
         }
 
-        // Apply gold two-layer border
-        var goldStyle = new StyleBoxFlat
+        // Card face background — dark fill, no border (RootBoundBorder handles that)
+        var bgStyle = new StyleBoxFlat
         {
             BgColor = FrameFill,
-            BorderColor = FrameGoldOuter,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
+            BorderWidthLeft = 0,
+            BorderWidthTop = 0,
+            BorderWidthRight = 0,
+            BorderWidthBottom = 0,
             ContentMarginLeft = 0,
             ContentMarginTop = 0,
             ContentMarginRight = 0,
             ContentMarginBottom = 0
         };
-        AddThemeStyleboxOverride("panel", goldStyle);
+        AddThemeStyleboxOverride("panel", bgStyle);
     }
 
     /// <summary>
@@ -147,9 +156,31 @@ public partial class LaneSlot : PanelContainer
         var def = CardRegistry.Get(cardDefId);
         if (def != null) cost = def.Cost;
 
-        // CardPlate handles hex cost, name, stat rail
+        // Update RootBound border
+        _rootBound.Setup(w, h);
+
+        // CardPlate handles name, stat rail
         _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost);
         _cardPlate.Show();
+
+        // Cost rune at top-right
+        if (cost > 0 && _costLabel != null)
+        {
+            _costLabel.Visible = true;
+            _costLabel.Text = cost.ToString();
+            int bandPx = Mathf.Max(1, Mathf.RoundToInt(w * 0.07f));
+            float hexSize = w * FrameHexSizeFraction;
+            float hexX = w - bandPx - hexSize - 2f;
+            float hexY = bandPx + 2f;
+            _costLabel.Position = new Vector2(hexX, hexY);
+            _costLabel.Size = new Vector2(hexSize, hexSize);
+            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
+            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
+        }
+        else if (_costLabel != null)
+        {
+            _costLabel.Visible = false;
+        }
 
         LoadArt(cardDefId);
 
@@ -191,6 +222,8 @@ public partial class LaneSlot : PanelContainer
             _faceLabel.Visible = false;
         if (_cardPlate != null)
             _cardPlate.Hide();
+        if (_costLabel != null)
+            _costLabel.Visible = false;
         Modulate = Colors.White;
     }
 
@@ -205,6 +238,9 @@ public partial class LaneSlot : PanelContainer
         _cardHeight = targetHeight;
         CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
+
+        // Update RootBound border
+        _rootBound.Setup(_cardWidth, _cardHeight);
     }
 
     /// <summary>

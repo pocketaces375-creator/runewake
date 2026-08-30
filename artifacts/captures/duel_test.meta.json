@@ -8,64 +8,64 @@
   },
   "hand_cards": [
     {
+      "card_id": "vrd_r_bloomweaver",
+      "name": "The Undying Root of the Fallow Reach",
+      "rect": { "x": 220.0, "y": 484.0, "w": 82.5, "h": 124.0 },
+      "name_rect": { "x": 236.0, "y": 568.4, "w": 50.5, "h": 37.0 }
+    },
+    {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 220.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 237.2, "y": 569.4, "w": 48.1, "h": 29.0 }
-    },
-    {
-      "card_id": "emb_c_forgeguard_berserker",
-      "name": "Forgeguard Berserker",
       "rect": { "x": 302.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 319.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 318.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
-      "card_id": "hol_c_skeletal_reaver",
-      "name": "Skeletal Reaver",
+      "card_id": "emb_u_wildfire_adept",
+      "name": "Wildfire Adept",
       "rect": { "x": 384.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 401.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 400.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
       "rect": { "x": 466.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 483.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 482.0, "y": 568.4, "w": 50.5, "h": 20.0 }
+    },
+    {
+      "card_id": "vrd_r_bloomweaver",
+      "name": "The Undying Root of the Fallow Reach",
+      "rect": { "x": 548.0, "y": 484.0, "w": 82.5, "h": 124.0 },
+      "name_rect": { "x": 564.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 548.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 565.2, "y": 569.4, "w": 48.1, "h": 29.0 }
-    },
-    {
-      "card_id": "emb_c_forgeguard_berserker",
-      "name": "Forgeguard Berserker",
       "rect": { "x": 630.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 647.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 646.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
-      "card_id": "hol_c_skeletal_reaver",
-      "name": "Skeletal Reaver",
+      "card_id": "emb_u_wildfire_adept",
+      "name": "Wildfire Adept",
       "rect": { "x": 712.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 729.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 728.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
       "rect": { "x": 794.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 811.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 810.0, "y": 568.4, "w": 50.5, "h": 20.0 }
+    },
+    {
+      "card_id": "vrd_r_bloomweaver",
+      "name": "The Undying Root of the Fallow Reach",
+      "rect": { "x": 876.0, "y": 484.0, "w": 82.5, "h": 124.0 },
+      "name_rect": { "x": 892.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 876.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 893.2, "y": 569.4, "w": 48.1, "h": 29.0 }
-    },
-    {
-      "card_id": "emb_c_forgeguard_berserker",
-      "name": "Forgeguard Berserker",
       "rect": { "x": 958.0, "y": 484.0, "w": 82.5, "h": 124.0 },
-      "name_rect": { "x": 975.2, "y": 569.4, "w": 48.1, "h": 29.0 }
+      "name_rect": { "x": 974.0, "y": 568.4, "w": 50.5, "h": 37.0 }
     }
   ],
   "groups": [
@@ -128,19 +128,19 @@
     {
       "slot": "player_0",
       "rect": { "x": 267.6, "y": 296.2, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 292.0, "y": 386.0, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 289.9, "y": 385.2, "w": 56.0, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "player_1",
       "rect": { "x": 399.8, "y": 298.6, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 421.0, "y": 389.2, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 418.9, "y": 388.3, "w": 56.0, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "player_2",
       "rect": { "x": 532.0, "y": 301.0, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 550.1, "y": 392.3, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 548.0, "y": 391.3, "w": 56.0, "h": 23.0 },
       "state": "occupied"
     },
     {
@@ -158,19 +158,19 @@
     {
       "slot": "enemy_0",
       "rect": { "x": 276.6, "y": 75.1, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 288.3, "y": 167.4, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 286.3, "y": 166.3, "w": 56.0, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "enemy_1",
       "rect": { "x": 404.3, "y": 73.5, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 419.2, "y": 165.4, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 417.1, "y": 164.3, "w": 56.0, "h": 37.0 },
       "state": "occupied"
     },
     {
       "slot": "enemy_2",
       "rect": { "x": 532.0, "y": 72.0, "w": 88.0, "h": 129.0 },
-      "name_rect": { "x": 550.1, "y": 163.3, "w": 51.8, "h": 29.0 },
+      "name_rect": { "x": 548.0, "y": 162.3, "w": 56.0, "h": 23.0 },
       "state": "occupied"
     },
     {

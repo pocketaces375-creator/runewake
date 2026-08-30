@@ -6,10 +6,10 @@ namespace Runewake.Client;
 
 /// <summary>
 /// Unified artifact card frame — one frame for all artifact cards (player shrine,
-/// enemy HUD, board-visible). Uses the teal-gold rim + ARTIFACT tag + charge-pip rail
-/// as the artifact identity (TASK-UI4-ARSENAL).
+/// enemy HUD, board-visible). Uses the Root-Bound 9-slice border + ARTIFACT tag +
+/// charge-pip rail as the artifact identity.
 ///
-/// Layout (top to bottom inside the teal-gold border):
+/// Layout (top to bottom inside the Root-Bound border):
 ///   [ARTIFACT tag]  small label top-center, inside the rim
 ///   [art area]      full card face (art fills behind all overlays)
 ///   [name band]     fixed-height band at bottom of art area
@@ -23,9 +23,6 @@ public partial class ArtifactCardPlate : Control
     private ColorRect? _nameBandBg;
     private ColorRect? _chargeRailBg;
     private ColorRect? _suppressedOverlay;
-    private ColorRect? _innerBorderTop;
-    private ColorRect? _innerBorderLeft;
-    private ColorRect? _innerBorderRight;
     private Label? _artifactTag;
     private Label? _cardName;
     private Label? _chargeDisplay;
@@ -36,8 +33,9 @@ public partial class ArtifactCardPlate : Control
     private float _designCardWidth;
     private float _designCardHeight;
     private string _cardNameText = "";
+    private bool _isArtifact = true;
 
-    // TASK-ARTF-P2: Trigger flash overlay — bright gold-white pulse when artifact trigger fires
+    // TASK-ARTF-P2: Trigger flash overlay — brief bright gold-white pulse when artifact trigger fires
     private ColorRect? _triggerFlashOverlay;
 
     // Use same proportions as CardPlate for consistency
@@ -61,7 +59,7 @@ public partial class ArtifactCardPlate : Control
         // Lazy init
         if (_artifactTag == null)
         {
-            // ── ARTIFACT tag (top of card, inside teal-gold rim) ──
+            // ── ARTIFACT tag (top of card, inside root-bound rim) ──
             _artifactTag = new Label
             {
                 Text = "ARTIFACT",
@@ -90,31 +88,6 @@ public partial class ArtifactCardPlate : Control
             };
             AddChild(_chargeRailBg);
 
-            // ── Inner border highlight lines (1px inside the teal-gold border) ──
-            _innerBorderTop = new ColorRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                Color = ArtifactFrameInner,
-                Size = new Vector2(1, 1)
-            };
-            AddChild(_innerBorderTop);
-
-            _innerBorderLeft = new ColorRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                Color = ArtifactFrameInner,
-                Size = new Vector2(1, 1)
-            };
-            AddChild(_innerBorderLeft);
-
-            _innerBorderRight = new ColorRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                Color = ArtifactFrameInner,
-                Size = new Vector2(1, 1)
-            };
-            AddChild(_innerBorderRight);
-
             // ── Card name label ──
             _cardName = new Label
             {
@@ -122,7 +95,7 @@ public partial class ArtifactCardPlate : Control
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 AutowrapMode = TextServer.AutowrapMode.Word,
-                MaxLinesVisible = 1,
+                MaxLinesVisible = 2,
                 TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming
             };
             _cardName.AddThemeColorOverride("font_color", FrameNameText);
@@ -169,16 +142,15 @@ public partial class ArtifactCardPlate : Control
         float nameBandH = cardHeight * NameBandFraction;
         float chargeRailH = cardHeight * ChargeRailFraction;
         float plateH = tagH + nameBandH + chargeRailH;
-        float borderW = FrameBorderWidth;
-        float innerW = FrameInnerBorderWidth;
+        int bandPx = Mathf.Max(1, Mathf.RoundToInt(cardWidth * 0.07f));
 
         // Position this control at the bottom of the card
         Position = new Vector2(0, cardHeight - plateH);
         Size = new Vector2(cardWidth, plateH);
 
         // ── ARTIFACT tag ──
-        _artifactTag.Position = new Vector2(0, -tagH);
-        _artifactTag.Size = new Vector2(cardWidth, tagH);
+        _artifactTag.Position = new Vector2(bandPx, -tagH);
+        _artifactTag.Size = new Vector2(cardWidth - bandPx * 2, tagH);
         int tagFontSize = Mathf.Max(7, Mathf.RoundToInt(tagH * 0.60f));
         _artifactTag.AddThemeFontSizeOverride("font_size", tagFontSize);
 
@@ -186,14 +158,14 @@ public partial class ArtifactCardPlate : Control
         _nameBandBg.Position = new Vector2(0, 0);
         _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
 
-        // ── Name label ──
-        float padX = 4f;
-        _cardName.Position = new Vector2(padX, 0);
-        _cardName.Size = new Vector2(cardWidth - padX * 2, nameBandH);
-        int startFontSize = Mathf.Max(9, Mathf.RoundToInt(cardHeight * 0.065f));
-        ApplyHeaderFont(_cardName, startFontSize);
+        // ── Name label with auto-fit ──
+        int bufferPx = Mathf.Max(Mathf.RoundToInt(cardWidth * 0.06f), 10);
+        float safeWidth = cardWidth - bandPx * 2 - bufferPx * 2;
+        _cardName.Position = new Vector2(bandPx + bufferPx, 0);
+        _cardName.Size = new Vector2(safeWidth, nameBandH);
         _cardName.Text = name;
-        FitCardName(startFontSize);
+        ApplyHeaderFont(_cardName, 12);
+        FitCardNameAuto(safeWidth);
 
         // ── Charge rail (bottom section of plate) ──
         _chargeRailBg.Position = new Vector2(0, nameBandH);
@@ -203,8 +175,8 @@ public partial class ArtifactCardPlate : Control
         float pipW = chargeRailH * 0.6f;
         float pipH = chargeRailH * 0.6f;
         float pipY = nameBandH + (chargeRailH - pipH) / 2f;
-        _chargeDisplay.Position = new Vector2(4, pipY);
-        _chargeDisplay.Size = new Vector2(cardWidth - 8, pipH);
+        _chargeDisplay.Position = new Vector2(bandPx + 4, pipY);
+        _chargeDisplay.Size = new Vector2(cardWidth - bandPx * 2 - 8, pipH);
         int chargeFontSize = Mathf.Max(8, Mathf.RoundToInt(pipH * 0.7f));
         _chargeDisplay.AddThemeFontSizeOverride("font_size", chargeFontSize);
         _chargeDisplay.Visible = _showCharges;
@@ -217,18 +189,95 @@ public partial class ArtifactCardPlate : Control
             _chargeDisplay.Modulate = suppressed ? ChargeEmpty : ChargeFilled;
         }
 
-        // ── Inner border highlight lines ──
-        _innerBorderTop.Position = new Vector2(innerW, -borderW + innerW);
-        _innerBorderTop.Size = new Vector2(cardWidth - innerW * 2, innerW);
-
-        _innerBorderLeft.Position = new Vector2(-borderW + innerW, 0);
-        _innerBorderLeft.Size = new Vector2(innerW, plateH + tagH);
-
-        _innerBorderRight.Position = new Vector2(cardWidth - borderW, 0);
-        _innerBorderRight.Size = new Vector2(innerW, plateH + tagH);
-
         // ── Suppressed overlay ──
         _suppressedOverlay.Visible = suppressed;
+    }
+
+    /// <summary>
+    /// Auto-fit card name: the name NEVER escapes its safe zone.
+    /// Ported from tools/namefit.py to Godot C#.
+    /// Hard minimum 8px for artifact minis.
+    /// </summary>
+    private void FitCardNameAuto(float safeWidth)
+    {
+        if (string.IsNullOrEmpty(_cardNameText)) return;
+        if (safeWidth <= 0) return;
+
+        var font = _cardName.GetThemeDefaultFont();
+        if (font == null)
+        {
+            _cardName.AddThemeFontSizeOverride("font_size", 8);
+            return;
+        }
+
+        const int hardMin = 8;
+        int baseSize = Mathf.Max(6, Mathf.RoundToInt(24f * _designCardWidth / 236f));
+        int floor = Mathf.Max(hardMin, Mathf.RoundToInt(baseSize * 0.62f));
+
+        float Measure(string text, int sz)
+        {
+            return font.GetStringSize(text, HorizontalAlignment.Left, -1, sz).X;
+        }
+
+        // Try single line, shrink from base to floor
+        int sz = baseSize;
+        while (sz > floor && Measure(_cardNameText, sz) > safeWidth)
+            sz--;
+        if (Measure(_cardNameText, sz) <= safeWidth)
+        {
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            _cardName.Text = _cardNameText;
+            _cardName.MaxLinesVisible = 1;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+            return;
+        }
+
+        // Still won't fit at floor — try two-line balanced split
+        string[] words = _cardNameText.Split(' ');
+        if (words.Length > 1)
+        {
+            string[] bestLines = BalancedSplit(words);
+            sz = Mathf.Max(hardMin, baseSize - 2);
+            float widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
+            while (sz > hardMin && widest > safeWidth)
+            {
+                sz--;
+                widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
+            }
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            _cardName.Text = string.Join("\n", bestLines);
+            _cardName.MaxLinesVisible = 2;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+            return;
+        }
+
+        // Single unbreakable word — shrink to hard minimum
+        while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
+            sz--;
+        _cardName.AddThemeFontSizeOverride("font_size", sz);
+        _cardName.Text = _cardNameText;
+        _cardName.MaxLinesVisible = 1;
+        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+    }
+
+    /// <summary>Split words into two balanced lines by character count.</summary>
+    private static string[] BalancedSplit(string[] words)
+    {
+        string bestA = "", bestB = "";
+        int bestDiff = int.MaxValue;
+        for (int i = 1; i < words.Length; i++)
+        {
+            string a = string.Join(" ", words[..i]);
+            string b = string.Join(" ", words[i..]);
+            int diff = Mathf.Abs(a.Length - b.Length);
+            if (diff < bestDiff)
+            {
+                bestDiff = diff;
+                bestA = a;
+                bestB = b;
+            }
+        }
+        return new[] { bestA, bestB };
     }
 
     /// <summary>
@@ -295,49 +344,6 @@ public partial class ArtifactCardPlate : Control
                 style.BgColor = suppressed ? new Color(0.06f, 0.05f, 0.06f, 0.70f) : ArtifactFrameFill;
             }
         }
-    }
-
-    /// <summary>
-    /// Auto-fit card name: step down 1px at a time to floor 9px, then ellipsize.
-    /// </summary>
-    private void FitCardName(int startSize)
-    {
-        if (string.IsNullOrEmpty(_cardNameText)) return;
-
-        float availWidth = _cardName.Size.X;
-        if (availWidth <= 0) return;
-
-        int fontSize = startSize;
-        var font = _cardName.GetThemeDefaultFont();
-        if (font == null)
-        {
-            fontSize = Mathf.Max(9, startSize - 2);
-            _cardName.AddThemeFontSizeOverride("font_size", fontSize);
-            return;
-        }
-
-        while (fontSize >= 9)
-        {
-            _cardName.AddThemeFontSizeOverride("font_size", fontSize);
-            _cardName.Text = _cardNameText;
-
-            float lineWidth = font.GetStringSize(_cardNameText,
-                HorizontalAlignment.Left, -1, fontSize).X;
-
-            if (lineWidth <= availWidth + 2f)
-                return;
-
-            float halfWidth = availWidth * 0.92f;
-            if (lineWidth <= halfWidth * 2.2f)
-                return;
-
-            fontSize--;
-        }
-
-        _cardName.AddThemeFontSizeOverride("font_size", 9);
-        _cardName.Text = _cardNameText;
-        _cardName.MaxLinesVisible = 1;
-        _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
     }
 
     /// <summary>Get the name label node for metadata capture purposes.</summary>

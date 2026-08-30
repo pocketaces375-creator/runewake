@@ -212,6 +212,19 @@ public partial class DuelScene : Control
         LoadCardPacks();
         _bot.Initialize(_gsm);
 
+        // TASK-BORDER-1: Override a known hand-card name to demonstrate two-line auto-fit
+        // (This is a test-only hook; the DebugCapture API would be the clean path but
+        // the card registry is populated at duel load time, so we hook here.)
+        if (CampaignContext.AutoCaptureScreenshot)
+        {
+            var longNameDef = CardRegistry.Get("vrd_r_bloomweaver");
+            if (longNameDef != null)
+            {
+                longNameDef.Name = "The Undying Root of the Fallow Reach";
+                GD.Print("[DUEL] Overrode bloomweaver name for long-name auto-fit test");
+            }
+        }
+
         // Create card detail popup (hidden until tapped)
         var cardViewScene = GD.Load<PackedScene>("res://scenes/components/CardView.tscn");
         _cardDetail = cardViewScene.Instantiate<CardView>();
@@ -958,15 +971,19 @@ public partial class DuelScene : Control
         var artStyle = new StyleBoxFlat
         {
             BgColor = ArtifactFrameFill,
-            BorderColor = ArtifactFrameOuter,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            BorderWidthLeft = 0, BorderWidthTop = 0,
+            BorderWidthRight = 0, BorderWidthBottom = 0,
             ContentMarginLeft = 0, ContentMarginTop = 0,
             ContentMarginRight = 0, ContentMarginBottom = 0
         };
         panel.AddThemeStyleboxOverride("panel", artStyle);
+
+        // Root-Bound 9-slice border
+        var border = new RootBoundBorder();
+        border.Name = "RootBoundBorder";
+        border.Setup(w, h);
+        panel.AddChild(border);
+        border.AttachTo(panel);
 
         // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
         var plate = new ArtifactCardPlate();
@@ -1125,15 +1142,19 @@ public partial class DuelScene : Control
         var artStyle = new StyleBoxFlat
         {
             BgColor = ArtifactFrameFill,
-            BorderColor = ArtifactFrameOuter,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            BorderWidthLeft = 0, BorderWidthTop = 0,
+            BorderWidthRight = 0, BorderWidthBottom = 0,
             ContentMarginLeft = 0, ContentMarginTop = 0,
             ContentMarginRight = 0, ContentMarginBottom = 0
         };
         panel.AddThemeStyleboxOverride("panel", artStyle);
+
+        // Root-Bound 9-slice border
+        var border = new RootBoundBorder();
+        border.Name = "RootBoundBorder";
+        border.Setup(w, h);
+        panel.AddChild(border);
+        border.AttachTo(panel);
 
         // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
         var plate = new ArtifactCardPlate();
@@ -3698,6 +3719,24 @@ public partial class DuelScene : Control
         int targetCount = 10;
         if (hand.Count >= targetCount)
         {
+            // If the long-name test card is registered but not in hand, force it in
+            var longNameDef = CardRegistry.Get("test_long_name_wrapper");
+            if (longNameDef != null && !hand.Any(c => c.CardDefId == "test_long_name_wrapper"))
+            {
+                int nid = state.NextInstanceId;
+                var copy = new CardInstance(nid, "test_long_name_wrapper", 0)
+                {
+                    CardType = CardType.CREATURE,
+                    Cost = longNameDef.Cost,
+                    Strata = longNameDef.Strata,
+                    BaseAttack = longNameDef.Attack ?? 0,
+                    BaseVigor = longNameDef.Vigor ?? 0,
+                    Zone = Zone.Hand,
+                };
+                hand.Add(copy);
+                state.NextInstanceId = nid + 1;
+                GD.Print("[CAPTURE] Added long-name test card 'The Undying Root of the Fallow Reach' to hand");
+            }
             GD.Print($"[CAPTURE] Hand already has {hand.Count} cards, no inflation needed");
             return;
         }

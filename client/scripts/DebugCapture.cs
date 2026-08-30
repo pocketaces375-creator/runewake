@@ -242,6 +242,25 @@ public partial class DebugCapture : Node
 
         GD.Print($"[DebugCapture] Setting up test encounter with deck of {deck.Count} cards");
 
+        // Register a test card with a long name to verify two-line auto-fit wrapping
+        var longNameCard = new CardDef
+        {
+            Id = "test_long_name_wrapper",
+            Name = "The Undying Root of the Fallow Reach",
+            Set = "debug",
+            Strata = Strata.VERDANT,
+            Type = CardType.CREATURE,
+            Rarity = Rarity.COMMON,
+            Cost = 5,
+            Attack = 4,
+            Vigor = 6
+        };
+        CardRegistry.Register(longNameCard);
+        // Insert 10 copies at front to guarantee the long-name card appears in the hand
+        for (int i = 0; i < 10; i++)
+            deck.Insert(0, "test_long_name_wrapper");
+        GD.Print("[DebugCapture] Registered test_long_name_wrapper for two-line name wrap verification");
+
         CampaignContext.PlayerDeckIds = deck;
         CampaignContext.CurrentEncounter = new EncounterDef
         {
