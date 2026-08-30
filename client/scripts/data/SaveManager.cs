@@ -33,6 +33,16 @@ public class SaveManager
     /// </summary>
     public bool IsFunctional { get; private set; } = true;
 
+    /// <summary>
+    /// Repair log from the most recent load. Empty if no repairs were needed.
+    /// Each entry describes what was corrupted/missing and what fallback was used.
+    /// Cleared on every call to <see cref="Initialize"/>.
+    /// </summary>
+    public IReadOnlyList<string> RepairLog => _repository.RepairLog;
+
+    /// <summary>True if the most recent load performed any repair or migration.</summary>
+    public bool WasRepaired => _repository.RepairLog.Count > 0;
+
     public SaveManager()
     {
         // user:// is the Godot-managed, platform sandboxed data directory.
@@ -55,6 +65,14 @@ public class SaveManager
         {
             var loaded = _repository.Load();
             CopyInto(loaded, State);
+
+            // Log any repairs that occurred
+            if (WasRepaired)
+            {
+                string log = string.Join("; ", _repository.RepairLog);
+                GD.Print($"[SaveManager] Save load completed with repairs: {log}");
+            }
+
             IsLoaded = true;
             IsFunctional = true;
             LastError = null;

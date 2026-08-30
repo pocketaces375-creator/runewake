@@ -215,6 +215,15 @@ public partial class Main : Control
         // ── Campaign profile (CONTINUE state + Paths picker) ──
         CampaignContext.LoadCampaignProfile();
         CampaignContext.LoadDeckLibrary();
+
+        // ═══ SAVE LOAD: synchronous, before any deferred work ═══
+        // Critical: the save MUST be loaded before the first scene reads it.
+        // The race condition (deferred LoadGameData leaving IsLoaded=false when
+        // buttons are interactive) is the suspected root cause of skipped
+        // deck-select on some devices. Initialize is now called here,
+        // synchronously in _Ready, before any CallDeferred.
+        CampaignContext.SaveManager.Initialize();
+
         if (CampaignContext.HasSavedCampaign)
         {
             _startButton.Text = $"CONTINUE";
@@ -392,9 +401,7 @@ public partial class Main : Control
 
         _statusLabel.Text = "Loading save data...";
 
-        // Initialize save manager — this is now always safe (returns fresh profile on error)
-        CampaignContext.SaveManager.Initialize();
-
+        // Save already initialized synchronously in _Ready() — no second call needed.
         // Check for save errors and show persistent warning if DB is not functional
         if (!CampaignContext.SaveManager.IsFunctional)
         {

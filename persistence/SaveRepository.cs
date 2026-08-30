@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Data.Sqlite;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
@@ -22,6 +23,13 @@ public sealed class SaveRepository
 
     private readonly string _dbPath;
 
+    /// <summary>
+    /// Collection of repair actions taken during the most recent load.
+    /// Each entry describes what was corrupted/missing and what default was used.
+    /// Cleared at the start of each Load() call.
+    /// </summary>
+    public List<string> RepairLog { get; } = new();
+
     /// <summary>Create a repository rooted at the given SQLite file path.</summary>
     public SaveRepository(string dbPath)
     {
@@ -43,21 +51,45 @@ public sealed class SaveRepository
     }
 
     /// <summary>
+    /// Migrate a loaded state from an older schema version to the current version.
+    /// Each version gap runs its own migration step. The state's Version is updated
+    /// to CurrentSchemaVersion after all steps complete.
+    /// </summary>
+    private static void MigrateToCurrent(ProgressionState state, List<string> repairLog)
+    {
+        int sourceVersion = state.Version;
+        while (state.Version < CurrentSchemaVersion)
+        {
+            int from = state.Version;
+            int to = from + 1;
+            // Future migration steps go here:
+            // if (from == 1 && to == 2) { /* v1→v2 migration */ }
+            state.Version = to;
+            repairLog.Add($"Migrated save from v{from} to v{to}");
+        }
+        if (sourceVersion > 0 && sourceVersion < CurrentSchemaVersion)
+            repairLog.Add($"Schema migration complete: v{sourceVersion} → v{CurrentSchemaVersion}");
+    }
+
+    /// <summary>
     /// Load progression state from the database file. Creates the file and
     /// tables if they do not exist, applying version migration as needed.
     /// Returns a fresh state on failure — save errors never block the game.
+    /// Auto-repair details are recorded in <see cref="RepairLog"/>.
     /// </summary>
     public ProgressionState Load()
     {
+        RepairLog.Clear();
         try
         {
             using var conn = OpenConnection();
             EnsureSchema(conn);
-            return LoadFrom(conn);
+            var state = LoadFrom(conn, RepairLog);
+            return state;
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Load failed: {ex.GetType().Name}: {ex.Message}");
+            RepairLog.Add($"Load failed: {ex.GetType().Name}: {ex.Message}. Returning fresh default profile.");
             var fresh = new ProgressionState { Version = CurrentSchemaVersion };
             return fresh;
         }
@@ -68,8 +100,36 @@ public sealed class SaveRepository
     /// a single transaction so a process kill mid-write leaves the previous
     /// committed state intact (SQLite rolls back the uncommitted transaction).
     /// Returns true on success, false on failure (logs the error internally).
+    /// If the database file is corrupted (e.g. after a repaired load), the
+    /// file is deleted and recreated transparently.
     /// </summary>
     public bool Save(ProgressionState state)
+    {
+        try
+        {
+            // Try a normal save first
+            if (TrySaveInternal(state))
+                return true;
+
+            // The DB file is corrupt or unreadable — delete and recreate
+            RepairLog.Add("Save failed — deleting corrupted database file and recreating.");
+            TryDeleteFile(_dbPath);
+            TryDeleteFile(_dbPath + "-wal");
+            TryDeleteFile(_dbPath + "-shm");
+
+            // Retry the save on a fresh file
+            return TrySaveInternal(state);
+        }
+        catch (Exception ex)
+        {
+            RepairLog.Add($"Save failed after retry: {ex.GetType().Name}: {ex.Message}. Progress will NOT persist this session.");
+            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save failed after retry: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>Internal save attempt — does NOT retry on failure.</summary>
+    private bool TrySaveInternal(ProgressionState state)
     {
         try
         {
@@ -80,7 +140,7 @@ public sealed class SaveRepository
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save failed: {ex.GetType().Name}: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save attempt failed: {ex.GetType().Name}: {ex.Message}");
             return false;
         }
     }
@@ -210,7 +270,12 @@ public sealed class SaveRepository
 
     private SqliteConnection OpenConnection()
     {
-        var conn = new SqliteConnection($"Data Source={_dbPath}");
+        // Pooling=False: every connection is a real file open/close.
+        // Game saves are infrequent, and pooling keeps the file handle alive
+        // which prevents the auto-repair retry (deleting a corrupted file and
+        // recreating it) from working. No measurable performance difference
+        // for a single-user game save system.
+        var conn = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
         conn.Open();
         try
         {
@@ -295,7 +360,7 @@ public sealed class SaveRepository
         cmd.ExecuteNonQuery();
     }
 
-    private static ProgressionState LoadFrom(SqliteConnection conn)
+    private static ProgressionState LoadFrom(SqliteConnection conn, List<string> repairLog)
     {
         var state = new ProgressionState();
 
@@ -402,15 +467,28 @@ public sealed class SaveRepository
         // Version not present (fresh DB or pre-versioning save) → normalize to current
         if (state.Version == 0)
         {
+            repairLog.Clear();
+            if (state.Shards > 0 || state.ClearedNodes.Count > 0 || state.Collection.Count > 0)
+                repairLog.Add("Save missing version field but contains data — treating as v1, data preserved.");
+            else
+                repairLog.Add("No saved profile found — starting fresh.");
             state.Version = CurrentSchemaVersion;
             // Fresh save — start tutorial
             if (state.Tutorial == null)
                 state.Tutorial = new TutorialState { CurrentStep = TutorialStep.Lanes_SummonCreature };
         }
 
+        // Validate stored version
         var validity = ValidateVersion(state.Version);
         if (!validity.ok)
+        {
+            repairLog.Add(validity.error ?? "Unknown schema validation error.");
             throw new InvalidOperationException(validity.error);
+        }
+
+        // Migrate forward if older than current
+        if (state.Version < CurrentSchemaVersion)
+            MigrateToCurrent(state, repairLog);
 
         return state;
     }
@@ -532,5 +610,12 @@ public sealed class SaveRepository
         cmd.Parameters.AddWithValue("@k", key);
         cmd.Parameters.AddWithValue("@v", value);
         cmd.ExecuteNonQuery();
+    }
+
+    /// <summary>Delete a file silently (best-effort). Used to nuke a corrupted DB before recreating it.</summary>
+    private static void TryDeleteFile(string path)
+    {
+        try { if (File.Exists(path)) File.Delete(path); }
+        catch { /* best-effort */ }
     }
 }

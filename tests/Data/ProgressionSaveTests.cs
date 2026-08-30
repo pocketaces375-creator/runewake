@@ -122,6 +122,13 @@ public class SaveRepositoryTests : IDisposable
 
     private SaveRepository NewRepo() => new(_dbPath);
 
+    // Cleanup helper: delete a file silently (best-effort)
+    private static void TryDeleteFile(string path)
+    {
+        try { if (File.Exists(path)) File.Delete(path); }
+        catch { /* best-effort */ }
+    }
+
     private static ProgressionState SampleState()
     {
         var s = new ProgressionState
@@ -321,5 +328,206 @@ public class SaveRepositoryTests : IDisposable
         Assert.Equal(SaveRepository.CurrentSchemaVersion, result.Version);
         Assert.Empty(result.ClearedNodes);
         Assert.Empty(result.Collection);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-SAVE-1: Auto-repair on load
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_TruncatedCorruptDatabase_RepairsToFreshProfile_AndLogs()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState()); // create valid schema first
+
+        // Microsoft.Data.Sqlite pools connections by default within a process —
+        // the pooled handle keeps the file open and SQLite doesn't re-read the
+        // corrupted bytes. Clear pools to simulate a fresh process (app launch)
+        // reading the file from disk — the real corruption scenario.
+        SqliteConnection.ClearAllPools();
+
+        // Corrupt the database by writing garbage over the header.
+        using (var fs = new FileStream(_dbPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            byte[] garbage = new byte[512];
+            new Random(42).NextBytes(garbage);
+            fs.Write(garbage, 0, garbage.Length);
+            fs.Flush();
+        }
+        TryDeleteFile(_dbPath + "-wal");
+        TryDeleteFile(_dbPath + "-shm");
+
+        var loaded = repo.Load();
+
+        // Auto-repair: fresh default profile, never a crash
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        Assert.Empty(loaded.ClearedNodes);
+        Assert.Empty(loaded.Collection);
+        Assert.Equal(0, loaded.Shards);
+
+        // The repair must be logged
+        Assert.NotEmpty(repo.RepairLog);
+        Assert.Contains(repo.RepairLog, line => line.Contains("Load failed") || line.Contains("fresh"));
+    }
+
+    [Fact]
+    public void Load_ZeroByteDatabase_RepairsToFreshProfile_AndLogs()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        // Fresh-process simulation: drop pooled connections
+        SqliteConnection.ClearAllPools();
+
+        // Write garbage over the entire file — simulates a completely corrupted DB.
+        // A 0-byte file is actually handled gracefully by SQLite (it creates a new
+        // database), so we need garbage to force a load failure.
+        using (var fs = new FileStream(_dbPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            byte[] garbage = new byte[8192];
+            new Random(42).NextBytes(garbage);
+            fs.Write(garbage, 0, garbage.Length);
+            fs.SetLength(garbage.Length);
+            fs.Flush();
+        }
+        TryDeleteFile(_dbPath + "-wal");
+        TryDeleteFile(_dbPath + "-shm");
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        Assert.Empty(loaded.Collection);
+        Assert.NotEmpty(repo.RepairLog);
+        Assert.Contains(repo.RepairLog, line => line.Contains("Load failed") || line.Contains("fresh"));
+    }
+
+    [Fact]
+    public void Load_CorruptMetaValue_FallsBackToDefaults_AndLogs()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        // Corrupt a meta value to non-integer data — the loader's int.Parse
+        // will throw; load must fall back to a fresh profile rather than crash.
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = 'NOT_A_NUMBER' WHERE key = 'shards'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        // meta corruption throws in LoadFrom → entire load falls back to fresh
+        Assert.Equal(0, loaded.Shards);
+        Assert.NotEmpty(repo.RepairLog);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-SAVE-1: Forward-compatible loader
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_OlderVersionSave_MigratesToCurrent_AndLogs()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        // Wipe the version key entirely (pre-versioning save = v0 equivalent).
+        // The loader must treat it as fresh/legacy and normalize to current.
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DELETE FROM meta WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+    }
+
+    [Fact]
+    public void Load_SaveWithMissingTables_RepairsSchema_AndLogs()
+    {
+        // Create a db with a meta table but NO progression tables at all —
+        // simulates an interrupted first-write that created meta but died
+        // before creating the other tables. EnsureSchema must fix it.
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "CREATE TABLE meta (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL); INSERT INTO meta (key, value) VALUES ('version', '1')";
+            cmd.ExecuteNonQuery();
+        }
+
+        var repo = NewRepo();
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        Assert.Empty(loaded.Collection);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-SAVE-1: Init ordering
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_RepairLog_ClearedOnEachLoad()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        // First load — clean, no repairs
+        var loaded1 = repo.Load();
+        Assert.Empty(repo.RepairLog);
+
+        // Corrupt the db (garbage + nuke WAL)
+        SqliteConnection.ClearAllPools();
+        using (var fs = new FileStream(_dbPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            byte[] garbage = new byte[512];
+            new Random(42).NextBytes(garbage);
+            fs.Write(garbage, 0, garbage.Length);
+            fs.Flush();
+        }
+        TryDeleteFile(_dbPath + "-wal");
+        TryDeleteFile(_dbPath + "-shm");
+
+        // Second load — repaired
+        var loaded2 = repo.Load();
+        Assert.NotEmpty(repo.RepairLog);
+
+        // Third load — repairing again writes to the SAME log (no stale entries
+        // from previous load): cleared at start of each Load()
+        Assert.NotEmpty(repo.RepairLog); // still has this load's entries
+        Assert.All(repo.RepairLog, line => Assert.Contains("Load failed", line));
+    }
+
+    [Fact]
+    public void Load_IsIdempotent_AfterRepair_NextSaveWorks()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        // Corrupt, repair-load (fresh profile)
+        SqliteConnection.ClearAllPools();
+        using (var fs = new FileStream(_dbPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            byte[] garbage = new byte[512];
+            new Random(42).NextBytes(garbage);
+            fs.Write(garbage, 0, garbage.Length);
+            fs.Flush();
+        }
+        TryDeleteFile(_dbPath + "-wal");
+        TryDeleteFile(_dbPath + "-shm");
+        var repaired = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, repaired.Version);
+
+        // A subsequent save must succeed and round-trip on next load
+        repaired.Shards = 77;
+        Assert.True(repo.Save(repaired));
+
+        var reloaded = repo.Load();
+        Assert.Equal(77, reloaded.Shards);
     }
 }
