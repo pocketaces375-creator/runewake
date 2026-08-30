@@ -28,13 +28,13 @@ Minimum event map (manifest IDs already exist, use them as-is): card played from
   Rules: never more than one SFX per discrete game event (no stacking on multi-target effects — one sound per resolution, not per target); all playback goes through AudioManager (no direct AudioStreamPlayer nodes in gameplay scripts); missing manifest ID must stay a warning, never a crash; respect the existing Settings volume/mute state.
   Acceptance: build exit 0, engine tests green, headless --capture=bot_duel completes with no audio errors in the log, and a short DONE entry listing which event → which manifest ID you wired. Trikzos hears sound on next APK.
 
-- [ ] TASK-SAVE-1 — Save hardening. These are bugs Trikzos actually hit: blank screen on launch, and deck-select being skipped.
+- [x] TASK-SAVE-1 — Save hardening. These are bugs Trikzos actually hit: blank screen on launch, and deck-select being skipped.
   (1) Versioned save format with an explicit schema version field + forward-compatible loader.
   (2) Auto-repair on load: a corrupt/partial profile falls back to a valid default rather than a blank screen; log what was repaired.
   (3) Init-race guard: profile load MUST complete before the first scene reads it — that race is the suspected root cause of skipped deck-select. Find the actual race, don't just add a delay.
   Acceptance: new unit tests covering (a) load of a truncated/corrupt save, (b) load of an older-version save, (c) the init ordering; all legacy tests green; a headless launch from a deliberately corrupted profile reaches the title screen instead of blank.
 
-- [ ] TASK-SOAK-1 — Stability soak + warning cleanup.
+- [x] TASK-SOAK-1 — Stability soak + warning cleanup.
   (1) Run 5 CONSECUTIVE bot-vs-bot duels headless (--capture=bot_duel) with different seeds; all must complete with no crash, no exception in the log, no hang. Log the seeds used.
   (2) Compiler warnings: baseline is ~129. Get under 30. Fix real ones (unused/nullability/async), do NOT blanket-suppress with pragmas — if a category is genuinely noise-only, say so in the DONE entry and suppress that category explicitly at project level with a one-line justification.
   Acceptance: 5/5 duels clean with seeds listed, warning count before/after in the DONE entry, all tests green.

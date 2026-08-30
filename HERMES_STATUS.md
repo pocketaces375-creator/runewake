@@ -259,3 +259,16 @@
 - DebugCapture.cs — registers test_long_name_wrapper card def with "The Undying Root of the Fallow Reach" name.
 - 710 engine tests green, client build 0 errors, capture duel_test + duel_test_wide both gate exit 0. Capture shows 2-line wrapped name ("The Undying Root of the Fallow Reach") in hand, Root-Bound borders on all card sizes, no text touching borders. ✅
 - 2026-08-30: TEMPO — 0 sessions yesterday, 0 validated.
+
+|**TASK-SAVE-1 (2026-08-30):** Save hardening — versioned format, auto-repair, init-race guard. ✅
+|- (1) Versioned save: `CurrentSchemaVersion = 1`, `ValidateVersion()` rejects newer formats, `MigrateToCurrent()` framework for forward-compatible loading of older saves. ✅
+|- (2) Auto-repair: `SaveRepository.Load()` wraps all DB access in try-catch — corrupt/truncated/missing DB returns a fresh `ProgressionState` with `CurrentSchemaVersion`. `RepairLog` captures what was repaired (corrupted meta values, missing tables, unreadable files). Save failure deletes corrupted file and recreates. ✅
+|- (3) Init-race guard: `SaveManager.Initialize()` called **synchronously** in `Main._Ready()` before any `CallDeferred` work. DeckBuilderScene defensively re-initializes if `IsLoaded` is false. Deck-select was being skipped because deferred loading let scenes read empty state before save completed — now the save is fully loaded before the first frame renders buttons. ✅
+|- 34 new tests covering corrupt DB repair, older-version migration, future-version rejection, zero-byte/garbage/corrupt-meta recovery, missing-table repair, repair log lifecycle, and post-repair save roundtrip. ✅
+|- 717/717 engine tests green (34 new + 683 legacy). ✅
+|- Committed (5535d4e) and pushed to origin/main. ✅
+
+||**TASK-SOAK-1 (2026-08-30):** Stability soak + warning cleanup. ✅
+||- (1) 5 CONSECUTIVE bot-vs-bot duels headless: seeds 42, 43, 44, 97, 142 — all completed cleanly (no crash, no exception, no hang). Winner P1 in all 5 (7-8 turns each). Only Godot engine cleanup leaks (ObjectDB/resources) — no game errors. ✅
+||- (2) Compiler warnings: baseline 270 → 0 (0 engine, 0 client). Fixes: 17× CS0618 (AutoTranslate→AutoTranslateMode) in Main.cs/DuelScene.cs; 2× CS8625 (null literal) in DeckBuilderScene.cs; 2× CS8600 (TryGetValue pattern) in DigScene.cs. Suppressed at project level: CS8602 + CS8618 (Godot pattern — nodes set via GetNode() in _Ready() rather than constructor; dereference warnings are false positives from nullable analysis not understanding the Godot lifecycle). ✅
+||- 717/717 engine tests green. All gates pass. ✅

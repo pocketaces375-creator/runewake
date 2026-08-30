@@ -442,7 +442,6 @@ public partial class DeckBuilderScene : Control
                 _deckNameLabel.Text = text;
                 _deckNameLabel.Visible = true;
                 _deckNameEdit.QueueFree();
-                _deckNameEdit = null;
             };
             nameRow.AddChild(_deckNameEdit);
             _deckNameEdit.GrabFocus();

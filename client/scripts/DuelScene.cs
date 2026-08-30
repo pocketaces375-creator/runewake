@@ -2638,7 +2638,7 @@ public partial class DuelScene : Control
         {
             Text = "Mulligan — Tap cards to redraw",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         title.AddThemeFontSizeOverride("font_size", 18);
         vbox.AddChild(title);
@@ -2654,7 +2654,7 @@ public partial class DuelScene : Control
         var hint = new Label
         {
             Text = "Your Hand:",
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         hint.AddThemeFontSizeOverride("font_size", 13);
         hint.Modulate = TextMuted;
@@ -3212,7 +3212,7 @@ public partial class DuelScene : Control
                 {
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
                     GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-                };"
+                };
         btnHBox.AddChild(continueBtn);
 
         vbox.AddChild(btnHBox);

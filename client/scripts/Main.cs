@@ -87,7 +87,7 @@ public partial class Main : Control
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0.08f, AnchorBottom = 0.22f,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         ThemeTokens.ApplyHeaderFont(title, 54);
         title.Modulate = Color.FromHtml("#D4B84C"); // gold
@@ -101,7 +101,7 @@ public partial class Main : Control
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0.22f, AnchorBottom = 0.28f,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         ThemeTokens.ApplyHeaderFont(subtitle, ThemeTokens.FontSubtitle);
         subtitle.Modulate = Color.FromHtml("#C8B88A"); // warm beige
@@ -769,7 +769,7 @@ public partial class Main : Control
         {
             Text = "Save Diagnostics",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         title.AddThemeFontSizeOverride("font_size", 20);
         vbox.AddChild(title);
@@ -781,7 +781,7 @@ public partial class Main : Control
         {
             Text = success ? "✅ PASS — Database read/write OK" : "❌ FAIL — Database error",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         resultLabel.AddThemeFontSizeOverride("font_size", 16);
         resultLabel.Modulate = success ? new Color(0.3f, 1f, 0.3f) : new Color(1f, 0.3f, 0.3f);
@@ -792,7 +792,7 @@ public partial class Main : Control
         {
             Text = $"Save system: {(CampaignContext.SaveManager.IsFunctional ? "functional" : "NOT functional")}",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         statusLabel.AddThemeFontSizeOverride("font_size", 13);
         statusLabel.Modulate = CampaignContext.SaveManager.IsFunctional
@@ -806,7 +806,7 @@ public partial class Main : Control
             {
                 Text = $"Load error: {CampaignContext.SaveManager.LastError}",
                 HorizontalAlignment = HorizontalAlignment.Center,
-                AutoTranslate = false,
+                AutoTranslateMode = AutoTranslateMode.Disabled,
                 AutowrapMode = TextServer.AutowrapMode.Word
             };
             loadErrLabel.AddThemeFontSizeOverride("font_size", 12);
@@ -822,7 +822,7 @@ public partial class Main : Control
             var errTitle = new Label
             {
                 Text = "Exception Details:",
-                AutoTranslate = false
+                AutoTranslateMode = AutoTranslateMode.Disabled
             };
             errTitle.AddThemeFontSizeOverride("font_size", 13);
             vbox.AddChild(errTitle);
@@ -830,7 +830,7 @@ public partial class Main : Control
             var errBox = new Label
             {
                 Text = error,
-                AutoTranslate = false,
+                AutoTranslateMode = AutoTranslateMode.Disabled,
                 AutowrapMode = TextServer.AutowrapMode.Word
             };
             errBox.AddThemeFontSizeOverride("font_size", 11);
@@ -843,7 +843,7 @@ public partial class Main : Control
         var pathLabel = new Label
         {
             Text = "DB path: user://runewake_save.db",
-            AutoTranslate = false,
+            AutoTranslateMode = AutoTranslateMode.Disabled,
             HorizontalAlignment = HorizontalAlignment.Center
         };
         pathLabel.AddThemeFontSizeOverride("font_size", 11);
@@ -967,7 +967,7 @@ public partial class Main : Control
             Text = "Paths",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AutoTranslate = false
+            AutoTranslateMode = AutoTranslateMode.Disabled
         };
         ThemeTokens.ApplyHeaderFont(titleLabel, 28);
         titleLabel.Modulate = Color.FromHtml("#D4B84C"); // gold
@@ -1110,7 +1110,7 @@ public partial class Main : Control
                     Text = className,
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center,
-                    AutoTranslate = false
+                    AutoTranslateMode = AutoTranslateMode.Disabled
                 };
                 classLabel.AddThemeFontSizeOverride("font_size", 16);
                 classLabel.Modulate = Color.FromHtml("#E8DCC8");
@@ -1121,7 +1121,7 @@ public partial class Main : Control
                     Text = townName,
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center,
-                    AutoTranslate = false
+                    AutoTranslateMode = AutoTranslateMode.Disabled
                 };
                 townLabel.AddThemeFontSizeOverride("font_size", 13);
                 townLabel.Modulate = Color.FromHtml("#C8B88A");
@@ -1133,7 +1133,7 @@ public partial class Main : Control
                     Text = progress,
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center,
-                    AutoTranslate = false
+                    AutoTranslateMode = AutoTranslateMode.Disabled
                 };
                 progressLabel.AddThemeFontSizeOverride("font_size", 11);
                 progressLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
@@ -1144,7 +1144,7 @@ public partial class Main : Control
                     Text = $"Deck: {deckName}",
                     HorizontalAlignment = HorizontalAlignment.Left,
                     VerticalAlignment = VerticalAlignment.Center,
-                    AutoTranslate = false
+                    AutoTranslateMode = AutoTranslateMode.Disabled
                 };
                 deckLabel.AddThemeFontSizeOverride("font_size", 11);
                 deckLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
@@ -1265,7 +1265,7 @@ public partial class Main : Control
                     VerticalAlignment = VerticalAlignment.Center,
                     SizeFlagsHorizontal = Control.SizeFlags.Fill,
                     SizeFlagsVertical = Control.SizeFlags.Fill,
-                    AutoTranslate = false
+                    AutoTranslateMode = AutoTranslateMode.Disabled
                 };
                 emptyLabel.AddThemeFontSizeOverride("font_size", 14);
                 emptyLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f); // muted

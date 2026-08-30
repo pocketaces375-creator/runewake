@@ -41,12 +41,13 @@ public partial class DigScene : Control
     {
         // Load the dig site from campaign context
         var siteId = CampaignContext.CurrentDigSiteId;
-        if (siteId == null || !CampaignContext.DigSiteIndex.TryGetValue(siteId, out _siteDef))
+        if (siteId == null || !CampaignContext.DigSiteIndex.TryGetValue(siteId, out DigSiteDef? digSiteDef))
         {
             GD.PrintErr($"[DigScene] Unknown dig site: {siteId}");
             GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
             return;
         }
+        _siteDef = digSiteDef!;
 
         _digState = DigState.FromDef(_siteDef);
         BuildUI();
