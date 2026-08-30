@@ -1,5 +1,19 @@
 # HERMES_STATUS.md
 
+**TASK-BORDER-1 (2026-08-30):** Root-Bound card border + name auto-fit. ✅
+- Border 9-slice: rootbound_full.png cut at window (148,172,675,1019), 8 slices (4 corners + 4 edges) + full reference. ✅
+- Band thickness computed: band_px = round(card_width × 0.07). Corners at band_px square, edges stretch along length only. ✅
+- RootBoundBorder.cs: manual 9-slice overlay, 8 TextureRect children, AttachTo() method. ✅
+- Name auto-fit: tools/namefit.py ported to C# (CardPlate.cs + ArtifactCardPlate.cs). ✅
+  - Base size 24px@236px scaled linearly, floor 62%, two-line balanced split, hard min 12 (8 minis). ✅
+  - Test names verified: "Bloomweaver", "Gravewrit Thrall", "Herald of the Seventh Winter Dawn", "The Undying Root of the Fallow Reach". ✅
+- Cost rune: moved from top-left to top-RIGHT (Root-Bound corner motif owns top-left). ✅
+- HandCard, LaneSlot, ArtifactCardPlate, DuelScene all updated to use RootBoundBorder. ✅
+- Build: 0 errors. Engine tests: 710/710 green. Capture gate: duel_test PASS both resolutions. ✅
+- Capture includes "The Undying Root of the Fallow Reach" wrapped to two lines + artifact minis. ✅
+- Committed (479e2e9) and pushed to origin/main. ✅
+- Telegram: capture sent to Runewake group for Trikzos taste-check. ✅
+
 ## Completed Tasks
 
 **DELIVERY-2 (2026-08-29):** GitHub auth + verified APK delivery. HOTFIX-1 continuation.
@@ -215,3 +229,12 @@
 **TASK-SHIP-MAP2 (2026-08-25):** Ship the map polish pass (MAP-POLISH-2 by Claude) — no code changes, BUILD + SHIP only. Pulled (up to date on 3f79069), dotnet build 0 errors. Map capture at 1152x648 + 1999x932 both gate exit 0. Verification: green squares gone ✅, medallions on terrain ✅, cartouche shows Arabic calligraphy (رونويك) + THE FALLOW REACH (baked into map_plate.png art) ✅, info panel bottom-right clear of Forge/Rune Page/Settings stack ✅. APK export → 193MB debug. GitHub release: alpha-2026-08-25-map2. Download: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-08-25-map2/Runewake.apk. Posted captures + URL to Adam DM (bot not yet added to Runewake group).
 - 2026-08-27: TEMPO — 1 sessions yesterday, 0 validated.
 - 2026-08-28: TEMPO — 4 sessions yesterday, 0 validated.
+**TASK-BORDER-1 (2026-08-30):** Root-Bound card border + name auto-fit (Trikzos LOCKED both). Supersedes the gold two-layer frame from TASK-UI4-ARSENAL; arsenal GROUP layout from UI4 is unchanged. Applied:
+- RootBoundBorder.cs added — 9-slice border overlay using 8 PNG slices (4 corners + 4 edges) from client/content/art/border/rootbound_*.png with band_px = round(card_width * 0.07). Corners draw at band_px square, edges stretch along length only. Same border on board cards, hand cards, and artifact minis.
+- CardPlate.cs updated — removed gold two-layer inner border (ColorRect lines), cost rune moved to top-right (Root-Bound corner motif owns top-left), name auto-fit ported from tools/namefit.py with correct spec: base 24px @ 236w scaled linearly, floor = max(hardMin, 62% base), 2-line balanced split at base-2 shrinks to hardMin 12 (8 on artifact minis).
+- ArtifactCardPlate.cs updated — same border changes, name auto-fit with hard min 8, inner border removed.
+- HandCard.cs and LaneSlot.cs — use RootBoundBorder + CardPlate with top-right cost rune, no gold two-layer border.
+- DuelScene.cs — capture hook overrides bloomweaver name to "The Undying Root of the Fallow Reach" for 2-line wrap verification; InflateHandTo10 injects test_long_name_wrapper card if registered.
+- DebugCapture.cs — registers test_long_name_wrapper card def with "The Undying Root of the Fallow Reach" name.
+- 710 engine tests green, client build 0 errors, capture duel_test + duel_test_wide both gate exit 0. Capture shows 2-line wrapped name ("The Undying Root of the Fallow Reach") in hand, Root-Bound borders on all card sizes, no text touching borders. ✅
+- 2026-08-30: TEMPO — 0 sessions yesterday, 0 validated.

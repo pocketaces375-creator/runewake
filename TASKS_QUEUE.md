@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-BORDER-1 — Root-Bound card border + name auto-fit (Trikzos LOCKED both). Supersedes the gold two-layer frame from TASK-UI4-ARSENAL; arsenal GROUP layout from UI4 is unchanged.
+- [x] TASK-BORDER-1 — Root-Bound card border + name auto-fit (Trikzos LOCKED both). Supersedes the gold two-layer frame from TASK-UI4-ARSENAL; arsenal GROUP layout from UI4 is unchanged.
   (1) BORDER: 9-slice asset in client/content/art/border/rootbound_*.png (4 corners, 4 edges, + rootbound_full.png reference). Spec + exact window rect in client/content/art/border/rootbound_9slice.json.
       Band thickness is COMPUTED, never authored: band_px = round(card_width * 0.07). Corners draw at band_px square (never stretched); edges stretch along their length ONLY. Same border on board cards, hand cards, and artifact minis — only card_width differs, so the band scales with it.
       Godot: NinePatchRect with patch margins from the json, or an equivalent manual 9-slice. Do NOT scale the whole PNG to size — that is the bug this replaces.
