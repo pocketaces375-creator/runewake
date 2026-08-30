@@ -1,5 +1,26 @@
 # HERMES_STATUS.md
 
+**TASK-AUDIO-HOOK-1 (2026-08-30):** All 13 manifest events wired to game call sites. ✅
+- **card_play** → OnPlayCardRequested (creature summon) ✅
+- **spell** → OnPlayCardRequested (RITUAL type) ✅
+- **card_draw** → OnStateChanged (hand size increase detection) ✅
+- **card_shuffle** → ShowMulliganIfNeeded (duel start shuffle) ✅
+- **hit_light** (atk ≤3) / **hit_heavy** (atk ≥4) → AnimateVigorDiffs (face damage) ✅
+- **damage** → AnimateBoardDiffs (creature vigor loss) ✅
+- **death** → AnimateBoardDiffs (creature removal) ✅
+- **metal_clink** → OnStateChanged (artifact charge full detection) ✅
+- **click** → All navigation buttons across Main, Map, ChoosePath, Forge, RunePage, Settings, Dig, and Duel game-over overlays ✅
+- **unlock** → MapScene node selection (unlocked, non-cleared nodes) ✅
+- **wind_reach** (ambient) + **ambient_reach** (music) → DuelScene _Ready on duel screen entry ✅
+- **victory** / **defeat** → OnGameOver (added to manifest with existing .ogg files) ✅
+- All playback goes through AudioManager autoload (no direct AudioStreamPlayer in gameplay code) ✅
+- Missing manifest IDs log a warning, never crash ✅
+- Respects existing Settings volume/mute state via bus hierarchy ✅
+- Build: 0 errors. Engine tests: 710/710 green. Headless bot_duel: clean (no audio errors, only expected Godot engine cleanup) ✅
+- 81 audio files imported (Godot .oggvorbisstr + .md5) ✅
+- 15 SFX, 1 music, 1 ambient entries in manifest (2 added: victory, defeat) ✅
+- Committed (a6fd8d3) and pushed to origin/main. ✅
+
 **TASK-BORDER-1 (2026-08-30):** Root-Bound card border + name auto-fit. ✅
 - Border 9-slice: rootbound_full.png cut at window (148,172,675,1019), 8 slices (4 corners + 4 edges) + full reference. ✅
 - Band thickness computed: band_px = round(card_width × 0.07). Corners at band_px square, edges stretch along length only. ✅
