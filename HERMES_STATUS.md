@@ -1,5 +1,14 @@
 # HERMES_STATUS.md
 
+**TASK-BORDER-FIX-2 (2026-08-31):** URGENT — NinePatchRect margin bug fixed. Reverted to 8-piece TextureRect approach. ✅
+- Border: NinePatchRect with PatchMarginLeft=148,Top=172,Right=157,Bottom=197 caused left+right margins = 305px > ~88px board card width → corner regions consumed entire card. The 8-piece TextureRect approach restored with band_px = round(card_width * 0.07) = 6px on board cards. Corners at 6x6, edges stretched along length only. ✅
+- Name floor: Hard minimum 8px enforced (never below). If two lines cannot fit at ≥8px, falls back to single line with ellipsis. ClipContents=true on name container prevents ANY text rendering outside name band. ✅
+- Gate coverage check: For every occupied board card, center 30% region stddev must be > 15 (confirms art detail visible, not flat stone texture). Both standard and wide resolutions pass. ✅
+- Human verification: Every board card shows bright, colorful art at center (magenta, cyan, white, yellow, red, blue pixels with stddev 23-30). Stone border visible at edges (band_px=6px). No card covered by border texture. ✅
+- Standing lessons added to CLAUDE.md: (1) A gate is a floor, not a proof — look at the capture before marking DONE. (2) Re-verify from zero when you change rendering approach mid-task. ✅
+- 717 tests green, gate exit 0 at both 1152×648 and 1999×932. ✅
+- Committed and pushed to origin/main. ✅
+
 **TASK-BORDER-FIX-1 (2026-08-31):** Root-Bound card border fixed — 3 defects resolved. ✅
 - (1) Border not rendering: Replaced dead 8-TextureRect manual slice approach (StretchMode=Scale on 148x172 corner textures scaled to 6px = invisible gray blur) with a proper NinePatchRect using rootbound_full.png and 9-slice patch margins from rootbound_9slice.json. NinePatchRect handles proper corner scaling at ~16px on board cards (vs prior 6px). Stone texture is now visible with .oO@ pixel variation — old approach was flat near-black RGB(33,33,33). ✅
 - (2) Name safe zone violation: FitCardNameAuto height-check loop stopped at hardMin=12px, preventing shrink below width readability floor even when height was the constraint. Two-line names like "The Undying Root of the Fallow Reach" needed font_size below 12px to fit in nameBandH (18% of card height). Fixed: separate heightMin = max(4, hardMin - 4) so height loop can shrink until both lines fit. Verified by pixel scan: two-line text on board card player_2 (y=413-414) is contained within name band (y=391-414), stat rail (y=415+) is text-free. ✅

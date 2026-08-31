@@ -20,3 +20,7 @@ The following directories have been allowed for tool access:
 2. Hermes reads NOTES_FOR_HERMES.md, implements tasks
 3. Hermes writes progress and questions to STATUS_FOR_FABLE.md
 4. Repeat
+
+## Standing Lessons (from BORDER-FIX-2)
+1. **A gate is a floor, not a proof.** Before marking any visual task DONE, look at the capture as an image and describe what a player would see. If the description does not match the task's goal, it is not done.
+2. **Re-verify from zero when you change rendering mid-task.** When you change from one approach (TextureRects → StyleBox → NinePatchRect), your earlier measurements no longer apply to the new approach. Every approach change requires a full re-verification, not just delta-checking.

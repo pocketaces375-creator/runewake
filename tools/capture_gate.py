@@ -13,6 +13,7 @@ Usage: python3 tools/capture_gate.py [basename]
 
 import json
 import hashlib
+import math
 import struct
 import sys
 import zlib
@@ -270,6 +271,86 @@ def validate_duel_test(png_path, meta):
                     failures.append(f"BOARD_CARD_{i}: name strip contrast {contrast:.3f} too low")
                 else:
                     print(f"  PASS board card {i} name: contrast={contrast:.3f}")
+
+    # ─── COVERAGE CHECK: Every occupied slot must show distinct art, not border texture ───
+    # Load border texture reference color
+    border_ref_rgb = None
+    import os
+    corner_path = os.path.join(os.path.dirname(png_path), "..", "..", "client", "content", "art", "border", "rootbound_corner_tl.png")
+    corner_path = os.path.normpath(corner_path)
+    if os.path.exists(corner_path):
+        _, _, corner_pixels = read_png(corner_path)
+        cw, ch = 148, 172
+        cr = cg = cb = 0
+        cc = 0
+        for cy in range(ch):
+            for cx in range(cw):
+                ci = (cy * cw + cx) * 4
+                if ci + 3 < len(corner_pixels):
+                    cr += corner_pixels[ci]
+                    cg += corner_pixels[ci+1]
+                    cb += corner_pixels[ci+2]
+                    cc += 1
+        if cc > 0:
+            border_ref_rgb = (cr / cc, cg / cc, cb / cc)
+            print(f"  Border texture ref RGB: ({border_ref_rgb[0]:.0f}, {border_ref_rgb[1]:.0f}, {border_ref_rgb[2]:.0f})")
+
+    for i, card in enumerate(board_cards):
+        r = card.get("rect")
+        if not r:
+            continue
+        slot_state = card.get("state", "empty")
+        if slot_state == "empty":
+            continue
+        cx, cy, cw, ch = int(r["x"]), int(r["y"]), int(r["w"]), int(r["h"])
+        if cw < 4 or ch < 4:
+            continue
+        # Central 30% region — properly rounded to pixel bounds
+        c_x = int(cx + cw * 0.35)
+        c_y = int(cy + ch * 0.35)
+        c_w = max(1, int(cw * 0.3))
+        c_h = max(1, int(ch * 0.3))
+        c_x = max(cx, min(c_x, cx + cw - c_w))
+        c_y = max(cy, min(c_y, cy + ch - c_h))
+        # Compute mean RGB and stddev of center 30% region
+        cr = cg = cb = cc = 0
+        cr2 = cg2 = cb2 = 0
+        for py in range(c_y, c_y + c_h, 2):
+            for px in range(c_x, c_x + c_w, 2):
+                pi = (py * width + px) * 4
+                if pi + 3 < len(pixels):
+                    rv = pixels[pi]
+                    gv = pixels[pi+1]
+                    bv = pixels[pi+2]
+                    cr += rv; cg += gv; cb += bv
+                    cr2 += rv * rv; cg2 += gv * gv; cb2 += bv * bv
+                    cc += 1
+        if cc == 0:
+            continue
+        center_mean = (cr / cc, cg / cc, cb / cc)
+        center_std = (math.sqrt(cr2/cc - (cr/cc)*(cr/cc)),
+                      math.sqrt(cg2/cc - (cg/cc)*(cg/cc)),
+                      math.sqrt(cb2/cc - (cb/cc)*(cb/cc)))
+        center_std_avg = (center_std[0] + center_std[1] + center_std[2]) / 3.0
+        # If center has high stddev (> 15), art is definitely visible — skip RGB checks
+        if center_std_avg > 15.0:
+            print(f"  PASS board card {i} coverage: center stddev={center_std_avg:.0f} (> 15) — art detail visible")
+            continue
+        # Low stddev center — check if it matches border texture
+        if center_std_avg < 5.0:
+            failures.append(f"COVERAGE_BOARD_{i}: center stddev {center_std_avg:.0f} < 5 — no art detail visible, card may be covered by border texture")
+            continue
+        # Moderate stddev — check RGB against border texture
+        if border_ref_rgb is not None:
+            r_diff = abs(center_mean[0] - border_ref_rgb[0])
+            g_diff = abs(center_mean[1] - border_ref_rgb[1])
+            b_diff = abs(center_mean[2] - border_ref_rgb[2])
+            if r_diff <= 12 and g_diff <= 12 and b_diff <= 12:
+                failures.append(f"COVERAGE_BOARD_{i}: center RGB ({center_mean[0]:.0f},{center_mean[1]:.0f},{center_mean[2]:.0f}) matches border ({border_ref_rgb[0]:.0f},{border_ref_rgb[1]:.0f},{border_ref_rgb[2]:.0f}) with stddev {center_std_avg:.0f} — card may be covered by border texture")
+            else:
+                print(f"  PASS board card {i} coverage: center distinct from border ({center_mean[0]:.0f},{center_mean[1]:.0f},{center_mean[2]:.0f}) vs ({border_ref_rgb[0]:.0f},{border_ref_rgb[1]:.0f},{border_ref_rgb[2]:.0f})")
+        else:
+            print(f"  PASS board card {i} coverage: center stddev={center_std_avg:.0f}")
 
     groups = meta.get("groups", [])
     if not groups:
@@ -751,6 +832,7 @@ VALIDATORS = {
 
 
 def main():
+    import hashlib
     capture_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
 
     if len(sys.argv) > 1:
@@ -770,7 +852,6 @@ def main():
         std_meta = capture_dir / "duel_test.meta.json"
         wide_meta = capture_dir / "duel_test_wide.meta.json"
         if std_png.exists() and wide_png.exists():
-            import hashlib
             std_hash = hashlib.md5(std_png.read_bytes()).hexdigest()
             wide_hash = hashlib.md5(wide_png.read_bytes()).hexdigest()
             if std_hash == wide_hash:

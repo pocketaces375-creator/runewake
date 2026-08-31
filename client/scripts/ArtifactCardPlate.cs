@@ -26,6 +26,8 @@ public partial class ArtifactCardPlate : Control
     private Label? _artifactTag;
     private Label? _cardName;
     private Label? _chargeDisplay;
+    /// <summary>Container for name label that clips to name band height.</summary>
+    private Control? _nameClipContainer;
     private bool _suppressed;
     private bool _showCharges;
 
@@ -88,7 +90,15 @@ public partial class ArtifactCardPlate : Control
             };
             AddChild(_chargeRailBg);
 
-            // ── Card name label ──
+            // ── Name clipping container — prevents text from overflowing into charge rail ──
+            _nameClipContainer = new Control
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                ClipContents = true
+            };
+            AddChild(_nameClipContainer);
+
+            // ── Card name label (inside clipping container) ──
             _cardName = new Label
             {
                 MouseFilter = MouseFilterEnum.Ignore,
@@ -101,7 +111,7 @@ public partial class ArtifactCardPlate : Control
             _cardName.AddThemeColorOverride("font_color", FrameNameText);
             _cardName.AddThemeConstantOverride("outline_size", 1);
             _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.6f));
-            AddChild(_cardName);
+            _nameClipContainer.AddChild(_cardName);
 
             // ── Charge display label ──
             _chargeDisplay = new Label
@@ -158,14 +168,20 @@ public partial class ArtifactCardPlate : Control
         _nameBandBg.Position = new Vector2(0, 0);
         _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
 
-        // ── Name label with auto-fit ──
+        // ── Name label with auto-fit + clipping container ──
         int bufferPx = Mathf.Max(Mathf.RoundToInt(cardWidth * 0.06f), 10);
         float safeWidth = cardWidth - bandPx * 2 - bufferPx * 2;
-        _cardName.Position = new Vector2(bandPx + bufferPx, 0);
-        _cardName.Size = new Vector2(safeWidth, nameBandH);
+        
+        // Clipping container fills the safe name zone
+        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 0);
+        _nameClipContainer.Size = new Vector2(safeWidth, nameBandH - 2);
+        
+        // Card name label fills its parent
+        _cardName.Position = Vector2.Zero;
+        _cardName.Size = new Vector2(safeWidth, nameBandH - 2);
         _cardName.Text = name;
         ApplyHeaderFont(_cardName, 12);
-        FitCardNameAuto(safeWidth);
+        FitCardNameAuto(safeWidth, nameBandH);
 
         // ── Charge rail (bottom section of plate) ──
         _chargeRailBg.Position = new Vector2(0, nameBandH);
@@ -195,10 +211,11 @@ public partial class ArtifactCardPlate : Control
 
     /// <summary>
     /// Auto-fit card name: the name NEVER escapes its safe zone.
-    /// Ported from tools/namefit.py to Godot C#.
     /// Hard minimum 8px for artifact minis.
+    /// Name sits inside _nameClipContainer (ClipContents=true), preventing overflow
+    /// into the charge rail.
     /// </summary>
-    private void FitCardNameAuto(float safeWidth)
+    private void FitCardNameAuto(float safeWidth, float nameBandH)
     {
         if (string.IsNullOrEmpty(_cardNameText)) return;
         if (safeWidth <= 0) return;
@@ -219,16 +236,33 @@ public partial class ArtifactCardPlate : Control
             return font.GetStringSize(text, HorizontalAlignment.Left, -1, sz).X;
         }
 
+        float LineHeight(int sz)
+        {
+            return font.GetHeight(sz);
+        }
+
         // Try single line, shrink from base to floor
         int sz = baseSize;
         while (sz > floor && Measure(_cardNameText, sz) > safeWidth)
             sz--;
         if (Measure(_cardNameText, sz) <= safeWidth)
         {
+            // Height check — shrink if single line overflows, never below hardMin
+            while (sz > hardMin && 1 * LineHeight(sz) > nameBandH)
+                sz--;
+            if (1 * LineHeight(sz) <= nameBandH)
+            {
+                _cardName.AddThemeFontSizeOverride("font_size", sz);
+                _cardName.Text = _cardNameText;
+                _cardName.MaxLinesVisible = 1;
+                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+                return;
+            }
+            // Single line at hardMin still overflows — use ellipsis
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = _cardNameText;
             _cardName.MaxLinesVisible = 1;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
             return;
         }
 
@@ -244,6 +278,40 @@ public partial class ArtifactCardPlate : Control
                 sz--;
                 widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
             }
+            
+            // Height check: shrink until two-line fits name band, never below hardMin
+            float twoLineH = 2 * LineHeight(sz);
+            while (twoLineH > nameBandH && sz > hardMin)
+            {
+                sz--;
+                twoLineH = 2 * LineHeight(sz);
+                if (widest > safeWidth && sz > 0)
+                {
+                    widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
+                    if (widest > safeWidth)
+                    {
+                        // Re-split at smaller size
+                        string[] reSplit = BalancedSplit(words);
+                        widest = Mathf.Max(Measure(reSplit[0], sz), Measure(reSplit[1], sz));
+                        if (widest <= safeWidth)
+                            bestLines = reSplit;
+                    }
+                }
+            }
+            
+            // If still overflows, fall back to single-line with ellipsis
+            if (twoLineH > nameBandH)
+            {
+                sz = hardMin;
+                while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
+                    sz--;
+                _cardName.AddThemeFontSizeOverride("font_size", sz);
+                _cardName.Text = _cardNameText;
+                _cardName.MaxLinesVisible = 1;
+                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+                return;
+            }
+            
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = string.Join("\n", bestLines);
             _cardName.MaxLinesVisible = 2;
@@ -251,9 +319,29 @@ public partial class ArtifactCardPlate : Control
             return;
         }
 
-        // Single unbreakable word — shrink to hard minimum
+        // Single unbreakable word — shrink to hard minimum, ellipsis at floor
         while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
             sz--;
+        if (Measure(_cardNameText, sz) > safeWidth)
+        {
+            // Even at hardMin width overflows — use ellipsis
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            _cardName.Text = _cardNameText;
+            _cardName.MaxLinesVisible = 1;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            return;
+        }
+        while (sz > hardMin && 1 * LineHeight(sz) > nameBandH)
+            sz--;
+        if (1 * LineHeight(sz) > nameBandH)
+        {
+            // Single line at hardMin overflows height — use ellipsis
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            _cardName.Text = _cardNameText;
+            _cardName.MaxLinesVisible = 1;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            return;
+        }
         _cardName.AddThemeFontSizeOverride("font_size", sz);
         _cardName.Text = _cardNameText;
         _cardName.MaxLinesVisible = 1;
