@@ -10,7 +10,47 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [x] TASK-BORDER-NAME-1 — Fix design resolution, then restore card name/title rendering per the locked namefit spec
+- [ ] TASK-DUELRES-1 — Set the client design resolution to 2316x1080 and re-render at design size
+  Measured from the 2026-08-31 capture (2560x922): aspect 2.78:1 vs approved 2.14:1; board
+  cards ~118px = 4.6% of frame width vs design ~200px = 8.6%. Band, name and stat sizes are
+  computed from card width, so this is the root cause of the cheap look.
+  Do: (a) project.godot base resolution 2316x1080, stretch canvas_items, aspect keep.
+      (b) Board cards ~200px wide; 7% band ~14px.
+      (c) Hand centered and fully visible; End Turn placed as in the authority image.
+      (d) Captures at 2316x1080; wide variant reports true dims; captures not byte-identical.
+  Do NOT change art, border choice, or namefit (namefit is correct and must not regress).
+  Acceptance: capture where board cards measure 195-205px; state measured card and band px
+  in the group. Trikzos' approval is the gate.
+
+- [ ] TASK-BOARD-MATCH-1 — Make the duel screen match the authority image (AFTER DUELRES-1)
+  Open /home/fictive/bridge/projects/runewake-export/duel_target_reference.jpg and close
+  every gap between the live render and it. Known gaps in the current build:
+  (a) EMPTY LANES: authority = thin warm-gold rounded keyline sockets with a faint
+      translucent stone tint, board painting visible through them, all five columns
+      vertically aligned between the two rows. Build = solid black slabs, rows misaligned.
+  (b) CARD FRAME: authority = dark carved stone with visible chisel texture and slightly
+      irregular edges (the locked Root-Bound option 5). Build = flat thin black outline.
+      Verify the renderer actually samples the rootbound_*.png slices at band_px.
+  (c) COST: authority = small dark circle with a gold ring, top-right inside the art
+      corner. Build = flat gold square.
+  (d) STATS: authority = rounded red (attack, left) and green (vigor, right) chips with
+      light numerals seated at the frame's bottom corners — at 200px cards these read.
+      Build = ~10px unreadable chips.
+  (e) NAME: authority places the name in small caps at the bottom of the face; Trikzos
+      refinement R3 applies — raise contrast/size so names read clearly. Keep namefit.
+  (f) HAND: authority = larger than board cards, centered, slightly overlapping, bottom
+      edge tucked into the frame. Build = small, clipped, left-aligned.
+  (g) HUD: authority = green pill nameplate "TRIKZOS | <vigor>" bottom-left and red pill
+      "THE WAYFARER | <vigor>" top-right; DECK and BARROW paired in one small panel;
+      ARTIFACT SLOTS render the artifact card ART as framed thumbnails (teal rim), never
+      text boxes; turn indicator top-center in the serif face. Build = scattered debug
+      text and empty boxes; also fix the truncated "ENEMY FARER" string.
+  (h) R2: increase card size / art share relative to the mock — present ONE variant
+      capture alongside the mock-faithful one and let Trikzos pick.
+  Acceptance: side-by-side post in the group — authority image vs 2316x1080 capture — with
+  a plain-text checklist (a)-(h) each marked matched / not matched. Trikzos approves.
+
+- [x] TASK-BORDER-NAME-1
   Trikzos rejected the BORDER-FIX-3 captures: names are ellipsized ("THE...",
   "CINDER...", "ROOT..."), the band reads as a flat black frame with no visible
   Root-Bound stone carving, and stat badges are unreadable chips. Two causes, fix
