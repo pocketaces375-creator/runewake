@@ -1,6 +1,16 @@
 # HERMES_STATUS.md
 
-**TASK-BORDER-NAME-1 (2026-08-31):** Fix design resolution + restore card name/title rendering. ✅
+**TASK-DECKFILTER-1 (2026-08-31):** Strata filter chip row in Deck Forge — rebuilt for proper touch targets, vertical centering, and selected state visibility. ✅
+- **Root cause:** Inner HBoxContainer had `SizeFlagsVertical = 0` (no expand), so the swatch+label pair sat at the top of the 44px button pill rather than being vertically centered. Stylebox `ContentMarginTop = 0` / `ContentMarginBottom = 0` gave no vertical breathing room within the pill. Pressed state copied the normal style with no feedback. ✅
+- **Fix:** Changed `SizeFlagsVertical = 0` → `SizeFlagsVertical = 3` (Fill | Expand) so the inner HBox fills the entire button content area. With `AlignmentMode.Center`, the 8x8 swatch and 11px label are now centered as a unit — both vertically aligned with each other and within the pill capsule. ✅
+- **Padding:** `ContentMarginTop/Bottom` changed from `0` to `4` for 8px total vertical breathing room (matching 8px side margin spec). ✅
+- **Pressed state:** Separate `pressedStyle` with slightly brighter bg (#322C26) and lighter border (#5A5048) for tactile feedback. Applied to both `MakeFilterChip` and the `UpdateFilterChips` non-selected path. ✅
+- **Selected state:** Already implemented — fills chip bg with strata color at 22% alpha + 1px border in strata color, label turns gold (#D4B84C). HOLLOW filter (index 4) set as the active filter via `CaptureOverrideStrataIdx` in DebugCapture. ✅
+- **Row overflow:** Already handled by ScrollContainer with HorizontalScrollMode=Auto and a right-end spacer pad. ✅
+- **717 tests green, build 0 errors.** ✅
+- **Gates:** Standard (2316×1080) — PASS ✅. Phone (390×844) — PASS ✅. Both show HOLLOW filter active (purple pixels detected, gold label visible), right edge 100% lit (all chips visible, no clipping). ✅
+- **Captures committed:** deck_test.png (2316×1080, 2.4MB) and deck_test_phone.png (390×844, unchanged). ✅
+- **Committed (7f16a9e) and pushed to origin/main.** ✅
 - **(A) Resolution fixed:** Changed `window/stretch/aspect` from `expand` to `keep` in client/project.godot. With `expand`, the viewport matched the actual display size (e.g. xvfb 1280x720), giving ~88px board cards. With `keep`, the viewport stays at the design resolution (2316x1080) regardless of window size, giving board cards ~147px × 215px — enough room for 7% border (10px), name base size 15px, and readable stat numbers. ✅
 - **(B) Name rendering restored:** Two bugs in CardPlate.cs namefit: (1) AutowrapMode=Word on two-line names caused Godot to re-wrap the second line, creating an invisible third line when the text overflowed the safe width. Fixed to AutowrapMode=Off — we provide the balanced split, no re-wrapping. (2) Width shrink loop stopped at hardMin (12px) instead of continuing to heightFloor (8px), leaving width overflow unresolved for long lines. Fixed with `while (sz > heightFloor && widest > safeWidth)`. ✅
 - Verified: "Root Warden" and "Wildfire Adept" render as one full line on all cards. "The Undying Root of the Fallow Reach" renders on two balanced lines with full text visible (pixel-confirmed: 87px text width in 129px safe zone). ✅
