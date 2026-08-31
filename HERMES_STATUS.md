@@ -1,6 +1,7 @@
 # HERMES_STATUS.md
 
-**TASK-SIMGATE-1 (2026-08-30):** Balance sim gate — the pass/fail gate every future card batch must clear.
+**TASK-P2COMP-1 (2026-08-31):** Diagnose and report on first-player advantage — **STOPPED at step 0**. ✅
+- Step 0: Verified sim's class roster vs real game. sim/run_s1_metric.py tests 7 classes: warrior, mage, thief, cleric, ranger, necromancer, runesmith. Real content/classes.json has 3 existing (warrior, necromancer, druid) + 4 pending from TASK-CLASS-7 (tidecaller, dawnward, ranger, occultist). Mage, Thief, Cleric, Runesmith — **do not exist anywhere in the game**. The sim class names are stale prototype artifact-set aliases; every class uses the identical midrange deck (global_archetypes.json), differing only in artifact loadout (BatchRunner.cs ClassArtifactMap). Per the task's step 0 instruction: "If the sim is testing classes that do not exist in the game, STOP after reporting — say so in the DONE entry and take no further action on this task, because every downstream number is then suspect." Stopped. The mirror-match data showing 62.5% P0 advantage IS structurally valid (same deck + same artifacts + same bot), but any cross-class winrate from the sim compares artifact loadouts on a single midrange deck against classes that don't exist in the shipped game. Fixing first-player advantage requires real-game class decks, not stale sim aliases. ✅
 - (1) Full 7×7 matchup matrix (49 pairings) with unique seeds per pairing, 200 games each, both play orders. ✅
 - (2) Bot telemetry: avg turns to finish, attack deviation rate (the TASK-S1 metric), avg cards-in-hand at end. Added p0_cards_in_hand / p1_cards_in_hand to GameResult + avg_cards_in_hand_p0/p1 to BatchReport. ✅
 - (3) Gate script at sim/balance_gate.py with configurable thresholds at the top: vs-field winrate [35%, 65%], pairing winrate [25%, 75%], deviation rate ≥ 25%. ✅
@@ -292,3 +293,4 @@
 ||- (1) 5 CONSECUTIVE bot-vs-bot duels headless: seeds 42, 43, 44, 97, 142 — all completed cleanly (no crash, no exception, no hang). Winner P1 in all 5 (7-8 turns each). Only Godot engine cleanup leaks (ObjectDB/resources) — no game errors. ✅
 ||- (2) Compiler warnings: baseline 270 → 0 (0 engine, 0 client). Fixes: 17× CS0618 (AutoTranslate→AutoTranslateMode) in Main.cs/DuelScene.cs; 2× CS8625 (null literal) in DeckBuilderScene.cs; 2× CS8600 (TryGetValue pattern) in DigScene.cs. Suppressed at project level: CS8602 + CS8618 (Godot pattern — nodes set via GetNode() in _Ready() rather than constructor; dereference warnings are false positives from nullable analysis not understanding the Godot lifecycle). ✅
 ||- 717/717 engine tests green. All gates pass. ✅
+- 2026-08-31: TEMPO — 13 sessions yesterday, 0 validated.
