@@ -43,7 +43,7 @@ Minimum event map (manifest IDs already exist, use them as-is): card played from
   Script + schema already exist (TASK-TU1/TU2). Remaining: highlight/spotlight rects resolved against the live layout rather than hardcoded, the 9 approved beats firing in order, and the standing constraints from NOTES_FOR_HERMES §P2 held — max ONE popup per player action, act → consequence → one line naming the rule, never explain a rule before the player experiences it.
   Acceptance: completable headless with scripted inputs, a capture at each of the 9 beats with the highlight visibly on the correct element, gate green.
 
-- [ ] TASK-SIMGATE-1 — Balance sim gate: the pass/fail gate every future card batch must clear.
+|- [x] TASK-SIMGATE-1 — Balance sim gate: the pass/fail gate every future card batch must clear.
   (1) Full 7×7 matchup matrix (49 pairings, fixed seeds, both play orders) producing a winrate table.
   (2) Bot telemetry per pairing: avg turns to finish, % non-empty combat turns where chosen attack set ≠ all-legal-attackers (the TASK-S1 metric, target ≥25%), cards-in-hand at end.
   (3) A GATE script that takes the matrix and PASSES/FAILS on explicit thresholds — seed it with: no class winrate outside 35–65% vs the field, no single pairing outside 25–75%, decision metric ≥25%. Thresholds live in one config block at the top, easy for Claude to retune.

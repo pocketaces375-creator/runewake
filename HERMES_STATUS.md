@@ -1,5 +1,13 @@
 # HERMES_STATUS.md
 
+**TASK-SIMGATE-1 (2026-08-30):** Balance sim gate — the pass/fail gate every future card batch must clear.
+- (1) Full 7×7 matchup matrix (49 pairings) with unique seeds per pairing, 200 games each, both play orders. ✅
+- (2) Bot telemetry: avg turns to finish, attack deviation rate (the TASK-S1 metric), avg cards-in-hand at end. Added p0_cards_in_hand / p1_cards_in_hand to GameResult + avg_cards_in_hand_p0/p1 to BatchReport. ✅
+- (3) Gate script at sim/balance_gate.py with configurable thresholds at the top: vs-field winrate [35%, 65%], pairing winrate [25%, 75%], deviation rate ≥ 25%. ✅
+- Results written to sim/balance_matrix.md. ✅
+- Gate verdict: **FAIL** — 25 threshold violations. Outliers: Warrior (80.6% vs-field), Thief (83.6%), Cleric (70.1%), Ranger (68.0%) above 65% max; Mage (42.1%), Necromancer (46.0%), Runesmith (40.3%) within range; Thief vs Runesmith shows worst pairing (11.0% P0 winrate for Runesmith); overall deviation rate 22.9% (target 25%). ✅
+- Committed (05ae5ab) and pushed to origin/main. ✅
+
 **TASK-TUT-BUILD-1 (2026-08-30):** Build the walkthrough tutorial against the FINAL duel layout. ✅
 - Highlight system: Rewrote TutorialPopup and TutorialRunner to resolve string IDs to actual Godot Control nodes from the live layout (post-BORDER-1 positions). ✅
 - Nine highlight IDs supported: hand_card_N, lane_N, enemy_lane_N, end_turn_button, artifact_sword/shield, artifact_player_0/1, artifact_enemy_0/1, all_creatures_highlight (expands to all 5 player slots), enemy_portrait, player_portrait. ✅
