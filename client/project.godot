@@ -30,8 +30,8 @@ endpoint=""
 
 [display]
 
-window/size/viewport_width=1152
-window/size/viewport_height=648
+window/size/viewport_width=2316
+window/size/viewport_height=1080
 window/handheld/orientation=0
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"

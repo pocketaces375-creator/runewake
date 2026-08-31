@@ -310,10 +310,10 @@ public partial class Main : Control
         var checks = new (string Key, string Expected, string Label)[]
         {
             ("display/window/stretch/mode", "canvas_items", "Stretch mode"),
-            ("display/window/stretch/aspect", "expand", "Stretch aspect"),
+            ("display/window/stretch/aspect", "keep", "Stretch aspect"),
             ("display/window/handheld/orientation", "0", "Orientation (landscape)"),
-            ("display/window/size/viewport_width", "1152", "Viewport width"),
-            ("display/window/size/viewport_height", "648", "Viewport height"),
+            ("display/window/size/viewport_width", "2316", "Viewport width"),
+            ("display/window/size/viewport_height", "1080", "Viewport height"),
         };
 
         bool anyBad = false;

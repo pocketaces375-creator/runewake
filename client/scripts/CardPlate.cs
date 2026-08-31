@@ -11,7 +11,7 @@ namespace Runewake.Client;
 /// Layout (top to bottom):
 ///   [cost rune]    top-right corner (created by parent, not here)
 ///   [art area]     full card face (art fills behind all overlays)
-///   [name band]    fixed-height band at bottom of art area
+///   [name band]    dynamic-height band at bottom of art area (grows for two-line names)
 ///   [stat rail]    attack left, vigor right, docked inside bottom edge
 /// 
 /// The Root-Bound 9-slice border overlay is handled by RootBoundBorder.
@@ -39,6 +39,16 @@ public partial class CardPlate : Control
     public float PlateHeight => _designCardHeight * (FrameNameBandFraction + FrameStatRailFraction);
 
     // No _Ready — all child nodes created lazily in Setup().
+
+    /// <summary>
+    /// Result of the name auto-fit: the chosen font size, line count, and rendered text height.
+    /// </summary>
+    private struct NameFitResult
+    {
+        public int FontSize;
+        public int LineCount;
+        public float TextHeight;
+    }
 
     /// <summary>
     /// Create a stat badge label with styled background.
@@ -142,45 +152,63 @@ public partial class CardPlate : Control
         }
 
         // ═══ LAYOUT ═══
+        // Reserve the stat rail FIRST (fixed fraction of card height). The name band
+        // occupies the remainder ABOVE the rail; it can grow beyond its baseline
+        // fraction when a two-line name needs more height (never touches the rail).
 
-        float nameBandH = cardHeight * FrameNameBandFraction;
-        float statRailH = cardHeight * FrameStatRailFraction;
-        float plateH = nameBandH + statRailH;
+        float railH = cardHeight * FrameStatRailFraction;
+        float baseBandH = cardHeight * FrameNameBandFraction;
+        // Rail is reserved first; the band may grow upward into the art remainder.
+        float maxBandH = Mathf.Max(baseBandH, cardHeight - railH - 2f);
 
-        // Position this control at the bottom of the card
-        Position = new Vector2(0, cardHeight - plateH);
-        Size = new Vector2(cardWidth, plateH);
-
-        // ── Name band (top section of plate) ──
-        _nameBandBg.Position = new Vector2(0, 0);
-        _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
-
-        // ── Stat rail (bottom section of plate) ──
-        _statRailBg.Position = new Vector2(0, nameBandH);
-        _statRailBg.Size = new Vector2(cardWidth, statRailH);
-
-        // ── Name label with auto-fit ──
         int bandPx = Mathf.Max(1, Mathf.RoundToInt(cardWidth * 0.07f));
         int bufferPx = Mathf.Max(Mathf.RoundToInt(cardWidth * 0.06f), 10);
         float safeWidth = cardWidth - bandPx * 2 - bufferPx * 2;
-        float safeHeight = nameBandH - 2;
-        
-        // Clipping container fills the safe name zone
+
+        // Fit the name against the MAXIMUM available band height (rail already reserved).
+        // The clip container is sized to max initially; Setup re-sizes it to the actual band.
         _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 0);
-        _nameClipContainer.Size = new Vector2(safeWidth, safeHeight);
-        
-        // Card name label fills its parent (the clipping container)
+        _nameClipContainer.Size = new Vector2(safeWidth, maxBandH - 2f);
+
         _cardName.Position = Vector2.Zero;
-        _cardName.Size = new Vector2(safeWidth, safeHeight);
+        _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
         ApplyHeaderFont(_cardName, 14);
-        FitCardNameAuto(safeWidth, safeHeight, nameBandH);
+        var fit = FitCardNameAuto(safeWidth, maxBandH);
+
+        // Actual band height = text height + small padding, never below baseline, never
+        // above the rail-reserved remainder.
+        float nameBandH = Mathf.Clamp(fit.TextHeight + 4f, baseBandH, maxBandH);
+
+        // Position this control so the rail is docked at the card bottom.
+        float plateH = nameBandH + railH;
+        Position = new Vector2(0, cardHeight - plateH);
+        Size = new Vector2(cardWidth, plateH);
+
+        // ── Name band (top of plate) ──
+        _nameBandBg.Position = new Vector2(0, 0);
+        _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
+
+        // ── Stat rail (bottom of plate, docked) ──
+        _statRailBg.Position = new Vector2(0, nameBandH);
+        _statRailBg.Size = new Vector2(cardWidth, railH);
+
+        // ── Name label clip container — exact band height ──
+        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 0);
+        _nameClipContainer.Size = new Vector2(safeWidth, nameBandH - 2f);
+        _cardName.Size = new Vector2(safeWidth, nameBandH - 2f);
+
+        // Re-apply the fitted label properties (font size, text, lines) — the auto-fit
+        // already applied them against the max band; sizes are unchanged, this just
+        // guarantees consistency after the container is re-sized.
+        _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
+        _cardName.MaxLinesVisible = fit.LineCount;
 
         // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) ──
         float chipSize = cardWidth * FrameStatChipFraction;
         float statChipW = chipSize;
-        float statChipH = statRailH * 0.8f;
-        float statChipY = nameBandH + (statRailH - statChipH) / 2f;
+        float statChipH = railH * 0.8f;
+        float statChipY = nameBandH + (railH - statChipH) / 2f;
 
         _attackBadge.Visible = _hasAttack;
         if (_hasAttack)
@@ -261,9 +289,9 @@ public partial class CardPlate : Control
     /// Floor = 62% of base. If it won't fit: split into two lines balanced by character count,
     /// restart at base-2, shrink to hard minimum 12 (8 on artifact minis).
     /// 
-    /// Height constraint: the stat rail is reserved first (statRailH). The name
-    /// occupies the remaining band (nameBandH). Its FULL rendered height for
-    /// the chosen number of lines must NOT exceed nameBandH, or the text crosses
+    /// Height constraint: the stat rail is reserved first (railH). The name
+    /// occupies the remaining band (maxBandH). Its FULL rendered height for
+    /// the chosen number of lines must NOT exceed maxBandH, or the text crosses
     /// the stat rail / badge boundary. Shrink until both width and height fit.
     /// 
     /// The name label sits inside _nameClipContainer (ClipContents=true), which
@@ -275,20 +303,19 @@ public partial class CardPlate : Control
     /// are independent; a name that fits widthwise at 12px but needs 10px to fit
     /// height should render at 10px, not be pushed to ellipsis.
     /// </summary>
-    private void FitCardNameAuto(float safeWidth, float safeHeight, float nameBandH)
+    private NameFitResult FitCardNameAuto(float safeWidth, float maxBandH)
     {
-        if (string.IsNullOrEmpty(_cardNameText)) return;
-        if (safeWidth <= 0) return;
+        var empty = new NameFitResult { FontSize = 12, LineCount = 1, TextHeight = 0 };
+        if (string.IsNullOrEmpty(_cardNameText)) return empty;
+        if (safeWidth <= 0) return empty;
 
         var font = _cardName.GetThemeDefaultFont();
         if (font == null)
         {
             _cardName.AddThemeFontSizeOverride("font_size", 12);
-            return;
+            return empty;
         }
         // Use the font that will actually render (Cinzel override from ApplyHeaderFont).
-        // GetThemeDefaultFont() returns the theme-level default which may differ from the
-        // overridden font — measure with the override directly for accurate string sizes.
         var measureFont = _cardName.GetThemeFont("font");
         if (measureFont == null) measureFont = font;
 
@@ -310,38 +337,20 @@ public partial class CardPlate : Control
             return measureFont.GetHeight(sz);
         }
 
-        // Set the label text and size, return the font size after height check
-        int ApplyFit(int sz, string displayText, int maxLines, string[]? linesForHeight)
+        NameFitResult Result(int sz, int lines)
         {
-            int actualLines = linesForHeight != null ? linesForHeight.Length : (displayText.Contains("\n") ? displayText.Split('\n').Length : 1);
-            float textH = actualLines * LineHeight(sz);
-            
-            // Shrink until height fits — use absolute 8px floor, not hardMin
-            while (textH > nameBandH && sz > heightFloor)
-            {
-                sz--;
-                textH = actualLines * LineHeight(sz);
-            }
+            return new NameFitResult { FontSize = sz, LineCount = lines, TextHeight = lines * LineHeight(sz) };
+        }
 
-            // If still overflows height at floor, use ellipsis on single line
-            if (textH > nameBandH)
-            {
-                _cardName.AddThemeFontSizeOverride("font_size", sz);
-                _cardName.Text = displayText;
-                _cardName.MaxLinesVisible = 1;
-                _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
-                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-                return sz;
-            }
-            
+        // Apply the fitted state to the label.
+        void Apply(int sz, string displayText, int maxLines, TextServer.OverrunBehavior overrun)
+        {
             sz = Mathf.Max(1, sz);
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = displayText;
             _cardName.MaxLinesVisible = maxLines;
-            _cardName.AutowrapMode = TextServer.AutowrapMode.Word;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-            
-            return sz;
+            _cardName.AutowrapMode = maxLines > 1 ? TextServer.AutowrapMode.Word : TextServer.AutowrapMode.Off;
+            _cardName.TextOverrunBehavior = overrun;
         }
 
         // ─── Try single line, shrink from base to singleLineFloor ───
@@ -351,22 +360,22 @@ public partial class CardPlate : Control
         if (Measure(_cardNameText, sz) <= safeWidth)
         {
             float textH = 1 * LineHeight(sz);
-            if (textH <= nameBandH)
+            if (textH <= maxBandH)
             {
-                ApplyFit(sz, _cardNameText, 1, null);
-                return;
+                Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.NoTrimming);
+                return Result(sz, 1);
             }
             // Single line fits width but overflows height — shrink further to heightFloor
-            while (sz > heightFloor && 1 * LineHeight(sz) > nameBandH)
+            while (sz > heightFloor && 1 * LineHeight(sz) > maxBandH)
                 sz--;
-            if (1 * LineHeight(sz) <= nameBandH)
+            if (1 * LineHeight(sz) <= maxBandH)
             {
-                ApplyFit(sz, _cardNameText, 1, null);
-                return;
+                Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.NoTrimming);
+                return Result(sz, 1);
             }
             // Even at absolute floor, height overflows — use ellipsis
-            ApplyFit(sz, _cardNameText, 1, null);
-            return;
+            Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.TrimEllipsis);
+            return Result(sz, 1);
         }
 
         // ─── Two-line balanced split ───
@@ -383,10 +392,10 @@ public partial class CardPlate : Control
                 widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
             }
             
-            // Height check: 2 lines * lineHeight must fit in nameBandH
+            // Height check: 2 lines * lineHeight must fit in maxBandH
             // Shrink until height fits — use absolute 8px floor
             float twoLineH = 2 * LineHeight(sz);
-            while (twoLineH > nameBandH && sz > heightFloor)
+            while (twoLineH > maxBandH && sz > heightFloor)
             {
                 sz--;
                 twoLineH = 2 * LineHeight(sz);
@@ -407,25 +416,18 @@ public partial class CardPlate : Control
             }
             
             // If still overflows height at absolute floor, single-line ellipsis
-            if (twoLineH > nameBandH)
+            if (twoLineH > maxBandH)
             {
                 // Two-line doesn't fit at floor — single line with ellipsis
                 sz = hardMin;
                 while (sz > heightFloor && Measure(_cardNameText, sz) > safeWidth)
                     sz--;
-                _cardName.AddThemeFontSizeOverride("font_size", sz);
-                _cardName.Text = _cardNameText;
-                _cardName.MaxLinesVisible = 1;
-                _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
-                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-                return;
+                Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.TrimEllipsis);
+                return Result(sz, 1);
             }
             
-            _cardName.AddThemeFontSizeOverride("font_size", sz);
-            _cardName.Text = string.Join("\n", bestLines);
-            _cardName.MaxLinesVisible = 2;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-            return;
+            Apply(sz, string.Join("\n", bestLines), 2, TextServer.OverrunBehavior.NoTrimming);
+            return Result(sz, 2);
         }
 
         // Single unbreakable word — shrink to hardMin, ellipsis at absolute floor
@@ -436,31 +438,21 @@ public partial class CardPlate : Control
             // Even at hardMin width overflows — shrink further to heightFloor
             while (sz > heightFloor && Measure(_cardNameText, sz) > safeWidth)
                 sz--;
-            _cardName.AddThemeFontSizeOverride("font_size", sz);
-            _cardName.Text = _cardNameText;
-            _cardName.MaxLinesVisible = 1;
-            if (Measure(_cardNameText, sz) > safeWidth)
-            {
-                _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
-                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-            }
-            else
-                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-            return;
+            Apply(sz, _cardNameText, 1, Measure(_cardNameText, sz) > safeWidth
+                ? TextServer.OverrunBehavior.TrimEllipsis
+                : TextServer.OverrunBehavior.NoTrimming);
+            return Result(sz, 1);
         }
-        while (sz > heightFloor && 1 * LineHeight(sz) > nameBandH)
+        while (sz > heightFloor && 1 * LineHeight(sz) > maxBandH)
             sz--;
-        if (1 * LineHeight(sz) > nameBandH)
+        if (1 * LineHeight(sz) > maxBandH)
         {
             // Single line at absolute floor overflows height — use ellipsis
-            _cardName.AddThemeFontSizeOverride("font_size", sz);
-            _cardName.Text = _cardNameText;
-            _cardName.MaxLinesVisible = 1;
-            _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-            return;
+            Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.TrimEllipsis);
+            return Result(sz, 1);
         }
-        ApplyFit(sz, _cardNameText, 1, null);
+        Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.NoTrimming);
+        return Result(sz, 1);
     }
 
     /// <summary>Split words into two balanced lines by character count.</summary>

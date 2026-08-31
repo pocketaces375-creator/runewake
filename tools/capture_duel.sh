@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Dual-resolution duel capture: 1152×648 standard + 1999×932 wide.
+# Dual-resolution duel capture: 2316×1080 standard + 2999×1080 wide.
 # Swaps project.godot viewport settings between runs.
 # Usage: bash tools/capture_duel.sh
 
@@ -20,7 +20,7 @@ capture_one() {
 
     echo "=== Capture: duel_test${suffix} (${width}x${height}) ==="
 
-    # Patch project.godot viewport (key=value format under [display])
+    # Patch project.godot viewport
     sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width='"${width}"'|' "$PROJECT_GODOT"
     sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height='"${height}"'|' "$PROJECT_GODOT"
 
@@ -58,17 +58,17 @@ with open('${CAPTURE_DIR}/duel_test${suffix}.png','rb') as f:
     return $rc
 }
 
-# 1. Standard capture
-capture_one "" 1152 648
+# 1. Standard capture at 2316x1080
+capture_one "" 2316 1080
 STD_RC=$?
 
-# 2. Wide capture
-capture_one "_wide" 1999 932
+# 2. Wide capture at 2999x1080
+capture_one "_wide" 2999 1080
 WIDE_RC=$?
 
 # Restore to standard viewport
-sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=1152/" "$PROJECT_GODOT"
-sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=648/" "$PROJECT_GODOT"
+sed -i "s/^window\\/size\\/viewport_width=.*/window\\/size\\/viewport_width=2316/" "$PROJECT_GODOT"
+sed -i "s/^window\\/size\\/viewport_height=.*/window\\/size\\/viewport_height=1080/" "$PROJECT_GODOT"
 
 echo "=== Dual capture results ==="
 echo "Standard: $([ $STD_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
