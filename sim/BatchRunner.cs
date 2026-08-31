@@ -37,6 +37,12 @@ public sealed class GameResult
 
     [JsonPropertyName("deviation_turns")]
     public int DeviationTurns { get; init; }
+
+    [JsonPropertyName("p0_cards_in_hand")]
+    public int P0CardsInHand { get; init; }
+
+    [JsonPropertyName("p1_cards_in_hand")]
+    public int P1CardsInHand { get; init; }
 }
 
 /// <summary>
@@ -73,6 +79,12 @@ public sealed class BatchReport
 
     [JsonPropertyName("attack_deviation_rate")]
     public double AttackDeviationRate => TotalCombatTurns > 0 ? (double)TotalDeviationTurns / TotalCombatTurns : 0;
+
+    [JsonPropertyName("avg_cards_in_hand_p0")]
+    public double AvgCardsInHandP0 => Results.Count > 0 ? Results.Average(r => r.P0CardsInHand) : 0;
+
+    [JsonPropertyName("avg_cards_in_hand_p1")]
+    public double AvgCardsInHandP1 => Results.Count > 0 ? Results.Average(r => r.P1CardsInHand) : 0;
 
     /// <summary>
     /// Serializes this report to a compact JSON string.
@@ -276,6 +288,8 @@ public static class BatchRunner
                 P1Vigor = state.Players[1].Vigor,
                 CombatTurns = combatTurns,
                 DeviationTurns = deviationTurns,
+                P0CardsInHand = state.Players[0].Hand.Count,
+                P1CardsInHand = state.Players[1].Hand.Count,
             });
         }
 
