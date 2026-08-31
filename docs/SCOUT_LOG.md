@@ -373,3 +373,62 @@ _(none — scout does not propose changes without explicit brick approval)_
 **Self-audit: All systems green.** APK pipeline upgraded yesterday with preflight checks. Telegram relay working (occasional httpx.ReadError reconnects — normal). Foreman, capture gates, FLUX pipeline all status quo.
 
 **Recommendation:** Approve AGENT-RECOVERY-1 if mid-task deaths on deepseek-v4-flash exceed 2/week. Currently monitoring.
+## Daily Scout — 2026-08-31
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 58★ — Godot shaders for accurate PSX rendering • steamhato1-beep/soaring-kiwi-pigeonry — 55★ — Elite OpenPigeon Trainer Suite 2026: Master 8 Games With 36 Pro Toggles • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • kiwijuice56/lucid-blocks-gdblocks — 5★ — Lucid Blocks' voxel gdextension • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • S1N6H/pentest-harness — 305★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • JordyZomer/lemmalog — 219★ — A Datalog engine for LLM agent memory: stratified rules, provenance-tracked facts, incremental derivation, and an MCP se • Vuk97/forward-implementation-first — 146★ — Stop your coding agent from stalling real work on self-invented bookkeeping - receipts, hashes, locks, certification rit • useagenthq/useagent — 129★ — Hand off the work. Get back the result. The open-source AI coworker for your team: agents with their own cloud computer, • UditAkhourii/cdaf — 101★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S 
+**Image Gen:** • wide-trace/open-higgsfield — 1109★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 39★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • fajrisilmi12-cyber/hermes-socmed-function — 19★ — Custom Hermes Agent skills: AI image generation (9Router) + multi-platform social media posting (Zernio + Cloudinary) +  • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+## Daily Scout — 2026-08-31
+
+### Research Sweep
+
+**Godot:** • wyvernbw/godot-psxlike — 58★ — Godot shaders for accurate PSX rendering • steamhato1-beep/soaring-kiwi-pigeonry — 55★ — Elite OpenPigeon Trainer Suite 2026: Master 8 Games With 36 Pro Toggles • ziv/godotiles — 28★ — 3D Geospatial engine for Godot • kiwijuice56/lucid-blocks-gdblocks — 5★ — Lucid Blocks' voxel gdextension • gosomea/dsh-godot-ai — 4★ — 对gotdot-ai以及一些godot-skill的封装的 deepseek harness插件 
+**LLM Agents:** • S1N6H/pentest-harness — 305★ — Pentest Harness — Heaven for Hackers. A self-hosted AI agent harness for authorized pentests, bug bounty, security labs, • JordyZomer/lemmalog — 219★ — A Datalog engine for LLM agent memory: stratified rules, provenance-tracked facts, incremental derivation, and an MCP se • Vuk97/forward-implementation-first — 146★ — Stop your coding agent from stalling real work on self-invented bookkeeping - receipts, hashes, locks, certification rit • useagenthq/useagent — 129★ — Hand off the work. Get back the result. The open-source AI coworker for your team: agents with their own cloud computer, • UditAkhourii/cdaf — 101★ — CDAF (Cached Descriptive Asset Files) - open sidecar format for video so AI agents stop re-analyzing the same footage. S 
+**Image Gen:** • wide-trace/open-higgsfield — 1109★ — A studio for image and video generation — one prompt bar, each model’s own settings, and every finished run in one galle • GuiYi-Xi/infinite-atelier — 39★ — AI visual workspace for multi-provider model configuration, image generation, prompts, canvas and local assets • fajrisilmi12-cyber/hermes-socmed-function — 19★ — Custom Hermes Agent skills: AI image generation (9Router) + multi-platform social media posting (Zernio + Cloudinary) +  • andy7076/image_prompt — 17★ — A curated GPT image prompt gallery with masonry browsing, source-aware discovery, editable prompts, reference images, an • zidniryi/open-source-ai-models — 14★ — A curated directory of open-source & open-weight AI models — compare params, VRAM, context length, and license before pi 
+
+### Self-Audit
+- **Foreman factory:** still the best option. Chain mode, brakes, PID lock, 30-min cron. No known alternative does task queuing + budget capping + circuit breakers in shell.
+- **Capture gates:** still the best option. Pixel-level overlap verification, black-screen detection, dual-resolution capture. No alternative.
+- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.
+- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).
+- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.
+- **Telegram relay:** still the best option. Working. MEDIA: delivery works for files ≤50MB.
+
+### Recommendations
+_(none — scout does not propose changes without explicit brick approval)_
+
+
+### Hermes Analysis — 2026-08-31
+
+**Actionable findings:**
+
+1. **lemmalog (219★)** — Datalog engine for LLM agent memory with MCP server. Stratified rules, provenance tracking, incremental derivation. Worth a design discussion for a memory layer that could track card interactions, game state, and artifact lineage in Runewake. Not a drop-in — needs architecture work.
+
+2. **open-higgsfield (1109★)** — Multi-provider image/video gen studio. Popular but our direct FLUX.2 Pro pipeline is already SOTA for painterly styles. Low priority unless we need multi-model orchestration.
+
+3. **open-source-ai-models (14★)** — Curated model directory sorted by params/VRAM/context/license. Useful reference, low effort to bookmark.
+
+4. **Mid-task deaths (self-audit flag)** — deepseek/deepseek-v4-flash showing occasional mid-task failures. Ready-to-run brick proposal below.
+
+**🧱 BRICK PROPOSAL: model-fallback**
+- Trigger: ≥3 mid-task deaths from deepseek/deepseek-v4-flash within 24hr window
+- Action: Switch critical bricks (art generation, APK builds, capture gates) to `anthropic/claude-sonnet-4-20250514`
+- Cost impact: higher per-token cost, but lower failure rate means fewer retries
+- Implementation: config-only change — update `BRICK_CONFIG.yaml` default_model + add fallback chain in `foreman.sh`
+- No installation, no new dependencies
+
+**Self-audit summary:** All 6 core systems (Foreman, Capture gates, FLUX Pro, OpenRouter model, APK pipeline, Telegram relay) remain best-in-class for our stack. No urgent changes required.

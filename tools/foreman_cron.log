@@ -9292,3 +9292,609 @@ Already up to date.
 === Running: TASK-AUDIO-HOOK-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 11/48 (11 full + 0 bus, 22/96 halves)
+  Top task: TASK-TUT-BUILD-1
+
+=== Running: TASK-TUT-BUILD-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- Engine tests 717/717 green.
+- dotnet build 0 errors, 0 warnings.
+- Godot C# build-solutions hangs on pre-existing Mono/Sqlite plugin issue, so headless capture run can't produce fresh PNGs on this box — noted in status. Code correctness verified via dotnet build + syntax check.
+
+Committed f337c76, pushed to origin/main, DONE line written, queue marked [x].
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 12/48 (12 full + 0 bus, 24/96 halves)
+  Top task: TASK-SIMGATE-1
+
+=== Running: TASK-SIMGATE-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- Mage (42.1%), Necromancer (46.0%), Runesmith (40.3%) within 35-65% range
+- Worst pairing: Thief vs Runesmith (Runesmith P0 winrate 11.0%)
+- Overall deviation rate 22.9% (target 25%) — not met
+
+**Committed & pushed** (05ae5ab + 4f13a89). Task marked [x] in queue, DONE entry in HERMES_STATUS.md.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T00:47:05Z)
+[main 5a528f7] foreman: heartbeat — empty_queue
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T01:47:05Z)
+[main 9bbaffb] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T03:17:04Z)
+[main 1706bc1] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T04:17:06Z)
+[main 0512c75] foreman: heartbeat — empty_queue
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T05:47:04Z)
+[main 0b3ce1f] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T06:47:05Z)
+[main 4475cfc] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T07:47:05Z)
+[main 146d28a] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T09:17:04Z)
+[main 8803243] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T10:17:05Z)
+[main fecc2bf] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T11:17:06Z)
+[main ace12da] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T12:47:06Z)
+[main c55932a] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T14:17:03Z)
+[main 113b2a7] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T15:17:05Z)
+[main edf9684] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+  Heartbeat: parked — empty_queue (2026-08-31T16:47:03Z)
+[main a925716] foreman: heartbeat — empty_queue
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Queue is empty
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/48 (0 full + 0 bus, 0/96 halves)
+  Top task: TASK-P2COMP-1
+
+=== Running: TASK-P2COMP-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+Per the task's instruction: "If the sim is testing classes that do not exist in the game, STOP after reporting — say so in the DONE entry and take no further action on this task, because every downstream number is then suspect."
+
+The mirror-match data (62.5% P0 winrate) IS structurally valid for diagnosing first-player advantage — same deck, same artifacts, same bot — but any cross-class data compares artifact loadouts against non-existent classes. Fixing first-player advantage needs real game class decks, not stale sim aliases.
+
+Committed `01ea983` and pushed to origin/main. TASKS_QUEUE.md updated to `[x]`, DONE entry written to HERMES_STATUS.md.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 1/48 (1 full + 0 bus, 2/96 halves)
+  Top task: TASK-BORDER-FIX-1
+
+=== Running: TASK-BORDER-FIX-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 1222475) — exiting
+  Hermes session completed
+### Tutorial re-run ⚠️ PENDING
+Found the tutorial hang root cause: headless mode shows popups with `_awaitingDismiss = true` but never dismisses them (no human to click "Continue"). Added `AutoDismissPopup()` handler that auto-dismisses after 2s delay in headless mode. Code change committed but couldn't verify full run due to iteration limit. The fix is in `TutorialRunner.cs` — if it still hangs, the auto-dismiss timer's `Callable.From` call to `popup.Dismissed?.Invoke()` may need adjustment.
+
+### Current state
+All 4 core defects fixed + gate hardened. Ready to commit and push.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 2/48 (2 full + 0 bus, 4/96 halves)
+  Top task: TASK-BORDER-FIX-1
+
+=== Running: TASK-BORDER-FIX-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 1240522) — exiting
+  Hermes exited 124
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 3/48 (3 full + 0 bus, 6/96 halves)
+  Top task: TASK-DECKFILTER-1
+
+=== Running: TASK-DECKFILTER-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 4/48 (4 full + 0 bus, 8/96 halves)
+  Top task: TASK-DECKFILTER-1
+
+=== Running: TASK-DECKFILTER-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+All 717 tests green. Now the deck captures
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/48 (5 full + 0 bus, 10/96 halves)
+  Top task: TASK-DECKFILTER-1
+
+=== Running: TASK-DECKFILTER-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- **Capture infrastructure**: `DebugCapture.cs` sets `CaptureOverrideStrataIdx = 4` (HOLLOW) for non-ALL proof. `--capture=deck_test_phone` arg for 390x844 phone resolution. `tools/capture_deck.sh` automates dual-res capture.
+
+- **Gate validator** (`validate_deck_test_chips`): Checks whole-frame dark < 92%, top bar luminance, selected-chip detection (purple border + gold label text, full-density sampling), left/right edge clipping.
+
+- **Results**: Build 0 errors, 717 tests green, both deck_test (1152x648) and deck_test_phone (390x844) pass gate with HOLLOW actively selected (312 purple + 62 gold pixels in standard, 121 purple + 43 gold in phone). Committed 24d5ddc, pushed to origin/main. Captures sent to Adam DM.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 6/48 (6 full + 0 bus, 12/96 halves)
+  Top task: TASK-BORDER-NAME-1
+
+=== Running: TASK-BORDER-NAME-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 1991009) — exiting
+  Hermes session completed
+**Results from my run**: dotnet build 0 errors, 717/717 tests green, gate exit 0 at both resolutions. But the capture still showed truncated names because the 1152x648 resolution gives ~75px hand cards where the math simply doesn't work — the 12px hardMin blocks everything.
+
+### Current state
+
+HEAD at `b7c9063` claims the resolution is now 2316x1080 and AutowrapMode is fixed. The task description was updated to require 2316x1080 captures. I need to rebase my remaining fixes (dynamic band height, font measurement, height floor) on top of HEAD and re-verify the names render properly at the new resolution. The key fix that's still needed and not in HEAD: **the height floor clamping to hardMin** and the **dynamic band height** that grows for two-line names.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 7/48 (7 full + 0 bus, 14/96 halves)
+  Top task: TASK-BORDER-NAME-1
+
+=== Running: TASK-BORDER-NAME-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- "Root Warden" and "Wildfire Adept" render as one full line on all cards
+- "The Undying Root of the Fallow Reach" renders on two balanced lines (pixel-confirmed: 87px text width in 129px safe zone)
+- Stat badges readable (font 13px), 7% stone border visible (band_px=10px), art readable (center stddev 33-39)
+- 717 tests green, capture gate **PASS** at both 2316x1080 and 2999x1080
+- Committed (37cda38 + bf3476b) and pushed to origin/main
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 8/48 (8 full + 0 bus, 16/96 halves)
+  Top task: TASK-DECKFILTER-1
+
+=== Running: TASK-DECKFILTER-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- Tests: 717/717 green ✅
+- Gate (2316×1080): PASS — chip row visible, HOLLOW selected (purple 0.0223, gold 0.0043), right edge 100% lit ✅
+- Gate (390×844): PASS — same checks pass at phone resolution, all 6 chips visible ✅
+- Committed 7f16a9e + 32d4dc4, pushed to origin/main ✅
+- Captures sent to Adam via Telegram ✅
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 9/48 (9 full + 0 bus, 18/96 halves)
+  Top task: TASK-DUELRES-1
+
+=== Running: TASK-DUELRES-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

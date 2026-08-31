@@ -1471,14 +1471,14 @@ public partial class DuelScene : Control
     /// </summary>
     private void ScaleCardSizes(float viewportHeight)
     {
-        // Reference: 1080p design height = 648 viewport (canvas_items stretch).
-        // TASK-UI3c: hand cards 104×152 at design scale.
-        float reference = 648f;
+        // DUELRES-1: Design resolution 2316×1080. Reference = 1080, scale=1.0 at design size.
+        // Board cards ~200px wide, 7% band ~14px. Hand cards 173×253 at design scale.
+        float reference = 1080f;
         float scale = viewportHeight / reference;
 
-        _handCardHeight = Mathf.Max(90f, 152f * scale);
+        _handCardHeight = Mathf.Max(90f, 253f * scale);
         // DUELRES-1: Board cards ~200px wide at 1080, 7% band ~14px
-        _boardCardHeight = Mathf.Max(70f, 175f * scale);
+        _boardCardHeight = Mathf.Max(70f, 292f * scale);
 
         // HAND-VIEWPORT-FIX-1R: Hand tray anchored to viewport bottom (hand top = vh - handCardH - 12).
         // PopulateLanes re-affirms this after slot layout; this is the initial set.
@@ -1530,19 +1530,20 @@ public partial class DuelScene : Control
         var laneScene = GD.Load<PackedScene>("res://scenes/components/LaneSlot.tscn");
         float vw = GetViewportRect().Size.X;
         float vh = GetViewportRect().Size.Y;
-        float scale = vh / 648f;
-        // DUELRES-1: Board slots 200×292 at 1080 (120×175 at design), band layout
-        float slotH = 175f * scale;
-        float slotW = 120f * scale;
+        // DUELRES-1: Design resolution 2316×1080. Reference = 1080.
+        float scale = vh / 1080f;
+        float slotH = 292f * scale;
+        float slotW = 200f * scale;
 
         // Arc geometry: X positions (centers) spread across the ellipse
         float centerX = vw / 2f;
-        float spacing = 210f * scale; // 5×200px cards + gaps fit within 2316, clear of arsenal group
+        // DUELRES-1: 5 × 200px cards + gaps fit within 2316
+        float spacing = 350f * scale;
 
-        // DUELRES-1: Board slots 200×292 at 1080 (120×175 at design), spread rows to prevent outer-lane overlap
-        float boardTopOffset = 74f;
-        float enemyBaseY = 60f * scale - boardTopOffset;
-        float playerBaseY = 444f * scale - boardTopOffset - slotH;
+        // DUELRES-1: Board slots 200×292 at 1080, spread rows
+        float boardTopOffset = 123f;
+        float enemyBaseY = 100f * scale - boardTopOffset;
+        float playerBaseY = 740f * scale - boardTopOffset - slotH;
 
         for (int i = 0; i < 5; i++)
         {
@@ -1550,7 +1551,7 @@ public partial class DuelScene : Control
             float x = xCenter - slotW / 2f;
 
             // ── Enemy slot (top arc, slight bowing) ──
-            float enemyYOffset = i switch { 0 or 4 => 6f, 1 or 3 => 3f, _ => 0f } * scale;
+            float enemyYOffset = i switch { 0 or 4 => 10f, 1 or 3 => 5f, _ => 0f } * scale;
             float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
@@ -1569,7 +1570,7 @@ public partial class DuelScene : Control
 
             // ── Player slot (bottom arc, bowing upward) ──
             // CARD-POLISH-1: amplitude reduced to 8 so bigger slots fit without overlap
-            float playerYOffset = i switch { 0 or 4 => 8f, 1 or 3 => 4f, _ => 0f } * scale;
+            float playerYOffset = i switch { 0 or 4 => 13f, 1 or 3 => 7f, _ => 0f } * scale;
             float playerY = playerBaseY - playerYOffset;
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
@@ -1592,21 +1593,21 @@ public partial class DuelScene : Control
         // viewport_height - handCardHeight - 12px. Always fully visible, regardless
         // of board layout. Re-affirms the value set in ScaleCardSizes.
         float vhPop = GetViewportRect().Size.Y;
-        float scalePop = vhPop / 648f;
-        float handCardHPop = Mathf.Max(90f, 152f * scalePop); // WORLD-POLISH-1: hand card 104x152
+        float scalePop = vhPop / 1080f;
+        float handCardHPop = Mathf.Max(90f, 253f * scalePop); // DUELRES-1: hand card 173×253 at design scale
         float handTopPop = vhPop - handCardHPop - 12f;
         _handArea.OffsetTop = -(vhPop - handTopPop);
         GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}");
 
-        // [VERIFY] Band layout — DUELRES-1: 175px cards, spread rows 60..444
+        // [VERIFY] Band layout — DUELRES-1: enemy 100..412, player 448..740, gap 13px at design
         bool verifyFailed = false;
         foreach (var slot in _enemySlots)
         {
             float absTop = boardTopOffset + slot.Position.Y;
             float absBottom = absTop + slot.Size.Y;
-            if (absTop < 60f * scale - 2f || absBottom > 247f * scale + 2f)
+            if (absTop < 100f * scale - 2f || absBottom > 412f * scale + 2f)
             {
-                GD.PrintErr($"[VERIFY] Enemy slot at screen Y {absTop:F0}-{absBottom:F0} outside band 60-{247f * scale:F0}");
+                GD.PrintErr($"[VERIFY] Enemy slot at screen Y {absTop:F0}-{absBottom:F0} outside band 100-{412f * scale:F0}");
                 verifyFailed = true;
             }
         }
@@ -1614,34 +1615,34 @@ public partial class DuelScene : Control
         {
             float absTop = boardTopOffset + slot.Position.Y;
             float absBottom = absTop + slot.Size.Y;
-            if (absTop < 269f * scale - 2f || absBottom > 444f * scale + 2f)
+            if (absTop < 448f * scale - 2f || absBottom > 740f * scale + 2f)
             {
-                GD.PrintErr($"[VERIFY] Player slot at screen Y {absTop:F0}-{absBottom:F0} outside band 269-{444f * scale:F0}");
+                GD.PrintErr($"[VERIFY] Player slot at screen Y {absTop:F0}-{absBottom:F0} outside band 448-{740f * scale:F0}");
                 verifyFailed = true;
             }
         }
-        // Min gap between rows (269 - 247 = 22px at design scale)
+        // Min gap between rows (448 - 412 = 36px at design scale)
         float enemyBottom = boardTopOffset + _enemySlots.Max(s => s.Position.Y + s.Size.Y);
         float playerTop = boardTopOffset + _playerSlots.Min(s => s.Position.Y);
         float gapBetween = playerTop - enemyBottom;
-        if (gapBetween < 8f * scale - 1f)
+        if (gapBetween < 13f * scale - 1f)
         {
-            GD.PrintErr($"[VERIFY] Gap {gapBetween:F0}px < min 8px between rows");
+            GD.PrintErr($"[VERIFY] Gap {gapBetween:F0}px < min 13px between rows");
             verifyFailed = true;
         }
         // Hand top never enters player row band
-        if (handTopPop < 269f * scalePop)
+        if (handTopPop < 448f * scalePop)
         {
-            GD.PrintErr($"[VERIFY] Hand top {handTopPop:F0} enters player row band (band bottom = {444f * scalePop:F0})");
+            GD.PrintErr($"[VERIFY] Hand top {handTopPop:F0} enters player row band (band bottom = {740f * scalePop:F0})");
             verifyFailed = true;
         }
         // Min horizontal gap between adjacent board cards
         for (int i = 1; i < _enemySlots.Count; i++)
         {
             float gap_adj = _enemySlots[i].Position.X - (_enemySlots[i-1].Position.X + _enemySlots[i-1].Size.X);
-            if (gap_adj < 18f * scale - 1f)
+            if (gap_adj < 30f * scale - 1f)
             {
-                GD.PrintErr($"[VERIFY] Enemy slot horizontal gap {gap_adj:F0}px < min 18px (idx {i-1}-{i})");
+                GD.PrintErr($"[VERIFY] Enemy slot horizontal gap {gap_adj:F0}px < min 30px (idx {i-1}-{i})");
                 verifyFailed = true;
             }
         }
