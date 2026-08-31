@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-DUELRES-1 — Set the client design resolution to 2316x1080 and re-render at design size
+- [x] TASK-DUELRES-1 — Set the client design resolution to 2316x1080 and re-render at design size
   Measured from the 2026-08-31 capture (2560x922): aspect 2.78:1 vs approved 2.14:1; board
   cards ~118px = 4.6% of frame width vs design ~200px = 8.6%. Band, name and stat sizes are
   computed from card width, so this is the root cause of the cheap look.

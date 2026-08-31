@@ -1,3 +1,15 @@
+**TASK-DUELRES-1 (2026-08-31):** Design resolution set to 2316×1080, board cards 200×292px, 7% band 14px. ✅
+- **Resolution:** project.godot already at 2316×1080, stretch canvas_items, aspect keep. ✅
+- **Board card size:** ScaleCardSizes board height 175f (was 129f) → 200×292px at 1080; PopulateLanes slotW 120f (was 88f), slotH 175f (was 129f). ✅
+- **Row formula:** Corrected `enemyBaseY = 60f * scale - boardTopOffset` (was `(72f - boardTopOffset) * scale` — divergent at higher scales). Player row at 444f (was 430f). ✅
+- **Row spacing:** Spread to prevent outer-lane overlap with 200px cards — enemy band 60..247, player band 269..444 at design scale. ✅
+- **Card spacing:** Reduced from 250px to 210px at design scale to clear arsenal group. ✅
+- **Verification bands:** Updated to match new row positions. ✅
+- **Gates:** Both PASS — standard (2316×1080) and wide (2999×1080), hashes differ, wide meta reports true dims. ✅
+- **Captures committed:** duel_test.png (2316×1080, 2.9MB) and duel_test_wide.png (2999×1080, 3.6MB). ✅
+- **Committed (7188d19) and pushed to origin/main.** ✅
+- **NOTE:** Acceptance gate is Trikzos' approval of the capture in the group — awaiting human sign-off. ✅
+
 # HERMES_STATUS.md
 
 **TASK-DECKFILTER-1 (2026-08-31):** Strata filter chip row in Deck Forge — rebuilt for proper touch targets, vertical centering, and selected state visibility. ✅
