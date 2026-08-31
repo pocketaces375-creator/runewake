@@ -730,7 +730,65 @@ VALIDATORS = {
     "duel_test_wide": validate_duel_test,
     "deck_test": validate_deck_test,
     "title_deck": validate_title_deck_test,
+    "tutorial_warrior_intro": validate_tutorial_capture,
 }
+
+
+def validate_tutorial_capture(png_path, meta):
+    """Validate a tutorial beat capture: not a black screen, has beat metadata."""
+    width, height, pixels, color_type = read_png(png_path)
+    total_pixels = width * height
+
+    black_threshold = 12.0 / 255.0
+    dark_count = 0
+    for i in range(0, len(pixels), 4 if color_type == 6 else 3):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        if get_luminance(r, g, b) < black_threshold:
+            dark_count += 1
+
+    dark_ratio = dark_count / total_pixels
+    failures = []
+
+    if dark_ratio > 0.60:
+        failures.append(
+            f"BLACK_SCREEN: {dark_ratio:.1%} pixels are near-black "
+            f"(threshold 60%, luminance < {black_threshold*255:.0f}/255)"
+        )
+    else:
+        print(f"  PASS black-screen: {dark_ratio:.1%} near-black pixels (limit 60%)")
+
+    beat_id = meta.get("beat_id", "")
+    tutorial_id = meta.get("tutorial_id", "")
+    turn = meta.get("turn", 0)
+    if beat_id:
+        print(f"  Beat: {beat_id} (turn {turn}, tutorial {tutorial_id})")
+    else:
+        failures.append("MISSING_META: capture has no beat_id in meta.json")
+
+    margin_w = int(width * 0.15)
+    margin_h = int(height * 0.15)
+    cx, cy = margin_w, margin_h
+    cw, ch = width - 2 * margin_w, height - 2 * margin_h
+    if cw > 0 and ch > 0:
+        mean, std = rect_mean_stddev(pixels, width, height, cx, cy, cw, ch)
+        if std < 5.0 / 255.0:
+            failures.append(
+                f"ART_FLAT: center {cw}x{ch} region stddev {std:.3f} "
+                f"({std*255:.0f}/255) — too uniform (need > 5/255)"
+            )
+        else:
+            print(f"  PASS art region: mean={mean:.3f}, std={std:.3f}")
+
+    if failures:
+        print(f"\nFAILURE ({len(failures)} reasons):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
+    else:
+        print(f"\nPASS: Tutorial beat capture {beat_id} OK")
+
 
 def main():
     capture_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"

@@ -474,10 +474,140 @@ public partial class TutorialRunner : Node
             ShowSkip = false
         };
 
-        _popup.Show(content);
+        // Resolve highlight string IDs to actual Control nodes from the live layout
+        var resolvedHighlights = new List<Control>();
+        if (highlights is { Count: > 0 })
+        {
+            // "all_creatures_highlight" is a magic ID — we handle it first, expanding
+            // to all owned player slots, then treat the rest as individual IDs
+            bool expandAllCreatures = highlights.Contains("all_creatures_highlight");
+            foreach (var id in highlights)
+            {
+                if (id == "all_creatures_highlight")
+                    continue; // handled below
+                var ctrl = ResolveHighlight(id);
+                if (ctrl != null)
+                    resolvedHighlights.Add(ctrl);
+            }
+            if (expandAllCreatures && _duelScene.TutorialPlayerSlots is { Count: 5 })
+            {
+                // Add all player lane slots as separate highlights
+                foreach (var slot in _duelScene.TutorialPlayerSlots)
+                {
+                    if (slot != null && GodotObject.IsInstanceValid(slot) && !resolvedHighlights.Contains(slot))
+                        resolvedHighlights.Add(slot);
+                }
+            }
+        }
+
         _popup.HighlightMargins = new Vector2(8, 8);
 
-        GD.Print($"[TutorialRunner] Popup shown: \"{text}\"");
+        // Set highlights BEFORE Show so the popup can render them immediately
+        _popup.SetHighlightTargets(resolvedHighlights);
+        _popup.Show(content);
+
+        GD.Print($"[TutorialRunner] Popup shown: \"{text}\" ({resolvedHighlights.Count} highlights resolved)");
+    }
+
+    /// <summary>
+    /// Resolve a highlight string ID to the actual Godot Control node,
+    /// using the live duel layout (post-BORDER-1 positions).
+    /// </summary>
+    private Control? ResolveHighlight(string id)
+    {
+        // Hand cards: "hand_card_0" through "hand_card_9"
+        if (id.StartsWith("hand_card_") && int.TryParse(id.AsSpan("hand_card_".Length), out int handIdx))
+        {
+            var handCards = _duelScene.TutorialHandCards;
+            if (handIdx >= 0 && handIdx < handCards.Count && handCards[handIdx] != null && GodotObject.IsInstanceValid(handCards[handIdx]))
+                return handCards[handIdx];
+            GD.PrintErr($"[TutorialRunner] Highlight ID '{id}': hand card index {handIdx} out of range ({handCards.Count} cards)");
+            return null;
+        }
+
+        // Player lane slots: "lane_0" through "lane_4"
+        if (id.StartsWith("lane_") && int.TryParse(id.AsSpan("lane_".Length), out int laneIdx))
+        {
+            var slots = _duelScene.TutorialPlayerSlots;
+            if (laneIdx >= 0 && laneIdx < slots.Count && slots[laneIdx] != null && GodotObject.IsInstanceValid(slots[laneIdx]))
+                return slots[laneIdx];
+            GD.PrintErr($"[TutorialRunner] Highlight ID '{id}': player lane index {laneIdx} out of range");
+            return null;
+        }
+
+        // Enemy lane slots: "enemy_lane_0" through "enemy_lane_4"
+        if (id.StartsWith("enemy_lane_") && int.TryParse(id.AsSpan("enemy_lane_".Length), out int enemyLaneIdx))
+        {
+            var slots = _duelScene.TutorialEnemySlots;
+            if (enemyLaneIdx >= 0 && enemyLaneIdx < slots.Count && slots[enemyLaneIdx] != null && GodotObject.IsInstanceValid(slots[enemyLaneIdx]))
+                return slots[enemyLaneIdx];
+            return null;
+        }
+
+        // End Turn button
+        if (id == "end_turn_button")
+        {
+            var btn = _duelScene.TutorialEndTurnButton;
+            if (btn != null && GodotObject.IsInstanceValid(btn))
+                return btn;
+            GD.PrintErr("[TutorialRunner] Highlight 'end_turn_button': not available");
+            return null;
+        }
+
+        // Artifact plates: "artifact_sword" → player plate 0, "artifact_shield" → player plate 1
+        if (id.StartsWith("artifact_"))
+        {
+            var plates = _duelScene.TutorialPlayerArtifactPlates;
+            int artIdx = id switch
+            {
+                "artifact_sword" => 0,
+                "artifact_shield" => 1,
+                "artifact_player_0" => 0,
+                "artifact_player_1" => 1,
+                "artifact_enemy_0" => 2,
+                "artifact_enemy_1" => 3,
+                _ => -1
+            };
+            if (artIdx >= 0 && artIdx < plates.Length)
+            {
+                if (plates[artIdx] != null && GodotObject.IsInstanceValid(plates[artIdx]))
+                    return plates[artIdx];
+                // For indices 2-3, enemy plates
+                if (artIdx >= 2)
+                {
+                    var enemyPlates = _duelScene.TutorialEnemyArtifactPlates;
+                    int ei = artIdx - 2;
+                    if (ei >= 0 && ei < enemyPlates.Length && enemyPlates[ei] != null && GodotObject.IsInstanceValid(enemyPlates[ei]))
+                        return enemyPlates[ei];
+                }
+            }
+            GD.PrintErr($"[TutorialRunner] Highlight '{id}': artifact index {artIdx} not available");
+            return null;
+        }
+
+        // Enemy portrait
+        if (id == "enemy_portrait")
+        {
+            // Find the enemy name label or portrait control in DuelScene
+            var duelScene = _duelScene;
+            var enemyPortrait = duelScene.GetNodeOrNull<Control>("EnemyPortrait");
+            if (enemyPortrait != null && GodotObject.IsInstanceValid(enemyPortrait))
+                return enemyPortrait;
+            return null;
+        }
+
+        // Player portrait
+        if (id == "player_portrait")
+        {
+            var duelScene = _duelScene;
+            var playerPortrait = duelScene.GetNodeOrNull<Control>("PlayerPortrait");
+            if (playerPortrait != null && GodotObject.IsInstanceValid(playerPortrait))
+                return playerPortrait;
+            return null;
+        }
+
+        GD.PrintErr($"[TutorialRunner] Unknown highlight ID: '{id}'");
+        return null;
     }
 
     private void OnPopupDismissed()

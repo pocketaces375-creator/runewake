@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Runewake.Client;
@@ -6,17 +7,19 @@ namespace Runewake.Client;
 /// <summary>
 /// Modal tutorial popup presenter — one implementation of <see cref="ITutorialPresenter"/>.
 /// Blocks all input behind it with a dim overlay until dismissed.
-/// No timers, no auto-advance — the only exit is the Continue button (or Skip link).
+/// Supports spotlight highlights: resolves target Control nodes from the live duel layout
+/// and draws golden pulsing frames around their global rects.
 ///
 /// Usage:
 ///   var popup = new TutorialPopup();
-///   popup.HighlightTarget = someControl;
+///   popup.SetHighlightTargets(new List<Control> { handCard, laneSlot, endTurnBtn });
 ///   popup.Dismissed += () => { ... };
 ///   popup.Show(content);
 ///   AddChild(popup);
 ///
 /// The dim overlay uses MouseFilter.Stop so no input reaches the board
-/// while a popup is visible.
+/// while a popup is visible. Highlight frames are drawn above the dim,
+/// making the highlighted elements pop through as the only interactive targets.
 /// </summary>
 public partial class TutorialPopup : Control, ITutorialPresenter
 {
@@ -25,11 +28,18 @@ public partial class TutorialPopup : Control, ITutorialPresenter
     private static readonly Color BorderColor = new(0.8f, 0.6f, 0.2f, 0.6f);
     private static readonly Color TitleColor = new(0.9f, 0.75f, 0.3f);
 
+    // Highlight visual constants
+    private static readonly Color HighlightPulseA = new(0.9f, 0.7f, 0.2f, 0.7f); // peak
+    private static readonly Color HighlightPulseB = new(0.9f, 0.7f, 0.2f, 0.2f); // trough
+    private const float HighlightThickness = 3f;
+
     private TutorialContent? _currentContent;
-    private Control? _highlightTarget;
     private Vector2 _highlightMargins;
-    private Control? _highlightFrame;
     private bool _wasSkipped;
+
+    // Multi-highlight support: each target gets its own pulse-animated outline frame
+    private readonly List<Control> _highlightTargets = new();
+    private readonly List<PanelContainer> _highlightFrames = new();
 
     // ── ITutorialPresenter ──
 
@@ -55,22 +65,24 @@ public partial class TutorialPopup : Control, ITutorialPresenter
     // ── Presenter-specific properties ──
 
     /// <summary>
-    /// Optional node to highlight with a golden pulsing border while this popup is open.
-    /// Must be set before Show() for first render.
+    /// Set the highlight target nodes BEFORE calling Show() for first render,
+    /// or call at any time to update which elements are highlighted.
+    /// Targets are resolved from the live layout — their global rects are
+    /// captured at render time, so elements that haven't had their layout
+    /// finalized yet will work after a call_deferred refresh.
     /// </summary>
-    public Control? HighlightTarget
+    public void SetHighlightTargets(List<Control> targets)
     {
-        get => _highlightTarget;
-        set
-        {
-            _highlightTarget = value;
-            if (IsInsideTree())
-                RefreshHighlight();
-        }
+        _highlightTargets.Clear();
+        _highlightTargets.AddRange(targets);
+
+        if (IsInsideTree())
+            RefreshHighlights();
     }
 
     /// <summary>
-    /// Extra margin (px) around the highlight target's rect for visual padding.
+    /// Extra margin (px) around each highlight target's rect for visual padding.
+    /// Applied as a uniform inset expansion on all four sides.
     /// </summary>
     public Vector2 HighlightMargins
     {
@@ -78,8 +90,8 @@ public partial class TutorialPopup : Control, ITutorialPresenter
         set
         {
             _highlightMargins = value;
-            if (IsInsideTree() && _highlightTarget != null)
-                RefreshHighlight();
+            if (IsInsideTree() && _highlightTargets.Count > 0)
+                RefreshHighlights();
         }
     }
 
@@ -92,8 +104,8 @@ public partial class TutorialPopup : Control, ITutorialPresenter
     // ── Construction ──
 
     /// <summary>
-    /// Create a tutorial popup presenter. Call Show() to display content,
-    /// then AddChild() to add to the scene tree.
+    /// Create a tutorial popup presenter. Call SetHighlightTargets() before Show()
+    /// for initial highlights, then Show() to display content.
     /// </summary>
     public TutorialPopup()
     {
@@ -228,26 +240,26 @@ public partial class TutorialPopup : Control, ITutorialPresenter
             };
             skipLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.5f, 0.6f));
             skipLabel.AddThemeFontSizeOverride("font_size", 14);
-            // Make clickable via GuiInput
             skipLabel.MouseFilter = MouseFilterEnum.Stop;
             skipLabel.GuiInput += (@event) =>
             {
                 if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
                 {
                     _wasSkipped = true;
-                    _isWaitingForConfirm = false; // clear any pending confirm
+                    _isWaitingForConfirm = false;
                     OnDismissed();
                 }
             };
             container.AddChild(skipLabel);
         }
 
-        // ── Refresh highlight if one was set before Show() ──
-        if (_highlightTarget != null)
-            Callable.From(RefreshHighlight).CallDeferred();
+        // ── Refresh highlights ──
+        // Must be deferred so that newly-created child nodes have their final layout
+        if (_highlightTargets.Count > 0)
+            Callable.From(RefreshHighlights).CallDeferred();
     }
 
-    // ── Skip confirmation (replaces old confirmation dialog) ──
+    // ── Skip confirmation ──
     private bool _isWaitingForConfirm;
 
     private void OnContinuePressed()
@@ -261,42 +273,93 @@ public partial class TutorialPopup : Control, ITutorialPresenter
         Dismissed?.Invoke();
     }
 
-    // ── Highlight system ──
+    // ── Multi-highlight system ──
 
-    private void RefreshHighlight()
+    /// <summary>
+    /// Rebuild all highlight frames to match the current target list.
+    /// Each target gets a pulsing golden outline drawn around its global rect,
+    /// with margins applied for visual breathing room.
+    /// </summary>
+    private void RefreshHighlights()
     {
-        if (_highlightTarget == null || !IsInsideTree())
+        RemoveAllHighlightFrames();
+
+        if (_highlightTargets.Count == 0 || !IsInsideTree())
             return;
 
-        RemoveHighlightFrame();
-
-        var targetRect = _highlightTarget.GetRect();
-        var globalPos = _highlightTarget.GetGlobalMousePosition(); // fallback
-        // Use GlobalPosition + rect offset for proper positioning
-        // We draw a golden outline around the target
-
-        _highlightFrame = new ColorRect
+        foreach (var target in _highlightTargets)
         {
-            Color = new Color(0, 0, 0, 0), // invisible fill
-            // Position relative to this node's coordinate space
-            ZIndex = 10
-        };
-        AddChild(_highlightFrame);
+            if (target == null || !GodotObject.IsInstanceValid(target))
+                continue;
 
-        // Animate pulse
-        var tween = CreateTween();
-        tween.SetLoops();
-        tween.TweenProperty(_highlightFrame, "self_modulate", new Color(0.9f, 0.7f, 0.2f, 0.6f), 0.8f);
-        tween.TweenProperty(_highlightFrame, "self_modulate", new Color(0.9f, 0.7f, 0.2f, 0.2f), 0.8f);
+            // Compute global rect of the target element
+            // Since this popup covers the entire viewport, GlobalPosition is effectively (0,0).
+            Rect2 targetRect = target.GetGlobalRect();
+
+            if (targetRect.Size.X <= 0 || targetRect.Size.Y <= 0)
+                continue; // element not laid out yet
+
+            // Expand by margins
+            float mx = _highlightMargins.X;
+            float my = _highlightMargins.Y;
+            var framePos = new Vector2(targetRect.Position.X - mx, targetRect.Position.Y - my);
+            var frameSize = new Vector2(targetRect.Size.X + mx * 2, targetRect.Size.Y + my * 2);
+
+            // Create highlight outline as a PanelContainer with transparent fill
+            // and a colored border via StyleBoxFlat
+            var panel = new PanelContainer
+            {
+                Position = framePos,
+                Size = frameSize,
+                ZIndex = 10,
+                MouseFilter = MouseFilterEnum.Ignore // highlight doesn't block input to the element
+            };
+            var style = new StyleBoxFlat
+            {
+                BgColor = new Color(0, 0, 0, 0), // transparent fill
+                BorderWidthLeft = Math.Max(1, (int)HighlightThickness),
+                BorderWidthRight = Math.Max(1, (int)HighlightThickness),
+                BorderWidthTop = Math.Max(1, (int)HighlightThickness),
+                BorderWidthBottom = Math.Max(1, (int)HighlightThickness),
+                BorderColor = HighlightPulseA,
+                CornerRadiusTopLeft = 4,
+                CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4,
+                CornerRadiusBottomRight = 4,
+            };
+            panel.AddThemeStyleboxOverride("panel", style);
+
+            AddChild(panel);
+            _highlightFrames.Add(panel);
+
+            // Start pulse animation via tween on the border alpha
+            var tween = CreateTween();
+            tween.SetLoops();
+            tween.TweenMethod(Callable.From((float t) =>
+            {
+                if (!IsInstanceValid(panel)) return;
+                // Triangle wave: peak → trough → peak over 0.8s interval
+                float alpha = HighlightPulseA.A + (HighlightPulseB.A - HighlightPulseA.A)
+                    * (1f - Mathf.Abs((t * 2f) - 1f));
+                var modColor = style.BorderColor;
+                modColor.A = alpha;
+                style.BorderColor = modColor;
+                panel.AddThemeStyleboxOverride("panel", style);
+            }), 0f, 1f, 0.8f);
+        }
+
+        // Force redraw to ensure new children render immediately
+        QueueRedraw();
     }
 
-    private void RemoveHighlightFrame()
+    private void RemoveAllHighlightFrames()
     {
-        if (_highlightFrame != null)
+        foreach (var frame in _highlightFrames)
         {
-            _highlightFrame.QueueFree();
-            _highlightFrame = null;
+            if (GodotObject.IsInstanceValid(frame))
+                frame.QueueFree();
         }
+        _highlightFrames.Clear();
     }
 
     /// <summary>
@@ -304,7 +367,7 @@ public partial class TutorialPopup : Control, ITutorialPresenter
     /// </summary>
     public override void _ExitTree()
     {
-        RemoveHighlightFrame();
+        RemoveAllHighlightFrames();
         Dismissed = null;
     }
 }

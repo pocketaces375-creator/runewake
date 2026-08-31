@@ -39,7 +39,7 @@ Minimum event map (manifest IDs already exist, use them as-is): card played from
   (2) Compiler warnings: baseline is ~129. Get under 30. Fix real ones (unused/nullability/async), do NOT blanket-suppress with pragmas — if a category is genuinely noise-only, say so in the DONE entry and suppress that category explicitly at project level with a one-line justification.
   Acceptance: 5/5 duels clean with seeds listed, warning count before/after in the DONE entry, all tests green.
 
-- [ ] TASK-TUT-BUILD-1 — Build the walkthrough tutorial against the FINAL duel layout. BLOCKED until TASK-BORDER-1 is [x] — highlight rects must target the real post-border layout or they will all be wrong. If BORDER-1 is not done, skip this and take the next task.
+- [x] TASK-TUT-BUILD-1 — Build the walkthrough tutorial against the FINAL duel layout. BLOCKED until TASK-BORDER-1 is [x] — highlight rects must target the real post-border layout or they will all be wrong. If BORDER-1 is not done, skip this and take the next task.
   Script + schema already exist (TASK-TU1/TU2). Remaining: highlight/spotlight rects resolved against the live layout rather than hardcoded, the 9 approved beats firing in order, and the standing constraints from NOTES_FOR_HERMES §P2 held — max ONE popup per player action, act → consequence → one line naming the rule, never explain a rule before the player experiences it.
   Acceptance: completable headless with scripted inputs, a capture at each of the 9 beats with the highlight visibly on the correct element, gate green.
 

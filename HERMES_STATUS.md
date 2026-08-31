@@ -1,5 +1,17 @@
 # HERMES_STATUS.md
 
+**TASK-TUT-BUILD-1 (2026-08-30):** Build the walkthrough tutorial against the FINAL duel layout. ✅
+- Highlight system: Rewrote TutorialPopup and TutorialRunner to resolve string IDs to actual Godot Control nodes from the live layout (post-BORDER-1 positions). ✅
+- Nine highlight IDs supported: hand_card_N, lane_N, enemy_lane_N, end_turn_button, artifact_sword/shield, artifact_player_0/1, artifact_enemy_0/1, all_creatures_highlight (expands to all 5 player slots), enemy_portrait, player_portrait. ✅
+- TutorialPopup: Fixed broken `GetGlobalMousePosition()` fallback → proper `GetGlobalRect()` positioning. Multi-target support with per-target pulsing golden border (StyleBoxFlat, triangle-wave alpha, 0.8s interval). ✅
+- TutorialRunner.ResolveHighlights(): Maps all 9 approved beat highlight IDs to live Controls via DuelScene's internal accessors (TutorialHandCards, TutorialPlayerSlots, TutorialEndTurnButton, TutorialPlayerArtifactPlates). ✅
+- DuelScene: Updated old TutorialController references from `_tutorialPopup.HighlightTarget =` to `_tutorialPopup.SetHighlightTargets()`. ✅
+- Capture gate: Added `validate_tutorial_capture()` validator (black-screen check, beat_id metadata, art region variance). Registered as `tutorial_warrior_intro`. ✅
+- Engine tests: 717/717 green. ✅
+- Client build: 0 errors (Godot C# build-solutions blocked by pre-existing Mono/Sqlite issue — code verified via dotnet build which succeeds). ✅
+- 7 warrior_intro beats: t1_summon (hand_card_0, lane_2), t1_attack (lane_2), t1_end (end_turn_button), t2_summon (artifact_shield, hand_card_0), t2_hold_back (end_turn_button), t3_attack_all (all 5 player slots), t3_end (popup only). ✅
+- Committed and pushed to origin/main. ✅
+
 **TASK-AUDIO-HOOK-1 (2026-08-30):** All 13 manifest events wired to game call sites. ✅
 - **card_play** → OnPlayCardRequested (creature summon) ✅
 - **spell** → OnPlayCardRequested (RITUAL type) ✅

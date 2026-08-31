@@ -103,6 +103,14 @@ public partial class DuelScene : Control
     private int _prevHandSize;
     private int _prevPlayerChargesFull; // tracks which slots were at max charges last render
 
+    // TASK-TUT-BUILD-1: Internal accessors for TutorialRunner highlight resolution
+    internal List<HandCard> TutorialHandCards => _handCards;
+    internal List<LaneSlot> TutorialPlayerSlots => _playerSlots;
+    internal List<LaneSlot> TutorialEnemySlots => _enemySlots;
+    internal Button? TutorialEndTurnButton => _endTurnButton;
+    internal ArtifactCardPlate[] TutorialPlayerArtifactPlates => _playerArtifactPlates;
+    internal ArtifactCardPlate[] TutorialEnemyArtifactPlates => _enemyArtifactPlates;
+
     private bool _isCampaignEncounter;
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
@@ -731,7 +739,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
 
-        _tutorialPopup.HighlightTarget = _enemyVigorValue;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
         _tutorialCtrl.ShowPopup("p1_goal",
             onContinue: ShowPopup2_Attunement,
             onSkip: () =>
@@ -746,7 +754,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
 
-        _tutorialPopup.HighlightTarget = _playerAttuneValue;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _playerAttuneValue });
         _tutorialCtrl.ShowPopup("p2_attunement",
             onContinue: ShowPopup3_Summoning
         );
@@ -767,7 +775,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
 
-        _tutorialPopup.HighlightTarget = FindPlayerCreatureNode() as Control;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { FindPlayerCreatureNode() as Control });
         _tutorialCtrl.ShowPopup("p4a_attacking",
             onContinue: () => { _tutorialAwaitingCreatureSelect = true; }
         );
@@ -788,7 +796,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
 
-        _tutorialPopup.HighlightTarget = _enemyVigorValue;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
         _tutorialCtrl.ShowPopup("p5_facehit",
             onContinue: ShowPopup6_TurnCycle
         );
@@ -799,7 +807,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
 
-        _tutorialPopup.HighlightTarget = _endTurnButton;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _endTurnButton });
         _tutorialCtrl.ShowPopup("p6_turncycle",
             onContinue: () =>
             {
