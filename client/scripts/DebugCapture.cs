@@ -86,6 +86,12 @@ public partial class DebugCapture : Node
                 deckBuilderMode = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=deck_test");
             }
+            if (arg == "--capture=deck_test_phone")
+            {
+                deckBuilderMode = true;
+                CampaignContext.PhoneCaptureMode = true;
+                GD.Print("[DebugCapture] Phone capture mode enabled: --capture=deck_test_phone");
+            }
             if (arg == "--capture=title_deck")
             {
                 titleDeckMode = true;
@@ -351,6 +357,9 @@ public partial class DebugCapture : Node
         CampaignContext.Progression.DeckCardIds.AddRange(deck);
 
         GD.Print($"[DebugCapture] Deck builder test: {deck.Count} cards loaded, one duplicate forced");
+
+        // Set HOLLOW filter active (index 4) so capture shows a non-ALL selected state
+        CampaignContext.CaptureOverrideStrataIdx = 4;
 
         // Set auto-capture flag to navigate to deck builder
         CampaignContext.AutoCaptureScreenshot = true;

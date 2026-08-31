@@ -93,6 +93,17 @@ public static class CampaignContext
     /// </summary>
     public static bool CaptureDeckBuilderScreenshot { get; set; }
 
+    /// <summary>
+    /// When >= 0, DeckBuilderScene uses this strata index instead of the default ALL (0).
+    /// Used by DebugCapture to produce captures with a non-ALL filter selected.
+    /// </summary>
+    public static int CaptureOverrideStrataIdx { get; set; } = -1;
+
+    /// <summary>Test hook: phone-resolution (390x844) capture mode.
+    /// Set by --capture=deck_test_phone CLI arg via DebugCapture.
+    /// </summary>
+    public static bool PhoneCaptureMode { get; set; }
+
     /// <summary>Test hook: capture title screen with Decks button, then navigate to deck builder.
     /// Set by --capture=title_deck CLI arg via DebugCapture.
     /// </summary>

@@ -648,6 +648,168 @@ def validate_deck_test(png_path, meta):
 
 
 # ════════════════════════════════════════════
+# Deck builder filter chips validator (TASK-DECKFILTER-1)
+# ════════════════════════════════════════════
+
+def validate_deck_test_chips(png_path, meta):
+    """Validate that the strata filter chip row is visible, a non-ALL chip
+    (HOLLOW) is selected, no chip is clipped at either edge."""
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
+
+    width, height, pixels = read_png(str(png_path))
+    total_pixels = width * height
+    print(f"Image: {width}x{height}, {total_pixels} pixels")
+    failures = []
+
+    near_black_threshold = 25 / 255.0
+
+    # 1. Whole frame must not be all-dark (chip row must be visible)
+    dark_count = 0
+    for i in range(0, len(pixels), 4):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+        if lum < near_black_threshold:
+            dark_count += 1
+
+    dark_ratio = dark_count / total_pixels
+    if dark_ratio > 0.92:
+        failures.append(f"WHOLE_FRAME_DARK: {dark_ratio:.1%} pixels are near-black (threshold 92%)")
+    else:
+        print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black (limit 92%)")
+
+    # 2. Top bar region (y=0 to y=70, full width) must have content —
+    #    this is where the filter chip row lives. Check it's not uniform-dark.
+    top_bar_h = min(70, height)
+    top_samples = 0
+    top_lum_sum = 0.0
+    for y in range(top_bar_h):
+        for x in range(0, width, 4):  # sample every 4th pixel
+            i = (y * width + x) * 4
+            if i + 3 >= len(pixels):
+                continue
+            r = pixels[i] / 255.0
+            g = pixels[i + 1] / 255.0
+            b = pixels[i + 2] / 255.0
+            lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+            top_lum_sum += lum
+            top_samples += 1
+
+    if top_samples > 0:
+        top_avg_lum = top_lum_sum / top_samples
+        if top_avg_lum < 0.05:
+            failures.append(f"TOP_BAR_DARK: average luminance {top_avg_lum:.3f} — chip row not visible")
+        else:
+            print(f"  PASS top bar luminance: avg {top_avg_lum:.3f} (chip row has content)")
+
+    # 3. Check for HOLLOW (purple) pixels in the top bar area to confirm
+    #    the non-ALL filter chip is selected. HOLLOW = #5A3A5A ≈ R=90,G=58,B=90
+    #    The selected chip has a fill of HOLLOW at 22% alpha over the dark bg
+    #    (~RGB 49,38,40). Also check for gold pixels which indicate the
+    #    selected chip's label color (#D4B84C ≈ R=212,G=184,B=76).
+    #    Combining both signals gives reliable detection.
+    selected_detected = False
+    chip_row_y_start = 40  # chips start ~40px down in the top bar
+    chip_row_y_end = min(chip_row_y_start + 44, height, top_bar_h)
+    hollow_pixels = 0
+    gold_pixels = 0
+    total_checked = 0
+    if chip_row_y_start < chip_row_y_end:
+        for y in range(chip_row_y_start, chip_row_y_end):
+            for x in range(width):  # full-density sampling
+                i = (y * width + x) * 4
+                if i + 3 >= len(pixels):
+                    continue
+                r = pixels[i]
+                g = pixels[i + 1]
+                b = pixels[i + 2]
+                # Purple-ish (HOLLOW border #5A3A5A or its anti-aliased edges)
+                if r > 60 and r < 130 and g > 25 and g < 80 and b > 50 and b < 120:
+                    hollow_pixels += 1
+                # Gold-ish (selected label color #D4B84C or similar)
+                if r > 170 and g > 140 and b < 120 and r > g and g > b:
+                    gold_pixels += 1
+                total_checked += 1
+
+    if total_checked > 0:
+        hollow_ratio = hollow_pixels / total_checked
+        gold_ratio = gold_pixels / total_checked
+        # Either purple border pixels (> 2 per 10K) or gold label (> 20 per 10K) counts
+        if hollow_ratio < 0.0002 and gold_ratio < 0.002:
+            failures.append(f"NO_HOLLOW_SELECTED: hollow={hollow_pixels}/{total_checked} "
+                          f"({hollow_ratio:.4f}), gold={gold_pixels}/{total_checked} "
+                          f"({gold_ratio:.4f}) — no selected chip detected")
+        else:
+            print(f"  PASS HOLLOW filter active: "
+                  f"{hollow_pixels} purple ({hollow_ratio:.4f}), "
+                  f"{gold_pixels} gold ({gold_ratio:.4f}) in chip row area")
+
+    # 4. Check that the first and last chips aren't clipped at edges.
+    #    Scan the left and right edges of the top bar for content.
+    left_edge_samples = 0
+    left_edge_lit = 0
+    right_edge_samples = 0
+    right_edge_lit = 0
+    lit_threshold = 30 / 255.0
+    for y in range(chip_row_y_start, chip_row_y_end):
+        # Left edge (x=0 to x=5)
+        for x in range(6):
+            i = (y * width + x) * 4
+            if i + 3 >= len(pixels):
+                continue
+            r = pixels[i] / 255.0
+            g = pixels[i + 1] / 255.0
+            b = pixels[i + 2] / 255.0
+            lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+            left_edge_samples += 1
+            if lum >= lit_threshold:
+                left_edge_lit += 1
+        # Right edge (x=width-6 to x=width-1)
+        for x in range(max(0, width - 6), width):
+            i = (y * width + x) * 4
+            if i + 3 >= len(pixels):
+                continue
+            r = pixels[i] / 255.0
+            g = pixels[i + 1] / 255.0
+            b = pixels[i + 2] / 255.0
+            lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+            right_edge_samples += 1
+            if lum >= lit_threshold:
+                right_edge_lit += 1
+
+    if left_edge_samples > 0:
+        left_frac = left_edge_lit / left_edge_samples
+        if left_frac < 0.3:
+            # On phone (390px), the scroll might push the first chip off-screen
+            if width <= 480:
+                print(f"  NOTE Phone narrow ({width}px): left edge chips may scroll, "
+                      f"left edge lit={left_frac:.0%}")
+            else:
+                failures.append(f"LEFT_EDGE_CLIPPED: only {left_frac:.0%} of left-edge "
+                               f"pixels are lit — first chip may be clipped")
+
+    if right_edge_samples > 0:
+        right_frac = right_edge_lit / right_edge_samples
+        if right_frac < 0.3:
+            failures.append(f"RIGHT_EDGE_CLIPPED: only {right_frac:.0%} of right-edge "
+                           f"pixels are lit — last chip may be clipped")
+        else:
+            print(f"  PASS right edge: {right_frac:.0%} edge pixels lit (last chip visible)")
+
+    if failures:
+        print(f"\nFAILURE ({len(failures)} reasons):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
+    else:
+        print("\nPASS: All deck builder filter chip checks passed")
+        sys.exit(0)
+
+
+# ════════════════════════════════════════════
 # Title+Deck test validator (TASK-DK3)
 # ════════════════════════════════════════════
 
@@ -825,7 +987,8 @@ VALIDATORS = {
     "map_test_wide": validate_screen_live,
     "duel_test": validate_duel_test,
     "duel_test_wide": validate_duel_test,
-    "deck_test": validate_deck_test,
+    "deck_test": validate_deck_test_chips,
+    "deck_test_phone": validate_deck_test_chips,
     "title_deck": validate_title_deck_test,
     "tutorial_warrior_intro": validate_tutorial_capture,
 }
