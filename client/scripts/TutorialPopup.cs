@@ -370,4 +370,10 @@ public partial class TutorialPopup : Control, ITutorialPresenter
         RemoveAllHighlightFrames();
         Dismissed = null;
     }
+
+    /// <summary>Dismiss the popup programmatically. Fires the Dismissed event.</summary>
+    public void Dismiss()
+    {
+        Dismissed?.Invoke();
+    }
 }

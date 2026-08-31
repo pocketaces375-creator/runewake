@@ -445,11 +445,48 @@ public partial class TutorialRunner : Node
             _awaitingDismiss = true;
 
             ShowPopup(beat.Popup, beat.Highlight);
+
+            // Headless mode: auto-dismiss the popup after a short delay so
+            // the tutorial can proceed without human interaction.
+            if (_isHeadless && _headlessTimer != null)
+            {
+                // Use a 2-second delay: enough for the engine to render the popup
+                // and capture to be written, then dismiss and advance.
+                _headlessTimer.OneShot = true;
+                _headlessTimer.Timeout -= OnHeadlessTimerTimeout;
+                _headlessTimer.Timeout += AutoDismissPopup;
+                _headlessTimer.Start(2.0f);
+            }
         }
         else
         {
             // No popup — advance immediately
             AdvanceBeat();
+        }
+    }
+
+    /// <summary>Headless auto-dismiss: dismiss the popup and re-arm the headless timer.</summary>
+    private void AutoDismissPopup()
+    {
+        if (!_isHeadless) return;
+        _headlessTimer.Timeout -= AutoDismissPopup;
+        _headlessTimer.Timeout += OnHeadlessTimerTimeout;
+
+        if (_state != RunnerState.ShowingPopup) return;
+
+        // Capture BEFORE dismissing so the highlight rects are visible in the screenshot
+        if (_isHeadless)
+        {
+            CaptureCurrentBeat();
+        }
+
+        // Emulate the popup's Continue button press
+        var popup = _popup;
+        if (popup != null && GodotObject.IsInstanceValid(popup))
+        {
+            // Simulate Continue pressed — fires Dismissed event which calls OnPopupDismissed
+            // We access the private button via call_deferred or simply invoke Dismissed
+            Callable.From(() => popup.Dismiss()).CallDeferred();
         }
     }
 

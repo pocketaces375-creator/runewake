@@ -66,7 +66,6 @@ public partial class LaneSlot : PanelContainer
         _rootBound.Name = "RootBoundBorder";
         AddChild(_rootBound);
         _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
-        _rootBound.AttachTo(this);
 
         // CardPlate — unified card frame: name band, stat rail
         _cardPlate = new CardPlate();

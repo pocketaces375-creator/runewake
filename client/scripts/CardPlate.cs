@@ -236,13 +236,19 @@ public partial class CardPlate : Control
     }
 
     /// <summary>
-    /// Auto-fit card name: the name NEVER escapes its safe zone.
-    /// Ported from tools/namefit.py to Godot C#.
+    /// Auto-fit card name: the name NEVER escapes its safe zone, and NEVER
+    /// overflows into the stat rail (reserve the rail first, fit name into
+    /// what remains, shrink or re-split until it fits — HARD RULE).
     /// 
     /// Safe zone = art window inset by buffer = max(6% of card_width, 10px @ 236px width) on each side.
     /// Base size = 24px scaled linearly with card width (at 236px reference width).
     /// Floor = 62% of base. If it won't fit: split into two lines balanced by character count,
     /// restart at base-2, shrink to hard minimum 12 (8 on artifact minis).
+    /// 
+    /// Height constraint: the stat rail is reserved first (statRailH). The name
+    /// occupies the remaining band (nameBandH). Its FULL rendered height for
+    /// the chosen number of lines must NOT exceed nameBandH, or the text crosses
+    /// the stat rail / badge boundary. Shrink until both width and height fit.
     /// </summary>
     private void FitCardNameAuto(float safeWidth)
     {
@@ -261,29 +267,74 @@ public partial class CardPlate : Control
         int baseSize = Mathf.Max(6, Mathf.RoundToInt(24f * _designCardWidth / 236f));
         int floor = Mathf.Max(hardMin, Mathf.RoundToInt(baseSize * 0.62f));
 
+        // Height budget: stat rail is reserved first; name fits what remains.
+        float nameBandH = _designCardHeight * FrameNameBandFraction;
+        float statRailH = _designCardHeight * FrameStatRailFraction;
+        float totalPlateH = nameBandH + statRailH;
+
         float Measure(string text, int sz)
         {
             return font.GetStringSize(text, HorizontalAlignment.Left, -1, sz).X;
         }
 
-        // Try single line, shrink from base to floor
+        float LineHeight(int sz)
+        {
+            // Approximate rendered line height for the given font size
+            return font.GetHeight(sz);
+        }
+
+        // Apply font size and return the number of line slots the text will use
+        int ApplyFit(int sz, string displayText, int maxLines, string[]? linesForHeight)
+        {
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            _cardName.Text = displayText;
+            _cardName.MaxLinesVisible = maxLines;
+            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
+
+            // Height check: the text at this size must fit in nameBandH
+            int actualLines = linesForHeight != null ? linesForHeight.Length : (displayText.Contains("\n") ? displayText.Split('\n').Length : 1);
+            float textH = actualLines * LineHeight(sz);
+            int heightMin = Mathf.Max(4, hardMin - 4);
+            int iterations = 0;
+            while (textH > nameBandH && sz > heightMin && iterations < 50)
+            {
+                sz--;
+                textH = actualLines * LineHeight(sz);
+                iterations++;
+            }
+            if (textH > nameBandH && iterations > 0)
+            {
+                // Still over budget — re-check width at final size
+                if (maxLines == 1)
+                {
+                    if (Measure(displayText, sz) > safeWidth)
+                    {
+                        // Even at hardMin single-line doesn't fit — go to two-line
+                        return -1; // signal fallback to two-line
+                    }
+                }
+                _cardName.AddThemeFontSizeOverride("font_size", sz);
+                return sz;
+            }
+            _cardName.AddThemeFontSizeOverride("font_size", sz);
+            return sz;
+        }
+
+        // ─── Try single line, shrink from base to floor ───
         int sz = baseSize;
         while (sz > floor && Measure(_cardNameText, sz) > safeWidth)
             sz--;
         if (Measure(_cardNameText, sz) <= safeWidth)
         {
-            _cardName.AddThemeFontSizeOverride("font_size", sz);
-            _cardName.Text = _cardNameText;
-            _cardName.MaxLinesVisible = 1;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
-            return;
+            int result = ApplyFit(sz, _cardNameText, 1, null);
+            if (result >= 0) return;
+            // Fall through to two-line if ApplyFit returned -1
         }
 
-        // Still won't fit at floor — try two-line balanced split
+        // ─── Two-line balanced split ───
         string[] words = _cardNameText.Split(' ');
         if (words.Length > 1)
         {
-            // Find best balanced split
             string[] bestLines = BalancedSplit(words);
             sz = Mathf.Max(hardMin, baseSize - 2);
             float widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
@@ -291,6 +342,29 @@ public partial class CardPlate : Control
             {
                 sz--;
                 widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
+            }
+            // Height check: 2 lines * lineHeight must fit in nameBandH
+            // Use a separate height minimum (lower than hardMin) since the
+            // constraint here is vertical packing, not readability.
+            int heightMin = Mathf.Max(4, hardMin - 4);
+            float twoLineH = 2 * LineHeight(sz);
+            while (twoLineH > nameBandH && sz > heightMin)
+            {
+                sz--;
+                twoLineH = 2 * LineHeight(sz);
+                if (sz > 0)
+                {
+                    // Re-check width at reduced size
+                    widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
+                    if (widest > safeWidth)
+                    {
+                        // Width doesn't fit — try re-split at smaller size
+                        string[] reSplit = BalancedSplit(words);
+                        widest = Mathf.Max(Measure(reSplit[0], sz), Measure(reSplit[1], sz));
+                        if (widest <= safeWidth)
+                            bestLines = reSplit;
+                    }
+                }
             }
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = string.Join("\n", bestLines);

@@ -12,6 +12,7 @@ Usage: python3 tools/capture_gate.py [basename]
 """
 
 import json
+import hashlib
 import struct
 import sys
 import zlib
@@ -757,7 +758,35 @@ def main():
     else:
         bases = ["duel_test", "duel_test_wide"]
 
-    # If "duel_test" is in bases, ensure both standards + wide are covered
+    # Anti-spoof: if duel_test_wide is being validated, fail if its PNG hash matches
+    # duel_test.png (means the wide capture was not actually run at wide resolution).
+    # Also fail if wide meta.json doesn't report wide viewport dims (1999x932).
+    has_standard = any(b == "duel_test" for b in bases)
+    has_wide = any(b == "duel_test_wide" for b in bases)
+
+    if has_standard and has_wide:
+        std_png = capture_dir / "duel_test.png"
+        wide_png = capture_dir / "duel_test_wide.png"
+        std_meta = capture_dir / "duel_test.meta.json"
+        wide_meta = capture_dir / "duel_test_wide.meta.json"
+        if std_png.exists() and wide_png.exists():
+            import hashlib
+            std_hash = hashlib.md5(std_png.read_bytes()).hexdigest()
+            wide_hash = hashlib.md5(wide_png.read_bytes()).hexdigest()
+            if std_hash == wide_hash:
+                print("FAIL: duel_test.png and duel_test_wide.png are byte-identical — "
+                      "wide capture was not run at the correct resolution")
+                sys.exit(1)
+            print(f"  PASS hash distinct: duel_test.png ≠ duel_test_wide.png")
+        if wide_meta.exists():
+            wm = json.load(wide_meta.open())
+            vp_w = wm.get("viewport_width")
+            vp_h = wm.get("viewport_height")
+            if vp_w is None or vp_h is None or vp_w < 1500 or vp_h < 900:
+                print(f"FAIL: duel_test_wide.meta.json reports viewport {vp_w}x{vp_h} — "
+                      f"expected wide dims (≥1999x932). The meta was not generated at wide resolution.")
+                sys.exit(1)
+            print(f"  PASS wide viewport: {vp_w}x{vp_h} confirmed")
     resolved = []
     for b in bases:
         if b == "duel_test":
@@ -769,6 +798,31 @@ def main():
             if b not in resolved:
                 resolved.append(b)
     bases = resolved
+
+    # ─── HARDENING: guard against byte-identical wide captures ───
+    if "duel_test" in bases and "duel_test_wide" in bases:
+        std_path = capture_dir / "duel_test.png"
+        wide_path = capture_dir / "duel_test_wide.png"
+        if std_path.exists() and wide_path.exists():
+            with open(std_path, "rb") as f: std_hash = hashlib.md5(f.read()).hexdigest()
+            with open(wide_path, "rb") as f: wide_hash = hashlib.md5(f.read()).hexdigest()
+            if std_hash == wide_hash:
+                print(f"FAIL: duel_test.png and duel_test_wide.png are byte-identical (both {std_hash})")
+                print("  The wide capture was produced without the viewport swap. Use bash tools/capture_duel.sh")
+                sys.exit(1)
+
+    # ─── HARDENING: wide capture must report wide viewport dims ───
+    if "duel_test_wide" in bases:
+        wide_meta_path = capture_dir / "duel_test_wide.meta.json"
+        if wide_meta_path.exists():
+            with open(wide_meta_path) as f:
+                wide_meta = json.load(f)
+            vw = wide_meta.get("viewport_width", 0)
+            vh = wide_meta.get("viewport_height", 0)
+            if vw < 1900 or vh < 900:
+                print(f"FAIL: duel_test_wide meta reports {vw}x{vh} — expected >= 1900x900")
+                print("  The wide capture was produced without viewport swap. Use bash tools/capture_duel.sh")
+                sys.exit(1)
 
     exit_code = 0
     for base in bases:

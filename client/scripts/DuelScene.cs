@@ -1000,7 +1000,6 @@ public partial class DuelScene : Control
         border.Name = "RootBoundBorder";
         border.Setup(w, h);
         panel.AddChild(border);
-        border.AttachTo(panel);
 
         // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
         var plate = new ArtifactCardPlate();
@@ -1171,7 +1170,6 @@ public partial class DuelScene : Control
         border.Name = "RootBoundBorder";
         border.Setup(w, h);
         panel.AddChild(border);
-        border.AttachTo(panel);
 
         // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
         var plate = new ArtifactCardPlate();
