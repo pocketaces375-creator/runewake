@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-BORDER-NAME-1 — Fix design resolution, then restore card name/title rendering per the locked namefit spec
+- [x] TASK-BORDER-NAME-1 — Fix design resolution, then restore card name/title rendering per the locked namefit spec
   Trikzos rejected the BORDER-FIX-3 captures: names are ellipsized ("THE...",
   "CINDER...", "ROOT..."), the band reads as a flat black frame with no visible
   Root-Bound stone carving, and stat badges are unreadable chips. Two causes, fix

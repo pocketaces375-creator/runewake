@@ -1,6 +1,14 @@
 # HERMES_STATUS.md
 
-**TASK-BORDER-FIX-3 (2026-08-31):** ExpandMode fix — KeepSize→IgnoreSize on all 8 TextureRects. ✅
+**TASK-BORDER-NAME-1 (2026-08-31):** Fix design resolution + restore card name/title rendering. ✅
+- **(A) Resolution fixed:** Changed `window/stretch/aspect` from `expand` to `keep` in client/project.godot. With `expand`, the viewport matched the actual display size (e.g. xvfb 1280x720), giving ~88px board cards. With `keep`, the viewport stays at the design resolution (2316x1080) regardless of window size, giving board cards ~147px × 215px — enough room for 7% border (10px), name base size 15px, and readable stat numbers. ✅
+- **(B) Name rendering restored:** Two bugs in CardPlate.cs namefit: (1) AutowrapMode=Word on two-line names caused Godot to re-wrap the second line, creating an invisible third line when the text overflowed the safe width. Fixed to AutowrapMode=Off — we provide the balanced split, no re-wrapping. (2) Width shrink loop stopped at hardMin (12px) instead of continuing to heightFloor (8px), leaving width overflow unresolved for long lines. Fixed with `while (sz > heightFloor && widest > safeWidth)`. ✅
+- Verified: "Root Warden" and "Wildfire Adept" render as one full line on all cards. "The Undying Root of the Fallow Reach" renders on two balanced lines with full text visible (pixel-confirmed: 87px text width in 129px safe zone). ✅
+- Stat badges readable (font 13px) ✅, 7% stone border visible (band_px=10px) ✅, art visible (center stddev 33-39) ✅
+- 717 tests green ✅
+- Gate: **PASS** both standard (2316x1080) and wide (2999x1080) — all 10 hand + 10 board card checks pass ✅
+- Captures: duel_test.png (2316×1080) and duel_test_wide.png (2999×1080), hashes differ, wide meta reports correct dims ✅
+- Committed (37cda38) and pushed to origin/main ✅
 - ExpandMode.KeepSize violates the standing rule in docs/COMMS.md: "Every TextureRect created anywhere in the client must set ExpandMode = ExpandModeEnum.IgnoreSize explicitly." KeepSize forces minimum size to texture native size (148-197px), which in container contexts would cause panel explosion. Fixed for code-created TextureRects in RootBoundBorder.cs. ✅
 - Coverage check: For every occupied board card, center 30% region stddev > 15 required. Current capture shows stddev 104-115 across all 6 occupied slots — well above threshold. ✅
 - Human verification: Every board card shows bright colorful fantasy art (magenta, cyan, white, yellow, red, blue pixels). 6px stone border visible at card edges. Name text visible in band, stat badges below. No card appears as a stone slab. ✅
