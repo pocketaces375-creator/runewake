@@ -569,12 +569,12 @@ public partial class DeckBuilderScene : Control
     }
 
     /// <summary>
-    /// Create a strata filter chip (button, >= 44px touch target, 8px padding).
-    /// Each chip is one hit-testable control with swatch + label, min 44x44 px.
-    /// Swatch is vertically centered against the label's cap height by the
-    /// HBoxContainer's AlignmentMode.Center — both children are independently
-    /// centered vertically, so their centres align at the same vertical position.
-    /// Selected state: filled with strata color at low alpha + 1px border in strata color.
+    /// Create a strata filter chip button — one hit-testable control
+    /// containing swatch + label, minimum 44x44 touch target, 8px padding.
+    /// The inner HBox fills the entire button content area so that both
+    /// the 8x8 swatch and the 11px label are vertically centered together.
+    /// Selected state: filled with strata color at low alpha + 1px border.
+    /// Pressed state: slightly brighter bg for tactile feedback.
     /// </summary>
     private Button MakeFilterChip(string label, Color accent, int idx)
     {
@@ -584,11 +584,9 @@ public partial class DeckBuilderScene : Control
             Text = "" // custom content via children
         };
 
-        // 44x44 px touch target — minimum interactive size for phone
         btn.CustomMinimumSize = new Vector2(44, 44);
 
-        // Chip style: 8px internal padding (task spec), 18px corner radius
-        // Normal: dark bg, muted border. Selected set in UpdateFilterChips.
+        // Chip normal style: 8px side padding, 4px vertical breathing room, 18px corner
         var normalStyle = new StyleBoxFlat
         {
             BgColor = Color.FromHtml("#26201A"),
@@ -597,29 +595,40 @@ public partial class DeckBuilderScene : Control
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
             CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-            ContentMarginLeft = 8, ContentMarginTop = 0,
-            ContentMarginRight = 8, ContentMarginBottom = 0
+            ContentMarginLeft = 8, ContentMarginTop = 4,
+            ContentMarginRight = 8, ContentMarginBottom = 4
+        };
+        var pressedStyle = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#322C26"),
+            BorderColor = Color.FromHtml("#5A5048"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
+            CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+            ContentMarginLeft = 8, ContentMarginTop = 4,
+            ContentMarginRight = 8, ContentMarginBottom = 4
         };
         btn.AddThemeStyleboxOverride("normal", normalStyle);
         btn.AddThemeStyleboxOverride("hover", normalStyle);
-        btn.AddThemeStyleboxOverride("pressed", normalStyle);
+        btn.AddThemeStyleboxOverride("pressed", pressedStyle);
 
-        // Store the strata index and accent color as metadata
         btn.SetMeta("strata_idx", idx);
         btn.SetMeta("accent_color", accent);
 
-        // ── Inner HBox: [swatch(8x8)] + [label(11px Cinzel)] ──
-        // Both children are independently centered vertically by the HBox's
-        // AlignmentMode.Center, so the swatch center and the label's text
-        // center share the same vertical position (22px in a 44px HBox).
-        var inner = new HBoxContainer();
-        inner.MouseFilter = MouseFilterEnum.Ignore;
-        inner.SizeFlagsVertical = (SizeFlags)0;
-        inner.Alignment = BoxContainer.AlignmentMode.Center;
+        // ── Inner HBox fills the button content area so swatch+label
+        //     are centered as a unit, not pinned to the top ──
+        var inner = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsVertical = (SizeFlags)3, // Fill | Expand — fills button height
+            Alignment = BoxContainer.AlignmentMode.Center
+        };
         inner.AddThemeConstantOverride("separation", 6);
         btn.AddChild(inner);
 
-        // ── Swatch — 8x8 ColorRect, vertically centered by HBox ──
+        // ── Swatch — 8x8 ColorRect, vertically centered within the
+        //     expanded HBox, which aligns it against label cap height ──
         var swatch = new ColorRect
         {
             Color = accent,
@@ -629,7 +638,7 @@ public partial class DeckBuilderScene : Control
         };
         inner.AddChild(swatch);
 
-        // ── Label — Cinzel 11px, never clipped ──
+        // ── Label — Cinzel 11px ──
         var chipFont = GetHeaderFont(11);
         var chipLabel = new Label
         {
@@ -674,8 +683,8 @@ public partial class DeckBuilderScene : Control
                     BorderWidthRight = 1, BorderWidthBottom = 1,
                     CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
                     CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 0,
-                    ContentMarginRight = 8, ContentMarginBottom = 0
+                    ContentMarginLeft = 8, ContentMarginTop = 4,
+                    ContentMarginRight = 8, ContentMarginBottom = 4
                 };
                 btn.AddThemeStyleboxOverride("normal", selectedStyle);
                 btn.AddThemeStyleboxOverride("hover", selectedStyle);
@@ -692,12 +701,23 @@ public partial class DeckBuilderScene : Control
                     BorderWidthRight = 1, BorderWidthBottom = 1,
                     CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
                     CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 0,
-                    ContentMarginRight = 8, ContentMarginBottom = 0
+                    ContentMarginLeft = 8, ContentMarginTop = 4,
+                    ContentMarginRight = 8, ContentMarginBottom = 4
+                };
+                var normalPressedStyle = new StyleBoxFlat
+                {
+                    BgColor = Color.FromHtml("#322C26"),
+                    BorderColor = Color.FromHtml("#5A5048"),
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
+                    CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+                    ContentMarginLeft = 8, ContentMarginTop = 4,
+                    ContentMarginRight = 8, ContentMarginBottom = 4
                 };
                 btn.AddThemeStyleboxOverride("normal", normalStyle);
                 btn.AddThemeStyleboxOverride("hover", normalStyle);
-                btn.AddThemeStyleboxOverride("pressed", normalStyle);
+                btn.AddThemeStyleboxOverride("pressed", normalPressedStyle);
             }
 
             // Update label color: gold when selected, muted when not
