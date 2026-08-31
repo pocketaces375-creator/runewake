@@ -706,6 +706,15 @@ public partial class DeckBuilderScene : Control
         content.SetAnchorsPreset(LayoutPreset.FullRect);
         container.AddChild(content);
 
+        // ── Card art background (parchment tone, visible behind dark art) ──
+        var artBg = new ColorRect
+        {
+            Color = CardArtColors.Parchment,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        artBg.SetAnchorsPreset(LayoutPreset.FullRect);
+        content.AddChild(artBg);
+
         // ── Card art (full-bleed, cover-cropped) ──
         var artRect = new TextureRect();
         artRect.SetAnchorsPreset(LayoutPreset.FullRect);

@@ -2646,7 +2646,7 @@ public partial class DuelScene : Control
         {
             Text = "Mulligan — Tap cards to redraw",
             HorizontalAlignment = HorizontalAlignment.Center,
-            AutoTranslateMode = AutoTranslateMode.Disabled
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
         title.AddThemeFontSizeOverride("font_size", 18);
         vbox.AddChild(title);
@@ -2662,7 +2662,7 @@ public partial class DuelScene : Control
         var hint = new Label
         {
             Text = "Your Hand:",
-            AutoTranslateMode = AutoTranslateMode.Disabled
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
         hint.AddThemeFontSizeOverride("font_size", 13);
         hint.Modulate = TextMuted;

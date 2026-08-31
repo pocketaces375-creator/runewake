@@ -515,86 +515,45 @@ def validate_deck_test(png_path, meta):
     print(f"Image: {width}x{height}, {total_pixels} pixels")
     failures = []
 
-    near_black_threshold = 20 / 255.0
-    dark_count = 0
-    for i in range(0, len(pixels), 4):
-        r = pixels[i] / 255.0
-        g = pixels[i + 1] / 255.0
-        b = pixels[i + 2] / 255.0
-        if get_luminance(r, g, b) < near_black_threshold:
-            dark_count += 1
-
-    dark_ratio = dark_count / total_pixels
-    if dark_ratio > 0.85:
-        failures.append(f"WHOLE_FRAME_DARK: {dark_ratio:.1%} pixels are near-black — tome should be parchment-colored")
+    # TASK-DECKART-1: ARMORY RAIL layout — validate card tiles show distinct art.
+    # Tiles carry per-card rect + strata in meta. Each tile must have visible
+    # non-uniform art (an empty dark rectangle is a FAIL), at least 8 tiles must
+    # pass, spanning at least 3 distinct strata.
+    tiles = meta.get("tiles")
+    if not tiles:
+        failures.append("NO_TILES: meta has no 'tiles' array (deck builder must expose tile rects)")
     else:
-        print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 85%)")
-
-    left_rect = meta.get("left_page_rect")
-    if left_rect:
-        mean, std = rect_mean_stddev(pixels, width, height, left_rect["x"], left_rect["y"], left_rect["w"], left_rect["h"])
-        if std < 8 / 255.0:
-            failures.append(f"LEFT_PAGE: stddev {std:.3f} too low — collection page not rendered")
-        else:
-            print(f"  PASS left page: mean={mean:.3f}, std={std:.3f}")
-    else:
-        failures.append("LEFT_PAGE: no rect in meta")
-
-    right_rect = meta.get("right_page_rect")
-    if right_rect:
-        mean, std = rect_mean_stddev(pixels, width, height, right_rect["x"], right_rect["y"], right_rect["w"], right_rect["h"])
-        if std < 8 / 255.0:
-            failures.append(f"RIGHT_PAGE: stddev {std:.3f} too low — manifest page not rendered")
-        else:
-            print(f"  PASS right page: mean={mean:.3f}, std={std:.3f}")
-    else:
-        failures.append("RIGHT_PAGE: no rect in meta")
-
-    validation_rect = meta.get("validation_rect")
-    if validation_rect:
-        mean, std = rect_mean_stddev(pixels, width, height, validation_rect["x"], validation_rect["y"], validation_rect["w"], validation_rect["h"])
-        if std < 5 / 255.0:
-            failures.append(f"VALIDATION: stddev {std:.3f} too low — annotations not visible")
-        else:
-            print(f"  PASS validation annotations: mean={mean:.3f}, std={std:.3f}")
-
-        vx, vy, vw, vh = int(validation_rect["x"]), int(validation_rect["y"]), int(validation_rect["w"]), int(validation_rect["h"])
-        red_pixels = 0
-        total_checked = 0
-        for row in range(vy, min(vy + vh, height)):
-            for col in range(vx, min(vx + vw, width)):
-                idx = (row * width + col) * 4
-                if idx + 3 < len(pixels):
-                    r, g, b = pixels[idx] / 255.0, pixels[idx+1] / 255.0, pixels[idx+2] / 255.0
-                    total_checked += 1
-                    if r > 0.5 and g < 0.3 and b < 0.3:
-                        red_pixels += 1
-        if total_checked > 0:
-            red_ratio = red_pixels / total_checked
-            if red_ratio < 0.003:
-                failures.append(f"VALIDATION: only {red_ratio:.3%} red pixels — duplicate error annotation may be missing (need > 0.5%)")
+        art_window_frac = 0.62  # art window = tile above the name band + stat rail (0.18+0.12=0.30 plate)
+        visible_tiles = 0
+        strata_seen = set()
+        # Tiles share one geometry — the art window is the rect minus the bottom plate.
+        for t in tiles:
+            r = t.get("rect", {})
+            x, y = r.get("x", 0), r.get("y", 0)
+            w, h = r.get("w", 0), r.get("h", 0)
+            if w <= 0 or h <= 0:
+                failures.append(f"BAD_TILE_RECT: {t.get('card_id')} rect {r}")
+                continue
+            # Art window: top (w * 0.70) of the tile — excludes the bottom name band + stat rail
+            aw = max(1, w)
+            ah = max(1, int(h * art_window_frac))
+            mean, std = rect_mean_stddev(pixels, width, height, x, y, aw, ah)
+            if std < 5.0 / 255.0:
+                failures.append(
+                    f"EMPTY_TILE: {t.get('card_id')} ({t.get('strata')}) art window "
+                    f"stddev {std:.3f} ({std*255:.0f}/255) — art is an empty rectangle"
+                )
             else:
-                print(f"  PASS red-ink annotations: {red_ratio:.1%} red pixels")
-    else:
-        failures.append("VALIDATION: no rect in meta")
+                visible_tiles += 1
+                strata_seen.add(t.get("strata", "?"))
+                print(f"  PASS tile {t.get('card_id')}: art mean={mean:.3f}, std={std:.3f}")
 
-    spine_rect = meta.get("spine_rect")
-    if spine_rect:
-        mean, std = rect_mean_stddev(pixels, width, height, spine_rect["x"], spine_rect["y"], spine_rect["w"], spine_rect["h"])
-        if std < 3 / 255.0 and mean < 25 / 255.0:
-            failures.append(f"SPINE: mean={mean:.3f}, std={std:.3f} — spine not visible")
+        if visible_tiles < 8:
+            failures.append(f"NOT_ENOUGH_ART: only {visible_tiles}/8 tiles show distinct art (need >= 8)")
+        if len(strata_seen) < 3:
+            failures.append(f"NOT_ENOUGH_STRATA: art spans {len(strata_seen)} strata (need >= 3): {sorted(strata_seen)}")
         else:
-            print(f"  PASS spine: mean={mean:.3f}, std={std:.3f}")
-    else:
-        failures.append("SPINE: no rect in meta")
-
-    ribbon_rect = meta.get("ribbon_rect")
-    if ribbon_rect:
-        mean, std = rect_mean_stddev(pixels, width, height, ribbon_rect["x"], ribbon_rect["y"], ribbon_rect["w"], ribbon_rect["h"])
-        if std < 3 / 255.0:
-            failures.append(f"RIBBON: stddev {std:.3f} too low — filter ribbons not visible")
-        else:
-            print(f"  PASS filter ribbons: mean={mean:.3f}, std={std:.3f}")
+            print(f"  PASS strata coverage: {sorted(strata_seen)} ({len(strata_seen)} strata)")
 
     if failures:
         print(f"\nFAILURE ({len(failures)} reasons):")
@@ -721,19 +680,6 @@ def validate_screen_live(png_path, meta):
         print(f"\nPASS: All black-screen checks passed")
 
 
-VALIDATORS = {
-    "title_test": validate_screen_live,
-    "title_test_wide": validate_screen_live,
-    "map_test": validate_screen_live,
-    "map_test_wide": validate_screen_live,
-    "duel_test": validate_duel_test,
-    "duel_test_wide": validate_duel_test,
-    "deck_test": validate_deck_test,
-    "title_deck": validate_title_deck_test,
-    "tutorial_warrior_intro": validate_tutorial_capture,
-}
-
-
 def validate_tutorial_capture(png_path, meta):
     """Validate a tutorial beat capture: not a black screen, has beat metadata."""
     width, height, pixels, color_type = read_png(png_path)
@@ -788,6 +734,19 @@ def validate_tutorial_capture(png_path, meta):
         sys.exit(1)
     else:
         print(f"\nPASS: Tutorial beat capture {beat_id} OK")
+
+
+VALIDATORS = {
+    "title_test": validate_screen_live,
+    "title_test_wide": validate_screen_live,
+    "map_test": validate_screen_live,
+    "map_test_wide": validate_screen_live,
+    "duel_test": validate_duel_test,
+    "duel_test_wide": validate_duel_test,
+    "deck_test": validate_deck_test,
+    "title_deck": validate_title_deck_test,
+    "tutorial_warrior_intro": validate_tutorial_capture,
+}
 
 
 def main():

@@ -328,8 +328,8 @@ public partial class SettingsScene : Control
     private void OnSavePressed()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        if (!_dirty)
-
+        if (!_dirty) return;
+        var s = CampaignContext.Settings;
         if (_musicSlider != null) s.MusicVolume = (float)_musicSlider.Value / 100f;
         if (_sfxSlider != null) s.SfxVolume = (float)_sfxSlider.Value / 100f;
         if (_ambientSlider != null) s.AmbientVolume = (float)_ambientSlider.Value / 100f;

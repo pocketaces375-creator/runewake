@@ -1,10 +1,22 @@
 {
   "capture_type": "deck_test",
-  "left_page_rect": { "x": 23, "y": 12, "w": 524, "h": 622 },
-  "right_page_rect": { "x": 604, "y": 12, "w": 524, "h": 622 },
-  "spine_rect": { "x": 552, "y": 12, "w": 46, "h": 622 },
-  "ribbon_rect": { "x": 23, "y": 51, "w": 524, "h": 32 },
-  "validation_rect": { "x": 610, "y": 51, "w": 506, "h": 64 },
-  "expected_deck_count": 31,
-  "expected_validation_errors": 1
+  "viewport_width": 1152,
+  "viewport_height": 648,
+  "left_panel_width": 829,
+  "top_bar_height": 64,
+  "card_grid_margin_left": 20,
+  "card_width": 184,
+  "card_height": 268,
+  "card_gap": 18,
+  "columns": 4,
+  "tiles": [
+    { "card_id": "vrd_t_verdant_bud", "strata": "VERDANT", "rect": { "x": 20, "y": 64, "w": 184, "h": 268 } },
+    { "card_id": "tid_c_abyssal_gaze", "strata": "TIDE", "rect": { "x": 222, "y": 64, "w": 184, "h": 268 } },
+    { "card_id": "emb_c_ember_hound", "strata": "EMBER", "rect": { "x": 424, "y": 64, "w": 184, "h": 268 } },
+    { "card_id": "emb_c_flame_javelin", "strata": "EMBER", "rect": { "x": 626, "y": 64, "w": 184, "h": 268 } },
+    { "card_id": "dwn_u_purifying_light", "strata": "DAWN", "rect": { "x": 20, "y": 350, "w": 184, "h": 268 } },
+    { "card_id": "hol_c_skeletal_reaver", "strata": "HOLLOW", "rect": { "x": 222, "y": 350, "w": 184, "h": 268 } },
+    { "card_id": "hol_u_soul_harvest", "strata": "HOLLOW", "rect": { "x": 424, "y": 350, "w": 184, "h": 268 } },
+    { "card_id": "vrd_c_verdant_sproutling", "strata": "VERDANT", "rect": { "x": 626, "y": 350, "w": 184, "h": 268 } }
+  ]
 }
