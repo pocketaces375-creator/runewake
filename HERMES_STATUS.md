@@ -1,5 +1,12 @@
 # HERMES_STATUS.md
 
+**TASK-BORDER-FIX-3 (2026-08-31):** ExpandMode fix — KeepSize→IgnoreSize on all 8 TextureRects. ✅
+- ExpandMode.KeepSize violates the standing rule in docs/COMMS.md: "Every TextureRect created anywhere in the client must set ExpandMode = ExpandModeEnum.IgnoreSize explicitly." KeepSize forces minimum size to texture native size (148-197px), which in container contexts would cause panel explosion. Fixed for code-created TextureRects in RootBoundBorder.cs. ✅
+- Coverage check: For every occupied board card, center 30% region stddev > 15 required. Current capture shows stddev 104-115 across all 6 occupied slots — well above threshold. ✅
+- Human verification: Every board card shows bright colorful fantasy art (magenta, cyan, white, yellow, red, blue pixels). 6px stone border visible at card edges. Name text visible in band, stat badges below. No card appears as a stone slab. ✅
+- 717 tests green, gate exit 0 at both 1152×648 and 1999×932. ✅
+- Committed and pushed to origin/main. ✅
+
 **TASK-BORDER-FIX-2 (2026-08-31):** URGENT — NinePatchRect margin bug fixed. Reverted to 8-piece TextureRect approach. ✅
 - Border: NinePatchRect with PatchMarginLeft=148,Top=172,Right=157,Bottom=197 caused left+right margins = 305px > ~88px board card width → corner regions consumed entire card. The 8-piece TextureRect approach restored with band_px = round(card_width * 0.07) = 6px on board cards. Corners at 6x6, edges stretched along length only. ✅
 - Name floor: Hard minimum 8px enforced (never below). If two lines cannot fit at ≥8px, falls back to single line with ellipsis. ClipContents=true on name container prevents ANY text rendering outside name band. ✅

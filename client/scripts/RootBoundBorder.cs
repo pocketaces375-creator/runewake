@@ -98,22 +98,22 @@ public partial class RootBoundBorder : Control
         if (_cornerTL == null)
         {
             _cornerTL = MakeChild(_cornerTLTex, "CornerTL", 0, 0, bandPx, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _cornerTR = MakeChild(_cornerTRTex, "CornerTR", cardWidth - bandPx, 0, bandPx, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _cornerBL = MakeChild(_cornerBLTex, "CornerBL", 0, cardHeight - bandPx, bandPx, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _cornerBR = MakeChild(_cornerBRTex, "CornerBR", cardWidth - bandPx, cardHeight - bandPx, bandPx, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
 
             _edgeTop = MakeChild(_edgeTopTex, "EdgeTop", bandPx, 0, innerW, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _edgeBottom = MakeChild(_edgeBottomTex, "EdgeBottom", bandPx, cardHeight - bandPx, innerW, bandPx,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _edgeLeft = MakeChild(_edgeLeftTex, "EdgeLeft", 0, bandPx, bandPx, innerH,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
             _edgeRight = MakeChild(_edgeRightTex, "EdgeRight", cardWidth - bandPx, bandPx, bandPx, innerH,
-                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.KeepSize);
+                TextureRect.StretchModeEnum.Scale, TextureRect.ExpandModeEnum.IgnoreSize);
         }
         else
         {
