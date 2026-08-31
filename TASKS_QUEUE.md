@@ -10,6 +10,24 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-BORDER-NAME-1 — Restore card name/title rendering on the Root-Bound border per the locked namefit spec
+  Trikzos rejected the BORDER-FIX-3 captures: names/titles are lost/wrong. The border
+  band renders but the name treatment — the whole point of the border — does not.
+  Implement per the LOCKED spec (do not relitigate): reference impl tools/namefit.py,
+  spec client/content/art/border/rootbound_9slice.json, font Cinzel for display text.
+  Rules: safe zone = art window inset by max(6% card width, 10px @236w) per side;
+  reserve the stat rail FIRST, fit the name into the remainder; base size 24px at
+  236px card width, scaling linearly with card width; shrink to floor 62% of base;
+  if still overflowing, two lines balanced by characters starting at base-2 down to
+  hard minimum 12px (8px on minis); no glyph below 8px, ellipsis beyond; text never
+  touches border band or badges at any size; cost rune stays top-right.
+  Acceptance: committed captures at 1152x648 AND 1999x932 (metas must report true
+  dims; captures must not be byte-identical) where EVERY occupied board card and the
+  hand fan show the card's name legibly rendered per the rules above, over visible
+  art, inside the 7% band frame. Before reporting DONE, describe in the group what a
+  player would literally see on 3 named cards (name text, size, placement). Trikzos'
+  approval of the capture in the group is the completion gate, not the automated gate.
+
 - [x] TASK-BORDER-FIX-3 — ExpandMode fix: changed KeepSize→IgnoreSize on all 8 TextureRects in RootBoundBorder.cs per docs/COMMS.md standing rule. Coverage check: center stddev > 15 on every occupied board card confirms art visible (stddev 104-115 across all 6 occupied slots), not stone texture. Gate passes at both resolutions. Human verification: every board card shows colorful fantasy art (magenta, cyan, white, yellow, red, blue), 6px stone border visible at card edges, name text visible in band, stat badges visible. 717 tests green. ✅
 
 - [x] TASK-P2COMP-1 — Diagnose and report on first-player advantage. The TASK-SIMGATE-1 matrix FAILED (25 violations), but the class winrates are NOT the root cause: every mirror match favours the player going first — Warrior 66.5%, Cleric 68.0%, Ranger 68.0%, Thief 63.5%, Mage 58.0%, Necromancer 57.5%, Runesmith 56.0%, averaging ~62.5%. Same class, same cards, same bot — so that gap is structural, not a class-balance problem. Nerfing classes against this data would be chasing a systemic bias. Note the pattern: the advantage is LARGEST for fast classes and smallest for slow ones, and games end in only 7-8 turns, which is consistent with a tempo lead that slow decks never get time to answer.
