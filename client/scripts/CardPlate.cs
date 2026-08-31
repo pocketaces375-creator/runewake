@@ -349,7 +349,11 @@ public partial class CardPlate : Control
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = displayText;
             _cardName.MaxLinesVisible = maxLines;
-            _cardName.AutowrapMode = maxLines > 1 ? TextServer.AutowrapMode.Word : TextServer.AutowrapMode.Off;
+            // Two-line mode: we provide the balanced split ourselves via \n,
+            // so AutowrapMode must be Off — Word wrapping would re-wrap the
+            // second line and create an invisible third line on overflow.
+            // Single-line: Off is fine (no wrapping needed for one line).
+            _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
             _cardName.TextOverrunBehavior = overrun;
         }
 
@@ -384,9 +388,10 @@ public partial class CardPlate : Control
         {
             string[] bestLines = BalancedSplit(words);
             sz = Mathf.Max(heightFloor, baseSize - 2);
-            // Width shrink: use hardMin as the width floor
+            // Width shrink: continue to heightFloor (autowrap is Off after fix,
+            // so any remaining overflow is clipped; shrinking further reduces it).
             float widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
-            while (sz > hardMin && widest > safeWidth)
+            while (sz > heightFloor && widest > safeWidth)
             {
                 sz--;
                 widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
