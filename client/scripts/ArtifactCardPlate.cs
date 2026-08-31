@@ -214,6 +214,10 @@ public partial class ArtifactCardPlate : Control
     /// Hard minimum 8px for artifact minis.
     /// Name sits inside _nameClipContainer (ClipContents=true), preventing overflow
     /// into the charge rail.
+    /// 
+    /// FLOOR vs HARDMIN: the SINGLE-LINE floor is 62% of base (no hardMin clamping —
+    /// hardMin only constrains the two-line WIDTH shrink). The HEIGHT floor is the
+    /// absolute minimum glyph size (8px) — height and width constraints are independent.
     /// </summary>
     private void FitCardNameAuto(float safeWidth, float nameBandH)
     {
@@ -226,29 +230,35 @@ public partial class ArtifactCardPlate : Control
             _cardName.AddThemeFontSizeOverride("font_size", 8);
             return;
         }
+        // Use the font that will actually render (Cinzel override from ApplyHeaderFont).
+        var measureFont = _cardName.GetThemeFont("font");
+        if (measureFont == null) measureFont = font;
 
         const int hardMin = 8;
         int baseSize = Mathf.Max(6, Mathf.RoundToInt(24f * _designCardWidth / 236f));
-        int floor = Mathf.Max(hardMin, Mathf.RoundToInt(baseSize * 0.62f));
+        // Single-line floor = 62% of base, min 8px — NOT clamped to hardMin
+        int singleLineFloor = Mathf.Max(8, Mathf.RoundToInt(baseSize * 0.62f));
+        // Absolute height minimum: 8px
+        const int heightFloor = 8;
 
         float Measure(string text, int sz)
         {
-            return font.GetStringSize(text, HorizontalAlignment.Left, -1, sz).X;
+            return measureFont.GetStringSize(text, HorizontalAlignment.Left, -1, sz).X;
         }
 
         float LineHeight(int sz)
         {
-            return font.GetHeight(sz);
+            return measureFont.GetHeight(sz);
         }
 
-        // Try single line, shrink from base to floor
+        // Try single line, shrink from base to singleLineFloor
         int sz = baseSize;
-        while (sz > floor && Measure(_cardNameText, sz) > safeWidth)
+        while (sz > singleLineFloor && Measure(_cardNameText, sz) > safeWidth)
             sz--;
         if (Measure(_cardNameText, sz) <= safeWidth)
         {
-            // Height check — shrink if single line overflows, never below hardMin
-            while (sz > hardMin && 1 * LineHeight(sz) > nameBandH)
+            // Height check — shrink if single line overflows, never below heightFloor
+            while (sz > heightFloor && 1 * LineHeight(sz) > nameBandH)
                 sz--;
             if (1 * LineHeight(sz) <= nameBandH)
             {
@@ -258,10 +268,11 @@ public partial class ArtifactCardPlate : Control
                 _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
                 return;
             }
-            // Single line at hardMin still overflows — use ellipsis
+            // Single line at heightFloor still overflows — use ellipsis
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = _cardNameText;
             _cardName.MaxLinesVisible = 1;
+            _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
             _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
             return;
         }
@@ -271,7 +282,8 @@ public partial class ArtifactCardPlate : Control
         if (words.Length > 1)
         {
             string[] bestLines = BalancedSplit(words);
-            sz = Mathf.Max(hardMin, baseSize - 2);
+            sz = Mathf.Max(heightFloor, baseSize - 2);
+            // Width shrink: use hardMin as the width floor
             float widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
             while (sz > hardMin && widest > safeWidth)
             {
@@ -279,13 +291,13 @@ public partial class ArtifactCardPlate : Control
                 widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
             }
             
-            // Height check: shrink until two-line fits name band, never below hardMin
+            // Height check: shrink until two-line fits name band
             float twoLineH = 2 * LineHeight(sz);
-            while (twoLineH > nameBandH && sz > hardMin)
+            while (twoLineH > nameBandH && sz > heightFloor)
             {
                 sz--;
                 twoLineH = 2 * LineHeight(sz);
-                if (widest > safeWidth && sz > 0)
+                if (widest > safeWidth && sz >= heightFloor)
                 {
                     widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
                     if (widest > safeWidth)
@@ -303,11 +315,12 @@ public partial class ArtifactCardPlate : Control
             if (twoLineH > nameBandH)
             {
                 sz = hardMin;
-                while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
+                while (sz > heightFloor && Measure(_cardNameText, sz) > safeWidth)
                     sz--;
                 _cardName.AddThemeFontSizeOverride("font_size", sz);
                 _cardName.Text = _cardNameText;
                 _cardName.MaxLinesVisible = 1;
+                _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
                 _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
                 return;
             }
@@ -319,26 +332,33 @@ public partial class ArtifactCardPlate : Control
             return;
         }
 
-        // Single unbreakable word — shrink to hard minimum, ellipsis at floor
+        // Single unbreakable word — shrink to hardMin, ellipsis at heightFloor
         while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
             sz--;
         if (Measure(_cardNameText, sz) > safeWidth)
         {
-            // Even at hardMin width overflows — use ellipsis
+            while (sz > heightFloor && Measure(_cardNameText, sz) > safeWidth)
+                sz--;
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = _cardNameText;
             _cardName.MaxLinesVisible = 1;
-            _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            if (Measure(_cardNameText, sz) > safeWidth)
+            {
+                _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
+                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            }
+            else
+                _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming;
             return;
         }
-        while (sz > hardMin && 1 * LineHeight(sz) > nameBandH)
+        while (sz > heightFloor && 1 * LineHeight(sz) > nameBandH)
             sz--;
         if (1 * LineHeight(sz) > nameBandH)
         {
-            // Single line at hardMin overflows height — use ellipsis
             _cardName.AddThemeFontSizeOverride("font_size", sz);
             _cardName.Text = _cardNameText;
             _cardName.MaxLinesVisible = 1;
+            _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
             _cardName.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
             return;
         }
