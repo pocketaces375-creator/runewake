@@ -10,9 +10,22 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-BORDER-NAME-1 — Restore card name/title rendering on the Root-Bound border per the locked namefit spec
-  Trikzos rejected the BORDER-FIX-3 captures: names/titles are lost/wrong. The border
-  band renders but the name treatment — the whole point of the border — does not.
+- [ ] TASK-BORDER-NAME-1 — Fix design resolution, then restore card name/title rendering per the locked namefit spec
+  Trikzos rejected the BORDER-FIX-3 captures: names are ellipsized ("THE...",
+  "CINDER...", "ROOT..."), the band reads as a flat black frame with no visible
+  Root-Bound stone carving, and stat badges are unreadable chips. Two causes, fix
+  both, in this order:
+  (A) RESOLUTION FIRST (settles open question Q6): the client renders and captures
+  at 1152x648, giving ~88px board cards — half the approved 2316x1080 target where
+  cards are ~200px. At 88px the 7% band is ~6px (carving invisible) and base name
+  size computes to ~9px (below the 12px floor), so EVERYTHING degrades to ellipsis.
+  Set the Godot project base resolution to 2316x1080 with stretch mode canvas_items
+  and aspect keep, verify board cards render ~200px wide, and produce all captures
+  for this task at 2316x1080 (wide-meta rules still apply; captures must not be
+  byte-identical).
+  (B) NAMEFIT per the locked spec — at the new resolution the algorithm has room
+  to work. The border band renders but the name treatment — the whole point of the
+  border — does not.
   Implement per the LOCKED spec (do not relitigate): reference impl tools/namefit.py,
   spec client/content/art/border/rootbound_9slice.json, font Cinzel for display text.
   Rules: safe zone = art window inset by max(6% card width, 10px @236w) per side;
@@ -21,12 +34,14 @@
   if still overflowing, two lines balanced by characters starting at base-2 down to
   hard minimum 12px (8px on minis); no glyph below 8px, ellipsis beyond; text never
   touches border band or badges at any size; cost rune stays top-right.
-  Acceptance: committed captures at 1152x648 AND 1999x932 (metas must report true
-  dims; captures must not be byte-identical) where EVERY occupied board card and the
-  hand fan show the card's name legibly rendered per the rules above, over visible
-  art, inside the 7% band frame. Before reporting DONE, describe in the group what a
-  player would literally see on 3 named cards (name text, size, placement). Trikzos'
-  approval of the capture in the group is the completion gate, not the automated gate.
+  Acceptance: committed captures at 2316x1080 AND a wide variant (metas must report
+  true dims; captures must not be byte-identical) where EVERY occupied board card and
+  the hand fan show the card's name legibly rendered per the rules above — full names
+  like "Root Warden" and "Wildfire Adept" visible without ellipsis at board size —
+  over visible art, inside a 7% band whose stone carving is visible, with readable
+  stat numbers. Before reporting DONE, describe in the group what a player would
+  literally see on 3 named cards (name text, size, placement). Trikzos' approval of
+  the capture in the group is the completion gate, not the automated gate.
 
 - [x] TASK-BORDER-FIX-3 — ExpandMode fix: changed KeepSize→IgnoreSize on all 8 TextureRects in RootBoundBorder.cs per docs/COMMS.md standing rule. Coverage check: center stddev > 15 on every occupied board card confirms art visible (stddev 104-115 across all 6 occupied slots), not stone texture. Gate passes at both resolutions. Human verification: every board card shows colorful fantasy art (magenta, cyan, white, yellow, red, blue), 6px stone border visible at card edges, name text visible in band, stat badges visible. 717 tests green. ✅
 
