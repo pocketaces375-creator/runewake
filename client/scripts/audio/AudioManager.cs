@@ -10,6 +10,8 @@ namespace Runewake.Client;
 /// from a manifest file. Safe with zero audio files: missing IDs log a warning,
 /// never crash. All volume is controlled via the bus hierarchy:
 ///   Master → (Music, SFX, Ambient)
+/// Also tracks every playback call for headless verification — see
+/// GetAudioVerificationReport() and WriteAudioVerificationReport().
 /// </summary>
 public partial class AudioManager : Node
 {
@@ -28,10 +30,36 @@ public partial class AudioManager : Node
         public Dictionary<string, AudioEntry> ambient { get; set; }
     }
 
+    // ── Call-tracking record for headless verification ───────────────────
+    public sealed class AudioCallRecord
+    {
+        public string id { get; set; } = "";
+        public string type { get; set; } = ""; // "music", "sfx", "ambient"
+        public bool streamNonNull { get; set; }
+        public bool enteredPlaying { get; set; }
+        public int callCount { get; set; }
+    }
+
+    // ── Verification report ─────────────────────────────────────────────
+    public sealed class AudioVerificationReport
+    {
+        public List<AudioCallRecord> exercised { get; set; } = new();
+        public List<string> manifestEventIds { get; set; } = new();
+        public List<string> unhookedEventIds { get; set; } = new();
+        public bool musicExercised { get; set; }
+        public bool sfxExercised { get; set; }
+        public int totalMusicCalls { get; set; }
+        public int totalSfxCalls { get; set; }
+        public int totalAmbientCalls { get; set; }
+    }
+
     // ── Fields ──────────────────────────────────────────────────────────
     private readonly Dictionary<string, AudioEntry> _musicMap = new();
     private readonly Dictionary<string, AudioEntry> _sfxMap = new();
     private readonly Dictionary<string, AudioEntry> _ambientMap = new();
+
+    // Call-tracking store: key = "type:id", value = record
+    private readonly Dictionary<string, AudioCallRecord> _callLog = new();
 
     // Music player — only one track at a time, CrossfadeMusic cross-fades
     private AudioStreamPlayer? _musicPlayer;
@@ -161,12 +189,17 @@ public partial class AudioManager : Node
 
         if (_currentMusicId == id && _musicPlayer!.Playing)
         {
-            // Already playing this track — silent no-op
+            // Already playing this track — silent no-op; still record the call
+            RecordCall("music", id, true, true);
             return;
         }
 
         var stream = LoadStream(entry.path);
-        if (stream == null) return;
+        if (stream == null)
+        {
+            RecordCall("music", id, false, false);
+            return;
+        }
 
         // Stop current music gracefully
         if (_musicPlayer!.Playing)
@@ -175,6 +208,8 @@ public partial class AudioManager : Node
         _currentMusicId = id;
         _musicPlayer.Stream = stream;
         _musicPlayer.Play();
+
+        RecordCall("music", id, true, _musicPlayer.Playing);
 
         if (fadeInSec > 0.001f)
         {
@@ -263,17 +298,25 @@ public partial class AudioManager : Node
         if (!_sfxMap.TryGetValue(id, out var entry))
         {
             GD.Print($"[AudioManager] SFX '{id}' not in manifest (safe no-op)");
+            // Still record the call attempt so the report shows it was referenced
+            RecordCall("sfx", id, false, false);
             return;
         }
 
         var stream = LoadStream(entry.path);
-        if (stream == null) return;
+        if (stream == null)
+        {
+            RecordCall("sfx", id, false, false);
+            return;
+        }
 
         var player = _sfxPlayers[_sfxIndex];
         _sfxIndex = (_sfxIndex + 1) % SfxPoolSize;
 
         player.Stream = stream;
         player.Play();
+
+        RecordCall("sfx", id, true, player.Playing);
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -286,19 +329,29 @@ public partial class AudioManager : Node
         if (!_ambientMap.TryGetValue(id, out var entry))
         {
             GD.Print($"[AudioManager] Ambient '{id}' not in manifest (safe no-op)");
+            RecordCall("ambient", id, false, false);
             return;
         }
 
         if (_currentAmbientId == id && _ambientPlayer!.Playing)
+        {
+            RecordCall("ambient", id, true, true);
             return; // Already playing this ambient
+        }
 
         var stream = LoadStream(entry.path);
-        if (stream == null) return;
+        if (stream == null)
+        {
+            RecordCall("ambient", id, false, false);
+            return;
+        }
 
         _ambientPlayer!.Stop();
         _currentAmbientId = id;
         _ambientPlayer.Stream = stream;
         _ambientPlayer.Play();
+
+        RecordCall("ambient", id, true, _ambientPlayer.Playing);
     }
 
     /// <summary>Stop the ambient layer.</summary>
@@ -307,5 +360,99 @@ public partial class AudioManager : Node
         if (_ambientPlayer == null) return;
         _ambientPlayer.Stop();
         _currentAmbientId = null;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Audio Verification API (headless gate support)
+    // ════════════════════════════════════════════════════════════════════
+
+    private void RecordCall(string type, string id, bool streamNonNull, bool enteredPlaying)
+    {
+        string key = $"{type}:{id}";
+        if (_callLog.TryGetValue(key, out var existing))
+        {
+            existing.callCount++;
+            existing.streamNonNull = existing.streamNonNull || streamNonNull;
+            existing.enteredPlaying = existing.enteredPlaying || enteredPlaying;
+        }
+        else
+        {
+            _callLog[key] = new AudioCallRecord
+            {
+                id = id,
+                type = type,
+                streamNonNull = streamNonNull,
+                enteredPlaying = enteredPlaying,
+                callCount = 1
+            };
+        }
+    }
+
+    /// <summary>Build a verification report from the current call log and manifest.</summary>
+    public AudioVerificationReport GetAudioVerificationReport()
+    {
+        var report = new AudioVerificationReport();
+        var allManifestIds = new List<string>();
+        int totalMusic = 0, totalSfx = 0, totalAmbient = 0;
+
+        foreach (var kv in _musicMap)
+        {
+            allManifestIds.Add($"music:{kv.Key}");
+            totalMusic += _callLog.TryGetValue($"music:{kv.Key}", out var r) ? r.callCount : 0;
+        }
+        foreach (var kv in _sfxMap)
+        {
+            allManifestIds.Add($"sfx:{kv.Key}");
+            totalSfx += _callLog.TryGetValue($"sfx:{kv.Key}", out var r) ? r.callCount : 0;
+        }
+        foreach (var kv in _ambientMap)
+        {
+            allManifestIds.Add($"ambient:{kv.Key}");
+            totalAmbient += _callLog.TryGetValue($"ambient:{kv.Key}", out var r) ? r.callCount : 0;
+        }
+
+        report.manifestEventIds = allManifestIds;
+        report.totalMusicCalls = totalMusic;
+        report.totalSfxCalls = totalSfx;
+        report.totalAmbientCalls = totalAmbient;
+
+        foreach (var kv in _callLog)
+        {
+            report.exercised.Add(kv.Value);
+            if (kv.Value.type == "music" && kv.Value.streamNonNull && kv.Value.enteredPlaying)
+                report.musicExercised = true;
+            if (kv.Value.type == "sfx" && kv.Value.streamNonNull && kv.Value.enteredPlaying)
+                report.sfxExercised = true;
+        }
+
+        // Compute unhooked events: manifest entries not found in call log
+        foreach (var manifestId in allManifestIds)
+        {
+            if (!_callLog.ContainsKey(manifestId))
+                report.unhookedEventIds.Add(manifestId);
+        }
+
+        report.unhookedEventIds.Sort();
+        return report;
+    }
+
+    /// <summary>Write the audio verification report as JSON to the given file path.</summary>
+    public void WriteAudioVerificationReport(string filePath)
+    {
+        try
+        {
+            var report = GetAudioVerificationReport();
+            string json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
+            using var file = Godot.FileAccess.Open(filePath, Godot.FileAccess.ModeFlags.Write);
+            file.StoreString(json);
+            GD.Print($"[AudioManager] Verification report written to {filePath}");
+            GD.Print($"[AudioManager] Report: musicExercised={report.musicExercised} sfxExercised={report.sfxExercised} " +
+                     $"musicCalls={report.totalMusicCalls} sfxCalls={report.totalSfxCalls} ambCalls={report.totalAmbientCalls} " +
+                     $"unhooked={report.unhookedEventIds.Count}");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[AudioManager] Failed to write verification report: {ex.Message}");
+        }
     }
 }

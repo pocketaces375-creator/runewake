@@ -711,6 +711,9 @@ public partial class DuelScene : Control
                     {
                         int failed = RunLayoutVerification();
                         GD.Print($"[VERIFY] Layout checks: {failed} failed");
+                        // TASK-AUDIO-VERIFY-1: Write audio verification report
+                        GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport(
+                            "/home/fictive/runewake/artifacts/captures/audio_verify.json");
                         if (failed > 0)
                             GetTree().Quit(1);
                         else
@@ -718,6 +721,9 @@ public partial class DuelScene : Control
                     }
                     else
                     {
+                        // TASK-AUDIO-VERIFY-1: Write audio verification report
+                        GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport(
+                            "/home/fictive/runewake/artifacts/captures/audio_verify.json");
                         GetTree().Quit(0);
                     }
                 };
@@ -2680,6 +2686,7 @@ public partial class DuelScene : Control
             {
                 var st = _gsm.State;
                 GD.Print($"[BotDuelTest] RESULT gameOver turn={st.TurnNumber} winner={st.WinnerIndex} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
+                GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
                 GetTree().Quit();
                 return;
             }
@@ -2692,6 +2699,7 @@ public partial class DuelScene : Control
                 if (p0Turns++ >= 14)
                 {
                     GD.Print($"[BotDuelTest] RESULT budget-exhausted turn={st.TurnNumber} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
+                    GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
                     GetTree().Quit();
                     return;
                 }

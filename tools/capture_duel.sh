@@ -11,7 +11,7 @@ CAPTURE_DIR="$ROOT/artifacts/captures"
 
 # Clean previous captures
 mkdir -p "$CAPTURE_DIR"
-rm -f "$CAPTURE_DIR"/duel_test*.png "$CAPTURE_DIR"/duel_test*.meta.json
+rm -f "$CAPTURE_DIR"/duel_test*.png "$CAPTURE_DIR"/duel_test*.meta.json "$CAPTURE_DIR"/audio_verify.json
 
 capture_one() {
     local suffix="$1"    # "" or "_wide" or "_r2"
@@ -82,8 +82,16 @@ echo "R2:      $([ $R2_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
 
 if [ $STD_RC -eq 0 ] && [ $WIDE_RC -eq 0 ] && [ $R2_RC -eq 0 ]; then
     echo "All three captures PASSED"
-    exit 0
 else
     echo "Capture failed" >&2
     exit 1
 fi
+
+# ─── Audio verification gate ───
+echo ""
+echo "=== Audio Verification Gate ==="
+python3 "$ROOT/tools/capture_gate.py" --audio-only 2>&1 || {
+    echo "FAIL: Audio verification gate failed" >&2
+    exit 1
+}
+echo "Audio verification PASSED"

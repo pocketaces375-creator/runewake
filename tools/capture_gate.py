@@ -994,6 +994,68 @@ VALIDATORS = {
 }
 
 
+# ─── Audio verification validator ──────────────────────────────────────
+def validate_audio_verify(audio_json_path):
+    """
+    Read the audio_verify.json produced by AudioManager.WriteAudioVerificationReport()
+    and assert that at least one music event and one SFX event actually played
+    (stream non-null, player entered Playing state). Reports exercised events
+    and lists unhooked manifest events.
+    """
+    audio_path = Path(audio_json_path)
+    if not audio_path.exists():
+        print(f"FAIL: Audio verification report not found: {audio_path}")
+        print("  Ensure the headless duel test ran and produced artifacts/captures/audio_verify.json")
+        sys.exit(1)
+
+    with open(audio_path) as f:
+        report = json.load(f)
+
+    failures = []
+    music_exercised = report.get("musicExercised", False)
+    sfx_exercised = report.get("sfxExercised", False)
+    exercised = report.get("exercised", [])
+    unhooked = report.get("unhookedEventIds", [])
+    music_calls = report.get("totalMusicCalls", 0)
+    sfx_calls = report.get("totalSfxCalls", 0)
+    ambient_calls = report.get("totalAmbientCalls", 0)
+
+    print(f"\n═══ Audio Verification Report ═══")
+    print(f"  Total calls: {music_calls} music, {sfx_calls} sfx, {ambient_calls} ambient")
+
+    if not exercised:
+        failures.append("NO_AUDIO: No audio events were triggered at all. "
+                        "AudioManager.PlaySfx/PlayMusic/PlayAmbient was never called.")
+
+    print(f"  Exercised events ({len(exercised)}):")
+    for evt in exercised:
+        ok = "✓" if evt.get("streamNonNull") and evt.get("enteredPlaying") else "✗"
+        print(f"    {ok} {evt['type']}:{evt['id']} ×{evt['callCount']} "
+              f"(streamNonNull={evt['streamNonNull']}, enteredPlaying={evt['enteredPlaying']})")
+
+    if not music_exercised:
+        failures.append("NO_MUSIC: No music event was exercised with stream+Playing. "
+                        "Check that PlayMusic(\"ambient_reach\") fires in DuelScene._Ready.")
+
+    if not sfx_exercised:
+        failures.append("NO_SFX: No SFX event was exercised with stream+Playing. "
+                        "Check that at least one PlaySfx() fires during the duel.")
+
+    if unhooked:
+        print(f"  Unhooked events ({len(unhooked)}) — manifest entries with zero call sites:")
+        for ue in unhooked:
+            print(f"    ⚠ {ue}")
+    else:
+        print(f"  Unhooked events: 0 (all manifest entries have call sites)")
+
+    print(f"  Result: {'PASS' if not failures else 'FAIL (' + str(len(failures)) + ' reasons)'}")
+    for f in failures:
+        print(f"    FAIL: {f}")
+
+    if failures:
+        sys.exit(1)
+
+
 def main():
     import hashlib
     capture_dir = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
@@ -1098,6 +1160,24 @@ def main():
 
     if exit_code != 0:
         sys.exit(exit_code)
+
+    # ─── Audio verification: run after all capture validators pass ───
+    audio_verify_path = capture_dir / "audio_verify.json"
+    # --audio-only flag: only run audio verify, no capture validation
+    if "--audio-only" in sys.argv:
+        print("\n═══ Audio Verification (--audio-only) ═══")
+        validate_audio_verify(str(audio_verify_path))
+        sys.exit(0)
+    elif audio_verify_path.exists():
+        print("\n═══ Audio Verification ═══")
+        try:
+            validate_audio_verify(str(audio_verify_path))
+        except SystemExit as e:
+            sys.exit(e.code)
+    else:
+        # Audio verify only produced by duel captures; not required for all
+        # gate runs (e.g. title_test, map_test). Not an error to be missing.
+        pass
 
 
 if __name__ == "__main__":
