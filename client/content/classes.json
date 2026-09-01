@@ -14,18 +14,36 @@
     ]
   },
   {
-    "id": "necromancer",
-    "name": "NECROMANCER",
-    "strata": "HOLLOW",
-    "town": "Palewatch",
-    "description": "Bone and bargain. The necromancer commands what others fear to wake.",
-    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
+    "id": "battlemage",
+    "name": "BATTLEMAGE",
+    "strata": "TIDE",
+    "town": "Saltmere",
+    "description": "Arcane and steel. The battlemage wields magic as a weapon, not a study.",
+    "blurb": "In the drowned markets of Saltmere, battlemage aspirants trade spells for secrets and carve their names into the tide.",
     "core_cards": [
-      "hol_c_gravewrit_thrall",
-      "hol_c_skeletal_reaver",
-      "hol_c_ossuary_guard",
+      "tid_c_tidal_scholar",
+      "tid_c_deep_one",
+      "tid_c_whirlpool_elemental",
+      "tid_u_brine_witch"
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
+  },
+  {
+    "id": "thief",
+    "name": "THIEF",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Shadow and silver. The thief strikes where the light forgets to look.",
+    "blurb": "From the candle-lit crypts of Duskchapel, thieves move through the silence between heartbeats, taking what the dead no longer need.",
+    "core_cards": [
+      "hol_u_crypt_crawler",
+      "hol_u_soul_harvest",
+      "hol_u_barrow_revenant",
       "hol_c_bone_shard_volley"
-    ]
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
   },
   {
     "id": "druid",
@@ -42,59 +60,47 @@
     ]
   },
   {
-    "id": "tidecaller",
-    "name": "TIDECALLER",
-    "strata": "TIDE",
-    "town": "Brinehollow",
-    "description": "Depth and current. The tidecaller reads the drowned archives of the ocean.",
-    "blurb": "Beneath the salt-spires of Brinehollow, tidecallers coax forgotten knowledge from the deep.",
+    "id": "ranger",
+    "name": "RANGER",
+    "strata": "VERDANT",
+    "town": "Greyhollow",
+    "description": "Shot and silence. The ranger moves unseen between the old trees.",
+    "blurb": "In the mist-choked lowlands of Greyhollow, rangers walk the paths that exist only between heartbeats.",
     "core_cards": [
-      "tid_c_tidal_scholar",
-      "tid_c_deep_one",
-      "tid_c_silt_reader",
-      "tid_u_brine_witch"
+      "vrd_c_thornbark_defender",
+      "vrd_u_canopy_archer",
+      "vrd_u_saphoof_charger",
+      "vrd_u_elder_treant"
     ]
   },
   {
-    "id": "dawnward",
-    "name": "DAWNWARD",
+    "id": "necromancer",
+    "name": "NECROMANCER",
+    "strata": "HOLLOW",
+    "town": "Palewatch",
+    "description": "Bone and bargain. The necromancer commands what others fear to wake.",
+    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
+    "core_cards": [
+      "hol_c_gravewrit_thrall",
+      "hol_c_skeletal_reaver",
+      "hol_c_ossuary_guard",
+      "hol_c_deathspeaker"
+    ]
+  },
+  {
+    "id": "paladin",
+    "name": "PALADIN",
     "strata": "DAWN",
-    "town": "Aurelan",
-    "description": "Light and covenant. The dawnward stands at first light against the shadow.",
-    "blurb": "In the golden halls of Aurelan, dawnwards take up the radiance of the first morning.",
+    "town": "Sunspire",
+    "description": "Oath and iron. The paladin is the unbroken wall between the dark and the dawn.",
+    "blurb": "From the golden halls of Sunspire, paladins carry the ancient oaths into every shadow, and the light follows.",
     "core_cards": [
       "dwn_c_dawn_warder",
       "dwn_c_sunblade_recruit",
       "dwn_c_golden_retainer",
-      "dwn_u_purifying_light"
-    ]
-  },
-  {
-    "id": "ranger",
-    "name": "RANGER",
-    "strata": "VERDANT",
-    "town": "Thornfield",
-    "description": "Wilds and first light. The ranger walks where dawn meets the deep wood.",
-    "blurb": "From the treeline settlements of Thornfield, rangers guard the border between shadow and sunrise.",
-    "core_cards": [
-      "vrd_c_thornbark_defender",
-      "vrd_c_wildwood_stalker",
-      "dwn_c_dawnbreaker_charger",
-      "dwn_u_morning_herald"
-    ]
-  },
-  {
-    "id": "occultist",
-    "name": "OCCULTIST",
-    "strata": "TIDE",
-    "town": "Mirefen",
-    "description": "Drowned truth and veiled power. The occultist speaks what the deep has swallowed.",
-    "blurb": "In the fog-choked meres of Mirefen, occultists bargain with things that should have stayed drowned.",
-    "core_cards": [
-      "tid_c_abyssal_gaze",
-      "tid_c_deep_one",
-      "hol_c_skeletal_reaver",
-      "hol_u_barrow_revenant"
-    ]
+      "dwn_u_steadfast_bulwark"
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
   }
 ]

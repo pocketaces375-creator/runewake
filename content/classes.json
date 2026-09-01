@@ -14,18 +14,36 @@
     ]
   },
   {
-    "id": "necromancer",
-    "name": "NECROMANCER",
-    "strata": "HOLLOW",
-    "town": "Palewatch",
-    "description": "Bone and bargain. The necromancer commands what others fear to wake.",
-    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
+    "id": "battlemage",
+    "name": "BATTLEMAGE",
+    "strata": "TIDE",
+    "town": "Saltmere",
+    "description": "Arcane and steel. The battlemage wields magic as a weapon, not a study.",
+    "blurb": "In the drowned markets of Saltmere, battlemage aspirants trade spells for secrets and carve their names into the tide.",
     "core_cards": [
-      "hol_c_gravewrit_thrall",
-      "hol_c_skeletal_reaver",
-      "hol_c_ossuary_guard",
-      "hol_c_deathspeaker"
-    ]
+      "tid_c_tidal_scholar",
+      "tid_c_deep_one",
+      "tid_c_whirlpool_elemental",
+      "tid_u_brine_witch"
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
+  },
+  {
+    "id": "thief",
+    "name": "THIEF",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Shadow and silver. The thief strikes where the light forgets to look.",
+    "blurb": "From the candle-lit crypts of Duskchapel, thieves move through the silence between heartbeats, taking what the dead no longer need.",
+    "core_cards": [
+      "hol_u_crypt_crawler",
+      "hol_u_soul_harvest",
+      "hol_u_barrow_revenant",
+      "hol_c_bone_shard_volley"
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
   },
   {
     "id": "druid",
@@ -39,34 +57,6 @@
       "vrd_c_verdant_sproutling",
       "vrd_c_wildwood_stalker",
       "vrd_u_grove_healer"
-    ]
-  },
-  {
-    "id": "tidecaller",
-    "name": "TIDECALLER",
-    "strata": "TIDE",
-    "town": "Saltmere",
-    "description": "Depth and memory. The tidecaller reads what the tide has buried.",
-    "blurb": "In the drowned markets of Saltmere, tidecallers barter with the secrets the sea surrenders.",
-    "core_cards": [
-      "tid_c_tidal_scholar",
-      "tid_c_deep_one",
-      "tid_c_whirlpool_elemental",
-      "tid_u_brine_witch"
-    ]
-  },
-  {
-    "id": "dawnward",
-    "name": "DAWNWARD",
-    "strata": "DAWN",
-    "town": "Sunspire",
-    "description": "Light and covenant. The dawnward stands as the first line against the dark.",
-    "blurb": "From the golden halls of Sunspire, dawnwards carry the unbroken light into every shadow.",
-    "core_cards": [
-      "dwn_c_dawn_warder",
-      "dwn_c_sunblade_recruit",
-      "dwn_c_dawnbreaker_charger",
-      "dwn_u_morning_herald"
     ]
   },
   {
@@ -84,17 +74,33 @@
     ]
   },
   {
-    "id": "occultist",
-    "name": "OCCULTIST",
+    "id": "necromancer",
+    "name": "NECROMANCER",
     "strata": "HOLLOW",
-    "town": "Duskchapel",
-    "description": "Whisper and bargain. The occultist speaks what should never be spoken.",
-    "blurb": "In the candle-lit crypts of Duskchapel, occultists trade in truths that shatter those who hear them.",
+    "town": "Palewatch",
+    "description": "Bone and bargain. The necromancer commands what others fear to wake.",
+    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
     "core_cards": [
-      "hol_u_crypt_crawler",
-      "hol_u_barrow_revenant",
-      "hol_r_wraith_stalker",
-      "hol_c_bone_shard_volley"
+      "hol_c_gravewrit_thrall",
+      "hol_c_skeletal_reaver",
+      "hol_c_ossuary_guard",
+      "hol_c_deathspeaker"
     ]
+  },
+  {
+    "id": "paladin",
+    "name": "PALADIN",
+    "strata": "DAWN",
+    "town": "Sunspire",
+    "description": "Oath and iron. The paladin is the unbroken wall between the dark and the dawn.",
+    "blurb": "From the golden halls of Sunspire, paladins carry the ancient oaths into every shadow, and the light follows.",
+    "core_cards": [
+      "dwn_c_dawn_warder",
+      "dwn_c_sunblade_recruit",
+      "dwn_c_golden_retainer",
+      "dwn_u_steadfast_bulwark"
+    ],
+    "placeholder": true,
+    "portrait_placeholder": true
   }
 ]
