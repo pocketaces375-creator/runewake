@@ -45,7 +45,7 @@
   Acceptance: classes.json has exactly 7 entries with those ids; ChooseYourPathScene capture
   shows 7 choices; build 0 errors, tests green; post capture to the group; mark [x]; continue.
 
-- [ ] TASK-AUDIO-VERIFY-1 — Prove music and SFX actually play, not just that files exist.
+- [x] TASK-AUDIO-VERIFY-1 — Prove music and SFX actually play, not just that files exist.
   AUDIO-SYS/AUDIO-SRC/AUDIO-HOOK-1 are marked done. Add a headless check (or extend an existing
   one) that proves at least one music track and one SFX event fire from their real trigger
   points (e.g. duel start music, card-play SFX, End Turn SFX) — assert the AudioStreamPlayer

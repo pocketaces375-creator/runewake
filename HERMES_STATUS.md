@@ -1,3 +1,11 @@
+**TASK-AUDIO-VERIFY-1 (2026-09-01):** Prove music and SFX actually play — not just files exist. ✅
+|- AudioManager.cs: call tracking (RecordCall) on every PlaySfx/PlayMusic/PlayAmbient — logs streamNonNull + enteredPlaying per event. GetAudioVerificationReport() + WriteAudioVerificationReport() produce artifacts/captures/audio_verify.json. ✅
+|- DuelScene.cs: writes audio_verify.json before GetTree().Quit() in both duel_test and bot_duel flows. ✅
+|- capture_gate.py: validate_audio_verify() asserts ≥1 music + ≥1 SFX exercised with stream+Playing; lists unhooked events. Auto-runs after duel validators, also --audio-only. ✅
+|- capture_duel.sh: cleans old report, runs audio gate after triple captures. ✅
+|- Build: 0 errors. Tests: 724/724 green. ✅
+|- Committed (714659b) and pushed to origin/main. ✅
+
 **TASK-CLASS-7-FIX (2026-09-01):** TASK-CLASS-7 used the WRONG roster. Final 7 classes from Trikzos. ✅
 |- **Removed:** tidecaller, dawnward, occultist from classes.json (art files left on disk — shelved).
 |- **Added:** battlemage (TIDE, Saltmere, wand/aura), thief (HOLLOW, Duskchapel, daggers), paladin (DAWN, Sunspire, hammer/anvil) — DATA ONLY, no new art. All three flagged placeholder=true and portrait_placeholder=true (stratum-colored fallback per existing ChooseYourPathScene fallback at line 620).
