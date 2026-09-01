@@ -67,6 +67,6 @@ def capture_at(w, h, tag):
     time.sleep(0.5)
     subprocess.run(["killall", "Xvfb", "fluxbox"], capture_output=True)
 
-capture_at(1152, 648, "standard")
-capture_at(1999, 932, "wide")
+capture_at(2316, 1080, "standard")
+capture_at(2999, 1080, "wide")
 print("\n=== DONE ===")

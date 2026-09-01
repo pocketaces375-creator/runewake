@@ -178,6 +178,61 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] ChoosePath wide capture mode enabled: --capture=choose_path_wide");
             }
+            if (arg == "--capture=settings_test")
+            {
+                CampaignContext.CaptureSettingsScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Settings capture mode enabled: --capture=settings_test");
+            }
+            if (arg == "--capture=settings_test_wide")
+            {
+                CampaignContext.CaptureSettingsScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Settings wide capture mode enabled: --capture=settings_test_wide");
+            }
+            if (arg == "--capture=dig_test")
+            {
+                CampaignContext.CaptureDigScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                // Set up a test dig site so the scene can render
+                var digSite = new Runewake.Engine.Cards.DigSiteDef
+                {
+                    Id = "test_dig_site",
+                    Name = "The Earthen Maw",
+                    Description = "A dark crevice in the earth, humming with ancient energy.",
+                    Rows = 4,
+                    Cols = 4,
+                    Strikes = 3
+                };
+                CampaignContext.DigSiteIndex.Clear();
+                CampaignContext.DigSiteIndex["test_dig_site"] = digSite;
+                CampaignContext.CurrentDigSiteId = "test_dig_site";
+                GD.Print("[DebugCapture] Dig capture mode enabled: --capture=dig_test");
+            }
+            if (arg == "--capture=dig_test_wide")
+            {
+                CampaignContext.CaptureDigScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                var digSite = new Runewake.Engine.Cards.DigSiteDef
+                {
+                    Id = "test_dig_site",
+                    Name = "The Earthen Maw",
+                    Description = "A dark crevice in the earth, humming with ancient energy.",
+                    Rows = 4,
+                    Cols = 4,
+                    Strikes = 3
+                };
+                CampaignContext.DigSiteIndex.Clear();
+                CampaignContext.DigSiteIndex["test_dig_site"] = digSite;
+                CampaignContext.CurrentDigSiteId = "test_dig_site";
+                GD.Print("[DebugCapture] Dig wide capture mode enabled: --capture=dig_test_wide");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);

@@ -28,6 +28,25 @@ public partial class SettingsScene : Control
     {
         BuildUI();
         LoadCurrentSettings();
+
+        // Capture hook for --capture=settings_test[_wide]
+        if (CampaignContext.AutoCaptureScreenshot && CampaignContext.CaptureSettingsScreenshot)
+        {
+            var timer = GetTree().CreateTimer(0.5f);
+            timer.Timeout += () =>
+            {
+                var image = GetViewport().GetTexture().GetImage();
+                if (image != null)
+                {
+                    string path = CampaignContext.WideCaptureMode
+                        ? "/home/fictive/runewake/artifacts/captures/settings_test_wide.png"
+                        : "/home/fictive/runewake/artifacts/captures/settings_test.png";
+                    image.SavePng(path);
+                    GD.Print($"[SettingsScene] Captured to {path}");
+                }
+                GetTree().Quit(0);
+            };
+        }
     }
 
     private void BuildUI()

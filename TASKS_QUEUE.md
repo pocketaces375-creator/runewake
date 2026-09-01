@@ -54,7 +54,7 @@
   Acceptance: the check passes in CI/gate; the list of unhooked events is posted to the group
   and written into HERMES_STATUS.md. Report only for unhooked events — do not redesign audio.
 
-- [ ] TASK-SCALE-AUDIT-1 — Every screen at 2316x1080, not just the duel board.
+- [x] TASK-SCALE-AUDIT-1 — Every screen at 2316x1080, not just the duel board.
   Audit main menu, Choose Your Path, world map, Deck Forge, dig/encounter, settings, victory/
   defeat overlays, and the tutorial for leftover 1152x648-era constants (hardcoded 1152/648/
   88/129/104/152 or a stale `/ 648f` scale base) and for any capture script still capturing at
@@ -63,7 +63,7 @@
   PASS where a gate exists, a plain-text list "screen → fixed / already correct" posted to the
   group and in HERMES_STATUS.md. Mark [x]; continue.
 
-- [ ] TASK-QUALITY-1 — Highest comfortable fidelity for every LOCKED visual asset at 2316x1080.
+- [x] TASK-QUALITY-1 — Highest comfortable fidelity for every LOCKED visual asset at 2316x1080.
   Root-Bound border slices, card art .webp imports, HUD/icon textures, class portraits: check
   each is imported at native resolution (no downscale on import, mipmaps/filter set so a
   200px board card and a 400px+ inspect view both look crisp, no compression banding).

@@ -9934,3 +9934,63 @@ Already up to date.
 === Running: TASK-DECKSAVE-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 3/48 (3 full + 0 bus, 6/96 halves)
+  Top task: TASK-SCALE-AUDIT-1
+
+=== Running: TASK-SCALE-AUDIT-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 611454) — exiting
+  Hermes session completed
+3. Commit with message `TASK-SCALE-AUDIT-1: Every screen at 2316x1080, not just the duel board.`
+4. Push
+5. Write DONE line to `HERMES_STATUS.md` with the screen list
+
+The capture scripts for `capture_choose_path.sh` and `capture_choose_path.py` are still hitting the old Xvfb setup path (separate from capture_polish.sh's `xvfb-run` approach) — they launch their own Xvfb. That's fine for now since the resolution numbers were updated correctly, but means the choose_path captures ran at their own resolution rather than through the polish pipeline.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 4/48 (4 full + 0 bus, 8/96 halves)
+  Top task: TASK-SCALE-AUDIT-1
+
+=== Running: TASK-SCALE-AUDIT-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- **Gates:** duel_test, duel_test_wide, title_test, title_test_wide, map_test, map_test_wide — all PASS
+- **Build:** 0 errors. **Tests:** 724/724 green
+- **Committed (`96e4316`) and pushed to `origin/main`**
+- **TASKS_QUEUE.md marked `[x]`**
+- **DONE line written to HERMES_STATUS.md**
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 5/48 (5 full + 0 bus, 10/96 halves)
+  Top task: TASK-QUALITY-1
+
+=== Running: TASK-QUALITY-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

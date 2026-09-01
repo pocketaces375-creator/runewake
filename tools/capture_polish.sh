@@ -14,6 +14,7 @@ rm -f "$CAPTURE_DIR"/title_test*.png "$CAPTURE_DIR"/title_test*.meta.json
 rm -f "$CAPTURE_DIR"/map_test*.png "$CAPTURE_DIR"/map_test*.meta.json
 rm -f "$CAPTURE_DIR"/duel_test*.png "$CAPTURE_DIR"/duel_test*.meta.json
 rm -f "$CAPTURE_DIR"/victory_overlay*.png "$CAPTURE_DIR"/defeat_overlay*.png
+rm -f "$CAPTURE_DIR"/settings_test*.png "$CAPTURE_DIR"/dig_test*.png
 
 cap_one() {
     local capture_arg="$1"
@@ -62,23 +63,27 @@ with open('${CAPTURE_DIR}/${out}.png','rb') as f:
 
 RC=0
 
-# Standard (1152x648)
-cap_one "title_test" 1152 648 || RC=1
-cap_one "map_test" 1152 648 || RC=1
-cap_one "duel_test" 1152 648 || RC=1
-cap_one "victory_overlay" 1152 648 || RC=1
-cap_one "defeat_overlay" 1152 648 || RC=1
+# Standard (2316x1080)
+cap_one "title_test" 2316 1080 || RC=1
+cap_one "map_test" 2316 1080 || RC=1
+cap_one "duel_test" 2316 1080 || RC=1
+cap_one "victory_overlay" 2316 1080 || RC=1
+cap_one "defeat_overlay" 2316 1080 || RC=1
 
-# Wide (1999x932)
-cap_one "title_test_wide" 1999 932 || RC=1
-cap_one "map_test_wide" 1999 932 || RC=1
-cap_one "duel_test_wide" 1999 932 || RC=1
-cap_one "victory_overlay_wide" 1999 932 || RC=1
-cap_one "defeat_overlay_wide" 1999 932 || RC=1
+# Wide (2999x1080)
+cap_one "title_test_wide" 2999 1080 || RC=1
+cap_one "map_test_wide" 2999 1080 || RC=1
+cap_one "duel_test_wide" 2999 1080 || RC=1
+cap_one "victory_overlay_wide" 2999 1080 || RC=1
+cap_one "defeat_overlay_wide" 2999 1080 || RC=1
+
+# Settings
+cap_one "settings_test" 2316 1080 || RC=1
+cap_one "settings_test_wide" 2999 1080 || RC=1
 
 # Restore to standard
-sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width=1152|' "$PROJECT_GODOT"
-sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height=648|' "$PROJECT_GODOT"
+sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width=2316|' "$PROJECT_GODOT"
+sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height=1080|' "$PROJECT_GODOT"
 
 echo ""
 echo "=== POLISH-PASS-1-E capture results ==="

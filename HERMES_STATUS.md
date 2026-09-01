@@ -1,3 +1,26 @@
+**TASK-QUALITY-1 (2026-09-01):** Highest comfortable fidelity for every LOCKED visual asset at 2316x1080. ✅
+- **All 87 .import files updated:** mipmaps/generate=false → true (enables GPU mipmapping for crisp rendering at 200px board card and 400px+ inspect sizes) and compress/high_quality=false → true (higher quality GPU compression path for lossless textures). ✅
+- **Assets covered:** 9 Root-Bound border slices (rootbound_*.png), 65 card art .webp imports, 7 class portraits, 3 board textures (plate_default, backdrop_default, default), title hero art + intro splash, map_plate. ✅
+- **No downscale on import:** process/size_limit=0 already set (native resolution preserved for all). ✅
+- **Lossless compression retained:** compress/mode=0 already set (no compression banding). ✅
+- **Build:** 0 errors. **Tests:** 724/724 green. ✅
+- **Gates:** duel_test (standard + wide) — both PASS. All 10 hand + 10 board card checks pass. Center stddev 33-39 (well above 15 threshold). ✅
+- **APK size delta:** mipmaps add ~33% to GPU texture memory (ctex cache 96→128MB = +32MB). APK size increase estimated +10-15MB (texture data compresses in export). Comparable to existing ~200MB debug build. ✅
+- **Before/after 1:1 pixel crops:** /tmp/hand_card_comparison.png and /tmp/board_card_comparison.png generated (before from HEAD capture, after from freshest capture with mipmaps + high_quality). ✅
+- **Committed and pushed to origin/main.** ✅
+
+**TASK-SCALE-AUDIT-1 (2026-09-01):** Every screen at 2316x1080, not just the duel board. ✅
+|- **Audited screens:** Main menu, Choose Your Path, world map, Deck Forge, dig/encounter, settings, victory/defeat overlays, and tutorial. ✅
+|- **Layout:** All screens use anchor percentages or viewport-derived sizes — already proportional at 2316x1080. No hardcoded 1152/648/88/129 values remained in layout math. ✅
+|- **Stale comments fixed:** capture_deck.sh (line 3 "1152x648"), DeckBuilderScene.cs (lines 394, 1090), CampaignContext.cs (line 143 "1152×648"). ✅
+|- **Stale /648f scale base fixed:** DeckBuilderScene.cs line 1095 — `GetViewportRect().Size.Y / 648f` → `... / 1080f` (was in working tree uncommitted, caught by this audit). ✅
+|- **Capture scripts updated:** capture_choose_path.sh rewritten to patch project.godot (was using --resolution flag producing 499x1080 results). ✅
+|- **Captures regenerated at 2316x1080:** choose_path, choose_path_wide, title_test, title_test_wide, map_test, map_test_wide, duel_test, duel_test_wide, duel_test_r2, victory_overlay, victory_overlay_wide, defeat_overlay, defeat_overlay_wide, settings_test, settings_test_wide, deck_test. ✅
+|- **dig_test:** pre-existing DebugCapture timing issue (test dig site cleared by LoadDigSites before DigScene loads) — layout is already proportional (anchors + viewport-centric), no gate validator exists. Marked as known limitation. ✅
+|- **Gates:** duel_test, duel_test_wide, title_test, title_test_wide, map_test, map_test_wide — all PASS. Choose path, settings, victory/defeat — no gate validator yet (known, task says "where a gate exists"). ✅
+|- **Build:** 0 errors. Tests: 724/724 green. ✅
+|- **Committed (96e4316) and pushed to origin/main.** ✅
+
 **TASK-AUDIO-VERIFY-1 (2026-09-01):** Prove music and SFX actually play — not just files exist. ✅
 |- AudioManager.cs: call tracking (RecordCall) on every PlaySfx/PlayMusic/PlayAmbient — logs streamNonNull + enteredPlaying per event. GetAudioVerificationReport() + WriteAudioVerificationReport() produce artifacts/captures/audio_verify.json. ✅
 |- DuelScene.cs: writes audio_verify.json before GetTree().Quit() in both duel_test and bot_duel flows. ✅

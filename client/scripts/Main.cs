@@ -650,6 +650,24 @@ public partial class Main : Control
                     GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
                 }).CallDeferred();
             }
+            else if (CampaignContext.CaptureSettingsScreenshot)
+            {
+                // Navigate to settings screen
+                GD.Print("[Main] Navigating to Settings for capture");
+                Callable.From(() =>
+                {
+                    GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+                }).CallDeferred();
+            }
+            else if (CampaignContext.CaptureDigScreenshot)
+            {
+                // Navigate to dig scene
+                GD.Print("[Main] Navigating to Dig scene for capture");
+                Callable.From(() =>
+                {
+                    GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
+                }).CallDeferred();
+            }
             else
             {
                 // Navigate to duel for duel capture

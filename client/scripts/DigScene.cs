@@ -51,6 +51,25 @@ public partial class DigScene : Control
 
         _digState = DigState.FromDef(_siteDef);
         BuildUI();
+
+        // Capture hook for --capture=dig_test[_wide]
+        if (CampaignContext.AutoCaptureScreenshot && CampaignContext.CaptureDigScreenshot)
+        {
+            var timer = GetTree().CreateTimer(0.5f);
+            timer.Timeout += () =>
+            {
+                var image = GetViewport().GetTexture().GetImage();
+                if (image != null)
+                {
+                    string path = CampaignContext.WideCaptureMode
+                        ? "/home/fictive/runewake/artifacts/captures/dig_test_wide.png"
+                        : "/home/fictive/runewake/artifacts/captures/dig_test.png";
+                    image.SavePng(path);
+                    GD.Print($"[DigScene] Captured to {path}");
+                }
+                GetTree().Quit(0);
+            };
+        }
     }
 
     private void BuildUI()
