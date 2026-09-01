@@ -10,7 +10,96 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [x] TASK-DUELRES-1 — Set the client design resolution to 2316x1080 and re-render at design size
+- [ ] TASK-BOARD-MATCH-2 — REOPEN of TASK-BOARD-MATCH-1: it was marked [x] with only items (d) and (e) done.
+  Finish the remaining items against docs/export/duel_target_reference.jpg (the authority image):
+  (a) EMPTY LANES: thin warm-gold rounded keyline sockets, faint translucent stone tint, board
+      painting visible through them, all five columns vertically aligned across both rows.
+  (b) CARD FRAME: the renderer must visibly sample the rootbound_*.png slices at band_px so the
+      dark carved-stone texture reads at 200px cards — not a flat black outline.
+  (c) COST: small dark circle with a gold ring, top-right inside the art corner (not a gold square).
+  (d-fix) STAT BOX ANCHORS: Trikzos confirmed the attack/vigor chips are mispositioned. Fix the
+      anchor/offset math so both chips sit flush at the frame's bottom corners on board, hand and
+      enemy-row cards alike. The (d) restyle is done; this is placement math.
+  (f) HAND: larger than board cards, centered, slight overlap, bottom edge tucked into the frame.
+  (g) HUD: green pill "TRIKZOS | <vigor>" bottom-left, red pill "THE WAYFARER | <vigor>" top-right
+      (fix the truncated "ENEMY FARER" string), DECK+BARROW in one small panel, artifact slots show
+      the artifact ART as framed thumbnails (teal rim), turn indicator top-center in the serif face.
+  (h) R2 variant: one extra capture with larger cards / larger art share for Trikzos to compare.
+  Do NOT pause for approval between items — do all of them in this session.
+  Acceptance: build 0 errors, tests green, gate PASS at 2316x1080 and wide (captures not
+  byte-identical). Post to the group ONE message: standard capture + (h) variant capture + a
+  plain-text checklist (a)(b)(c)(d-fix)(f)(g)(h) each marked matched/not matched. Then mark [x]
+  and continue to the next task. Trikzos reviews asynchronously; no waiting.
+
+- [ ] TASK-CLASS-7-FIX — TASK-CLASS-7 used the WRONG roster. Final 7 classes from Trikzos:
+  Warrior, Battlemage, Thief, Druid, Ranger, Necromancer, Paladin.
+  Remove the tidecaller, dawnward and occultist entries from content/classes.json (leave their
+  art files on disk — shelved, not deleted). Add battlemage, thief and paladin as DATA ONLY:
+  weapon data uses existing placeholders (Battlemage = Wand/Aura, Paladin = Hammer/Anvil,
+  Thief = whatever the artifact/weapon data already defines for Thief). Stratum/home town: take
+  from launch_artifacts.json or existing weapon data if defined there; if not defined anywhere,
+  use the vacated slots as placeholders and add "placeholder": true to the entry so it is
+  visibly provisional. Portraits: do NOT generate new art with FLUX or any generator; point the
+  three new entries at a local stratum-colored name plate built by the existing build script
+  (same fallback used 2026-08-22) and flag "portrait_placeholder": true.
+  Acceptance: classes.json has exactly 7 entries with those ids; ChooseYourPathScene capture
+  shows 7 choices; build 0 errors, tests green; post capture to the group; mark [x]; continue.
+
+- [ ] TASK-AUDIO-VERIFY-1 — Prove music and SFX actually play, not just that files exist.
+  AUDIO-SYS/AUDIO-SRC/AUDIO-HOOK-1 are marked done. Add a headless check (or extend an existing
+  one) that proves at least one music track and one SFX event fire from their real trigger
+  points (e.g. duel start music, card-play SFX, End Turn SFX) — assert the AudioStreamPlayer
+  actually received a non-null stream and entered Playing. Report which tracks/events were
+  exercised, and list every manifest event that currently has NO call site.
+  Acceptance: the check passes in CI/gate; the list of unhooked events is posted to the group
+  and written into HERMES_STATUS.md. Report only for unhooked events — do not redesign audio.
+
+- [ ] TASK-SCALE-AUDIT-1 — Every screen at 2316x1080, not just the duel board.
+  Audit main menu, Choose Your Path, world map, Deck Forge, dig/encounter, settings, victory/
+  defeat overlays, and the tutorial for leftover 1152x648-era constants (hardcoded 1152/648/
+  88/129/104/152 or a stale `/ 648f` scale base) and for any capture script still capturing at
+  the old size. Fix each so layout is proportional at 2316x1080 and the wide variant.
+  Acceptance: one capture per screen at 2316x1080 committed under artifacts/captures/, gate
+  PASS where a gate exists, a plain-text list "screen → fixed / already correct" posted to the
+  group and in HERMES_STATUS.md. Mark [x]; continue.
+
+- [ ] TASK-QUALITY-1 — Highest comfortable fidelity for every LOCKED visual asset at 2316x1080.
+  Root-Bound border slices, card art .webp imports, HUD/icon textures, class portraits: check
+  each is imported at native resolution (no downscale on import, mipmaps/filter set so a
+  200px board card and a 400px+ inspect view both look crisp, no compression banding).
+  Raise import settings or re-export from the source PNGs where they exist. Do NOT change any
+  art, border choice, class or weapon design — fidelity only.
+  Acceptance: before/after crop of one board card and one hand card at 1:1 pixels posted to the
+  group; APK size delta stated; build 0 errors. Mark [x]; continue.
+
+- [ ] TASK-TUTORIAL-VERIFY-1 — The tutorial was built and captured at old 1152x648.
+  The TutorialScript.tscn references 1152/648 in its layout logic (scene transform was not
+  updated by DUELRES-1 because the tutorial is a separate scene). Fix the scene to use
+  proportional layout math, then fix the headless tutorial capture script (does not navigate
+  to the duel scene when TutorialScriptId is set, which blocks headless tutorial capture),
+  then run the full tutorial script headless at 2316x1080 and capture every step.
+  Acceptance: all tutorial steps complete headless without error; step captures committed;
+  any text/callout that no longer lines up with the 200px cards is fixed; post first and last
+  step captures to the group. Mark [x]; continue.
+
+- [ ] TASK-BALANCE-MIRROR-1 — First-player-advantage compensation study. REPORT ONLY, adopt nothing.
+  P0 currently wins ~62.5% of mirrors even though P0 already skips the turn-1 draw. Run mirror
+  matches with the SAME seed set for each of: (a) baseline; (b) P1 gets +1 Attunement max on
+  turn 1; (c) P1 opening hand 6 instead of 5; (d) b+c; (e) P0's turn-1 Attunement ramp delayed
+  one turn. Use only the 7 real classes (after CLASS-7-FIX); if a sim class has no playable
+  deck, say so before reporting numbers.
+  Acceptance: table of P0 win% per variant (per class if available) in HERMES_STATUS.md and
+  posted to the group, flagging which lands nearest 50/50 without tipping to P1. Do NOT change
+  any shipped rule or value. Mark [x]; continue.
+
+- [ ] TASK-EXPORT-2 — Pull the remaining source docs into docs/export/ (copy verbatim, no summaries):
+  PROJECT_EXPORT.md, ARTIFACT_RULINGS.md (full R1-R26), docs/TECH_DEBT.md,
+  docs/OPEN_QUESTIONS.md, NOTES_FOR_HERMES.md, docs/ART_WAVES.md, docs/03_RUNE_SYSTEM.md,
+  FABLE_HANDOFF.md. For each: copied, or "missing at that path" — never guess contents.
+  Acceptance: commit "TASK-EXPORT-2: pull remaining source docs"; list found/missing in
+  HERMES_STATUS.md. Mark [x]; continue.
+
+|- [x] TASK-DUELRES-1
   Measured from the 2026-08-31 capture (2560x922): aspect 2.78:1 vs approved 2.14:1; board
   cards ~118px = 4.6% of frame width vs design ~200px = 8.6%. Band, name and stat sizes are
   computed from card width, so this is the root cause of the cheap look.
