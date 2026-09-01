@@ -1,3 +1,24 @@
+**TASK-CLASS-7-FIX (2026-09-01):** TASK-CLASS-7 used the WRONG roster. Final 7 classes from Trikzos. ✅
+|- **Removed:** tidecaller, dawnward, occultist from classes.json (art files left on disk — shelved).
+|- **Added:** battlemage (TIDE, Saltmere, wand/aura), thief (HOLLOW, Duskchapel, daggers), paladin (DAWN, Sunspire, hammer/anvil) — DATA ONLY, no new art. All three flagged placeholder=true and portrait_placeholder=true (stratum-colored fallback per existing ChooseYourPathScene fallback at line 620).
+|- **Kept:** warrior (EMBER, Emberhold), druid (VERDANT, Mossgrave), ranger (VERDANT, Greyhollow), necromancer (HOLLOW, Palewatch) — unchanged.
+|- **Weapon data:** Battlemage = Wand/Aura (old mage), Paladin = Hammer/Anvil (old runesmith), Thief = daggers (existing). All point to existing launch_artifacts.json entries.
+|- **Core cards:** Battlemage (tid_c_tidal_scholar, tid_c_deep_one, tid_c_whirlpool_elemental, tid_u_brine_witch), Thief (hol_u_crypt_crawler, hol_u_soul_harvest, hol_u_barrow_revenant, hol_c_bone_shard_volley), Paladin (dwn_c_dawn_warder, dwn_c_sunblade_recruit, dwn_c_golden_retainer, dwn_u_steadfast_bulwark).
+|- **Build:** 0 errors. Tests: 724/724 green. ✅
+|- **Capture:** ChooseYourPath shows all 7 choices — WARRIOR, BATTLEMAGE, THIEF, DRUID, RANGER, NECROMANCER, PALADIN. ✅
+|- **Committed (8c29e5c) and pushed to origin/main.** ✅
+
+**TASK-BOARD-MATCH-2 (2026-09-01):** REOPEN of TASK-BOARD-MATCH-1 — finished remaining items (a)(b)(c)(d-fix)(f)(g)(h).
+- **(a) EMPTY LANES:** Warm-gold rounded keyline sockets (2px #C9A84C border, 0.35 alpha stone tint, r=6) in LaneSlot.cs _emptySlotStyle. ✅
+- **(b) CARD FRAME:** RootBoundBorder loads all 8 rootbound_*.png slices at band_px (14px at 200px cards). ✅
+- **(c) COST:** Dark circle (#2A2418 fill + #C9A84C gold ring via StyleBoxFlat cornerRadius=hexSize/2) at top-right inside frame via CardPlate.MakeCostRune. ✅
+- **(d-fix) STAT BOX ANCHORS:** Fixed chip positioning from hardcoded x=3/x=cardWidth-chipW-3 to use bandPx+2 inset — chips now sit flush at the Root-Bound border's inner corners, correctly inside the frame on board/hand/enemy cards. ✅
+- **(f) HAND:** Hand cards 207×306px (vs board 200×292px) — larger, centered (margin_left 180), overlapping (separation via HBox), bottom tucked (6px gap to viewport). ✅
+- **(g) HUD:** Green pill "TRIKZOS | <vigor>" bottom-left, red pill "THE WAYFARER | <vigor>" top-right (210px nameplate fits name at 15px). DECK/BARROW panels on both sides. ArtifactCardPlate now has TextureRect for art thumbnails (loads from res://content/art/artifacts/{id}.webp with parchment fallback). Turn indicator: "Turn N" top-center in Cinzel serif (20px). ✅
+- **(h) R2 variant:** R2 capture mode via --capture=duel_test_r2 (hand 370px/board 320px at 1080). Added to capture_duel.sh as third capture. ✅
+- Build: 0 errors. Tests: 724/724 green. Gates: Standard + Wide — both PASS.
+- Committed (c5ef4a6) and pushed to origin/main. ✅
+
 **TASK-DECKSAVE-1 (2026-08-31):** Deck Forge now saves and loads decks — Trikzos never loses a deck again. ✅
 |- **(1) SAVE button** — FORGE DECK button opens a stone-themed "Name Your Deck" dialog (LineEdit pre-filled with current name, Save/Cancel). Enabled only at 30/30. On confirm, persists to ProgressionState.SavedDecks (v2 schema), legacy DeckCardIds, CampaignContext JSON deck library, and active profile. Shows gold toast "Deck saved." and refreshes the load list. Does NOT navigate away. ✅
 |- **(2) Saved-decks load list** — "Load Saved Deck" section in the right rail (below FORGE DECK, above Back). Scrollable list showing each saved deck's name (gold) and count (muted). Click a deck → loads it into the builder: card list, deck name, and cleared-modified flag. Unsaved-changes guard if modified. ✅
@@ -382,3 +403,4 @@
 ||- Added **occultist** (HOLLOW cross-strata, Duskchapel) — core cards: hol_u_crypt_crawler, hol_u_barrow_revenant, hol_r_wraith_stalker, hol_c_bone_shard_volley. ✅
 ||- All 4 use existing art (tidecaller.png, dawnward.png, ranger.png, occultist.png at client/content/art/classes/). All 7 classes now wired downstream (ChooseYourPathScene reads from classes.json dynamically). ✅
 ||- Build: 0 errors. Tests: 724/724 green. Committed (2cdf8ac) and pushed to origin/main. ✅
+- 2026-09-01: TEMPO — 15 sessions yesterday, 0 validated.

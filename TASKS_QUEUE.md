@@ -31,7 +31,7 @@
   plain-text checklist (a)(b)(c)(d-fix)(f)(g)(h) each marked matched/not matched. Then mark [x]
   and continue to the next task. Trikzos reviews asynchronously; no waiting.
 
-- [ ] TASK-CLASS-7-FIX — TASK-CLASS-7 used the WRONG roster. Final 7 classes from Trikzos:
+- [x] TASK-CLASS-7-FIX — TASK-CLASS-7 used the WRONG roster. Final 7 classes from Trikzos:
   Warrior, Battlemage, Thief, Druid, Ranger, Necromancer, Paladin.
   Remove the tidecaller, dawnward and occultist entries from content/classes.json (leave their
   art files on disk — shelved, not deleted). Add battlemage, thief and paladin as DATA ONLY:
