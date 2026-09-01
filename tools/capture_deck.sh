@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Dual-resolution deck builder capture: 1152x648 standard + 390x844 phone.
+# Dual-resolution deck builder capture: 2316x1080 standard + 390x844 phone.
 # Swaps project.godot viewport settings between runs.
 # Usage: bash tools/capture_deck.sh
 
@@ -58,8 +58,8 @@ with open('${CAPTURE_DIR}/deck_test${suffix}.png','rb') as f:
     return $rc
 }
 
-# 1. Standard capture
-capture_one "" 1152 648
+# 1. Standard capture at 2316x1080
+capture_one "" 2316 1080
 STD_RC=$?
 
 # 2. Phone capture
@@ -67,8 +67,8 @@ capture_one "_phone" 390 844
 PHONE_RC=$?
 
 # Restore to standard viewport
-sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=1152/" "$PROJECT_GODOT"
-sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=648/" "$PROJECT_GODOT"
+sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=2316/" "$PROJECT_GODOT"
+sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=1080/" "$PROJECT_GODOT"
 
 echo "=== Dual capture results ==="
 echo "Standard: $([ $STD_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"

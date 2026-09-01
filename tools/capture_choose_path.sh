@@ -1,54 +1,65 @@
 #!/bin/bash
 # tools/capture_choose_path.sh — Run ChooseYourPath capture at two resolutions.
+# Uses project.godot patch approach like capture_duel.sh.
 set -euo pipefail
 
-GODOT="/home/fictive/godot-bin/Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux.x86_64"
-BASE="/home/fictive/runewake"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_GODOT="$ROOT/client/project.godot"
+GODOT_BIN="${GODOT_BIN:-$HOME/.local/bin/godot}"
+CAPTURE_DIR="$ROOT/artifacts/captures"
 
-capture_at() {
-    local W=$1 H=$2 TAG=$3
-    echo ""
-    echo "═══════════════════════════════════════"
-    echo "  Capture ${W}x${H} (${TAG})"
-    echo "═══════════════════════════════════════"
+mkdir -p "$CAPTURE_DIR"
 
-    killall Xvfb fluxbox 2>/dev/null; sleep 1
-    Xvfb :99 -screen 0 ${W}x${H}x24 >/tmp/xvfb.log 2>&1 &
-    sleep 1
-    export DISPLAY=:99
-    fluxbox -display :99 >/tmp/fluxbox.log 2>&1 &
-    sleep 1
+capture_one() {
+    local suffix="$1"    # "" or "_wide"
+    local width="$2"
+    local height="$3"
 
-    # Run Godot — capture flag as user arg after --
-    $GODOT --path "$BASE/client" --resolution ${W}x${H} -- --capture=choose_path >/tmp/godot.log 2>&1 &
-    GODOT_PID=$!
-    wait $GODOT_PID 2>/dev/null || true
-    sleep 1
+    echo "=== Capture: choose_path${suffix} (${width}x${height}) ==="
 
-    echo "--- ${TAG}: ChooseYourPath output ---"
-    grep -E "\[ChooseYourPath\]|\[VERIFY\]|\[ART-MISSING\]|\[Main\]" /tmp/godot.log || echo "  (no relevant output)"
+    # Patch project.godot viewport
+    sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "$PROJECT_GODOT"
+    sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "$PROJECT_GODOT"
 
-    # Check capture file
-    CAP="$BASE/artifacts/captures/choose_path.png"
-    if [ "$TAG" = "wide" ]; then
-        CAP="$BASE/artifacts/captures/choose_path_wide.png"
-    fi
-    if [ -f "$CAP" ]; then
-        local SIZE
-        SIZE=$(stat --format=%s "$CAP")
-        echo "  ✅ Capture saved: $CAP ($SIZE bytes)"
+    # Run capture
+    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=choose_path${suffix}" 2>&1 || true
+
+    # Verify output
+    if [ -f "$CAPTURE_DIR/choose_path${suffix}.png" ]; then
+        local pw ph
+        read pw ph <<< "$(python3 -c "
+import struct
+with open('${CAPTURE_DIR}/choose_path${suffix}.png','rb') as f:
+    f.read(8)
+    while True:
+        cl = struct.unpack('>I', f.read(4))[0]
+        ct = f.read(4)
+        cd = f.read(cl)
+        f.read(4)
+        if ct == b'IHDR':
+            w = struct.unpack('>I', cd[0:4])[0]
+            h = struct.unpack('>I', cd[4:8])[0]
+            print(w, h)
+            break
+")"
+        echo "  -> choose_path${suffix}.png: ${pw}x${ph}"
+        if [ "$pw" -ne "$width" ] || [ "$ph" -ne "$height" ]; then
+            echo "  WARNING: Expected ${width}x${height}, got ${pw}x${ph}" >&2
+        fi
     else
-        echo "  ❌ MISSING: $CAP"
+        echo "  FAIL: choose_path${suffix}.png not produced" >&2
     fi
-
-    killall Xvfb fluxbox 2>/dev/null
-    sleep 1
 }
 
-mkdir -p "$BASE/artifacts/captures"
+# 1. Standard capture at 2316x1080
+capture_one "" 2316 1080
 
-capture_at 1152 648 "standard"
-capture_at 1999 932 "wide"
+# 2. Wide capture at 2999x1080
+capture_one "_wide" 2999 1080
 
-echo ""
-echo "=== DONE ==="
+# Restore to standard viewport
+sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width=2316|' "$PROJECT_GODOT"
+sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height=1080|' "$PROJECT_GODOT"
+
+echo "=== Choose Path captures complete ==="
+ls -la "$CAPTURE_DIR"/choose_path*.png 2>/dev/null

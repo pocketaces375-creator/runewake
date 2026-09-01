@@ -391,7 +391,7 @@ public partial class DeckBuilderScene : Control
         _cardGrid.CustomMinimumSize = new Vector2(0, 0);
         _gridScroll.AddChild(_cardGrid);
 
-        // ── Right rail (fixed ~320px at 1152) ──
+        // ── Right rail (fixed ~28% width) ──
         _rightRail = new Control();
         _rightRail.AnchorLeft = 0.72f;
         _rightRail.AnchorRight = 1;
@@ -1087,12 +1087,12 @@ public partial class DeckBuilderScene : Control
             return;
         }
 
-        // Compute dynamic columns from available width — 150x219 at 1152x648, scaled
+        // Compute dynamic columns from available width — proportionally scaled
         float availWidth = _leftPanel.Size.X - 40; // 20px margins each side
         if (availWidth <= 0) availWidth = 800;
 
         float gap = 18f;
-        float ratio = GetViewportRect().Size.Y / 648f;
+        float ratio = GetViewportRect().Size.Y / 1080f;
         float baseCellW = 150f;
         float cellW = baseCellW * Mathf.Max(0.6f, Mathf.Min(1.4f, ratio));
         int columns = Mathf.Max(1, Mathf.FloorToInt((availWidth + gap) / (cellW + gap)));

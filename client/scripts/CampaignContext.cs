@@ -126,6 +126,12 @@ public static class CampaignContext
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
     public static bool CaptureDefeatOverlay { get; set; }
 
+    /// <summary>Test hook: capture settings screen.</summary>
+    public static bool CaptureSettingsScreenshot { get; set; }
+
+    /// <summary>Test hook: capture dig/encounter screen.</summary>
+    public static bool CaptureDigScreenshot { get; set; }
+
     /// <summary>BOT-FIX-1: headless bot-duel harness — passive P0 auto-ends turns,
     /// bot plays P1; logs per-turn actions and vigor, then quits. Set by --capture=bot_duel.</summary>
     public static bool BotDuelTest { get; set; }
@@ -134,7 +140,7 @@ public static class CampaignContext
     /// (30 Thorn Sprout tokens, IsTutorial=true) to mirror campaign node 1.</summary>
     public static bool BotDuelTutorialVariant { get; set; }
 
-    /// <summary>Test hook: capture duel at wide aspect (1999×932) instead of standard (1152×648).
+    /// <summary>Test hook: capture duel at wide aspect (2999×1080) instead of standard (2316×1080).
     /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
     public static bool WideCaptureMode { get; set; }
 
