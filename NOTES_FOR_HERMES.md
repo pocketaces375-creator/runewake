@@ -45,3 +45,18 @@ All tests green including new Artifact suite · six Artifact cards playable in t
 
 ## v1.2 (2026-08-13) — Claude is now IN the repo
 Claude reads and writes this repository directly (committer: "Claude"). The relay through Trikzos is retired for task-flow. Your instruction source order is now: (1) TASKS_QUEUE.md — always the top unchecked task; (2) this file for standing protocol; (3) direct words from Trikzos, which outrank everything. Decision updates since v1.1: launch scope is 375 cards (333 deck + 42 Artifacts — THREE variants per slot, superseding "one fixed pair"); Artifact slots anchor to the DECK as a side group (TASK-H), superseding portrait-flanking; world naming is Tolkien-INSPIRED with original names only. Your §5a attunement reading is confirmed correct — answers to all open CONFLICTs are at the top of TASKS_QUEUE.md.
+
+## FABLE STANDING RULES 2026-09-01
+- No approval pauses. Never stop mid-task to ask Trikzos. Finish the task, commit the captures, post ONE
+  message with the capture(s) to the group, mark [x], move on. Trikzos reviews asynchronously; he only steps
+  in at the TASK-APK-SHIP-* checkpoints and for taste vetoes.
+- Never mark a task [x] with parts undone. If a part cannot be done, write the exact gap in HERMES_STATUS.md
+  and let the foreman's BLOCKED path handle it. TASK-BOARD-MATCH-1 was marked [x] with 2 of 8 items done —
+  that must not happen again.
+- Authority image for anything on the duel screen: docs/export/duel_target_reference.jpg. Locked: Root-Bound
+  stone border (option 5), 7% band, namefit, 2316x1080 design res, Storybook Brushwork v3.0 art style.
+- Class/weapon art and identity are DEFERRED. Do not generate class portraits or design new weapons.
+- Numbers (card values, rules, drop rates, prices) are set in these tasks. Do not tune anything not named.
+- deepseek-v4-flash only on the Hermes side. No service restarts, no reboots, no hermes update.
+- Every visual task: captures at 2316x1080 AND the wide variant, not byte-identical, gate PASS, 0 build
+  errors, all tests green. Commit captures under artifacts/captures/.

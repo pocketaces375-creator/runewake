@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-BOARD-MATCH-2 — REOPEN of TASK-BOARD-MATCH-1: it was marked [x] with only items (d) and (e) done.
+- [x] TASK-BOARD-MATCH-2 — REOPEN of TASK-BOARD-MATCH-1: it was marked [x] with only items (d) and (e) done.
   Finish the remaining items against docs/export/duel_target_reference.jpg (the authority image):
   (a) EMPTY LANES: thin warm-gold rounded keyline sockets, faint translucent stone tint, board
       painting visible through them, all five columns vertically aligned across both rows.
@@ -98,6 +98,165 @@
   FABLE_HANDOFF.md. For each: copied, or "missing at that path" — never guess contents.
   Acceptance: commit "TASK-EXPORT-2: pull remaining source docs"; list found/missing in
   HERMES_STATUS.md. Mark [x]; continue.
+
+# ---- PHASE A FINISH — VERIFY, THEN SHIP ----
+
+- [ ] TASK-BOARD-MATCH-3 — Verification pass on TASK-BOARD-MATCH-2. Do not trust its DONE claim.
+  Open the captures TASK-BOARD-MATCH-2 committed and judge them as images against
+  docs/export/duel_target_reference.jpg, item by item: (a) gold keyline lane sockets with the board painting
+  visible through them and columns aligned across both rows; (b) carved stone texture actually readable in
+  the 14px band on a 200px board card — check with a 1:1 crop, a flat black outline is a FAIL; (c) cost as a
+  dark circle with a gold ring, top-right; (d-fix) attack and vigor chips flush at the frame's bottom corners
+  on board, hand AND enemy-row cards; (f) hand larger than board cards, centered, slightly overlapping,
+  bottom edge tucked in; (g) HUD pills with correct names (no truncated "ENEMY FARER"), DECK+BARROW paired,
+  artifact slots showing card ART not text boxes, turn indicator top-center; (h) the R2 larger-art variant
+  capture exists.
+  Fix in this task every item that did not actually land. If BOARD-MATCH-2 was BLOCKED or only partly done,
+  this task finishes the whole list.
+  Acceptance: a composed side-by-side image (authority left, live capture right) committed under
+  artifacts/captures/ and posted, plus a 1:1 crop of one board card, plus the plain-text checklist
+  (a)(b)(c)(d-fix)(f)(g)(h) each marked matched — every line must read matched before this task is [x].
+
+- [ ] TASK-APK-SHIP-3 — Ship the crisp build. Run tools/export_and_verify.sh (debug) AND a release export
+  with --headless (the Mono/Sqlite crash workaround); preflight must pass; apply the verified-hash rule;
+  create GitHub release alpha-2026-09-XX-crisp with the APK; post the download URL, APK size and sha256 to
+  the group together with the standard 2316x1080 duel capture and the Choose Your Path capture.
+  This is the Phase A checkpoint Trikzos actually looks at.
+  Acceptance: DONE line in HERMES_STATUS.md contains release URL, APK size and sha256.
+
+# ---- PHASE B — THE PLAY LOOP (rewards, drops, collection, economy) ----
+
+- [ ] TASK-VICTORY-DEFEAT-1 — Real end-of-duel screens at 2316x1080 (the current overlays are minimal).
+  Victory: full-screen overlay in the game's serif/stone language — encounter name, turns taken, a reward
+  summary panel (shards, fragments, dig charges from the map node's reward tokens) and a CONTINUE button
+  returning to the map with the node marked cleared. Defeat: same frame, with RETRY (same seed) and RETURN
+  TO MAP. Both use ThemeTokens and play their manifest audio events.
+  Acceptance: victory + defeat captures at both resolutions; a headless flow proving map→duel→victory→map
+  and map→duel→defeat→map with no exceptions; posted.
+
+- [ ] TASK-DROPS-DATA-1 — Card drops on discovery (Trikzos' design: each encounter has drop rates for
+  specific cards). Add "drops": [{"card_id": ..., "rate": 0.0-1.0}] to every encounter in
+  content/encounters/*.json. A foe drops cards FROM ITS OWN DECK; default rate by rarity C 0.40 / U 0.25 /
+  R 0.10 / M 0.03. Wardens and bosses drop their signature rare at 1.00 plus their normal table. Add a
+  seeded engine-side roll (deterministic per duel seed) producing a DropResult list. Content test asserts
+  every encounter has at least 3 drop entries and that every card_id exists. Data + engine only, no UI here.
+  Acceptance: schema documented in a new docs/DROPS.md; tests green.
+
+- [ ] TASK-COLLECTION-DATA-1 — Owned-copies model. Store a collection in the versioned save: card_id →
+  owned count. Starters grant exactly 1 copy of every card in the chosen class's starter deck; drops add
+  copies. Singleton + multi-deck rule (Trikzos): a card may sit in N saved decks only if owned >= N copies;
+  the deck validator reports "needs another copy" naming the card. Migration for existing saves: seed
+  ownership from the currently saved decks so nothing breaks. Tests: grant, add, validator, migration,
+  corrupt-repair to "no collection".
+  Acceptance: tests green; deck builder tiles show "owned x · in y decks" (text only for now).
+
+- [ ] TASK-DROPS-UI-1 — The reveal moment. On the victory screen, after the reward summary, flip each
+  dropped card in one at a time (CardPlate at hand-card size, hi-res), with a "NEW" ribbon on a first copy
+  and "+1" on a duplicate; tap to continue. Cards are added to the collection before the map returns.
+  Acceptance: capture of a reveal showing one NEW and one duplicate; headless flow asserting collection
+  counts increased; posted.
+
+- [ ] TASK-COLLECTION-UI-1 — Collection browser scene ("Reliquary"), reachable from the title screen and
+  the map. Grid of CardPlates using the same renderer as the duel, hi-res; strata filter chips (reuse the
+  DECKFILTER-1 chips); owned-count badge; NEW badge cleared on view; tap to inspect at 400px+ (this is where
+  QUALITY-1 pays off). Unowned cards render as dark silhouettes with the name only.
+  Acceptance: capture at both resolutions with at least 12 owned cards including one NEW and one unowned;
+  posted.
+
+- [ ] TASK-GRIND-RUNES-1 — Grind cards into Runes (Trikzos' economy: extra copies grind down into runes).
+  Add a currency field "runes" to the save — display label "Runes", internal name RuneDust so it does not
+  collide with the rune loadout items. Grind values: C 5 / U 15 / R 40 / M 120. Rules: cannot grind a copy
+  that a saved deck depends on (owned must stay >= decks using it); cannot grind the last copy at all.
+  Grind button plus confirm in the Reliquary inspect view; balance shown in the Reliquary and Rune Page
+  headers.
+  Acceptance: tests for values, guards and save roundtrip; capture of the grind confirm; posted.
+
+- [ ] TASK-RUNE-SINK-1 — What Runes buy: the Rune Page. Wire the existing RunePageScene so unlocking a rune
+  slot and upgrading a rune cost Runes — slot 2 = 100, slot 3 = 300; upgrade tier 1→2 = 60, tier 2→3 = 180.
+  Shards remain the dig currency; do not merge the two. Insufficient funds shows the shortfall.
+  Acceptance: tests; capture of the Rune Page showing one purchasable and one unaffordable item; posted.
+
+- [ ] TASK-SETTINGS-COMPLETE-1 — Finish the settings screen: music / SFX / ambient sliders persisted in the
+  save, replay intro, a credits panel (CC0 audio attributions from the manifest), reset progress behind a
+  typed confirm, and a version + build hash string bottom-right.
+  Acceptance: capture; slider values survive a headless restart; posted.
+
+- [ ] TASK-MAP-LOOP-SOAK-1 — Prove the whole Region 1 loop end to end, headless and seeded: title → Choose
+  Your Path → map → 3 encounters won → dig site (shards/charges) → Warden boss → victory → drops → map shows
+  the region cleared. Also one defeat→retry path. A save/quit/resume in the middle must restore map state
+  exactly.
+  Acceptance: soak script committed under tools/; 3 seeds clean; HERMES_STATUS.md lists every screen
+  visited; any crash found is fixed inside this task.
+
+- [ ] TASK-APK-SHIP-4 — Ship the play-loop build, same procedure as TASK-APK-SHIP-3, tagged
+  alpha-2026-09-XX-loop. Post URL, size, sha256 plus the victory-screen and Reliquary captures.
+  Phase B checkpoint for Trikzos.
+  Acceptance: DONE line contains release URL, APK size and sha256.
+
+# ---- PHASE C — CONTENT AT SCALE (offline alpha) ----
+
+- [ ] TASK-BALANCE-ADOPT-1 — Adopt first-player compensation using TASK-BALANCE-MIRROR-1's table and this
+  rule from Fable: pick the variant whose overall P0 win% is closest to 50 among those with P0 >= 48%; if
+  none qualifies, take the one closest to 50 overall; if that winner is within 1.5 points of baseline, adopt
+  variant (b) instead. Implement it as the shipped rule (engine, docs/01_GAME_RULES.md, and the tutorial
+  text if it mentions the first turn), then re-run the 49-pairing matrix and the threshold gate.
+  Acceptance: gate result with numbers in HERMES_STATUS.md; tests green; rule documented.
+
+- [ ] TASK-REGION-GEN-1 — Region generator TOOL (no new region in this task). tools/region_gen.py takes a
+  biome spec json (name, stratum, palette, 8-12 encounter slots, 1 elite, 1 Warden boss, 1 dig site, lore
+  blurb) and outputs content/map/region_NN.json (a graph with an unlock chain like region_01), the encounter
+  files (themed decks drawn from that stratum's card pool plus neutrals, no duplicate ids, drops per
+  TASK-DROPS-DATA-1) and the dig site json. Every generated deck must pass the sim gate against the class
+  starters (40-60% band) or the tool regenerates it. Unit-test the generator on region_01's spec and diff
+  against the hand-built files.
+  Acceptance: tool and tests committed; docs/REGION_GEN.md documents the spec format.
+
+- [ ] TASK-REGION-2-BUILD-1 — Generate and wire Region 2, "Cinderfall Steps" (EMBER stratum, tiered volcanic
+  terraces, Warden "the Kilnwarden"). It unlocks when the Region 1 Warden falls. Map skin: reuse the default
+  board/map skin with an Ember palette tint through the BoardSkin registry — no new painted art in this
+  task. All decks must pass the sim gate.
+  Acceptance: map capture showing Region 2 reachable after a seeded Region 1 clear; a clean soak of 3
+  encounters plus the boss; posted.
+
+- [ ] TASK-CARD-WAVE-1 — 40 new deck cards through the existing pipeline (gen → IP screen → pixel gate →
+  sim gate): 8 per stratum, rarity mix 22C / 12U / 5R / 1M, every card's DSL valid, no keyword outside the
+  closed set, each family feeding its class's artifact patterns. DATA ONLY — leave the art field as a
+  placeholder; the Reliquary silhouette path covers missing art.
+  Acceptance: 40 cards committed to content/cards/*.json; pipeline tests green; sim gate report in
+  HERMES_STATUS.md; no shipped values changed on existing cards.
+
+- [ ] TASK-ART-WAVE-1 — Art for TASK-CARD-WAVE-1 per docs/ART_WAVES.md: FLUX.2 Pro via OpenRouter, style
+  v3.0, the 6-sample veto gate first (post those 6 as separate messages), then the batch. If FLUX credits or
+  the API are unavailable, write BLOCKED with the exact error and do NOT substitute any other generator or
+  any hand-made placeholder.
+  Acceptance: 40 .webp files at the locked naming convention with .import files, wired into the json; a
+  Reliquary capture showing a page of the new cards; posted.
+
+- [ ] TASK-CARD-WAVE-2 — As TASK-CARD-WAVE-1, the next 40 cards (different families; prioritise any stratum
+  that WAVE-1's sim report showed as weak).
+  Acceptance: as TASK-CARD-WAVE-1.
+
+- [ ] TASK-ART-WAVE-2 — As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
+  Acceptance: as TASK-ART-WAVE-1.
+
+- [ ] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
+  saved deck and fight an AI-piloted opponent drawn from the pool (all class starters, every encounter deck,
+  and the Region 2 decks), seeded, with a win/loss ledger in the save and a Runes reward per win — 10
+  normally, 25 against a Warden deck.
+  Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
+  posted.
+
+- [ ] TASK-PERF-1 — APK size and cold start. Release export (--headless), strip unused import artifacts,
+  confirm .webp quality settings (no double compression), lazy-load region assets. Measure cold start on the
+  box's emulator or by headless timing. Target 150MB or less for the release APK.
+  Acceptance: before/after size and cold-start timings in HERMES_STATUS.md.
+
+- [ ] TASK-APK-SHIP-5 — Ship the content build (release export), tagged alpha-2026-09-XX-content. Post URL,
+  size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
+  Acceptance: DONE line contains release URL, APK size and sha256.
+
+# NOT IN THIS PACKET — these need Trikzos' keys or a decision, and will be queued later:
+# Supabase and accounts, the Tower, store signing and listing, FLUX credit refills.
 
 |- [x] TASK-DUELRES-1
   Measured from the 2026-08-31 capture (2560x922): aspect 2.78:1 vs approved 2.14:1; board
