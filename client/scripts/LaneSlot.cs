@@ -27,6 +27,12 @@ public partial class LaneSlot : PanelContainer
     private float _cardWidth;
     private float _cardHeight;
     private string _currentCardId = "";
+    private StyleBoxFlat? _emptySlotStyle;
+
+    /// <summary>Warm-gold border color for empty slots.</summary>
+    private static readonly Color EmptySlotBorder = Color.FromHtml("#C9A84C");
+    /// <summary>Faint translucent stone tint for empty slot background.</summary>
+    private static readonly Color EmptySlotBg = Color.FromHtml("#1A1816");
 
     /// <summary>
     /// Emitted when a card is dropped onto this lane slot.
@@ -107,7 +113,7 @@ public partial class LaneSlot : PanelContainer
         }
 
         // Card face background — dark fill, no border (RootBoundBorder handles that)
-        var bgStyle = new StyleBoxFlat
+        AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
             BgColor = FrameFill,
             BorderWidthLeft = 0,
@@ -118,8 +124,26 @@ public partial class LaneSlot : PanelContainer
             ContentMarginTop = 0,
             ContentMarginRight = 0,
             ContentMarginBottom = 0
+        });
+
+        // Empty slot style: warm-gold rounded keyline with translucent stone tint
+        _emptySlotStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.10f, 0.09f, 0.07f, 0.35f), // translucent stone
+            BorderColor = EmptySlotBorder,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 0,
+            ContentMarginTop = 0,
+            ContentMarginRight = 0,
+            ContentMarginBottom = 0
         };
-        AddThemeStyleboxOverride("panel", bgStyle);
     }
 
     /// <summary>
@@ -150,6 +174,16 @@ public partial class LaneSlot : PanelContainer
         _cardWidth = w;
         _cardHeight = h;
 
+        // Apply occupied card style (dark fill, no border — handled by RootBoundBorder)
+        AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = FrameFill,
+            BorderWidthLeft = 0, BorderWidthTop = 0,
+            BorderWidthRight = 0, BorderWidthBottom = 0,
+            ContentMarginLeft = 0, ContentMarginTop = 0,
+            ContentMarginRight = 0, ContentMarginBottom = 0
+        });
+
         // Get cost from card definition
         int cost = 0;
         var def = CardRegistry.Get(cardDefId);
@@ -173,6 +207,7 @@ public partial class LaneSlot : PanelContainer
             float hexY = bandPx + 2f;
             _costLabel.Position = new Vector2(hexX, hexY);
             _costLabel.Size = new Vector2(hexSize, hexSize);
+            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
             int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
             _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
         }
@@ -224,6 +259,9 @@ public partial class LaneSlot : PanelContainer
         if (_costLabel != null)
             _costLabel.Visible = false;
         Modulate = Colors.White;
+        // Apply warm-gold keyline socket style for empty slots
+        if (_emptySlotStyle != null)
+            AddThemeStyleboxOverride("panel", _emptySlotStyle);
     }
 
     /// <summary>

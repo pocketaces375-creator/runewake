@@ -69,18 +69,18 @@ public partial class CardPlate : Control
         {
             BgColor = bgColor,
             BorderColor = borderColor,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 2,
-            CornerRadiusTopRight = 2,
-            CornerRadiusBottomLeft = 2,
-            CornerRadiusBottomRight = 2,
-            ContentMarginLeft = 2,
-            ContentMarginTop = 0,
-            ContentMarginRight = 2,
-            ContentMarginBottom = 0
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 4,
+            ContentMarginTop = 1,
+            ContentMarginRight = 4,
+            ContentMarginBottom = 1
         };
         badge.AddThemeStyleboxOverride("normal", style);
         return badge;
@@ -215,7 +215,7 @@ public partial class CardPlate : Control
         {
             _attackBadge.Text = attack!.Value.ToString();
             _attackBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(9, Mathf.RoundToInt(statChipH * 0.55f));
+            int fontSize = Mathf.Max(11, Mathf.RoundToInt(statChipH * 0.65f));
             _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
             _attackBadge.Position = new Vector2(3, statChipY);
         }
@@ -225,7 +225,7 @@ public partial class CardPlate : Control
         {
             _vigorBadge.Text = vigor!.Value.ToString();
             _vigorBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(9, Mathf.RoundToInt(statChipH * 0.55f));
+            int fontSize = Mathf.Max(11, Mathf.RoundToInt(statChipH * 0.65f));
             _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
             _vigorBadge.Position = new Vector2(cardWidth - statChipW - 3, statChipY);
         }
@@ -260,23 +260,45 @@ public partial class CardPlate : Control
         int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
         label.AddThemeFontSizeOverride("font_size", costFontSize);
 
-        // Hex border via stylebox
+        // Hex border via stylebox — circular dark badge with gold ring
         var hexStyle = new StyleBoxFlat
         {
             BgColor = FrameHexFill,
             BorderColor = FrameHexBorder,
-            BorderWidthLeft = 1,
-            BorderWidthTop = 1,
-            BorderWidthRight = 1,
-            BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 2,
-            CornerRadiusTopRight = 2,
-            CornerRadiusBottomLeft = 2,
-            CornerRadiusBottomRight = 2
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusTopRight = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
         };
         label.AddThemeStyleboxOverride("normal", hexStyle);
 
         return label;
+    }
+
+    /// <summary>
+    /// Update the cost rune style to be a proper circle at the current size.
+    /// Call after changing label.Size to ensure corner radius matches.
+    /// </summary>
+    public static void UpdateCostRuneStyle(Label label, float hexSize)
+    {
+        var hexStyle = new StyleBoxFlat
+        {
+            BgColor = FrameHexFill,
+            BorderColor = FrameHexBorder,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusTopRight = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
+        };
+        label.AddThemeStyleboxOverride("normal", hexStyle);
     }
 
     /// <summary>

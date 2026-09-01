@@ -78,6 +78,9 @@ public static class CampaignContext
     /// </summary>
     public static bool ReduceMotion => Settings.ReduceMotion;
 
+    /// <summary>R2 variant: if true, board cards render ~10% larger (wider art share).</summary>
+    public static bool R2CardScale { get; set; } = false;
+
     /// <summary>Test hook: auto-navigate to duel scene and capture screenshot after render.
     /// Set by Main.LoadGameData before switching to DuelScene.
     /// </summary>

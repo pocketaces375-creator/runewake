@@ -81,6 +81,12 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugAlignMode = true;
                 GD.Print("[DebugCapture] Align capture mode enabled: --capture=duel_test_align");
             }
+            if (arg == "--capture=duel_test_r2")
+            {
+                _active = true;
+                CampaignContext.R2CardScale = true;
+                GD.Print("[DebugCapture] R2 card scale variant enabled: --capture=duel_test_r2");
+            }
             if (arg == "--capture=deck_test")
             {
                 deckBuilderMode = true;

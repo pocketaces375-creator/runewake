@@ -139,6 +139,7 @@ public partial class HandCard : PanelContainer
             float hexY = bandPx + 2f;
             _costLabel.Position = new Vector2(hexX, hexY);
             _costLabel.Size = new Vector2(hexSize, hexSize);
+            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
             int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
             _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
         }
@@ -208,6 +209,7 @@ public partial class HandCard : PanelContainer
             float hexY = bandPx + 2f;
             _costLabel.Position = new Vector2(hexX, hexY);
             _costLabel.Size = new Vector2(hexSize, hexSize);
+            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
             int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
             _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
         }

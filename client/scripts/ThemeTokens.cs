@@ -195,7 +195,7 @@ public static class ThemeTokens
     /// <summary>Hex cost badge width as fraction of card width</summary>
     public const float FrameHexSizeFraction = 0.18f;
     /// <summary>Stat chip width as fraction of card width</summary>
-    public const float FrameStatChipFraction = 0.16f;
+    public const float FrameStatChipFraction = 0.22f;
 
     // ════════════════════════════════════════════
     // Type Scale

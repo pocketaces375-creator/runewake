@@ -42,7 +42,7 @@ offset_top = 18.0
 offset_bottom = 38.0
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 12
-text = "Turn 1 — Your Turn"
+text = "Turn 1"
 
 [node name="BoardBg" type="TextureRect" parent="."]
 anchors_preset = 15
