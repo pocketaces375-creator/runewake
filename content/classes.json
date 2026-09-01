@@ -40,5 +40,61 @@
       "vrd_c_wildwood_stalker",
       "vrd_u_grove_healer"
     ]
+  },
+  {
+    "id": "tidecaller",
+    "name": "TIDECALLER",
+    "strata": "TIDE",
+    "town": "Saltmere",
+    "description": "Depth and memory. The tidecaller reads what the tide has buried.",
+    "blurb": "In the drowned markets of Saltmere, tidecallers barter with the secrets the sea surrenders.",
+    "core_cards": [
+      "tid_c_tidal_scholar",
+      "tid_c_deep_one",
+      "tid_c_whirlpool_elemental",
+      "tid_u_brine_witch"
+    ]
+  },
+  {
+    "id": "dawnward",
+    "name": "DAWNWARD",
+    "strata": "DAWN",
+    "town": "Sunspire",
+    "description": "Light and covenant. The dawnward stands as the first line against the dark.",
+    "blurb": "From the golden halls of Sunspire, dawnwards carry the unbroken light into every shadow.",
+    "core_cards": [
+      "dwn_c_dawn_warder",
+      "dwn_c_sunblade_recruit",
+      "dwn_c_dawnbreaker_charger",
+      "dwn_u_morning_herald"
+    ]
+  },
+  {
+    "id": "ranger",
+    "name": "RANGER",
+    "strata": "VERDANT",
+    "town": "Greyhollow",
+    "description": "Shot and silence. The ranger moves unseen between the old trees.",
+    "blurb": "In the mist-choked lowlands of Greyhollow, rangers walk the paths that exist only between heartbeats.",
+    "core_cards": [
+      "vrd_c_thornbark_defender",
+      "vrd_u_canopy_archer",
+      "vrd_u_saphoof_charger",
+      "vrd_u_elder_treant"
+    ]
+  },
+  {
+    "id": "occultist",
+    "name": "OCCULTIST",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Whisper and bargain. The occultist speaks what should never be spoken.",
+    "blurb": "In the candle-lit crypts of Duskchapel, occultists trade in truths that shatter those who hear them.",
+    "core_cards": [
+      "hol_u_crypt_crawler",
+      "hol_u_barrow_revenant",
+      "hol_r_wraith_stalker",
+      "hol_c_bone_shard_volley"
+    ]
   }
 ]
