@@ -9898,3 +9898,39 @@ Already up to date.
 === Running: TASK-DUELRES-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 12/48 (12 full + 0 bus, 24/96 halves)
+  Top task: TASK-BOARD-MATCH-1
+
+=== Running: TASK-BOARD-MATCH-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+| (f) Hand | 207×306px (larger than board 200×292), centered, overlapping (-8px), bottom tucked |
+| (g) HUD | Green pill TRIKZOS bottom-left, red pill THE WAYFARER top-right, DECK/BARROW panel, artifact thumbnails with teal rim, turn indicator top-center |
+| (h) R2 | Variant capture at `duel_test_r2.png` (hand 370px / board 320px) for Trikzos review |
+
+**Committed (ce19272) and pushed to origin/main.** R2 capture artifacts included.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 13/48 (13 full + 0 bus, 26/96 halves)
+  Top task: TASK-DECKSAVE-1
+
+=== Running: TASK-DECKSAVE-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

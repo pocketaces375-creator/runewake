@@ -19,7 +19,7 @@ namespace Runewake.Persistence;
 public sealed class SaveRepository
 {
     /// <summary>Current save schema version. Bump when the schema changes; add a migration step.</summary>
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     private readonly string _dbPath;
 
@@ -62,8 +62,15 @@ public sealed class SaveRepository
         {
             int from = state.Version;
             int to = from + 1;
-            // Future migration steps go here:
-            // if (from == 1 && to == 2) { /* v1→v2 migration */ }
+            if (from == 1 && to == 2)
+            {
+                // v1→v2: migrate the single saved_deck into named_decks as "My Deck"
+                if (state.DeckCardIds.Count > 0 && !state.SavedDecks.ContainsKey("My Deck"))
+                {
+                    state.SavedDecks["My Deck"] = new List<string>(state.DeckCardIds);
+                    repairLog.Add($"Migrated saved deck ({state.DeckCardIds.Count} cards) into named_decks as 'My Deck'");
+                }
+            }
             state.Version = to;
             repairLog.Add($"Migrated save from v{from} to v{to}");
         }
@@ -356,6 +363,13 @@ public sealed class SaveRepository
                 card_id TEXT NOT NULL,
                 PRIMARY KEY (position)
             );
+
+            CREATE TABLE IF NOT EXISTS named_decks (
+                deck_name TEXT NOT NULL,
+                position INTEGER NOT NULL,
+                card_id TEXT NOT NULL,
+                PRIMARY KEY (deck_name, position)
+            );
         """;
         cmd.ExecuteNonQuery();
     }
@@ -462,6 +476,31 @@ public sealed class SaveRepository
             cmd.CommandText = "SELECT card_id FROM saved_deck ORDER BY position";
             using var reader = cmd.ExecuteReader();
             while (reader.Read()) state.DeckCardIds.Add(reader.GetString(0));
+        }
+
+        // Named decks (schema v2+)
+        try
+        {
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "SELECT deck_name, card_id FROM named_decks ORDER BY deck_name, position";
+                using var reader = cmd.ExecuteReader();
+                Dictionary<string, List<string>> decks = new();
+                while (reader.Read())
+                {
+                    string name = reader.GetString(0);
+                    string cardId = reader.GetString(1);
+                    if (!decks.ContainsKey(name))
+                        decks[name] = new List<string>();
+                    decks[name].Add(cardId);
+                }
+                foreach (var kv in decks)
+                    state.SavedDecks[kv.Key] = kv.Value;
+            }
+        }
+        catch
+        {
+            // named_decks table may not exist on v1 schema — skip silently
         }
 
         // Version not present (fresh DB or pre-versioning save) → normalize to current
@@ -583,6 +622,21 @@ public sealed class SaveRepository
                 cmd.Parameters.AddWithValue("@pos", i);
                 cmd.Parameters.AddWithValue("@id", state.DeckCardIds[i]);
                 cmd.ExecuteNonQuery();
+            }
+
+            // Named decks (schema v2)
+            using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM named_decks"; cmd.ExecuteNonQuery(); }
+            foreach (var (deckName, cardIds) in state.SavedDecks)
+            {
+                for (int i = 0; i < cardIds.Count; i++)
+                {
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "INSERT INTO named_decks (deck_name, position, card_id) VALUES (@name, @pos, @id)";
+                    cmd.Parameters.AddWithValue("@name", deckName);
+                    cmd.Parameters.AddWithValue("@pos", i);
+                    cmd.Parameters.AddWithValue("@id", cardIds[i]);
+                    cmd.ExecuteNonQuery();
+                }
             }
 
             tx.Commit();

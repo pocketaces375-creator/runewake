@@ -41,6 +41,7 @@ public partial class DeckBuilderScene : Control
     private Control _topBar;
     private Control _leftPanel;
     private Control _rightRail;
+    private Control _savedDecksContainer; // Load Deck section
 
     // Data
     private readonly List<CardDef> _allCards = new();
@@ -96,6 +97,7 @@ public partial class DeckBuilderScene : Control
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();
+        RefreshSavedDecksList();
 
         // Apply core cards from CampaignContext (set by ChooseYourPath)
         if (CampaignContext.CoreCardIds != null && CampaignContext.CoreCardIds.Count > 0)
@@ -554,6 +556,34 @@ public partial class DeckBuilderScene : Control
         });
         _forgeButton.Pressed += OnSaveDeck;
         railVbox.AddChild(_forgeButton);
+
+        // ── Saved decks section ──
+        var savedHeader = new HBoxContainer();
+        savedHeader.AddThemeConstantOverride("separation", 4);
+        savedHeader.CustomMinimumSize = new Vector2(0, 20);
+        railVbox.AddChild(savedHeader);
+
+        var savedLabel = new Label
+        {
+            Text = "Load Saved Deck",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyBodyFont(savedLabel, FontSmall);
+        savedLabel.AddThemeColorOverride("font_color", TextSecondary);
+        savedHeader.AddChild(savedLabel);
+
+        var savedScroll = new ScrollContainer();
+        savedScroll.ScrollDeadzone = 24;
+        savedScroll.SizeFlagsVertical = (SizeFlags)3;
+        savedScroll.SizeFlagsHorizontal = (SizeFlags)3;
+        savedScroll.CustomMinimumSize = new Vector2(0, 80);
+        railVbox.AddChild(savedScroll);
+
+        _savedDecksContainer = new VBoxContainer();
+        _savedDecksContainer.SizeFlagsHorizontal = (SizeFlags)3;
+        _savedDecksContainer.AddThemeConstantOverride("separation", 2);
+        savedScroll.AddChild(_savedDecksContainer);
 
         // Back button (bottom of rail)
         _backButton = new Button
@@ -1421,7 +1451,7 @@ public partial class DeckBuilderScene : Control
     }
 
     // ════════════════════════════════════════════════════════════════
-    // SAVE
+    // SAVE — with name prompt & overwrite protection
     // ════════════════════════════════════════════════════════════════
 
     private void OnSaveDeck()
@@ -1429,36 +1459,486 @@ public partial class DeckBuilderScene : Control
         var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
         if (!validation.IsValid) return;
 
-        string deckName = string.IsNullOrWhiteSpace(_deckName) ? "My Deck" : _deckName;
+        ShowSaveNameDialog();
+    }
+
+    /// <summary>
+    /// Show a stone-themed dialog prompting for the deck name.
+    /// On confirm, checks for overwrite conflicts, then persists.
+    /// </summary>
+    private void ShowSaveNameDialog()
+    {
+        var dialog = new PanelContainer();
+        dialog.Name = "SaveNameDialog";
+        float vw = GetViewportRect().Size.X;
+        float vh = GetViewportRect().Size.Y;
+        dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 70);
+        dialog.Size = new Vector2(300, 140);
+        dialog.MouseFilter = MouseFilterEnum.Pass;
+        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
+            BorderColor = Gold,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 12, ContentMarginTop = 12,
+            ContentMarginRight = 12, ContentMarginBottom = 12
+        });
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
+        vbox.AddThemeConstantOverride("separation", 8);
+        dialog.AddChild(vbox);
+
+        var titleLabel = new Label
+        {
+            Text = "Name Your Deck",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        ApplyHeaderFont(titleLabel, FontBody);
+        titleLabel.AddThemeColorOverride("font_color", Gold);
+        vbox.AddChild(titleLabel);
+
+        var nameEdit = new LineEdit
+        {
+            Text = _deckName,
+            PlaceholderText = "Enter deck name...",
+            CustomMinimumSize = new Vector2(0, 28)
+        };
+        nameEdit.AddThemeColorOverride("font_color", TextPrimary);
+        nameEdit.AddThemeColorOverride("placeholder_color", TextMuted);
+        nameEdit.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#1C1712"),
+            BorderColor = BorderStandard,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 6, ContentMarginTop = 2,
+            ContentMarginRight = 6, ContentMarginBottom = 2
+        });
+        vbox.AddChild(nameEdit);
+        nameEdit.GrabFocus();
+        nameEdit.SelectAll();
+
+        var btnRow = new HBoxContainer();
+        btnRow.AddThemeConstantOverride("separation", 8);
+        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
+        btnRow.SizeFlagsVertical = (SizeFlags)3;
+        vbox.AddChild(btnRow);
+
+        var cancelBtn = new Button
+        {
+            Text = "Cancel",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        cancelBtn.AddThemeColorOverride("font_color", TextMuted);
+        cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
+            BorderColor = BorderSubtle,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        cancelBtn.Pressed += () =>
+        {
+            if (IsInstanceValid(dialog)) dialog.QueueFree();
+        };
+        btnRow.AddChild(cancelBtn);
+
+        var okBtn = new Button
+        {
+            Text = "Save",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        okBtn.AddThemeColorOverride("font_color", Gold);
+        okBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = SurfaceStone,
+            BorderColor = Gold,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        okBtn.Pressed += () =>
+        {
+            string newName = nameEdit.Text.Trim();
+            if (string.IsNullOrWhiteSpace(newName)) return;
+
+            _deckName = newName;
+            _deckNameLabel.Text = _deckName;
+            if (IsInstanceValid(dialog)) dialog.QueueFree();
+
+            // Check overwrite
+            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName))
+                ShowOverwriteConfirmDialog();
+            else
+                PersistDeck();
+        };
+        btnRow.AddChild(okBtn);
+
+        // Submit on Enter
+        nameEdit.TextSubmitted += (text) =>
+        {
+            string newName = text.Trim();
+            if (string.IsNullOrWhiteSpace(newName)) return;
+
+            _deckName = newName;
+            _deckNameLabel.Text = _deckName;
+            if (IsInstanceValid(dialog)) dialog.QueueFree();
+
+            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName))
+                ShowOverwriteConfirmDialog();
+            else
+                PersistDeck();
+        };
+
+        AddChild(dialog);
+    }
+
+    /// <summary>
+    /// Confirm dialog for overwriting an existing saved deck.
+    /// </summary>
+    private void ShowOverwriteConfirmDialog()
+    {
+        var dialog = new PanelContainer();
+        dialog.Name = "OverwriteDialog";
+        float vw = GetViewportRect().Size.X;
+        float vh = GetViewportRect().Size.Y;
+        dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 60);
+        dialog.Size = new Vector2(300, 120);
+        dialog.MouseFilter = MouseFilterEnum.Pass;
+        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
+            BorderColor = Gold,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 12, ContentMarginTop = 12,
+            ContentMarginRight = 12, ContentMarginBottom = 12
+        });
+
+        var vbox = new VBoxContainer();
+        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
+        vbox.AddThemeConstantOverride("separation", 8);
+        dialog.AddChild(vbox);
+
+        var msg = new Label
+        {
+            Text = $"A deck named \"{_deckName}\" already exists.\nOverwrite it?",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            SizeFlagsVertical = (SizeFlags)1
+        };
+        ApplyBodyFont(msg, FontSmall);
+        msg.AddThemeColorOverride("font_color", TextPrimary);
+        vbox.AddChild(msg);
+
+        var btnRow = new HBoxContainer();
+        btnRow.AddThemeConstantOverride("separation", 8);
+        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
+        btnRow.SizeFlagsVertical = (SizeFlags)3;
+        vbox.AddChild(btnRow);
+
+        var cancelBtn = new Button
+        {
+            Text = "Cancel",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        cancelBtn.AddThemeColorOverride("font_color", TextMuted);
+        cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
+            BorderColor = BorderSubtle,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        cancelBtn.Pressed += () =>
+        {
+            if (IsInstanceValid(dialog)) dialog.QueueFree();
+        };
+        btnRow.AddChild(cancelBtn);
+
+        var overwriteBtn = new Button
+        {
+            Text = "Overwrite",
+            SizeFlagsHorizontal = (SizeFlags)3,
+            CustomMinimumSize = new Vector2(0, 32)
+        };
+        overwriteBtn.AddThemeColorOverride("font_color", Color.FromHtml("#E8A040"));
+        overwriteBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.25f, 0.15f, 0.05f, 1),
+            BorderColor = Color.FromHtml("#C08030"),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        overwriteBtn.Pressed += () =>
+        {
+            if (IsInstanceValid(dialog)) dialog.QueueFree();
+            PersistDeck(); // overwrite
+        };
+        btnRow.AddChild(overwriteBtn);
+
+        AddChild(dialog);
+    }
+
+    /// <summary>
+    /// Persist the current deck to ProgressionState.SavedDecks + legacy paths.
+    /// </summary>
+    private void PersistDeck()
+    {
         string classId = CampaignContext.ChosenClass;
         if (string.IsNullOrEmpty(classId))
             classId = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior";
 
-        // Save to account-wide deck library
-        string deckId = CampaignContext.SaveDeck(deckName, classId, _deckCardIds);
+        // Save to ProgressionState.SavedDecks (v2 schema)
+        var prog = CampaignContext.Progression;
+        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
 
-        // Update the active profile with the deck
+        // Legacy: also update the single-slot DeckCardIds for backward compat
+        prog.DeckCardIds.Clear();
+        prog.DeckCardIds.AddRange(_deckCardIds);
+        CampaignContext.PlayerDeckIds.Clear();
+        CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
+
+        // Account-wide JSON deck library
+        CampaignContext.SaveDeck(_deckName, classId, _deckCardIds);
+
+        // Update the active profile
+        string deckId = $"{classId}_{_deckName.ToLowerInvariant().Replace(" ", "_")}";
         if (CampaignContext.ActiveProfile != null)
         {
             CampaignContext.ActiveProfile.ActiveDeckId = deckId;
             CampaignContext.SaveCampaignProfile();
         }
 
-        // Legacy save for backward compat
-        var prog = CampaignContext.Progression;
-        prog.DeckCardIds.Clear();
-        prog.DeckCardIds.AddRange(_deckCardIds);
-        CampaignContext.PlayerDeckIds.Clear();
-        CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
+        // Persist SQLite
         CampaignContext.SaveManager.Save();
         _modified = false;
 
-        // Gold toast
-        ShowToast("Deck forged.");
+        ShowToast("Deck saved.");
+        RefreshSavedDecksList();
+    }
 
-        // Return after brief delay
-        var timer = GetTree().CreateTimer(1.0f);
-        timer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+    /// <summary>
+    /// Refresh the saved-decks section in the right rail.
+    /// Reads from ProgressionState.SavedDecks.
+    /// </summary>
+    private void RefreshSavedDecksList()
+    {
+        if (_savedDecksContainer == null) return;
+        foreach (var child in _savedDecksContainer.GetChildren())
+            child.QueueFree();
+
+        var savedDecks = CampaignContext.Progression.SavedDecks;
+        if (savedDecks.Count == 0)
+        {
+            var emptyLabel = new Label
+            {
+                Text = "No saved decks yet.",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                CustomMinimumSize = new Vector2(0, 24)
+            };
+            ApplyBodyFont(emptyLabel, FontTiny);
+            emptyLabel.AddThemeColorOverride("font_color", TextMuted);
+            _savedDecksContainer.AddChild(emptyLabel);
+            return;
+        }
+
+        foreach (var (deckName, cardIds) in savedDecks)
+        {
+            var row = new PanelContainer();
+            row.CustomMinimumSize = new Vector2(0, 28);
+            row.SizeFlagsHorizontal = (SizeFlags)3;
+            row.MouseDefaultCursorShape = CursorShape.PointingHand;
+
+            var rowStyle = new StyleBoxFlat
+            {
+                BgColor = new Color(0.15f, 0.13f, 0.10f, 0.4f),
+                BorderColor = Color.FromHtml("#5A5048"),
+                BorderWidthLeft = 2, BorderWidthTop = 0,
+                BorderWidthRight = 0, BorderWidthBottom = 0,
+                CornerRadiusTopLeft = 3, CornerRadiusBottomLeft = 3
+            };
+            row.AddThemeStyleboxOverride("panel", rowStyle);
+
+            var hbox = new HBoxContainer();
+            hbox.AnchorLeft = 0; hbox.AnchorRight = 1;
+            hbox.AnchorTop = 0; hbox.AnchorBottom = 1;
+            hbox.OffsetLeft = 4;
+            hbox.MouseFilter = MouseFilterEnum.Ignore;
+            row.AddChild(hbox);
+
+            var nameLabel = new Label
+            {
+                Text = deckName,
+                SizeFlagsHorizontal = (SizeFlags)3,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            ApplyBodyFont(nameLabel, FontSmall);
+            nameLabel.AddThemeColorOverride("font_color", Gold);
+            hbox.AddChild(nameLabel);
+
+            var countLabel = new Label
+            {
+                Text = $"{cardIds.Count}/30",
+                CustomMinimumSize = new Vector2(28, 0),
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+            ApplyBodyFont(countLabel, FontTiny);
+            countLabel.AddThemeColorOverride("font_color", TextMuted);
+            hbox.AddChild(countLabel);
+
+            // Click to load
+            var clickArea = new Button();
+            clickArea.SetAnchorsPreset(LayoutPreset.FullRect);
+            clickArea.MouseDefaultCursorShape = CursorShape.PointingHand;
+            clickArea.AddThemeStyleboxOverride("normal", new StyleBoxFlat { BgColor = Colors.Transparent });
+            clickArea.AddThemeStyleboxOverride("hover", new StyleBoxFlat { BgColor = Colors.Transparent });
+            clickArea.AddThemeStyleboxOverride("pressed", new StyleBoxFlat { BgColor = Colors.Transparent });
+            row.AddChild(clickArea);
+
+            // Capture the deck name for the closure
+            string capturedName = deckName;
+            List<string> capturedCards = cardIds;
+            clickArea.Pressed += () => LoadDeck(capturedName, capturedCards);
+
+            _savedDecksContainer.AddChild(row);
+        }
+    }
+
+    /// <summary>
+    /// Load a saved deck into the builder. Shows unsaved-changes guard if modified.
+    /// </summary>
+    private void LoadDeck(string deckName, List<string> cardIds)
+    {
+        if (_modified)
+        {
+            // Show unsaved-changes confirmation before loading
+            var dialog = new PanelContainer();
+            dialog.Name = "LoadConfirmDialog";
+            float vw = GetViewportRect().Size.X;
+            float vh = GetViewportRect().Size.Y;
+            dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 60);
+            dialog.Size = new Vector2(300, 120);
+            dialog.MouseFilter = MouseFilterEnum.Pass;
+            dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
+                BorderColor = Gold,
+                BorderWidthLeft = 2, BorderWidthTop = 2,
+                BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+                CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+                ContentMarginLeft = 12, ContentMarginTop = 12,
+                ContentMarginRight = 12, ContentMarginBottom = 12
+            });
+
+            var vbox = new VBoxContainer();
+            vbox.SetAnchorsPreset(LayoutPreset.FullRect);
+            vbox.AddThemeConstantOverride("separation", 8);
+            dialog.AddChild(vbox);
+
+            var msg = new Label
+            {
+                Text = "Load this deck?\nUnsaved changes will be lost.",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            ApplyBodyFont(msg, FontSmall);
+            msg.AddThemeColorOverride("font_color", TextPrimary);
+            vbox.AddChild(msg);
+
+            var btnRow = new HBoxContainer();
+            btnRow.AddThemeConstantOverride("separation", 8);
+            btnRow.SizeFlagsHorizontal = (SizeFlags)3;
+            btnRow.SizeFlagsVertical = (SizeFlags)3;
+            vbox.AddChild(btnRow);
+
+            var cancelBtn = new Button
+            {
+                Text = "Cancel",
+                SizeFlagsHorizontal = (SizeFlags)3,
+                CustomMinimumSize = new Vector2(0, 32)
+            };
+            cancelBtn.AddThemeColorOverride("font_color", TextMuted);
+            cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+            {
+                BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
+                BorderColor = BorderSubtle,
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+            });
+            cancelBtn.Pressed += () =>
+            {
+                if (IsInstanceValid(dialog)) dialog.QueueFree();
+            };
+            btnRow.AddChild(cancelBtn);
+
+            var loadBtn = new Button
+            {
+                Text = "Load",
+                SizeFlagsHorizontal = (SizeFlags)3,
+                CustomMinimumSize = new Vector2(0, 32)
+            };
+            loadBtn.AddThemeColorOverride("font_color", Gold);
+            loadBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+            {
+                BgColor = SurfaceStone,
+                BorderColor = Gold,
+                BorderWidthLeft = 1, BorderWidthTop = 1,
+                BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+            });
+            loadBtn.Pressed += () =>
+            {
+                if (IsInstanceValid(dialog)) dialog.QueueFree();
+                DoLoadDeck(deckName, cardIds);
+            };
+            btnRow.AddChild(loadBtn);
+
+            AddChild(dialog);
+        }
+        else
+        {
+            DoLoadDeck(deckName, cardIds);
+        }
+    }
+
+    private void DoLoadDeck(string deckName, List<string> cardIds)
+    {
+        _deckCardIds.Clear();
+        _deckCardIds.AddRange(cardIds);
+        _deckName = deckName;
+        _deckNameLabel.Text = deckName;
+        _modified = false;
+
+        RefreshCardGrid();
+        RefreshDeckList();
+        RefreshCurve();
+        UpdateCount();
+
+        ShowToast($"Loaded: {deckName}");
     }
 
     /// <summary>

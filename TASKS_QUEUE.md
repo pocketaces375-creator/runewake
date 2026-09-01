@@ -22,7 +22,7 @@
   Acceptance: capture where board cards measure 195-205px; state measured card and band px
   in the group. Trikzos' approval is the gate.
 
-- [ ] TASK-BOARD-MATCH-1 — Make the duel screen match the authority image (AFTER DUELRES-1)
+- [x] TASK-BOARD-MATCH-1 — Make the duel screen match the authority image (AFTER DUELRES-1)
   Open /home/fictive/bridge/projects/runewake-export/duel_target_reference.jpg and close
   every gap between the live render and it. Known gaps in the current build:
   (a) EMPTY LANES: authority = thin warm-gold rounded keyline sockets with a faint
@@ -108,7 +108,7 @@
   Rebuild the filter chips as proper chip BUTTONS, not loose label+swatch pairs: each chip is one hit-testable control containing swatch and label together, minimum 44x44 px touch target (the row already sets CustomMinimumSize height 44 — make the individual chips honor it too), 8px internal padding, swatch vertically centered against the label's cap height. Give each chip a clear pressed/selected state (filled with its strata color at low alpha + a 1px border in the strata color) so the active filter is obvious at a glance. Row scrolls horizontally on overflow without clipping the last chip.
   Acceptance: build exit 0, tests green, captures at BOTH 1152x648 and a phone-shaped resolution showing the chip row with a non-ALL filter active and visibly selected, no chip clipped at either edge, swatch aligned to label. Telegram both captures to the Runewake group.
 
-- [ ] TASK-DECKSAVE-1 — Deck Forge has no way to save a deck. Trikzos can build 30 cards and then lose the whole thing.
+- [x] TASK-DECKSAVE-1 — Deck Forge has no way to save a deck. Trikzos can build 30 cards and then lose the whole thing.
   Add: (1) a SAVE button in the deck panel, enabled only at exactly 30/30, that prompts for a deck name and persists the deck to the existing save system (SaveManager/ProgressionState — DeckBuilderScene.cs already holds a _saveState reference and tracks unsaved changes; use that, do not build a parallel storage path). (2) A saved-decks list to load a deck back into the builder for editing. (3) Overwrite protection: saving over an existing name asks to confirm. (4) An unsaved-changes guard on Back.
   Persistence must go through the versioned save format from TASK-SAVE-1 and must survive the corrupt-save auto-repair path — a bad deck blob repairs to "no decks", never to a blank screen.
   Acceptance: build exit 0, new tests covering save/load/overwrite/corrupt-deck-repair round-trip, all legacy tests green, headless flow proving a saved deck reloads with the identical 30 cards. Capture of the save UI posted to the Runewake group.

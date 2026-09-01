@@ -43,6 +43,13 @@ public class ProgressionState
     public List<string> DeckCardIds { get; } = new();
 
     /// <summary>
+    /// Named decks saved by the player. Key = deck name, value = card IDs.
+    /// Populated via Deck Forge's SAVE button. Survives corrupt-save auto-repair
+    /// (repairs to empty dict, never to null/blank).
+    /// </summary>
+    public Dictionary<string, List<string>> SavedDecks { get; } = new();
+
+    /// <summary>
     /// Global discovery index counter. Incremented each time a relic is minted.
     /// per card_id. The discovery_index on a relic is the value at mint time.
     /// </summary>

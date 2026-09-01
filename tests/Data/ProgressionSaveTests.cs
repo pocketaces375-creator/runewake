@@ -530,4 +530,156 @@ public class SaveRepositoryTests : IDisposable
         var reloaded = repo.Load();
         Assert.Equal(77, reloaded.Shards);
     }
+
+    // ─────────────────────────────────────────────
+    //  TASK-DECKSAVE-1: Named deck save/load
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Save_NamedDeck_Roundtrips()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+
+        // Add a named deck
+        state.SavedDecks["My Warrior Deck"] = new List<string> { "vrd_c_root_warden", "vrd_c_verdant_sproutling", "emb_c_ember_hound" };
+        Assert.True(repo.Save(state));
+
+        var loaded = repo.Load();
+        Assert.Single(loaded.SavedDecks);
+        Assert.True(loaded.SavedDecks.ContainsKey("My Warrior Deck"));
+        Assert.Equal(3, loaded.SavedDecks["My Warrior Deck"].Count);
+        Assert.Equal("vrd_c_root_warden", loaded.SavedDecks["My Warrior Deck"][0]);
+        Assert.Equal("emb_c_ember_hound", loaded.SavedDecks["My Warrior Deck"][2]);
+    }
+
+    [Fact]
+    public void Save_MultipleNamedDecks_Roundtrips()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+
+        state.SavedDecks["Deck A"] = new List<string> { "vrd_c_root_warden", "vrd_c_verdant_sproutling" };
+        state.SavedDecks["Deck B"] = new List<string> { "emb_c_ember_hound", "emb_c_cinder_runner", "emb_c_forgeguard_berserker" };
+        Assert.True(repo.Save(state));
+
+        var loaded = repo.Load();
+        Assert.Equal(2, loaded.SavedDecks.Count);
+        Assert.Equal(2, loaded.SavedDecks["Deck A"].Count);
+        Assert.Equal(3, loaded.SavedDecks["Deck B"].Count);
+    }
+
+    [Fact]
+    public void Save_NamedDeck_OverwriteSameName_OnlyLatestPersists()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+
+        state.SavedDecks["Deck X"] = new List<string> { "vrd_c_root_warden" };
+        repo.Save(state);
+
+        state.SavedDecks["Deck X"] = new List<string> { "emb_c_ember_hound", "emb_c_cinder_runner" };
+        repo.Save(state);
+
+        var loaded = repo.Load();
+        Assert.Single(loaded.SavedDecks);
+        Assert.Equal(2, loaded.SavedDecks["Deck X"].Count);
+        Assert.Equal("emb_c_ember_hound", loaded.SavedDecks["Deck X"][0]);
+    }
+
+    [Fact]
+    public void Save_NamedDeck_MidWriteKill_PriorDecksIntact()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.SavedDecks["Survivor"] = new List<string> { "vrd_c_root_warden" };
+        repo.Save(state);
+
+        // Kill mid-write during named_decks re-insertion
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM named_decks";
+                cmd.ExecuteNonQuery();
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "INSERT INTO named_decks (deck_name, position, card_id) VALUES ('corrupt', 0, 'partial')";
+                cmd.ExecuteNonQuery();
+            }
+            // No commit — crash
+        }
+
+        var loaded = repo.Load();
+        // Prior committed state must survive: "Survivor" deck intact
+        Assert.True(loaded.SavedDecks.ContainsKey("Survivor"));
+        Assert.Single(loaded.SavedDecks);
+        Assert.Equal("vrd_c_root_warden", loaded.SavedDecks["Survivor"][0]);
+    }
+
+    [Fact]
+    public void Load_CorruptNamedDecksTable_RepairsToEmpty()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.SavedDecks["Good"] = new List<string> { "vrd_c_root_warden" };
+        repo.Save(state);
+
+        // Wipe named_decks table entirely — corrupt/empty table is valid, just means no decks
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DROP TABLE IF EXISTS named_decks";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        // When named_decks table is missing, LoadFrom catches the exception and returns empty
+        Assert.Empty(loaded.SavedDecks);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-DECKSAVE-1: v1→v2 migration
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_V1Save_WithSavedDeck_MigratesToV2NamedDeck()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.DeckCardIds.AddRange(new[] { "vrd_c_root_warden", "vrd_c_verdant_sproutling", "emb_c_ember_hound" });
+        repo.Save(state); // saves at current version (v2)
+
+        // Tamper the stored version to v1 to simulate loading an older save
+        SqliteConnection.ClearAllPools();
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = '1' WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Verify the current schema is v2
+        Assert.Equal(2, SaveRepository.CurrentSchemaVersion);
+
+        // Loading a v1 save with DeckCardIds should migrate to SavedDecks as "My Deck"
+        var loaded = repo.Load();
+        Assert.Equal(2, loaded.Version);
+        Assert.True(loaded.SavedDecks.ContainsKey("My Deck"), $"Expected 'My Deck' in saved decks, got keys: [{string.Join(", ", loaded.SavedDecks.Keys)}]");
+        Assert.Equal(3, loaded.SavedDecks["My Deck"].Count);
+        Assert.Equal("vrd_c_root_warden", loaded.SavedDecks["My Deck"][0]);
+    }
+
+    [Fact]
+    public void NewState_HasEmptySavedDecks()
+    {
+        var state = new ProgressionState();
+        Assert.Empty(state.SavedDecks);
+    }
 }

@@ -1,3 +1,25 @@
+**TASK-DECKSAVE-1 (2026-08-31):** Deck Forge now saves and loads decks — Trikzos never loses a deck again. ✅
+|- **(1) SAVE button** — FORGE DECK button opens a stone-themed "Name Your Deck" dialog (LineEdit pre-filled with current name, Save/Cancel). Enabled only at 30/30. On confirm, persists to ProgressionState.SavedDecks (v2 schema), legacy DeckCardIds, CampaignContext JSON deck library, and active profile. Shows gold toast "Deck saved." and refreshes the load list. Does NOT navigate away. ✅
+|- **(2) Saved-decks load list** — "Load Saved Deck" section in the right rail (below FORGE DECK, above Back). Scrollable list showing each saved deck's name (gold) and count (muted). Click a deck → loads it into the builder: card list, deck name, and cleared-modified flag. Unsaved-changes guard if modified. ✅
+|- **(3) Overwrite protection** — Saving with a name that already exists shows a confirmation dialog ("A deck named \"X\" already exists. Overwrite it?") with Cancel/Overwrite buttons. ✅
+|- **(4) Unsaved-changes guard on Back** — Already existed (stone confirm dialog: "Unsaved changes will be lost." Keep editing / Discard). ✅
+|- **Persistence:** ProgressionState.SavedDecks (Dictionary<string, List<string>>) survives corrupt-save auto-repair (repairs to empty dict, never to blank screen). SaveRepository schema v2 with named_decks table (deck_name, position, card_id). v1→v2 migration converts existing saved_deck into "My Deck" named entry. ✅
+|- **724 tests green** (32 save tests + 692 legacy). New tests: Save_NamedDeck_Roundtrips, Save_MultipleNamedDecks_Roundtrips, Save_NamedDeck_OverwriteSameName_OnlyLatestPersists, Save_NamedDeck_MidWriteKill_PriorDecksIntact, Load_CorruptNamedDecksTable_RepairsToEmpty, Load_V1Save_WithSavedDeck_MigratesToV2NamedDeck, NewState_HasEmptySavedDecks. ✅
+|- **Build:** 0 errors. **Harness:** deck_test + deck_test_phone both PASS (gate exit 0). ✅
+|- **Committed and pushed to origin/main.** ✅
+- **(a) EMPTY LANES:** Warm-gold rounded keyline sockets (2px #C9A84C border, 0.35 alpha stone tint, r=6) already correct in LaneSlot.cs _emptySlotStyle. Columns now verified aligned via PopulateLanes (same xCenter formula both rows). ✅
+- **(b) CARD FRAME:** RootBoundBorder loads all 8 rootbound_*.png slices (confirmed in log: all 8 loaded successfully). Flat black outline replaced with carved stone at band_px=14px at design size. ✅
+- **(c) COST:** Circle (dark #2A2418 fill + gold #C9A84C border via StyleBoxFlat with cornerRadius=hexSize/2) at top-right inside frame. Built via CardPlate.MakeCostRune. ✅
+- **(d) STATS:** Rounded red (#A83A2A attack) + green (#5A8A4A vigor) chips with white numerals, font 18px at 200px card width. Built via MakeStatBadge. ✅
+- **(e) NAME:** Name auto-fit with base 20px at 200px card width (24px at 236px reference). Font size raised via header font (Cinzel), white text with black outline. Small caps positioning at bottom of face. ✅
+- **(f) HAND:** Hand cards 207×306px (vs board 200×292px) — distinctly LARGER than board cards. Centered alignment (AlignmentMode.Center, margin left 180). Overlapping via separation=-8px. Bottom edge tucked into frame (6px gap to viewport bottom). ✅
+- **(g) HUD:** Green pill "TRIKZOS | <vigor>" bottom-left, red pill "THE WAYFARER | <vigor>" top-right. DECK/BARROW paired panel. Artifact frames as teal-rimmed thumbnails with ArtifactCardPlate. Turn indicator top-center in serif face (Cinzel 20px). Enemy name truncation fixed (nameplate 210px wide → "THE WAYFARER" fits at 15px). ✅
+- **(h) R2:** Variant capture produced (duel_test_r2.png) — hand 370px/board 320px. Presented alongside standard for Trikzos to pick. ✅
+- **Build:** 0 errors, 2 warnings (pre-existing CS8604). ✅
+- **Tests:** 717/717 green. ✅
+- **Gates:** Standard (2316×1080) — PASS ✅. Wide (2999×1080) — PASS ✅. Band layout 0 failed, hand-vs-slot clear (gap 43-63px), all art textures active (10/10). ✅
+- **Committed (ce19272) and pushed to origin/main.** ✅
+
 **TASK-DUELRES-1 (2026-08-31):** Design resolution 2316×1080 — reference changed from 648→1080, board cards now 200×292px exactly, 7% band 14px. ✅
 - **Reference swap:** ScaleCardSizes (`reference=648f`→`1080f`, hand 152→253, board 175→292). PopulateLanes (`scale=vh/648f`→`vh/1080f`, slotW 120→200, slotH 175→292, spacing 250→350, boardTopOffset 74→123, enemyBaseY 60→100, playerBaseY 444→740, yOffsets 6→10/3→5/8→13/4→7). All values preserve exact pixel output at every viewport height while using correct design-reference values (1080). ✅
 - **Captures:** duel_test 2316×1080 + duel_test_wide 2999×1080 — board cards measure exactly 200×292px on both (meta.json: `w: 200.0, h: 291.7`). 7% band = 14px. ✅
