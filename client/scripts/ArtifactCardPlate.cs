@@ -23,6 +23,8 @@ public partial class ArtifactCardPlate : Control
     private ColorRect? _nameBandBg;
     private ColorRect? _chargeRailBg;
     private ColorRect? _suppressedOverlay;
+    private ColorRect? _artBg;           // BOARD-MATCH-2: art background (parchment when no texture)
+    private TextureRect? _artRect;       // BOARD-MATCH-2: artifact art thumbnail
     private Label? _artifactTag;
     private Label? _cardName;
     private Label? _chargeDisplay;
@@ -71,6 +73,25 @@ public partial class ArtifactCardPlate : Control
         // Lazy init
         if (_artifactTag == null)
         {
+            // ── Art artwork background (parchment fill when no art texture) ──
+            _artBg = new ColorRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                Color = new Color(0.15f, 0.12f, 0.10f, 1.0f) // dark parchment
+            };
+            _artBg.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            AddChild(_artBg);
+
+            // ── Art artwork thumbnail ──
+            _artRect = new TextureRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
+            };
+            _artRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            AddChild(_artRect);
+
             // ── ARTIFACT tag (top of card, inside root-bound rim) ──
             _artifactTag = new Label
             {
@@ -463,6 +484,33 @@ public partial class ArtifactCardPlate : Control
 
     /// <summary>Get the name label node for metadata capture purposes.</summary>
     public Label? GetNameLabel() => _cardName;
+
+    /// <summary>
+    /// BOARD-MATCH-2: Load artifact art thumbnail. Falls back gracefully if art file missing.
+    /// Art path: res://content/art/artifacts/{artId}.webp
+    /// </summary>
+    public void SetArt(string artId)
+    {
+        if (_artRect == null) return;
+        string artPath = $"res://content/art/artifacts/{artId}.webp";
+        if (ResourceLoader.Exists(artPath))
+        {
+            var tex = ResourceLoader.Load<Texture2D>(artPath);
+            if (tex != null)
+            {
+                _artRect.Texture = tex;
+                _artRect.Visible = true;
+                if (_artBg != null)
+                    _artBg.Visible = false;
+                return;
+            }
+        }
+        // No art file — show dark parchment background
+        _artRect.Texture = null;
+        _artRect.Visible = false;
+        if (_artBg != null)
+            _artBg.Visible = true;
+    }
 
     /// <summary>
     /// TASK-ARTF-P2: Brief bright flash when this artifact's trigger fires.

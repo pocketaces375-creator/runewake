@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Dual-resolution duel capture: 2316×1080 standard + 2999×1080 wide.
+# Dual-resolution duel capture: 2316x1080 standard + 2999x1080 wide + R2 variant.
 # Swaps project.godot viewport settings between runs.
 # Usage: bash tools/capture_duel.sh
 
@@ -14,15 +14,15 @@ mkdir -p "$CAPTURE_DIR"
 rm -f "$CAPTURE_DIR"/duel_test*.png "$CAPTURE_DIR"/duel_test*.meta.json
 
 capture_one() {
-    local suffix="$1"    # "" or "_wide"
+    local suffix="$1"    # "" or "_wide" or "_r2"
     local width="$2"
     local height="$3"
 
     echo "=== Capture: duel_test${suffix} (${width}x${height}) ==="
 
     # Patch project.godot viewport
-    sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width='"${width}"'|' "$PROJECT_GODOT"
-    sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height='"${height}"'|' "$PROJECT_GODOT"
+    sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "$PROJECT_GODOT"
+    sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "$PROJECT_GODOT"
 
     # Run capture
     xvfb-run -a "$GODOT_BIN" --path client -- "--capture=duel_test${suffix}" 2>&1
@@ -46,12 +46,12 @@ with open('${CAPTURE_DIR}/duel_test${suffix}.png','rb') as f:
             print(w, h)
             break
 ")"
-        echo "  → duel_test${suffix}.png: ${pw}x${ph}"
+        echo "  -> duel_test${suffix}.png: ${pw}x${ph}"
         if [ "$pw" -ne "$width" ] || [ "$ph" -ne "$height" ]; then
-            echo "  ⚠ WARNING: Expected ${width}x${height}, got ${pw}x${ph}" >&2
+            echo "  WARNING: Expected ${width}x${height}, got ${pw}x${ph}" >&2
         fi
     else
-        echo "  ✗ FAIL: duel_test${suffix}.png not produced" >&2
+        echo "  FAIL: duel_test${suffix}.png not produced" >&2
         rc=1
     fi
 
@@ -66,16 +66,22 @@ STD_RC=$?
 capture_one "_wide" 2999 1080
 WIDE_RC=$?
 
-# Restore to standard viewport
-sed -i "s/^window\\/size\\/viewport_width=.*/window\\/size\\/viewport_width=2316/" "$PROJECT_GODOT"
-sed -i "s/^window\\/size\\/viewport_height=.*/window\\/size\\/viewport_height=1080/" "$PROJECT_GODOT"
+# 3. R2 variant capture at 2316x1080 (larger cards / wider art share)
+# BOARD-MATCH-2: one extra capture for Trikzos to compare
+capture_one "_r2" 2316 1080
+R2_RC=$?
 
-echo "=== Dual capture results ==="
+# Restore to standard viewport
+sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=2316/" "$PROJECT_GODOT"
+sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=1080/" "$PROJECT_GODOT"
+
+echo "=== Triple capture results ==="
 echo "Standard: $([ $STD_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
 echo "Wide:     $([ $WIDE_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
+echo "R2:      $([ $R2_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
 
-if [ $STD_RC -eq 0 ] && [ $WIDE_RC -eq 0 ]; then
-    echo "Both captures PASSED"
+if [ $STD_RC -eq 0 ] && [ $WIDE_RC -eq 0 ] && [ $R2_RC -eq 0 ]; then
+    echo "All three captures PASSED"
     exit 0
 else
     echo "Capture failed" >&2

@@ -2189,6 +2189,8 @@ public partial class DuelScene : Control
                     if (_enemyArtifactPlates[i] != null)
                     {
                         _enemyArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                        // BOARD-MATCH-2: Load artifact art thumbnail
+                        _enemyArtifactPlates[i].SetArt(occ.CardDefId);
                     }
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
@@ -2253,6 +2255,8 @@ public partial class DuelScene : Control
                     if (_playerArtifactPlates[i] != null)
                     {
                         _playerArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                        // BOARD-MATCH-2: Load artifact art thumbnail
+                        _playerArtifactPlates[i].SetArt(occ.CardDefId);
                     }
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)

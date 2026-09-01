@@ -218,7 +218,9 @@ public partial class CardPlate : Control
             _attackBadge.Size = new Vector2(statChipW, statChipH);
             int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
             _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
-            _attackBadge.Position = new Vector2(3, statChipY);
+            // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
+            float chipBandInset = bandPx + 2f;
+            _attackBadge.Position = new Vector2(chipBandInset, statChipY);
             // Recreate stylebox with correct pill radius for current size
             var attStyle = new StyleBoxFlat
             {
@@ -241,7 +243,9 @@ public partial class CardPlate : Control
             _vigorBadge.Size = new Vector2(statChipW, statChipH);
             int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
             _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
-            _vigorBadge.Position = new Vector2(cardWidth - statChipW - 3, statChipY);
+            // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
+            float vigorX = cardWidth - statChipW - bandPx - 2f;
+            _vigorBadge.Position = new Vector2(vigorX, statChipY);
             var vigStyle = new StyleBoxFlat
             {
                 BgColor = FrameStatVigor,
