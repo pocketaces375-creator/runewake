@@ -51,9 +51,9 @@ public partial class CardPlate : Control
     }
 
     /// <summary>
-    /// Create a stat badge label with styled background.
+    /// Create a stat badge label with styled background — pill-shaped medallion with gold ring.
     /// </summary>
-    private static Label MakeStatBadge(Color bgColor, Color borderColor)
+    private static Label MakeStatBadge(Color bgColor, float pillRadius)
     {
         var badge = new Label
         {
@@ -62,21 +62,21 @@ public partial class CardPlate : Control
             VerticalAlignment = VerticalAlignment.Center
         };
         badge.AddThemeColorOverride("font_color", FrameStatText);
-        badge.AddThemeConstantOverride("outline_size", 1);
         badge.AddThemeColorOverride("font_outline_color", Colors.Black);
+        badge.AddThemeConstantOverride("outline_size", 1);
 
         var style = new StyleBoxFlat
         {
             BgColor = bgColor,
-            BorderColor = borderColor,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
+            BorderColor = FrameHexBorder, // gold ring
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius),
+            CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius),
+            CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
             ContentMarginLeft = 4,
             ContentMarginTop = 1,
             ContentMarginRight = 4,
@@ -138,16 +138,16 @@ public partial class CardPlate : Control
                 TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming
             };
             _cardName.AddThemeColorOverride("font_color", FrameNameText);
-            _cardName.AddThemeConstantOverride("outline_size", 1);
-            _cardName.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.6f));
+            _cardName.AddThemeConstantOverride("outline_size", 2);
+            _cardName.AddThemeColorOverride("font_outline_color", Color.FromHtml("#0A0806FF"));
             _nameClipContainer.AddChild(_cardName);
 
             // ── Attack badge ──
-            _attackBadge = MakeStatBadge(FrameStatAttack, Color.FromHtml("#7A2A1A"));
+            _attackBadge = MakeStatBadge(FrameStatAttack, 8f);
             AddChild(_attackBadge);
 
             // ── Vigor badge ──
-            _vigorBadge = MakeStatBadge(FrameStatVigor, Color.FromHtml("#3A6A2A"));
+            _vigorBadge = MakeStatBadge(FrameStatVigor, 8f);
             AddChild(_vigorBadge);
         }
 
@@ -204,10 +204,11 @@ public partial class CardPlate : Control
         _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
         _cardName.MaxLinesVisible = fit.LineCount;
 
-        // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) ──
+        // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) — pill-shaped gold-ring medallions ──
         float chipSize = cardWidth * FrameStatChipFraction;
         float statChipW = chipSize;
         float statChipH = railH * 0.8f;
+        float pillRadius = statChipH / 2f;
         float statChipY = nameBandH + (railH - statChipH) / 2f;
 
         _attackBadge.Visible = _hasAttack;
@@ -215,9 +216,22 @@ public partial class CardPlate : Control
         {
             _attackBadge.Text = attack!.Value.ToString();
             _attackBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(11, Mathf.RoundToInt(statChipH * 0.65f));
+            int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
             _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
             _attackBadge.Position = new Vector2(3, statChipY);
+            // Recreate stylebox with correct pill radius for current size
+            var attStyle = new StyleBoxFlat
+            {
+                BgColor = FrameStatAttack,
+                BorderColor = FrameHexBorder,
+                BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius),
+                CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
+                ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+            };
+            _attackBadge.AddThemeStyleboxOverride("normal", attStyle);
         }
 
         _vigorBadge.Visible = _hasVigor;
@@ -225,9 +239,21 @@ public partial class CardPlate : Control
         {
             _vigorBadge.Text = vigor!.Value.ToString();
             _vigorBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(11, Mathf.RoundToInt(statChipH * 0.65f));
+            int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
             _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
             _vigorBadge.Position = new Vector2(cardWidth - statChipW - 3, statChipY);
+            var vigStyle = new StyleBoxFlat
+            {
+                BgColor = FrameStatVigor,
+                BorderColor = FrameHexBorder,
+                BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius),
+                CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
+                ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+            };
+            _vigorBadge.AddThemeStyleboxOverride("normal", vigStyle);
         }
     }
 

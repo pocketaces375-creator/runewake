@@ -375,3 +375,10 @@
 ||- (2) Compiler warnings: baseline 270 → 0 (0 engine, 0 client). Fixes: 17× CS0618 (AutoTranslate→AutoTranslateMode) in Main.cs/DuelScene.cs; 2× CS8625 (null literal) in DeckBuilderScene.cs; 2× CS8600 (TryGetValue pattern) in DigScene.cs. Suppressed at project level: CS8602 + CS8618 (Godot pattern — nodes set via GetNode() in _Ready() rather than constructor; dereference warnings are false positives from nullable analysis not understanding the Godot lifecycle). ✅
 ||- 717/717 engine tests green. All gates pass. ✅
 - 2026-08-31: TEMPO — 13 sessions yesterday, 0 validated.
+|- **TASK-CLASS-7 (2026-08-31):** All 7 classes now in content/classes.json. ✅
+||- Added **tidecaller** (TIDE, Saltmere, town: Saltmere) — core cards: tid_c_tidal_scholar, tid_c_deep_one, tid_c_whirlpool_elemental, tid_u_brine_witch. ✅
+||- Added **dawnward** (DAWN, Sunspire) — core cards: dwn_c_dawn_warder, dwn_c_sunblade_recruit, dwn_c_dawnbreaker_charger, dwn_u_morning_herald. ✅
+||- Added **ranger** (VERDANT cross-strata, Greyhollow) — core cards: vrd_c_thornbark_defender, vrd_u_canopy_archer, vrd_u_saphoof_charger, vrd_u_elder_treant. ✅
+||- Added **occultist** (HOLLOW cross-strata, Duskchapel) — core cards: hol_u_crypt_crawler, hol_u_barrow_revenant, hol_r_wraith_stalker, hol_c_bone_shard_volley. ✅
+||- All 4 use existing art (tidecaller.png, dawnward.png, ranger.png, occultist.png at client/content/art/classes/). All 7 classes now wired downstream (ChooseYourPathScene reads from classes.json dynamically). ✅
+||- Build: 0 errors. Tests: 724/724 green. Committed (2cdf8ac) and pushed to origin/main. ✅

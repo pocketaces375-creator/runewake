@@ -167,9 +167,9 @@ public static class ThemeTokens
     /// <summary>Card face fill inside the gold border</summary>
     public static readonly Color FrameFill = Color.FromHtml("#2C2824");
     /// <summary>Name band background — semi-transparent dark</summary>
-    public static readonly Color FrameNameBand = Color.FromHtml("#1A1816");
+    public static readonly Color FrameNameBand = Color.FromHtml("#281E16");
     /// <summary>Name band text color</summary>
-    public static readonly Color FrameNameText = Color.FromHtml("#E8DCC8");
+    public static readonly Color FrameNameText = Color.FromHtml("#F0E4D0");
     /// <summary>Stat rail background — dark stone</summary>
     public static readonly Color FrameStatRail = Color.FromHtml("#201E1A");
     /// <summary>Attack stat color — deep ember red</summary>
@@ -195,7 +195,7 @@ public static class ThemeTokens
     /// <summary>Hex cost badge width as fraction of card width</summary>
     public const float FrameHexSizeFraction = 0.18f;
     /// <summary>Stat chip width as fraction of card width</summary>
-    public const float FrameStatChipFraction = 0.22f;
+    public const float FrameStatChipFraction = 0.25f;
 
     // ════════════════════════════════════════════
     // Type Scale
