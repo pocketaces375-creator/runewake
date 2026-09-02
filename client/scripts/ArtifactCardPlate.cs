@@ -486,25 +486,33 @@ public partial class ArtifactCardPlate : Control
     public Label? GetNameLabel() => _cardName;
 
     /// <summary>
-    /// BOARD-MATCH-2: Load artifact art thumbnail. Falls back gracefully if art file missing.
-    /// Art path: res://content/art/artifacts/{artId}.webp
+    /// BOARD-MATCH-5: Load artifact art thumbnail with .webp + .png fallback.
+    /// Falls back gracefully if no art file found.
+    /// Art paths: res://content/art/artifacts/{artId}.webp or .png
     /// </summary>
     public void SetArt(string artId)
     {
         if (_artRect == null) return;
-        string artPath = $"res://content/art/artifacts/{artId}.webp";
-        if (ResourceLoader.Exists(artPath))
+
+        // Try .webp first, then .png
+        Texture2D? LoadTexture(string ext)
         {
-            var tex = ResourceLoader.Load<Texture2D>(artPath);
-            if (tex != null)
-            {
-                _artRect.Texture = tex;
-                _artRect.Visible = true;
-                if (_artBg != null)
-                    _artBg.Visible = false;
-                return;
-            }
+            string path = $"res://content/art/artifacts/{artId}.{ext}";
+            if (ResourceLoader.Exists(path))
+                return ResourceLoader.Load<Texture2D>(path);
+            return null;
         }
+
+        var tex = LoadTexture("webp") ?? LoadTexture("png");
+        if (tex != null)
+        {
+            _artRect.Texture = tex;
+            _artRect.Visible = true;
+            if (_artBg != null)
+                _artBg.Visible = false;
+            return;
+        }
+
         // No art file — show dark parchment background
         _artRect.Texture = null;
         _artRect.Visible = false;

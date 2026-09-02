@@ -239,10 +239,16 @@ public partial class HandCard : PanelContainer
         tween.TweenCallback(Callable.From(() => ZIndex = 0));
     }
 
-    // ——— Click handling via GuiInput ———
+    // ——— Click/touch handling via GuiInput ———
     public override void _GuiInput(InputEvent @event)
     {
+        bool pressed = false;
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+            pressed = true;
+        else if (@event is InputEventScreenTouch touch && touch.Pressed)
+            pressed = true;
+
+        if (pressed)
         {
             EmitSignal(SignalName.Pressed);
             GetViewport().SetInputAsHandled();
