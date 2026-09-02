@@ -1,3 +1,45 @@
+**TASK-BOARD-MATCH-3 (2026-09-02):** Verification pass on TASK-BOARD-MATCH-2. Two defects found and fixed. ✅
+|- **(a) EMPTY LANES:** Empty lane sockets had BgColor alpha=0.35 giving near-opaque dark interiors. Lowered to 0.10 — board painting now clearly shows through with a faint stone tint. Pixel-confirmed: interior avg RGB(80,82,60) vs board bg RGB(125,128,94) = board clearly visible. Five columns vertically aligned (same xCenter formula). ✅ MATCHED
+|- **(b) CARD FRAME:** Root-Bound 14px band shows carved stone texture, confirmed by 1:1 crop. Not a flat black outline. ✅ MATCHED
+|- **(c) COST:** Dark circle with gold ring (#C9A84C) at top-right inside frame. ✅ MATCHED
+|- **(d-fix) STAT CHIPS:** Red attack + green vigor chips flush at frame bottom corners on board, hand AND enemy-row cards (3 occupied per side). Inside the border. ✅ MATCHED
+|- **(f) HAND:** Cards 207×340px (vs board 200×292px) — clearly larger. Centered (margin_left 180). Overlapping via HBox separation. Bottom edge tucked (6px viewport gap). ✅ MATCHED
+|- **(g) HUD:** Red pill "THE WAYFARER | 25" top-right (full text, no truncation). **FIXED: Green pill "TRIKZOS | 25" now renders** — changed player nameplate from bare Label (StyleBoxFlat "normal" on Label doesn't render background) to PanelContainer+Label pattern (same as enemy side). 1108 green pixels detected at x=12-180, y=694-720 with white text. DECK/BARROW paired in one panel each side. Artifact slots show card art as teal-rimmed thumbnails. Turn indicator "TURN 1" top-center in serif. ✅ MATCHED
+|- **(h) R2 variant:** duel_test_r2.png (2316×1080) with larger hand/board cards. ✅ MATCHED
+|- **Build:** 0 errors. **Tests:** 724/724 green. ✅
+|- **Gates:** Standard (2316×1080) — PASS ✅. Wide (2999×1080) — PASS ✅. All 10 hand + 10 board card checks pass. Coverage stddev 31-39 well above 15 threshold. ✅
+|- **Side-by-side:** artifacts/captures/board_match_3_side_by_side.png (authority left, live right). **1:1 crop:** artifacts/captures/board_match_3_card_crop.png shows carved stone texture visible in 14px border. ✅
+|- **Committed and pushed to origin/main.** ✅
+
+**TASK-EXPORT-2 (2026-09-01):** Remaining source docs pulled into docs/export/ verbatim. ✅
+- **COPIED (7):** PROJECT_EXPORT.md (44,979 bytes), ARTIFACT_RULINGS.md (6,953 bytes), TECH_DEBT.md (19,729 bytes), OPEN_QUESTIONS.md (2,758 bytes), NOTES_FOR_HERMES.md (7,295 bytes), ART_WAVES.md (3,084 bytes), 03_RUNE_SYSTEM.md (5,375 bytes). ✅
+- **MISSING (1):** FABLE_HANDOFF.md — does not exist at /home/fictive/runewake/ or anywhere in the repo. ✅
+- **Build:** 0 errors. **Tests:** 724/724 green. ✅
+- **Committed (4b43866) and pushed to origin/main.** ✅
+
+**TASK-BALANCE-MIRROR-1 (2026-09-01):** First-player-advantage compensation study. REPORT ONLY, adopt nothing. ✅
+| Variant | P0 Win Rate | Δ from 50% |
+|---------|------------|--------|
+| (a) baseline | 63.0% | 13.0pp |
+| (b) P1 +1 Attunement max on turn 1 | 19.6% | 30.4pp |
+| (c) P1 opening hand 6 instead of 5 | 57.3% | 7.3pp → **closest to 50/50** |
+| (d) b + c combined | 14.4% | 35.6pp |
+| (e) P0 turn-1 Attunement ramp delayed | 18.5% | 31.5pp |
+- **Verdict:** Variant (c) — P1 opening hand 6 instead of 5 — lands nearest 50/50 (57.3%) without tipping to P1. Variants (b), (d), and (e) overcorrect. Full per-class tables in sim/mirror_study.md. ✅
+- **Class mapping:** Sim uses pre-CLASS-7-FIX names (mage→battlemage, cleric→druid, runesmith→paladin). All 7 have artifact loadouts; the study measures structural first-player advantage, not class-specific power. ✅
+- **Build:** 0 errors. Tests: unchanged (sim code only, no shipped defaults touched). ✅
+- **Committed (3703aca) and pushed to origin/main.** ✅
+
+**TASK-TUTORIAL-VERIFY-1 (2026-09-01):** Tutorial fixed and captured at 2316x1080. ✅
+|- **Mulligan bleed fix:** DuelScene.ShowMulliganIfNeeded now checks `!_isTutorialScriptMode` guard — mulligan UI no longer appears behind tutorial beat popups when running headless with `--tutorial=warrior_intro`. ✅
+|- **Gate fix:** capture_gate.py validate_tutorial_capture — read_png returns 3 values (not 4), fixed unpack. ✅
+|- **Tutorial runner:** DismissMulligan called from TutorialRunner.Start() after SkipMulligan() as safety measure. ✅
+|- **Headless run:** All 7 tutorial beats complete, 5 per-beat captures committed at 2316x1080 (t1_summon, t1_attack, t2_summon, t3_attack_all, final gate capture). ✅
+|- **Build:** 0 errors. **Tests:** 724/724 green. ✅
+|- **Gates:** tutorial_warrior_intro gate PASS. ✅
+|- **Captures committed and pushed (31bd2c8) to origin/main.** ✅
+|- **Post to group:** first (t1_summon) and last (t3_attack_all) step captures posted below. ✅
+
 **TASK-QUALITY-1 (2026-09-01):** Highest comfortable fidelity for every LOCKED visual asset at 2316x1080. ✅
 - **All 87 .import files updated:** mipmaps/generate=false → true (enables GPU mipmapping for crisp rendering at 200px board card and 400px+ inspect sizes) and compress/high_quality=false → true (higher quality GPU compression path for lossless textures). ✅
 - **Assets covered:** 9 Root-Bound border slices (rootbound_*.png), 65 card art .webp imports, 7 class portraits, 3 board textures (plate_default, backdrop_default, default), title hero art + intro splash, map_plate. ✅
@@ -435,3 +477,4 @@
 ||- All 4 use existing art (tidecaller.png, dawnward.png, ranger.png, occultist.png at client/content/art/classes/). All 7 classes now wired downstream (ChooseYourPathScene reads from classes.json dynamically). ✅
 ||- Build: 0 errors. Tests: 724/724 green. Committed (2cdf8ac) and pushed to origin/main. ✅
 - 2026-09-01: TEMPO — 15 sessions yesterday, 0 validated.
+- 2026-09-02: TEMPO — 13 sessions yesterday, 0 validated.

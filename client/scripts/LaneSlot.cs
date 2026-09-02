@@ -65,13 +65,34 @@ public partial class LaneSlot : PanelContainer
         _noArtLabel.Visible = false;
         ApplyHeaderFont(_noArtLabel, FontLargeBody);
 
+        // Empty slot style: warm-gold rounded keyline with translucent stone tint
+        // Created BEFORE SetEmpty so the initial call applies it immediately.
+        _emptySlotStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.10f, 0.09f, 0.07f, 0.10f), // faint translucent stone tint
+            BorderColor = EmptySlotBorder,
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 0,
+            ContentMarginTop = 0,
+            ContentMarginRight = 0,
+            ContentMarginBottom = 0
+        };
+
         SetEmpty();
 
-        // Root-Bound 9-slice border overlay
+        // Root-Bound 9-slice border overlay (hidden for empty slots)
         _rootBound = new RootBoundBorder();
         _rootBound.Name = "RootBoundBorder";
         AddChild(_rootBound);
         _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
+        _rootBound.Visible = false; // BOARD-MATCH-3: hidden on empty — gold keyline takes over
 
         // CardPlate — unified card frame: name band, stat rail
         _cardPlate = new CardPlate();
@@ -111,39 +132,6 @@ public partial class LaneSlot : PanelContainer
             if (stoneTex != null)
                 slotBg.Texture = stoneTex;
         }
-
-        // Card face background — dark fill, no border (RootBoundBorder handles that)
-        AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = FrameFill,
-            BorderWidthLeft = 0,
-            BorderWidthTop = 0,
-            BorderWidthRight = 0,
-            BorderWidthBottom = 0,
-            ContentMarginLeft = 0,
-            ContentMarginTop = 0,
-            ContentMarginRight = 0,
-            ContentMarginBottom = 0
-        });
-
-        // Empty slot style: warm-gold rounded keyline with translucent stone tint
-        _emptySlotStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.10f, 0.09f, 0.07f, 0.35f), // translucent stone
-            BorderColor = EmptySlotBorder,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 0,
-            ContentMarginTop = 0,
-            ContentMarginRight = 0,
-            ContentMarginBottom = 0
-        };
     }
 
     /// <summary>
@@ -189,8 +177,9 @@ public partial class LaneSlot : PanelContainer
         var def = CardRegistry.Get(cardDefId);
         if (def != null) cost = def.Cost;
 
-        // Update RootBound border
+        // Update RootBound border (show on occupied)
         _rootBound.Setup(w, h);
+        _rootBound.Visible = true;
 
         // CardPlate handles name, stat rail
         _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost);
@@ -262,6 +251,9 @@ public partial class LaneSlot : PanelContainer
         // Apply warm-gold keyline socket style for empty slots
         if (_emptySlotStyle != null)
             AddThemeStyleboxOverride("panel", _emptySlotStyle);
+        // BOARD-MATCH-3: hide RootBound border so gold keyline is visible through empty slot
+        if (_rootBound != null)
+            _rootBound.Visible = false;
     }
 
     /// <summary>

@@ -1135,6 +1135,9 @@ public partial class DuelScene : Control
         // ── Player nameplate (green pill, bottom-left) ──
         float nameplateW = 170f * scale;
         float nameplateH = 28f * scale;
+        float handCardH = Mathf.Max(140f, 340f * (vh / 1080f));
+        float handTop = vh - handCardH - 6f;
+        // BOARD-MATCH-3: Use PanelContainer (same pattern as enemy nameplate) for reliable bg rendering
         var playerNameplate = new PanelContainer
         {
             Name = "PlayerNameplate",
@@ -1143,7 +1146,7 @@ public partial class DuelScene : Control
         };
         var nameplateStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.22f, 0.48f, 0.28f, 0.85f),  // green pill
+            BgColor = new Color(0.25f, 0.60f, 0.35f, 1.0f),  // green pill
             BorderColor = new Color(0.35f, 0.65f, 0.35f, 0.9f),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
@@ -1155,10 +1158,6 @@ public partial class DuelScene : Control
             ContentMarginRight = 2, ContentMarginBottom = 0
         };
         playerNameplate.AddThemeStyleboxOverride("panel", nameplateStyle);
-        // Position: bottom-left, above the hand area and artifacts
-        // BOARD-MATCH-1: Hand tucked into bottom edge (6px gap)
-        float handCardH = Mathf.Max(140f, 340f * (vh / 1080f));
-        float handTop = vh - handCardH - 6f;
         playerNameplate.Position = new Vector2(12f * scale, handTop - nameplateH - 12f);
         AddChild(playerNameplate);
 
@@ -1173,11 +1172,11 @@ public partial class DuelScene : Control
         var playerNameLabel = new Label
         {
             Text = "TRIKZOS",
-            HorizontalAlignment = HorizontalAlignment.Right,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        int nameFontSize = Mathf.RoundToInt(14 * scale); // BOARD-MATCH-1: Readable size
+        int nameFontSize = Mathf.RoundToInt(14 * scale);
         playerNameLabel.AddThemeFontSizeOverride("font_size", nameFontSize);
         playerNameLabel.AddThemeColorOverride("font_color", Colors.White);
         ApplyHeaderFont(playerNameLabel, Mathf.RoundToInt(nameFontSize));
@@ -1195,26 +1194,30 @@ public partial class DuelScene : Control
         sep.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
         nameplateHBox.AddChild(sep);
 
-        _playerShrineVigorLabel = new Label
+        _playerVigorValue = new Label
         {
             Text = "25",
-            HorizontalAlignment = HorizontalAlignment.Left,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineVigorLabel.AddThemeFontSizeOverride("font_size", nameFontSize);
-        _playerShrineVigorLabel.AddThemeColorOverride("font_color", Colors.White);
-        nameplateHBox.AddChild(_playerShrineVigorLabel);
+        _playerVigorValue.AddThemeFontSizeOverride("font_size", nameFontSize);
+        _playerVigorValue.AddThemeColorOverride("font_color", Colors.White);
+        nameplateHBox.AddChild(_playerVigorValue);
+
+        // Store vigor label for updates (reuse the label inside the nameplate)
+        _playerShrineVigorLabel = _playerVigorValue;
 
         // ── Player panel: DECK/BARROW counts + artifact frames ──
-        float panelW = nameplateW;
-        float panelH = 28f * scale;
-        var playerDeckBarrowPanel = new PanelContainer
-        {
-            Name = "PlayerDeckBarrowPanel",
-            MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(panelW, panelH)
-        };
+                // MUST be ABOVE the nameplate (not overlapping) so both are visible.
+                float panelW = nameplateW;
+                float panelH = 28f * scale;
+                var playerDeckBarrowPanel = new PanelContainer
+                {
+                    Name = "PlayerDeckBarrowPanel",
+                    MouseFilter = MouseFilterEnum.Ignore,
+                    CustomMinimumSize = new Vector2(panelW, panelH)
+                };
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
@@ -1227,7 +1230,9 @@ public partial class DuelScene : Control
             ContentMarginRight = 2, ContentMarginBottom = 0
         };
         playerDeckBarrowPanel.AddThemeStyleboxOverride("panel", panelStyle);
-        playerDeckBarrowPanel.Position = new Vector2(12f * scale, handTop - panelH - 12f);
+        // BOARD-MATCH-3: Set explicit size (CustomMinimumSize is a request, not a hard size)
+        playerDeckBarrowPanel.Size = new Vector2(panelW, panelH);
+        playerDeckBarrowPanel.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f);
         AddChild(playerDeckBarrowPanel);
 
         var dbRow = new HBoxContainer
@@ -1292,7 +1297,7 @@ public partial class DuelScene : Control
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
-        artifactRow.Position = new Vector2(12f * scale, handTop - panelH - 12f - artFrameH - 4f * scale);
+        artifactRow.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f - artFrameH - 4f * scale);
         AddChild(artifactRow);
 
         for (int i = 0; i < 2; i++)
@@ -1318,8 +1323,8 @@ public partial class DuelScene : Control
         };
         _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.2f, 1));
-        // BOARD-MATCH-1: Position below artifacts, above DECK/BARROW panel
-        _playerShrineAttuneLabel.Position = new Vector2(12f * scale, handTop - panelH - 12f - artFrameH - 4f * scale + artFrameH + 2f * scale);
+        // BOARD-MATCH-3: Position below artifacts panel, between deck/barrow and nameplate
+        _playerShrineAttuneLabel.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f + panelH + 2f * scale);
         AddChild(_playerShrineAttuneLabel);
 
         GD.Print("[DUEL] Revised HUD: Player nameplate + DECK/BARROW + artifacts built (bottom-left)");

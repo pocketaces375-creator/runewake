@@ -9,7 +9,7 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": [],
+    "keywords": ["SWIFT"],
     "abilities": [],
     "identify_condition": null,
     "flavor": "A simple creature of fire.",

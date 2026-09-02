@@ -504,10 +504,15 @@ public partial class DebugCapture : Node
     {
         // Set the flag that tells DuelScene to create a TutorialRunner
         CampaignContext.TutorialScriptId = scriptId;
-        CampaignContext.AutoCaptureScreenshot = false;
+        // IMPORTANT: Must be true so Main.cs navigates to the duel scene in capture mode
+        CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.DebugSeed = 42;
 
-        GD.Print($"[DebugCapture] Tutorial mode set: {scriptId}");
+        // Set _active = true to keep the main loop processing while the
+        // tutorial runs headless (TutorialRunner drives the flow via timers).
+        _active = true;
+
+        GD.Print($"[DebugCapture] Tutorial mode set: {scriptId} (active=true)");
     }
 
     public override void _Process(double delta)

@@ -670,20 +670,19 @@ public partial class Main : Control
             }
             else
             {
-                // Navigate to duel for duel capture
-                Callable.From(() =>
+                // Navigate to duel for duel capture (or tutorial script)
+                GD.Print($"[Main] Duel navigation mode (TutorialScriptId={(string.IsNullOrEmpty(CampaignContext.TutorialScriptId) ? "null" : CampaignContext.TutorialScriptId)})");
+                // If DebugCapture set a test encounter, use it; otherwise null
+                bool isTutorialScript = !string.IsNullOrEmpty(CampaignContext.TutorialScriptId);
+                if (!isTutorialScript && CampaignContext.CurrentEncounter is { Id: not "debug_test" })
                 {
-                    // If DebugCapture set a test encounter, use it; otherwise null
-                    if (CampaignContext.CurrentEncounter == null || CampaignContext.CurrentEncounter.Id == "debug_test")
-                    {
-                        // Keep test encounter if set
-                    }
-                    else
-                    {
-                        CampaignContext.CurrentEncounter = null;
-                    }
-                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-                }).CallDeferred();
+                    CampaignContext.CurrentEncounter = null;
+                }
+                // For tutorial script mode, the encounter was already set up by
+                // DebugCapture.SetUpTutorialEncounter / TutorialRunner.SetupEncounter.
+                // Use direct call (not CallDeferred) in headless so the scene change
+                // fires immediately without waiting for the next idle frame.
+                GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
             }
         }
     }

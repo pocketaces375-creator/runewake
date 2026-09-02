@@ -72,7 +72,7 @@
   Acceptance: before/after crop of one board card and one hand card at 1:1 pixels posted to the
   group; APK size delta stated; build 0 errors. Mark [x]; continue.
 
-- [ ] TASK-TUTORIAL-VERIFY-1 — The tutorial was built and captured at old 1152x648.
+- [x] TASK-TUTORIAL-VERIFY-1 — The tutorial was built and captured at old 1152x648.
   The TutorialScript.tscn references 1152/648 in its layout logic (scene transform was not
   updated by DUELRES-1 because the tutorial is a separate scene). Fix the scene to use
   proportional layout math, then fix the headless tutorial capture script (does not navigate
@@ -82,7 +82,7 @@
   any text/callout that no longer lines up with the 200px cards is fixed; post first and last
   step captures to the group. Mark [x]; continue.
 
-- [ ] TASK-BALANCE-MIRROR-1 — First-player-advantage compensation study. REPORT ONLY, adopt nothing.
+- [x] TASK-BALANCE-MIRROR-1 — First-player-advantage compensation study. REPORT ONLY, adopt nothing.
   P0 currently wins ~62.5% of mirrors even though P0 already skips the turn-1 draw. Run mirror
   matches with the SAME seed set for each of: (a) baseline; (b) P1 gets +1 Attunement max on
   turn 1; (c) P1 opening hand 6 instead of 5; (d) b+c; (e) P0's turn-1 Attunement ramp delayed
@@ -92,7 +92,7 @@
   posted to the group, flagging which lands nearest 50/50 without tipping to P1. Do NOT change
   any shipped rule or value. Mark [x]; continue.
 
-- [ ] TASK-EXPORT-2 — Pull the remaining source docs into docs/export/ (copy verbatim, no summaries):
+- [x] TASK-EXPORT-2 — Pull the remaining source docs into docs/export/ (copy verbatim, no summaries):
   PROJECT_EXPORT.md, ARTIFACT_RULINGS.md (full R1-R26), docs/TECH_DEBT.md,
   docs/OPEN_QUESTIONS.md, NOTES_FOR_HERMES.md, docs/ART_WAVES.md, docs/03_RUNE_SYSTEM.md,
   FABLE_HANDOFF.md. For each: copied, or "missing at that path" — never guess contents.
@@ -101,7 +101,7 @@
 
 # ---- PHASE A FINISH — VERIFY, THEN SHIP ----
 
-- [ ] TASK-BOARD-MATCH-3 — Verification pass on TASK-BOARD-MATCH-2. Do not trust its DONE claim.
+- [x] TASK-BOARD-MATCH-3 — Verification pass on TASK-BOARD-MATCH-2. Do not trust its DONE claim.
   Open the captures TASK-BOARD-MATCH-2 committed and judge them as images against
   docs/export/duel_target_reference.jpg, item by item: (a) gold keyline lane sockets with the board painting
   visible through them and columns aligned across both rows; (b) carved stone texture actually readable in

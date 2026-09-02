@@ -88,7 +88,7 @@
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 12.0, "y": 626.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 12.0, "y": 594.0, "w": 48.0, "h": 64.0 }
     },
     {
       "side": "player",
@@ -99,7 +99,7 @@
       "charges": 3,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 64.0, "y": 626.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 64.0, "y": 594.0, "w": 48.0, "h": 64.0 }
     },
     {
       "side": "enemy",
