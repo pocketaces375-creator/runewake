@@ -110,6 +110,41 @@ public sealed class RunePage
     }
 
     /// <summary>
+    /// Returns the RuneDust cost to unlock a slot by its index (0-based) within a category.
+    /// Slot 0 (first) is always free. Slot 1 (second) costs 100. Slot 2 (third) costs 300.
+    /// Slots beyond index 2 are free (available once 1-3 are unlocked).
+    /// </summary>
+    public static int GetSlotUnlockCost(int slotIndex)
+    {
+        return slotIndex switch
+        {
+            1 => 100,
+            2 => 300,
+            _ => 0 // slot 0 is free, slots 3+ are free once earlier slots are unlocked
+        };
+    }
+
+    /// <summary>
+    /// Returns the RuneDust cost to upgrade a rune from its current tier to the next.
+    /// Tier 1→2 costs 60. Tier 2→3 costs 180. Tiers above 3 return 0 (maxed).
+    /// </summary>
+    public static int GetUpgradeCost(int currentTier)
+    {
+        return currentTier switch
+        {
+            1 => 60,
+            2 => 180,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// Returns the maximum number of unlockable slots per category
+    /// (9 for Offensive/Defensive/Utility, 3 for Mythic).
+    /// </summary>
+    public static int GetSlotCount(RuneSlotType type) => type == RuneSlotType.MYTHIC ? 3 : 9;
+
+    /// <summary>
     /// Check whether the page is within budget.
     /// </summary>
     public bool IsWithinBudget() => TotalCost <= MaxBudget;

@@ -10345,3 +10345,26 @@ Already up to date.
 === Running: TASK-GRIND-RUNES-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- RunePage header: "Runes: N" display
+
+**Tests:** 19 new tests covering values, last-copy guard, deck dependency, accumulation, unknown card, save roundtrip — **765/765 green**.
+
+**Commit `8a97e39` pushed to origin/main.**
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 17/48 (17 full + 0 bus, 34/96 halves)
+  Top task: TASK-RUNE-SINK-1
+
+=== Running: TASK-RUNE-SINK-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

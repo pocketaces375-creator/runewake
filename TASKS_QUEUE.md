@@ -208,7 +208,7 @@
   Acceptance: capture at both resolutions with at least 12 owned cards including one NEW and one unowned;
   posted.
 
-- [ ] TASK-GRIND-RUNES-1 — Grind cards into Runes (Trikzos' economy: extra copies grind down into runes).
+- [x] TASK-GRIND-RUNES-1 — Grind cards into Runes (Trikzos' economy: extra copies grind down into runes).
   Add a currency field "runes" to the save — display label "Runes", internal name RuneDust so it does not
   collide with the rune loadout items. Grind values: C 5 / U 15 / R 40 / M 120. Rules: cannot grind a copy
   that a saved deck depends on (owned must stay >= decks using it); cannot grind the last copy at all.

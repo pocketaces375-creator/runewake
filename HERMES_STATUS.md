@@ -1,3 +1,13 @@
+**TASK-GRIND-RUNES-1 (2026-09-02):** Grind cards into Runes — extra card copies grind into RuneDust currency. ✅
+- **ProgressionState:** Added `RuneDust` field (int), `GetRuneDustValue(Rarity)` static method (C=5, U=15, R=40, M=120), `CanGrindCard(cardId, savedDecks, out error)` guard, and `GrindCard(cardId, savedDecks)` method. Guards: cannot grind the last copy (owned <= 1); cannot grind a copy that a saved deck depends on (owned - 1 must be >= decks using that card). ✅
+- **SaveRepository:** Bumped schema to v4, added `rune_dust` meta field save/load, added v3→v4 migration (initializes RuneDust=0). ✅
+- **SaveManager:** `CopyInto` copies `RuneDust`. ✅
+- **ReliquaryScene:** RuneDust balance shown top-right in header ("Runes: N" in muted purple). Inspect overlay: for cards with owned count > 1, shows a "Grind → N Runes" button (purple, disabled if deck dependency blocks it). Button opens a confirm dialog with card name + yield + Cancel/Grind. On confirm: grinds the card, persists save, shows "+N Runes" feedback overlay (1.8s auto-dismiss), refreshes the grid. ✅
+- **RunePageScene:** RuneDust balance shown in header ("Runes: N" top-right). ✅
+- **Tests (19 new):** RuneDust values (C/U/R/M), grind accumulation, last copy guard, deck dependency guard (insufficient/sufficient ownership), no decks case, CanGrindCard not-owned, unknown card ID, save roundtrip, default zero, last copy preservation. ✅
+- **Build:** 0 errors. **Tests:** 765/765 green (+19). ✅
+- **Committed (8a97e39) and pushed to origin/main.** ✅
+
 **TASK-COLLECTION-UI-1 (2026-09-02):** Collection browser scene ("Reliquary"), reachable from the title screen and the map. ✅
 |- **ReliquaryScene.cs** (879 lines): Full collection browser with grid of 180×260px cards, 5 per row, hi-res art. Strata filter chips (ALL/VERDANT/EMBER/TIDE/HOLLOW/DAWN) reusing DECKFILTER-1 style. ✅
 |- **Owned-count badge:** "x{N}" badge bottom-left of each owned card. ✅
