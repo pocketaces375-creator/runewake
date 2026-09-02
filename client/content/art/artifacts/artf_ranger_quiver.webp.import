@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c15b5d29df21"
-path="res://.godot/imported/artf_ranger_quiver-2553f83e61af1e14c20f0d2fcb8dfc70.ctex"
+uid="uid://c15b5d3adf21"
+path="res://.godot/imported/artf_ranger_quiver.webp-2553f83e61af1e14c20f0d2fcb8dfc70.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_ranger_quiver.webp"
-dest_files=["res://.godot/imported/artf_ranger_quiver-2553f83e61af1e14c20f0d2fcb8dfc70.ctex"]
+dest_files=["res://.godot/imported/artf_ranger_quiver.webp-2553f83e61af1e14c20f0d2fcb8dfc70.ctex"]
 
 [params]
 

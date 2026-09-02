@@ -103,6 +103,20 @@ public partial class RunePageScene : Control
         _titleLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.75f, 0.3f));
         AddChild(_titleLabel);
 
+        // ── RuneDust balance ──
+        var runeDustLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            AnchorLeft = 0.75f, AnchorRight = 0.95f,
+            AnchorTop = 0.02f, AnchorBottom = 0.08f,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        int runeDust = CampaignContext.Progression?.RuneDust ?? 0;
+        runeDustLabel.Text = $"Runes: {runeDust}";
+        runeDustLabel.AddThemeFontSizeOverride("font_size", 14);
+        runeDustLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.9f));
+        AddChild(runeDustLabel);
+
         // ── Budget bar ──
         var budgetLabel = new Label
         {

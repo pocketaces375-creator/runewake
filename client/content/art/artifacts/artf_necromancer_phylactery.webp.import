@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://9c4a8783b2b0"
-path="res://.godot/imported/artf_necromancer_phylactery-30114eae2d84377cd378a2e78584ad2c.ctex"
+uid="uid://bac4a8783b2b0"
+path="res://.godot/imported/artf_necromancer_phylactery.webp-30114eae2d84377cd378a2e78584ad2c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_necromancer_phylactery.webp"
-dest_files=["res://.godot/imported/artf_necromancer_phylactery-30114eae2d84377cd378a2e78584ad2c.ctex"]
+dest_files=["res://.godot/imported/artf_necromancer_phylactery.webp-30114eae2d84377cd378a2e78584ad2c.ctex"]
 
 [params]
 

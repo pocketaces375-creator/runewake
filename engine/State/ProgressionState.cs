@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Runewake.Engine.Cards;
 
 namespace Runewake.Engine.State;
@@ -148,6 +150,101 @@ public class ProgressionState
     public bool HasDiscoveredEncounterRelic(string encounterId)
     {
         return false; // runtime check happens in DuelScene via LostRelicIndex
+    }
+
+    /// <summary>Currency from grinding extra card copies into runes. Display label \"Runes\".</summary>
+    public int RuneDust { get; set; }
+
+    /// <summary>RuneDust value per card rarity (C/U/R/M).</summary>
+    private static readonly Dictionary<Rarity, int> RuneDustValues = new()
+    {
+        { Rarity.COMMON, 5 },
+        { Rarity.UNCOMMON, 15 },
+        { Rarity.RARE, 40 },
+        { Rarity.RELIC, 120 },
+    };
+
+    /// <summary>Get the RuneDust yield for a given rarity. Returns 0 for unknown rarities.</summary>
+    public static int GetRuneDustValue(Rarity rarity) =>
+        RuneDustValues.GetValueOrDefault(rarity, 0);
+
+    /// <summary>
+    /// Check whether a card can be ground into RuneDust.
+    /// A card CANNOT be ground if:
+    ///   - owned count &lt;= 1 (cannot grind the last copy)
+    ///   - owned - 1 &lt; number of saved decks containing that card (deck dependency)
+    /// </summary>
+    /// <param name="cardId">The card ID to check.</param>
+    /// <param name="savedDecks">All saved decks. Key = deck name, value = card IDs.</param>
+    /// <param name="error">Human-readable reason if grinding is not allowed, or null if it is allowed.</param>
+    /// <returns>True if grinding is allowed.</returns>
+    public bool CanGrindCard(string cardId, IReadOnlyDictionary<string, List<string>> savedDecks, out string? error)
+    {
+        error = null;
+        if (!Collection.TryGetValue(cardId, out var owned) || owned <= 0)
+        {
+            error = $"Don't own any copy of \"{cardId}\".";
+            return false;
+        }
+
+        // Cannot grind the last copy
+        if (owned <= 1)
+        {
+            error = "Cannot grind the last copy — keep at least one.";
+            return false;
+        }
+
+        // Count how many decks use this card
+        int deckCount = 0;
+        if (savedDecks != null)
+        {
+            foreach (var (_, cardIds) in savedDecks)
+            {
+                if (cardIds != null && cardIds.Contains(cardId))
+                    deckCount++;
+            }
+        }
+
+        // After grinding, owned would be (owned - 1). Must still satisfy all decks.
+        if (owned - 1 < deckCount)
+        {
+            error = $"Needs {deckCount} copy(-ies) in saved decks. Cannot grind — keep at least {owned - deckCount}.";
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Grind one copy of a card into RuneDust.
+    /// Returns the amount of RuneDust added. Returns 0 if the card cannot be ground.
+    /// The caller should check <see cref="CanGrindCard"/> first and surface the error to the player.
+    /// </summary>
+    /// <param name="cardId">The card ID to grind.</param>
+    /// <param name="savedDecks">All saved decks for dependency checking.</param>
+    /// <returns>The amount of RuneDust added, or 0 if the grind was rejected.</returns>
+    public int GrindCard(string cardId, IReadOnlyDictionary<string, List<string>> savedDecks)
+    {
+        if (!CanGrindCard(cardId, savedDecks, out var _))
+            return 0;
+
+        // Determine rarity from card definition
+        var def = CardRegistry.Get(cardId);
+        if (def == null)
+            return 0;
+
+        int value = GetRuneDustValue(def.Rarity);
+        if (value <= 0)
+            return 0;
+
+        // Decrement collection
+        Collection[cardId] = Collection[cardId] - 1;
+        if (Collection[cardId] <= 0)
+            Collection.Remove(cardId);
+
+        // Add rune dust
+        RuneDust += value;
+        return value;
     }
 
     /// <summary>Card IDs that have been seen (viewed) in the Reliquary. Cleared on first view.</summary>

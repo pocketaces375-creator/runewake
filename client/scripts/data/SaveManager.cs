@@ -141,6 +141,7 @@ public class SaveManager
         to.Version = from.Version;
         to.Shards = from.Shards;
         to.DigCharges = from.DigCharges;
+        to.RuneDust = from.RuneDust;
         to.HasCompletedTutorial = from.HasCompletedTutorial;
         to.GlobalDiscoveryIndex = from.GlobalDiscoveryIndex;
 

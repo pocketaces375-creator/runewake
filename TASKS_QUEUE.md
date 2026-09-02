@@ -201,7 +201,7 @@
   Acceptance: capture of a reveal showing one NEW and one duplicate; headless flow asserting collection
   counts increased; posted.
 
-- [ ] TASK-COLLECTION-UI-1 — Collection browser scene ("Reliquary"), reachable from the title screen and
+- [x] TASK-COLLECTION-UI-1 — Collection browser scene ("Reliquary"), reachable from the title screen and
   the map. Grid of CardPlates using the same renderer as the duel, hi-res; strata filter chips (reuse the
   DECKFILTER-1 chips); owned-count badge; NEW badge cleared on view; tap to inspect at 400px+ (this is where
   QUALITY-1 pays off). Unowned cards render as dark silhouettes with the name only.

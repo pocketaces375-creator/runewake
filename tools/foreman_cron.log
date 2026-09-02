@@ -10298,3 +10298,50 @@ Already up to date.
 === Running: TASK-DROPS-UI-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- Build: 0 errors
+- Tests: 746/746 green
+- Captures: victory_overlay, victory_overlay_wide, defeat_overlay, defeat_overlay_wide — all 4 PASS
+- Commits: c690d11 (TASK-DROPS-UI-1), 3716d7c (mark [x] + DONE line)
+- TASKS_QUEUE.md: TASK-DROPS-UI-1 marked [x]
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 15/48 (15 full + 0 bus, 30/96 halves)
+  Top task: TASK-COLLECTION-UI-1
+
+=== Running: TASK-COLLECTION-UI-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 1228967) — exiting
+  Hermes session completed
+- **Test setup:** 13 owned cards (1 NEW, 1 with x2), 48 unowned, EMBER filter active
+
+**Build:** 0 errors. **Tests:** 746/746 green. **Gates:** standard + wide both PASS.
+
+**Committed (17356dd) and pushed to origin/main.** DONE line in HERMES_STATUS.md. Task marked [x] in TASKS_QUEUE.md.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 16/48 (16 full + 0 bus, 32/96 halves)
+  Top task: TASK-GRIND-RUNES-1
+
+=== Running: TASK-GRIND-RUNES-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

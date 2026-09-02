@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://a17ad5ccf60d"
-path="res://.godot/imported/artf_warrior_sword-599a78658b351f1d44eb96933927f6b3.ctex"
+uid="uid://17ad5ccf60d"
+path="res://.godot/imported/artf_warrior_sword.webp-599a78658b351f1d44eb96933927f6b3.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_warrior_sword.webp"
-dest_files=["res://.godot/imported/artf_warrior_sword-599a78658b351f1d44eb96933927f6b3.ctex"]
+dest_files=["res://.godot/imported/artf_warrior_sword.webp-599a78658b351f1d44eb96933927f6b3.ctex"]
 
 [params]
 

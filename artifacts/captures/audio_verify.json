@@ -5,7 +5,7 @@
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 1
+      "callCount": 2
     },
     {
       "id": "wind_reach",
@@ -29,21 +29,7 @@
       "callCount": 1
     },
     {
-      "id": "defeat",
-      "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
-      "callCount": 3
-    },
-    {
       "id": "metal_clink",
-      "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
-      "callCount": 1
-    },
-    {
-      "id": "hit_heavy",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
@@ -75,6 +61,8 @@
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
+    "sfx:defeat",
+    "sfx:hit_heavy",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
@@ -84,6 +72,6 @@
   "musicExercised": true,
   "sfxExercised": true,
   "totalMusicCalls": 1,
-  "totalSfxCalls": 7,
+  "totalSfxCalls": 4,
   "totalAmbientCalls": 1
 }

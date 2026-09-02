@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://99cbf77e73f1"
-path="res://.godot/imported/artf_thief_dagger_whisper-6b08906742d10ad8e21ee9897a846f8f.ctex"
+uid="uid://bbacbf77e73f1"
+path="res://.godot/imported/artf_thief_dagger_whisper.webp-6b08906742d10ad8e21ee9897a846f8f.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_thief_dagger_whisper.webp"
-dest_files=["res://.godot/imported/artf_thief_dagger_whisper-6b08906742d10ad8e21ee9897a846f8f.ctex"]
+dest_files=["res://.godot/imported/artf_thief_dagger_whisper.webp-6b08906742d10ad8e21ee9897a846f8f.ctex"]
 
 [params]
 

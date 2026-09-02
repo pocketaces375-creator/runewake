@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://3c09da9b30b0"
-path="res://.godot/imported/artf_runesmith_anvil-024f7706e6866265626376c0abe5a66e.ctex"
+uid="uid://3c1adbab30b0"
+path="res://.godot/imported/artf_runesmith_anvil.webp-024f7706e6866265626376c0abe5a66e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_runesmith_anvil.webp"
-dest_files=["res://.godot/imported/artf_runesmith_anvil-024f7706e6866265626376c0abe5a66e.ctex"]
+dest_files=["res://.godot/imported/artf_runesmith_anvil.webp-024f7706e6866265626376c0abe5a66e.ctex"]
 
 [params]
 

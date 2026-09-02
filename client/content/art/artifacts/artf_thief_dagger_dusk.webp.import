@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1cd397c1cae4"
-path="res://.godot/imported/artf_thief_dagger_dusk-84f1783aafca4e1f689ace2feae264d0.ctex"
+uid="uid://1cd4a7c1cae4"
+path="res://.godot/imported/artf_thief_dagger_dusk.webp-84f1783aafca4e1f689ace2feae264d0.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_thief_dagger_dusk.webp"
-dest_files=["res://.godot/imported/artf_thief_dagger_dusk-84f1783aafca4e1f689ace2feae264d0.ctex"]
+dest_files=["res://.godot/imported/artf_thief_dagger_dusk.webp-84f1783aafca4e1f689ace2feae264d0.ctex"]
 
 [params]
 

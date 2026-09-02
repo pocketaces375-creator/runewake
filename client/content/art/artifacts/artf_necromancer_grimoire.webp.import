@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1d77a93847ff"
-path="res://.godot/imported/artf_necromancer_grimoire-8dedd1375810fa9ffd50c90dfc401ab7.ctex"
+uid="uid://1d77ba3847ff"
+path="res://.godot/imported/artf_necromancer_grimoire.webp-8dedd1375810fa9ffd50c90dfc401ab7.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_necromancer_grimoire.webp"
-dest_files=["res://.godot/imported/artf_necromancer_grimoire-8dedd1375810fa9ffd50c90dfc401ab7.ctex"]
+dest_files=["res://.godot/imported/artf_necromancer_grimoire.webp-8dedd1375810fa9ffd50c90dfc401ab7.ctex"]
 
 [params]
 

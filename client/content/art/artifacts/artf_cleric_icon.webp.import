@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1b9b5ca467e2"
-path="res://.godot/imported/artf_cleric_icon-7df9cb98b7da1379e2469490d58f4a52.ctex"
+uid="uid://1cab5ca467e2"
+path="res://.godot/imported/artf_cleric_icon.webp-7df9cb98b7da1379e2469490d58f4a52.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_cleric_icon.webp"
-dest_files=["res://.godot/imported/artf_cleric_icon-7df9cb98b7da1379e2469490d58f4a52.ctex"]
+dest_files=["res://.godot/imported/artf_cleric_icon.webp-7df9cb98b7da1379e2469490d58f4a52.ctex"]
 
 [params]
 

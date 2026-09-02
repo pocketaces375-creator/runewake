@@ -1,3 +1,18 @@
+**TASK-COLLECTION-UI-1 (2026-09-02):** Collection browser scene ("Reliquary"), reachable from the title screen and the map. ✅
+|- **ReliquaryScene.cs** (879 lines): Full collection browser with grid of 180×260px cards, 5 per row, hi-res art. Strata filter chips (ALL/VERDANT/EMBER/TIDE/HOLLOW/DAWN) reusing DECKFILTER-1 style. ✅
+|- **Owned-count badge:** "x{N}" badge bottom-left of each owned card. ✅
+|- **NEW badge:** Gold pill top-left, cleared on view (IsCardSeen/MarkCardSeen in ProgressionState). ✅
+|- **Unowned cards:** Dark silhouette with muted gray name. ✅
+|- **Tap to inspect:** 400px+ card detail overlay with art, name, type line, attack/vigor stats, cost, owned count, and Close button. ✅
+|- **Title screen:** "Reliquary" button between Decks and Settings (Play → Decks → **Reliquary** → Settings → PATHS). ✅
+|- **Map scene:** "Reliquary" button between Rune Page and Settings (Forge → Rune Page → **Reliquary** → Settings). ✅
+|- **Capture script:** tools/capture_reliquary.sh — standard (2316×1080) and wide (2999×1080) captures. ✅
+|- **Gate validator:** validate_reliquary_test in capture_gate.py — avg luminance, center luminance, grid variation. ✅
+|- **Test setup:** DebugCapture.SetUpReliquaryTest() — 13 owned cards (1 NEW, 1 with x2 count), 48 unowned, EMBER filter active. ✅
+|- **Captures:** reliquary_test (2316×1080) and reliquary_test_wide (2999×1080) — both gate PASS. ✅
+|- **Build:** 0 errors. **Tests:** 746/746 green. ✅
+|- **Committed (17356dd) and pushed to origin/main.** ✅
+
 **TASK-DROPS-UI-1 (2026-09-02):** The reveal moment — on the victory screen, after the reward summary, flip each dropped card in one at a time. ✅
 - **Drop reveal:** BuildDropRevealCard creates a CardPlate at hand-card size (260px wide) with Root-Bound border, cost rune, and stat chips. Each card shows a "NEW" (green) or "+1" (amber) ribbon in the top-left corner. ✅
 - **Reveal sequence:** StartDropReveal → 0.8s delay → RevealNextDrop shows first card with 2.5s auto-advance timer. Tap the card to advance immediately. Last card shows "Tap to continue" hint. All cards visible before Continue button is re-enabled. ✅

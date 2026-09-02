@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6a4e79d93dca"
-path="res://.godot/imported/artf_warrior_shield-b77e59ba9c70af49537c31151632a2ef.ctex"
+uid="uid://6a4e8aea3dca"
+path="res://.godot/imported/artf_warrior_shield.webp-b77e59ba9c70af49537c31151632a2ef.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_warrior_shield.webp"
-dest_files=["res://.godot/imported/artf_warrior_shield-b77e59ba9c70af49537c31151632a2ef.ctex"]
+dest_files=["res://.godot/imported/artf_warrior_shield.webp-b77e59ba9c70af49537c31151632a2ef.ctex"]
 
 [params]
 

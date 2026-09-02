@@ -21,6 +21,7 @@ public partial class ReliquaryScene : Control
     private ScrollContainer _gridScroll;
     private Label _titleLabel;
     private Label _collectionCount;
+    private Label _runeDustLabel;
     private Button _backButton;
     private Control? _inspectOverlay;
     private int _selectedStrataIdx; // 0=All, 1-5=VERDANT..DAWN
@@ -125,6 +126,19 @@ public partial class ReliquaryScene : Control
         _collectionCount.AddThemeFontSizeOverride("font_size", 13);
         _collectionCount.AddThemeColorOverride("font_color", new Color(0.85f, 0.72f, 0.35f, 0.8f));
         AddChild(_collectionCount);
+
+        // ——— RuneDust balance (top-right, below collection count) ———
+        _runeDustLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorLeft = 0.70f, AnchorRight = 0.98f,
+            AnchorTop = 0.035f, AnchorBottom = 0.075f,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        _runeDustLabel.AddThemeFontSizeOverride("font_size", 11);
+        _runeDustLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.9f, 0.9f)); // muted purple
+        AddChild(_runeDustLabel);
 
         // ——— Filter chip row (below top bar) ———
         BuildFilterChips();
@@ -435,6 +449,9 @@ public partial class ReliquaryScene : Control
         // Update collection count
         int totalCards = CardRegistry.GetAll().Count;
         _collectionCount.Text = $"Owned {ownedCount} / {totalCards}";
+
+        // Update RuneDust balance
+        _runeDustLabel.Text = $"Runes: {progression.RuneDust}";
 
         // Build grid tiles
         float cardW = 180f;
@@ -802,6 +819,73 @@ public partial class ReliquaryScene : Control
             ownedLabel.AddThemeFontSizeOverride("font_size", 13);
             ownedLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.7f, 1f));
             vbox.AddChild(ownedLabel);
+
+            // Grind button — only if more than 1 copy owned
+            if (count > 1)
+            {
+                int rarityValue = ProgressionState.GetRuneDustValue(card.Rarity);
+                if (rarityValue > 0)
+                {
+                    // Check if grind is actually allowed (deck dependency)
+                    bool canGrind = progression.CanGrindCard(card.Id,
+                        CampaignContext.Progression?.SavedDecks ?? new(), out var _);
+
+                    var grindBtn = new Button
+                    {
+                        Text = $"Grind → {rarityValue} Runes",
+                        Disabled = !canGrind,
+                        CustomMinimumSize = new Vector2(160, 32),
+                        SizeFlagsHorizontal = SizeFlags.ShrinkCenter
+                    };
+                    grindBtn.AddThemeFontSizeOverride("font_size", 12);
+                    grindBtn.AddThemeColorOverride("font_color",
+                        canGrind ? new Color(0.9f, 0.5f, 0.9f) : new Color(0.4f, 0.3f, 0.4f));
+                    grindBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.7f, 1f));
+
+                    var grindNormal = new StyleBoxFlat
+                    {
+                        BgColor = new Color(0.15f, 0.05f, 0.15f, 0.8f),
+                        BorderColor = new Color(0.6f, 0.3f, 0.6f, 0.6f),
+                        BorderWidthLeft = 1, BorderWidthTop = 1,
+                        BorderWidthRight = 1, BorderWidthBottom = 1,
+                        CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                        CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+                        ContentMarginLeft = 10, ContentMarginTop = 4,
+                        ContentMarginRight = 10, ContentMarginBottom = 4
+                    };
+                    var grindDisabled = new StyleBoxFlat
+                    {
+                        BgColor = new Color(0.08f, 0.04f, 0.08f, 0.5f),
+                        BorderColor = new Color(0.3f, 0.15f, 0.3f, 0.3f),
+                        BorderWidthLeft = 1, BorderWidthTop = 1,
+                        BorderWidthRight = 1, BorderWidthBottom = 1,
+                        CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                        CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+                        ContentMarginLeft = 10, ContentMarginTop = 4,
+                        ContentMarginRight = 10, ContentMarginBottom = 4
+                    };
+                    grindBtn.AddThemeStyleboxOverride("normal", grindNormal);
+                    grindBtn.AddThemeStyleboxOverride("disabled", grindDisabled);
+
+                    string capturedCardId = card.Id;
+                    grindBtn.Pressed += () => ShowGrindConfirm(capturedCardId, rarityValue);
+                    vbox.AddChild(grindBtn);
+
+                    if (!canGrind)
+                    {
+                        var reasonLabel = new Label
+                        {
+                            Text = "Required by saved decks",
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            SizeFlagsHorizontal = SizeFlags.Fill,
+                            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+                        };
+                        reasonLabel.AddThemeFontSizeOverride("font_size", 9);
+                        reasonLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.4f, 0.4f, 0.7f));
+                        vbox.AddChild(reasonLabel);
+                    }
+                }
+            }
         }
 
         // Spacer
@@ -844,6 +928,237 @@ public partial class ReliquaryScene : Control
         closeBtn.AddThemeStyleboxOverride("hover", closeHover);
         closeBtn.Pressed += () => DismissInspect();
         vbox.AddChild(closeBtn);
+    }
+
+    private void ShowGrindConfirm(string cardId, int yield)
+    {
+        var card = CardRegistry.Get(cardId);
+        if (card == null) return;
+
+        // Remove existing inspect overlay so the confirm dialog stands alone
+        DismissInspect();
+
+        // ── Full-screen dim ──
+        var dim = new ColorRect
+        {
+            Color = new Color(0, 0, 0, 0.7f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        AddChild(dim);
+
+        // ── Confirm panel ──
+        var panel = new PanelContainer
+        {
+            AnchorLeft = 0.30f, AnchorRight = 0.70f,
+            AnchorTop = 0.35f, AnchorBottom = 0.65f,
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.10f, 0.08f, 0.06f, 0.97f),
+            BorderColor = new Color(0.6f, 0.3f, 0.6f, 0.65f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10,
+            CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+            ContentMarginLeft = 20, ContentMarginTop = 16,
+            ContentMarginRight = 20, ContentMarginBottom = 16,
+            ShadowColor = new Color(0f, 0f, 0f, 0.5f),
+            ShadowSize = 16
+        };
+        panel.AddThemeStyleboxOverride("panel", panelStyle);
+        dim.AddChild(panel);
+
+        var vbox = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            SizeFlagsVertical = SizeFlags.Fill
+        };
+        panel.AddChild(vbox);
+
+        // Title
+        var titleLabel = new Label
+        {
+            Text = "GRIND CARD",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        titleLabel.AddThemeFontSizeOverride("font_size", 18);
+        titleLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.5f, 0.9f));
+        vbox.AddChild(titleLabel);
+
+        // Card name
+        var nameLabel = new Label
+        {
+            Text = card.Name,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        nameLabel.AddThemeFontSizeOverride("font_size", 15);
+        nameLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.8f, 0.6f));
+        vbox.AddChild(nameLabel);
+
+        // Rune dust yield
+        var yieldLabel = new Label
+        {
+            Text = $"Grind this copy into {yield} Runes?",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        yieldLabel.AddThemeFontSizeOverride("font_size", 13);
+        yieldLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.7f, 0.9f));
+        vbox.AddChild(yieldLabel);
+
+        // Spacer
+        vbox.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
+
+        // Button row
+        var btnHbox = new HBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            Alignment = BoxContainer.AlignmentMode.Center
+        };
+        btnHbox.AddThemeConstantOverride("separation", 20);
+        vbox.AddChild(btnHbox);
+
+        // Cancel button
+        var cancelBtn = new Button
+        {
+            Text = "Cancel",
+            CustomMinimumSize = new Vector2(100, 36)
+        };
+        cancelBtn.AddThemeFontSizeOverride("font_size", 13);
+        cancelBtn.AddThemeColorOverride("font_color", new Color(0.8f, 0.7f, 0.6f));
+        cancelBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            dim.QueueFree();
+            // Re-show the inspect
+            ShowCardInspect(cardId);
+        };
+        btnHbox.AddChild(cancelBtn);
+
+        // Confirm button
+        var confirmBtn = new Button
+        {
+            Text = "Grind",
+            CustomMinimumSize = new Vector2(100, 36)
+        };
+        confirmBtn.AddThemeFontSizeOverride("font_size", 13);
+        confirmBtn.AddThemeColorOverride("font_color", new Color(0.9f, 0.5f, 0.9f));
+        confirmBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.7f, 1f));
+        var confirmNormal = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.05f, 0.15f, 0.8f),
+            BorderColor = new Color(0.6f, 0.3f, 0.6f, 0.6f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 10, ContentMarginTop = 4,
+            ContentMarginRight = 10, ContentMarginBottom = 4
+        };
+        confirmBtn.AddThemeStyleboxOverride("normal", confirmNormal);
+
+        string capturedCardId = cardId;
+        confirmBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            var progression = CampaignContext.Progression;
+            if (progression == null) return;
+
+            int added = progression.GrindCard(capturedCardId,
+                CampaignContext.Progression?.SavedDecks ?? new());
+            if (added > 0)
+            {
+                // Persist the save
+                CampaignContext.SaveManager?.Save();
+
+                // Close the confirm dialog
+                dim.QueueFree();
+
+                // Refresh the grid and show feedback
+                RefreshGrid();
+                ShowGrindFeedback(added, card.Name);
+            }
+        };
+        btnHbox.AddChild(confirmBtn);
+    }
+
+    private void ShowGrindFeedback(int added, string cardName)
+    {
+        // Brief feedback overlay (auto-dismisses)
+        var feedback = new ColorRect
+        {
+            Color = new Color(0, 0, 0, 0.5f),
+            AnchorLeft = 0f, AnchorRight = 1f,
+            AnchorTop = 0f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        AddChild(feedback);
+
+        var panel = new PanelContainer
+        {
+            AnchorLeft = 0.30f, AnchorRight = 0.70f,
+            AnchorTop = 0.40f, AnchorBottom = 0.60f
+        };
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.10f, 0.08f, 0.06f, 0.97f),
+            BorderColor = new Color(0.6f, 0.3f, 0.6f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ContentMarginLeft = 20, ContentMarginTop = 20,
+            ContentMarginRight = 20, ContentMarginBottom = 20
+        };
+        panel.AddThemeStyleboxOverride("panel", panelStyle);
+        feedback.AddChild(panel);
+
+        var vbox = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            SizeFlagsVertical = SizeFlags.Fill
+        };
+        panel.AddChild(vbox);
+
+        var grindedLabel = new Label
+        {
+            Text = $"Ground \"{cardName}\"",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill
+        };
+        grindedLabel.AddThemeFontSizeOverride("font_size", 14);
+        grindedLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.5f, 0.9f));
+        vbox.AddChild(grindedLabel);
+
+        var dustLabel = new Label
+        {
+            Text = $"+{added} Runes",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill
+        };
+        dustLabel.AddThemeFontSizeOverride("font_size", 18);
+        dustLabel.AddThemeColorOverride("font_color", new Color(1f, 0.7f, 1f));
+        vbox.AddChild(dustLabel);
+
+        // Auto-dismiss timer
+        var timer = new Godot.Timer();
+        timer.OneShot = true;
+        timer.WaitTime = 1.8f;
+        timer.Timeout += () =>
+        {
+            if (IsInstanceValid(feedback))
+                feedback.QueueFree();
+        };
+        AddChild(timer);
+        timer.Start();
     }
 
     private void DismissInspect()

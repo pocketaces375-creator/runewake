@@ -19,7 +19,7 @@ namespace Runewake.Persistence;
 public sealed class SaveRepository
 {
     /// <summary>Current save schema version. Bump when the schema changes; add a migration step.</summary>
-    public const int CurrentSchemaVersion = 3;
+    public const int CurrentSchemaVersion = 4;
 
     private readonly string _dbPath;
 
@@ -85,6 +85,12 @@ public sealed class SaveRepository
                     }
                     repairLog.Add($"Seeded collection from {state.SavedDecks.Count} saved deck(s) ({state.Collection.Count} card copies total)");
                 }
+            }
+            else if (from == 3 && to == 4)
+            {
+                // v3→v4: add RuneDust field (initializes to 0 — no migration needed)
+                state.RuneDust = 0;
+                repairLog.Add("Initialized RuneDust to 0 (v3→v4 migration)");
             }
             state.Version = to;
             repairLog.Add($"Migrated save from v{from} to v{to}");
@@ -421,6 +427,7 @@ public sealed class SaveRepository
                         break;
                     case "global_discovery_index": state.GlobalDiscoveryIndex = int.Parse(value); break;
                     case "rune_page": state.SavedRunePageJson = value; break;
+                    case "rune_dust": state.RuneDust = int.Parse(value); break;
                 }
             }
         }
@@ -561,6 +568,7 @@ public sealed class SaveRepository
             InsertMeta(conn, "tutorial_complete", state.Tutorial?.IsComplete == true ? "1" : "0");
             InsertMeta(conn, "global_discovery_index", state.GlobalDiscoveryIndex.ToString());
             InsertMeta(conn, "rune_page", state.SavedRunePageJson ?? "");
+            InsertMeta(conn, "rune_dust", state.RuneDust.ToString());
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://9948d628ef43"
-path="res://.godot/imported/artf_mage_aura-b95c8bc984ccf7486dfe073e328f174a.ctex"
+uid="uid://bba48d628ef43"
+path="res://.godot/imported/artf_mage_aura.webp-b95c8bc984ccf7486dfe073e328f174a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_mage_aura.webp"
-dest_files=["res://.godot/imported/artf_mage_aura-b95c8bc984ccf7486dfe073e328f174a.ctex"]
+dest_files=["res://.godot/imported/artf_mage_aura.webp-b95c8bc984ccf7486dfe073e328f174a.ctex"]
 
 [params]
 
