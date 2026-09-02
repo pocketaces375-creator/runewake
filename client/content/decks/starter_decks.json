@@ -112,7 +112,7 @@
       ]
     },
     {
-      "class_id": "tidecaller",
+      "class_id": "battlemage",
       "deck_name": "Drowned Archive",
       "signature_card": "tid_r_hydrokinetic_adept",
       "cards": [
@@ -149,7 +149,7 @@
       ]
     },
     {
-      "class_id": "dawnward",
+      "class_id": "paladin",
       "deck_name": "First Light",
       "signature_card": "dwn_r_radiant_prophet",
       "cards": [
@@ -223,7 +223,7 @@
       ]
     },
     {
-      "class_id": "occultist",
+      "class_id": "thief",
       "deck_name": "Veil and Undertow",
       "signature_card": "tid_r_flood_of_secrets",
       "cards": [

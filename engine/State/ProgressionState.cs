@@ -104,6 +104,17 @@ public class ProgressionState
             Collection[cardId] = count;
     }
 
+    /// <summary>
+    /// Grant the starter collection for a chosen class: adds 1 copy of each
+    /// card in the starter deck to the player's collection.
+    /// </summary>
+    /// <param name="starterCardIds">The list of card IDs from the chosen class's starter deck.</param>
+    public void GrantStarterCollection(List<string> starterCardIds)
+    {
+        foreach (var cardId in starterCardIds)
+            AddCard(cardId);
+    }
+
     /// <summary>Add fragments of a given strata.</summary>
     public void AddFragments(string strata, int count)
     {

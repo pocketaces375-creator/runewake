@@ -36,7 +36,51 @@ public sealed class DeckValidationResult
 /// </summary>
 public static class DeckValidator
 {
-    /// <summary>Validate a complete deck. Returns errors and per-card reasons.</summary>
+    /// <summary>
+    /// Validate collection ownership against all saved decks (multi-deck rule).
+    /// For each card that appears in any saved deck, the owned count (from
+    /// the collection) must be >= the number of decks that card appears in.
+    /// Returns a list of human-readable errors for cards that need more copies.
+    /// </summary>
+    /// <param name="collection">Card ID → owned count.</param>
+    /// <param name="savedDecks">Deck name → list of card IDs. May be empty.</param>
+    /// <returns>List of error strings. Empty list means all decks are collectible.</returns>
+    public static List<string> ValidateCollection(
+        IReadOnlyDictionary<string, int> collection,
+        IReadOnlyDictionary<string, List<string>> savedDecks)
+    {
+        var errors = new List<string>();
+        if (collection == null || savedDecks == null)
+            return errors;
+
+        // Count how many decks each card appears in
+        var deckCounts = new Dictionary<string, int>();
+        foreach (var (deckName, cardIds) in savedDecks)
+        {
+            if (cardIds == null) continue;
+            foreach (var cardId in cardIds)
+            {
+                if (string.IsNullOrEmpty(cardId)) continue;
+                deckCounts.TryGetValue(cardId, out var count);
+                deckCounts[cardId] = count + 1;
+            }
+        }
+
+        // Check ownership
+        foreach (var (cardId, neededDecks) in deckCounts)
+        {
+            collection.TryGetValue(cardId, out var owned);
+            if (owned < neededDecks)
+            {
+                errors.Add($"Need {neededDecks} copies of \"{cardId}\" but own {owned}. ({neededDecks - owned} more needed)");
+            }
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Validate a complete deck. Returns errors and per-card reasons.</summary>
     public static DeckValidationResult Validate(
         IReadOnlyList<string> deckIds,
         Func<string, CardDef?> lookup)

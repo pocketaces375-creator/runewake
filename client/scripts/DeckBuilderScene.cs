@@ -896,13 +896,38 @@ public partial class DeckBuilderScene : Control
             content.AddChild(inDeckBadge);
         }
 
-        // Dim if at copy limit or unowned
+        // Compute how many saved decks this card appears in
+        int countInDecks = 0;
+        var progression = CampaignContext.Progression;
+        foreach (var (deckName, cardIds) in progression.SavedDecks)
+        {
+            if (cardIds != null && cardIds.Contains(card.Id))
+                countInDecks++;
+        }
         bool isAtLimit = ownedCount <= inDeckCount;
         bool isUnowned = ownedCount == 0;
         if (isUnowned)
             container.Modulate = new Color(1, 1, 1, 0.4f);
         else if (isAtLimit)
             container.Modulate = new Color(1, 1, 1, 0.55f);
+
+        // Owned / in-decks label
+        if (ownedCount > 0 || countInDecks > 0)
+        {
+            var ownedLabel = new Label
+            {
+                Text = $"owned {ownedCount} · in {countInDecks} decks",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom
+            };
+            ownedLabel.AddThemeFontSizeOverride("font_size", 7);
+            ownedLabel.AddThemeColorOverride("font_color", Color.FromHtml("#A09080"));
+            ownedLabel.SetAnchorsPreset(LayoutPreset.Wide);
+            ownedLabel.AnchorLeft = 0; ownedLabel.AnchorRight = 1;
+            ownedLabel.AnchorBottom = 1;
+            ownedLabel.AnchorTop = 0.9f;
+            content.AddChild(ownedLabel);
+        }
 
         // Click to add
         var clickArea = new Button();
@@ -1114,7 +1139,7 @@ public partial class DeckBuilderScene : Control
             for (int j = 0; j < columns && i + j < filtered.Count; j++)
             {
                 var card = filtered[i + j];
-                int owned = 1;
+                int owned = CampaignContext.Progression.Collection.TryGetValue(card.Id, out var ownedCount) ? ownedCount : 0;
                 int inDeck = _deckCardIds.Count(id => id == card.Id);
                 var item = MakeGridCard(card, owned, inDeck, cardW);
                 row.AddChild(item);

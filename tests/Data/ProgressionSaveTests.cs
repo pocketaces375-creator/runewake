@@ -94,6 +94,47 @@ public class ProgressionStateTests
         state.AddFragments("verdant", 3);
         Assert.Equal(5, state.Fragments["verdant"]);
     }
+
+    // ──── TASK-COLLECTION-DATA-1 ────
+
+    [Fact]
+    public void GrantStarterCollection_AddsOneCopyOfEachCard()
+    {
+        var state = new ProgressionState();
+        var starters = new List<string> { "vrd_c_root_warden", "emb_c_ember_hound", "dwn_c_dawn_warder" };
+        state.GrantStarterCollection(starters);
+        Assert.Equal(1, state.Collection["vrd_c_root_warden"]);
+        Assert.Equal(1, state.Collection["emb_c_ember_hound"]);
+        Assert.Equal(1, state.Collection["dwn_c_dawn_warder"]);
+        Assert.Equal(3, state.Collection.Count);
+    }
+
+    [Fact]
+    public void GrantStarterCollection_WithEmptyList_DoesNothing()
+    {
+        var state = new ProgressionState();
+        state.GrantStarterCollection(new List<string>());
+        Assert.Empty(state.Collection);
+    }
+
+    [Fact]
+    public void GrantStarterCollection_CanBeCalledMultipleTimes()
+    {
+        var state = new ProgressionState();
+        state.GrantStarterCollection(new List<string> { "vrd_c_root_warden" });
+        state.GrantStarterCollection(new List<string> { "vrd_c_root_warden" });
+        Assert.Equal(2, state.Collection["vrd_c_root_warden"]);
+    }
+
+    [Fact]
+    public void GrantStarterCollection_ThenAddCard_IncrementsCorrectly()
+    {
+        var state = new ProgressionState();
+        state.GrantStarterCollection(new List<string> { "vrd_c_root_warden", "emb_c_ember_hound" });
+        state.AddCard("vrd_c_root_warden", 3);
+        Assert.Equal(4, state.Collection["vrd_c_root_warden"]);
+        Assert.Equal(1, state.Collection["emb_c_ember_hound"]);
+    }
 }
 
 /// <summary>
@@ -648,12 +689,12 @@ public class SaveRepositoryTests : IDisposable
     // ─────────────────────────────────────────────
 
     [Fact]
-    public void Load_V1Save_WithSavedDeck_MigratesToV2NamedDeck()
+    public void Load_V1Save_WithSavedDeck_MigratesToCurrent()
     {
         var repo = NewRepo();
-        var state = SampleState();
+        var state = new ProgressionState();
         state.DeckCardIds.AddRange(new[] { "vrd_c_root_warden", "vrd_c_verdant_sproutling", "emb_c_ember_hound" });
-        repo.Save(state); // saves at current version (v2)
+        repo.Save(state); // saves at current version (v3)
 
         // Tamper the stored version to v1 to simulate loading an older save
         SqliteConnection.ClearAllPools();
@@ -665,15 +706,17 @@ public class SaveRepositoryTests : IDisposable
             cmd.ExecuteNonQuery();
         }
 
-        // Verify the current schema is v2
-        Assert.Equal(2, SaveRepository.CurrentSchemaVersion);
-
         // Loading a v1 save with DeckCardIds should migrate to SavedDecks as "My Deck"
+        // and then v2→v3 should seed collection from saved decks
         var loaded = repo.Load();
-        Assert.Equal(2, loaded.Version);
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
         Assert.True(loaded.SavedDecks.ContainsKey("My Deck"), $"Expected 'My Deck' in saved decks, got keys: [{string.Join(", ", loaded.SavedDecks.Keys)}]");
         Assert.Equal(3, loaded.SavedDecks["My Deck"].Count);
         Assert.Equal("vrd_c_root_warden", loaded.SavedDecks["My Deck"][0]);
+        // v2→v3: collection should be seeded from saved decks (1 copy per card per deck)
+        Assert.Equal(1, loaded.Collection["vrd_c_root_warden"]);
+        Assert.Equal(1, loaded.Collection["vrd_c_verdant_sproutling"]);
+        Assert.Equal(1, loaded.Collection["emb_c_ember_hound"]);
     }
 
     [Fact]
@@ -681,5 +724,144 @@ public class SaveRepositoryTests : IDisposable
     {
         var state = new ProgressionState();
         Assert.Empty(state.SavedDecks);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-COLLECTION-DATA-1: v2→v3 migration
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_V2Save_WithSavedDecks_MigratesToV3_SeedsCollection()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        // Clear any collection from SampleState
+        state.Collection.Clear();
+        state.SavedDecks["Deck A"] = new List<string> { "vrd_c_root_warden", "emb_c_ember_hound" };
+        repo.Save(state); // saved at v3
+
+        // Tamper the stored version to v2
+        SqliteConnection.ClearAllPools();
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = '2' WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        Assert.Equal(1, loaded.Collection["vrd_c_root_warden"]);
+        Assert.Equal(1, loaded.Collection["emb_c_ember_hound"]);
+        Assert.Equal(2, loaded.Collection.Count);
+    }
+
+    [Fact]
+    public void Load_V2Save_WithEmptyCollectionAndNoDecks_CollectionStaysEmpty()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.Collection.Clear();
+        state.SavedDecks.Clear();
+        repo.Save(state); // saved at v3
+
+        // Tamper the stored version to v2
+        SqliteConnection.ClearAllPools();
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = '2' WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        Assert.Empty(loaded.Collection);
+    }
+
+    [Fact]
+    public void Load_V2Save_WithNonEmptyCollection_CollectionNotOverwritten()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.SavedDecks["Deck A"] = new List<string> { "vrd_c_root_warden", "emb_c_ember_hound" };
+        repo.Save(state); // saved at v3
+
+        // Tamper the stored version to v2
+        SqliteConnection.ClearAllPools();
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = '2' WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        // Collection already has items from SampleState, should NOT be overwritten
+        Assert.Equal(1, loaded.Collection["vrd_c_root_warden"]); // from SampleState
+        Assert.Equal(2, loaded.Collection["emb_c_ember_hound"]); // from SampleState
+    }
+
+    [Fact]
+    public void Load_V2Save_WithMultipleDecks_SeedsCollectionFromAll()
+    {
+        var repo = NewRepo();
+        var state = SampleState();
+        state.Collection.Clear();
+        state.SavedDecks["Deck A"] = new List<string> { "card_a", "card_b" };
+        state.SavedDecks["Deck B"] = new List<string> { "card_b", "card_c" };
+        repo.Save(state); // saved at v3
+
+        // Tamper the stored version to v2
+        SqliteConnection.ClearAllPools();
+        using (var conn = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "UPDATE meta SET value = '2' WHERE key = 'version'";
+            cmd.ExecuteNonQuery();
+        }
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        // each card gets 1 copy per deck it appears in
+        Assert.Equal(1, loaded.Collection["card_a"]);
+        Assert.Equal(2, loaded.Collection["card_b"]); // appears in both decks
+        Assert.Equal(1, loaded.Collection["card_c"]);
+    }
+
+    // ─────────────────────────────────────────────
+    //  TASK-COLLECTION-DATA-1: Corrupt repair
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_CorruptDatabase_RepairsToFreshProfile_WithEmptyCollection()
+    {
+        var repo = NewRepo();
+        repo.Save(SampleState());
+
+        SqliteConnection.ClearAllPools();
+
+        // Corrupt the database
+        using (var fs = new FileStream(_dbPath, FileMode.Open, FileAccess.ReadWrite))
+        {
+            byte[] garbage = new byte[512];
+            new Random(42).NextBytes(garbage);
+            fs.Write(garbage, 0, garbage.Length);
+            fs.Flush();
+        }
+        TryDeleteFile(_dbPath + "-wal");
+        TryDeleteFile(_dbPath + "-shm");
+
+        var loaded = repo.Load();
+        Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
+        // Repaired save must come up with empty collection (fresh state)
+        Assert.Empty(loaded.Collection);
+        Assert.Empty(loaded.SavedDecks);
+        Assert.NotEmpty(repo.RepairLog);
     }
 }

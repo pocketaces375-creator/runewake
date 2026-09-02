@@ -134,7 +134,7 @@
   Acceptance: victory + defeat captures at both resolutions; a headless flow proving map→duel→victory→map
   and map→duel→defeat→map with no exceptions; posted.
 
-- [ ] TASK-DROPS-DATA-1 — Card drops on discovery (Trikzos' design: each encounter has drop rates for
+- [x] TASK-DROPS-DATA-1 — Card drops on discovery (Trikzos' design: each encounter has drop rates for
   specific cards). Add "drops": [{"card_id": ..., "rate": 0.0-1.0}] to every encounter in
   content/encounters/*.json. A foe drops cards FROM ITS OWN DECK; default rate by rarity C 0.40 / U 0.25 /
   R 0.10 / M 0.03. Wardens and bosses drop their signature rare at 1.00 plus their normal table. Add a

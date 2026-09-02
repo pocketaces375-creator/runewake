@@ -19,7 +19,7 @@ namespace Runewake.Persistence;
 public sealed class SaveRepository
 {
     /// <summary>Current save schema version. Bump when the schema changes; add a migration step.</summary>
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     private readonly string _dbPath;
 
@@ -69,6 +69,21 @@ public sealed class SaveRepository
                 {
                     state.SavedDecks["My Deck"] = new List<string>(state.DeckCardIds);
                     repairLog.Add($"Migrated saved deck ({state.DeckCardIds.Count} cards) into named_decks as 'My Deck'");
+                }
+            }
+            else if (from == 2 && to == 3)
+            {
+                // v2→v3: seed collection from saved decks if collection is empty
+                if (state.Collection.Count == 0 && state.SavedDecks.Count > 0)
+                {
+                    foreach (var (deckName, cardIds) in state.SavedDecks)
+                    {
+                        foreach (var cardId in cardIds)
+                        {
+                            state.AddCard(cardId);
+                        }
+                    }
+                    repairLog.Add($"Seeded collection from {state.SavedDecks.Count} saved deck(s) ({state.Collection.Count} card copies total)");
                 }
             }
             state.Version = to;

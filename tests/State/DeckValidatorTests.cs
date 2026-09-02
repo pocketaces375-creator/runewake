@@ -168,4 +168,122 @@ public class DeckValidatorTests
         Assert.False(result.IsValid);
         Assert.Contains("not found", string.Join(" ", result.Errors));
     }
+
+    // ──── TASK-COLLECTION-DATA-1: ValidateCollection ────
+
+    [Fact]
+    public void ValidateCollection_EmptyDecks_NoErrors()
+    {
+        var errors = DeckValidator.ValidateCollection(
+            new Dictionary<string, int> { { "vrd_c_root_warden", 1 } },
+            new Dictionary<string, List<string>>());
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateCollection_NullArguments_NoErrors()
+    {
+        Assert.Empty(DeckValidator.ValidateCollection(null!, null!));
+    }
+
+    [Fact]
+    public void ValidateCollection_SufficientOwnership_Passes()
+    {
+        var collection = new Dictionary<string, int>
+        {
+            { "vrd_c_root_warden", 3 },
+            { "emb_c_ember_hound", 2 },
+            { "dwn_c_dawn_warder", 1 },
+        };
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "Deck A", new List<string> { "vrd_c_root_warden", "emb_c_ember_hound" } },
+            { "Deck B", new List<string> { "vrd_c_root_warden", "dwn_c_dawn_warder" } },
+            // root_warden appears in 2 decks → own 3 (ok)
+            // ember_hound appears in 1 deck → own 2 (ok)
+            // dawn_warder appears in 1 deck → own 1 (ok)
+        };
+        var errors = DeckValidator.ValidateCollection(collection, savedDecks);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateCollection_MissingCopies_ReportsError()
+    {
+        var collection = new Dictionary<string, int>
+        {
+            { "vrd_c_root_warden", 1 },
+            { "emb_c_ember_hound", 1 },
+        };
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "Deck A", new List<string> { "vrd_c_root_warden" } },
+            { "Deck B", new List<string> { "vrd_c_root_warden" } },
+            // root_warden appears in 2 decks → own 1 (needs 2)
+        };
+        var errors = DeckValidator.ValidateCollection(collection, savedDecks);
+        Assert.Single(errors);
+        Assert.Contains("Need 2 copies", errors[0]);
+        Assert.Contains("vrd_c_root_warden", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateCollection_MultipleCardsNeedCopies_ReportsAll()
+    {
+        var collection = new Dictionary<string, int>
+        {
+            { "card_a", 1 },
+            { "card_b", 1 },
+        };
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "Deck A", new List<string> { "card_a", "card_b" } },
+            { "Deck B", new List<string> { "card_a", "card_b" } },
+        };
+        var errors = DeckValidator.ValidateCollection(collection, savedDecks);
+        Assert.Equal(2, errors.Count);
+        Assert.Contains(errors, e => e.Contains("card_a") && e.Contains("Need 2 copies"));
+        Assert.Contains(errors, e => e.Contains("card_b") && e.Contains("Need 2 copies"));
+    }
+
+    [Fact]
+    public void ValidateCollection_CardInManyDecks_RequiresManyCopies()
+    {
+        var collection = new Dictionary<string, int> { { "card_x", 2 } };
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "D1", new List<string> { "card_x" } },
+            { "D2", new List<string> { "card_x" } },
+            { "D3", new List<string> { "card_x" } },
+        };
+        var errors = DeckValidator.ValidateCollection(collection, savedDecks);
+        Assert.Single(errors);
+        Assert.Contains("Need 3 copies", errors[0]);
+    }
+
+    [Fact]
+    public void ValidateCollection_CardOwnedButNotInDecks_NoError()
+    {
+        var collection = new Dictionary<string, int> { { "card_y", 5 }, { "card_x", 1 } };
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "D1", new List<string> { "card_x" } },
+        };
+        var errors = DeckValidator.ValidateCollection(collection, savedDecks);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ValidateCollection_EmptyCollectionWithDecks_ReportsAllCards()
+    {
+        var savedDecks = new Dictionary<string, List<string>>
+        {
+            { "D1", new List<string> { "card_a", "card_b" } },
+        };
+        var errors = DeckValidator.ValidateCollection(
+            new Dictionary<string, int>(),
+            savedDecks);
+        Assert.Equal(2, errors.Count);
+        Assert.All(errors, e => Assert.Contains("Need 1 copies", e));
+    }
 }

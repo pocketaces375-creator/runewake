@@ -1,3 +1,21 @@
+**TASK-DROPS-DATA-1 (2026-09-02):** Card drops added to all 9 encounters. ✅
+- **Drop schema:** `drops` array on every encounter — cards from the foe's own deck with default rates C 0.40 / U 0.25 / R 0.10 / M 0.03. ✅
+- **Boss signatures:** r1_warden_aelin → vrd_r_bloomweaver (1.00), r1_boss_warden_aelin → dwn_r_sealing_light (1.00). ✅
+- **Engine:** DropRoller.Roll(EncounterDef, duelSeed) — seeded deterministic roll producing DropResult list. ✅
+- **Schema docs:** docs/DROPS.md documents the drops field schema, default rates, boss rule, and seeded roll. ✅
+- **Content tests (5 new):** AllEncounters_HaveAtLeastThreeDrops, AllDrops_ReferenceValidCardIds, BossEncounters_HaveSignatureDropAt100Percent, DropRoller_ProducesDeterministicResults, DropRoller_AlwaysIncludesGuaranteedDrops. ✅
+- **Build:** 0 errors. **Tests:** 729/729 green (+5 drops tests). ✅
+- **Committed (03bbe80) and pushed to origin/main.** ✅
+
+**TASK-VICTORY-DEFEAT-1 (2026-09-02, from POLISH-PASS-1-E-AMEND):** Real end-of-duel screens already built and shipping since 2026-08-18. ✅
+- Victory overlay: VICTORY label, encounter name ("You defeated The Wayfarer"), turns taken, reward summary (shards/dig charges/fragments), CONTINUE & Fight Again buttons, SFX. ✅
+- Defeat overlay: DEFEATED label, encounter name ("Defeated by The Wayfarer"), TRY AGAIN (same seed) & RETURN TO MAP buttons, SFX. ✅
+- Both use ThemeTokens serif/stone language. ✅
+- Captures at both 2316×1080 and 2999×1080: victory_overlay.png, victory_overlay_wide.png, defeat_overlay.png, defeat_overlay_wide.png. ✅
+- Flow test via FlowTestAfterOverlay flag in DebugCapture.cs (map→duel→victory→map / map→duel→defeat→map). ✅
+- **Build:** 0 errors. Tests: 724/724 green (pre-existing). ✅
+- **Already committed in prior work — no new commit needed.** ✅
+
 **TASK-APK-SHIP-3 (2026-09-02):** Ship the crisp build — Phase A checkpoint. ✅
 - **Debug export:** tools/export_and_verify.sh (debug) — dotnet build 0 errors, Godot export 231.1MB, preflight 9/9 PASS, GitHub release alpha-2026-09-02-crisp created. ✅
 - **Release export:** Blocked — release keystore missing (client/exports/release.keystore not found). Debug export used as primary deliverable (same pattern as all prior APK deliveries). ✅
