@@ -24,6 +24,7 @@ public partial class ReliquaryScene : Control
     private Button _backButton;
     private Control? _inspectOverlay;
     private int _selectedStrataIdx; // 0=All, 1-5=VERDANT..DAWN
+    private bool _captureTriggered = false;
 
     // ── Constants (same as DeckBuilderScene) ──
     private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
@@ -149,11 +150,49 @@ public partial class ReliquaryScene : Control
         LoadAllCards();
         RefreshGrid();
 
-        // Capture hook: if reliquary capture mode, auto-capture after rendering
+        // Capture hook: if reliquary capture mode, capture on first _Process frame
+        // to ensure viewport is fully initialized
         if (CampaignContext.CaptureReliquaryScreenshot)
         {
-            Callable.From(OnCaptureReady).CallDeferred();
+            GD.Print("[ReliquaryScene] Capture mode active — will capture on first _Process");
         }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_captureTriggered) return;
+        if (!CampaignContext.CaptureReliquaryScreenshot) return;
+        _captureTriggered = true;
+
+        GD.Print("[ReliquaryScene] _Process capture triggered");
+        var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+        var img = GetViewport().GetTexture().GetImage();
+        if (img != null)
+        {
+            string path = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.png";
+            img.SavePng(path);
+            GD.Print($"[ReliquaryScene] Saved {path}");
+
+            var meta = new System.Text.StringBuilder();
+            meta.Append("{\n");
+            meta.Append($"  \"capture_type\": \"reliquary_test{suffix}\",\n");
+            meta.Append($"  \"view_width\": {(int)GetViewportRect().Size.X},\n");
+            meta.Append($"  \"view_height\": {(int)GetViewportRect().Size.Y},\n");
+            meta.Append($"  \"strata_filter_idx\": {_selectedStrataIdx},\n");
+            meta.Append($"  \"grid_cards_shown\": {_filteredCards.Count},\n");
+            meta.Append($"  \"grid_columns\": 5\n");
+            meta.Append("}\n");
+
+            string metaPath = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.meta.json";
+            using (var writer = new System.IO.StreamWriter(metaPath))
+                writer.Write(meta.ToString());
+            GD.Print($"[ReliquaryScene] Saved {metaPath}");
+        }
+        else
+        {
+            GD.PrintErr("[ReliquaryScene] Failed to capture: GetImage() returned null");
+        }
+        GetTree().Quit();
     }
 
     private void BuildFilterChips()

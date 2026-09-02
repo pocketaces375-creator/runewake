@@ -1047,6 +1047,76 @@ def validate_overlay_capture(png_path, meta):
     print("  PASS overlay capture")
 
 
+def validate_reliquary_test(png_path, meta):
+    """Validate reliquary (collection browser) capture: not too dark, has grid content, non-uniform."""
+    width, height, pixels = read_png(png_path)
+    print(f"\n═══ Reliquary capture: {png_path} ({width}×{height}) ═══")
+    failures = []
+
+    # 1. Whole frame shouldn't be too dark (need active content, not black screen)
+    total = 0
+    count = 0
+    for i in range(0, len(pixels), 4):
+        r, g, b = pixels[i], pixels[i + 1], pixels[i + 2]
+        lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        total += lum
+        count += 1
+    avg_lum = total / count if count > 0 else 0
+    if avg_lum < 0.04:
+        failures.append(f"TOO_DARK: avg luminance {avg_lum:.3f} < 0.04")
+    else:
+        print(f"  PASS avg luminance: {avg_lum:.3f}")
+
+    # 2. Center region should have content (not uniform)
+    cy = height // 2
+    cx = width // 2
+    half_w = width // 4
+    half_h = height // 4
+    r_sum, g_sum, b_sum = 0, 0, 0
+    pixel_count = 0
+    for y in range(cy - half_h, cy + half_h):
+        for x in range(cx - half_w, cx + half_w):
+            idx = (y * width + x) * 4
+            if idx + 2 < len(pixels):
+                r_sum += pixels[idx]
+                g_sum += pixels[idx + 1]
+                b_sum += pixels[idx + 2]
+                pixel_count += 1
+    if pixel_count > 0:
+        center_mean = (r_sum + g_sum + b_sum) / (3.0 * pixel_count * 255.0)
+        if center_mean < 0.05:
+            failures.append(f"CENTER_DARK: center mean luminance {center_mean:.3f} < 0.05")
+        else:
+            print(f"  PASS center luminance: {center_mean:.3f}")
+
+    # 3. Grid should have visible content (variance check)
+    grid_y = int(height * 0.20)
+    grid_h = int(height * 0.65)
+    r_var, g_var, b_var = 0, 0, 0
+    var_count = 0
+    for y in range(grid_y, min(grid_y + grid_h, height)):
+        for x in range(width // 8, 7 * width // 8):
+            idx = (y * width + x) * 4
+            if idx + 2 < len(pixels):
+                r_var += abs(pixels[idx] - 128)
+                g_var += abs(pixels[idx + 1] - 128)
+                b_var += abs(pixels[idx + 2] - 128)
+                var_count += 1
+    if var_count > 0:
+        avg_var = (r_var + g_var + b_var) / (3.0 * var_count * 255.0)
+        if avg_var < 0.05:
+            failures.append(f"GRID_TOO_FLAT: grid avg deviation {avg_var:.3f} < 0.05")
+        else:
+            print(f"  PASS grid variation: {avg_var:.3f}")
+
+    print(f"  Result: {'PASS' if not failures else 'FAIL (' + str(len(failures)) + ' reasons)'}")
+    for f in failures:
+        print(f"    FAIL: {f}")
+    if failures:
+        sys.exit(1)
+    print("  PASS reliquary capture")
+
+
 VALIDATORS = {
     "title_test": validate_screen_live,
     "title_test_wide": validate_screen_live,
@@ -1062,6 +1132,8 @@ VALIDATORS = {
     "victory_overlay_wide": validate_overlay_capture,
     "defeat_overlay": validate_overlay_capture,
     "defeat_overlay_wide": validate_overlay_capture,
+    "reliquary_test": validate_reliquary_test,
+    "reliquary_test_wide": validate_reliquary_test,
 }
 
 

@@ -36,6 +36,7 @@ public partial class MapScene : Control
     private Button _settingsBtn;
     private Button _runePageBtn;
     private Button _forgeBtn;
+    private Button _reliquaryBtn;
 
     // Line drawing
     private LineDrawer _lineDrawer;
@@ -401,7 +402,7 @@ public partial class MapScene : Control
         {
             Text = "Rune Page",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.86f, AnchorBottom = 0.93f
+            AnchorTop = 0.84f, AnchorBottom = 0.89f
         };
         StyleButton(_runePageBtn, 11, goldText: false);
         _runePageBtn.Pressed += () => {
@@ -410,11 +411,24 @@ public partial class MapScene : Control
         };
         AddChild(_runePageBtn);
 
+        _reliquaryBtn = new Button
+        {
+            Text = "Reliquary",
+            AnchorLeft = xL, AnchorRight = xL + btnW,
+            AnchorTop = 0.89f, AnchorBottom = 0.94f
+        };
+        StyleButton(_reliquaryBtn, 11, goldText: false);
+        _reliquaryBtn.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+        };
+        AddChild(_reliquaryBtn);
+
         _settingsBtn = new Button
         {
             Text = "Settings",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.93f, AnchorBottom = 1f
+            AnchorTop = 0.94f, AnchorBottom = 1f
         };
         StyleButton(_settingsBtn, 11, goldText: false);
         _settingsBtn.Pressed += () => {

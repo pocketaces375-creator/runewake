@@ -47,6 +47,7 @@ public partial class DebugCapture : Node
         string? tutorialScriptId = null;
         bool deckBuilderMode = false;
         bool titleDeckMode = false;
+        bool reliquaryMode = false;
         foreach (var arg in args)
         {
             if (arg == "--capture=duel_test")
@@ -267,6 +268,25 @@ public partial class DebugCapture : Node
                 CampaignContext.CurrentDigSiteId = "test_dig_site";
                 GD.Print("[DebugCapture] Dig wide capture mode enabled: --capture=dig_test_wide");
             }
+            if (arg == "--capture=reliquary_test")
+            {
+                reliquaryMode = true;
+                CampaignContext.CaptureReliquaryScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureOverrideStrataIdx = 2; // EMBER for visual variety
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Reliquary capture mode enabled: --capture=reliquary_test");
+            }
+            if (arg == "--capture=reliquary_test_wide")
+            {
+                reliquaryMode = true;
+                CampaignContext.CaptureReliquaryScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.CaptureOverrideStrataIdx = 2; // EMBER for visual variety
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Reliquary wide capture mode enabled: --capture=reliquary_test_wide");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);
@@ -308,6 +328,12 @@ public partial class DebugCapture : Node
                 CampaignContext.CurrentEncounter.IsTutorial = true;
                 GD.Print("[DebugCapture] BOT-FIX-1: encounter deck overridden to 30x tut_opponent_token, IsTutorial=true");
             }
+        }
+
+        if (reliquaryMode)
+        {
+            GD.Print("[DebugCapture] Reliquary capture mode — populating collection");
+            SetUpReliquaryTest();
         }
     }
 
@@ -559,6 +585,63 @@ public partial class DebugCapture : Node
         _active = true;
 
         GD.Print($"[DebugCapture] Tutorial mode set: {scriptId} (active=true)");
+    }
+
+    /// <summary>
+    /// Reliquary capture mode: populate collection with 13 owned cards
+    /// (1 marked NEW — not yet seen), leave the rest unowned.
+    /// </summary>
+    private void SetUpReliquaryTest()
+    {
+        // Load all card packs into collection
+        var allCards = new List<CardDef>();
+        var packs = new[] {
+            "res://content/cards/verdant.json", "res://content/cards/ember.json",
+            "res://content/cards/tide.json", "res://content/cards/hollow.json",
+            "res://content/cards/dawn.json"
+        };
+        foreach (var pack in packs)
+        {
+            string json = Godot.FileAccess.GetFileAsString(pack);
+            allCards.AddRange(CardLoader.LoadPackFromString(json));
+        }
+
+        // Own 13 cards spanning multiple strata
+        var ownedIds = new List<string>
+        {
+            // VERDANT (4)
+            "vrd_c_root_warden", "vrd_c_verdant_sproutling", "vrd_c_thornbark_defender", "vrd_r_bloomweaver",
+            // EMBER (3)
+            "emb_c_cinder_runner", "emb_c_ember_hound", "emb_u_wildfire_adept",
+            // TIDE (2)
+            "tid_c_tidal_scholar", "tid_c_deep_one",
+            // HOLLOW (2) — one NEW (not seen)
+            "hol_c_skeletal_reaver", "hol_c_gravewrit_thrall",
+            // DAWN (2)
+            "dwn_c_dawn_warder", "dwn_c_sunblade_recruit",
+        };
+
+        CampaignContext.Progression.Collection.Clear();
+        foreach (var id in ownedIds)
+            CampaignContext.Progression.Collection[id] = 1;
+
+        // Mark all owned cards as seen EXCEPT the first HOLLOW card (hol_c_skeletal_reaver)
+        // so it shows a NEW badge — this satisfies the acceptance criteria
+        foreach (var id in ownedIds)
+        {
+            // Skip the first HOLLOW card to keep it as NEW
+            if (id == "hol_c_skeletal_reaver")
+                continue;
+            CampaignContext.Progression.MarkCardSeen(id);
+        }
+
+        // Give the first owned card 2 copies to show "x2" owned count badge
+        CampaignContext.Progression.Collection["vrd_c_root_warden"] = 2;
+
+        // Set EMBER strata filter via CaptureOverrideStrataIdx (already set to 2 in the handler)
+        // This ensures some owned AND unowned cards are visible in the default view
+
+        GD.Print($"[DebugCapture] Reliquary test: {ownedIds.Count} owned cards, 1 NEW, {allCards.Count - ownedIds.Count} unowned");
     }
 
     public override void _Process(double delta)

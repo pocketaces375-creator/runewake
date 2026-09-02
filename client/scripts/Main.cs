@@ -192,10 +192,20 @@ public partial class Main : Control
         AddChild(decksButton);
         _decksButton = decksButton;
 
+        // Reliquary button
+        var reliquaryButton = MakeStoneButton("Reliquary");
+        reliquaryButton.AnchorTop = 0.75f;
+        reliquaryButton.AnchorBottom = 0.83f;
+        reliquaryButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+        };
+        AddChild(reliquaryButton);
+
         // Settings button
         var settingsButton = MakeStoneButton("Settings");
-        settingsButton.AnchorTop = 0.75f;
-        settingsButton.AnchorBottom = 0.83f;
+        settingsButton.AnchorTop = 0.85f;
+        settingsButton.AnchorBottom = 0.93f;
         settingsButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
@@ -228,10 +238,10 @@ public partial class Main : Control
         {
             _startButton.Text = $"CONTINUE";
 
-            // PATHS button (stone-style, below Decks button)
+            // PATHS button (stone-style, below Settings button)
             _pathsButton = MakeStoneButton("PATHS");
-            _pathsButton.AnchorTop = 0.84f;
-            _pathsButton.AnchorBottom = 0.92f;
+            _pathsButton.AnchorTop = 0.93f;
+            _pathsButton.AnchorBottom = 1f;
             _pathsButton.AddThemeFontSizeOverride("font_size", 12);
             _pathsButton.Modulate = new Color(1, 1, 1, 0.7f);
             _pathsButton.Pressed += OnOpenPathsOverlay;
@@ -667,6 +677,12 @@ public partial class Main : Control
                 {
                     GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
                 }).CallDeferred();
+            }
+            else if (CampaignContext.CaptureReliquaryScreenshot)
+            {
+                // Navigate to reliquary for collection browser capture — direct call, not deferred
+                GD.Print("[Main] Navigating to Reliquary for capture");
+                GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
             }
             else
             {
