@@ -138,6 +138,9 @@ public sealed class BatchConfig
 
     [JsonPropertyName("player1_class")]
     public string Player1Class { get; init; } = string.Empty;
+
+    [JsonPropertyName("compensation_variant")]
+    public int CompensationVariant { get; init; } = 0; // 0=baseline, 1=P1+1Attune, 2=P1+1Card, 3=both, 4=P0delay
 }
 
 /// <summary>
@@ -198,6 +201,10 @@ public static class BatchRunner
             };
 
             var state = GameState.Initialize(gameConfig);
+
+            // Apply compensation variant after initialization (test harness only, not shipped code)
+            ApplyCompensation(state, config.CompensationVariant);
+
             int turns = 0;
             const int maxTurns = 200; // safety limit
 
@@ -333,5 +340,53 @@ public static class BatchRunner
         }
 
         return ids;
+    }
+
+    /// <summary>
+    /// Applies a first-player-advantage compensation variant after game initialization.
+    /// Test harness only — never changes shipped defaults.
+    /// </summary>
+    private static void ApplyCompensation(GameState state, int variant)
+    {
+        switch (variant)
+        {
+            case 0: // baseline — no changes
+                break;
+
+            case 1: // P1 gets +1 Attunement max on turn 1
+                // Set P1's AttunementMax to 1 at Initialize; the normal Attune step
+                // on P1's first turn adds +1, yielding AttunementMax=2.
+                state.Players[1].AttunementMax = 1;
+                state.Players[1].Attunement = 1;
+                break;
+
+            case 2: // P1 opening hand 6 instead of 5
+                if (state.Players[1].Deck.Count > 0)
+                {
+                    var card = state.Players[1].Deck[0];
+                    state.Players[1].Deck.RemoveAt(0);
+                    card.Zone = Zone.Hand;
+                    state.Players[1].Hand.Add(card);
+                }
+                break;
+
+            case 3: // both b and c
+                state.Players[1].AttunementMax = 1;
+                state.Players[1].Attunement = 1;
+                if (state.Players[1].Deck.Count > 0)
+                {
+                    var card = state.Players[1].Deck[0];
+                    state.Players[1].Deck.RemoveAt(0);
+                    card.Zone = Zone.Hand;
+                    state.Players[1].Hand.Add(card);
+                }
+                break;
+
+            case 4: // P0's turn-1 Attunement ramp delayed one turn
+                // Undo the Attune step that GameState.Initialize applied to P0.
+                state.Players[0].AttunementMax = 0;
+                state.Players[0].Attunement = 0;
+                break;
+        }
     }
 }

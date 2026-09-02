@@ -29,6 +29,7 @@ static void PrintUsage()
     Console.WriteLine("Usage:");
     Console.WriteLine("  Runewake.Sim run --deck-a <path> --deck-b <path> [--games <N>] [--seed <N>]");
     Console.WriteLine("                    [--artifacts-path <path>] [--class-a <name>] [--class-b <name>]");
+    Console.WriteLine("                    [--compensation <0|1|2|3|4>]");
     Console.WriteLine("  Runewake.Sim validate-card <card-file>");
     Console.WriteLine();
     Console.WriteLine("Commands:");
@@ -44,6 +45,7 @@ static void RunCommand(string[] args)
     string? artifactsPath = null;
     string? classA = null;
     string? classB = null;
+    int compensationVariant = 0;
 
     for (int i = 1; i < args.Length; i++)
     {
@@ -69,6 +71,9 @@ static void RunCommand(string[] args)
                 break;
             case "--class-b" when i + 1 < args.Length:
                 classB = args[++i];
+                break;
+            case "--compensation" when i + 1 < args.Length && int.TryParse(args[++i], out var cv):
+                compensationVariant = cv;
                 break;
         }
     }
@@ -120,6 +125,7 @@ static void RunCommand(string[] args)
         DeckBIds = deckBIds,
         Player0Class = classA ?? "",
         Player1Class = classB ?? "",
+        CompensationVariant = compensationVariant,
     };
 
     var report = BatchRunner.Run(config);
