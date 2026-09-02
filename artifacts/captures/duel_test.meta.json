@@ -35,7 +35,7 @@
   "groups": [
     {
       "side": "player",
-      "rect": { "x": 8.0, "y": 590.0, "w": 178.0, "h": 144.0 }
+      "rect": { "x": 8.0, "y": 558.0, "w": 178.0, "h": 176.0 }
     },
     {
       "side": "enemy",
@@ -52,7 +52,7 @@
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 12.0, "y": 594.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 12.0, "y": 562.0, "w": 72.0, "h": 96.0 }
     },
     {
       "side": "player",
@@ -63,7 +63,7 @@
       "charges": 3,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 64.0, "y": 594.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 88.0, "y": 562.0, "w": 72.0, "h": 96.0 }
     },
     {
       "side": "enemy",
@@ -74,7 +74,7 @@
       "charges": 0,
       "is_suppressed": true,
       "has_triggered": false,
-      "rect": { "x": 2094.0, "y": 72.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 2094.0, "y": 72.0, "w": 72.0, "h": 96.0 }
     },
     {
       "side": "enemy",
@@ -85,7 +85,7 @@
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": true,
-      "rect": { "x": 2146.0, "y": 72.0, "w": 48.0, "h": 64.0 }
+      "rect": { "x": 2170.0, "y": 72.0, "w": 72.0, "h": 96.0 }
     }
   ],
   "board_cards": [

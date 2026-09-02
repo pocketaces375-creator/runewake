@@ -147,9 +147,15 @@ public class ProgressionState
     /// <summary>Check if a specific encounter's relic has already been discovered by this player.</summary>
     public bool HasDiscoveredEncounterRelic(string encounterId)
     {
-        // Check if any discovered relic matches an encounter by looking up the encounter's
-        // card_id in the relic def index (supplied externally via CampaignContext)
-        // For engine-level check without CampaignContext, just check by card_id match
         return false; // runtime check happens in DuelScene via LostRelicIndex
     }
+
+    /// <summary>Card IDs that have been seen (viewed) in the Reliquary. Cleared on first view.</summary>
+    public HashSet<string> SeenCardIds { get; } = new();
+
+    /// <summary>Check if a card has been seen in the Reliquary (NEW badge cleared on view).</summary>
+    public bool IsCardSeen(string cardId) => SeenCardIds.Contains(cardId);
+
+    /// <summary>Mark a card as seen (clears the NEW badge).</summary>
+    public void MarkCardSeen(string cardId) => SeenCardIds.Add(cardId);
 }

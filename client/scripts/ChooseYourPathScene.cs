@@ -497,6 +497,7 @@ public partial class ChooseYourPathScene : Control
         // Show 4 mini cards
         _coreCardRow = new HBoxContainer();
         _coreCardRow.AddThemeConstantOverride("separation", 12);
+        float miniW = 120f * _viewportH / 1080f;
         float minisTotal = cls.CoreCardIds.Count * miniW + (cls.CoreCardIds.Count - 1) * 12f;
         _coreCardRow.Position = new Vector2(_viewportW / 2f - minisTotal / 2f, 26);
         _coreCardRow.Size = new Vector2(minisTotal, 90);
@@ -507,7 +508,6 @@ public partial class ChooseYourPathScene : Control
             var def = CardRegistry.Get(cardId);
             if (def == null) continue;
 
-            float miniW = 120f * _viewportH / 1080f;
             float miniH = miniW * 152f / 104f;
 
             var miniCard = new PanelContainer();

@@ -922,7 +922,7 @@ public partial class DeckBuilderScene : Control
             };
             ownedLabel.AddThemeFontSizeOverride("font_size", 7);
             ownedLabel.AddThemeColorOverride("font_color", Color.FromHtml("#A09080"));
-            ownedLabel.SetAnchorsPreset(LayoutPreset.Wide);
+            ownedLabel.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
             ownedLabel.AnchorLeft = 0; ownedLabel.AnchorRight = 1;
             ownedLabel.AnchorBottom = 1;
             ownedLabel.AnchorTop = 0.9f;

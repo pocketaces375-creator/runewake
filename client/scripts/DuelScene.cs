@@ -3381,15 +3381,21 @@ public partial class DuelScene : Control
             // Show end-of-duel overlay (built by RenderFromState frame update)
             // The overlay shows encounter name, turns taken, reward summary, and a CONTINUE
             // button returning to map (or RETRY + RETURN on defeat).
-        }
+        } // closes if (winnerIndex == 0 && ...)
         else
         {
-            // Non-campaign (test/free-play) — show game-over overlay
+            // Campaign defeat — show game-over overlay
             ShowGameOverOverlay(winnerIndex);
         }
+    } // closes if (_isCampaignEncounter && !_isGameOverHandled)
+    else
+    {
+        // Non-campaign (test/free-play) — show game-over overlay
+        ShowGameOverOverlay(winnerIndex);
     }
+} // closes OnGameOver
 
-    private void ShowGameOverOverlay(int winnerIndex)
+private void ShowGameOverOverlay(int winnerIndex)
     {
         var panel = new Panel();
         panel.AnchorLeft = 0.2f;

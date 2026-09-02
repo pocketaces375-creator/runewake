@@ -156,6 +156,9 @@ public class SaveManager
         to.OwnedRuneIds.Clear();
         foreach (var id in from.OwnedRuneIds) to.OwnedRuneIds.Add(id);
 
+        to.SeenCardIds.Clear();
+        foreach (var id in from.SeenCardIds) to.SeenCardIds.Add(id);
+
         to.UnlockedTools.Clear();
         foreach (var id in from.UnlockedTools) to.UnlockedTools.Add(id);
 

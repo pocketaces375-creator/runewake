@@ -123,6 +123,9 @@ public static class CampaignContext
         /// <summary>Test hook: capture duel VICTORY overlay with encounter name. Auto-ends duel as win.</summary>
     public static bool CaptureVictoryOverlay { get; set; }
 
+    /// <summary>Test hook: capture reliquary screenshot.</summary>
+    public static bool CaptureReliquaryScreenshot { get; set; }
+
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
     public static bool CaptureDefeatOverlay { get; set; }
 

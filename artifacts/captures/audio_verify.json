@@ -29,6 +29,13 @@
       "callCount": 1
     },
     {
+      "id": "defeat",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 3
+    },
+    {
       "id": "metal_clink",
       "type": "sfx",
       "streamNonNull": true,
@@ -68,7 +75,6 @@
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
-    "sfx:defeat",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
@@ -78,6 +84,6 @@
   "musicExercised": true,
   "sfxExercised": true,
   "totalMusicCalls": 1,
-  "totalSfxCalls": 4,
+  "totalSfxCalls": 7,
   "totalAmbientCalls": 1
 }
