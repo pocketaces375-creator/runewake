@@ -150,6 +150,51 @@
   corrupt-repair to "no collection".
   Acceptance: tests green; deck builder tiles show "owned x · in y decks" (text only for now).
 
+- [ ] TASK-BOARD-MATCH-4 — REOPEN, urgent. Real, current defects confirmed by Trikzos'
+  screenshot AND our own committed duel_test.png/choose_path_wide.png (pull them and
+  look — do not trust the BOARD-MATCH-3 "matched" checklist):
+  (1) COST BADGE: currently renders top-LEFT of the card. Spec (unchanged since
+      BOARD-MATCH-1) is top-RIGHT, small dark circle with gold ring, inside the art
+      corner. Fix the anchor.
+  (2) STAT CHIPS: attack (red) and vigor (green) currently render bunched together at
+      the bottom-LEFT corner only. Spec is one at EACH bottom corner — attack
+      bottom-left, vigor bottom-right — so both are readable at a glance without
+      overlapping. This is on every card: board, hand, and enemy row.
+  (3) ARTIFACT SLOTS: still plain text ("ARTIFACT" / weapon name) in tiny boxes,
+      top-right (enemy) and bottom-left (player). Original (g) spec said these should
+      show the artifact's actual ART as a framed thumbnail (teal rim). Enlarge them and
+      render real art — use the space, don't leave it as a text label.
+  (4) INPUT: Trikzos reports he cannot click any card (hand or lane). Find out why —
+      check mouse_filter on the card Controls, z-order/overlay blocking input, and
+      whether the click region actually matches the visual card bounds. This may be
+      unrelated to the visual bugs above — treat it as its own root cause.
+  Acceptance — do this properly this time: for EACH item, crop the actual capture to
+  that region, describe in plain text what you see, and only mark it matched if the
+  description matches the spec above. Post the crops + descriptions to the group, not
+  just a pass/fail table. Gate PASS is necessary but not sufficient — you must also
+  visually confirm. Then mark [x] and continue.
+
+- [ ] TASK-CHOOSEPATH-LAYOUT-1 — urgent, Choose Your Path screen wastes roughly the
+  bottom 40-45% of the viewport as dead black space at both 2316x1080 and the wide
+  variant — the whole screen (title, class carousel, class-core row, Begin button) is
+  compressed into the top half only. Confirmed in our own current choose_path_wide.png.
+  Fix:
+  (1) Rescale/reflow the whole screen to use the full viewport height — no large empty
+      band at the bottom.
+  (2) There is a stray numbered badge (small red circle, e.g. "2" or "4") floating to
+      the immediate LEFT of the "BEGIN IN <town>" button, not attached to any card —
+      this looks like a stat/cost chip that lost its parent anchor. Find where it's
+      coming from and either reposition it onto the card it belongs to or remove it.
+  (3) The 4 "CLASS CORE" preview cards under the description panel are tiny (well under
+      100px tall) and overlap/crowd the Begin button row. Enlarge them and give the row
+      its own clear space with no overlap.
+  (4) Trikzos reports he cannot click the path/class cards at all. Check input regions
+      here too, same as TASK-BOARD-MATCH-4 item (4) — may be the same root cause, may not
+      be.
+  Acceptance: crop + plain-text description for each item, same standard as
+  TASK-BOARD-MATCH-4 above. Captures at both 2316x1080 and wide. Post to the group.
+  Mark [x] and continue.
+
 - [ ] TASK-DROPS-UI-1 — The reveal moment. On the victory screen, after the reward summary, flip each
   dropped card in one at a time (CardPlate at hand-card size, hi-res), with a "NEW" ribbon on a first copy
   and "+1" on a duplicate; tap to continue. Cards are added to the collection before the map returns.
