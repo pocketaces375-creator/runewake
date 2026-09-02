@@ -245,6 +245,10 @@ public partial class TutorialRunner : Node
         // Skip mulligan for both players
         SkipMulligan();
 
+        // TASK-TUTORIAL-VERIFY-1: Dismiss the mulligan UI overlay so it doesn't
+        // appear behind tutorial beat popups and captures.
+        _duelScene.DismissMulligan();
+
         // Apply first-turn overrides
         ApplyTurnOverrides();
 
@@ -255,9 +259,23 @@ public partial class TutorialRunner : Node
         GD.Print($"[TutorialRunner] Tutorial started: turn {_gsm.TurnNumber}, player turn");
     }
 
+    private bool _pendingAdvance;
+    
+    public override void _Process(double delta)
+    {
+        if (_pendingAdvance)
+        {
+            _pendingAdvance = false;
+            GD.Print("[TutorialRunner] _Process: executing pending AdvanceToNextTurn");
+            AdvanceToNextTurn();
+        }
+    }
+
     /// <summary>
     /// Called from DuelScene's OnStateChanged after every state mutation.
     /// The runner checks if it needs to advance the state machine.
+    /// All turn transitions are deferred via _pendingAdvance to avoid
+    /// re-entrant NotifyStateChanged calls during render cycles.
     /// </summary>
     public void OnGameStateChanged()
     {
@@ -274,7 +292,23 @@ public partial class TutorialRunner : Node
         {
             // Opponent finished their turn, it's the player's turn now
             GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: Opponent turn ended → player turn");
-            AdvanceToNextTurn();
+            _pendingAdvance = true;
+            return;
+        }
+
+        // TASK-TUTORIAL-VERIFY-1: Player ended their turn — advance to opponent turn
+        if (_state == RunnerState.PlayerTurn && turnChanged && state.CurrentPlayerIndex != 0)
+        {
+            GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: Player turn ended → opponent turn");
+            _pendingAdvance = true;
+            return;
+        }
+
+        // TASK-TUTORIAL-VERIFY-1: Opponent executed END_TURN action — advance to player turn
+        if (_state == RunnerState.OpponentTurn && turnChanged && state.CurrentPlayerIndex == 0)
+        {
+            GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: Opponent END_TURN → player turn");
+            _pendingAdvance = true;
             return;
         }
 
@@ -474,18 +508,12 @@ public partial class TutorialRunner : Node
 
         if (_state != RunnerState.ShowingPopup) return;
 
-        // Capture BEFORE dismissing so the highlight rects are visible in the screenshot
-        if (_isHeadless)
-        {
-            CaptureCurrentBeat();
-        }
-
-        // Emulate the popup's Continue button press
+        // IMPORTANT: Use CallDeferred to avoid Godot crash (propagate_notification)
+        // when removing the popup from the scene tree during a timer callback.
+        // OnPopupDismissed handles capture + advance after the dismiss.
         var popup = _popup;
         if (popup != null && GodotObject.IsInstanceValid(popup))
         {
-            // Simulate Continue pressed — fires Dismissed event which calls OnPopupDismissed
-            // We access the private button via call_deferred or simply invoke Dismissed
             Callable.From(() => popup.Dismiss()).CallDeferred();
         }
     }
@@ -673,6 +701,8 @@ public partial class TutorialRunner : Node
         }
         else
         {
+            // Reset state to PlayerTurn so the headless timer can fire for the next beat
+            _state = RunnerState.PlayerTurn;
             ClearActionRestrictions();
             EnterBeat();
         }
@@ -811,7 +841,6 @@ public partial class TutorialRunner : Node
                 break;
 
             default:
-                // Unknown trigger — end turn as fallback
                 AutoPlayEndTurn();
                 break;
         }
@@ -860,6 +889,7 @@ public partial class TutorialRunner : Node
         if (state == null) return;
 
         var player = state.Players[0];
+        var enemy = state.Players[1];
 
         // Find first unexhausted creature that hasn't attacked
         for (int li = 0; li < 5; li++)
@@ -867,18 +897,10 @@ public partial class TutorialRunner : Node
             var occ = player.Lanes[li].Occupant;
             if (occ != null && !occ.IsExhausted && !occ.HasAttackedThisTurn)
             {
-                // Attack the first occupied enemy lane, or lane 0 for face
-                int targetLane = 0;
-                var enemy = state.Players[1];
-                for (int el = 0; el < 5; el++)
-                {
-                    if (enemy.Lanes[el].Occupant != null)
-                    {
-                        targetLane = el;
-                        break;
-                    }
-                }
-                _duelScene.PlayerAttack(li, targetLane);
+                // In the altar arc layout, lane N attacks lane N (opposing lane).
+                // If there's a creature at the same lane index, fight it.
+                // Otherwise, hit face at that lane index.
+                _duelScene.PlayerAttack(li, li);
                 return;
             }
         }
@@ -889,7 +911,10 @@ public partial class TutorialRunner : Node
 
     private void AutoPlayEndTurn()
     {
-        _duelScene.PlayerEndTurn();
+        // Call TryEndTurn directly. Although this is called from a timer callback,
+        // the headless tutorial's opponent and player turns are driven by TutorialRunner
+        // via _pendingAdvance / _Process, which handles re-entrancy safely.
+        _gsm.TryEndTurn();
     }
 
     // ── Overrides ──
@@ -1047,9 +1072,59 @@ public partial class TutorialRunner : Node
 
         ClearActionRestrictions();
 
+        // Capture the final state as the gate-named capture (tutorial_warrior_intro.png)
+        if (_isHeadless)
+        {
+            CaptureGateCapture();
+        }
+
         // Re-enable the bot for any remaining play
         _bot.Resume();
 
         TutorialFinished?.Invoke();
+
+        // In headless mode, quit the application after tutorial finishes
+        if (_isHeadless)
+        {
+            GD.Print("[TutorialRunner] Headless tutorial complete — quitting.");
+            Callable.From(() => _duelScene.GetTree().Quit()).CallDeferred();
+        }
+    }
+
+    /// <summary>Capture a gate-named screenshot (eg tutorial_warrior_intro.png) for the gate validator.</summary>
+    private void CaptureGateCapture()
+    {
+        try
+        {
+            var img = _duelScene.GetViewport().GetTexture().GetImage();
+            if (img != null)
+            {
+                string id = _script?.TutorialId ?? "unknown";
+                string gatePrefix = $"tutorial_{id}";
+                string pngPath = $"{_captureDir}/{gatePrefix}.png";
+                img.SavePng(pngPath);
+                GD.Print($"[TutorialRunner] Gate capture saved: {pngPath}");
+
+                var meta = new StringBuilder();
+                meta.Append("{\n");
+                meta.Append($"  \"tutorial_id\": \"{_script?.TutorialId ?? "?"}\",\n");
+                meta.Append($"  \"beat_id\": \"complete\",\n");
+                meta.Append($"  \"turn\": {_gsm.State.TurnNumber},\n");
+                meta.Append($"  \"title\": \"{_script?.Title ?? "?"}\",\n");
+                meta.Append($"  \"capture_type\": \"{gatePrefix}\"\n");
+                meta.Append("}\n");
+
+                string metaPath = $"{_captureDir}/{gatePrefix}.meta.json";
+                using (var writer = new System.IO.StreamWriter(metaPath))
+                {
+                    writer.Write(meta.ToString());
+                }
+                GD.Print($"[TutorialRunner] Gate meta saved: {metaPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[TutorialRunner] Gate capture failed: {ex.Message}");
+        }
     }
 }

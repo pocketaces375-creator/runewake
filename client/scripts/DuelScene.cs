@@ -317,6 +317,11 @@ public partial class DuelScene : Control
             {
                 GD.Print($"[DuelScene] Tutorial script mode: {tutorialScriptId}");
             }
+
+            // TASK-TUTORIAL-VERIFY-1: Re-read encounter after TutorialRunner.SetupEncounter
+            // so the campaign init path below uses the tutorial's decks and artifacts.
+            encounter = CampaignContext.CurrentEncounter;
+            _isCampaignEncounter = encounter != null;
         }
         else if (isTutorialEncounter)
         {
@@ -359,8 +364,8 @@ public partial class DuelScene : Control
             _bot.ActionInterval = 0.1f;
         }
 
-        // Show mulligan overlay if not in tutorial mode
-        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive)
+        // Show mulligan overlay if not in tutorial mode or tutorial script mode
+        if (!_isTutorialScriptMode && (_tutorialCtrl == null || !_tutorialCtrl.IsActive))
         {
             Callable.From(ShowMulliganIfNeeded).CallDeferred();
         }
@@ -406,7 +411,8 @@ public partial class DuelScene : Control
         _prevHandSize = _gsm?.GetHand(0).Count ?? 0;
 
         // ═══ CAPTURE HOOK: auto-dismiss mulligan, wait, capture ═══
-        if (CampaignContext.AutoCaptureScreenshot)
+        // TASK-TUTORIAL-VERIFY-1: Skip in tutorial script mode — TutorialRunner handles its own captures
+        if (CampaignContext.AutoCaptureScreenshot && !_isTutorialScriptMode)
         {
             var capTimer = new Godot.Timer();
             capTimer.OneShot = true;
@@ -430,17 +436,22 @@ public partial class DuelScene : Control
                     return;
                 }
 
-                // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
-                if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
-                    PrePlaceCreatures();
+                // ═══ TASK-TUTORIAL-VERIFY-1: Skip pre-place/artifacts/inflate in tutorial script mode ═══
+                // The TutorialRunner handles its own state and captures for each beat.
+                if (!_isTutorialScriptMode)
+                {
+                    // ═══ TASK-F4B: Pre-place 3 creatures per side before capture ═══
+                    if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
+                        PrePlaceCreatures();
 
-                // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
-                if (!CampaignContext.DebugAlignMode)
-                    PrePlaceArtifacts();
+                    // ═══ TASK-AC1: Pre-place artifacts with all 4 visual states ═══
+                    if (!CampaignContext.DebugAlignMode)
+                        PrePlaceArtifacts();
 
-                // ═══ TASK-G: Inflate player hand to 10 cards for worst-case compression test ═══
-                if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
-                    InflateHandTo10();
+                    // ═══ TASK-G: Inflate player hand to 10 cards for worst-case compression test ═══
+                    if (!CampaignContext.DebugAlignMode && !CampaignContext.CaptureVictoryOverlay && !CampaignContext.CaptureDefeatOverlay)
+                        InflateHandTo10();
+                }
 
                 // ═══ PAINTED-PLATE-1: Debug slot overlay for align capture ═══
                 // Created here (before the snapTimer) so it renders for a full frame
@@ -2945,7 +2956,8 @@ public partial class DuelScene : Control
         DismissMulligan();
     }
 
-    private void DismissMulligan()
+    /// <summary>Dismiss the mulligan UI overlay. Needed by TutorialRunner to hide it before tutorial beats.</summary>
+    public void DismissMulligan()
     {
         if (_mulliganPanel != null)
         {

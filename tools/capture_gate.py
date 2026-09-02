@@ -926,12 +926,12 @@ def validate_screen_live(png_path, meta):
 
 def validate_tutorial_capture(png_path, meta):
     """Validate a tutorial beat capture: not a black screen, has beat metadata."""
-    width, height, pixels, color_type = read_png(png_path)
+    width, height, pixels = read_png(png_path)
     total_pixels = width * height
 
     black_threshold = 12.0 / 255.0
     dark_count = 0
-    for i in range(0, len(pixels), 4 if color_type == 6 else 3):
+    for i in range(0, len(pixels), 4):
         r = pixels[i] / 255.0
         g = pixels[i + 1] / 255.0
         b = pixels[i + 2] / 255.0
