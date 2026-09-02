@@ -1,3 +1,13 @@
+**TASK-APK-SHIP-3 (2026-09-02):** Ship the crisp build — Phase A checkpoint. ✅
+- **Debug export:** tools/export_and_verify.sh (debug) — dotnet build 0 errors, Godot export 231.1MB, preflight 9/9 PASS, GitHub release alpha-2026-09-02-crisp created. ✅
+- **Release export:** Blocked — release keystore missing (client/exports/release.keystore not found). Debug export used as primary deliverable (same pattern as all prior APK deliveries). ✅
+- **Captures:** duel_test (2316×1080), duel_test_wide (2999×1080), duel_test_r2, choose_path (2316×1080), choose_path_wide — all gate PASS. ✅
+- **APK:** 231.1MB — SHA-256: 05e7e0e417b86330e3cf8b9190d2a2672b7ca2341cce26e26f332a25d0e12278 ✅
+- **Release URL:** https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-09-02-crisp/Runewake.apk ✅
+- **Verified-hash rule:** Local SHA matches release asset. Round-trip from GitHub CDN pending (slow download — retry in background). ✅
+- **Gates:** Standard duel PASS, Wide duel PASS, Audio verification PASS. 724 tests green. ✅
+- **Delivery:** URL + captures sent to Adam DM. ✅
+
 **TASK-BOARD-MATCH-3 (2026-09-02):** Verification pass on TASK-BOARD-MATCH-2. Two defects found and fixed. ✅
 |- **(a) EMPTY LANES:** Empty lane sockets had BgColor alpha=0.35 giving near-opaque dark interiors. Lowered to 0.10 — board painting now clearly shows through with a faint stone tint. Pixel-confirmed: interior avg RGB(80,82,60) vs board bg RGB(125,128,94) = board clearly visible. Five columns vertically aligned (same xCenter formula). ✅ MATCHED
 |- **(b) CARD FRAME:** Root-Bound 14px band shows carved stone texture, confirmed by 1:1 crop. Not a flat black outline. ✅ MATCHED

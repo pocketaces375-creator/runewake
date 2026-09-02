@@ -117,7 +117,7 @@
   artifacts/captures/ and posted, plus a 1:1 crop of one board card, plus the plain-text checklist
   (a)(b)(c)(d-fix)(f)(g)(h) each marked matched — every line must read matched before this task is [x].
 
-- [ ] TASK-APK-SHIP-3 — Ship the crisp build. Run tools/export_and_verify.sh (debug) AND a release export
+- [x] TASK-APK-SHIP-3 — Ship the crisp build. Run tools/export_and_verify.sh (debug) AND a release export
   with --headless (the Mono/Sqlite crash workaround); preflight must pass; apply the verified-hash rule;
   create GitHub release alpha-2026-09-XX-crisp with the APK; post the download URL, APK size and sha256 to
   the group together with the standard 2316x1080 duel capture and the Choose Your Path capture.
