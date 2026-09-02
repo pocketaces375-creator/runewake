@@ -1077,8 +1077,8 @@ public partial class DuelScene : Control
         dbRow.AddChild(barrowLabel);
 
         // ── Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
-        float artFrameW = 48f * scale;
-        float artFrameH = 64f * scale;
+        float artFrameW = 72f * scale;
+        float artFrameH = 96f * scale;
         float artFrameGap = 4f * scale;
         var artifactRow = new HBoxContainer
         {
@@ -1311,8 +1311,8 @@ public partial class DuelScene : Control
         dbRow.AddChild(barrowLabel);
 
         // ── Player Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
-        float artFrameW = 48f * scale;
-        float artFrameH = 64f * scale;
+        float artFrameW = 72f * scale;
+        float artFrameH = 96f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -2232,7 +2232,7 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_enemyArtifactPlates[i] != null)
                     {
-                        _enemyArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                        _enemyArtifactPlates[i].Setup(artName, 100f, 136f, ch, maxCh, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _enemyArtifactPlates[i].SetArt(occ.CardDefId);
                     }
@@ -2264,7 +2264,7 @@ public partial class DuelScene : Control
                 else
                 {
                     if (_enemyArtifactPlates[i] != null)
-                        _enemyArtifactPlates[i].Setup("—", 72f, 96f, 0, 0, false);
+                        _enemyArtifactPlates[i].Setup("—", 100f, 136f, 0, 0, false);
                 }
             }
         }
@@ -2298,7 +2298,7 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_playerArtifactPlates[i] != null)
                     {
-                        _playerArtifactPlates[i].Setup(artName, 72f, 96f, ch, maxCh, suppressed);
+                        _playerArtifactPlates[i].Setup(artName, 100f, 136f, ch, maxCh, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _playerArtifactPlates[i].SetArt(occ.CardDefId);
                     }
@@ -2330,7 +2330,7 @@ public partial class DuelScene : Control
                 else
                 {
                     if (_playerArtifactPlates[i] != null)
-                        _playerArtifactPlates[i].Setup("—", 72f, 96f, 0, 0, false);
+                        _playerArtifactPlates[i].Setup("—", 100f, 136f, 0, 0, false);
                 }
             }
         }
