@@ -551,3 +551,12 @@
 ||- Build: 0 errors. Tests: 724/724 green. Committed (2cdf8ac) and pushed to origin/main. ✅
 - 2026-09-01: TEMPO — 15 sessions yesterday, 0 validated.
 - 2026-09-02: TEMPO — 13 sessions yesterday, 0 validated.
+
+**TASK-RUNE-SINK-1 (2026-09-02):** What Runes buy: the Rune Page — slot unlock and rune upgrade costs in RuneDust. ✅
+|- **RunePage.cs:** Added GetSlotUnlockCost(int slotIndex) (0=0, 1=100, 2=300, 3+=0), GetUpgradeCost(int currentTier) (1→2=60, 2→3=180, 3+=0), GetSlotCount(RuneSlotType) (Mythic=3, others=9). ✅
+|- **ProgressionState.cs:** Added RuneSlotUnlockCounts dict (default 1 per category), RuneUpgradeTiers dict (per rune ID, default tier 1), SpendRuneDust(amount, out shortfall) with shortfall reporting, UnlockNextSlot(type) (slot 2=100, slot 3=300), UpgradeRune(runeId) (tier 1→2=60, tier 2→3=180), GetUnlockedSlotCount(type), GetRuneTier(runeId). ✅
+|- **RunePageScene.cs:** Rewritten RebuildGrid — locked slots show unlock button with cost; equipped runes show tier and upgrade button; insufficient funds shows shortfall message (2.5s auto-dismiss); RuneDust balance refreshes on each spend. Slots beyond the next purchasable show as locked and disabled. ✅
+|- **SaveRepository:** Schema bumped to v5. v4→v5 migration initializes RuneSlotUnlockCounts defaults. Meta fields rune_slot_unlock_counts and rune_upgrade_tiers persisted as JSON. ✅
+|- **Tests (21 new, 789/790 green):** GetSlotUnlockCost (4), GetSlotCount (2), GetUpgradeCost (3), SpendRuneDust (3), GetUnlockedSlotCount (1), UnlockNextSlot (5), GetRuneTier (2), UpgradeRune (6). One pre-existing flaky test (CardRegistry parallel contention in GrindTest — passes in isolation). ✅
+|- **Build:** 0 errors. **Tests:** 789/790 green (+21 new). No capture script yet — no DebugCapture mode for RunePage exists. ✅
+|- **Committed (04679bb) and pushed to origin/main.** ✅

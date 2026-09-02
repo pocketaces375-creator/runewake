@@ -216,7 +216,7 @@
   headers.
   Acceptance: tests for values, guards and save roundtrip; capture of the grind confirm; posted.
 
-- [ ] TASK-RUNE-SINK-1 — What Runes buy: the Rune Page. Wire the existing RunePageScene so unlocking a rune
+- [x] TASK-RUNE-SINK-1 — What Runes buy: the Rune Page. Wire the existing RunePageScene so unlocking a rune
   slot and upgrading a rune cost Runes — slot 2 = 100, slot 3 = 300; upgrade tier 1→2 = 60, tier 2→3 = 180.
   Shards remain the dig currency; do not merge the two. Insufficient funds shows the shortfall.
   Acceptance: tests; capture of the Rune Page showing one purchasable and one unaffordable item; posted.
