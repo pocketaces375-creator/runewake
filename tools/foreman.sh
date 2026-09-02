@@ -877,9 +877,9 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
 
   # Mandatory cool-down after every 3 consecutive successes
   if [[ "${CONSECUTIVE_SUCCESSES}" -ge 3 ]]; then
-    warn "3 consecutive successes — 15-min cool-down (Claude review window)"
-    telegram_text "3 tasks done back-to-back — 15-min cool-down, then resume"
-    sleep 900
+    warn "3 consecutive successes — 5-min cool-down (Claude review window)"
+    telegram_text "3 tasks done back-to-back — 5-min cool-down, then resume"
+    sleep 300
     CONSECUTIVE_SUCCESSES=0
     ok "Cool-down over — resuming chain"
   fi
