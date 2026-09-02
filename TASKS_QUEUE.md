@@ -126,7 +126,7 @@
 
 # ---- PHASE B — THE PLAY LOOP (rewards, drops, collection, economy) ----
 
-- [ ] TASK-VICTORY-DEFEAT-1 — Real end-of-duel screens at 2316x1080 (the current overlays are minimal).
+- [x] TASK-VICTORY-DEFEAT-1 — Real end-of-duel screens at 2316x1080 (the current overlays are minimal).
   Victory: full-screen overlay in the game's serif/stone language — encounter name, turns taken, a reward
   summary panel (shards, fragments, dig charges from the map node's reward tokens) and a CONTINUE button
   returning to the map with the node marked cleared. Defeat: same frame, with RETRY (same seed) and RETURN

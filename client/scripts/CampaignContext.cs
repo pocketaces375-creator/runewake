@@ -126,6 +126,12 @@ public static class CampaignContext
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
     public static bool CaptureDefeatOverlay { get; set; }
 
+    /// <summary>Test hook: after the overlay capture, auto-navigate to map to prove the round-trip flow.</summary>
+    public static bool FlowTestAfterOverlay { get; set; }
+
+    /// <summary>Test hook: capture the map screen after a flow test to prove round-trip completed.</summary>
+    public static bool CaptureFlowTestMap { get; set; }
+
     /// <summary>Test hook: capture settings screen.</summary>
     public static bool CaptureSettingsScreenshot { get; set; }
 

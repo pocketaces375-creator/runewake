@@ -720,6 +720,20 @@ public partial class DuelScene : Control
                                         // Run layout verification (skip in align mode — no cards)
                     if (!CampaignContext.DebugAlignMode)
                     {
+                        // For flow tests: after capture, navigate to map instead of quitting
+                        if (CampaignContext.FlowTestAfterOverlay)
+                        {
+                            GD.Print("[CAPTURE] Flow test: capture complete — navigating to map to prove round-trip");
+                            CampaignContext.CaptureFlowTestMap = true;
+                            // Use a timer attached to Root (not DuelScene) to avoid thread/callback nesting issues
+                            var navTimer = new Godot.Timer();
+                            navTimer.OneShot = true;
+                            navTimer.WaitTime = 0.1f;
+                            navTimer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                            GetTree().Root.AddChild(navTimer);
+                            navTimer.Start();
+                            return;
+                        }
                         int failed = RunLayoutVerification();
                         GD.Print($"[VERIFY] Layout checks: {failed} failed");
                         // TASK-AUDIO-VERIFY-1: Write audio verification report
@@ -732,6 +746,14 @@ public partial class DuelScene : Control
                     }
                     else
                     {
+                        // For flow tests: navigate to map instead of quitting
+                        if (CampaignContext.FlowTestAfterOverlay)
+                        {
+                            GD.Print("[CAPTURE] Flow test: capture complete — navigating to map to prove round-trip");
+                            CampaignContext.CaptureFlowTestMap = true;
+                            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                            return;
+                        }
                         // TASK-AUDIO-VERIFY-1: Write audio verification report
                         GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport(
                             "/home/fictive/runewake/artifacts/captures/audio_verify.json");
@@ -3103,49 +3125,9 @@ public partial class DuelScene : Control
 
             CampaignContext.SaveManager.Save();
 
-            // Show outro dialogue if available
-            if (enc.DialogueOutro is { Count: > 0 })
-            {
-                var outroLabel = new Label
-                {
-                    Text = string.Join("\n", enc.DialogueOutro),
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    AnchorLeft = 0.1f, AnchorRight = 0.9f,
-                    AnchorTop = 0.3f, AnchorBottom = 0.7f,
-                    AutowrapMode = TextServer.AutowrapMode.Word
-                };
-                outroLabel.AddThemeFontSizeOverride("font_size", 16);
-                outroLabel.Modulate = new Color(TextPrimary.R, TextPrimary.G, TextPrimary.B, 0.95f);
-                AddChild(outroLabel);
-            }
-
-            // Show reward summary
-            var rewardLabel = new Label
-            {
-                Text = $"+{enc.ShardReward} shards" +
-                       (enc.DigChargeReward > 0 ? $"\n+{enc.DigChargeReward} dig charge(s)" : "") +
-                       (enc.FragmentReward != null ? $"\n+{enc.FragmentReward} fragments" : "") +
-                       (!string.IsNullOrEmpty(_grantedCardName) ? $"\nNew card earned: {_grantedCardName}" : "") +
-                       $"\n+{enc.Deck.Count} new card(s) unlocked to collection",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                AnchorLeft = 0.1f, AnchorRight = 0.9f,
-                AnchorTop = 0.72f, AnchorBottom = 0.85f,
-                AutowrapMode = TextServer.AutowrapMode.Word
-            };
-            rewardLabel.AddThemeFontSizeOverride("font_size", 14);
-            rewardLabel.Modulate = Moss;
-            AddChild(rewardLabel);
-        }
-
-        // Navigate back to map after delay
-        var timer = new Godot.Timer();
-        timer.OneShot = true;
-        timer.WaitTime = 4.0;
-        timer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-        AddChild(timer);
-        timer.Start();
+            // Show end-of-duel overlay (built by RenderFromState frame update)
+            // The overlay shows encounter name, turns taken, reward summary, and a CONTINUE
+            // button returning to map (or RETRY + RETURN on defeat).
         }
         else
         {
@@ -3230,12 +3212,11 @@ public partial class DuelScene : Control
         btnHBox.AddChild(backToTitle);
     }
 
-    // ═══ TASK-E (REVISED): Duel outro screen — named encounter, rewards, two actions ═══
-    
     /// <summary>
-    /// Build the outro overlay with encounter name, portrait, dialogue, rewards,
-    /// and two action buttons (Fight Again / Continue).
-    /// Destroyed and rebuilt each time so encounter data is always fresh.
+    /// Build the end-of-duel screen — full-screen overlay in the game's serif/stone language.
+    /// Handles victory and defeat: encounter name, turns taken, reward summary, action buttons.
+    /// Uses ThemeTokens for all colors, fonts, and border treatments.
+    /// Plays victory/defeat audio event on creation.
     /// </summary>
     private void BuildGameOverOverlay()
     {
@@ -3246,7 +3227,7 @@ public partial class DuelScene : Control
         // Semi-transparent dark panel dimming the board
         var dim = new ColorRect();
         dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        dim.Color = new Color(0, 0, 0, 0.7f);
+        dim.Color = new Color(BgDark.R, BgDark.G, BgDark.B, 0.85f);
         dim.MouseFilter = Control.MouseFilterEnum.Ignore;
         _gameOverOverlay.AddChild(dim);
 
@@ -3263,59 +3244,67 @@ public partial class DuelScene : Control
             GD.Print("[DuelScene] Warning: CampaignContext.CurrentEncounter.Name is null/empty — falling back to generic label");
             encName = playerWon ? "Victory" : "Defeat";
         }
-        Color headlineColor = playerWon
-            ? Color.FromHtml("#D4B84C")  // gold
-            : Color.FromHtml("#8B3A3A"); // muted red
+
+        Color accentColor = playerWon ? Gold : Ember;
+        string statusLabel = playerWon ? "VICTORY" : "DEFEATED";
         string headline = playerWon
             ? $"You defeated {encName}"
             : $"Defeated by {encName}";
-        string flavor = playerWon && encounter?.DialogueOutro != null && encounter.DialogueOutro.Count > 0
-            ? string.Join("\n", encounter.DialogueOutro)
-            : "";
 
-        // ── Vertical container for centered layout ──
-        var vbox = new VBoxContainer
+        // ── Central stone panel ──
+        var panel = new Panel();
+        panel.CustomMinimumSize = new Vector2(520, 0);
+        panel.SetAnchorsPreset(Control.LayoutPreset.Center);
+        var panelStyle = StyleWornBorder(
+            borderColor: accentColor,
+            width: 3,
+            radius: RadiusLarge,
+            bgColor: SurfaceStone
+        );
+        panel.AddThemeStyleboxOverride("panel", panelStyle);
+
+        var panelVBox = new VBoxContainer
         {
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Alignment = BoxContainer.AlignmentMode.Center,
         };
-        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        vbox.AddThemeConstantOverride("separation", 8);
+        panelVBox.AddThemeConstantOverride("separation", 6);
+        panel.AddChild(panelVBox);
 
-        // Spacer (top)
-        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+        // Top spacer
+        panelVBox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
 
-        // Portrait (if encounter has one)
-        if (playerWon && encounter?.Portrait != null && !string.IsNullOrEmpty(encounter.Portrait))
+        // ── Status icon + label ──
+        var statusLabelNode = new Label
         {
-            var portrait = new TextureRect
-            {
-                Texture = ResourceLoader.Load<Texture2D>(encounter.Portrait),
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                CustomMinimumSize = new Vector2(100, 100),
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            };
-            vbox.AddChild(portrait);
-        }
+            Text = statusLabel,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        ApplyHeaderFont(statusLabelNode, FontLarge);
+        statusLabelNode.Modulate = accentColor;
+        panelVBox.AddChild(statusLabelNode);
 
-        // Headline
-        var titleLabel = new Label
+        // ── Encounter name headline ──
+        var headlineLabel = new Label
         {
             Text = headline,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
             MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
         };
-        titleLabel.AddThemeFontSizeOverride("font_size", 36);
-        ApplyHeaderFont(titleLabel, 36);
-        titleLabel.Modulate = headlineColor;
-        titleLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-        vbox.AddChild(titleLabel);
+        ApplyHeaderFont(headlineLabel, FontSubtitle);
+        headlineLabel.Modulate = TextPrimary;
+        panelVBox.AddChild(headlineLabel);
 
-        // Flavor text (DialogueOutro)
+        // ── Flavor text (DialogueOutro) ──
+        string flavor = playerWon && encounter?.DialogueOutro is { Count: > 0 }
+            ? string.Join("\n", encounter.DialogueOutro)
+            : "";
         if (!string.IsNullOrEmpty(flavor))
         {
             var flavorLabel = new Label
@@ -3325,118 +3314,236 @@ public partial class DuelScene : Control
                 VerticalAlignment = VerticalAlignment.Center,
                 AutowrapMode = TextServer.AutowrapMode.Word,
                 MouseFilter = Control.MouseFilterEnum.Ignore,
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                CustomMinimumSize = new Vector2(0, 48),
             };
-            flavorLabel.AddThemeFontSizeOverride("font_size", 20);
-            ApplyBodyFont(flavorLabel, 20);
-            flavorLabel.Modulate = Color.FromHtml("#C8B88A"); // warm beige
-            flavorLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-            vbox.AddChild(flavorLabel);
+            ApplyBodyFont(flavorLabel, FontBody);
+            flavorLabel.Modulate = TextSecondary;
+            panelVBox.AddChild(flavorLabel);
         }
 
-        // Rewards (player won only)
+        // ── Divider line ──
+        panelVBox.AddChild(MakeDivider());
+
+        // ── Turns taken ──
+        var turnLabel = new Label
+        {
+            Text = $"Turns taken: {_gsm.TurnNumber}",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        ApplyBodyFont(turnLabel, FontBody);
+        turnLabel.Modulate = TextMuted;
+        panelVBox.AddChild(turnLabel);
+
+        // ── Reward summary panel (victory only) ──
         if (playerWon && encounter != null)
         {
-            string rewardsStr = "";
-            if (encounter.ShardReward > 0)
-                rewardsStr += $"  Shards: {encounter.ShardReward}";
-            if (encounter.DigChargeReward > 0)
-                rewardsStr += $"  Dig Charges: {encounter.DigChargeReward}";
-            if (!string.IsNullOrEmpty(encounter.FragmentReward))
-                rewardsStr += $"  Fragments: {encounter.FragmentReward}";
-            if (!string.IsNullOrEmpty(_grantedCardName))
-                rewardsStr += $"  New Card: {_grantedCardName}";
-            if (!string.IsNullOrEmpty(rewardsStr))
+            panelVBox.AddChild(MakeDivider());
+
+            var rewardPanel = new Panel();
+            rewardPanel.CustomMinimumSize = new Vector2(360, 0);
+            var rewardStyle = StyleWornBorder(
+                borderColor: BorderSubtle,
+                width: 1,
+                radius: RadiusMedium,
+                bgColor: CardFace
+            );
+            rewardPanel.AddThemeStyleboxOverride("panel", rewardStyle);
+
+            var rewardGrid = new VBoxContainer();
+            rewardGrid.AddThemeConstantOverride("separation", 4);
+
+            // ── Rewards section header ──
+            var rewardHeader = new Label
             {
-                var rewardLabel = new Label
-                {
-                    Text = rewardsStr.TrimStart(),
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    AutowrapMode = TextServer.AutowrapMode.Word,
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                };
-                rewardLabel.AddThemeFontSizeOverride("font_size", 18);
-                ApplyBodyFont(rewardLabel, 18);
-                rewardLabel.Modulate = Color.FromHtml("#B8A67A"); // muted gold
-                rewardLabel.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-                vbox.AddChild(rewardLabel);
+                Text = "— Rewards —",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            };
+            ApplyBodyFont(rewardHeader, FontSmall);
+            rewardHeader.Modulate = Gold;
+            rewardGrid.AddChild(rewardHeader);
+
+            // Shards
+            if (encounter.ShardReward > 0)
+            {
+                var shardRow = MakeRewardRow("● Shards", $"+{encounter.ShardReward}", Gold);
+                rewardGrid.AddChild(shardRow);
             }
+
+            // Dig charges
+            if (encounter.DigChargeReward > 0)
+            {
+                var digRow = MakeRewardRow("◇ Dig Charges", $"+{encounter.DigChargeReward}", Moss);
+                rewardGrid.AddChild(digRow);
+            }
+
+            // Fragments
+            if (!string.IsNullOrEmpty(encounter.FragmentReward))
+            {
+                var fragRow = MakeRewardRow("◆ Fragments", $"+{encounter.FragmentReward}", Amber);
+                rewardGrid.AddChild(fragRow);
+            }
+
+            // Granted card
+            if (!string.IsNullOrEmpty(_grantedCardName))
+            {
+                var cardRow = MakeRewardRow("♠ New Card", _grantedCardName, Gold);
+                rewardGrid.AddChild(cardRow);
+            }
+
+            rewardPanel.AddChild(rewardGrid);
+            panelVBox.AddChild(rewardPanel);
         }
 
-        // Spacer
-        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+        // ── Divider line ──
+        panelVBox.AddChild(MakeDivider());
 
-        // ── Button row ──
+        // ── Action buttons ──
         var btnHBox = new HBoxContainer
         {
             MouseFilter = Control.MouseFilterEnum.Ignore,
             Alignment = BoxContainer.AlignmentMode.Center,
-            AnchorLeft = 0f, AnchorRight = 1f,
         };
-        btnHBox.AddThemeConstantOverride("separation", 24);
+        btnHBox.AddThemeConstantOverride("separation", Space5);
 
-        // Helper to create a stone-styled button
-        Button MakeStoneButton(string text)
-        {
-            var btn = new Button
-            {
-                Text = text,
-                MouseFilter = Control.MouseFilterEnum.Stop,
-                CustomMinimumSize = new Vector2(180, 52),
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            };
-            btn.AddThemeFontSizeOverride("font_size", 20);
-            ApplyHeaderFont(btn, 20);
-            var normal = new StyleBoxFlat
-            {
-                BgColor = Color.FromHtml("#3A3530"),
-                BorderColor = Color.FromHtml("#7A7060"),
-                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-                ContentMarginLeft = 20, ContentMarginTop = 8, ContentMarginRight = 20, ContentMarginBottom = 8,
-            };
-            btn.AddThemeStyleboxOverride("normal", normal);
-            var hover = new StyleBoxFlat
-            {
-                BgColor = Color.FromHtml("#4A4540"),
-                BorderColor = Color.FromHtml("#9A9080"),
-                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-                ContentMarginLeft = 20, ContentMarginTop = 8, ContentMarginRight = 20, ContentMarginBottom = 8,
-            };
-            btn.AddThemeStyleboxOverride("hover", hover);
-            btn.Modulate = TextPrimary;
-            return btn;
-        }
-
-        // "Fight Again" / "Try Again" — restart this encounter
+        // "Fight Again" / "Try Again" — reloads the duel
         var fightAgainBtn = MakeStoneButton(playerWon ? "Fight Again" : "Try Again");
+        string seedHex = CampaignContext.DebugSeed.HasValue
+            ? CampaignContext.DebugSeed.Value.ToString("X")
+            : "";
+        string currentSeed = CampaignContext.DebugSeed?.ToString() ?? "";
         fightAgainBtn.Pressed += () =>
-                {
-                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    // Reload the duel scene to get a clean state
-                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-                };
-                btnHBox.AddChild(fightAgainBtn);
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            // Retry preserves the same seed (for deterministic replay)
+            if (!string.IsNullOrEmpty(currentSeed))
+                CampaignContext.DebugSeed = ulong.Parse(currentSeed);
+            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        };
+        btnHBox.AddChild(fightAgainBtn);
 
-                // "Continue" / "Return to Map"
-                var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
-                continueBtn.Pressed += () =>
-                {
-                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-                };
+        // "Continue" / "Return to Map"
+        var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
+        continueBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            // Mark node cleared (already done in OnGameOver for campaign, but ensure it's done)
+            if (playerWon && CampaignContext.CurrentNodeId != null)
+                CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
+            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        };
         btnHBox.AddChild(continueBtn);
 
-        vbox.AddChild(btnHBox);
+        panelVBox.AddChild(btnHBox);
 
         // Bottom spacer
-        vbox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
+        panelVBox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
 
-        _gameOverOverlay.AddChild(vbox);
+        // ── Add panel to overlay ──
+        // Wrap panel in a centered container so it sits in the middle
+        var container = new CenterContainer();
+        container.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        container.AddChild(panel);
+        _gameOverOverlay.AddChild(container);
+
         AddChild(_gameOverOverlay);
+
+        // Play audio event
+        var audio = GetNode<AudioManager>("/root/AudioManager");
+        audio.PlaySfx(playerWon ? "victory" : "defeat");
+    }
+
+    /// <summary>Create a thin gold divider line.</summary>
+    private Control MakeDivider()
+    {
+        var div = new ColorRect
+        {
+            Color = new Color(Gold.R, Gold.G, Gold.B, 0.3f),
+            CustomMinimumSize = new Vector2(240, 1),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        var ctr = new CenterContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(0, 4),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        ctr.AddChild(div);
+        return ctr;
+    }
+
+    /// <summary>Create a reward row: label + value in an HBox.</summary>
+    private Control MakeRewardRow(string label, string value, Color valueColor)
+    {
+        var row = new HBoxContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Alignment = BoxContainer.AlignmentMode.Center,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        row.AddThemeConstantOverride("separation", 12);
+
+        var lbl = new Label
+        {
+            Text = label,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ApplyBodyFont(lbl, FontBody);
+        lbl.Modulate = TextSecondary;
+        row.AddChild(lbl);
+
+        var val = new Label
+        {
+            Text = value,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ApplyHeaderFont(val, FontLargeBody);
+        val.Modulate = valueColor;
+        row.AddChild(val);
+
+        return row;
+    }
+
+    /// <summary>Create a stone-styled action button with ThemeTokens colors.</summary>
+    private Button MakeStoneButton(string text)
+    {
+        var btn = new Button
+        {
+            Text = text,
+            MouseFilter = Control.MouseFilterEnum.Stop,
+            CustomMinimumSize = new Vector2(180, 52),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        ApplyHeaderFont(btn, FontLargeBody);
+        var normal = new StyleBoxFlat
+        {
+            BgColor = SurfaceMetal,
+            BorderColor = BorderStandard,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
+            CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
+            ContentMarginLeft = Space4, ContentMarginTop = Space2, ContentMarginRight = Space4, ContentMarginBottom = Space2,
+        };
+        btn.AddThemeStyleboxOverride("normal", normal);
+        var hover = new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#4A4540"),
+            BorderColor = BorderHighlight,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
+            CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
+            ContentMarginLeft = Space4, ContentMarginTop = Space2, ContentMarginRight = Space4, ContentMarginBottom = Space2,
+        };
+        btn.AddThemeStyleboxOverride("hover", hover);
+        btn.Modulate = TextPrimary;
+        return btn;
     }
 
     // ——— Tutorial helpers (TASK-TU2) ———

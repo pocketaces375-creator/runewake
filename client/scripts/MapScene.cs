@@ -128,6 +128,33 @@ public partial class MapScene : Control
             capTimer.Start();
         }
         // ═══ END MAP CAPTURE HOOK ═══
+
+        // ═══ FLOW TEST MAP CAPTURE (post-victory/defeat round-trip proof) ═══
+        if (CampaignContext.CaptureFlowTestMap)
+        {
+            CampaignContext.CaptureFlowTestMap = false; // one-shot
+            bool wasVictory = CampaignContext.CaptureVictoryOverlay;
+            bool wasDefeat = CampaignContext.CaptureDefeatOverlay;
+            string prefix = wasVictory ? "victory" : "defeat";
+            var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+
+            GD.Print($"[FLOWTEST] Map reached after {prefix} overlay — capturing to prove round-trip");
+
+            var flowTimer = new Godot.Timer();
+            flowTimer.OneShot = true;
+            flowTimer.WaitTime = 1.2f;
+            flowTimer.Timeout += () =>
+            {
+                var img = GetViewport().GetTexture().GetImage();
+                if (img != null)
+                    img.SavePng($"/home/fictive/runewake/artifacts/captures/flow_{prefix}_map{suffix}.png");
+                GD.Print($"[FLOWTEST] flow_{prefix}_map{suffix}.png saved — round-trip complete");
+                GetTree().Quit(0);
+            };
+            AddChild(flowTimer);
+            flowTimer.Start();
+        }
+        // ═══ END FLOW TEST MAP CAPTURE ═══
     }
 
     /// <summary>

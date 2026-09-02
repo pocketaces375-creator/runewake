@@ -5,7 +5,7 @@
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 2
+      "callCount": 1
     },
     {
       "id": "wind_reach",
@@ -30,6 +30,13 @@
     },
     {
       "id": "metal_clink",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 1
+    },
+    {
+      "id": "hit_heavy",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
@@ -62,7 +69,6 @@
     "sfx:damage",
     "sfx:death",
     "sfx:defeat",
-    "sfx:hit_heavy",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",

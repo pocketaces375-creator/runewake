@@ -163,6 +163,40 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Defeat overlay (wide) capture mode enabled: --capture=defeat_overlay_wide");
             }
+            if (arg == "--capture=victory_flow_test")
+            {
+                _active = true;
+                CampaignContext.CaptureVictoryOverlay = true;
+                CampaignContext.FlowTestAfterOverlay = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Victory flow test enabled: --capture=victory_flow_test — will auto-navigate to map after capture");
+            }
+            if (arg == "--capture=victory_flow_test_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureVictoryOverlay = true;
+                CampaignContext.FlowTestAfterOverlay = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Victory flow test (wide) enabled: --capture=victory_flow_test_wide");
+            }
+            if (arg == "--capture=defeat_flow_test")
+            {
+                _active = true;
+                CampaignContext.CaptureDefeatOverlay = true;
+                CampaignContext.FlowTestAfterOverlay = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Defeat flow test enabled: --capture=defeat_flow_test — will auto-navigate to map after capture");
+            }
+            if (arg == "--capture=defeat_flow_test_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureDefeatOverlay = true;
+                CampaignContext.FlowTestAfterOverlay = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Defeat flow test (wide) enabled: --capture=defeat_flow_test_wide");
+            }
             if (arg == "--capture=choose_path")
             {
                 CampaignContext.CaptureChoosePathScreenshot = true;
@@ -518,6 +552,14 @@ public partial class DebugCapture : Node
     public override void _Process(double delta)
     {
         if (!_active || _captureDone) return;
+
+        // Flow test: after overlay capture, stop processing — scene change to MapScene is handled
+        // by the capture timer's deferred call. The MapScene capture hook takes over from there.
+        if (CampaignContext.FlowTestAfterOverlay && CampaignContext.CaptureFlowTestMap)
+        {
+            _captureDone = true;
+            return;
+        }
 
         if (_duelScene == null)
         {

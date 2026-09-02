@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Runewake.Engine.Cards;
+using Runewake.Engine.Engine;
 using Xunit;
 
 namespace Runewake.Tests.Cards;
@@ -207,6 +208,90 @@ public class EncounterLoaderTests
             {
                 Assert.True(CardRegistry.Get(cardId) != null,
                     $"Encounter {e.Id} deck references '{cardId}' which is not in any card pack.");
+            }
+        }
+    }
+
+    [Fact]
+    public void AllEncounters_HaveAtLeastThreeDrops()
+    {
+        foreach (var e in AllEncounters)
+        {
+            // Must have drops array defined
+            Assert.NotNull(e.Drops);
+            // Must have at least 3 non-guaranteed drop entries (rate < 1.0)
+            int nonGuaranteed = e.Drops.Count(d => d.Rate < 1.0);
+            Assert.True(nonGuaranteed >= 3,
+                $"Encounter {e.Id} has {nonGuaranteed} non-guaranteed drops (minimum 3).");
+        }
+    }
+
+    [Fact]
+    public void AllDrops_ReferenceValidCardIds()
+    {
+        // Register card packs for lookup
+        var setIds = new[] { "verdant", "ember", "tide", "hollow", "dawn", "tutorial_pack" };
+        foreach (var setId in setIds)
+        {
+            var pack = CardLoader.LoadPack(
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "content", "cards", $"{setId}.json"));
+            CardRegistry.RegisterRange(pack);
+        }
+
+        foreach (var e in AllEncounters)
+        {
+            if (e.Drops == null) continue;
+            foreach (var drop in e.Drops)
+            {
+                Assert.True(CardRegistry.Get(drop.CardId) != null,
+                    $"Encounter {e.Id} drop references '{drop.CardId}' which is not in any card pack.");
+            }
+        }
+    }
+
+    [Fact]
+    public void BossEncounters_HaveSignatureDropAt100Percent()
+    {
+        var bossEncounters = AllEncounters.Where(e => e.Id == "r1_warden_aelin" || e.Id == "r1_boss_warden_aelin");
+        foreach (var e in bossEncounters)
+        {
+            Assert.NotNull(e.Drops);
+            bool hasGuaranteed = e.Drops.Exists(d => d.Rate >= 0.999);
+            Assert.True(hasGuaranteed,
+                $"Boss encounter {e.Id} has no guaranteed (rate=1.00) drop.");
+        }
+    }
+
+    [Fact]
+    public void DropRoller_ProducesDeterministicResults()
+    {
+        var aelin = AllEncounters.First(e => e.Id == "r1_warden_aelin");
+        var result1 = DropRoller.Roll(aelin, 42);
+        var result2 = DropRoller.Roll(aelin, 42);
+        Assert.Equal(result1.Count, result2.Count);
+        // With same seed, results must be identical
+        for (int i = 0; i < result1.Count; i++)
+            Assert.Equal(result1[i], result2[i]);
+
+        // Different seed should produce different results (extremely high probability)
+        var result3 = DropRoller.Roll(aelin, 9999);
+        // At least the guaranteed drop (rate=1.00) should always appear regardless of seed
+        Assert.Contains("vrd_r_bloomweaver", result3);
+    }
+
+    [Fact]
+    public void DropRoller_AlwaysIncludesGuaranteedDrops()
+    {
+        foreach (var e in AllEncounters)
+        {
+            if (e.Drops == null || e.Drops.Count == 0) continue;
+            var result = DropRoller.Roll(e, 12345);
+            // Every guaranteed drop (rate >= 1.0) must appear
+            foreach (var drop in e.Drops)
+            {
+                if (drop.Rate >= 1.0)
+                    Assert.True(result.Contains(drop.CardId),
+                        $"Encounter {e.Id} guaranteed drop '{drop.CardId}' missing from roll results.");
             }
         }
     }

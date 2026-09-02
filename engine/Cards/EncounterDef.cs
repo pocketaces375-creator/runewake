@@ -3,9 +3,19 @@ using System.Text.Json.Serialization;
 
 namespace Runewake.Engine.Cards;
 
+/// <summary>A single drop entry in an encounter's drop table.</summary>
+public class DropEntry
+{
+    [JsonPropertyName("card_id")]
+    public string CardId { get; set; } = string.Empty;
+
+    [JsonPropertyName("rate")]
+    public double Rate { get; set; }
+}
+
 /// <summary>
 /// Defines a duel encounter on the campaign map.
-/// Includes wielder identity, deck, dialogue, and rewards.
+/// Includes wielder identity, deck, dialogue, rewards, and drops.
 /// </summary>
 public class EncounterDef
 {
@@ -61,6 +71,10 @@ public class EncounterDef
     /// <summary>If true, this encounter fires tutorial popups instead of playing normally.</summary>
     [JsonPropertyName("is_tutorial")]
     public bool IsTutorial { get; set; }
+
+    /// <summary>Drop table: card_id + probability entries, rolled on victory.</summary>
+    [JsonPropertyName("drops")]
+    public List<DropEntry> Drops { get; set; } = new();
 }
 
 /// <summary>

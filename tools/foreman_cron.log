@@ -10220,3 +10220,49 @@ Already up to date.
 === Running: TASK-BOARD-MATCH-3 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+
+**Side-by-side:** artifacts/captures/board_match_3_side_by_side.png  
+**1:1 crop:** artifacts/captures/board_match_3_card_crop.png  
+**Gate:** PASS (standard + wide), **Tests:** 724/724 green  
+**Commit:** 7b9ef99, pushed to origin/main ✅
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 3/48 (3 full + 0 bus, 6/96 halves)
+  Top task: TASK-APK-SHIP-3
+
+=== Running: TASK-APK-SHIP-3 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+**Commits:** `992847e` — pushed to origin/main
+**TASKS_QUEUE.md:** TASK-APK-SHIP-3 marked [x]
+**HERMES_STATUS.md:** DONE entry written at top
+
+Next unchecked task: **TASK-VICTORY-DEFEAT-1** (Phase B starts).
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 4/48 (4 full + 0 bus, 8/96 halves)
+  Top task: TASK-VICTORY-DEFEAT-1
+
+=== Running: TASK-VICTORY-DEFEAT-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

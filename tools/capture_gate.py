@@ -980,6 +980,73 @@ def validate_tutorial_capture(png_path, meta):
         print(f"\nPASS: Tutorial beat capture {beat_id} OK")
 
 
+# ════════════════════════════════════════════
+# Overlay capture validator (victory/defeat)
+# ════════════════════════════════════════════
+
+def validate_overlay_capture(png_path, meta):
+    """Validate a victory or defeat overlay capture — must not be completely dark,
+    must be at the correct resolution, and the center panel area must show content."""
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
+
+    width, height, pixels = read_png(str(png_path))
+    total_pixels = width * height
+    print(f"Image: {width}x{height}, {total_pixels} pixels")
+
+    # Check that the overlay is not completely black
+    near_black_threshold = 15 / 255.0
+    dark_count = 0
+    for i in range(0, len(pixels), 4):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        if get_luminance(r, g, b) < near_black_threshold:
+            dark_count += 1
+
+    dark_ratio = dark_count / total_pixels
+    failures = []
+
+    # Overlay is a dark dimmed screen with a bright panel in the center.
+    # Allow up to 90% near-black (the dim layer covers most of the frame).
+    if dark_ratio > 0.90:
+        failures.append(f"OVERLAY_DARK: {dark_ratio:.1%} pixels near-black (limit 90%)")
+    else:
+        print(f"  PASS overlay dark: {dark_ratio:.1%} near-black (limit 90%)")
+
+    # Check center region (the stone panel) has content
+    # The panel is ~520px wide, centered. Sample the center 400x200 region.
+    cx = width // 2
+    cy = height // 2
+    cw = min(400, width // 3)
+    ch = min(200, height // 3)
+
+    center_mean, center_std = rect_mean_stddev(pixels, width, height,
+                                                cx - cw//2, cy - ch//2, cw, ch)
+
+    # The center panel should be visibly bright (not completely dark)
+    if center_mean < 20 / 255.0:
+        failures.append(f"CENTER_DARK: center region mean luminance {center_mean:.3f} too low (need > 0.078)")
+    else:
+        print(f"  PASS center luminance: {center_mean:.3f}")
+
+    # The center panel should have texture/variation (stone panel + text)
+    if center_std < 8 / 255.0:
+        failures.append(f"CENTER_FLAT: center region stddev {center_std:.3f} too low (need > 0.031)")
+    else:
+        print(f"  PASS center variation: {center_std:.3f}")
+
+    print(f"  Result: {'PASS' if not failures else 'FAIL (' + str(len(failures)) + ' reasons)'}")
+    for f in failures:
+        print(f"    FAIL: {f}")
+
+    if failures:
+        sys.exit(1)
+
+    print("  PASS overlay capture")
+
+
 VALIDATORS = {
     "title_test": validate_screen_live,
     "title_test_wide": validate_screen_live,
@@ -991,6 +1058,10 @@ VALIDATORS = {
     "deck_test_phone": validate_deck_test_chips,
     "title_deck": validate_title_deck_test,
     "tutorial_warrior_intro": validate_tutorial_capture,
+    "victory_overlay": validate_overlay_capture,
+    "victory_overlay_wide": validate_overlay_capture,
+    "defeat_overlay": validate_overlay_capture,
+    "defeat_overlay_wide": validate_overlay_capture,
 }
 
 
