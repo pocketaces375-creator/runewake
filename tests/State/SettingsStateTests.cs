@@ -76,6 +76,8 @@ public class SettingsPersistenceTests : IDisposable
             MasterVolume = 0.3f,
             MusicVolume = 0.5f,
             SfxVolume = 0.7f,
+            AmbientVolume = 0.4f,
+            MasterMute = true,
             ReduceMotion = true,
             LargeText = true,
             HighContrast = false,
@@ -88,6 +90,8 @@ public class SettingsPersistenceTests : IDisposable
         Assert.Equal(0.3f, loaded.MasterVolume);
         Assert.Equal(0.5f, loaded.MusicVolume);
         Assert.Equal(0.7f, loaded.SfxVolume);
+        Assert.Equal(0.4f, loaded.AmbientVolume);
+        Assert.True(loaded.MasterMute);
         Assert.True(loaded.ReduceMotion);
         Assert.True(loaded.LargeText);
         Assert.False(loaded.HighContrast);

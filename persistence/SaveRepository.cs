@@ -248,6 +248,8 @@ public sealed class SaveRepository
         InsertSetting(conn, "master_volume", settings.MasterVolume.ToString());
         InsertSetting(conn, "music_volume", settings.MusicVolume.ToString());
         InsertSetting(conn, "sfx_volume", settings.SfxVolume.ToString());
+        InsertSetting(conn, "ambient_volume", settings.AmbientVolume.ToString());
+        InsertSetting(conn, "master_mute", settings.MasterMute ? "1" : "0");
         InsertSetting(conn, "reduce_motion", settings.ReduceMotion ? "1" : "0");
         InsertSetting(conn, "large_text", settings.LargeText ? "1" : "0");
         InsertSetting(conn, "high_contrast", settings.HighContrast ? "1" : "0");
@@ -285,6 +287,8 @@ public sealed class SaveRepository
             if (dict.TryGetValue("master_volume", out var mv) && float.TryParse(mv, out var mvf)) s.MasterVolume = mvf;
             if (dict.TryGetValue("music_volume", out var musv) && float.TryParse(musv, out var musf)) s.MusicVolume = musf;
             if (dict.TryGetValue("sfx_volume", out var sfx) && float.TryParse(sfx, out var sfxf)) s.SfxVolume = sfxf;
+            if (dict.TryGetValue("ambient_volume", out var ambv) && float.TryParse(ambv, out var ambf)) s.AmbientVolume = ambf;
+            if (dict.TryGetValue("master_mute", out var mm)) s.MasterMute = mm == "1";
             if (dict.TryGetValue("reduce_motion", out var rm)) s.ReduceMotion = rm == "1";
             if (dict.TryGetValue("large_text", out var lt)) s.LargeText = lt == "1";
             if (dict.TryGetValue("high_contrast", out var hc)) s.HighContrast = hc == "1";
