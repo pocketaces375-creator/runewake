@@ -150,7 +150,7 @@
   corrupt-repair to "no collection".
   Acceptance: tests green; deck builder tiles show "owned x · in y decks" (text only for now).
 
-- [ ] TASK-BOARD-MATCH-4 — REOPEN, urgent. Real, current defects confirmed by Trikzos'
+- [x] TASK-BOARD-MATCH-4 — REOPEN, urgent. Real, current defects confirmed by Trikzos'
   screenshot AND our own committed duel_test.png/choose_path_wide.png (pull them and
   look — do not trust the BOARD-MATCH-3 "matched" checklist):
   (1) COST BADGE: currently renders top-LEFT of the card. Spec (unchanged since
@@ -174,7 +174,7 @@
   just a pass/fail table. Gate PASS is necessary but not sufficient — you must also
   visually confirm. Then mark [x] and continue.
 
-- [ ] TASK-CHOOSEPATH-LAYOUT-1 — urgent, Choose Your Path screen wastes roughly the
+- [x] TASK-CHOOSEPATH-LAYOUT-1 — urgent, Choose Your Path screen wastes roughly the
   bottom 40-45% of the viewport as dead black space at both 2316x1080 and the wide
   variant — the whole screen (title, class carousel, class-core row, Begin button) is
   compressed into the top half only. Confirmed in our own current choose_path_wide.png.
