@@ -1,3 +1,13 @@
+**TASK-COLLECTION-DATA-1 (2026-09-02):** Owned-copies collection model with starter grants, multi-deck validator, save migration, and tests. ✅
+- **Collection model:** Already existed in ProgressionState (Dictionary<string, int>). Added `GrantStarterCollection(List<string>)` method to grant 1 copy of each starter deck card. ✅
+- **Starter decks:** Updated client/content/decks/starter_decks.json class IDs to match the 7-class roster: tidecaller→battlemage, dawnward→paladin, occultist→thief. ✅
+- **Multi-deck validator:** Added `DeckValidator.ValidateCollection()` — checks that each card's owned count >= number of decks it appears in. Reports "needs another copy: <card_name>". ✅
+- **Save migration (v2→v3):** If collection is empty but saved decks exist, seed 1 copy of each card per deck. ✅
+- **Deck builder:** Fixed owned count to read from ProgressionState.Collection (was hardcoded to 1). Added "owned X · in Y decks" label. ✅
+- **Tests (19 new):** 4 ProgressionState grant tests, 8 DeckValidator collection tests, 6 SaveRepository migration tests, 1 corrupt-repair test. ✅
+- **Build:** 0 errors. **Tests:** 746/746 green (+17 tests). ✅
+- **Committed (dd6d112) and pushed to origin/main.** ✅
+
 **TASK-DROPS-DATA-1 (2026-09-02):** Card drops added to all 9 encounters. ✅
 - **Drop schema:** `drops` array on every encounter — cards from the foe's own deck with default rates C 0.40 / U 0.25 / R 0.10 / M 0.03. ✅
 - **Boss signatures:** r1_warden_aelin → vrd_r_bloomweaver (1.00), r1_boss_warden_aelin → dwn_r_sealing_light (1.00). ✅

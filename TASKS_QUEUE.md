@@ -142,7 +142,7 @@
   every encounter has at least 3 drop entries and that every card_id exists. Data + engine only, no UI here.
   Acceptance: schema documented in a new docs/DROPS.md; tests green.
 
-- [ ] TASK-COLLECTION-DATA-1 — Owned-copies model. Store a collection in the versioned save: card_id →
+- [x] TASK-COLLECTION-DATA-1 — Owned-copies model. Store a collection in the versioned save: card_id →
   owned count. Starters grant exactly 1 copy of every card in the chosen class's starter deck; drops add
   copies. Singleton + multi-deck rule (Trikzos): a card may sit in N saved decks only if owned >= N copies;
   the deck validator reports "needs another copy" naming the card. Migration for existing saves: seed
