@@ -221,7 +221,7 @@
   Shards remain the dig currency; do not merge the two. Insufficient funds shows the shortfall.
   Acceptance: tests; capture of the Rune Page showing one purchasable and one unaffordable item; posted.
 
-- [ ] TASK-SETTINGS-COMPLETE-1 — Finish the settings screen: music / SFX / ambient sliders persisted in the
+- [x] TASK-SETTINGS-COMPLETE-1 — Finish the settings screen: music / SFX / ambient sliders persisted in the
   save, replay intro, a credits panel (CC0 audio attributions from the manifest), reset progress behind a
   typed confirm, and a version + build hash string bottom-right.
   Acceptance: capture; slider values survive a headless restart; posted.

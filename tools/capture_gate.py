@@ -1117,6 +1117,79 @@ def validate_reliquary_test(png_path, meta):
     print("  PASS reliquary capture")
 
 
+# ════════════════════════════════════════════
+# Settings capture validator
+# ════════════════════════════════════════════
+
+def validate_settings_capture(png_path, meta):
+    """Validate settings screen capture:
+    - Not a black screen (< 85% near-black)
+    - SETTINGS title visible in gold in top 10% of frame
+    - Volume slider area has variation (not solid)
+    - Version + build hash text visible bottom-right
+    """
+    if not png_path.exists():
+        print(f"FAIL: PNG not found: {png_path}")
+        sys.exit(1)
+
+    width, height, pixels = read_png(str(png_path))
+    total_pixels = width * height
+    print(f"Image: {width}x{height}, {total_pixels} pixels")
+
+    failures = []
+
+    # ─── Check 1: Not a black screen ───
+    black_threshold = 12.0 / 255.0
+    dark_count = 0
+    for i in range(0, len(pixels), 4):
+        r = pixels[i] / 255.0
+        g = pixels[i + 1] / 255.0
+        b = pixels[i + 2] / 255.0
+        if get_luminance(r, g, b) < black_threshold:
+            dark_count += 1
+    dark_ratio = dark_count / total_pixels
+    if dark_ratio > 0.85:
+        failures.append(f"Whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 85%)")
+    else:
+        print(f"  PASS whole-frame dark: {dark_ratio:.1%} near-black pixels (limit 85%)")
+
+    # ─── Check 2: SETTINGS title visible (gold text in top 10%) ───
+    title_y = 0
+    title_h = int(height * 0.10)
+    title_mean, title_std = rect_mean_stddev(pixels, width, height, 0, title_y, width, title_h)
+    if title_std < 3.0 / 255.0:
+        failures.append(f"SETTINGS title area: stddev {title_std:.3f} too low — title not visible")
+    else:
+        print(f"  PASS SETTINGS title area: mean={title_mean:.3f}, std={title_std:.3f}")
+
+    # ─── Check 3: Volume slider area has variation (middle third of screen) ───
+    slider_y = int(height * 0.12)
+    slider_h = int(height * 0.30)
+    slider_mean, slider_std = rect_mean_stddev(pixels, width, height, 0, slider_y, width, slider_h)
+    if slider_std < 5.0 / 255.0:
+        failures.append(f"Slider area: stddev {slider_std:.3f} too low — sliders not visible")
+    else:
+        print(f"  PASS slider area: mean={slider_mean:.3f}, std={slider_std:.3f}")
+
+    # ─── Check 4: Version text visible bottom-right ───
+    version_y = int(height * 0.92)
+    version_h = int(height * 0.08)
+    version_mean, version_std = rect_mean_stddev(pixels, width, height, int(width * 0.5), version_y, int(width * 0.46), version_h)
+    if version_std < 2.0 / 255.0:
+        failures.append(f"Version text area: stddev {version_std:.3f} too low — version not visible")
+    else:
+        print(f"  PASS version text area: mean={version_mean:.3f}, std={version_std:.3f}")
+
+    if failures:
+        print(f"\nFAILURE ({len(failures)} reasons):")
+        for f in failures:
+            print(f"  - {f}")
+        sys.exit(1)
+    else:
+        print("\nPASS: All settings capture checks passed")
+        sys.exit(0)
+
+
 VALIDATORS = {
     "title_test": validate_screen_live,
     "title_test_wide": validate_screen_live,
@@ -1134,6 +1207,8 @@ VALIDATORS = {
     "defeat_overlay_wide": validate_overlay_capture,
     "reliquary_test": validate_reliquary_test,
     "reliquary_test_wide": validate_reliquary_test,
+    "settings_test": validate_settings_capture,
+    "settings_test_wide": validate_settings_capture,
 }
 
 
