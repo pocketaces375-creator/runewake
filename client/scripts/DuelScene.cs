@@ -522,6 +522,9 @@ public partial class DuelScene : Control
                         _gsm.State.Players[targetPlayer].Vigor = 0;
                         _gsm.State.IsGameOver = true;
                         _gsm.State.WinnerIndex = playerWins ? 0 : 1;
+                        // TASK-DROPS-UI-1: Fire OnGameOver to roll drops and build reveal state
+                        int winnerIdx = playerWins ? 0 : 1;
+                        OnGameOver(winnerIdx);
                         // Notify the scene to render the overlay
                         OnStateChanged();
                         GD.Print($"[DuelScene] Forced game-over for overlay capture: {(playerWins ? "VICTORY" : "DEFEAT")}");
@@ -2996,6 +2999,219 @@ public partial class DuelScene : Control
     /// <summary>Display name of the card granted by this victory (null = none).</summary>
     private string? _grantedCardName;
 
+    // ── TASK-DROPS-UI-1: Drop reveal state ──
+    private struct DropRevealCard
+    {
+        public string CardId;
+        public string CardName;
+        public int Cost;
+        public Strata Strata;
+        public int? Attack;
+        public int? Vigor;
+        public bool IsNew;
+    }
+    private readonly List<DropRevealCard> _dropRevealCards = new();
+    private int _currentRevealIndex = -1;
+    private Control? _dropRevealContainer;
+    private Control? _dropCardContainer; // holds the currently visible CardPlate
+    private Label? _dropRibbonLabel;     // "NEW" or "+1"
+    private Label? _dropTitleLabel;      // "Drops" header
+    private Godot.Timer? _revealTimer;
+    private bool _revealTapped;          // player tapped to advance
+
+    /// <summary>
+    /// Start the drop reveal sequence on the victory overlay.
+    /// </summary>
+    private void StartDropReveal()
+    {
+        if (_dropRevealContainer == null || _dropRevealCards.Count == 0)
+        {
+            // No drops to reveal — skip reveal state
+            _currentRevealIndex = _dropRevealCards.Count;
+            return;
+        }
+
+        _currentRevealIndex = -1;
+        _revealTapped = false;
+
+        // Show the drops header
+        if (_dropTitleLabel != null)
+            _dropTitleLabel.Visible = true;
+
+        // Reveal the first card after a short pause
+        var timer = new Godot.Timer();
+        timer.WaitTime = 0.8f;
+        timer.OneShot = true;
+        timer.Timeout += RevealNextDrop;
+        AddChild(timer);
+        timer.Start();
+        _revealTimer = timer;
+    }
+
+    /// <summary>
+    /// Reveal the next card in the drop sequence, or finish.
+    /// </summary>
+    private void RevealNextDrop()
+    {
+        _revealTapped = false;
+
+        // Clean up previous card
+        if (_dropCardContainer != null)
+        {
+            _dropCardContainer.QueueFree();
+            _dropCardContainer = null;
+        }
+
+        _currentRevealIndex++;
+
+        if (_currentRevealIndex >= _dropRevealCards.Count)
+        {
+            // All drops revealed — hide the reveal UI, let Continue button work
+            if (_dropRevealContainer != null)
+                _dropRevealContainer.Visible = false;
+            if (_dropTitleLabel != null)
+                _dropTitleLabel.Visible = false;
+            // Re-enable Continue button if it was disabled
+            return;
+        }
+
+        var card = _dropRevealCards[_currentRevealIndex];
+        BuildDropRevealCard(card);
+
+        // Set up auto-advance timer for this card
+        if (_revealTimer != null && IsInstanceValid(_revealTimer))
+        {
+            _revealTimer.QueueFree();
+        }
+        var timer = new Godot.Timer();
+        timer.WaitTime = 2.5f;
+        timer.OneShot = true;
+        timer.Timeout += () =>
+        {
+            if (!_revealTapped && _currentRevealIndex < _dropRevealCards.Count)
+                RevealNextDrop();
+        };
+        AddChild(timer);
+        timer.Start();
+        _revealTimer = timer;
+    }
+
+    /// <summary>
+    /// Build a CardPlate for one revealed drop card inside the reveal container.
+    /// </summary>
+    private void BuildDropRevealCard(DropRevealCard card)
+    {
+        if (_dropRevealContainer == null) return;
+
+        // Remove any existing card plate
+        if (_dropCardContainer != null)
+        {
+            _dropCardContainer.QueueFree();
+            _dropCardContainer = null;
+        }
+
+        // Card size: hand-card size (~260px wide at 2316x1080)
+        float cardW = 260f;
+        float cardH = cardW * 1.45f; // ~2:3 card aspect
+
+        // Container for the card + ribbon
+        var ctr = new Control
+        {
+            Name = "DropRevealCardWrapper",
+            CustomMinimumSize = new Vector2(cardW + 40, cardH + 60),
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+        };
+
+        // CardPlate
+        var plate = new CardPlate
+        {
+            Name = "DropCardPlate",
+            MouseFilter = Control.MouseFilterEnum.Stop,
+            CustomMinimumSize = new Vector2(cardW, cardH),
+        };
+        plate.Setup(card.CardName, card.Attack, card.Vigor, card.Strata, cardW, cardH, card.Cost);
+
+        // Cost rune
+        float hexSize;
+        var costLabel = CardPlate.MakeCostRune(card.Cost, cardW, cardH, out hexSize);
+        plate.AddChild(costLabel);
+
+        // Root-Bound border
+        var border = new RootBoundBorder();
+        border.Setup(cardW, cardH);
+        plate.AddChild(border);
+
+        ctr.AddChild(plate);
+
+        // ── Ribbon (top-left corner) ──
+        var ribbonText = card.IsNew ? "NEW" : "+1";
+        var ribbon = new Label
+        {
+            Text = ribbonText,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        ApplyHeaderFont(ribbon, 14);
+        float ribbonW = card.IsNew ? 60f : 44f;
+        float ribbonH = 24f;
+        ribbon.Size = new Vector2(ribbonW, ribbonH);
+        ribbon.Position = new Vector2(-4, -4);
+        var ribbonStyle = new StyleBoxFlat
+        {
+            BgColor = card.IsNew ? Color.FromHtml("#2A6B2A") : Color.FromHtml("#6B5A2A"),
+            BorderColor = card.IsNew ? Color.FromHtml("#5AFA2A") : Color.FromHtml("#FA9A2A"),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 6, ContentMarginTop = 2, ContentMarginRight = 6, ContentMarginBottom = 2,
+        };
+        ribbon.AddThemeStyleboxOverride("normal", ribbonStyle);
+        ribbon.Modulate = card.IsNew ? Color.FromHtml("#C8FFC8") : Color.FromHtml("#FFE8A0");
+        ctr.AddChild(ribbon);
+        _dropRibbonLabel = ribbon;
+
+        // ── Tap hint ──
+        bool isLast = _currentRevealIndex >= _dropRevealCards.Count - 1;
+        var hint = new Label
+        {
+            Text = isLast ? "Tap to continue" : "Tap for next",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        ApplyBodyFont(hint, 12);
+        hint.Modulate = new Color(0.7f, 0.7f, 0.7f, 0.7f);
+        hint.Position = new Vector2(0, cardH + 8);
+        hint.Size = new Vector2(cardW, 20);
+        ctr.AddChild(hint);
+
+        // ── Tap-to-advance on the card area ──
+        var tapArea = new ColorRect
+        {
+            Color = new Color(0, 0, 0, 0),
+            MouseFilter = Control.MouseFilterEnum.Stop,
+            Size = new Vector2(cardW, cardH),
+            Position = Vector2.Zero,
+        };
+        tapArea.GuiInput += (evt) =>
+        {
+            if (evt is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+            {
+                _revealTapped = true;
+                if (_revealTimer != null && IsInstanceValid(_revealTimer))
+                    _revealTimer.QueueFree();
+                RevealNextDrop();
+            }
+        };
+        ctr.AddChild(tapArea);
+
+        // Add to reveal container
+        _dropRevealContainer.AddChild(ctr);
+        _dropCardContainer = ctr;
+    }
+
     private void OnGameOver(int winnerIndex)
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
@@ -3117,10 +3333,47 @@ public partial class DuelScene : Control
 
             // Grant the player one copy of each card in the encounter deck
             // that they don't already own
+            // Take a snapshot of owned cards before the baseline grant so we
+            // can distinguish NEW drops (first copy ever) from +1 (duplicate).
+            var ownedBeforeBaseline = new HashSet<string>(prog.Collection.Keys);
             foreach (var cardId in enc.Deck)
             {
                 if (!prog.Collection.ContainsKey(cardId))
                     prog.AddCard(cardId);
+            }
+
+            // ── TASK-DROPS-UI-1: Roll encounter drop table ──
+            ulong dropSeed = CampaignContext.DebugSeed ?? (ulong)(enc.Id.GetHashCode() & 0x7FFFFFFF);
+            var droppedCardIds = DropRoller.Roll(enc, dropSeed);
+            foreach (var dcId in droppedCardIds)
+            {
+                var cardDef = CardRegistry.Get(dcId);
+                if (cardDef == null)
+                {
+                    GD.PrintErr($"[DuelScene] Drop card '{dcId}' not found in CardRegistry — skipping");
+                    continue;
+                }
+
+                // Determine NEW vs +1 using pre-baseline snapshot:
+                // NEW = card was not owned before this victory at all
+                // +1  = card was already owned before this victory
+                bool isNew = !ownedBeforeBaseline.Contains(dcId);
+
+                // Grant the drop copy
+                prog.AddCard(dcId);
+
+                _dropRevealCards.Add(new DropRevealCard
+                {
+                    CardId = dcId,
+                    CardName = cardDef.Name,
+                    Cost = cardDef.Cost,
+                    Strata = cardDef.Strata,
+                    Attack = cardDef.Attack,
+                    Vigor = cardDef.Vigor,
+                    IsNew = isNew,
+                });
+
+                GD.Print($"[DuelScene] Drop rolled: {cardDef.Name} ({dcId}) {(isNew ? "NEW" : "+1")}");
             }
 
             CampaignContext.SaveManager.Save();
@@ -3398,6 +3651,36 @@ public partial class DuelScene : Control
 
             rewardPanel.AddChild(rewardGrid);
             panelVBox.AddChild(rewardPanel);
+
+            // ── TASK-DROPS-UI-1: Drop reveal area (hidden initially, shown by StartDropReveal) ──
+            if (_dropRevealCards.Count > 0)
+            {
+                panelVBox.AddChild(MakeDivider());
+
+                var dropHeader = new Label
+                {
+                    Text = "— Drops —",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                };
+                ApplyBodyFont(dropHeader, FontSmall);
+                dropHeader.Modulate = Moss;
+                dropHeader.Visible = false; // hidden until reveal starts
+                panelVBox.AddChild(dropHeader);
+                _dropTitleLabel = dropHeader;
+
+                var dropCtr = new CenterContainer
+                {
+                    Name = "DropRevealArea",
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    CustomMinimumSize = new Vector2(0, 340),
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                    Visible = false,
+                };
+                panelVBox.AddChild(dropCtr);
+                _dropRevealContainer = dropCtr;
+            }
         }
 
         // ── Divider line ──
@@ -3452,6 +3735,18 @@ public partial class DuelScene : Control
         _gameOverOverlay.AddChild(container);
 
         AddChild(_gameOverOverlay);
+
+        // ── TASK-DROPS-UI-1: Start the drop reveal sequence ──
+        if (_dropRevealCards.Count > 0)
+        {
+            // Wait one frame for layout then start reveal
+            var startTimer = new Godot.Timer();
+            startTimer.WaitTime = 0.1f;
+            startTimer.OneShot = true;
+            startTimer.Timeout += StartDropReveal;
+            _gameOverOverlay.AddChild(startTimer);
+            startTimer.Start();
+        }
 
         // Play audio event
         var audio = GetNode<AudioManager>("/root/AudioManager");

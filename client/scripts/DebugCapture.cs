@@ -374,8 +374,20 @@ public partial class DebugCapture : Node
             DialogueOutro = ["A worthy challenge...", "The ember burns brighter within you."],
             ShardReward = 15,
             DigChargeReward = 2,
-            FragmentReward = "ember:1"
+            FragmentReward = "ember:1",
+            // TASK-DROPS-UI-1: Fixed drops for capture — rate 1.0 guarantees both drop
+            Drops = new List<DropEntry>
+            {
+                new DropEntry { CardId = "vrd_c_root_warden", Rate = 1.0 },  // pre-seeded → +1
+                new DropEntry { CardId = "emb_c_cinder_runner", Rate = 1.0 }, // not pre-seeded → NEW
+                new DropEntry { CardId = "dwn_c_dawn_warder", Rate = 1.0 },   // not pre-seeded → NEW
+            }
         };
+
+        // TASK-DROPS-UI-1: Pre-seed collection so one drop shows "+1" (already owned)
+        // and the others show "NEW" (first copy ever received)
+        CampaignContext.Progression.Collection.Clear();
+        CampaignContext.Progression.Collection["vrd_c_root_warden"] = 1;
         CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.DebugSeed = 42;
         GD.Print("[DebugCapture] Set DebugSeed=42, AutoCaptureScreenshot=true");
