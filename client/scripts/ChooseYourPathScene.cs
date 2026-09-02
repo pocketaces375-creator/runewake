@@ -117,7 +117,8 @@ public partial class ChooseYourPathScene : Control
         AddChild(gradient);
 
         // ── Title ──
-        float titleH = 48f;
+        float titleH = 48f * _viewportH / 1080f;
+        float titleY = 18f * _viewportH / 1080f;
         var title = new Label
         {
             Text = "CHOOSE YOUR PATH",
@@ -128,12 +129,12 @@ public partial class ChooseYourPathScene : Control
         title.AddThemeColorOverride("font_color", Gold);
         title.AddThemeConstantOverride("outline_size", 2);
         title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.Position = new Vector2(0, 18);
+        title.Position = new Vector2(0, titleY);
         title.Size = new Vector2(_viewportW, titleH);
         AddChild(title);
 
         // ── Subtitle ──
-        float subY = 70;
+        float subY = titleY + titleH + 8f * _viewportH / 1080f;
         var subtitle = new Label
         {
             Text = "Each path begins in its own town, with its own tale.",
@@ -149,9 +150,9 @@ public partial class ChooseYourPathScene : Control
         subtitle.Size = new Vector2(_viewportW - 80, 26);
         AddChild(subtitle);
 
-        // ── Carousel container — FIXED height, ClipContents ──
-        float carouselY = subY + 34;
-        float carouselH = _panelFullH + 12;
+        // ── Carousel container — proportional height ──
+        float carouselY = subY + 34f * _viewportH / 1080f;
+        float carouselH = _panelFullH + 12f;
         _carouselPanelContainer = new Control
         {
             ClipContents = true,
@@ -240,15 +241,15 @@ public partial class ChooseYourPathScene : Control
         }
 
         // ── Core cards area ──
-        float coreY = dotsY + 16;
-        float coreH = 120f;
+        float coreY = dotsY + 16f * _viewportH / 1080f;
+        float coreH = 160f * _viewportH / 1080f;
         _coreCardsArea = new Control();
         _coreCardsArea.Position = new Vector2(0, coreY);
         _coreCardsArea.Size = new Vector2(_viewportW, coreH);
         AddChild(_coreCardsArea);
 
         // ── BEGIN button ──
-        float beginY = coreY + coreH + 4;
+        float beginY = coreY + coreH + 4f * _viewportH / 1080f;
         _beginButton = new PanelContainer();
         _beginButton.Position = new Vector2(_viewportW / 2f - 140, beginY);
         _beginButton.Size = new Vector2(280, 46);
@@ -495,8 +496,8 @@ public partial class ChooseYourPathScene : Control
 
         // Show 4 mini cards
         _coreCardRow = new HBoxContainer();
-        _coreCardRow.AddThemeConstantOverride("separation", 10);
-        float minisTotal = cls.CoreCardIds.Count * 90f + (cls.CoreCardIds.Count - 1) * 10f;
+        _coreCardRow.AddThemeConstantOverride("separation", 12);
+        float minisTotal = cls.CoreCardIds.Count * miniW + (cls.CoreCardIds.Count - 1) * 12f;
         _coreCardRow.Position = new Vector2(_viewportW / 2f - minisTotal / 2f, 26);
         _coreCardRow.Size = new Vector2(minisTotal, 90);
         _coreCardsArea.AddChild(_coreCardRow);
@@ -506,8 +507,8 @@ public partial class ChooseYourPathScene : Control
             var def = CardRegistry.Get(cardId);
             if (def == null) continue;
 
-            float miniW = 80f;
-            float miniH = 80f * 152f / 104f;
+            float miniW = 120f * _viewportH / 1080f;
+            float miniH = miniW * 152f / 104f;
 
             var miniCard = new PanelContainer();
             miniCard.CustomMinimumSize = new Vector2(miniW, miniH);
