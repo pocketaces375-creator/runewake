@@ -1,3 +1,13 @@
+**TASK-DROPS-UI-1 (2026-09-02):** The reveal moment — on the victory screen, after the reward summary, flip each dropped card in one at a time. ✅
+- **Drop reveal:** BuildDropRevealCard creates a CardPlate at hand-card size (260px wide) with Root-Bound border, cost rune, and stat chips. Each card shows a "NEW" (green) or "+1" (amber) ribbon in the top-left corner. ✅
+- **Reveal sequence:** StartDropReveal → 0.8s delay → RevealNextDrop shows first card with 2.5s auto-advance timer. Tap the card to advance immediately. Last card shows "Tap to continue" hint. All cards visible before Continue button is re-enabled. ✅
+- **Collection integration:** OnGameOver rolls the encounter's drop table via DropRoller.Roll() with seeded RNG. Takes a snapshot of owned cards before the baseline deck grant to distinguish NEW (first copy) from +1 (duplicate). Cards are added to ProgressionState.Collection before the overlay renders. ✅
+- **Test setup:** DebugCapture.SetUpTestEncounter pre-seeds collection with vrd_c_root_warden (→ "+1"), sets 3 drops at rate 1.0 (vrd_c_root_warden, emb_c_cinder_runner, dwn_c_dawn_warder). All 3 drops roll on victory. ✅
+- **Captures:** victory_overlay (2316×1080), victory_overlay_wide (2999×1080), defeat_overlay, defeat_overlay_wide — all 4 PASS. ✅
+- **Build:** 0 errors. **Tests:** 746/746 green. ✅
+- **Compilation fixes:** Fixed brace mismatch in OnGameOver (missing closing brace before ShowGameOverOverlay), miniW scope error in ChooseYourPathScene, GridContainer type in ReliquaryScene, LayoutPreset.Wide→BottomWide, HBoxContainer initializer, added CaptureReliquaryScreenshot to CampaignContext, IsCardSeen/MarkCardSeen to ProgressionState, SeenCardIds to SaveManager CopyInto. ✅
+- **Committed (c690d11) and pushed to origin/main.** ✅
+
 **TASK-COLLECTION-DATA-1 (2026-09-02):** Owned-copies collection model with starter grants, multi-deck validator, save migration, and tests. ✅
 - **Collection model:** Already existed in ProgressionState (Dictionary<string, int>). Added `GrantStarterCollection(List<string>)` method to grant 1 copy of each starter deck card. ✅
 - **Starter decks:** Updated client/content/decks/starter_decks.json class IDs to match the 7-class roster: tidecaller→battlemage, dawnward→paladin, occultist→thief. ✅

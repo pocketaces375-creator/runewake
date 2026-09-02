@@ -195,7 +195,7 @@
   TASK-BOARD-MATCH-4 above. Captures at both 2316x1080 and wide. Post to the group.
   Mark [x] and continue.
 
-- [ ] TASK-DROPS-UI-1 — The reveal moment. On the victory screen, after the reward summary, flip each
+- [x] TASK-DROPS-UI-1 — The reveal moment. On the victory screen, after the reward summary, flip each
   dropped card in one at a time (CardPlate at hand-card size, hi-res), with a "NEW" ribbon on a first copy
   and "+1" on a duplicate; tap to continue. Cards are added to the collection before the map returns.
   Acceptance: capture of a reveal showing one NEW and one duplicate; headless flow asserting collection
