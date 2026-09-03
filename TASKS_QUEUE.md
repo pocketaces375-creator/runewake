@@ -345,6 +345,28 @@
       slot's by a clear margin.
   Acceptance: ui_lint passes on duel_test, duel_test_wide and duel_test_safe; post the safe-
   area capture with one sentence.
+- [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
+  a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
+  sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
+  close either is to lethal; creature value = attack + vigor + keyword worth; favorable
+  trades (kill without dying) rewarded; attacking into a blocker that kills you is only
+  allowed when it clears the way to lethal; Guard lanes respected; artifact charge progress
+  valued; hold a cheap card rather than dump the hand into a Guard wall. Deterministic under
+  the match seed. Difficulty knob in encounter json: "ai": "greedy" | "tactician" — default
+  tactician everywhere, bosses always tactician.
+  Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
+  in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
+
+- [ ] TASK-CARD-FILL-1 — No more blank cards. 28 of 65 cards have no keyword and no ability.
+  Give every one of them exactly one keyword or one one-line trigger from the CLOSED keyword
+  set (Guard, Swift, Pierce, Ward, Venom, Reach, Rooted, Unearth N, Echo, Fragile, Sealed) or
+  the existing DSL ops, flavoured by stratum: Ember leans Swift/Pierce and burn-on-hit,
+  Hollow leans Unearth/Venom/Barrow, Verdant leans Rooted/Guard/heal, Tide leans Echo/Ward
+  and draw, Dawn leans Ward/Guard/Sealed. Stats stay as they are. Run the pipeline power
+  score before/after; if a card leaves its rarity band, FLAG it in the report — do not retune
+  numbers, Fable does.
+  Acceptance: zero vanilla creatures left; DSL valid; pipeline tests green; a plain list
+  "card → what it does now" posted to the group; flagged cards listed separately.
 
 - [ ] TASK-RUNE-SHOP-1 — Replace what TASK-RUNE-SINK-1 built (wrong economy — Fable's spec
   arrived late, not your error). Trikzos' rule: Runes (RuneDust) are earned by grinding extra
@@ -380,6 +402,40 @@
   signed release export. Tag alpha-playable-1. Post URL, size, sha256 and a plain sentence
   for Trikzos: what he can do end to end in this build, and the one thing to look at first.
   Acceptance: DONE line contains release URL, size, sha256 and the four gate results.
+- [ ] TASK-JUICE-1 — Make it feel like a dark fae ritual, client only. No layout changes
+  (ui_lint must stay green); every effect under 400 ms and skippable; hook the existing
+  audio manifest events. Card play: a puff of stone dust and a low thud as it seats in the
+  lane. Hit: a rune-flare in the attacker's stratum colour; the damage number in the serif
+  face drifting upward like an ember (Ember), a spore (Verdant), a mote of light (Dawn), a
+  bead of brine (Tide), bone-dust (Hollow). Face damage: the whole altar ring trembles and
+  the screen edge pulses in the enemy's colour. Creature death: the card crumbles — ash,
+  roots, brine, bone-dust or light by stratum. Artifact charge: its rune sigil brightens
+  with a soft chime; the third charge gets a halo. End Turn: the altar ring turns one notch.
+  Victory: light floods up from the altar; defeat: it drains down into the stone.
+  Acceptance: a six-frame strip (play → hit → death) plus the victory frame posted; ui_lint
+  green on every capture; frame-time budget unchanged.
+
+- [ ] TASK-FUN-SIM-1 — REPORT ONLY, adopt nothing, change no shipped rule. Behind MatchConfig
+  flags, implement and simulate on the same seed set, 500 mirrors per variant, all 7 classes:
+  (a) StartingVigor 20 instead of 25.
+  (b) INVOKE — when an artifact reaches 3 charges, the charge-full effect is HELD until the
+      owner taps the artifact (the tactician AI fires it when its evaluation says so), instead
+      of auto-firing.
+  (c) ALTAR — lane 2 is the War Altar: a creature attacking from it deals +1, but takes double
+      combat damage; edge lanes 0 and 4 are the hedge: Pierce does not carry through them.
+  (d) a + b + c together.
+  Report per variant: P0 win%, average game length in turns, average turn of the first
+  creature death, and — Trikzos cares about this — the win% gap between the fastest class
+  and the slowest, so we can see whether rush decks stay viable. Plain words in the group,
+  full table in HERMES_STATUS.md. Fable decides what ships.
+
+- [ ] TASK-WARDEN-RULE-1 — Bosses get a signature; everyday encounters never do. Engine
+  primitive: an encounter json may declare one "opening rule" — a scripted effect active from
+  turn 1, shown as a banner card at the top of the board. Implement the primitive and ONE
+  rule, for the Region 1 Warden only: "Root-choked — the challenger's leftmost lane is buried
+  until the Warden's first creature dies." No other encounter gets a rule in this task.
+  Acceptance: capture of the banner in the boss fight; loop_smoke still passes; the boss
+  deck's sim win% before/after reported.
 
 - [ ] TASK-CLASS-PORTRAITS-1 — Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
   OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
