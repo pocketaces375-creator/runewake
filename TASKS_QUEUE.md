@@ -424,6 +424,22 @@
       slot's by a clear margin.
   Acceptance: ui_lint passes on duel_test, duel_test_wide and duel_test_safe; post the safe-
   area capture with one sentence.
+
+- [ ] TASK-PLAYABLE-NAV-1 — TOP PRIORITY. The game is not playable end to end: the playable
+  smoke / PLAYABLE.json check fails with "Expected ChooseYourPath but got Main" — starting the
+  game lands on the main menu and never transitions into the Choose Your Path screen, so a
+  player (and the harness) is stuck at the entry. This is the gate to the playable alpha.
+  Find why the Main -> ChooseYourPath transition does not fire in the playable path. Likely
+  suspects (verify, do not assume): Main.cs navigation not triggering when the new-game / first
+  scene is requested; a TutorialScriptId or campaign-state guard routing back to Main; the
+  ChooseYourPath scene path or autoload wiring changed by the recent LAYOUT-3/4 rebuilds. Fix
+  the actual cause so a fresh start goes Main -> ChooseYourPath -> (pick a class) -> first duel
+  -> back to map, with no dead end.
+  Acceptance: artifacts/PLAYABLE.json shows playable=true with the full step list passing;
+  loop_smoke passes and its log shows it reached ChooseYourPath and a duel; report in one plain
+  sentence what was broken and what a player can now do start to finish. Do NOT mark done on a
+  green gate alone — the DONE line must quote the PLAYABLE.json playable=true and the reached
+  steps.
 - [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
