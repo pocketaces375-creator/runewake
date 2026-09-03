@@ -534,17 +534,24 @@ TASK_ID=$(echo "${TOP_TASK}" | cut -d'|' -f1)
 TASK_DESC=$(echo "${TOP_TASK}" | cut -d'|' -f2-)
 info "Top task: ${TASK_ID}"
 
-# ── 3b. BLOCKED check (sticky) ──────────────────────────────────────────────
-if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]] && [[ "${RETRY_COUNT}" -ge 1 ]]; then
-  if [[ "${BLOCKED_NOTIFIED}" != "True" ]]; then
-    fail "Task ${TASK_ID} BLOCKED (exhausted retry ${RETRY_COUNT})"
-    telegram_text "BLOCKED: ${TASK_ID} — exhausted retry (${RETRY_COUNT})"
-    set_state "blocked_notified" "True"
-  else
-    info "Task ${TASK_ID} still BLOCKED (already notified, silent)"
-  fi
-  write_parked_heartbeat "sticky_block"
-  exit 1
+# ── 3b. PARK check — two failed attempts => park this task, advance, never freeze ──
+if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]] && [[ "${RETRY_COUNT}" -ge 2 ]]; then
+  fail "Parking ${TASK_ID} after ${RETRY_COUNT} attempts — advancing to next task"
+  python3 - "${TASK_ID}" "${PROJECT_DIR}/TASKS_QUEUE.md" <<'PYPARK'
+import sys,re
+tid,p=sys.argv[1],sys.argv[2]
+s=open(p).read()
+open(p,'w').write(re.sub(r'^- \[ \] '+re.escape(tid)+r'','- [!] '+tid,s,count=1,flags=re.M))
+PYPARK
+  echo "- $(today): PARKED ${TASK_ID} — failed 2 attempts, auto-parked by foreman; awaiting Fable." >> "${PROJECT_DIR}/HERMES_STATUS.md"
+  git -C "${PROJECT_DIR}" add TASKS_QUEUE.md HERMES_STATUS.md 2>/dev/null || true
+  git -C "${PROJECT_DIR}" -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "foreman: park ${TASK_ID} after 2 failed attempts, advancing to next task" 2>/dev/null || true
+  git -C "${PROJECT_DIR}" push -q origin main 2>/dev/null || true
+  telegram_text "Parked ${TASK_ID} after 2 tries — moving to the next task."
+  set_state "retry_count" 0
+  set_state "retry_task_id" "\"\""
+  set_state "blocked_notified" "False"
+  continue
 fi
 
 # ── 4. Execute model session ─────────────────────────────────────────────────
@@ -670,26 +677,22 @@ else
   VALIDATION_FAILED=1
   VALIDATION_REASONS="finish_task_failure"
   if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]]; then
-    warn "Task ${TASK_ID} BLOCKED after ${RETRY_COUNT} retries"
-    telegram_text "BLOCKED: ${TASK_ID} — finish_task failed after retry"
-    set_state "blocked_notified" "True"
-  else
-    NEW_RETRY=$((RETRY_COUNT + 1))
-    warn "Retry (${NEW_RETRY}/1): finish_task.sh failed"
-    telegram_text "Retry ${TASK_ID} attempt ${NEW_RETRY} (finish_task.sh failed)"
+      NEW_RETRY=$((RETRY_COUNT + 1))
+    else
+      NEW_RETRY=1
+    fi
+    warn "Attempt ${NEW_RETRY} failed for ${TASK_ID} (finish_task.sh)"
+    telegram_text "Attempt ${NEW_RETRY} failed: ${TASK_ID}"
     set_state "retry_count" "${NEW_RETRY}"
     set_state "retry_task_id" "\"${TASK_ID}\""
-    STATE_SNAPSHOT=$(cat "${STATE_FILE}" 2>/dev/null || echo "{}")
+    set_state "blocked_notified" "False"
     POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
     if [[ -n "${POST_SESSION_HEAD}" ]] && [[ "${POST_SESSION_HEAD}" != "${CURRENT_HEAD}" ]]; then
-      # Fetch origin first so we never rewind past commits others pushed
       git fetch origin main 2>/dev/null || true
       git reset --hard origin/main 2>/dev/null || true
       git checkout -- . 2>/dev/null || true
       git clean -fd 2>/dev/null || true
     fi
-    echo "${STATE_SNAPSHOT}" > "${STATE_FILE}"
-  fi
 fi
 
 # ── 5. State commit ───────────────────────────────────────────────────────────
