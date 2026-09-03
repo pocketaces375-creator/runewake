@@ -1,3 +1,4 @@
+| TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix pure-queue detection, full logging, and create progress_ping.sh | DONE |
 | TASK-REQUEUE-FIX-1 | 2026-09-03 | Re-confirm TASK-INPUT-SMOKE-1 after queue-corruption bug. Verified tools/input_smoke.sh passes (6/6 steps). TASK-INPUT-SMOKE-1 already [x]; also found and fixed TASK-OPS-INBOX-FIX-1 silently reopened in working tree. | DONE |
 | TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix inbox_apply.sh (pure-queue detection, verbatim insert, full logging) + progress_ping.sh (cron every 2h) | DONE |
 | TASK-INPUT-SMOKE-1 | 2026-09-03 | tools/input_smoke.sh runs the client headless into a seeded duel, injects InputEventScreenTouch and InputEventMouseButton events at hand cards, lane slots, and End Turn button, asserts card selection, lane play, and turn advancement via _GuiInput handlers and EmitSignal. All 6 steps PASS. | DONE |
