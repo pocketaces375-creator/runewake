@@ -20,6 +20,7 @@ import random
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from copy import deepcopy
 from pathlib import Path
@@ -743,8 +744,17 @@ def parse_spec(spec_path: Path) -> dict:
 # MAIN GENERATOR
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = False) -> dict[str, Path]:
+def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = False,
+                    force: bool = False, temp_dir: str | Path | None = None) -> dict[str, Path]:
     """Generate all region files from a spec.
+
+    Args:
+        spec: Parsed biome spec.
+        region_id: Region ID (e.g. 'region_02').
+        seed: Random seed for deterministic generation.
+        validate: If True, run sim gate on generated decks.
+        force: If False, refuse to overwrite existing content/ files.
+        temp_dir: If set, write output files under this temp directory instead of content/.
 
     Returns dict mapping file type (map, early, mid, late, boss, dig) to output path.
     """
@@ -754,6 +764,37 @@ def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = 
     stratum2 = spec.get("stratum2")
     encounter_slots = spec["encounter_slots"]
     elite_count = spec["elite_count"]
+
+    # ── Resolve output directories ──
+    if temp_dir is not None:
+        temp_dir = Path(temp_dir)
+        map_dir = temp_dir / "map"
+        encounter_dir = temp_dir / "encounters"
+        dig_site_dir = temp_dir / "dig_sites"
+    else:
+        map_dir = MAP_DIR
+        encounter_dir = ENCOUNTER_DIR
+        dig_site_dir = DIG_SITE_DIR
+
+    # ── Existing file guard (unless --force) ──
+    # Check ALL output paths BEFORE generating anything
+    candidate_paths = [
+        map_dir / f"{region_id}.json",
+        encounter_dir / f"{region_id}_early.json",
+        encounter_dir / f"{region_id}_mid.json",
+        encounter_dir / f"{region_id}_late.json",
+        encounter_dir / f"{region_id}_boss.json",
+        dig_site_dir / f"{region_id}_dig.json",
+    ]
+    if not force and not temp_dir:
+        existing = [str(p) for p in candidate_paths if p.exists()]
+        if existing:
+            print(f"[region_gen] ERROR: refusing to overwrite existing file(s):", file=sys.stderr)
+            for path in existing:
+                print(f"  {path}", file=sys.stderr)
+            print(f"[region_gen] Use --force to overwrite, or pass temp_dir for safe generation.",
+                  file=sys.stderr)
+            sys.exit(1)
 
     # Count how many of each encounter type
     early_count = max(1, encounter_slots // 4)
@@ -893,7 +934,7 @@ def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = 
     outputs = {}
 
     # Region map
-    map_path = MAP_DIR / f"{region_id}.json"
+    map_path = map_dir / f"{region_id}.json"
     map_path.parent.mkdir(parents=True, exist_ok=True)
     with open(map_path, "w") as f:
         json.dump(region_graph, f, indent=2)
@@ -901,7 +942,7 @@ def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = 
     print(f"[region_gen] Wrote {map_path}")
 
     # Early encounters
-    early_path = ENCOUNTER_DIR / f"{region_id}_early.json"
+    early_path = encounter_dir / f"{region_id}_early.json"
     early_path.parent.mkdir(parents=True, exist_ok=True)
     with open(early_path, "w") as f:
         json.dump({"encounters": early_encounters}, f, indent=2)
@@ -909,28 +950,31 @@ def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = 
     print(f"[region_gen] Wrote {early_path}")
 
     # Mid encounters
-    mid_path = ENCOUNTER_DIR / f"{region_id}_mid.json"
+    mid_path = encounter_dir / f"{region_id}_mid.json"
+    mid_path.parent.mkdir(parents=True, exist_ok=True)
     with open(mid_path, "w") as f:
         json.dump({"encounters": mid_encounters + elite_encounters}, f, indent=2)
     outputs["mid"] = mid_path
     print(f"[region_gen] Wrote {mid_path}")
 
     # Late/boss encounters
-    late_path = ENCOUNTER_DIR / f"{region_id}_late.json"
+    late_path = encounter_dir / f"{region_id}_late.json"
+    late_path.parent.mkdir(parents=True, exist_ok=True)
     with open(late_path, "w") as f:
         json.dump({"encounters": late_encounters}, f, indent=2)
     outputs["late"] = late_path
     print(f"[region_gen] Wrote {late_path}")
 
     # Boss file
-    boss_path = ENCOUNTER_DIR / f"{region_id}_boss.json"
+    boss_path = encounter_dir / f"{region_id}_boss.json"
+    boss_path.parent.mkdir(parents=True, exist_ok=True)
     with open(boss_path, "w") as f:
         json.dump({"encounters": [warden_encounter, boss_encounter]}, f, indent=2)
     outputs["boss"] = boss_path
     print(f"[region_gen] Wrote {boss_path}")
 
     # Dig site
-    dig_path = DIG_SITE_DIR / f"{region_id}_dig.json"
+    dig_path = dig_site_dir / f"{region_id}_dig.json"
     dig_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dig_path, "w") as f:
         json.dump(dig_site, f, indent=2)
@@ -953,7 +997,7 @@ def generate_region(spec: dict, region_id: str, seed: int = 0, validate: bool = 
 
 
 def diff_against_handbuilt(spec: dict, region_id: str, seed: int = 0) -> list[str]:
-    """Generate a region, then smart-compare against existing hand-built files.
+    """Generate a region into a temp directory, then smart-compare against existing hand-built files.
 
     Returns list of diff lines (empty = identical for structural comparison).
     Checks:
@@ -962,90 +1006,93 @@ def diff_against_handbuilt(spec: dict, region_id: str, seed: int = 0) -> list[st
     - Drops have correct rates
     - Structure matches the region_01 pattern
 
-    NOTE: reads reference files BEFORE generating to avoid overwrite.
+    NOTE: writes generated files to a temp directory — never touches content/.
     """
     diffs = []
 
-    # READ REFERENCE FIRST before generating (or generate overwrites it)
+    # READ REFERENCE FIRST
     ref_map = ROOT / "content" / "map" / "region_01.json"
     ref_data = None
     if ref_map.exists():
         with open(ref_map) as f:
             ref_data = json.load(f)
 
-    # Generate fresh
-    outputs = generate_region(spec, region_id, seed=seed, validate=False)
+    # Generate to a temp directory — NEVER touch content/
+    # The entire analysis must happen inside this with block so temp files exist
+    with tempfile.TemporaryDirectory(prefix="region_gen_diff_") as td:
+        outputs = generate_region(spec, region_id, seed=seed, validate=False,
+                                  force=True, temp_dir=td)
 
-    if ref_data is None:
-        diffs.append("REFERENCE FILE MISSING: content/map/region_01.json not found")
+        if ref_data is None:
+            diffs.append("REFERENCE FILE MISSING: content/map/region_01.json not found")
+            return diffs
+
+        with open(outputs["map"]) as f:
+            gen = json.load(f)
+
+        # Structural comparison
+        ref_node_count = len(ref_data["nodes"])
+        gen_node_count = len(gen["nodes"])
+        if gen_node_count != ref_node_count:
+            diffs.append(f"NODE COUNT: generated={gen_node_count}, reference={ref_node_count}")
+
+        # Node types match the reference pattern
+        ref_types = [n["type"] for n in ref_data["nodes"]]
+        gen_types = [n["type"] for n in gen["nodes"]]
+        # The first node should always be Duel
+        if gen_types[0] != "Duel":
+            diffs.append(f"FIRST NODE TYPE: expected Duel, got {gen_types[0]}")
+        # Last node should be WardenBoss
+        if gen_types[-1] != "WardenBoss":
+            diffs.append(f"LAST NODE TYPE: expected WardenBoss, got {gen_types[-1]}")
+
+        # Check dig node exists
+        dig_nodes = [n for n in gen["nodes"] if n.get("type") == "Dig"]
+        if not dig_nodes:
+            diffs.append("MISSING DIG NODE: no Dig type node in generated region")
+
+        # Check encounter files
+        for key in ["early", "mid", "late", "boss"]:
+            path = outputs.get(key)
+            if not path or not path.exists():
+                diffs.append(f"MISSING ENCOUNTER FILE: {key}")
+                continue
+            with open(path) as f:
+                data = json.load(f)
+            encounters = data.get("encounters", [])
+            if not encounters:
+                diffs.append(f"EMPTY ENCOUNTERS: {key} has no encounters")
+                continue
+            for enc in encounters:
+                deck = enc.get("deck", [])
+                # Check 30 unique cards
+                if len(deck) != 30:
+                    diffs.append(f"DECK SIZE: {enc['id']} has {len(deck)} cards, expected 30")
+                if len(set(deck)) != len(deck):
+                    dups = [c for c in deck if deck.count(c) > 1]
+                    diffs.append(f"DECK DUPLICATES: {enc['id']} has duplicates: {set(dups)}")
+                # Check drops exist
+                drops = enc.get("drops", [])
+                if len(drops) < 3:
+                    diffs.append(f"DROP COUNT: {enc['id']} has only {len(drops)} drops, expected ≥3")
+
+        # Check dig site structure
+        dig_path = outputs.get("dig")
+        if dig_path and dig_path.exists():
+            with open(dig_path) as f:
+                dig = json.load(f)
+            sites = dig.get("dig_sites", [])
+            if not sites:
+                diffs.append("DIG SITE: empty dig_sites list")
+            else:
+                site = sites[0]
+                if site.get("rows") != 4 or site.get("cols") != 4:
+                    diffs.append(f"DIG SITE: expected 4x4, got {site.get('rows')}x{site.get('cols')}")
+                tiles = site.get("tiles", [])
+                if len(tiles) != 16:
+                    diffs.append(f"DIG SITE: expected 16 tiles, got {len(tiles)}")
+
         return diffs
-
-    with open(outputs["map"]) as f:
-        gen = json.load(f)
-
-    # Structural comparison
-    ref_node_count = len(ref_data["nodes"])
-    gen_node_count = len(gen["nodes"])
-    if gen_node_count != ref_node_count:
-        diffs.append(f"NODE COUNT: generated={gen_node_count}, reference={ref_node_count}")
-
-    # Node types match the reference pattern
-    ref_types = [n["type"] for n in ref_data["nodes"]]
-    gen_types = [n["type"] for n in gen["nodes"]]
-    # The first node should always be Duel
-    if gen_types[0] != "Duel":
-        diffs.append(f"FIRST NODE TYPE: expected Duel, got {gen_types[0]}")
-    # Last node should be WardenBoss
-    if gen_types[-1] != "WardenBoss":
-        diffs.append(f"LAST NODE TYPE: expected WardenBoss, got {gen_types[-1]}")
-
-    # Check dig node exists
-    dig_nodes = [n for n in gen["nodes"] if n.get("type") == "Dig"]
-    if not dig_nodes:
-        diffs.append("MISSING DIG NODE: no Dig type node in generated region")
-
-    # Check encounter files
-    for key in ["early", "mid", "late", "boss"]:
-        path = outputs.get(key)
-        if not path or not path.exists():
-            diffs.append(f"MISSING ENCOUNTER FILE: {key}")
-            continue
-        with open(path) as f:
-            data = json.load(f)
-        encounters = data.get("encounters", [])
-        if not encounters:
-            diffs.append(f"EMPTY ENCOUNTERS: {key} has no encounters")
-            continue
-        for enc in encounters:
-            deck = enc.get("deck", [])
-            # Check 30 unique cards
-            if len(deck) != 30:
-                diffs.append(f"DECK SIZE: {enc['id']} has {len(deck)} cards, expected 30")
-            if len(set(deck)) != len(deck):
-                dups = [c for c in deck if deck.count(c) > 1]
-                diffs.append(f"DECK DUPLICATES: {enc['id']} has duplicates: {set(dups)}")
-            # Check drops exist
-            drops = enc.get("drops", [])
-            if len(drops) < 3:
-                diffs.append(f"DROP COUNT: {enc['id']} has only {len(drops)} drops, expected ≥3")
-
-    # Check dig site structure
-    dig_path = outputs.get("dig")
-    if dig_path and dig_path.exists():
-        with open(dig_path) as f:
-            dig = json.load(f)
-        sites = dig.get("dig_sites", [])
-        if not sites:
-            diffs.append("DIG SITE: empty dig_sites list")
-        else:
-            site = sites[0]
-            if site.get("rows") != 4 or site.get("cols") != 4:
-                diffs.append(f"DIG SITE: expected 4x4, got {site.get('rows')}x{site.get('cols')}")
-            tiles = site.get("tiles", [])
-            if len(tiles) != 16:
-                diffs.append(f"DIG SITE: expected 16 tiles, got {len(tiles)}")
-
-    return diffs
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1063,6 +1110,8 @@ def main():
                         help="Run sim gate validation on generated decks")
     parser.add_argument("--diff", action="store_true",
                         help="Diff generated output against hand-built region_01 reference")
+    parser.add_argument("--force", action="store_true",
+                        help="Overwrite existing content/ files (dangerous — prefer --diff for review)")
     args = parser.parse_args()
 
     spec_path = Path(args.spec)
@@ -1082,7 +1131,8 @@ def main():
     print(f"[region_gen] Generating region '{region_id}' — {spec['name']} ({spec['stratum']})")
     print(f"[region_gen] Encounter slots: {spec['encounter_slots']}, Elites: {spec['elite_count']}")
 
-    outputs = generate_region(spec, region_id, seed=args.seed, validate=args.validate)
+    outputs = generate_region(spec, region_id, seed=args.seed, validate=args.validate,
+                              force=args.force)
 
     # Diff against hand-built reference
     if args.diff:

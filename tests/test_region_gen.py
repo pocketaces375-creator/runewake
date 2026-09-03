@@ -252,25 +252,21 @@ def test_full_generate():
     spec_path = ROOT / "tools" / "specs" / "region_01_spec.json"
     spec = parse_spec(spec_path)
 
-    outputs = generate_region(spec, "region_test_gen", seed=42, validate=False)
+    with tempfile.TemporaryDirectory(prefix="region_gen_test_") as td:
+        outputs = generate_region(spec, "region_test_gen", seed=42, validate=False,
+                                  force=True, temp_dir=td)
 
-    expected_keys = ["map", "early", "mid", "late", "boss", "dig"]
-    fails = check(
-        all(k in outputs for k in expected_keys),
-        f"Missing output keys: {set(expected_keys) - set(outputs.keys())}"
-    )
+        expected_keys = ["map", "early", "mid", "late", "boss", "dig"]
+        fails = check(
+            all(k in outputs for k in expected_keys),
+            f"Missing output keys: {set(expected_keys) - set(outputs.keys())}"
+        )
 
-    # Each output file must exist and be non-empty
-    for key in expected_keys:
-        path = outputs.get(key)
-        fails += check(path and path.exists() and path.stat().st_size > 0,
-                       f"Output {key} file missing or empty")
-
-    # Clean up generated files
-    for key in expected_keys:
-        path = outputs.get(key)
-        if path and path.exists():
-            path.unlink()
+        # Each output file must exist and be non-empty
+        for key in expected_keys:
+            path = outputs.get(key)
+            fails += check(path and path.exists() and path.stat().st_size > 0,
+                           f"Output {key} file missing or empty")
 
     return fails
 
@@ -279,26 +275,22 @@ def test_encounter_count():
     """Generator produces correct number of encounters per tier."""
     spec_path = ROOT / "tools" / "specs" / "region_01_spec.json"
     spec = parse_spec(spec_path)
-    outputs = generate_region(spec, "region_test_count", seed=42, validate=False)
+    with tempfile.TemporaryDirectory(prefix="region_gen_test_") as td:
+        outputs = generate_region(spec, "region_test_count", seed=42, validate=False,
+                                  force=True, temp_dir=td)
 
-    fails = 0
-    for key in ["early", "mid", "late", "boss"]:
-        path = outputs.get(key)
-        if path and path.exists():
-            with open(path) as f:
-                data = json.load(f)
-            count = len(data.get("encounters", []))
-            # Early should have ≥1, boss should have 2 (warden + boss)
-            if key == "boss":
-                fails += check(count == 2, f"boss should have 2 encounters, got {count}")
-            else:
-                fails += check(count >= 1, f"{key} should have ≥1 encounter, got {count}")
-
-    # Clean up
-    for key in outputs:
-        path = outputs.get(key)
-        if path and path.exists():
-            path.unlink()
+        fails = 0
+        for key in ["early", "mid", "late", "boss"]:
+            path = outputs.get(key)
+            if path and path.exists():
+                with open(path) as f:
+                    data = json.load(f)
+                count = len(data.get("encounters", []))
+                # Early should have ≥1, boss should have 2 (warden + boss)
+                if key == "boss":
+                    fails += check(count == 2, f"boss should have 2 encounters, got {count}")
+                else:
+                    fails += check(count >= 1, f"{key} should have ≥1 encounter, got {count}")
 
     return fails
 

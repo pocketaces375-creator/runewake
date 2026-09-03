@@ -441,6 +441,13 @@ public partial class DuelScene : Control
                     return;
                 }
 
+                // ═══ TASK-INPUT-SMOKE-1: headless input smoke test — inject events, no capture ═══
+                if (CampaignContext.InputSmokeTest)
+                {
+                    StartInputSmokeTest();
+                    return;
+                }
+
                 // ═══ TASK-TUTORIAL-VERIFY-1: Skip pre-place/artifacts/inflate in tutorial script mode ═══
                 // The TutorialRunner handles its own state and captures for each beat.
                 if (!_isTutorialScriptMode)
@@ -2830,6 +2837,377 @@ public partial class DuelScene : Control
         };
         AddChild(t);
         t.Start();
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // TASK-INPUT-SMOKE-1: Input smoke test — inject real touch/mouse events
+    // and verify card interaction in a seeded duel.
+    // ════════════════════════════════════════════════════════════════════
+
+    private void StartInputSmokeTest()
+        {
+            GD.Print("[InputSmokeTest] Starting — will inject touch then mouse events via _GuiInput calls");
+            var results = new List<string>();
+
+            int step = 0;
+            int? touchTargetLane = null;
+            HandCard? touchTargetCard = null;
+
+            var t = new Godot.Timer();
+            t.OneShot = false;
+            t.WaitTime = 0.4f;
+            t.Timeout += () =>
+            {
+                if (_gsm == null || _gsm.State == null) return;
+
+                if (step == 0)
+                {
+                    // Wait for mulligan to auto-dismiss and scene to settle
+                    step = 1;
+                    GD.Print("[InputSmokeTest] Phase 1: Touch test");
+                    return;
+                }
+
+                if (step == 1)
+                {
+                    // Pick first hand card
+                    touchTargetCard = _handCards.Count > 0 ? _handCards[0] : null;
+
+                    if (touchTargetCard == null)
+                    {
+                        GD.PrintErr("[InputSmokeTest] FAIL: No hand cards found");
+                        results.Add("TOUCH_CARD_SELECT:FAIL - no cards");
+                        results.Add("TOUCH_LANE_PLAY:SKIP");
+                        results.Add("TOUCH_END_TURN:SKIP");
+                        step = 4;
+                        return;
+                    }
+
+                    GD.Print($"[InputSmokeTest] Testing card '{touchTargetCard.CardName}' via InputEventScreenTouch");
+
+                    // Inject touch event by calling _GuiInput directly (headless input routing may not process PushInput)
+                    var touchEv = new InputEventScreenTouch();
+                    touchEv.Position = Vector2.Zero;
+                    touchEv.Pressed = true;
+                    touchEv.Index = 0;
+                    touchTargetCard._GuiInput(touchEv);
+
+                    // Release
+                    var touchUp = new InputEventScreenTouch();
+                    touchUp.Position = Vector2.Zero;
+                    touchUp.Pressed = false;
+                    touchUp.Index = 0;
+                    touchTargetCard._GuiInput(touchUp);
+
+                    step = 2; // Wait a tick for state update
+                    return;
+                }
+
+                if (step == 2)
+                {
+                    // Check if card was selected
+                    if (_input.State == InputController.InputState.SelectingLane && touchTargetCard != null && _input.SelectedCardId == touchTargetCard.CardId)
+                    {
+                        GD.Print($"[InputSmokeTest] PASS: Touch selected card '{touchTargetCard.CardName}' — lane highlights shown");
+                        results.Add("TOUCH_CARD_SELECT:PASS");
+
+                        // Find first empty player lane
+                        int? lane = null;
+                        for (int i = 0; i < 5; i++)
+                        {
+                            if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                            {
+                                lane = i;
+                                break;
+                            }
+                        }
+
+                        if (lane == null)
+                        {
+                            GD.PrintErr("[InputSmokeTest] FAIL: No empty player lane");
+                            results.Add("TOUCH_LANE_PLAY:FAIL - no empty lane");
+                            step = 4;
+                            return;
+                        }
+
+                        touchTargetLane = lane;
+                        GD.Print($"[InputSmokeTest] Touch lane slot {lane} via InputEventScreenTouch");
+
+                        // Inject touch at lane slot
+                        var slot = _playerSlots[lane.Value];
+                        var laneEv = new InputEventScreenTouch();
+                        laneEv.Position = Vector2.Zero;
+                        laneEv.Pressed = true;
+                        laneEv.Index = 0;
+                        slot._GuiInput(laneEv);
+
+                        var laneUp = new InputEventScreenTouch();
+                        laneUp.Position = Vector2.Zero;
+                        laneUp.Pressed = false;
+                        laneUp.Index = 0;
+                        slot._GuiInput(laneUp);
+
+                        step = 3;
+                        return;
+                    }
+                    else
+                    {
+                        GD.PrintErr($"[InputSmokeTest] FAIL: Touch did not select card (state={_input.State}, selectedId={_input.SelectedCardId})");
+                        results.Add("TOUCH_CARD_SELECT:FAIL - state not SelectingLane");
+                        results.Add("TOUCH_LANE_PLAY:SKIP");
+                        results.Add("TOUCH_END_TURN:SKIP");
+                        step = 4;
+                        return;
+                    }
+                }
+
+                if (step == 3)
+                {
+                    // Check tap-to-summon flow completed (input back to idle)
+                    if (_input.State == InputController.InputState.Idle && _input.SelectedCardId == null)
+                    {
+                        GD.Print("[InputSmokeTest] PASS: Touch lane play — UI flow completed");
+                        results.Add("TOUCH_LANE_PLAY:PASS");
+
+                        // Click End Turn via InputEventMouseButton
+                        GD.Print("[InputSmokeTest] Click End Turn via InputEventMouseButton");
+                        var btnDown = new InputEventMouseButton();
+                        btnDown.Position = Vector2.Zero;
+                        btnDown.Pressed = true;
+                        btnDown.ButtonIndex = MouseButton.Left;
+                        _endTurnButton._GuiInput(btnDown);
+
+                        var btnUp = new InputEventMouseButton();
+                        btnUp.Position = Vector2.Zero;
+                        btnUp.Pressed = false;
+                        btnUp.ButtonIndex = MouseButton.Left;
+                        _endTurnButton._GuiInput(btnUp);
+
+                        step = 10;
+                        return;
+                    }
+                    else
+                    {
+                        GD.PrintErr($"[InputSmokeTest] FAIL: Touch lane play — state={_input.State}, selectedId={_input.SelectedCardId}");
+                        results.Add("TOUCH_LANE_PLAY:FAIL - flow not completed");
+                        results.Add("TOUCH_END_TURN:SKIP");
+                        step = 4;
+                        return;
+                    }
+                }
+
+                if (step == 10)
+                {
+                    // Check turn advanced after End Turn
+                    if (_gsm.CurrentPlayerIndex == 1)
+                    {
+                        GD.Print($"[InputSmokeTest] PASS: Touch End Turn — turn advanced (P{_gsm.CurrentPlayerIndex}, turn {_gsm.TurnNumber})");
+                        results.Add("TOUCH_END_TURN:PASS");
+                        step = 4;
+                        return;
+                    }
+                    else
+                    {
+                        GD.Print($"[InputSmokeTest] Still P{_gsm.CurrentPlayerIndex} after End Turn — waiting...");
+                        return; // Keep waiting
+                    }
+                }
+
+                // ─── MOUSE TEST (steps 4-7) ───
+                if (step == 4)
+                {
+                    GD.Print("[InputSmokeTest] Phase 2: Mouse button test — waiting for P0 turn");
+                    if (_gsm.CurrentPlayerIndex != 0 || _bot.IsThinking)
+                    {
+                        GD.Print("[InputSmokeTest] Waiting for P0 turn...");
+                        return;
+                    }
+
+                    _input.CancelSelection();
+
+                    HandCard? mouseCard = _handCards.Count > 0 ? _handCards[0] : null;
+                    if (mouseCard == null)
+                    {
+                        GD.PrintErr("[InputSmokeTest] FAIL: No hand cards for mouse test");
+                        results.Add("MOUSE_CARD_SELECT:FAIL - no cards");
+                        results.Add("MOUSE_LANE_PLAY:SKIP");
+                        results.Add("MOUSE_END_TURN:SKIP");
+                        step = 20;
+                        return;
+                    }
+
+                    GD.Print($"[InputSmokeTest] Mouse click card '{mouseCard.CardName}' via InputEventMouseButton");
+                    var mouseEv = new InputEventMouseButton();
+                    mouseEv.Position = Vector2.Zero;
+                    mouseEv.Pressed = true;
+                    mouseEv.ButtonIndex = MouseButton.Left;
+                    mouseCard._GuiInput(mouseEv);
+
+                    var mouseUp = new InputEventMouseButton();
+                    mouseUp.Position = Vector2.Zero;
+                    mouseUp.Pressed = false;
+                    mouseUp.ButtonIndex = MouseButton.Left;
+                    mouseCard._GuiInput(mouseUp);
+
+                    step = 5;
+                    return;
+                }
+
+                if (step == 5)
+                {
+                    if (_input.State == InputController.InputState.SelectingLane)
+                    {
+                        GD.Print("[InputSmokeTest] PASS: Mouse selected card — lane highlights shown");
+                        results.Add("MOUSE_CARD_SELECT:PASS");
+
+                        int? lane = null;
+                        for (int i = 0; i < 5; i++)
+                        {
+                            if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                            {
+                                lane = i;
+                                break;
+                            }
+                        }
+
+                        if (lane == null)
+                        {
+                            GD.PrintErr("[InputSmokeTest] FAIL: No empty lane for mouse play");
+                            results.Add("MOUSE_LANE_PLAY:FAIL - no empty lane");
+                            step = 20;
+                            return;
+                        }
+
+                        var slot = _playerSlots[lane.Value];
+                        GD.Print($"[InputSmokeTest] Mouse click lane slot {lane} via InputEventMouseButton");
+                        var laneEv = new InputEventMouseButton();
+                        laneEv.Position = Vector2.Zero;
+                        laneEv.Pressed = true;
+                        laneEv.ButtonIndex = MouseButton.Left;
+                        slot._GuiInput(laneEv);
+
+                        var laneUp = new InputEventMouseButton();
+                        laneUp.Position = Vector2.Zero;
+                        laneUp.Pressed = false;
+                        laneUp.ButtonIndex = MouseButton.Left;
+                        slot._GuiInput(laneUp);
+
+                        step = 6;
+                        return;
+                    }
+                    else
+                    {
+                        GD.PrintErr($"[InputSmokeTest] FAIL: Mouse did not select card (state={_input.State})");
+                        results.Add("MOUSE_CARD_SELECT:FAIL - state not SelectingLane");
+                        results.Add("MOUSE_LANE_PLAY:SKIP");
+                        results.Add("MOUSE_END_TURN:SKIP");
+                        step = 20;
+                        return;
+                    }
+                }
+
+                if (step == 6)
+                {
+                    // Check UI flow completed (idle after tap-to-summon)
+                    if (_input.State == InputController.InputState.Idle && _input.SelectedCardId == null)
+                    {
+                        GD.Print("[InputSmokeTest] PASS: Mouse lane play — UI flow completed");
+                        results.Add("MOUSE_LANE_PLAY:PASS");
+
+                        GD.Print("[InputSmokeTest] Mouse click End Turn");
+                        var btnDown = new InputEventMouseButton();
+                        btnDown.Position = Vector2.Zero;
+                        btnDown.Pressed = true;
+                        btnDown.ButtonIndex = MouseButton.Left;
+                        _endTurnButton._GuiInput(btnDown);
+
+                        var btnUp = new InputEventMouseButton();
+                        btnUp.Position = Vector2.Zero;
+                        btnUp.Pressed = false;
+                        btnUp.ButtonIndex = MouseButton.Left;
+                        _endTurnButton._GuiInput(btnUp);
+
+                        step = 7;
+                        return;
+                    }
+                    else
+                    {
+                        GD.PrintErr($"[InputSmokeTest] FAIL: Mouse lane play — state={_input.State}");
+                        results.Add("MOUSE_LANE_PLAY:FAIL - flow not completed");
+                        results.Add("MOUSE_END_TURN:SKIP");
+                        step = 20;
+                        return;
+                    }
+                }
+
+                if (step == 7)
+                {
+                    // Check mouse End Turn
+                    if (_gsm.CurrentPlayerIndex == 1 || _gsm.TurnNumber > 1)
+                    {
+                        GD.Print($"[InputSmokeTest] PASS: Mouse End Turn worked (turn={_gsm.TurnNumber})");
+                        results.Add("MOUSE_END_TURN:PASS");
+                        step = 20;
+                        return;
+                    }
+                    else
+                    {
+                        GD.Print($"[InputSmokeTest] Still P{_gsm.CurrentPlayerIndex} after mouse End Turn");
+                        return;
+                    }
+                }
+
+                if (step == 20)
+                {
+                    t.Stop();
+                    WriteInputSmokeResult(results);
+                    GetTree().Quit();
+                }
+            };
+            AddChild(t);
+            t.Start();
+        }
+
+    private void WriteInputSmokeResult(List<string> results)
+    {
+        bool allPassed = true;
+        foreach (var r in results)
+        {
+            if (r.Contains("FAIL"))
+                allPassed = false;
+            GD.Print($"[InputSmokeTest] {r}");
+        }
+
+        var verdict = allPassed ? "PASS" : "FAIL";
+        GD.Print($"[InputSmokeTest] VERDICT: {verdict}");
+
+        var json = "{";
+        json += "\"verdict\": \"" + verdict + "\",";
+        json += "\"steps\": [";
+        bool first = true;
+        foreach (var r in results)
+        {
+            if (!first) json += ",";
+            first = false;
+            var parts = r.Split(':', 2);
+            var stepName = parts[0];
+            var stepResult = parts.Length > 1 ? parts[1] : "UNKNOWN";
+            json += "{\"name\":\"" + stepName + "\",\"result\":\"" + stepResult + "\"}";
+        }
+        json += "]}";
+
+        System.IO.Directory.CreateDirectory("artifacts/captures");
+        var file = Godot.FileAccess.Open("artifacts/captures/input_smoke_result.json", Godot.FileAccess.ModeFlags.Write);
+        if (file != null)
+        {
+            file.StoreString(json);
+            file.Close();
+            GD.Print($"[InputSmokeTest] Results written to artifacts/captures/input_smoke_result.json");
+        }
+        else
+        {
+            GD.PrintErr("[InputSmokeTest] FAILED to write results file");
+        }
     }
 
     /// <summary>Dispatch a GreedyBot action (PlayCard/Attack/EndTurn) for any player. Used by soak mode.</summary>

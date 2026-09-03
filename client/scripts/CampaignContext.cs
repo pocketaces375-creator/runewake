@@ -86,6 +86,10 @@ public static class CampaignContext
     /// </summary>
     public static bool AutoCaptureScreenshot { get; set; }
 
+    /// <summary>Input smoke test: inject touch/mouse events into a seeded duel and verify card interaction.
+    /// Set by --capture=input_smoke_test CLI arg via DebugCapture.</summary>
+    public static bool InputSmokeTest { get; set; }
+
     /// <summary>Test hook: auto-navigate to map scene, select first unlocked node, capture.
     /// Set by --capture-map CLI arg.
     /// </summary>

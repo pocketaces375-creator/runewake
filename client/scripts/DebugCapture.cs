@@ -55,6 +55,12 @@ public partial class DebugCapture : Node
                 _active = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=duel_test");
             }
+            if (arg == "--capture=input_smoke_test")
+            {
+                _active = true;
+                CampaignContext.InputSmokeTest = true;
+                GD.Print("[DebugCapture] Input smoke test enabled: --capture=input_smoke_test");
+            }
             if (arg == "--capture=bot_duel")
             {
                 _active = true;
