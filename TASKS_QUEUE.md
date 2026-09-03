@@ -247,7 +247,7 @@
   text if it mentions the first turn), then re-run the 49-pairing matrix and the threshold gate.
   Acceptance: gate result with numbers in HERMES_STATUS.md; tests green; rule documented.
 
-- [ ] TASK-FINISH-SCRIPT-1 — The one "done" button. Create tools/finish_task.sh <TASK-ID>
+- [x] TASK-FINISH-SCRIPT-1 — The one "done" button. Create tools/finish_task.sh <TASK-ID>
   "<one-line summary>". It runs, in order, and STOPS at the first failure without marking
   anything done:
   (1) dotnet build (Debug) — 0 errors.
