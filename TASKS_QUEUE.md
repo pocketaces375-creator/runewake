@@ -388,6 +388,29 @@
       foreman.sh still behave identically.
   Acceptance: before/after byte sizes of both files in the report; find_top_task returns the
   same top task before and after; one full foreman iteration completes green after the trim.
+
+- [ ] TASK-CHOOSEPATH-LAYOUT-4 — The class cards have a huge empty body. Trikzos on his phone:
+  "there's a huge giant box under them for text and absolutely nothing written in it." In
+  artifacts/captures/choose_path.png at HEAD the DRUID card runs from y≈120 to y≈680 but its
+  content (portrait + name + two lines of description + origin) ends at y≈525 — the bottom
+  ~28% of every card is a blank dark plate. He likes the new spacing and sizing of the cards;
+  keep those. Fix: a card's height must fit its content — portrait, name, description, origin
+  line — with tight, consistent padding (no more than ~4% of card height below the last text
+  line). Keep the carousel as the hero (centre card >= 55% of viewport height still holds:
+  grow the portrait to use the reclaimed space rather than shrinking the card). No new text
+  or filler to "use up" the box — remove the box.
+  DETECTOR (this is the part that stops it reaching Trikzos again): add a ui_lint rule
+  EMPTY_BODY that runs on EVERY capture's layout json, not just this screen: for any Control
+  that has at least one Label or TextureRect descendant, compute the union bounding box of
+  its visible descendants; if the control's own rect leaves an unoccupied vertical band taller
+  than 12% of the control's height (or 60px, whichever is larger) inside its bounds, FAIL with
+  the control path and the band's pixel size. Blank-plate cards (a TextureRect with no
+  texture and no descendants, e.g. the missing-portrait placeholders) are reported as
+  EMPTY_PLATE warnings, not failures, until TASK-CLASS-PORTRAITS-1 lands.
+  Acceptance: EMPTY_BODY passes on choose_path, choose_path_wide, duel_test, duel_test_wide,
+  map_test, title_test and every other committed capture — paste the lint summary; both
+  choose_path captures fresh; one sentence on what a player sees now. finish_task.sh must run
+  the new rule as part of its gate from now on.
 - [ ] TASK-BOARD-DEVICE-1 — Two things Trikzos sees on his phone that our captures don't.
   (1) Hand stat chips are clipped off the bottom edge on device (his screenshot). The hand
       tuck must respect DisplayServer.GetDisplaySafeArea(): the chips' rects stay fully inside
