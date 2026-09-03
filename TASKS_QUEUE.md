@@ -341,6 +341,53 @@
   Acceptance: ui_lint choose_path rules pass at 2316x1080 and wide; fresh captures; post both
   and one sentence on what a player sees now.
 
+
+- [ ] TASK-CHOOSEPATH-LAYOUT-3 — REOPEN of CHOOSEPATH-LAYOUT-2. Trikzos saw the capture and
+  rejected it: "this screen is class selection, the only thing that matters is those top cards,
+  they need to take up the whole display." Nobody approved the current look. Judge this screen
+  as a player: it is the first real choice in the game and must feel like it.
+  Defects visible in artifacts/captures/choose_path.png at HEAD:
+  (a) The seven class cards occupy roughly the middle third of the frame and the bottom ~40%
+      of the screen is empty background. The carousel must be the hero of the screen.
+  (b) Cards overlap each other's text: THIEF's body text is covered by the DRUID card,
+      BATTLEMAGE's name is clipped, NECROMANCER renders as "CROMANCER" behind the RANGER card.
+      No card's text may be occluded by any other card.
+  (c) Neighbour cards (BATTLEMAGE, PALADIN) render as near-black plates with no visible
+      portrait — they read as empty slots, not classes. Dim neighbours, never blank them.
+  (d) The CLASS CORE row collides with the BEGIN button: the button sits on top of the core
+      cards' name labels and between their stat chips.
+  (e) A full-width pale band renders across the frame at roughly y=455-490 (2316x1080) — find
+      and remove whatever control draws it.
+  Build it as: centre class card large enough to read at arm's length, flanked by neighbours
+  scaled down and dimmed but with art visible, fanned across most of the width; the CLASS CORE
+  strip small, centred, clearly subordinate, beneath the carousel; BEGIN on its own row at the
+  bottom with clear space around it. Keep the orbital carousel feel from alpha-2026-08-23-
+  carousel. Portrait art unchanged, background unchanged.
+  Acceptance (ui_lint choose_path rules, all machine-checked at 2316x1080 and wide):
+  centre card height >= 55% of viewport height; carousel spans >= 70% of viewport width;
+  zero intersection between any card's text rect and any other card's rect; each neighbour
+  card's portrait region mean luminance clearly above an empty-plate threshold; CLASS CORE row
+  total height <= 15% of viewport height and horizontally centred within 2% of frame centre;
+  BEGIN button rect intersects nothing and has >= 24px clearance; no empty horizontal band
+  taller than 12% of viewport height between the title and the BEGIN button. Post both fresh
+  captures and one sentence on what a player sees now.
+- [ ] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
+  87 closed tasks still inline) and often HERMES_STATUS.md (101KB). That is paid for on every
+  single task, forever.
+  (1) Move every "- [x]" task block out of TASKS_QUEUE.md into docs/TASKS_DONE.md (append, keep
+      full text, newest last), leaving the five most recently closed in the queue for context.
+      The queue keeps its header, the ANSWERS block, the "## Queue" line, the "New tasks MUST
+      be added ABOVE..." anchor line and the PHASE markers exactly as they are.
+  (2) Move HERMES_STATUS.md entries older than 7 days into docs/history/HERMES_STATUS_ARCHIVE.md
+      (append, chronological). Keep the newest entries and the append protocol unchanged.
+  (3) Rotate tools/foreman_cron.log and tools/inbox.log daily, keeping 3 days (logrotate-style
+      rename in the scripts themselves, no cron dependency, no external tool). foreman_cron.log
+      is 624KB right now.
+  (4) Verify nothing else parses the moved content: grep the tools/ directory for TASKS_QUEUE
+      and HERMES_STATUS readers and confirm find_top_task, progress_ping.sh, finish_task.sh and
+      foreman.sh still behave identically.
+  Acceptance: before/after byte sizes of both files in the report; find_top_task returns the
+  same top task before and after; one full foreman iteration completes green after the trim.
 - [ ] TASK-BOARD-DEVICE-1 — Two things Trikzos sees on his phone that our captures don't.
   (1) Hand stat chips are clipped off the bottom edge on device (his screenshot). The hand
       tuck must respect DisplayServer.GetDisplaySafeArea(): the chips' rects stay fully inside
