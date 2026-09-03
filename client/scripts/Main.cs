@@ -590,6 +590,7 @@ public partial class Main : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/title_test{suffix}.png");
+                    DebugCapture.WriteLayoutJson(this, $"title_test{suffix}");
                     GD.Print($"[Main] title_test{suffix}.png saved");
                     GetTree().Quit();
                 };
@@ -610,6 +611,7 @@ public partial class Main : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng("/home/fictive/runewake/artifacts/captures/title_deck.png");
+                    DebugCapture.WriteLayoutJson(this, "title_deck");
                     GD.Print("[Main] title_deck.png saved");
 
                     // Write meta for title screen

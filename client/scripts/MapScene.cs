@@ -119,6 +119,7 @@ public partial class MapScene : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/map_test{suffix}.png");
+                    DebugCapture.WriteLayoutJson(this, $"map_test{suffix}");
                     GD.Print($"[MAPCAPTURE] map_test{suffix}.png saved");
                     GetTree().Quit(0);
                 };
@@ -149,6 +150,7 @@ public partial class MapScene : Control
                 var img = GetViewport().GetTexture().GetImage();
                 if (img != null)
                     img.SavePng($"/home/fictive/runewake/artifacts/captures/flow_{prefix}_map{suffix}.png");
+                DebugCapture.WriteLayoutJson(this, $"flow_{prefix}_map{suffix}");
                 GD.Print($"[FLOWTEST] flow_{prefix}_map{suffix}.png saved — round-trip complete");
                 GetTree().Quit(0);
             };
@@ -197,6 +199,7 @@ public partial class MapScene : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/soak_final_map_{CampaignContext.SoakSeedStr}.png");
+                    DebugCapture.WriteLayoutJson(this, $"soak_final_map_{CampaignContext.SoakSeedStr}");
                     GetTree().Quit(0);
                     return;
                 }

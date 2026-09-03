@@ -329,6 +329,8 @@ public partial class ChooseYourPathScene : Control
                         ? "/home/fictive/runewake/artifacts/captures/choose_path_wide.png"
                         : "/home/fictive/runewake/artifacts/captures/choose_path.png";
                     image.SavePng(path);
+                    string baseName = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
+                    DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[ChooseYourPath] Captured to {path}");
                 }
                 GetTree().Quit(0);

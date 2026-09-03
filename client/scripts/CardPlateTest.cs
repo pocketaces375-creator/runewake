@@ -61,6 +61,7 @@ public partial class CardPlateTest : Control
                 if (!string.IsNullOrEmpty(dir))
                     System.IO.Directory.CreateDirectory(dir);
                 image.SavePng(path);
+                DebugCapture.WriteLayoutJson(this, $"cardplate_test_{resolution}");
                 GD.Print($"[CardPlateTest] Captured to {path}");
             }
             // Keep window open for scrot to capture, then exit

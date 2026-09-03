@@ -686,6 +686,94 @@ public partial class DebugCapture : Node
         GD.Print($"[DebugCapture] Reliquary test: {ownedIds.Count} owned cards, 1 NEW, {allCards.Count - ownedIds.Count} unowned");
     }
 
+    /// <summary>
+    /// Walk the scene tree and write a layout.json describing every visible Control.
+    /// Called after each DebugCapture screenshot is saved.
+    /// </summary>
+    public static void WriteLayoutJson(Node root, string captureBaseName)
+    {
+        var path = $"/home/fictive/runewake/artifacts/captures/{captureBaseName}.layout.json";
+        var dir = System.IO.Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir))
+            System.IO.Directory.CreateDirectory(dir);
+
+        var entries = new System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, object>>();
+        WalkControls(root, "", entries);
+
+        var vp = root.GetViewport();
+        var vpSize = vp != null ? vp.GetVisibleRect().Size : Vector2.Zero;
+        var safeArea = DisplayServer.GetDisplaySafeArea();
+
+        var data = new System.Collections.Generic.Dictionary<string, object>
+        {
+            ["viewport_width"] = vpSize.X,
+            ["viewport_height"] = vpSize.Y,
+            ["safe_area_x"] = safeArea.Position.X,
+            ["safe_area_y"] = safeArea.Position.Y,
+            ["safe_area_w"] = safeArea.Size.X,
+            ["safe_area_h"] = safeArea.Size.Y,
+            ["controls"] = entries
+        };
+
+        using var file = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Write);
+        if (file != null)
+        {
+            file.StoreString(System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            GD.Print($"[DebugCapture] Layout JSON written: {path}");
+        }
+        else
+        {
+            GD.PrintErr($"[DebugCapture] Failed to write layout JSON: {path}");
+        }
+    }
+
+    private static void WalkControls(Node node, string parentPath, System.Collections.Generic.List<System.Collections.Generic.Dictionary<string, object>> entries)
+    {
+        var control = node as Control;
+        if (control == null)
+        {
+            // Walk children even for non-Controls (e.g. Node2D, Panel)
+            foreach (var child in node.GetChildren())
+                WalkControls(child, parentPath, entries);
+            return;
+        }
+
+        // Skip invisible controls
+        if (!control.Visible)
+        {
+            foreach (var child in node.GetChildren())
+                WalkControls(child, parentPath, entries);
+            return;
+        }
+
+        string nodePath = string.IsNullOrEmpty(parentPath)
+            ? control.Name
+            : $"{parentPath}/{control.Name}";
+
+        var rect = control.GetGlobalRect();
+        var entry = new System.Collections.Generic.Dictionary<string, object>
+        {
+            ["path"] = nodePath,
+            ["class"] = control.GetType().Name,
+            ["x"] = (int)rect.Position.X,
+            ["y"] = (int)rect.Position.Y,
+            ["w"] = (int)rect.Size.X,
+            ["h"] = (int)rect.Size.Y,
+            ["mouse_filter"] = (int)control.MouseFilter
+        };
+
+        // For TextureRects, record if texture is non-null
+        if (control is TextureRect texRect)
+        {
+            entry["texture_non_null"] = texRect.Texture != null;
+        }
+
+        entries.Add(entry);
+
+        foreach (var child in node.GetChildren())
+            WalkControls(child, nodePath, entries);
+    }
+
     public override void _Process(double delta)
     {
         if (!_active || _captureDone) return;

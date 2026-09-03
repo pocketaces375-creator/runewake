@@ -65,6 +65,8 @@ public partial class DigScene : Control
                         ? "/home/fictive/runewake/artifacts/captures/dig_test_wide.png"
                         : "/home/fictive/runewake/artifacts/captures/dig_test.png";
                     image.SavePng(path);
+                    string baseName = CampaignContext.WideCaptureMode ? "dig_test_wide" : "dig_test";
+                    DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[DigScene] Captured to {path}");
                 }
                 GetTree().Quit(0);

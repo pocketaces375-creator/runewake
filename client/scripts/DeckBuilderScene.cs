@@ -138,6 +138,8 @@ public partial class DeckBuilderScene : Control
                                 ? "/home/fictive/runewake/artifacts/captures/deck_test_phone.png"
                                 : "/home/fictive/runewake/artifacts/captures/deck_test.png";
                         image.SavePng(path);
+                        string baseName = System.IO.Path.GetFileNameWithoutExtension(path.Substring(path.LastIndexOf('/') + 1));
+                        DebugCapture.WriteLayoutJson(this, baseName);
                         GD.Print($"[DeckBuilderScene] Captured to {path}");
                     }
                 }

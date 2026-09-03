@@ -185,6 +185,7 @@ public partial class ReliquaryScene : Control
         {
             string path = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.png";
             img.SavePng(path);
+            DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
             GD.Print($"[ReliquaryScene] Saved {path}");
 
             var meta = new System.Text.StringBuilder();
@@ -1208,6 +1209,7 @@ public partial class ReliquaryScene : Control
             {
                 string path = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.png";
                 img.SavePng(path);
+                DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
                 GD.Print($"[ReliquaryScene] Saved {path}");
 
                 // Write meta.json

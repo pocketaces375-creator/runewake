@@ -1030,6 +1030,7 @@ public partial class TutorialRunner : Node
             {
                 string pngPath = $"{_captureDir}/{filename}.png";
                 img.SavePng(pngPath);
+                DebugCapture.WriteLayoutJson(_duelScene, filename);
                 GD.Print($"[TutorialRunner] Capture saved: {pngPath}");
 
                 // Write companion meta
@@ -1103,6 +1104,7 @@ public partial class TutorialRunner : Node
                 string gatePrefix = $"tutorial_{id}";
                 string pngPath = $"{_captureDir}/{gatePrefix}.png";
                 img.SavePng(pngPath);
+                DebugCapture.WriteLayoutJson(_duelScene, gatePrefix);
                 GD.Print($"[TutorialRunner] Gate capture saved: {pngPath}");
 
                 var meta = new StringBuilder();

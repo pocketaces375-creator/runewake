@@ -50,6 +50,8 @@ public partial class SettingsScene : Control
                         ? "/home/fictive/runewake/artifacts/captures/settings_test_wide.png"
                         : "/home/fictive/runewake/artifacts/captures/settings_test.png";
                     image.SavePng(path);
+                    string baseName = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
+                    DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[SettingsScene] Captured to {path}");
                 }
                 GetTree().Quit(0);

@@ -562,7 +562,14 @@ public partial class DuelScene : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng(capturePath);
-                    GD.Print($"[CAPTURE] duel_test{captureSuffix}.png saved");
+                    // TASK-UI-LINT-1: Write layout JSON
+                    var layoutBaseName = CampaignContext.CaptureVictoryOverlay
+                        ? $"victory_overlay{captureSuffix}"
+                        : CampaignContext.CaptureDefeatOverlay
+                        ? $"defeat_overlay{captureSuffix}"
+                        : $"duel_test{captureSuffix}";
+                    DebugCapture.WriteLayoutJson(this, layoutBaseName);
+                    GD.Print($"[CAPTURE] {layoutBaseName}.png saved");
 
                     // Write meta.json with screen-space card rects
                     var meta = new System.Text.StringBuilder();
