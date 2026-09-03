@@ -682,7 +682,9 @@ else
     STATE_SNAPSHOT=$(cat "${STATE_FILE}" 2>/dev/null || echo "{}")
     POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
     if [[ -n "${POST_SESSION_HEAD}" ]] && [[ "${POST_SESSION_HEAD}" != "${CURRENT_HEAD}" ]]; then
-      git reset --hard "${CURRENT_HEAD}" 2>/dev/null || true
+      # Fetch origin first so we never rewind past commits others pushed
+      git fetch origin main 2>/dev/null || true
+      git reset --hard origin/main 2>/dev/null || true
       git checkout -- . 2>/dev/null || true
       git clean -fd 2>/dev/null || true
     fi
