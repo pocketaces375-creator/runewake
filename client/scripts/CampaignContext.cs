@@ -810,6 +810,7 @@ public static class CampaignContext
 
         /// <summary>Soak test: defeat retry flag — set to true after first retry to prevent infinite loops.</summary>
         public static bool SoakDefeatHasRetried { get; set; } = false;
+        public static bool LoopSmokeTest { get; set; }
 
         /// <summary>Soak test: if true, quit the soak after completing one defeat→retry cycle.</summary>
         public static bool SoakStopAfterRetry { get; set; } = false;

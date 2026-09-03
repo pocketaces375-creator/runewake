@@ -226,8 +226,13 @@ public partial class MapScene : Control
                     }
                     if (clearedCount >= CampaignContext.SoakMaxNodes)
                     {
-                        GD.Print($"[MAPSOAK] Save/quit phase: {clearedCount} nodes cleared, saving and quitting");
+                        GD.Print($"[MAPSOAK] Save/quit phase: {clearedCount} nodes cleared");
                         CampaignContext.SaveManager.Save();
+                        if (CampaignContext.LoopSmokeTest)
+                        {
+                            GD.Print("[MAPSOAK] LoopSmokeTest active — stopping auto-nav (no quit) so LoopSmokeTest can continue to Reliquary/Forge");
+                            return;
+                        }
                         GetTree().Quit(0);
                         return;
                     }
