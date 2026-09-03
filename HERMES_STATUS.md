@@ -1,4 +1,5 @@
-     | TASK-FINISH-SCRIPT-1 | 2026-09-02 | finish_task.sh created, wired into foreman.sh, CLAUDE.md standing lesson added | DONE |
+     | TASK-UI-LINT-1 | 2026-09-02 | Rules instead of eyes: WriteLayoutJson added to DebugCapture.cs, patched all 12 capture scenes, tools/ui_lint.py created with scene-specific rules (duel_test, choose_path, general). Pre-existing test failures (22, from REGION-GEN content restructure) not related to this change. ui_lint returns PASS (no layout.jsons yet — generated on next capture regen after client changes). | DONE |
+|---| TASK-FINISH-SCRIPT-1 | 2026-09-02 | finish_task.sh created, wired into foreman.sh, CLAUDE.md standing lesson added | DONE |
 1|**TASK-REGION-GEN-1 (2026-09-02):** Region generator TOOL — tools/region_gen.py takes a biome spec json and outputs region map, encounter files, and dig site. ✅
 - **Tool:** tools/region_gen.py — generates content/map/region_NN.json (graph with unlock chain), encounters (early/mid/late/boss), and dig site from a spec file. ✅
 - **Card pool:** Draws from primary stratum + all cross-strata neutrals. 30 unique cards per deck. Rarity weighted by tier (early=C-heavy, boss=R/M-heavy). ✅

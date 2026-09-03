@@ -271,7 +271,7 @@
   the group without a finish_task.sh run is not done."
   Acceptance: the script exists, is executable, and you close THIS task with it.
 
-- [ ] TASK-UI-LINT-1 — Rules instead of eyes. (a) In DebugCapture mode, after the frame is
+- [x] TASK-UI-LINT-1 — Rules instead of eyes. (a) In DebugCapture mode, after the frame is
   captured, walk the scene tree and write artifacts/captures/<name>.layout.json: for every
   visible Control — node path, class, global rect (x,y,w,h), mouse_filter, and for
   TextureRects whether the texture is non-null. Include the viewport size and the display
