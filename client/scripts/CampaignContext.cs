@@ -770,15 +770,61 @@ public static class CampaignContext
         }
 
     /// <summary>
-    /// Load all Lost Relic definitions from the content directory.
-    /// Call once at title screen.
-    /// </summary>
-    public static void LoadLostRelics()
-        {
-            LostRelicIndex.Clear();
-            string json = Godot.FileAccess.GetFileAsString("res://content/relics/relic_defs.json");
-            var pack = LostRelicLoader.LoadPackFromString(json);
-            foreach (var relic in pack.Relics)
-                LostRelicIndex[relic.EncounterId] = relic;
-        }
-}
+            /// Load all Lost Relic definitions from the content directory.
+            /// Call once at title screen.
+            /// </summary>
+            public static void LoadLostRelics()
+            {
+                LostRelicIndex.Clear();
+                string json = Godot.FileAccess.GetFileAsString("res://content/relics/relic_defs.json");
+                var pack = LostRelicLoader.LoadPackFromString(json);
+                foreach (var relic in pack.Relics)
+                    LostRelicIndex[relic.EncounterId] = relic;
+            }
+
+        // ════════════════════════════════════════════════
+        // SOAK LOOP TEST
+        // ════════════════════════════════════════════════
+
+        /// <summary>Soak test: active flag. Set by --capture=map_loop_soak.</summary>
+        public static bool SoakActive { get; set; }
+
+        /// <summary>Soak test: which node we're on (index into SoakNodeOrder).</summary>
+        public static int SoakPhase { get; set; }
+
+        /// <summary>Soak test: ordered list of node IDs to clear in sequence.</summary>
+        public static List<string> SoakNodeOrder { get; set; } = new();
+
+        /// <summary>Soak test: log of screen names visited so far.</summary>
+        public static List<string> SoakScreenLog { get; set; } = new();
+
+        /// <summary>Soak test: max nodes to clear before quitting (0 = no limit).</summary>
+        public static int SoakMaxNodes { get; set; } = 0;
+
+        /// <summary>Soak test: phase label (save_quit, defeat_test, resume, etc).</summary>
+        public static string SoakPhaseLabel { get; set; } = "";
+
+        /// <summary>Soak test: defeat retry flag — set to true after first retry to prevent infinite loops.</summary>
+        public static bool SoakDefeatHasRetried { get; set; } = false;
+
+        /// <summary>Soak test: if true, quit the soak after completing one defeat→retry cycle.</summary>
+        public static bool SoakStopAfterRetry { get; set; } = false;
+
+        /// <summary>Soak test: the seed being used for this run.</summary>
+        public static ulong SoakSeed { get; set; }
+
+        /// <summary>Soak test: the seed as a string for feeding to DebugSeed.</summary>
+        public static string SoakSeedStr { get; set; } = "";
+
+        /// <summary>Soak test: if true, we are doing the defeat→retry sub-test.</summary>
+        public static bool SoakDefeatPhase { get; set; }
+
+        /// <summary>Soak test: the encounter ID to use for the defeat test (strongest boss).</summary>
+        public static string SoakDefeatEncounterId { get; set; } = "";
+
+        /// <summary>Soak test: the node ID to use for the defeat test.</summary>
+        public static string SoakDefeatNodeId { get; set; } = "";
+
+        /// <summary>Soak test: if true, in the save/quit/resume sub-test.</summary>
+        public static bool SoakSaveQuitPhase { get; set; }
+    };

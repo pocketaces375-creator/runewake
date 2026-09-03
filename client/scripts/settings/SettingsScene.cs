@@ -559,7 +559,6 @@ public partial class SettingsScene : Control
         _resetInput = new LineEdit
         {
             PlaceholderText = "type RESET here",
-            HorizontalAlignment = HorizontalAlignment.Center,
             CustomMinimumSize = new Vector2(0, 36),
             MaxLength = 10,
             SizeFlagsHorizontal = Control.SizeFlags.Fill

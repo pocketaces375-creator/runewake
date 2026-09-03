@@ -10368,3 +10368,65 @@ Already up to date.
 === Running: TASK-RUNE-SINK-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 4010103) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 28/48 (28 full + 0 bus, 56/96 halves)
+  Top task: TASK-MAP-LOOP-SOAK-1
+
+=== Running: TASK-MAP-LOOP-SOAK-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+2. **Dual-bot soak mode** — Need to instance a **second BotController** for P0 in DuelScene.cs when SoakActive is true, so both sides play through GreedyBot rather than just one side. Current soak mode tries P0 playing naive cards+attacks through the old bot-duel harness, which loses every time. The correct approach: skip StartBotDuelTest entirely in soak mode, set up two BotControllers (P0 and P1, both ThinkDelay=0.1, ActionInterval=0.1), and let them play each other.
+3. **Run 3 seeds clean** — After the dual-bot fix, the full loop should progress through r1_n01→r1_n02/r1_n03→...→dig site→warden→victory.
+4. **Commit, push, DONE line in HERMES_STATUS.md**.
+
+The task is ~70% done — the infrastructure and guards are in place, but the core gameplay loop needs the dual-bot fix to actually complete a Region 1 run instead of looping on r1_n01 forever.
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 29/48 (29 full + 0 bus, 58/96 halves)
+  Top task: TASK-MAP-LOOP-SOAK-1
+
+=== Running: TASK-MAP-LOOP-SOAK-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 440312) — exiting
+  Hermes session completed
+### What's pending (hit tool-call limit)
+- `git add` + commit with message `TASK-MAP-LOOP-SOAK-1: Prove the whole Region 1 loop end to end, headless and seeded: title → Choose`
+- `git push`
+- DONE line in HERMES_STATUS.md
+- Mark [x] in TASKS_QUEUE.md
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 30/48 (30 full + 0 bus, 60/96 halves)
+  Top task: TASK-MAP-LOOP-SOAK-1
+
+=== Running: TASK-MAP-LOOP-SOAK-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 743324) — exiting

@@ -226,7 +226,7 @@
   typed confirm, and a version + build hash string bottom-right.
   Acceptance: capture; slider values survive a headless restart; posted.
 
-- [ ] TASK-MAP-LOOP-SOAK-1 — Prove the whole Region 1 loop end to end, headless and seeded: title → Choose
+- [x] TASK-MAP-LOOP-SOAK-1 — Prove the whole Region 1 loop end to end, headless and seeded: title → Choose
   Your Path → map → 3 encounters won → dig site (shards/charges) → Warden boss → victory → drops → map shows
   the region cleared. Also one defeat→retry path. A save/quit/resume in the middle must restore map state
   exactly.

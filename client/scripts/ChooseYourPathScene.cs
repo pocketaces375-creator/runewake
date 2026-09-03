@@ -306,6 +306,19 @@ public partial class ChooseYourPathScene : Control
                 RunVerify();
             }
 
+            // Soak mode: auto-select first class (warrior), auto-Begin after short delay
+            if (CampaignContext.SoakActive)
+            {
+                _selectedIdx = 0;
+                UpdateCarousel();
+                UpdateUI();
+                RunVerify();
+                GD.Print("[ChooseYourPath] Soak mode — selected " + _classes[0].Name + ", auto-beginning");
+                var soakBeginTimer = GetTree().CreateTimer(0.5f);
+                soakBeginTimer.Timeout += OnBegin;
+                return;
+            }
+
             var timer = GetTree().CreateTimer(1.0f);
             timer.Timeout += () =>
             {

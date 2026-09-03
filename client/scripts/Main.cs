@@ -684,6 +684,19 @@ public partial class Main : Control
                 GD.Print("[Main] Navigating to Reliquary for capture");
                 GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
             }
+            else if (CampaignContext.SoakActive)
+            {
+                // Soak loop mode — route through normal campaign flow
+                GD.Print("[Main] Soak loop mode active — starting campaign");
+                if (CampaignContext.HasSavedCampaign)
+                {
+                    Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
+                }
+                else
+                {
+                    Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn")).CallDeferred();
+                }
+            }
             else
             {
                 // Navigate to duel for duel capture (or tutorial script)

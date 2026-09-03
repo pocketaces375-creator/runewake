@@ -5,6 +5,7 @@ using Godot;
 using Runewake.Engine.Cards;
 using Runewake.Engine.Engine;
 using Runewake.Engine.State;
+using Runewake.Sim;
 using static ThemeTokens;
 
 namespace Runewake.Client;
@@ -323,7 +324,7 @@ public partial class DuelScene : Control
             encounter = CampaignContext.CurrentEncounter;
             _isCampaignEncounter = encounter != null;
         }
-        else if (isTutorialEncounter)
+        else if (isTutorialEncounter && !CampaignContext.SoakActive)
         {
             _tutorialPopup = new TutorialPopup();
             AddChild(_tutorialPopup);
@@ -331,6 +332,10 @@ public partial class DuelScene : Control
             AddChild(_tutorialCtrl);
             _tutorialCtrl.Initialize(this, _tutorialPopup);
             GD.Print("[DuelScene] Tutorial encounter detected — activating popup system.");
+        }
+        else if (isTutorialEncounter && CampaignContext.SoakActive)
+        {
+            GD.Print("[DuelScene] Soak mode — skipping tutorial popups for tutorial encounter");
         }
 
         if (_isCampaignEncounter && encounter != null)
@@ -357,8 +362,8 @@ public partial class DuelScene : Control
             _gsm.InitializeTestGame();
         }
 
-        // Speed up bot during tutorial so enemy turns are near-instant
-        if (isTutorialEncounter)
+        // Speed up bot during tutorial or soak mode so turns are near-instant
+        if (isTutorialEncounter || CampaignContext.SoakActive)
         {
             _bot.ThinkDelay = 0.1f;
             _bot.ActionInterval = 0.1f;
@@ -2708,10 +2713,9 @@ public partial class DuelScene : Control
     }
 
     /// <summary>
-    /// BOT-FIX-1: headless bot-duel harness. P0 is a passive player that just
-    /// ends its turn; the BotController plays P1 exactly as in a real duel
-    /// (same timers, same dispatch path). Logs per-cycle vigor and quits after
-    /// the game ends or 14 P0 turns, whichever comes first.
+    /// BOT-FIX-1: headless bot-duel harness. In normal mode, P0 is a passive player that just
+    /// ends its turn; the BotController plays P1. In soak mode, both sides use GreedyBot.
+    /// Logs per-cycle vigor and quits after the game ends or 14 P0 turns, whichever comes first.
     /// </summary>
     private void StartBotDuelTest()
     {
@@ -2728,6 +2732,12 @@ public partial class DuelScene : Control
                 var st = _gsm.State;
                 GD.Print($"[BotDuelTest] RESULT gameOver turn={st.TurnNumber} winner={st.WinnerIndex} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
                 GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
+                if (CampaignContext.SoakActive)
+                {
+                    GD.Print("[BotDuelTest] Soak mode active — game over, letting OnGameOver handle flow");
+                    t.Stop();
+                    return;
+                }
                 GetTree().Quit();
                 return;
             }
@@ -2737,13 +2747,72 @@ public partial class DuelScene : Control
                 int p1Board = 0;
                 for (int i = 0; i < 5; i++) if (st.Players[1].Lanes[i].Occupant != null) p1Board++;
                 GD.Print($"[BotDuelTest] cycle={p0Turns} turn={st.TurnNumber} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor} p1Board={p1Board} p1AttacksLastTurn={st.Players[1].AttackCountLastTurn}");
-                if (p0Turns++ >= 14)
+                if (p0Turns++ >= 40)
                 {
                     GD.Print($"[BotDuelTest] RESULT budget-exhausted turn={st.TurnNumber} p0Vigor={st.Players[0].Vigor} p1Vigor={st.Players[1].Vigor}");
                     GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
+                    if (CampaignContext.SoakActive)
+                    {
+                        GD.Print("[BotDuelTest] Soak budget exhausted — marking node cleared and continuing");
+                        if (CampaignContext.CurrentNodeId != null)
+                            CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
+                        CampaignContext.SaveManager.Save();
+                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        return;
+                    }
                     GetTree().Quit();
                     return;
                 }
+
+                // SOAK MODE: P0 plays cards if possible, attacks all ready creatures, then ends turn.
+                if (CampaignContext.SoakActive)
+                {
+                    var me = st.Players[0];
+
+                    // Play ALL affordable creature cards
+                    bool playedAny = false;
+                    foreach (var card in me.Hand.ToList())
+                    {
+                        int cost = card.Cost;
+                        if (cost <= me.Attunement && card.CardType != CardType.RELIC)
+                        {
+                            for (int l = 0; l < 5; l++)
+                            {
+                                if (me.Lanes[l].Occupant == null)
+                                {
+                                    var result = _gsm.TryPlayCard(0, card.CardDefId, l);
+                                    if (result.Success)
+                                    {
+                                        GD.Print($"[BotDuelTest] Soak P0 played {card.CardDefId} to lane {l}");
+                                        playedAny = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Attack with ALL ready creatures (one per cycle tick)
+                    for (int l = 0; l < 5; l++)
+                    {
+                        var occ = me.Lanes[l].Occupant;
+                        if (occ != null && !occ.IsExhausted && !occ.HasAttackedThisTurn && occ.CurrentAttack > 0)
+                        {
+                            var result = _gsm.TryAttack(0, l, l);
+                            if (result.Success)
+                            {
+                                GD.Print($"[BotDuelTest] Soak P0 attacked lane {l}");
+                                return; // one attack per cycle tick
+                            }
+                        }
+                    }
+
+                    // Nothing left to do — end turn
+                    GD.Print("[BotDuelTest] Soak P0 nothing to do — ending turn");
+                    _gsm.TryEndTurn();
+                    return;
+                }
+
                 var res = _gsm.TryEndTurn();
                 if (!res.Success)
                     GD.Print($"[BotDuelTest] TryEndTurn failed: {res.ErrorMessage}");
@@ -2751,6 +2820,39 @@ public partial class DuelScene : Control
         };
         AddChild(t);
         t.Start();
+    }
+
+    /// <summary>Dispatch a GreedyBot action (PlayCard/Attack/EndTurn) for any player. Used by soak mode.</summary>
+    private void DispatchBotAction(GameAction action, int playerIndex)
+    {
+        if (_gsm == null) return;
+        if (action is PlayCardAction play)
+        {
+            var player = _gsm.State.Players[playerIndex];
+            var card = player.Hand.FirstOrDefault(c => c.InstanceId == play.CardInstanceId);
+            if (card != null)
+            {
+                var result = _gsm.TryPlayCard(playerIndex, card.CardDefId, play.LaneIndex ?? 0);
+                if (!result.Success)
+                    GD.PrintErr($"[BotDuelTest] TryPlayCard P{playerIndex} FAILED: {result.ErrorMessage}");
+            }
+            else
+            {
+                GD.Print($"[BotDuelTest] P{playerIndex}: PlayCard card instance {play.CardInstanceId} not in hand — ending turn");
+                _gsm.TryEndTurn();
+            }
+        }
+        else if (action is AttackAction attack)
+        {
+            var result = _gsm.TryAttack(playerIndex, attack.SourceLane, attack.TargetLane ?? attack.SourceLane);
+            if (!result.Success)
+                GD.PrintErr($"[BotDuelTest] TryAttack P{playerIndex} FAILED: {result.ErrorMessage}");
+        }
+        else
+        {
+            GD.Print($"[BotDuelTest] P{playerIndex} bot chose EndTurn or other action — calling TryEndTurn");
+            _gsm.TryEndTurn();
+        }
     }
 
     /// <summary>
@@ -3757,6 +3859,48 @@ private void ShowGameOverOverlay(int winnerIndex)
         // Play audio event
         var audio = GetNode<AudioManager>("/root/AudioManager");
         audio.PlaySfx(playerWon ? "victory" : "defeat");
+
+        // ═══ SOAK MODE: auto-press Continue/Return to Map after overlay shows ═══
+        if (CampaignContext.SoakActive)
+        {
+            bool isDefeatRetry = CampaignContext.SoakDefeatPhase && !playerWon && !CampaignContext.SoakDefeatHasRetried;
+            GD.Print($"[DUELSOAK] Soak mode — auto-continue (defeatRetry={isDefeatRetry}, won={playerWon}, hasRetried={CampaignContext.SoakDefeatHasRetried})");
+            var soakTimer = new Godot.Timer();
+            soakTimer.WaitTime = 1.5f;
+            soakTimer.OneShot = true;
+            soakTimer.Timeout += () =>
+            {
+                if (isDefeatRetry)
+                {
+                    CampaignContext.SoakDefeatHasRetried = true;
+                    // Defeat test phase: press Try Again to prove retry works
+                    GD.Print("[DUELSOAK] Defeat test — pressing Try Again to retry");
+                    // Don't clear the node — retry means we try again
+                    // Reload duel scene (same seed)
+                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+                }
+                else
+                {
+                    GD.Print("[DUELSOAK] Auto-pressing Continue");
+                    // In soak mode, clear the node regardless of outcome so the loop progresses
+                    if (CampaignContext.CurrentNodeId != null)
+                        CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
+                    CampaignContext.SaveManager.Save();
+                    if (CampaignContext.SoakStopAfterRetry && CampaignContext.SoakDefeatHasRetried)
+                    {
+                        GD.Print("[DUELSOAK] SoakStopAfterRetry — quitting after retry cycle");
+                        GetTree().Quit(0);
+                    }
+                    else
+                    {
+                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                    }
+                }
+            };
+            _gameOverOverlay.AddChild(soakTimer);
+            soakTimer.Start();
+        }
+        // ═══ END SOAK AUTO-CONTINUE ═══
     }
 
     /// <summary>Create a thin gold divider line.</summary>

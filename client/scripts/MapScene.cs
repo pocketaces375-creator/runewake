@@ -156,6 +156,130 @@ public partial class MapScene : Control
             flowTimer.Start();
         }
         // ═══ END FLOW TEST MAP CAPTURE ═══
+
+        // ═══ SOAK LOOP MAP AUTO-PLAY ═══
+        if (CampaignContext.SoakActive)
+        {
+            GD.Print("[MAPSOAK] Soak active — will auto-select and challenge next unlocked node");
+            var soakCapTimer = new Godot.Timer();
+            soakCapTimer.OneShot = true;
+            soakCapTimer.WaitTime = 1.2f;
+            soakCapTimer.Timeout += () =>
+            {
+                // Find first unlocked, non-cleared encounter or dig node
+                string? targetId = null;
+                bool isDigTarget = false;
+                if (_region != null)
+                {
+                    foreach (var mapNode in _region.Nodes)
+                    {
+                        if (CampaignContext.Progression.IsNodeCleared(mapNode.Id)) continue;
+                        if (!IsNodeUnlocked(mapNode)) continue;
+                        // Skip shrine/merchant nodes that don't have encounters
+                        if (mapNode.Type == MapNodeType.Shrine || mapNode.Type == MapNodeType.Merchant)
+                        {
+                            // Mark these auto-cleared and skip
+                            CampaignContext.Progression.MarkNodeCleared(mapNode.Id);
+                            GD.Print($"[MAPSOAK] Auto-cleared non-encounter node: {mapNode.Id}");
+                            continue;
+                        }
+                        targetId = mapNode.Id;
+                        isDigTarget = mapNode.Type == MapNodeType.Dig;
+                        break;
+                    }
+                }
+
+                if (targetId == null)
+                {
+                    // All done — capture final map and quit
+                    CampaignContext.SoakScreenLog.Add("map_region_cleared");
+                    GD.Print("[MAPSOAK] All nodes cleared — capturing final map and quitting");
+                    var img = GetViewport().GetTexture().GetImage();
+                    if (img != null)
+                        img.SavePng($"/home/fictive/runewake/artifacts/captures/soak_final_map_{CampaignContext.SoakSeedStr}.png");
+                    GetTree().Quit(0);
+                    return;
+                }
+
+                // save_quit phase: quit after clearing SoakMaxNodes nodes
+                if (CampaignContext.SoakMaxNodes > 0)
+                {
+                    int clearedCount = 0;
+                    if (_region != null)
+                    {
+                        foreach (var n in _region.Nodes)
+                        {
+                            if (CampaignContext.Progression.IsNodeCleared(n.Id))
+                                clearedCount++;
+                        }
+                    }
+                    if (clearedCount >= CampaignContext.SoakMaxNodes)
+                    {
+                        GD.Print($"[MAPSOAK] Save/quit phase: {clearedCount} nodes cleared, saving and quitting");
+                        CampaignContext.SaveManager.Save();
+                        GetTree().Quit(0);
+                        return;
+                    }
+                }
+
+                CampaignContext.SoakScreenLog.Add($"map_select_{targetId}");
+                GD.Print($"[MAPSOAK] Auto-selecting node: {targetId} (dig={isDigTarget})");
+
+                // Clear defeat-retry flag for new node selection
+                CampaignContext.SoakDefeatHasRetried = false;
+
+                // Select the node
+                OnNodeSelected(targetId);
+
+                // For dig sites in soak mode: mark cleared and re-run the loop
+                if (isDigTarget)
+                {
+                    var digTimer = new Godot.Timer();
+                    digTimer.OneShot = true;
+                    digTimer.WaitTime = 0.8f;
+                    digTimer.Timeout += () =>
+                    {
+                        CampaignContext.Progression.MarkNodeCleared(targetId);
+                        CampaignContext.Progression.Shards += 20; // dig site shard reward
+                        CampaignContext.SaveManager.Save();
+                        GD.Print($"[MAPSOAK] Dig site {targetId} resolved — marking cleared, returning to map");
+                        // Reload map to re-evaluate unlock state
+                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                    };
+                    AddChild(digTimer);
+                    digTimer.Start();
+                    return;
+                }
+
+                // For encounter nodes: wait for info panel, then press Challenge
+                var goTimer = new Godot.Timer();
+                goTimer.OneShot = true;
+                goTimer.WaitTime = 0.8f;
+                goTimer.Timeout += () =>
+                {
+                    // Skip tutorial encounters in soak mode — they block bot play
+                    var node = _region.Nodes.FirstOrDefault(n => n.Id == targetId);
+                    if (node != null && node.Encounter != null &&
+                        CampaignContext.EncounterIndex.TryGetValue(node.Encounter, out var enc) &&
+                        enc.IsTutorial && CampaignContext.SoakActive)
+                    {
+                        GD.Print($"[MAPSOAK] Skipping tutorial encounter {targetId} — marking cleared");
+                        CampaignContext.Progression.MarkNodeCleared(targetId);
+                        CampaignContext.SaveManager.Save();
+                        // Reload map to re-evaluate unlock state
+                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        return;
+                    }
+                    GD.Print($"[MAPSOAK] Auto-pressing Challenge for node: {targetId}");
+                    OnGoButtonPressed();
+                };
+                AddChild(goTimer);
+                goTimer.Start();
+            };
+            AddChild(soakCapTimer);
+            soakCapTimer.Start();
+        }
+        // ═══ END SOAK LOOP MAP AUTO-PLAY ═══
     }
 
     /// <summary>

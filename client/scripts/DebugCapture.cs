@@ -287,10 +287,52 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Reliquary wide capture mode enabled: --capture=reliquary_test_wide");
             }
+            if (arg == "--capture=map_loop_soak")
+            {
+                _active = true;
+                CampaignContext.SoakActive = true;
+                CampaignContext.BotDuelTest = true;
+                GD.Print("[DebugCapture] Soak loop test enabled: --capture=map_loop_soak");
+            }
+            if (arg.StartsWith("--soak-seed="))
+            {
+                var seedStr = arg.Substring("--soak-seed=".Length);
+                if (ulong.TryParse(seedStr, out var seed))
+                {
+                    CampaignContext.SoakSeed = seed;
+                    CampaignContext.DebugSeed = seed;
+                    CampaignContext.SoakSeedStr = seedStr;
+                    GD.Print($"[DebugCapture] Soak seed set: {seed}");
+                }
+            }
+            if (arg.StartsWith("--soak-phase="))
+            {
+                var phase = arg.Substring("--soak-phase=".Length);
+                CampaignContext.SoakPhaseLabel = phase;
+                GD.Print($"[DebugCapture] Soak phase set: {phase}");
+                if (phase == "save_quit")
+                {
+                    CampaignContext.SoakMaxNodes = 4;
+                    GD.Print("[DebugCapture] Save/quit phase: will quit after 4 nodes");
+                }
+                else if (phase == "defeat_test")
+                {
+                    CampaignContext.SoakDefeatPhase = true;
+                    CampaignContext.SoakStopAfterRetry = true;
+                    GD.Print("[DebugCapture] Defeat test phase: will test defeat->retry flow");
+                }
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);
             }
+        }
+
+        if (CampaignContext.SoakActive)
+        {
+            _active = true;
+            CampaignContext.AutoCaptureScreenshot = true;
+            GD.Print("[DebugCapture] Soak mode: AutoCaptureScreenshot=true, BotDuelTest=true");
         }
 
         if (deckBuilderMode)
@@ -314,7 +356,7 @@ public partial class DebugCapture : Node
             return; // Tutorial script mode handles its own flow
         }
 
-        if (_active)
+        if (_active && !CampaignContext.SoakActive)
         {
             SetUpTestEncounter();
 

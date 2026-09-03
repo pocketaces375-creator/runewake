@@ -16,6 +16,10 @@ public partial class BotController : Node
     private GameStateManager? _gsm;
     private Godot.Timer? _timer;
     private readonly GreedyBot _bot = new();
+    private int _playerIndex = 1; // default: P1 (enemy)
+
+    /// <summary>Which player this controller manages (0 = P0, 1 = P1).</summary>
+    public int PlayerIndex { get => _playerIndex; set => _playerIndex = value; }
 
     /// <summary>Delay before the bot makes its first action each turn (seconds).</summary>
     public float ThinkDelay { get; set; } = 1.5f;
@@ -84,116 +88,112 @@ public partial class BotController : Node
     }
 
     private void OnStateChanged()
-    {
-        if (_gsm == null || _gsm.IsGameOver) return;
-
-        // If it's the enemy's turn, start the bot thinking
-        if (_gsm.CurrentPlayerIndex == 1 && !IsThinking)
         {
-            GD.Print($"[BotController] Turn {_gsm.TurnNumber}: StateChanged → P1 turn detected, starting bot turn");
-            StartBotTurn();
+            if (_gsm == null || _gsm.IsGameOver) return;
+
+            // If it's the managed player's turn, start the bot thinking
+            if (_gsm.CurrentPlayerIndex == _playerIndex && !IsThinking)
+            {
+                GD.Print($"[BotController] Turn {_gsm.TurnNumber}: StateChanged → P{_playerIndex} turn detected, starting bot turn");
+                StartBotTurn();
+            }
         }
-    }
 
-    private void StartBotTurn()
-    {
-        GD.Print($"[BotController] Turn {_gsm.TurnNumber}: Bot turn STARTING (ThinkDelay={ThinkDelay}s)");
-        IsThinking = true;
-        _pendingAction = true;
-        BotTurnStarted?.Invoke();
-        _timer?.Start(ThinkDelay);
-    }
-
-    private void OnTimerTimeout()
-    {
-        try
+        private void StartBotTurn()
         {
-            if (_gsm == null || !_pendingAction) return;
+            GD.Print($"[BotController] Turn {_gsm.TurnNumber}: P{_playerIndex} turn STARTING (ThinkDelay={ThinkDelay}s)");
+            IsThinking = true;
+            _pendingAction = true;
+            BotTurnStarted?.Invoke();
+            _timer?.Start(ThinkDelay);
+        }
 
-            var state = _gsm.State;
-            if (state.IsGameOver || state.CurrentPlayerIndex != 1)
+        private void OnTimerTimeout()
+        {
+            try
             {
-                GD.Print($"[BotController] Turn ended or not P1 (P={state.CurrentPlayerIndex}), ending bot turn");
-                EndBotTurn();
-                return;
-            }
+                if (_gsm == null || !_pendingAction) return;
 
-            // Bot chooses an action
-            var action = _bot.ChooseAction(state, 1);
-            if (action == null)
-            {
-                GD.Print($"[BotController] WARNING: _bot.ChooseAction returned null — ending bot turn without calling TryEndTurn!");
-                EndBotTurn();
-                return;
-            }
-
-            // Dispatch the chosen action
-            if (action is EndTurnAction)
-            {
-                GD.Print($"[BotController] Bot chose EndTurnAction — calling TryEndTurn()");
-                var result = _gsm.TryEndTurn();
-                if (!result.Success)
+                var state = _gsm.State;
+                if (state.IsGameOver || state.CurrentPlayerIndex != _playerIndex)
                 {
-                    GD.PrintErr($"[BotController] TryEndTurn FAILED: {result.ErrorMessage}");
-                    // If end turn fails, force-invoke state unchanged so the game
-                    // loops back and tries again. Don't call EndBotTurn — the engine
-                    // still thinks it's P1's turn.
+                    GD.Print($"[BotController] Turn ended or not P{_playerIndex} (P={state.CurrentPlayerIndex}), ending bot turn");
+                    EndBotTurn();
                     return;
                 }
-                EndBotTurn();
-            }
-            else if (action is PlayCardAction play)
-            {
-                var player = state.Players[1];
-                var card = player.Hand.FirstOrDefault(c => c.InstanceId == play.CardInstanceId);
-                if (card != null)
+
+                // Bot chooses an action
+                var action = _bot.ChooseAction(state, _playerIndex);
+                if (action == null)
                 {
-                    GD.Print($"[BotController] Bot plays card '{card.CardDefId}' to lane {play.LaneIndex}");
-                    var result = _gsm.TryPlayCard(1, card.CardDefId, play.LaneIndex ?? 0);
+                    GD.Print($"[BotController] WARNING: _bot.ChooseAction returned null — ending bot turn without calling TryEndTurn!");
+                    EndBotTurn();
+                    return;
+                }
+
+                // Dispatch the chosen action
+                if (action is EndTurnAction)
+                {
+                    GD.Print($"[BotController] Bot chose EndTurnAction — calling TryEndTurn()");
+                    var result = _gsm.TryEndTurn();
                     if (!result.Success)
-                        GD.PrintErr($"[BotController] TryPlayCard FAILED: {result.ErrorMessage}");
+                    {
+                        GD.PrintErr($"[BotController] TryEndTurn FAILED: {result.ErrorMessage}");
+                        return;
+                    }
+                    EndBotTurn();
+                }
+                else if (action is PlayCardAction play)
+                {
+                    var player = state.Players[_playerIndex];
+                    var card = player.Hand.FirstOrDefault(c => c.InstanceId == play.CardInstanceId);
+                    if (card != null)
+                    {
+                        GD.Print($"[BotController] Bot plays card '{card.CardDefId}' to lane {play.LaneIndex}");
+                        var result = _gsm.TryPlayCard(_playerIndex, card.CardDefId, play.LaneIndex ?? 0);
+                        if (!result.Success)
+                            GD.PrintErr($"[BotController] TryPlayCard FAILED: {result.ErrorMessage}");
+                    }
+                    else
+                    {
+                        GD.Print($"[BotController] WARNING: Bot tried to play card instance {play.CardInstanceId} but not found in hand");
+                    }
+                    ScheduleNext();
+                }
+                else if (action is AttackAction attack)
+                {
+                    GD.Print($"[BotController] Bot attacks: lane {attack.SourceLane} → target {attack.TargetLane}");
+                    var result = _gsm.TryAttack(_playerIndex, attack.SourceLane, attack.TargetLane ?? attack.SourceLane);
+                    if (!result.Success)
+                        GD.PrintErr($"[BotController] TryAttack FAILED: {result.ErrorMessage}");
+                    ScheduleNext();
                 }
                 else
                 {
-                    GD.Print($"[BotController] WARNING: Bot tried to play card instance {play.CardInstanceId} but not found in hand");
+                    GD.Print($"[BotController] Unknown action type {action.GetType().Name} — ending turn");
+                    EndBotTurn();
                 }
-                ScheduleNext();
             }
-            else if (action is AttackAction attack)
+            catch (Exception ex)
             {
-                GD.Print($"[BotController] Bot attacks: lane {attack.SourceLane} → target {attack.TargetLane}");
-                var result = _gsm.TryAttack(1, attack.SourceLane, attack.TargetLane ?? attack.SourceLane);
-                if (!result.Success)
-                    GD.PrintErr($"[BotController] TryAttack FAILED: {result.ErrorMessage}");
-                ScheduleNext();
-            }
-            else
-            {
-                GD.Print($"[BotController] Unknown action type {action.GetType().Name} — ending turn");
+                GD.PrintErr($"[BotController] CRASH in OnTimerTimeout: {ex.GetType().Name}: {ex.Message}\\n{ex.StackTrace}");
                 EndBotTurn();
             }
         }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"[BotController] CRASH in OnTimerTimeout: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
-            // Don't leave the bot hanging — end its turn so the game can progress
-            EndBotTurn();
-        }
-    }
 
-    private void ScheduleNext()
-    {
-        if (_gsm.State.CurrentPlayerIndex == 1 && !_gsm.IsGameOver)
+        private void ScheduleNext()
         {
-            GD.Print($"[BotController] Scheduling next bot action in {ActionInterval}s");
-            _timer?.Start(ActionInterval);
+            if (_gsm.State.CurrentPlayerIndex == _playerIndex && !_gsm.IsGameOver)
+            {
+                GD.Print($"[BotController] Scheduling next bot action in {ActionInterval}s");
+                _timer?.Start(ActionInterval);
+            }
+            else
+            {
+                GD.Print($"[BotController] Bot turn done (P={_gsm.State.CurrentPlayerIndex}), ending bot turn");
+                EndBotTurn();
+            }
         }
-        else
-        {
-            GD.Print($"[BotController] Bot turn done (P={_gsm.State.CurrentPlayerIndex}), ending bot turn");
-            EndBotTurn();
-        }
-    }
 
     private void EndBotTurn()
     {

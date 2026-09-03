@@ -33,7 +33,7 @@ public partial class RunePageScene : Control
     private Control _runePicker = default!;
     private VBoxContainer _runeListBox = default!;
     private Label _shortfallLabel = default!;
-    private Timer _shortfallTimer = default!;
+    private Godot.Timer _shortfallTimer = default!;
     private List<RuneDef> _pickerRunes = new();
     private RuneSlotType _pickerSlotType;
 
@@ -140,11 +140,10 @@ public partial class RunePageScene : Control
         _shortfallLabel.AddThemeColorOverride("font_color", InsufficientColor);
         AddChild(_shortfallLabel);
 
-        _shortfallTimer = new Timer
+        _shortfallTimer = new Godot.Timer
         {
             OneShot = true,
-            WaitTime = 2.5f,
-            AutoStart = false
+            WaitTime = 2.5f
         };
         _shortfallTimer.Timeout += () => _shortfallLabel.Visible = false;
         AddChild(_shortfallTimer);
