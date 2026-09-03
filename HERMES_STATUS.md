@@ -1,3 +1,4 @@
+| TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix inbox_apply.sh (pure-queue detection, verbatim insert, full logging) + progress_ping.sh (cron every 2h) | DONE |
 | TASK-INPUT-SMOKE-1 | 2026-09-03 | tools/input_smoke.sh runs the client headless into a seeded duel, injects InputEventScreenTouch and InputEventMouseButton events at hand cards, lane slots, and End Turn button, asserts card selection, lane play, and turn advancement via _GuiInput handlers and EmitSignal. All 6 steps PASS. | DONE |
 | TASK-TESTS-GREEN-1 | 2026-09-03 | Restore Region 1 hand-built files, guard region_gen with --force, tempdir for tests, timeout 600 wrapping, full test suite green (790/790) | DONE |
 | TASK-UI-LINT-1 | 2026-09-03 | (a) DumpLayoutJSON writes .layout.json after each DebugCapture frame; (b) tools/ui_lint.py checks safe-area, overlap, mouse_filter, cost/stat position, artifact slot rules; (c) choose_path still fails (expected — TASK-CHOOSEPATH-LAYOUT-2 will fix) | DONE |
