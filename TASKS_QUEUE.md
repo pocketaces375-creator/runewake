@@ -596,6 +596,95 @@
   Post URL, size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
   Acceptance: DONE line contains release URL, APK size and sha256, PLAYABLE.json playable=true.
 
+# ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
+
+- [ ] TASK-REWARD-SCREEN-1 — Victory and defeat screens become the reward moment. After a win: the
+  card(s) dropped by that encounter flip face-up one at a time with a "NEW" ribbon on any card the
+  player did not own, shard and dig-charge counters count up, then one clear Continue button.
+  After a loss: what was lost (if anything), one Try Again and one Return to Map. No dead space;
+  encounter name and portrait stay as today. Skippable with a tap.
+  Acceptance: victory capture showing a NEW-card reveal, defeat capture, both resolutions; ui_lint
+  incl. EMPTY_BODY green; loop_smoke passes; one sentence on what a player feels at the win.
+
+- [ ] TASK-COLLECTION-1 — A Collection browser a player can reach from the Reliquary and the title.
+  Grid of every card the player owns, NEW badge on cards never opened in the browser (badge clears
+  on view), stratum filter chips (44px real buttons, selected state), tap a card for the full
+  face. Owned-count and total in the header. Uses the same card frame as everywhere else.
+  Acceptance: two captures (unfiltered, one stratum filtered) at both resolutions; ui_lint green;
+  NEW badge clears after viewing and persists in the save.
+
+- [ ] TASK-SETTINGS-COMPLETE-1 — Settings finished: Music and SFX sliders wired to the AudioManager
+  buses and saved; Graphics quality (low/high) toggle; Replay Intro; Credits panel; version and
+  build tag string bottom-right. Layout fills the frame, no empty plates.
+  Acceptance: capture; slider values survive a save/load round trip in a headless test.
+
+- [ ] TASK-TUTORIAL-VERIFY-1 — The walkthrough tutorial runs start to finish on the CURRENT layouts.
+  Known bug: Main.cs does not navigate to the duel when TutorialScriptId is set — fix it. Every
+  highlight rect must land on the control it names. Steps that reference old positions are
+  re-targeted.
+  Acceptance: headless tutorial run log with every step passing; captures of three highlighted
+  steps; loop_smoke still green.
+
+- [ ] TASK-MAP-POLISH-1 — The region map reads at a glance: locked / available / cleared nodes are
+  visually distinct, the current node pulses, the region name sits in a banner, the path lines are
+  drawn between nodes. No new painted art; use the existing board skin and rune motifs.
+  Acceptance: map capture after a seeded partial clear; ui_lint green; one sentence on what a
+  player sees.
+
+- [ ] TASK-DUEL-HUD-1 — The duel HUD is readable at arm's length on a phone: attunement, deck count,
+  turn indicator and both vigor totals use the serif face at sizes no smaller than 8px at
+  2316x1080; End Turn is an obvious, large button. Add a ui_lint rule MIN_TEXT that fails any
+  Label under 8px on every capture.
+  Acceptance: MIN_TEXT green on all captures; fresh duel_test captures; loop_smoke green.
+
+- [ ] TASK-SAVE-SLOTS-1 — Three campaign slots on the title screen: New / Continue / Delete with a
+  confirm dialog, each slot showing class portrait, region and pieces collected. Built on the v2
+  save system; a corrupt slot repairs to "empty", never a blank screen.
+  Acceptance: capture of the slot picker; headless test that creates, loads and deletes a slot.
+
+- [ ] TASK-CRASH-GUARD-1 — The game never hard-freezes on an error. A global unhandled-exception
+  handler shows a plain "Something went wrong — returning to the title" screen, writes the stack
+  to user://crash.log, and returns to the title with the save intact.
+  Acceptance: a debug-only trigger throws on purpose; capture of the recovery screen; the log file
+  contains the stack; loop_smoke green.
+
+- [ ] TASK-INPUT-FEEL-1 — Touch feels right on a phone: every tappable control is at least 44px on a
+  side; dragging a card to a lane snaps when over a valid lane and cancels cleanly when released
+  elsewhere; a ui_lint rule MIN_TOUCH fails any button or card under 44px.
+  Acceptance: MIN_TOUCH green on all captures; input_smoke passes; a short description of the
+  drag behaviour.
+
+- [ ] TASK-CARD-TEXT-GEN-1 — Every card's rules text is generated from its DSL so text can never
+  drift from behaviour. A pipeline step renders the text; a test regenerates all cards and diffs
+  zero; keyword reminder text is available for a long-press.
+  Acceptance: pipeline test green; five sample card faces captured showing generated text.
+
+- [ ] TASK-ART-ICONS-1 — A matching icon set for the eleven keywords and five strata in the locked
+  style, .webp with .import files, wired into the card frame next to the keyword text.
+  Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
+
+- [ ] TASK-REGION-1-DROPS-1 — Every Region 1 encounter has its drop table per the drops design:
+  foes drop their own cards at a per-card rate, the Warden drops a rare, the dig site drops a
+  fragment. Data only, validated by a pipeline test; a headless soak reports observed drop rates
+  over 200 seeded clears.
+  Acceptance: drops json committed; test green; the rate table in HERMES_STATUS.md.
+
+- [ ] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
+  TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards
+  most responsible in each case. Change no values.
+  Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
+
+- [ ] TASK-ART-BOARD-SKINS-1 — An Ember-tinted variant of the board and map skin through the
+  BoardSkin registry for Region 2 (palette tint only, no new painted art), selectable per region
+  in the region json.
+  Acceptance: a duel capture and a map capture with the Ember skin active; ui_lint green.
+
+- [ ] TASK-REGION-GEN-BATCH-1 — Use tools/region_gen.py to produce Regions 3 and 4 specs and files
+  (Tide and Dawn strata, one Warden each), every deck through the sim gate, wired to unlock in
+  sequence after Region 2. No painted art.
+  Acceptance: map capture showing the unlock chain; a clean soak of two encounters plus each
+  boss; posted.
+
 # NOT IN THIS PACKET — these need Trikzos' keys or a decision, and will be queued later:
 # Supabase and accounts, the Tower, store signing and listing, FLUX credit refills.
 
