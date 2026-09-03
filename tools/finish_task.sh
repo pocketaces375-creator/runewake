@@ -144,6 +144,7 @@ if [[ -x "${PROJECT_DIR}/tools/ui_lint.py" ]]; then
     else
       warn "ui_lint found non-EMPTY_BODY failures (pre-existing — not blocking this gate)"
     fi
+  fi
 else
   echo "  Skipping (tools/ui_lint.py not yet created)"
 fi
