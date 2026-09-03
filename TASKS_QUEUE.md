@@ -320,7 +320,7 @@
   engine/ change; the foreman also runs it once a day even if nothing changed.
   Acceptance: PLAYABLE.json committed with playable=true; wired in.
 
-- [ ] TASK-OPS-CONCURRENCY-FIX-1 — Fix concurrent unguarded sessions. inbox_apply.sh one-shot
+- [x] TASK-OPS-CONCURRENCY-FIX-1 — Fix concurrent unguarded sessions. inbox_apply.sh one-shot
   path must gate on /tmp/runewake_foreman.pid before launching hermes -p tcgbot chat -q.
   Also log the exact prompt text before launching so garbled prompts are captured. Add
   write_parked_heartbeat call on every successful task iteration (not just on block/exit paths).
