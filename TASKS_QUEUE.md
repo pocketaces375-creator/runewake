@@ -302,7 +302,7 @@
   - inbox_apply.sh: log full hermes one-shot output instead of tail -5
   - progress_ping.sh: new cron script posting progress to Runewake group every 2 hours
   Acceptance: tools/finish_task.sh exits 0 with this task.
-- [ ] TASK-INPUT-SMOKE-1 — Prove cards are clickable by machine. tools/input_smoke.sh runs the
+- [x] TASK-INPUT-SMOKE-1 — Prove cards are clickable by machine. tools/input_smoke.sh runs the
   client headless into a seeded duel and injects an InputEventScreenTouch press+release (the
   Android event type — Trikzos plays on a phone) at the centre of a hand card's global rect,
   then asserts the card is selected / a lane highlight appears; then a touch on a lane slot —
