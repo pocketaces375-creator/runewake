@@ -389,7 +389,7 @@
   Acceptance: before/after byte sizes of both files in the report; find_top_task returns the
   same top task before and after; one full foreman iteration completes green after the trim.
 
-- [ ] TASK-CHOOSEPATH-LAYOUT-4 — The class cards have a huge empty body. Trikzos on his phone:
+- [x] TASK-CHOOSEPATH-LAYOUT-4 — The class cards have a huge empty body. Trikzos on his phone:
   "there's a huge giant box under them for text and absolutely nothing written in it." In
   artifacts/captures/choose_path.png at HEAD the DRUID card runs from y≈120 to y≈680 but its
   content (portrait + name + two lines of description + origin) ends at y≈525 — the bottom
