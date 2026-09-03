@@ -21,19 +21,24 @@ STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
 DAILY_BUDGET=48
 
 # Lock — atomic mkdir with staleness check
+# Lock — atomic mkdir, broken ONLY when the holding process is actually gone.
+# A one-shot hermes session legitimately holds this for 20-45 minutes. The old
+# flat 300s staleness check broke a LIVE lock every 5 minutes and launched a
+# duplicate session on the same inbox file (4 concurrent copies observed
+# 2026-09-03). Never break a lock whose holder is alive.
 if ! mkdir "${LOCK_FILE}" 2>/dev/null; then
-  if [[ -d "${LOCK_FILE}" ]]; then
-    LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${LOCK_FILE}")))
-    if [[ "${LOCK_AGE}" -gt 300 ]]; then
-      rm -rf "${LOCK_FILE}" 2>/dev/null || true
-      mkdir "${LOCK_FILE}" 2>/dev/null || exit 0
-    else
-      exit 0
-    fi
-  else
+  HOLDER=$(cat "${LOCK_FILE}/pid" 2>/dev/null || echo "")
+  if [[ -n "${HOLDER}" ]] && kill -0 "${HOLDER}" 2>/dev/null; then
     exit 0
   fi
+  LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${LOCK_FILE}" 2>/dev/null || echo 0)))
+  if [[ -z "${HOLDER}" ]] && [[ "${LOCK_AGE}" -lt 3600 ]]; then
+    exit 0
+  fi
+  rm -rf "${LOCK_FILE}" 2>/dev/null || true
+  mkdir "${LOCK_FILE}" 2>/dev/null || exit 0
 fi
+echo $$ > "${LOCK_FILE}/pid" 2>/dev/null || true
 trap 'rm -rf "${LOCK_FILE}"' EXIT
 
 info()  { echo "  $*"; }
@@ -198,6 +203,10 @@ print('NO_INSERT')
       continue
     fi
 
+    # Archive BEFORE launching. The session below runs for tens of minutes; the
+    # file must not still be in inbox/ where another run could pick it up again.
+    mkdir -p "${INBOX_DIR}/applied"
+    if [[ -f "${inbox_file}" ]]; then mv "${inbox_file}" "${INBOX_DIR}/applied/"; fi 2>/dev/null || true
     "${HERMES_BIN}" -p tcgbot chat -q "${ONE_SHOT_PROMPT}" -Q >> "${LOG_FILE}" 2>&1 || true
   fi
 
