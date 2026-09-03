@@ -212,6 +212,6 @@ print('NO_INSERT')
 
   # Move file to applied/ (only reached when actually processed)
   mkdir -p "${INBOX_DIR}/applied"
-  mv "${inbox_file}" "${INBOX_DIR}/applied/"
+  if [[ -f "${inbox_file}" ]]; then mv "${inbox_file}" "${INBOX_DIR}/applied/"; fi
   echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: processed ${base_name} ($([[ "${is_pure_queue}" == true ]] && echo 'queue insert' || echo 'one-shot'))" >> "${LOG_FILE}"
 done
