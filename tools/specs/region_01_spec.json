@@ -1,0 +1,22 @@
+{
+  "region_id": "region_01",
+  "name": "The Fallow Reach",
+  "stratum": "VERDANT",
+  "stratum2": "DAWN",
+  "palette": {
+    "primary": "#4a7a4a",
+    "secondary": "#8aae4a",
+    "accent": "#c9a84c",
+    "text": "#e8dcc8",
+    "bg_dark": "#2a2418"
+  },
+  "encounter_slots": 10,
+  "elite_count": 2,
+  "warden_name": "Warden Aelin",
+  "boss_name": "Aelin, the Last Steward",
+  "dig_name": "The Earthen Maw",
+  "dig_description": "A shallow sinkhole at the base of a ruin. Soil and grit fill the basin — but something catches the light beneath the dust.",
+  "lore_blurb": "The first stratum of the buried age, a verdant overgrowth covering the ruins of an older world.",
+  "signature_card": "vrd_r_bloomweaver",
+  "entry_encounter_name": "The Wayfarer"
+}
