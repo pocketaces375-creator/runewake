@@ -411,7 +411,7 @@
   map_test, title_test and every other committed capture — paste the lint summary; both
   choose_path captures fresh; one sentence on what a player sees now. finish_task.sh must run
   the new rule as part of its gate from now on.
-- [ ] TASK-BOARD-DEVICE-1 — Two things Trikzos sees on his phone that our captures don't.
+- [x] TASK-BOARD-DEVICE-1 — Two things Trikzos sees on his phone that our captures don't.
   (1) Hand stat chips are clipped off the bottom edge on device (his screenshot). The hand
       tuck must respect DisplayServer.GetDisplaySafeArea(): the chips' rects stay fully inside
       the safe area with at least 8px margin. Add a DebugCapture flag that simulates an
