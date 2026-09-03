@@ -9,22 +9,25 @@ namespace Runewake.Client;
 
 /// <summary>
 /// "CHOOSE YOUR PATH" screen — campaign entry point with looping class carousel.
+/// VBoxContainer layout: title block (fixed) → carousel (fills) → class-core row (~22% vh, fixed) → Begin button (fixed).
 /// Bulletproof geometry: every TextureRect has ExpandMode=IgnoreSize + full anchors,
 /// portrait fills upper ~62% of panel, text below it, ClipContents everywhere.
+/// Each core card owns its own attack/vigor chips (via CardPlate), anchored to its bottom corners.
 /// </summary>
 public partial class ChooseYourPathScene : Control
 {
     // ── Data ──
     private readonly List<ClassDef> _classes = new();
     private int _selectedIdx = 0; // center = selected
-    private Control _beginButton;
+    private PanelContainer _beginButton;
     private Label _beginLabel;
     private ColorRect _dotsArea;
     private readonly List<ColorRect> _dotIndicators = new();
     private Control _coreCardsArea;
     private Label _coreLabel;
     private HBoxContainer _coreCardRow;
-    private Control _carouselPanelContainer;
+    private Control _carouselClipContainer;
+    private Control _carouselSection;
     private readonly List<Control> _panelNodes = new();
 
     // Carousel drag state
@@ -42,6 +45,10 @@ public partial class ChooseYourPathScene : Control
     private float _centerX;
     private float _viewportW;
     private float _viewportH;
+
+    // Container references for layout
+    private VBoxContainer _mainVBox;
+    private bool _layoutDone;
 
     // Capture
     private bool _captureMode;
@@ -88,8 +95,6 @@ public partial class ChooseYourPathScene : Control
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
-        LoadClasses();
-
         // Hero art background — full anchors, ExpandMode=IgnoreSize
         var heroArt = new TextureRect
         {
@@ -106,7 +111,7 @@ public partial class ChooseYourPathScene : Control
             GD.Print("[ART-MISSING] title/hero_art.png");
         AddChild(heroArt);
 
-        // Dark gradient
+        // Dark gradient (bottom half)
         var gradient = new ColorRect
         {
             Color = new Color(0.04f, 0.03f, 0.02f, 0.55f),
@@ -116,176 +121,29 @@ public partial class ChooseYourPathScene : Control
         gradient.AnchorTop = 0.5f; gradient.AnchorBottom = 1;
         AddChild(gradient);
 
-        // ── Title ──
-        float titleH = 48f * _viewportH / 1080f;
-        float titleY = 18f * _viewportH / 1080f;
-        var title = new Label
-        {
-            Text = "CHOOSE YOUR PATH",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(title, FontLarge);
-        title.AddThemeColorOverride("font_color", Gold);
-        title.AddThemeConstantOverride("outline_size", 2);
-        title.AddThemeColorOverride("font_outline_color", Colors.Black);
-        title.Position = new Vector2(0, titleY);
-        title.Size = new Vector2(_viewportW, titleH);
-        AddChild(title);
+        // ═══ MAIN VBox CONTAINER — fills full viewport ═══
+        _mainVBox = new VBoxContainer();
+        _mainVBox.SetAnchorsPreset(LayoutPreset.FullRect);
+        _mainVBox.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(_mainVBox);
 
-        // ── Subtitle ──
-        float subY = titleY + titleH + 8f * _viewportH / 1080f;
-        var subtitle = new Label
-        {
-            Text = "Each path begins in its own town, with its own tale.",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.Word
-        };
-        ApplyBodyFont(subtitle, FontBody);
-        subtitle.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
-        subtitle.AddThemeColorOverride("font_outline_color", Colors.Black);
-        subtitle.AddThemeConstantOverride("outline_size", 1);
-        subtitle.Position = new Vector2(40, subY);
-        subtitle.Size = new Vector2(_viewportW - 80, 26);
-        AddChild(subtitle);
+        // ── 1. Title block (fixed height) ──
+        BuildTitleBlock();
 
-        // ── Carousel container — proportional height ──
-        float carouselY = subY + 34f * _viewportH / 1080f;
-        float carouselH = _panelFullH + 12f;
-        _carouselPanelContainer = new Control
-        {
-            ClipContents = true,
-            Position = new Vector2(0, carouselY),
-            Size = new Vector2(_viewportW, carouselH)
-        };
-        AddChild(_carouselPanelContainer);
+        // ── 2. Carousel section (fills remaining space via size_flags_vertical=3) ──
+        BuildCarouselSection();
 
-        // Build panels
-        for (int i = 0; i < _classes.Count; i++)
-        {
-            var panel = MakeCarouselPanel(_classes[i], i);
-            _carouselPanelContainer.AddChild(panel);
-            _panelNodes.Add(panel);
-            int idx = i;
-            panel.GuiInput += (@event) =>
-            {
-                if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-                    SnapToIndex(idx);
-            };
-        }
+        // ── 3. Core cards row (fixed ~22% of viewport height) ──
+        BuildCoreSection();
 
-        // Arrow buttons (sized from carousel container position, not panel positions)
-        float arrowY = carouselY + carouselH / 2f - 22f;
-        _leftArrow = new Button
-        {
-            Text = "\u25C0",
-            Flat = true,
-            CustomMinimumSize = new Vector2(44, 44),
-            Position = new Vector2(8, arrowY)
-        };
-        _leftArrow.AddThemeFontSizeOverride("font_size", 20);
-        _leftArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
-        _leftArrow.Pressed += () =>
-        {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            _selectedIdx = (_selectedIdx - 1 + _classes.Count) % _classes.Count;
-            UpdateCarousel();
-            UpdateUI();
-        };
-        AddChild(_leftArrow);
+        // ── 4. Begin button (fixed height, centered) ──
+        BuildBeginButton();
 
-        _rightArrow = new Button
-        {
-            Text = "\u25B6",
-            Flat = true,
-            CustomMinimumSize = new Vector2(44, 44),
-            Position = new Vector2(_viewportW - 52, arrowY)
-        };
-        _rightArrow.AddThemeFontSizeOverride("font_size", 20);
-        _rightArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
-        _rightArrow.Pressed += () =>
-        {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            _selectedIdx = (_selectedIdx + 1) % _classes.Count;
-            UpdateCarousel();
-            UpdateUI();
-        };
-        AddChild(_rightArrow);
+        // Load classes — must happen after layout building so _dotsArea exists
+        LoadClasses();
 
-        // ── Dot indicators ──
-        float dotsY = carouselY + carouselH + 6;
-        _dotsArea = new ColorRect
-        {
-            Color = Colors.Transparent,
-            MouseFilter = MouseFilterEnum.Ignore,
-            Position = new Vector2(0, dotsY),
-            Size = new Vector2(_viewportW, 12)
-        };
-        AddChild(_dotsArea);
-
-        float dotSpacing = 14f;
-        float dotsTotal = (_classes.Count - 1) * dotSpacing;
-        float dotsStartX = (_viewportW - dotsTotal) / 2f;
-        for (int i = 0; i < _classes.Count; i++)
-        {
-            var dot = new ColorRect
-            {
-                Color = i == _selectedIdx ? Gold : TextInactive,
-                Size = new Vector2(8, 8),
-                Position = new Vector2(dotsStartX + i * dotSpacing, 2),
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            _dotsArea.AddChild(dot);
-            _dotIndicators.Add(dot);
-        }
-
-        // ── Core cards area ──
-        float coreY = dotsY + 16f * _viewportH / 1080f;
-        float coreH = 160f * _viewportH / 1080f;
-        _coreCardsArea = new Control();
-        _coreCardsArea.Position = new Vector2(0, coreY);
-        _coreCardsArea.Size = new Vector2(_viewportW, coreH);
-        AddChild(_coreCardsArea);
-
-        // ── BEGIN button ──
-        float beginY = coreY + coreH + 4f * _viewportH / 1080f;
-        _beginButton = new PanelContainer();
-        _beginButton.Position = new Vector2(_viewportW / 2f - 140, beginY);
-        _beginButton.Size = new Vector2(280, 46);
-        _beginButton.CustomMinimumSize = new Vector2(280, 46);
-        _beginButton.MouseDefaultCursorShape = CursorShape.PointingHand;
-        _beginButton.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = SurfaceStone,
-            BorderColor = Gold,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-
-        _beginLabel = new Label
-        {
-            Text = "BEGIN",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(_beginLabel, FontBody);
-        _beginLabel.AddThemeColorOverride("font_color", Gold);
-        _beginLabel.SetAnchorsPreset(LayoutPreset.FullRect);
-        _beginButton.AddChild(_beginLabel);
-
-        var beginClick = new Button();
-        beginClick.SetAnchorsPreset(LayoutPreset.FullRect);
-        beginClick.MouseDefaultCursorShape = CursorShape.PointingHand;
-        var btnTransparent = new StyleBoxFlat { BgColor = Colors.Transparent };
-        beginClick.AddThemeStyleboxOverride("normal", btnTransparent);
-        beginClick.AddThemeStyleboxOverride("hover", btnTransparent);
-        beginClick.AddThemeStyleboxOverride("pressed", btnTransparent);
-        beginClick.Pressed += OnBegin;
-        _beginButton.AddChild(beginClick);
-        AddChild(_beginButton);
+        // Build carousel panels now that classes are loaded
+        BuildCarouselPanels();
 
         // Initial carousel render
         UpdateCarousel();
@@ -297,7 +155,7 @@ public partial class ChooseYourPathScene : Control
         {
             _captureMode = true;
 
-            // If choose-path specific capture, auto-select Tidecaller for proof
+            // If choose-path specific capture, auto-select index 3 (Tidecaller/Battlemage) for proof
             if (CampaignContext.CaptureChoosePathScreenshot)
             {
                 _selectedIdx = Mathf.Min(3, _classes.Count - 1);
@@ -343,6 +201,264 @@ public partial class ChooseYourPathScene : Control
     }
 
     // ════════════════════════════════════════════════
+    // Layout Builder — VBoxContainer children
+    // ════════════════════════════════════════════════
+
+    private void BuildTitleBlock()
+    {
+        float titleH = 48f * _viewportH / 1080f;
+        float subH = 26f;
+
+        var titleBlock = new VBoxContainer();
+        titleBlock.CustomMinimumSize = new Vector2(0, titleH + subH + 12f);
+        titleBlock.MouseFilter = MouseFilterEnum.Ignore;
+        titleBlock.AddThemeConstantOverride("separation", 4);
+        _mainVBox.AddChild(titleBlock);
+
+        // Title
+        var title = new Label
+        {
+            Text = "CHOOSE YOUR PATH",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            SizeFlagsHorizontal = (SizeFlags)3,
+            SizeFlagsVertical = (SizeFlags)3
+        };
+        ApplyHeaderFont(title, FontSmall + 4);
+        title.AddThemeColorOverride("font_color", Gold);
+        title.AddThemeConstantOverride("outline_size", 2);
+        title.AddThemeColorOverride("font_outline_color", Colors.Black);
+        titleBlock.AddChild(title);
+
+        // Subtitle
+        var subtitle = new Label
+        {
+            Text = "Each path begins in its own town, with its own tale.",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.Word,
+            SizeFlagsHorizontal = (SizeFlags)3,
+            SizeFlagsVertical = (SizeFlags)3
+        };
+        ApplyBodyFont(subtitle, FontSmall);
+        subtitle.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        subtitle.AddThemeColorOverride("font_outline_color", Colors.Black);
+        subtitle.AddThemeConstantOverride("outline_size", 1);
+        titleBlock.AddChild(subtitle);
+    }
+
+    private void BuildCarouselSection()
+    {
+        // Container that fills the VBox — hosts ClipContainer + arrows + dots
+        _carouselSection = new Control
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsVertical = (SizeFlags)3, // Fill | Expand
+            SizeFlagsHorizontal = (SizeFlags)3
+        };
+        _mainVBox.AddChild(_carouselSection);
+
+        // The actual clip container for panels — positioned to fill the section
+        _carouselClipContainer = new Control
+        {
+            ClipContents = true,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _carouselClipContainer.SetAnchorsPreset(LayoutPreset.FullRect);
+        _carouselSection.AddChild(_carouselClipContainer);
+
+        // Arrow buttons — positioned absolutely within carouselSection (above clip container for z-order)
+        _leftArrow = new Button
+        {
+            Text = "\u25C0",
+            Flat = true,
+            CustomMinimumSize = new Vector2(44, 44),
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        _leftArrow.AddThemeFontSizeOverride("font_size", 20);
+        _leftArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        _leftArrow.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            _selectedIdx = (_selectedIdx - 1 + _classes.Count) % _classes.Count;
+            UpdateCarousel();
+            UpdateUI();
+        };
+        _carouselSection.AddChild(_leftArrow);
+
+        _rightArrow = new Button
+        {
+            Text = "\u25B6",
+            Flat = true,
+            CustomMinimumSize = new Vector2(44, 44),
+            MouseFilter = MouseFilterEnum.Stop
+        };
+        _rightArrow.AddThemeFontSizeOverride("font_size", 20);
+        _rightArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        _rightArrow.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            _selectedIdx = (_selectedIdx + 1) % _classes.Count;
+            UpdateCarousel();
+            UpdateUI();
+        };
+        _carouselSection.AddChild(_rightArrow);
+
+        // Dots indicator — positioned at bottom of carouselSection
+        _dotsArea = new ColorRect
+        {
+            Color = Colors.Transparent,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _carouselSection.AddChild(_dotsArea);
+    }
+
+    private void BuildCarouselPanels()
+    {
+        // Build panels inside clip container
+        for (int i = 0; i < _classes.Count; i++)
+        {
+            var panel = MakeCarouselPanel(_classes[i], i);
+            _carouselClipContainer.AddChild(panel);
+            _panelNodes.Add(panel);
+            int idx = i;
+            panel.GuiInput += (@event) =>
+            {
+                if (@event is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+                    SnapToIndex(idx);
+            };
+        }
+    }
+
+    private void BuildCoreSection()
+    {
+        // Fixed ~22% of viewport height
+        float coreSectionH = _viewportH * 0.22f;
+
+        _coreCardsArea = new Control();
+        _coreCardsArea.CustomMinimumSize = new Vector2(0, coreSectionH);
+        _coreCardsArea.MouseFilter = MouseFilterEnum.Ignore;
+        _mainVBox.AddChild(_coreCardsArea);
+    }
+
+    private void BuildBeginButton()
+    {
+        // Fixed ~50px with margin
+        var beginWrapper = new VBoxContainer();
+        beginWrapper.Name = "Begin";
+        beginWrapper.CustomMinimumSize = new Vector2(0, 60f);
+        beginWrapper.MouseFilter = MouseFilterEnum.Pass;
+        beginWrapper.AddThemeConstantOverride("separation", 0);
+        _mainVBox.AddChild(beginWrapper);
+
+        _beginButton = new PanelContainer();
+        _beginButton.CustomMinimumSize = new Vector2(280, 46);
+        _beginButton.MouseDefaultCursorShape = CursorShape.PointingHand;
+        _beginButton.SizeFlagsHorizontal = (SizeFlags)4; // Center
+        _beginButton.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = SurfaceStone,
+            BorderColor = Gold,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+        });
+        beginWrapper.AddChild(_beginButton);
+
+        _beginLabel = new Label
+        {
+            Text = "BEGIN",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ApplyHeaderFont(_beginLabel, FontBody);
+        _beginLabel.AddThemeColorOverride("font_color", Gold);
+        _beginLabel.SetAnchorsPreset(LayoutPreset.FullRect);
+        _beginButton.AddChild(_beginLabel);
+
+        var beginClick = new Button();
+        beginClick.SetAnchorsPreset(LayoutPreset.FullRect);
+        beginClick.MouseDefaultCursorShape = CursorShape.PointingHand;
+        var btnTransparent = new StyleBoxFlat { BgColor = Colors.Transparent };
+        beginClick.AddThemeStyleboxOverride("normal", btnTransparent);
+        beginClick.AddThemeStyleboxOverride("hover", btnTransparent);
+        beginClick.AddThemeStyleboxOverride("pressed", btnTransparent);
+        beginClick.Pressed += OnBegin;
+        _beginButton.AddChild(beginClick);
+    }
+
+    // ════════════════════════════════════════════════
+    // Layout — post-_Ready positioning based on actual container sizes
+    // ════════════════════════════════════════════════
+
+    /// <summary>
+    /// Called after the layout pass to position arrows and dots relative to the carousel section.
+    /// Also re-measures viewport and panel sizes.
+    /// </summary>
+    private void LayoutCarouselChildren()
+    {
+        if (_carouselSection == null) return;
+
+        var vp = GetViewportRect().Size;
+        _viewportW = vp.X;
+        _viewportH = vp.Y;
+        _centerX = _viewportW / 2f;
+
+        _panelFullW = Mathf.Min(240f, _viewportW * 0.14f);
+        _panelFullH = _panelFullW * 310f / 220f;
+
+        float sectionH = _carouselSection.Size.Y;
+
+        // Arrows vertically centered in carousel section
+        float arrowY = Mathf.Max(0, sectionH / 2f - 22f);
+        _leftArrow.Position = new Vector2(8, arrowY);
+        _rightArrow.Position = new Vector2(_viewportW - 52, arrowY);
+
+        // Update dots area size and position
+        float dotsY = Mathf.Max(0, sectionH - 20f);
+        _dotsArea.Position = new Vector2(0, dotsY);
+        _dotsArea.Size = new Vector2(_viewportW, 14);
+
+        // Re-position dot indicators inside dots area
+        float dotSpacing = 14f;
+        float dotsTotal = (_classes.Count - 1) * dotSpacing;
+        float dotsStartX = (_viewportW - dotsTotal) / 2f;
+        for (int i = 0; i < _dotIndicators.Count && i < _dotsArea.GetChildCount(); i++)
+        {
+            var dot = _dotsArea.GetChild<ColorRect>(i);
+            if (dot != null)
+            {
+                dot.Position = new Vector2(dotsStartX + i * dotSpacing, 3);
+            }
+        }
+
+        // Carousel clip container fills the section
+        _carouselClipContainer.Size = new Vector2(_viewportW, sectionH);
+    }
+
+    /// <summary>
+    /// Post-layout positioning. Called after all container sizing has been resolved.
+    /// </summary>
+    private void RefreshLayout()
+    {
+        LayoutCarouselChildren();
+        UpdateCarousel();
+    }
+
+    /// <summary>Override to position layout-dependent elements after VBoxContainer sizing.</summary>
+    public override void _Process(double delta)
+    {
+        // On first frame after sizing, lay out the arrows/dots
+        if (!_layoutDone && _carouselSection != null && _carouselSection.Size.Y > 0)
+        {
+            LayoutCarouselChildren();
+            RunVerify();
+            _layoutDone = true;
+        }
+    }
+
+    // ════════════════════════════════════════════════
     // Carousel
     // ════════════════════════════════════════════════
 
@@ -351,7 +467,8 @@ public partial class ChooseYourPathScene : Control
         int total = _panelNodes.Count;
         float spacing = _panelFullW * 0.55f;
         float overlapMargin = _panelFullW * 0.22f;
-        float containerH = _carouselPanelContainer.Size.Y;
+        float containerH = _carouselClipContainer.Size.Y;
+        if (containerH < 1f) containerH = _panelFullH + 12f;
 
         for (int i = 0; i < total; i++)
         {
@@ -398,7 +515,14 @@ public partial class ChooseYourPathScene : Control
     private void RunVerify()
     {
         int failed = 0;
-        var containerGlobal = _carouselPanelContainer.GetRect();
+        var containerGlobal = _carouselClipContainer.GetRect();
+        
+        // Skip if container hasn't been laid out yet (VBox sizing happens after _Ready)
+        if (containerGlobal.Size.X < 1 || containerGlobal.Size.Y < 1)
+        {
+            GD.Print("[VERIFY] carousel: skipped (container not yet laid out)");
+            return;
+        }
 
         for (int i = 0; i < _panelNodes.Count; i++)
         {
@@ -500,91 +624,118 @@ public partial class ChooseYourPathScene : Control
         foreach (var child in _coreCardsArea.GetChildren())
             child.QueueFree();
 
+        float coreSectionH = _coreCardsArea.Size.Y;
+        float coreAvailH = coreSectionH > 0 ? coreSectionH : _viewportH * 0.22f;
+
         var strataColor = StrataColor(cls.Strata);
 
         _coreLabel = new Label
         {
             Text = $"CLASS CORE \u2014 four sworn cards every {cls.Name} carries",
-            HorizontalAlignment = HorizontalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = (SizeFlags)3
         };
         ApplyBodyFont(_coreLabel, FontSmall);
         _coreLabel.AddThemeColorOverride("font_color", TextSecondary);
-        _coreLabel.Position = new Vector2(0, 0);
-        _coreLabel.Size = new Vector2(_viewportW, 22);
-        _coreCardsArea.AddChild(_coreLabel);
 
-        // Show 4 mini cards
+        // Core cards as a vertical section
+        var coreVBox = new VBoxContainer();
+        coreVBox.SizeFlagsHorizontal = (SizeFlags)3; // Fill width
+        coreVBox.SizeFlagsVertical = (SizeFlags)3; // Fill height
+        coreVBox.AddThemeConstantOverride("separation", 4);
+        coreVBox.MouseFilter = MouseFilterEnum.Ignore;
+        _coreCardsArea.AddChild(coreVBox);
+
+        // Label row
+        coreVBox.AddChild(_coreLabel);
+
+        // Core card row — centered HBox with proper sizing
         _coreCardRow = new HBoxContainer();
+        _coreCardRow.Alignment = BoxContainer.AlignmentMode.Center;
         _coreCardRow.AddThemeConstantOverride("separation", 12);
-        float miniW = 120f * _viewportH / 1080f;
-        float minisTotal = cls.CoreCardIds.Count * miniW + (cls.CoreCardIds.Count - 1) * 12f;
-        _coreCardRow.Position = new Vector2(_viewportW / 2f - minisTotal / 2f, 26);
-        _coreCardRow.Size = new Vector2(minisTotal, 90);
-        _coreCardsArea.AddChild(_coreCardRow);
+        _coreCardRow.SizeFlagsHorizontal = (SizeFlags)3; // Fill width
+        _coreCardRow.SizeFlagsVertical = (SizeFlags)3; // Fill height
+        coreVBox.AddChild(_coreCardRow);
+
+        // Calculate mini card size based on available height
+        float labelH = 22f;
+        float separationH = 4f;
+        float availForCards = coreAvailH - labelH - separationH - 4f; // 4px padding
+        float miniCardRatio = 152f / 104f; // aspect ratio of cards
+        float miniW = _viewportW * 0.065f; // ~150px at 2316
+        if (miniW * miniCardRatio > availForCards)
+            miniW = availForCards / miniCardRatio;
+        if (miniW > 160f) miniW = 160f;
+        if (miniW < 100f) miniW = 100f;
+        float miniH = miniW * miniCardRatio;
+
+        // Ensure each mini card is large enough that names are readable at arm's length
+        if (miniH < availForCards * 0.85f)
+        {
+            miniH = availForCards * 0.85f;
+            miniW = miniH / miniCardRatio;
+        }
 
         foreach (var cardId in cls.CoreCardIds)
         {
             var def = CardRegistry.Get(cardId);
             if (def == null) continue;
 
-            float miniH = miniW * 152f / 104f;
-
-            var miniCard = new PanelContainer();
-            miniCard.CustomMinimumSize = new Vector2(miniW, miniH);
-            miniCard.Size = new Vector2(miniW, miniH);
-            miniCard.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-            {
-                BgColor = Color.FromHtml("#332E28"),
-                BorderColor = strataColor.Darkened(0.4f),
-                BorderWidthLeft = 2, BorderWidthTop = 2,
-                BorderWidthRight = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-                ContentMarginLeft = 0, ContentMarginTop = 0,
-                ContentMarginRight = 0, ContentMarginBottom = 0
-            });
-
-            var content = new Control();
-            content.SetAnchorsPreset(LayoutPreset.FullRect);
-            miniCard.AddChild(content);
-
-            // Mini card art — ExpandMode=IgnoreSize + full anchors
-            var miniArt = new TextureRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
-            };
-            miniArt.SetAnchorsPreset(LayoutPreset.FullRect);
-            string miniArtPath = $"res://content/art/{cardId}.webp";
-            if (ResourceLoader.Exists(miniArtPath))
-            {
-                var tex = ResourceLoader.Load<Texture2D>(miniArtPath);
-                if (tex != null)
-                    miniArt.Texture = tex;
-            }
-            else
-            {
-                miniArt.Modulate = CardArtColors.Parchment;
-                GD.Print($"[ART-MISSING] {cardId} (core mini)");
-            }
-            content.AddChild(miniArt);
-
-            var plate = new CardPlate();
-            content.AddChild(plate);
-            plate.Setup(def.Name, def.Attack, def.Vigor, def.Strata, miniW, miniH);
-
+            var miniCard = BuildCoreMiniCard(def, miniW, miniH, strataColor);
             _coreCardRow.AddChild(miniCard);
         }
+    }
 
-        // BEGIN button
-        _beginLabel.Text = $"BEGIN IN {cls.Town}";
-        _beginLabel.AddThemeColorOverride("font_color", Gold);
-        _beginButton.Modulate = Colors.White;
+    private Control BuildCoreMiniCard(CardDef def, float miniW, float miniH, Color strataColor)
+    {
+        var miniCard = new PanelContainer();
+        miniCard.CustomMinimumSize = new Vector2(miniW, miniH);
+        miniCard.Size = new Vector2(miniW, miniH);
+        miniCard.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#332E28"),
+            BorderColor = strataColor.Darkened(0.4f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 0, ContentMarginTop = 0,
+            ContentMarginRight = 0, ContentMarginBottom = 0
+        });
 
-        var clickArea = _beginButton.GetChild<Button>(_beginButton.GetChildCount() - 1);
-        if (clickArea != null)
-            clickArea.Disabled = false;
+        var content = new Control();
+        content.SetAnchorsPreset(LayoutPreset.FullRect);
+        content.MouseFilter = MouseFilterEnum.Pass;
+        miniCard.AddChild(content);
+
+        // Mini card art — ExpandMode=IgnoreSize + full anchors
+        var miniArt = new TextureRect
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
+        };
+        miniArt.SetAnchorsPreset(LayoutPreset.FullRect);
+        string miniArtPath = $"res://content/art/{def.Id}.webp";
+        if (ResourceLoader.Exists(miniArtPath))
+        {
+            var tex = ResourceLoader.Load<Texture2D>(miniArtPath);
+            if (tex != null)
+                miniArt.Texture = tex;
+        }
+        else
+        {
+            miniArt.Modulate = CardArtColors.Parchment;
+            GD.Print($"[ART-MISSING] {def.Id} (core mini)");
+        }
+        content.AddChild(miniArt);
+
+        // CardPlate overlay — provides name band, stat chips at bottom corners
+        var plate = new CardPlate();
+        content.AddChild(plate);
+        plate.Setup(def.Name, def.Attack, def.Vigor, def.Strata, miniW, miniH);
+
+        return miniCard;
     }
 
     // ════════════════════════════════════════════════
@@ -718,6 +869,19 @@ public partial class ChooseYourPathScene : Control
                 Blurb = c.blurb,
                 CoreCardIds = c.core_cards
             });
+        }
+
+        // Build dot indicators now that we know how many classes
+        for (int i = 0; i < _classes.Count; i++)
+        {
+            var dot = new ColorRect
+            {
+                Color = i == _selectedIdx ? Gold : TextInactive,
+                Size = new Vector2(8, 8),
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            _dotsArea.AddChild(dot);
+            _dotIndicators.Add(dot);
         }
     }
 
