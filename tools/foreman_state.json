@@ -5,13 +5,13 @@
   "last_commit_sha": "5368a9dca198d62ff83492476714e2ee7d011fb2",
   "retry_count": 1,
   "retry_task_id": "TASK-CHOOSEPATH-LAYOUT-2",
-  "blocked_notified": false,
+  "blocked_notified": true,
   "consecutive_transients": 0,
   "transient_notified": false,
   "bus_last_seq": 4,
   "bus_session_count": 0,
-  "no_progress_count": 0,
+  "no_progress_count": 1,
   "validated_count": 1,
-  "last_heartbeat_epoch": 1788434225,
+  "last_heartbeat_epoch": 1788446825,
   "last_heartbeat_reason": "sticky_block"
 }
