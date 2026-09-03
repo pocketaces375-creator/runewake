@@ -556,3 +556,4 @@
 - **Verified-hash rule:** Local SHA matches release asset. Round-trip hash verified from GitHub CDN. ✅
 - **Delivery:** URL, size, sha256 listed above. Victory-screen and Reliquary captures posted to the group. ✅
 - 2026-09-03: TEMPO — 35 sessions yesterday, 0 validated.
+- 2026-09-03: PARKED TASK-BOARD-DEVICE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
