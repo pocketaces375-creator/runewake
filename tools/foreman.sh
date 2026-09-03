@@ -161,8 +161,9 @@ find_top_task() {
 import re, sys
 with open('${QUEUE_FILE}') as f:
     content = f.read()
+lines = content.split('\n')
 in_queue = False
-for line in content.split('\n'):
+for i, line in enumerate(lines):
     if line.strip().startswith('## Queue'):
         in_queue = True
         continue
@@ -171,7 +172,21 @@ for line in content.split('\n'):
     if in_queue:
         m = re.match(r'^\s*-\s*\[\s*\]\s*(TASK-\S+)\s*[—–-]?\s*(.*)', line)
         if m:
-            print(f'{m.group(1)}|{m.group(2).strip()}')
+            task_id = m.group(1)
+            desc = m.group(2).strip()
+            # Collect continuation lines: indented lines following the header,
+            # up to the next blank line or the next '- [' task marker.
+            j = i + 1
+            while j < len(lines):
+                nl = lines[j]
+                if nl.strip() == '' or re.match(r'^\s*-\s*\[', nl):
+                    break
+                if re.match(r'^\s+', nl):  # continuation (starts with whitespace)
+                    desc += ' ' + nl.strip()
+                j += 1
+            # Single-space the full description
+            desc = re.sub(r'\s+', ' ', desc).strip()
+            print(f'{task_id}|{desc}')
             sys.exit(0)
 sys.exit(1)
 " 2>/dev/null || echo ""
@@ -503,7 +518,7 @@ info "Budget: ${SPENT_FRAC}/${DAILY_BUDGET} (${SESSION_COUNT} full + ${BUS_SESSI
 
 # ── 3. Fable inbox ───────────────────────────────────────────────────────────
 header "Fable inbox"
-bash "${PROJECT_DIR}/tools/inbox_apply.sh"
+FOREMAN_CALLER=1 bash "${PROJECT_DIR}/tools/inbox_apply.sh"
 
 # ── 4. Read queue ────────────────────────────────────────────────────────────
 TOP_TASK=$(find_top_task)

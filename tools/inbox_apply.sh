@@ -171,33 +171,37 @@ print('NO_INSERT')
     echo "${ONE_SHOT_PROMPT}" >> "${LOG_FILE}"
     echo "  === ONE-SHOT PROMPT END ===" >> "${LOG_FILE}"
 
-    # Gate on foreman lock — only one work session at a time
+    # Gate on foreman lock — only one work session at a time.
+    # When called from foreman.sh (FOREMAN_CALLER=1), the foreman
+    # already holds its own lock — skip the gate entirely.
     FOREMAN_LOCKED=0
-    FOREMAN_PID_FILE="/tmp/runewake_foreman.pid"
-    while [[ -f "${FOREMAN_PID_FILE}" ]]; do
-      FPID=$(cat "${FOREMAN_PID_FILE}" 2>/dev/null || echo "")
-      if [[ -n "${FPID}" ]] && kill -0 "${FPID}" 2>/dev/null; then
-        LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${FOREMAN_PID_FILE}")))
-        if [[ "${LOCK_AGE}" -gt 300 ]]; then
-          info "Foreman lock stale (${LOCK_AGE}s) — clearing" >> "${LOG_FILE}"
+    if [[ -z "${FOREMAN_CALLER:-}" ]]; then
+      FOREMAN_PID_FILE="/tmp/runewake_foreman.pid"
+      while [[ -f "${FOREMAN_PID_FILE}" ]]; do
+        FPID=$(cat "${FOREMAN_PID_FILE}" 2>/dev/null || echo "")
+        if [[ -n "${FPID}" ]] && kill -0 "${FPID}" 2>/dev/null; then
+          # PID is alive — foreman is running, never clear a live lock
+          FOREMAN_LOCKED=1
+          info "Foreman running (PID ${FPID}) — skipping one-shot, ${base_name} stays in inbox/" >> "${LOG_FILE}"
+          break
+        else
+          # PID file exists but no process — stale, clear it
           rm -f "${FOREMAN_PID_FILE}"
           break
         fi
-        FOREMAN_LOCKED=1
-        info "Foreman running (PID ${FPID}) — skipping one-shot to prevent concurrent edits" >> "${LOG_FILE}"
-        break
-      else
-        rm -f "${FOREMAN_PID_FILE}"
-        break
-      fi
-    done
-
-    if [[ "${FOREMAN_LOCKED}" -eq 0 ]]; then
-      "${HERMES_BIN}" -p tcgbot chat -q "${ONE_SHOT_PROMPT}" -Q >> "${LOG_FILE}" 2>&1 || true
+      done
     fi
+
+    if [[ "${FOREMAN_LOCKED}" -eq 1 ]]; then
+      # Skipped — file stays in inbox/ for next minute's retry
+      info "Skip ${base_name} — foreman running, leaving in inbox/ for retry" >> "${LOG_FILE}"
+      continue
+    fi
+
+    "${HERMES_BIN}" -p tcgbot chat -q "${ONE_SHOT_PROMPT}" -Q >> "${LOG_FILE}" 2>&1 || true
   fi
 
-  # Move file to applied/
+  # Move file to applied/ (only reached when actually processed)
   mkdir -p "${INBOX_DIR}/applied"
   mv "${inbox_file}" "${INBOX_DIR}/applied/"
   echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: processed ${base_name} ($([[ "${is_pure_queue}" == true ]] && echo 'queue insert' || echo 'one-shot'))" >> "${LOG_FILE}"
