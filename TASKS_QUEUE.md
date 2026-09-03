@@ -342,7 +342,7 @@
   and one sentence on what a player sees now.
 
 
-- [ ] TASK-CHOOSEPATH-LAYOUT-3 — REOPEN of CHOOSEPATH-LAYOUT-2. Trikzos saw the capture and
+- [x] TASK-CHOOSEPATH-LAYOUT-3 — REOPEN of CHOOSEPATH-LAYOUT-2. Trikzos saw the capture and
   rejected it: "this screen is class selection, the only thing that matters is those top cards,
   they need to take up the whole display." Nobody approved the current look. Judge this screen
   as a player: it is the first real choice in the game and must feel like it.
