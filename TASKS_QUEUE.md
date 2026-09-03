@@ -371,7 +371,7 @@
   BEGIN button rect intersects nothing and has >= 24px clearance; no empty horizontal band
   taller than 12% of viewport height between the title and the BEGIN button. Post both fresh
   captures and one sentence on what a player sees now.
-- [ ] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
+- [!] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
   87 closed tasks still inline) and often HERMES_STATUS.md (101KB). That is paid for on every
   single task, forever.
   (1) Move every "- [x]" task block out of TASKS_QUEUE.md into docs/TASKS_DONE.md (append, keep
