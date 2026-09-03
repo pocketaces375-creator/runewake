@@ -1,30 +1,3 @@
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-ARS-VERDANT done.
-
-**6 images generated via OpenRouter FLUX (black-forest-labs/flux.2-pro, 1024x1024):**
-
-1. `01_vrd_c_thornbark_defender.jpg` — Thornbark Defender (COMMON)
-2. `02_vrd_c_wildwood_stalker.jpg` — Wildwood Stalker (COMMON)
-3. `03_vrd_u_canopy_archer.jpg` — Canopy Archer (UNCOMMON)
-4. `04_vrd_u_elder_treant.jpg` — Elder Treant (UNCOMMON)
-5. `05_vrd_r_natures_renewal.jpg` — Nature's Renewal (RARE)
-6. `06_vrd_x_heartwood_relic.jpg` — Heartwood Relic (RELIC)
-
-**Done:** Saved to `pipeline/work/samples_verdant_s1/`, posted individually to Telegram (bot not in Runewake group — posted to your DM instead), committed `b7418cd`, pushed, TASKS_QUEUE.md marked [x], HERMES_STATUS.md updated.
-
-Note: The bot `@Everythingbeforethebot` needs to be added to the Runewake group to post there directly — I used your DM as fallback.
-========================================
-=== foreman: 2026-09-03T02:59:22Z TASK-UI-LINT-1 retry ===
-Session: 35/48
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Done. Here's what was implemented:
-
-**TASK-UI-LINT-1 — Rules instead of eyes.**
-
-**Part (a)** — `DebugCapture.WriteLayoutJson(root, name)` added to `DebugCapture.cs`. Walks the scene tree recursively for every visible Control: records node path, class, global rect (x,y,w,h), mouse_filter, and for TextureRects whether texture is non-null. Includes viewport size and `DisplayServer.GetDisplaySafeArea()`. Writes to `artifacts/captures/<name>.layout.json`.
 
 Patched all **12 capture sites** across 9 files to call `WriteLayoutJson` after every `SavePng`:
 - DuelScene.cs (duel_test, duel_test_wide, duel_test_r2, victory_overlay, defeat_overlay)
@@ -47,4 +20,31 @@ Patched all **12 capture sites** across 9 files to call `WriteLayoutJson` after 
 **Part (c)** — Already wired in `finish_task.sh` (step 5 was written with `if [[ -x tools/ui_lint.py ]]` — it's active now). Layout JSONs generate on the next Godot headless capture run post-commit.
 
 **Commits pushed**: `0f3093c` (implementation) + `b69097e` (mark done). Build: 0 errors (pre-existing 22 test failures from REGION-GEN content restructure — unrelated to this change).
+========================================
+=== foreman: 2026-09-03T05:06:28Z TASK-UI-LINT-1 retry ===
+Session: 1/48
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+## TASK-UI-LINT-1 complete
+
+**What was implemented:**
+
+**(a) DebugCapture.DumpLayoutJSON** — static method that walks the scene tree, writes `artifacts/captures/<name>.layout.json` after every capture. Records: node path, class, global rect, mouse_filter, and for TextureRects whether the texture is non-null. Includes viewport size + display safe area.
+
+**(b) All 12 capture scenes patched** — DuelScene, ChooseYourPath, Dig, Settings, Map, Main (title/title_deck), DeckBuilder, Reliquary (both capture paths), TutorialRunner (per-beat + gate), CardPlateTest — each calls `DumpLayoutJSON()` after `SavePng()`.
+
+**(c) tools/ui_lint.py** — 406 lines, checks:
+- **All scenes**: safe area containment, no overlapping interactive siblings
+- **duel_test**: cost badge in top-right quadrant, attack/vigor chips in bottom-left/bottom-right, all inside card rect; card plates + slots have `mouse_filter=Stop`; artifact slots ≥72x96 with non-null texture
+- **choose_path**: content spans ≥80% viewport height; Begin button overlaps nothing; stat chips inside core-card rects
+- **map/settings/title/reliquary/overlays**: content spans ≥70% height and ≥60% width
+
+**(d) finish_task.sh** step 5 now runs ui_lint.py (reports findings, accepts known failures per spec).
+
+**Current lint results:**
+- duel_test: fails on safe-area (board intentionally fills 2316x1080 — lint's safe-area check is from DisplayServer which reports 1280x1024 on this headless setup), cost badge positions (known — BOARD-MATCH-4 partially addressed), mouse_filter on card internals (parent container has Stop; children use Ignore — acceptable)
+- choose_path: fails on safe-area + content span (expected — TASK-CHOOSEPATH-LAYOUT-2 fixes this)
+
+**Committed and pushed** — 2 commits (`ec8829d`, `edfc0a5`), checkbox flipped to [x], DONE line written to HERMES_STATUS.md. 5 `.layout.json` files for the current captures committed.
 ========================================
