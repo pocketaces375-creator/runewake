@@ -68,6 +68,10 @@ public partial class DigScene : Control
                     string baseName = CampaignContext.WideCaptureMode ? "dig_test_wide" : "dig_test";
                     DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[DigScene] Captured to {path}");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    string digBasename = CampaignContext.WideCaptureMode ? "dig_test_wide" : "dig_test";
+                    DebugCapture.DumpLayoutJSON(digBasename, this);
                 }
                 GetTree().Quit(0);
             };

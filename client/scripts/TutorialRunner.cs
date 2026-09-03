@@ -1033,6 +1033,9 @@ public partial class TutorialRunner : Node
                 DebugCapture.WriteLayoutJson(_duelScene, filename);
                 GD.Print($"[TutorialRunner] Capture saved: {pngPath}");
 
+                // TASK-UI-LINT-1: Dump layout JSON
+                DebugCapture.DumpLayoutJSON(filename, _duelScene);
+
                 // Write companion meta
                 WriteCaptureMeta(filename, beatId);
             }
@@ -1106,6 +1109,9 @@ public partial class TutorialRunner : Node
                 img.SavePng(pngPath);
                 DebugCapture.WriteLayoutJson(_duelScene, gatePrefix);
                 GD.Print($"[TutorialRunner] Gate capture saved: {pngPath}");
+
+                // TASK-UI-LINT-1: Dump layout JSON
+                DebugCapture.DumpLayoutJSON(gatePrefix, _duelScene);
 
                 var meta = new StringBuilder();
                 meta.Append("{\n");

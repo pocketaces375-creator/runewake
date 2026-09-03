@@ -797,4 +797,94 @@ public partial class DebugCapture : Node
             }
         }
     }
+
+    /// <summary>
+    /// Walk the scene tree rooted at rootNode and write a .layout.json for ui_lint.py.
+    /// Captures: every visible Control's node path, class, global rect, mouse_filter,
+    /// and for TextureRects whether the texture is non-null. Also includes viewport size
+    /// and display safe area.
+    /// </summary>
+    public static void DumpLayoutJSON(string captureName, Node rootNode)
+    {
+        try
+        {
+            var viewport = rootNode.GetViewport();
+            var vpSize = viewport.GetVisibleRect().Size;
+            var safeArea = DisplayServer.GetDisplaySafeArea();
+            var captureDir = "/home/fictive/runewake/artifacts/captures";
+            System.IO.Directory.CreateDirectory(captureDir);
+            var layoutPath = System.IO.Path.Combine(captureDir, $"{captureName}.layout.json");
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("{\n");
+            sb.Append($"  \"capture\": \"{captureName}\",\n");
+            sb.Append($"  \"viewport\": {{\"width\": {vpSize.X:F0}, \"height\": {vpSize.Y:F0}}},\n");
+            sb.Append($"  \"safe_area\": {{\"x\": {safeArea.Position.X:F0}, \"y\": {safeArea.Position.Y:F0}, \"w\": {safeArea.Size.X:F0}, \"h\": {safeArea.Size.Y:F0}}},\n");
+            sb.Append("  \"controls\": [\n");
+
+            var controls = new System.Collections.Generic.List<string>();
+            DumpNodeRecursive(rootNode, "", controls);
+
+            for (int i = 0; i < controls.Count; i++)
+            {
+                sb.Append(controls[i]);
+                if (i < controls.Count - 1)
+                    sb.Append(",");
+                sb.Append("\n");
+            }
+
+            sb.Append("  ]\n");
+            sb.Append("}\n");
+
+            using (var writer = new System.IO.StreamWriter(layoutPath))
+                writer.Write(sb.ToString());
+
+            GD.Print($"[LAYOUT] {layoutPath} written ({controls.Count} controls)");
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"[LAYOUT] Failed to dump layout: {ex.Message}");
+        }
+    }
+
+    private static void DumpNodeRecursive(Node node, string parentPath, System.Collections.Generic.List<string> controls)
+    {
+        var control = node as Control;
+        if (control != null)
+        {
+            if (!control.Visible)
+                return; // skip invisible controls — they don't affect visual layout
+
+            var gp = control.GetScreenTransform().Origin;
+            var sz = control.Size;
+            var path = string.IsNullOrEmpty(parentPath) ? node.Name.ToString() : parentPath + "/" + node.Name.ToString();
+            var cls = node.GetType().Name;
+            var mf = control.MouseFilter.ToString();
+
+            var entry = new System.Text.StringBuilder();
+            entry.Append("    {");
+            entry.Append($"\"path\": \"{EscapeJson(path)}\", ");
+            entry.Append($"\"class\": \"{EscapeJson(cls)}\", ");
+            entry.Append($"\"rect\": {{\"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {sz.X:F1}, \"h\": {sz.Y:F1}}}, ");
+            entry.Append($"\"mouse_filter\": \"{mf}\"");
+
+            var tr = node as TextureRect;
+            if (tr != null)
+            {
+                bool hasTex = tr.Texture != null;
+                entry.Append($", \"has_texture\": {(hasTex ? "true" : "false")}");
+            }
+
+            entry.Append("}");
+            controls.Add(entry.ToString());
+        }
+
+        foreach (Node child in node.GetChildren())
+            DumpNodeRecursive(child, string.IsNullOrEmpty(parentPath) ? node.Name.ToString() : parentPath + "/" + node.Name.ToString(), controls);
+    }
+
+    private static string EscapeJson(string s)
+    {
+        return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+    }
 }

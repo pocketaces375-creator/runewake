@@ -592,6 +592,9 @@ public partial class Main : Control
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/title_test{suffix}.png");
                     DebugCapture.WriteLayoutJson(this, $"title_test{suffix}");
                     GD.Print($"[Main] title_test{suffix}.png saved");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    DebugCapture.DumpLayoutJSON($"title_test{suffix}", this);
                     GetTree().Quit();
                 };
                 AddChild(titleCapTimer);
@@ -613,6 +616,9 @@ public partial class Main : Control
                         img.SavePng("/home/fictive/runewake/artifacts/captures/title_deck.png");
                     DebugCapture.WriteLayoutJson(this, "title_deck");
                     GD.Print("[Main] title_deck.png saved");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    DebugCapture.DumpLayoutJSON("title_deck", this);
 
                     // Write meta for title screen
                     var meta = new System.Text.StringBuilder();

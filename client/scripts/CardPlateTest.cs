@@ -63,6 +63,9 @@ public partial class CardPlateTest : Control
                 image.SavePng(path);
                 DebugCapture.WriteLayoutJson(this, $"cardplate_test_{resolution}");
                 GD.Print($"[CardPlateTest] Captured to {path}");
+
+                // TASK-UI-LINT-1: Dump layout JSON
+                DebugCapture.DumpLayoutJSON($"cardplate_test_{resolution.Replace('x', '_')}", this);
             }
             // Keep window open for scrot to capture, then exit
             var exitTimer = GetTree().CreateTimer(3.0f);

@@ -121,6 +121,9 @@ public partial class MapScene : Control
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/map_test{suffix}.png");
                     DebugCapture.WriteLayoutJson(this, $"map_test{suffix}");
                     GD.Print($"[MAPCAPTURE] map_test{suffix}.png saved");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    DebugCapture.DumpLayoutJSON($"map_test{suffix}", this);
                     GetTree().Quit(0);
                 };
                 AddChild(snapTimer);
@@ -152,6 +155,9 @@ public partial class MapScene : Control
                     img.SavePng($"/home/fictive/runewake/artifacts/captures/flow_{prefix}_map{suffix}.png");
                 DebugCapture.WriteLayoutJson(this, $"flow_{prefix}_map{suffix}");
                 GD.Print($"[FLOWTEST] flow_{prefix}_map{suffix}.png saved — round-trip complete");
+
+                // TASK-UI-LINT-1: Dump layout JSON
+                DebugCapture.DumpLayoutJSON($"flow_{prefix}_map{suffix}", this);
                 GetTree().Quit(0);
             };
             AddChild(flowTimer);
@@ -199,8 +205,10 @@ public partial class MapScene : Control
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng($"/home/fictive/runewake/artifacts/captures/soak_final_map_{CampaignContext.SoakSeedStr}.png");
-                    DebugCapture.WriteLayoutJson(this, $"soak_final_map_{CampaignContext.SoakSeedStr}");
-                    GetTree().Quit(0);
+                    GD.Print($"[MAPSOAK] soak_final_map saved for seed {CampaignContext.SoakSeedStr}");
+
+                    // TASK-UI-LINT-1: Dump layout JSON for soak final map
+                    DebugCapture.DumpLayoutJSON($"soak_final_map_{CampaignContext.SoakSeedStr}", this);
                     return;
                 }
 

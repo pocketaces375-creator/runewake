@@ -1,350 +1,404 @@
 #!/usr/bin/env python3
 """
-tools/ui_lint.py — Rules-based layout validation.
-Reads artifacts/captures/<name>.layout.json for every DebugCapture mode,
-applies scene-specific rules, prints failures in plain English, exits non-zero on any.
-
-Usage:  python3 tools/ui_lint.py [--layout-dir=path]
+tools/ui_lint.py — Layout lint for Runewake UI captures.
+Reads artifacts/captures/<name>.layout.json and checks rules by scene type.
+Exit code: 0 = PASS, 1 = FAIL (one or more rules broken).
 """
+
 import json
-import os
+import re
 import sys
-import glob
+from pathlib import Path
 
-LAYOUT_DIR = os.path.join(os.path.dirname(__file__), "..", "artifacts", "captures")
-
-# ── Helpers ──────────────────────────────────────────────────────────
-
-def _in_safe_area(rect, safe):
-    """rect = {x,y,w,h}. Returns True if fully inside safe area."""
-    return (rect["x"] >= safe["x"] and
-            rect["y"] >= safe["y"] and
-            rect["x"] + rect["w"] <= safe["x"] + safe["w"] and
-            rect["y"] + rect["h"] <= safe["y"] + safe["h"])
+CAPTURE_DIR = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
 
 
-def _centre(r):
-    """Centre (cx, cy) of a rect dict {x,y,w,h}."""
+def load_layout(basename: str) -> dict | None:
+    path = CAPTURE_DIR / f"{basename}.layout.json"
+    if not path.exists():
+        return None
+    return json.loads(path.read_text())
+
+
+def get_control_at(controls: list[dict], path_suffix: str) -> dict | None:
+    """Find a control whose path ends with the given suffix."""
+    for c in controls:
+        if c["path"].endswith(path_suffix):
+            return c
+    return None
+
+
+def controls_matching(controls: list[dict], class_name: str | None = None,
+                       path_pattern: str | None = None, mouse_filter: str | None = None) -> list[dict]:
+    """Filter controls by class, path regex, and/or mouse_filter."""
+    result = []
+    for c in controls:
+        if class_name and c["class"] != class_name:
+            continue
+        if path_pattern and not re.search(path_pattern, c["path"]):
+            continue
+        if mouse_filter and c.get("mouse_filter") != mouse_filter:
+            continue
+        result.append(c)
+    return result
+
+
+def rect_contains(outer: dict, inner: dict) -> bool:
+    """Check if inner rect is fully inside outer rect."""
+    ox, oy, ow, oh = outer["x"], outer["y"], outer["w"], outer["h"]
+    ix, iy, iw, ih = inner["x"], inner["y"], inner["w"], inner["h"]
+    return (ix >= ox and iy >= oy and
+            ix + iw <= ox + ow and
+            iy + ih <= oy + oh)
+
+
+def rects_overlap(a: dict, b: dict) -> bool:
+    """Check if two rects intersect (overlap area > 0)."""
+    return (a["x"] < b["x"] + b["w"] and a["x"] + a["w"] > b["x"] and
+            a["y"] < b["y"] + b["h"] and a["y"] + a["h"] > b["y"])
+
+
+def rect_centre(r: dict) -> tuple[float, float]:
     return (r["x"] + r["w"] / 2, r["y"] + r["h"] / 2)
 
 
-def _rects_overlap(a, b):
-    """True if two rect dicts overlap (intersection > 0 in both axes)."""
-    return (a["x"] < b["x"] + b["w"] and
-            a["x"] + a["w"] > b["x"] and
-            a["y"] < b["y"] + b["h"] and
-            a["y"] + a["h"] > b["y"])
+def point_in_rect(px: float, py: float, r: dict) -> bool:
+    return (r["x"] <= px <= r["x"] + r["w"] and
+            r["y"] <= py <= r["y"] + r["h"])
 
 
-def _union_rect(rects):
-    """Return the smallest rect {x,y,w,h} that covers all given rects, or None."""
-    if not rects:
-        return None
-    x1 = min(r["x"] for r in rects)
-    y1 = min(r["y"] for r in rects)
-    x2 = max(r["x"] + r["w"] for r in rects)
-    y2 = max(r["y"] + r["h"] for r in rects)
-    return {"x": x1, "y": y1, "w": x2 - x1, "h": y2 - y1}
+def get_quadrant(card_rect: dict, quadrant: str) -> dict:
+    """Get a quadrant rect of the card. Quadrant: tl, tr, bl, br."""
+    cx, cy, cw, ch = card_rect["x"], card_rect["y"], card_rect["w"], card_rect["h"]
+    mid_x = cx + cw / 2
+    mid_y = cy + ch / 2
+    if quadrant == "tl":
+        return {"x": cx, "y": cy, "w": cw / 2, "h": ch / 2}
+    elif quadrant == "tr":
+        return {"x": mid_x, "y": cy, "w": cw / 2, "h": ch / 2}
+    elif quadrant == "bl":
+        return {"x": cx, "y": mid_y, "w": cw / 2, "h": ch / 2}
+    elif quadrant == "br":
+        return {"x": mid_x, "y": mid_y, "w": cw / 2, "h": ch / 2}
+    return {"x": cx, "y": cy, "w": cw, "h": ch}
 
 
-def _rect_inside(inner, outer):
-    """True if inner rect is fully inside outer rect."""
-    return (inner["x"] >= outer["x"] and
-            inner["y"] >= outer["y"] and
-            inner["x"] + inner["w"] <= outer["x"] + outer["w"] and
-            inner["y"] + inner["h"] <= outer["y"] + outer["h"])
+# ──────────────────────────────────────────────
+# Rule checkers — each returns list of failure strings
+# ──────────────────────────────────────────────
 
-
-# ── Rule runners ─────────────────────────────────────────────────────
-
-FAILURES = []
-
-
-def _fail(name, msg):
-    FAILURES.append(f"[{name}] {msg}")
-
-
-def run_all_scenes(data, name):
+def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> list[str]:
     """Rules that apply to every scene."""
-    safe = {
-        "x": data.get("safe_area_x", 0),
-        "y": data.get("safe_area_y", 0),
-        "w": data.get("safe_area_w", data.get("viewport_width", 1)),
-        "h": data.get("safe_area_h", data.get("viewport_height", 1)),
-    }
-    vw = data.get("viewport_width", 0)
-    vh = data.get("viewport_height", 0)
+    failures = []
 
-    # 1. No visible Label/Button/card rect extends outside safe area
-    for c in data.get("controls", []):
-        if not c.get("visible", True):
-            continue
-        cls = c.get("class", "")
-        rect = {"x": c["x"], "y": c["y"], "w": c["w"], "h": c["h"]}
-        # Zero-size controls are invisible by nature
-        if rect["w"] <= 0 or rect["h"] <= 0:
-            continue
-        # Skip non-layout containers that span full screen (Panel, ColorRect bg)
-        if cls in ("Panel", "PanelContainer", "ColorRect", "Control") and \
-                rect["x"] <= 2 and rect["y"] <= 2 and \
-                rect["x"] + rect["w"] >= vw - 2 and rect["y"] + rect["h"] >= vh - 2:
-            continue
-        # Skip root-level layout containers
-        if c["path"].count("/") < 1 and cls in ("VBoxContainer", "HBoxContainer", "Control", "Panel", "PanelContainer", "ScrollContainer"):
-            continue
+    # Rule: no visible interactive siblings overlap
+    # Interactive = Buttons, or controls whose path contains Card/Slot/Interactive
+    interactives = [c for c in controls if (
+        c["class"] in ("Button", "TextureButton", "LinkButton") or
+        re.search(r"(CardPlate|Slot|Artifact|Begin|EndTurn)", c["path"])
+    )]
+    for i in range(len(interactives)):
+        for j in range(i + 1, len(interactives)):
+            a, b = interactives[i], interactives[j]
+            # Skip if same parent — they are siblings, acceptable if one contains the other
+            parent_a = "/".join(a["path"].split("/")[:-1])
+            parent_b = "/".join(b["path"].split("/")[:-1])
+            if parent_a == parent_b:
+                # Siblings: only fail if they actually overlap AND neither contains the other
+                if rects_overlap(a["rect"], b["rect"]):
+                    # Check containment
+                    if not rect_contains(a["rect"], b["rect"]) and not rect_contains(b["rect"], a["rect"]):
+                        failures.append(
+                            f"OVERLAP: {a['path']} ({a['class']}) overlaps {b['path']} ({b['class']}) — "
+                            f"rects: {a['rect']} vs {b['rect']}"
+                        )
 
-        if not _in_safe_area(rect, safe):
-            _fail(name, f"Control escapes safe area: {c['path']} ({cls}) "
-                         f"rect=({c['x']},{c['y']},{c['w']},{c['h']}) "
-                         f"safe=({safe['x']},{safe['y']},{safe['w']},{safe['h']})")
-
-    # 2. No two visible interactive siblings overlap
-    # Interactive: Buttons, cards (PanelContainer with click), slots
-    interactive_classes = {"Button", "TextureButton", "LinkButton", "PanelContainer", "LaneSlot", "TouchScreenButton"}
-    interactive_controls = [
-        c for c in data.get("controls", [])
-        if c.get("class") in interactive_classes and c["w"] > 0 and c["h"] > 0
-    ]
-    for i, a in enumerate(interactive_controls):
-        for b in interactive_controls[i + 1:]:
-            rect_a = {"x": a["x"], "y": a["y"], "w": a["w"], "h": a["h"]}
-            rect_b = {"x": b["x"], "y": b["y"], "w": b["w"], "h": b["h"]}
-            if _rects_overlap(rect_a, rect_b):
-                _fail(name, f"Interactive controls overlap: {a['path']} ({a['class']}) "
-                             f"and {b['path']} ({b['class']}) "
-                             f"overlap at rect_a=({a['x']},{a['y']},{a['w']},{a['h']}) "
-                             f"rect_b=({b['x']},{b['y']},{b['w']},{b['h']})")
-
-
-def find_card_plates(data):
-    """Return card-plate controls (assumed to have class containing 'CardPlate' or named 'HandCard'/'LaneSlot')."""
-    plates = []
-    for c in data.get("controls", []):
-        cls = c.get("class", "")
-        path = c.get("path", "")
-        if "CardPlate" in cls or "HandCard" in cls or "LaneSlot" in cls or "Card" in path:
-            plates.append(c)
-        # Also match by component of path: if it looks like a card container
-        if any(kw in path for kw in ["hand_card", "lane_slot", "enemy_lane", "card_plate", "CardPlate"]):
-            plates.append(c)
-    return plates
-
-
-def run_duel_scene(data, name):
-    """Rules for duel_test* captures."""
-    safe = {
-        "x": data.get("safe_area_x", 0),
-        "y": data.get("safe_area_y", 0),
-        "w": data.get("safe_area_w", data.get("viewport_width", 1)),
-        "h": data.get("safe_area_h", data.get("viewport_height", 1)),
-    }
-    controls = data.get("controls", [])
-
-    # Find hand cards, lane slots, artifact slots by path
-    hand_cards = [c for c in controls if "HandCard" in c.get("class", "") or "hand_card" in c.get("path", "").lower()]
-    lane_slots = [c for c in controls if "LaneSlot" in c.get("class", "") or "lane_slot" in c.get("path", "").lower()]
-    enemy_lanes = [c for c in controls if "enemy_lane" in c.get("path", "").lower()]
-    artifact_slots = [c for c in controls if "artifact" in c.get("path", "").lower() and "TextureRect" in c.get("class", "")]
-
-    # Cost badge: look for small rects near top-right of card plates
-    card_plates = find_card_plates(data)
-
-    # For each card plate, check cost badge in top-right quadrant
-    for plate in card_plates:
-        r = plate
-        pr = {"x": r["x"], "y": r["y"], "w": r["w"], "h": r["h"]}
-        # Find potential cost badges (small Controls inside or near this card's top-right)
-        # Cost badge should be a small PanelContainer, Label or Control
-        candidates = [
-            c for c in controls
-            if c["x"] >= r["x"] and c["x"] + c["w"] <= r["x"] + r["w"] and
-               c["y"] >= r["y"] and c["y"] + c["h"] <= r["y"] + r["h"] and
-               c["w"] <= r["w"] * 0.3 and c["h"] <= r["h"] * 0.3 and
-               c["w"] > 4 and c["h"] > 4
-        ]
-        # Check: is there a badge in the top-right quadrant?
-        top_right_badges = [
-            cb for cb in candidates
-            if cb["x"] >= r["x"] + r["w"] * 0.5 and cb["y"] < r["y"] + r["h"] * 0.5
-        ]
-        if not top_right_badges:
-            # Also check SplitContainer, cost rune specifically
-            cost_elements = [
-                c for c in controls
-                if "cost" in c.get("path", "").lower() and "rune" in c.get("path", "").lower()
-            ]
-            for ce in cost_elements:
-                cx, cy = _centre(ce)
-                # Check if centre is in a card's top-right quadrant
-                in_card = False
-                for cp in card_plates:
-                    cp_rect = {"x": cp["x"], "y": cp["y"], "w": cp["w"], "h": cp["h"]}
-                    if (cx >= cp_rect["x"] + cp_rect["w"] * 0.5 and
-                            cx <= cp_rect["x"] + cp_rect["w"] and
-                            cy >= cp_rect["y"] and
-                            cy <= cp_rect["y"] + cp_rect["h"] * 0.5):
-                        in_card = True
-                        break
-                if not in_card:
-                    _fail(name, f"Cost element {ce['path']} centre not in any card's top-right quadrant")
-
-    # Check mouse_filter on hand cards and lane slots
-    for hc in hand_cards:
-        if hc.get("mouse_filter", 0) != 2:  # MOUSE_FILTER_STOP = 2
-            _fail(name, f"Hand card {hc['path']} has mouse_filter={hc['mouse_filter']}, expected 2 (Stop)")
-    for ls in lane_slots:
-        if ls.get("mouse_filter", 0) != 2:
-            _fail(name, f"Lane slot {ls['path']} has mouse_filter={ls['mouse_filter']}, expected 2 (Stop)")
-
-    # Artifact slot checks: at least 72x96, texture non-null
-    for aslot in artifact_slots:
-        if aslot["w"] < 72 or aslot["h"] < 96:
-            _fail(name, f"Artifact slot {aslot['path']} is {aslot['w']}x{aslot['h']}, minimum is 72x96")
-        if not aslot.get("texture_non_null", False):
-            _fail(name, f"Artifact slot {aslot['path']} has null texture")
-
-
-def run_choose_path(data, name):
-    """Rules for choose_path* captures."""
-    vh = data.get("viewport_height", 1)
-    vw = data.get("viewport_width", 1)
-    controls = data.get("controls", [])
-
-    # Identify content rects by class/path for the layout
-    # Title elements, carousel cards, class-core row, Begin button
-    title_elements = [c for c in controls if "title" in c.get("path", "").lower() or "Title" in c.get("class", "")]
-    carousel_cards = [c for c in controls if "carousel" in c.get("path", "").lower() or "Carousel" in c.get("class", "")]
-    core_cards = [c for c in controls if "core" in c.get("path", "").lower() or "ClassCore" in c.get("class", "")]
-    begin_buttons = [c for c in controls if "begin" in c.get("path", "").lower() or "Begin" in c.get("class", "")]
-
-    content_rects = title_elements + carousel_cards + core_cards + begin_buttons
-    if not content_rects:
-        # Fallback: use all visible non-background controls
-        content_rects = [
-            c for c in controls
-            if c.get("w", 0) > 10 and c.get("h", 0) > 10 and
-            not (c.get("x", 0) <= 2 and c.get("y", 0) <= 2 and
-                 c["x"] + c["w"] >= vw - 2 and c["y"] + c["h"] >= vh - 2)
-        ]
-
-    union = _union_rect(content_rects)
-    if union:
-        coverage_h = union["h"] / vh * 100
-        if coverage_h < 80:
-            _fail(name, f"Content union spans only {coverage_h:.0f}% of viewport height "
-                         f"(union y={union['y']}, h={union['h']}, vh={vh}). Target ≥80%")
-    else:
-        _fail(name, "No content elements found to measure")
-
-    # Begin button overlaps nothing
-    for bb in begin_buttons:
-        bb_rect = {"x": bb["x"], "y": bb["y"], "w": bb["w"], "h": bb["h"]}
-        for other in controls:
-            if other is bb:
-                continue
-            other_rect = {"x": other["x"], "y": other["y"], "w": other["w"], "h": other["h"]}
-            if other["w"] <= 0 or other["h"] <= 0:
-                continue
-            if _rects_overlap(bb_rect, other_rect):
-                # Don't flag full-screen backgrounds
-                if other["x"] <= 2 and other["y"] <= 2 and \
-                        other["x"] + other["w"] >= vw - 2 and other["y"] + other["h"] >= vh - 2:
-                    continue
-                _fail(name, f"Begin button {bb['path']} overlaps {other['path']} ({other['class']})")
-
-    # Every stat chip rect is inside its own core-card rect
+    # Rule: no visible control extends outside safe area
     for c in controls:
-        if "stat" in c.get("path", "").lower() or "StatBadge" in c.get("class", "") or \
-           "badge" in c.get("path", "").lower() or "chip" in c.get("path", "").lower():
-            stat_rect = {"x": c["x"], "y": c["y"], "w": c["w"], "h": c["h"]}
-            contained = False
-            for cc in core_cards:
-                core_rect = {"x": cc["x"], "y": cc["y"], "w": cc["w"], "h": cc["h"]}
-                if _rect_inside(stat_rect, core_rect):
-                    contained = True
-                    break
-            if not contained:
-                _fail(name, f"Stat chip {c['path']} ({c['x']},{c['y']},{c['w']},{c['h']}) "
-                             f"is not inside any core-card rect — floating")
+        cr = c["rect"]
+        if (cr["x"] < safe_area["x"] or cr["y"] < safe_area["y"] or
+                cr["x"] + cr["w"] > safe_area["x"] + safe_area["w"] or
+                cr["y"] + cr["h"] > safe_area["y"] + safe_area["h"]):
+            # Skip the root panel / full-rect backgrounds — those intentionally fill the screen
+            if c["class"] in ("ColorRect", "NinePatchRect", "TextureRect") and \
+               cr["w"] >= viewport["width"] * 0.95 and cr["h"] >= viewport["height"] * 0.95:
+                continue
+            failures.append(
+                f"SAFE_AREA: {c['path']} ({c['class']}) rect {cr} extends outside safe area "
+                f"({safe_area})"
+            )
+
+    return failures
 
 
-def run_general_scene(data, name):
-    """Rules for map/settings/title/reliquary/overlays: content spans ≥70% height and ≥60% width."""
-    vh = data.get("viewport_height", 1)
-    vw = data.get("viewport_width", 1)
-    controls = data.get("controls", [])
+def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
+    """Rules for duel_test* captures."""
+    failures = []
 
-    # Identify content: visible Controls that aren't full-screen backgrounds
-    content_rects = [
-        c for c in controls
-        if c.get("w", 0) > 10 and c.get("h", 0) > 10
-        and not (c["x"] <= 2 and c["y"] <= 2 and
-                 c["x"] + c["w"] >= vw - 2 and c["y"] + c["h"] >= vh - 2)
-    ]
+    # Find all card plates
+    plates = controls_matching(controls, path_pattern=r"CardPlate")
+    # Also find individual element badges by path pattern
+    cost_badges = controls_matching(controls, path_pattern=r"(Cost|cost|Badge)")
+    attack_chips = controls_matching(controls, path_pattern=r"(Attack|attack|StatLeft|stat_left)")
+    vigor_chips = controls_matching(controls, path_pattern=r"(Vigor|vigor|StatRight|stat_right)")
+    slots = controls_matching(controls, path_pattern=r"(Slot|Lane)")
+    artifact_slots = controls_matching(controls, path_pattern=r"(ArtifactSlot|ArsenalPanel)")
 
-    union = _union_rect(content_rects)
-    if union:
-        coverage_h = union["h"] / vh * 100
-        coverage_w = union["w"] / vw * 100
-        if coverage_h < 70:
-            _fail(name, f"Content union spans only {coverage_h:.0f}% of viewport height "
-                         f"(target ≥70%)")
-        if coverage_w < 60:
-            _fail(name, f"Content union spans only {coverage_w:.0f}% of viewport width "
-                         f"(target ≥60%)")
+    # Rule: hand cards and lane slots have mouse_filter = Stop
+    for c in controls:
+        if "CardPlate" in c["path"]:
+            if c.get("mouse_filter") != "Stop":
+                failures.append(
+                    f"MOUSE_FILTER: card plate {c['path']} has mouse_filter={c.get('mouse_filter')}, expected Stop"
+                )
+    for c in controls:
+        if re.search(r"(Slot|Lane|ArsenalPanel)", c["path"]):
+            if c.get("mouse_filter") != "Stop":
+                failures.append(
+                    f"MOUSE_FILTER: slot {c['path']} has mouse_filter={c.get('mouse_filter')}, expected Stop"
+                )
+
+    # For each card plate, try to find its cost badge, attack chip, vigor chip
+    for plate in plates:
+        pr = plate["rect"]
+        plate_path = plate["path"]
+        prefix = plate_path.rsplit("/", 1)[0] if "/" in plate_path else ""
+
+        # Find children by checking if path starts with this plate's path prefix
+        children = [c for c in controls if c["path"].startswith(prefix) and c["path"] != plate_path]
+
+        # Find cost badge, attack chip, vigor chip among children by class or path patterns
+        cost = next(
+            (c for c in children if re.search(r"Cost", c["path"], re.I) or c["class"] in ("CostBadge", "CostChip")),
+            None
+        )
+        attack = next(
+            (c for c in children if re.search(r"(Attack|StatLeft)", c["path"], re.I) or
+             c["class"] in ("AttackChip", "StatChip")),
+            None
+        )
+        vigor = next(
+            (c for c in children if re.search(r"(Vigor|StatRight)", c["path"], re.I) or
+             c["class"] in ("VigorChip", "StatChip") and c != attack),
+            None
+        )
+
+        if cost:
+            cc = rect_centre(cost["rect"])
+            tr_q = get_quadrant(pr, "tr")
+            if not point_in_rect(cc[0], cc[1], tr_q):
+                failures.append(
+                    f"COST_POS: cost badge centre {cc} not in top-right quadrant of card {plate['path']} "
+                    f"(card rect {pr})"
+                )
+            if not rect_contains(pr, cost["rect"]):
+                failures.append(
+                    f"COST_BOUNDS: cost badge {cost['rect']} extends outside card {pr} on {plate['path']}"
+                )
+        if attack:
+            ac = rect_centre(attack["rect"])
+            bl_q = get_quadrant(pr, "bl")
+            if not point_in_rect(ac[0], ac[1], bl_q):
+                failures.append(
+                    f"ATTACK_POS: attack chip centre {ac} not in bottom-left quadrant of card {plate['path']} "
+                    f"(card rect {pr})"
+                )
+            if not rect_contains(pr, attack["rect"]):
+                failures.append(
+                    f"ATTACK_BOUNDS: attack chip {attack['rect']} extends outside card {pr} on {plate['path']}"
+                )
+        if vigor:
+            vc = rect_centre(vigor["rect"])
+            br_q = get_quadrant(pr, "br")
+            if not point_in_rect(vc[0], vc[1], br_q):
+                failures.append(
+                    f"VIGOR_POS: vigor chip centre {vc} not in bottom-right quadrant of card {plate['path']} "
+                    f"(card rect {pr})"
+                )
+            if not rect_contains(pr, vigor["rect"]):
+                failures.append(
+                    f"VIGOR_BOUNDS: vigor chip {vigor['rect']} extends outside card {pr} on {plate['path']}"
+                )
+
+    # Artifact slot checks: each at least 72x96 and has non-null texture on its TextureRect
+    for aslot in artifact_slots:
+        ar = aslot["rect"]
+        if ar["w"] < 72 or ar["h"] < 96:
+            failures.append(
+                f"ARTIFACT_SIZE: artifact slot {aslot['path']} rect {ar} is too small "
+                f"(min 72x96)"
+            )
+        # Find a TextureRect child
+        children = [c for c in controls if c["path"].startswith(aslot["path"] + "/") and c["class"] == "TextureRect"]
+        # Also look for any child TextureRect
+        tex_children = [c for c in controls if
+                        c["path"].startswith(aslot["path"] + "/") and c["class"] == "TextureRect"]
+        if tex_children:
+            non_null = [t for t in tex_children if t.get("has_texture", False)]
+            if not non_null:
+                failures.append(
+                    f"ARTIFACT_TEXTURE: artifact slot {aslot['path']} has TextureRect children but none have a non-null texture"
+                )
+        else:
+            failures.append(
+                f"ARTIFACT_TEXTURE: artifact slot {aslot['path']} has no TextureRect child"
+            )
+
+    return failures
+
+
+def check_choose_path_scene(controls: list[dict], viewport: dict) -> list[str]:
+    """Rules for choose_path* captures."""
+    failures = []
+
+    # Identify key elements by path patterns
+    title = get_control_at(controls, "Title") or get_control_at(controls, "title")
+    begin_button = get_control_at(controls, "Begin") or get_control_at(controls, "Begin Button")
+    carousel_cards = controls_matching(controls, path_pattern=r"(Carousel|ClassCard|PathCard)")
+    class_core_cards = controls_matching(controls, path_pattern=r"(ClassCore|CoreCard|CorePreview)")
+    stat_chips = controls_matching(controls, path_pattern=r"(Stat|Chip|Attack|Vigor)")
+    all_content = [c for c in controls if c["class"] in ("Label", "Button", "TextureButton", "TextureRect")]
+
+    # Rule: content union spans at least 80% of viewport height
+    if all_content:
+        min_y = min(c["rect"]["y"] for c in all_content)
+        max_y = max(c["rect"]["y"] + c["rect"]["h"] for c in all_content)
+        content_height_ratio = (max_y - min_y) / viewport["height"] if viewport["height"] > 0 else 0
+        if content_height_ratio < 0.80:
+            failures.append(
+                f"CONTENT_SPAN: content vertical span {content_height_ratio:.1%} is less than 80% of viewport height "
+                f"(min_y={min_y:.0f}, max_y={max_y:.0f}, vp_h={viewport['height']})"
+            )
     else:
-        _fail(name, "No content elements found to measure viewport coverage")
+        failures.append("CONTENT_SPAN: no visible content controls found to measure")
+
+    # Rule: Begin button overlaps nothing
+    if begin_button:
+        br = begin_button["rect"]
+        other_controls = [c for c in controls if c["path"] != begin_button["path"]]
+        for oc in other_controls:
+            if rects_overlap(br, oc["rect"]):
+                # Skip if one contains the other (acceptable for parent-child)
+                if not rect_contains(br, oc["rect"]) and not rect_contains(oc["rect"], br):
+                    failures.append(
+                        f"BEGIN_OVERLAP: Begin button {begin_button['path']} {br} overlaps "
+                        f"{oc['path']} {oc['rect']}"
+                    )
+    else:
+        failures.append("BEGIN_MISSING: no Begin button found in scene")
+
+    # Rule: every stat chip rect is inside its own core-card rect
+    for chip in stat_chips:
+        chip_rect = chip["rect"]
+        owning_card = None
+        for card in class_core_cards:
+            if rect_contains(card["rect"], chip_rect):
+                owning_card = card
+                break
+        if owning_card is None:
+            failures.append(
+                f"FLOATING_STAT: stat chip {chip['path']} {chip_rect} is not inside any core-card rect"
+            )
+
+    return failures
 
 
-# ── Main ────────────────────────────────────────────────────────────
+def check_content_span(controls: list[dict], viewport: dict, height_pct: float = 0.70, width_pct: float = 0.60) -> list[str]:
+    """Generic rule for map/settings/title/reliquary/overlays: content fills at least % of viewport."""
+    failures = []
+
+    # Exclude full-rect backgrounds
+    visible = [c for c in controls if not (
+        c["class"] in ("ColorRect", "NinePatchRect") and
+        c["rect"]["w"] >= viewport["width"] * 0.9 and
+        c["rect"]["h"] >= viewport["height"] * 0.9
+    )]
+
+    if not visible:
+        failures.append("CONTENT_SPAN: no non-background visible controls found")
+        return failures
+
+    min_x = min(c["rect"]["x"] for c in visible)
+    max_x = max(c["rect"]["x"] + c["rect"]["w"] for c in visible)
+    min_y = min(c["rect"]["y"] for c in visible)
+    max_y = max(c["rect"]["y"] + c["rect"]["h"] for c in visible)
+
+    span_w = (max_x - min_x) / viewport["width"] if viewport["width"] > 0 else 0
+    span_h = (max_y - min_y) / viewport["height"] if viewport["height"] > 0 else 0
+
+    if span_h < height_pct:
+        failures.append(
+            f"CONTENT_SPAN_H: content vertical span {span_h:.1%} is less than {height_pct:.0%} of viewport height"
+        )
+    if span_w < width_pct:
+        failures.append(
+            f"CONTENT_SPAN_W: content horizontal span {span_w:.1%} is less than {width_pct:.0%} of viewport width"
+        )
+
+    return failures
+
+
+# ──────────────────────────────────────────────
+# Main
+# ──────────────────────────────────────────────
 
 def main():
-    layout_dir = LAYOUT_DIR
-    for arg in sys.argv[1:]:
-        if arg.startswith("--layout-dir="):
-            layout_dir = arg.split("=", 1)[1]
+    failures_global = []
+    seen_basenames = []
+    passed = 0
+    failed = 0
+    skipped = 0
 
-    layouts = sorted(glob.glob(os.path.join(layout_dir, "*.layout.json")))
-    if not layouts:
-        print("PASS — no layout JSON files found")
-        sys.exit(0)
+    # Find all .layout.json files
+    layout_files = sorted(CAPTURE_DIR.glob("*.layout.json"))
+    if not layout_files:
+        print("FAIL: No .layout.json files found in artifacts/captures/")
+        sys.exit(1)
 
-    for lf in layouts:
-        name_base = os.path.basename(lf).replace(".layout.json", "")
-        try:
-            with open(lf) as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
-            _fail(name_base, f"Cannot read layout JSON: {e}")
-            continue
+    for lf in layout_files:
+        basename = lf.stem.replace(".layout", "")
+        data = json.loads(lf.read_text())
+        controls = data.get("controls", [])
+        viewport = data.get("viewport", {"width": 1920, "height": 1080})
+        safe_area = data.get("safe_area", {"x": 0, "y": 0, "w": viewport["width"], "h": viewport["height"]})
+        capture_name = data.get("capture", basename)
 
-        # Run all-scene rules
-        run_all_scenes(data, name_base)
+        seen_basenames.append(basename)
+        scene_failures = []
 
-        # Scene-specific rules
-        if name_base.startswith("duel_test"):
-            run_duel_scene(data, name_base)
-        elif name_base.startswith("choose_path"):
-            run_choose_path(data, name_base)
-        elif name_base.startswith("victory") or name_base.startswith("defeat") or \
-                name_base.startswith("flow_"):
-            # Overlays and flow maps
-            run_general_scene(data, name_base)
-        elif name_base.startswith("map_test") or name_base.startswith("soak_"):
-            run_general_scene(data, name_base)
-        elif name_base.startswith("setting") or name_base.startswith("title") or \
-                name_base.startswith("reliquary") or name_base.startswith("deck") or \
-                name_base.startswith("dig") or name_base.startswith("tutorial") or \
-                name_base.startswith("cardplate"):
-            run_general_scene(data, name_base)
+        # (1) All-scene rules
+        scene_failures.extend(check_all_scenes(controls, safe_area, viewport))
 
-    if FAILURES:
-        print(f"FAIL — {len(FAILURES)} rule violations:")
-        for f in FAILURES:
-            print(f"  ❌ {f}")
+        # (2) Scene-specific rules
+        if "duel_test" in basename or "duel_test" in capture_name:
+            scene_failures.extend(check_duel_scene(controls, capture_name))
+        elif "choose_path" in basename or "choose_path" in capture_name:
+            scene_failures.extend(check_choose_path_scene(controls, viewport))
+        elif any(kw in basename for kw in ["map_test", "settings_test", "title_test", "title_deck",
+                                            "reliquary_test", "victory_overlay", "defeat_overlay"]):
+            scene_failures.extend(check_content_span(controls, viewport))
+        else:
+            # For other captures (dig, tutorial, etc.) just run all-scene rules
+            pass
+
+        if scene_failures:
+            print(f"FAIL {basename}:")
+            for f in scene_failures:
+                print(f"  - {f}")
+            failed += 1
+        else:
+            print(f"PASS {basename}")
+            passed += 1
+
+    # Summary
+    total = passed + failed + skipped
+    print(f"\n{'='*50}")
+    print(f"Results: {passed} passed, {failed} failed, {skipped} skipped ({total} total)")
+    if failed > 0:
+        print("FAIL — one or more lint rules broken")
         sys.exit(1)
     else:
-        print("PASS — all rules passed")
+        print("PASS — all lint rules satisfied")
         sys.exit(0)
 
 

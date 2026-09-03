@@ -53,6 +53,10 @@ public partial class SettingsScene : Control
                     string baseName = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
                     DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[SettingsScene] Captured to {path}");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    string settingsBasename = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
+                    DebugCapture.DumpLayoutJSON(settingsBasename, this);
                 }
                 GetTree().Quit(0);
             };

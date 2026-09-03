@@ -141,6 +141,10 @@ public partial class DeckBuilderScene : Control
                         string baseName = System.IO.Path.GetFileNameWithoutExtension(path.Substring(path.LastIndexOf('/') + 1));
                         DebugCapture.WriteLayoutJson(this, baseName);
                         GD.Print($"[DeckBuilderScene] Captured to {path}");
+
+                        // TASK-UI-LINT-1: Dump layout JSON
+                        string deckBasename = CampaignContext.WideCaptureMode ? "deck_test_wide" : CampaignContext.PhoneCaptureMode ? "deck_test_phone" : "deck_test";
+                        DebugCapture.DumpLayoutJSON(deckBasename, this);
                     }
                 }
                 GetTree().Quit(0);

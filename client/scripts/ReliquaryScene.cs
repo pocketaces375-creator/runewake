@@ -188,6 +188,10 @@ public partial class ReliquaryScene : Control
             DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
             GD.Print($"[ReliquaryScene] Saved {path}");
 
+            // TASK-UI-LINT-1: Dump layout JSON
+            string reliqBasename = CampaignContext.WideCaptureMode ? "reliquary_test_wide" : "reliquary_test";
+            DebugCapture.DumpLayoutJSON(reliqBasename, this);
+
             var meta = new System.Text.StringBuilder();
             meta.Append("{\n");
             meta.Append($"  \"capture_type\": \"reliquary_test{suffix}\",\n");
@@ -1211,6 +1215,10 @@ public partial class ReliquaryScene : Control
                 img.SavePng(path);
                 DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
                 GD.Print($"[ReliquaryScene] Saved {path}");
+
+                // TASK-UI-LINT-1: Dump layout JSON
+                string reliqBasename2 = CampaignContext.WideCaptureMode ? "reliquary_test_wide" : "reliquary_test";
+                DebugCapture.DumpLayoutJSON(reliqBasename2, this);
 
                 // Write meta.json
                 var meta = new System.Text.StringBuilder();

@@ -571,6 +571,9 @@ public partial class DuelScene : Control
                     DebugCapture.WriteLayoutJson(this, layoutBaseName);
                     GD.Print($"[CAPTURE] {layoutBaseName}.png saved");
 
+                    // TASK-UI-LINT-1: Dump layout JSON for ui_lint.py
+                    DebugCapture.DumpLayoutJSON($"duel_test{captureSuffix}", this);
+
                     // Write meta.json with screen-space card rects
                     var meta = new System.Text.StringBuilder();
                     meta.Append("{\n");

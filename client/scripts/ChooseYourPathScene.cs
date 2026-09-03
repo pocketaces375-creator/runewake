@@ -332,6 +332,10 @@ public partial class ChooseYourPathScene : Control
                     string baseName = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
                     DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[ChooseYourPath] Captured to {path}");
+
+                    // TASK-UI-LINT-1: Dump layout JSON
+                    string cypBasename = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
+                    DebugCapture.DumpLayoutJSON(cypBasename, this);
                 }
                 GetTree().Quit(0);
             };
