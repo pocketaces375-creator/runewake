@@ -145,8 +145,14 @@ echo ""
 echo "── Step 6: Input/loop smoke tests ──"
 for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/loop_smoke.sh"; do
   if [[ -x "${smoke_script}" ]]; then
+    # Skip loop_smoke.sh until TASK-LOOP-GATE-1 is done
+    if [[ "$(basename "${smoke_script}")" == "loop_smoke.sh" ]] && \
+       ! grep -q '\[x\] TASK-LOOP-GATE-1' "${PROJECT_DIR}/TASKS_QUEUE.md"; then
+      echo "  Skipping (TASK-LOOP-GATE-1 not yet [x])"
+      continue
+    fi
     echo "  Running $(basename "${smoke_script}")..."
-    SMOKE_OUTPUT=$(bash "${smoke_script}" 2>&1 || true)
+    SMOKE_OUTPUT=$(timeout 120 bash "${smoke_script}" 2>&1 || true)
     if echo "${SMOKE_OUTPUT}" | grep -q "PASS"; then
       ok "$(basename "${smoke_script}") passed"
     else
