@@ -772,6 +772,27 @@ if ! git diff --cached --quiet 2>/dev/null; then
   git push origin main 2>/dev/null || true
 fi
 
+# ── 6. No-progress breaker ────────────────────────────────────────────────────
+NEXT_TOP_LINE=$(find_top_task 2>/dev/null || echo "")
+CURRENT_TOP=""
+if [[ -n "${NEXT_TOP_LINE}" ]]; then
+  CURRENT_TOP=$(echo "${NEXT_TOP_LINE}" | cut -d'|' -f1)
+fi
+if [[ -n "${CURRENT_TOP}" ]] && [[ "${CURRENT_TOP}" == "${TASK_ID}" ]]; then
+  NO_PROGRESS_COUNT=$((NO_PROGRESS_COUNT + 1))
+  set_state "no_progress_count" "${NO_PROGRESS_COUNT}"
+  warn "No progress: same task ${CURRENT_TOP} still top — ${NO_PROGRESS_COUNT}/3"
+  if [[ "${NO_PROGRESS_COUNT}" -ge 3 ]]; then
+    warn "No progress after 3 consecutive sessions — creating HALT"
+    telegram_text "🚨 No-progress: 3 consecutive sessions without queue advancement — creating HALT"
+    touch "${HALT_FILE}"
+    exit 1
+  fi
+else
+  set_state "no_progress_count" 0
+  NO_PROGRESS_COUNT=0
+fi
+
 # ── 7. Chain decision ─────────────────────────────────────────────────────────
 # Success → chain to the next task if queue + budget remain. Every 3
 # consecutive successes forces a 15-min cool-down (Claude's live-review
