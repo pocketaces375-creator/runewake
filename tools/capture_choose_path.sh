@@ -22,7 +22,7 @@ capture_one() {
     sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "$PROJECT_GODOT"
 
     # Run capture
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=choose_path${suffix}" 2>&1 || true
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=choose_path${suffix}" 2>&1 || true
 
     # Verify output
     if [ -f "$CAPTURE_DIR/choose_path${suffix}.png" ]; then

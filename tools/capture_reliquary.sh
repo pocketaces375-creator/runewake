@@ -23,7 +23,7 @@ capture_one() {
     sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "$PROJECT_GODOT"
 
     # Run capture (no --headless — xvfb provides the display, GetImage() works)
-    xvfb-run -a "$GODOT_BIN" --path "$ROOT/client" -- "--capture=reliquary_test${suffix}" 2>&1 |
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path "$ROOT/client" -- "--capture=reliquary_test${suffix}" 2>&1 |
         grep -E '(Reliquary|FAIL|Error|ERROR|Main)' || true
     local rc=$?
 

@@ -83,7 +83,7 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
       echo "  Capturing ${mode_name} (${width}x${height})"
       sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "${PROJECT_DIR}/client/project.godot"
       sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "${PROJECT_DIR}/client/project.godot"
-      xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 || true
+      timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 || true
     done
 
     # Restore project.godot

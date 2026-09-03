@@ -25,7 +25,7 @@ capture_one() {
     sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "$PROJECT_GODOT"
 
     # Run capture
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=duel_test${suffix}" 2>&1
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=duel_test${suffix}" 2>&1
     local rc=$?
 
     # Verify output

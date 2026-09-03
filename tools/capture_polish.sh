@@ -27,7 +27,7 @@ cap_one() {
     sed -i 's|^window/size/viewport_height=.*|window/size/viewport_height='"${height}"'|' "$PROJECT_GODOT"
 
     # Run
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=${capture_arg}" 2>&1
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=${capture_arg}" 2>&1
     local rc=$?
 
     # Build the expected output filename — use the capture_arg directly

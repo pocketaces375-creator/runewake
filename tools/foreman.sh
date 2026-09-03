@@ -503,77 +503,7 @@ info "Budget: ${SPENT_FRAC}/${DAILY_BUDGET} (${SESSION_COUNT} full + ${BUS_SESSI
 
 # ── 3. Fable inbox ───────────────────────────────────────────────────────────
 header "Fable inbox"
-INBOX_DIR="${HOME}/bridge/projects/runewake-export/inbox"
-if [[ -d "${INBOX_DIR}" ]]; then
-  for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
-    base_name="$(basename "${inbox_file}")"
-    [[ "${base_name}" == "applied" ]] && continue
-    # Read last non-blank line
-    last_line=$(grep -v '^[[:space:]]*$' "${inbox_file}" | tail -1)
-    if [[ "${last_line}" != "# from: fable" ]]; then
-      info "Inbox ${base_name}: missing '# from: fable' marker — ignored"
-      continue
-    fi
-    # Check if content is pure task blocks
-    is_pure_queue=true
-    while IFS= read -r line; do
-      [[ -z "${line}" ]] && continue
-      [[ "${line}" =~ ^[[:space:]]*# ]] && continue
-      if ! echo "${line}" | grep -qE '^\s*-\s*\[.\]\s*TASK-'; then
-        is_pure_queue=false
-        break
-      fi
-    done < "${inbox_file}"
-    if [[ "${is_pure_queue}" == true ]]; then
-      # Pure queue insert: insert blocks above top unchecked task
-      info "Fable inbox: inserting queue items from ${base_name}"
-      insert_lines=$(grep -v '^[[:space:]]*$' "${inbox_file}" | grep -v '^[[:space:]]*#' | grep -v '# from: fable')
-      # Build indented insert text
-      indented=""
-      while IFS= read -r iline; do
-        if [[ -n "${iline}" ]]; then
-          indented="${indented}    ${iline}"$'\n'
-        fi
-      done <<< "${insert_lines}"
-      # Find insert position using Python
-      insert_pos=$(python3 -c "
-import re
-with open('${QUEUE_FILE}') as f:
-    content = f.read()
-idx = content.find('## Queue')
-if idx < 0:
-    exit(1)
-after = content[idx:]
-for i, line in enumerate(after.split('\n')):
-    if re.match(r'^\s*-\s*\[\s*\]\s*TASK-', line):
-        # Position = after idx, after the line that starts '## Queue'
-        pos = idx + sum(len(l)+1 for l in after.split('\n')[:i])
-        print(pos)
-        exit(0)
-exit(1)
-" 2>/dev/null || echo "")
-      if [[ -n "${insert_pos}" ]]; then
-        before=$(head -c "${insert_pos}" "${QUEUE_FILE}")
-        after=$(tail -c "+$((insert_pos + 1))" "${QUEUE_FILE}")
-        printf '%s%s\n%s' "${before}" "${indented}" "${after}" > "${QUEUE_FILE}"
-        git add "${QUEUE_FILE}"
-        git commit -m "FABLE-INBOX: ${base_name}" 2>/dev/null || true
-        git push 2>/dev/null || true
-        info "Fable inbox: inserted queue items from ${base_name}"
-      else
-        warn "Fable inbox: no unchecked task found to insert above"
-      fi
-    else
-      # Free-form instruction — run as one-shot prompt
-      info "Fable inbox: executing ${base_name} as one-shot prompt"
-      "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q 2>&1 | tail -5 || true
-    fi
-    # Move file to applied/
-    mkdir -p "${INBOX_DIR}/applied"
-    mv "${inbox_file}" "${INBOX_DIR}/applied/"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: processed ${base_name} ($([[ "${is_pure_queue}" == true ]] && echo 'queue insert' || echo 'one-shot'))" >> "${PROJECT_DIR}/tools/foreman_cron.log"
-  done
-fi
+bash "${PROJECT_DIR}/tools/inbox_apply.sh"
 
 # ── 4. Read queue ────────────────────────────────────────────────────────────
 TOP_TASK=$(find_top_task)

@@ -32,7 +32,7 @@ run_phase1_seed() {
     echo "=== Running soak loop (seed=$seed) ===" >&2
 
     # Run godot and capture key events
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=$seed" 2>&1 \
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=$seed" 2>&1 \
         | grep -E '(All nodes|final_map|RESULT|Auto-pressing Continue|Auto-selecting|Skipping|Auto-cleared|Dig site.*resolved|map_region|Quit|budget|ERROR|crash|ChooseYourPath|map_select|duel_start)' \
         | head -120 \
         > "$CAPTURE_DIR/soak_phase1_${seed}.log" 2>&1
@@ -65,7 +65,7 @@ run_phase2_defeat_retry() {
 
     echo "=== Running defeat retry test (seed=$seed) ===" >&2
 
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=$seed" "--soak-phase=defeat_test" 2>&1 \
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=$seed" "--soak-phase=defeat_test" 2>&1 \
         | grep -E '(RESULT|DUELSOAK|Defeat|Try Again|retry|winner|budget|Auto-pressing|Return|ERROR|crash|All nodes|final_map)' \
         | head -60 \
         > "$CAPTURE_DIR/soak_defeat_retry_${seed}.log" 2>&1
@@ -103,7 +103,7 @@ run_phase3_save_quit_resume() {
     sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "$PROJECT_GODOT"
 
     echo "=== Phase 3 part 1: clear early nodes ===" >&2
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=42" "--soak-phase=save_quit" 2>&1 \
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=42" "--soak-phase=save_quit" 2>&1 \
         | grep -E '(RESULT|Auto-pressing Continue|Auto-selecting|cleared|Quit|ERROR|crash|Save/quit|budget|Auto-cleared|Dig site.*resolved)' \
         | head -30 \
         > "$CAPTURE_DIR/soak_phase3_part1.log" 2>&1
@@ -113,7 +113,7 @@ run_phase3_save_quit_resume() {
 
     # Step 2: resume — the saved profile should be found and soak continues
     echo "=== Phase 3 part 2: resume from saved profile ===" >&2
-    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=42" "--soak-phase=resume" 2>&1 \
+    timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=map_loop_soak" "--soak-seed=42" "--soak-phase=resume" 2>&1 \
         | grep -E '(RESULT|Auto-pressing Continue|Auto-selecting|cleared|All nodes|final_map|Quit|ERROR|crash|Dig site.*resolved|budget|Auto-cleared|ChooseYourPath|map_select)' \
         | head -50 \
         > "$CAPTURE_DIR/soak_phase3_part2.log" 2>&1

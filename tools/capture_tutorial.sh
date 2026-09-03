@@ -21,7 +21,7 @@ sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "$P
 
 # Run tutorial capture
 echo "Running tutorial capture..."
-xvfb-run -a "$GODOT_BIN" --path client -- "--tutorial=warrior_intro" 2>&1
+timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--tutorial=warrior_intro" 2>&1
 RC=$?
 
 echo "Tutorial exit code: $RC"

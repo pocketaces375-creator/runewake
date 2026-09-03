@@ -76,7 +76,7 @@ fi
 AUDIT_LINES+=("- **FLUX Pro art pipeline:** still the best option. FLUX.2 Pro is the current state-of-the-art for text-to-image with painterly styles. v3.x painterly locked. No better alternative at this cost point.")
 
 # OpenRouter model
-AUDIT_LINES+=("- **OpenRouter model (deepseek/deepseek-v4-flash):** monitoring. If mid-task deaths continue to be a problem, consider anthropic/claude-sonnet-4-20250514 for critical bricks (higher cost, lower failure rate).")
+AUDIT_LINES+=("- **OpenRouter model (deepseek/deepseek-v4-flash):** locked. Hermes side runs deepseek-v4-flash only — no Claude fallback.")
 
 # APK build+delivery chain
 AUDIT_LINES+=("- **APK pipeline:** upgraded today — preflight checks (zip integrity, signature, manifest, size, hash) + round-trip verification. Catbox and GitHub verified. Gofile HTML-page issue known.")
