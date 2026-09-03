@@ -27,8 +27,20 @@ for row in sh("git","log","-40","--format=%ct\t%s").splitlines():
     if s.startswith("TASK-OPS") or "mark [x]" in s or s.startswith("FABLE") or s.startswith("foreman") or s.startswith("ops:"): continue
     if s.startswith("TASK-"):
         s=re.sub(r'^TASK-[A-Z0-9-]+: ','',s)
+        s=re.sub(r'^REOPEN of [A-Z0-9-]+\.\s*','',s)
         lastdesc=firstsent(s); mins=int((time.time()-int(ct))//60); break
-fin=sum(1 for s in sh("git","log","--since=midnight","--format=%s").splitlines() if "mark [x]" in s and s.startswith("TASK-") and not s.startswith("TASK-OPS"))
+GAME=re.compile(r'^(client/|content/|engine/|pipeline/|src/)')
+raw=sh("git","log","--since=midnight","--format=__C__%s","--name-only")
+gids=set(); dones=[]
+cur=None
+for line in raw.splitlines():
+    if line.startswith("__C__"):
+        cur=line[5:]
+        if "mark [x]" in cur: dones.append(cur)
+    elif line.strip() and cur and GAME.match(line.strip()):
+        m=re.match(r'^(TASK-[A-Z0-9-]+):',cur)
+        if m: gids.add(m.group(1))
+fin=sum(1 for d in dones if re.match(r'^(TASK-[A-Z0-9-]+):',d) and re.match(r'^(TASK-[A-Z0-9-]+):',d).group(1) in gids)
 nextup=desc_of(openn[0]) if openn else ""
 play=""
 try:
