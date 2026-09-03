@@ -389,7 +389,7 @@
   task, SKIP the four wave tasks and continue past them — do not generate cards against an
   unfinished artifact set.
 
-- [ ] TASK-REGION-GEN-1 — Region generator TOOL (no new region in this task). tools/region_gen.py takes a
+- [x] TASK-REGION-GEN-1 — Region generator TOOL (no new region in this task). tools/region_gen.py takes a
   biome spec json (name, stratum, palette, 8-12 encounter slots, 1 elite, 1 Warden boss, 1 dig site, lore
   blurb) and outputs content/map/region_NN.json (a graph with an unlock chain like region_01), the encounter
   files (themed decks drawn from that stratum's card pool plus neutrals, no duplicate ids, drops per

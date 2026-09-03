@@ -1,4 +1,13 @@
-     1|**TASK-BALANCE-ADOPT-1 (2026-09-02):** Adopt first-player compensation using TASK-BALANCE-MIRROR-1's table and Fable's selection rule. ✅
+     1|**TASK-REGION-GEN-1 (2026-09-02):** Region generator TOOL — tools/region_gen.py takes a biome spec json and outputs region map, encounter files, and dig site. ✅
+- **Tool:** tools/region_gen.py — generates content/map/region_NN.json (graph with unlock chain), encounters (early/mid/late/boss), and dig site from a spec file. ✅
+- **Card pool:** Draws from primary stratum + all cross-strata neutrals. 30 unique cards per deck. Rarity weighted by tier (early=C-heavy, boss=R/M-heavy). ✅
+- **Drops:** Per TASK-DROPS-DATA-1 (C 0.40 / U 0.25 / R 0.10 / M 0.03). Warden/Boss get signature card at 1.00 rate. ✅
+- **Dig site:** 4x4 grid with 4 strikes, random tiles (shards, rune fragments, codex pages). ✅
+- **Sim validation:** Optional `--validate` flag runs encounter decks against class starters through Runewake.Sim binary (40-60% winrate band). ✅
+- **Docs:** docs/REGION_GEN.md documents the full spec format. ✅
+- **Tests:** 13 unit tests — card pool loading, deck size/uniqueness/determinism, rarity distribution, drop generation, signature drops, dig site structure, spec parsing, full generation, and diff against hand-built region_01. All PASS (0 failures). ✅
+- **Build verification:** Python 3 — no build step needed. ✅
+- **Committed (aa7ea7c) and pushed to origin/main.** ✅
      2|- **Selection:** Variant (c) — P1 opening hand 6 instead of 5 — chosen by Fable's rule: among variants with P0 >= 48%, (c) is closest to 50 (57.3%). Not within 1.5pp of baseline (63.0%), so adopted directly. ✅
      3|- **Engine:** `GameState.cs` — P1 starting hand changed from 5→6. ✅
      4|- **Docs:** `docs/01_GAME_RULES.md`, `shared/GAME_RULES.md`, `PROJECT_EXPORT.md` — updated §1 and §12. ✅
