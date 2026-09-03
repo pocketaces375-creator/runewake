@@ -20,10 +20,22 @@ LOG_FILE="${PROJECT_DIR}/tools/inbox.log"
 STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
 DAILY_BUDGET=48
 
-# Lock — atomic mkdir
+# Lock — atomic mkdir with staleness check
 if ! mkdir "${LOCK_FILE}" 2>/dev/null; then
-  # Lock held — another instance is running
-  exit 0
+  # Check if the lock is stale (> 5 minutes old)
+  if [[ -d "${LOCK_FILE}" ]]; then
+    LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${LOCK_FILE}")))
+    if [[ "${LOCK_AGE}" -gt 300 ]]; then
+      rm -rf "${LOCK_FILE}" 2>/dev/null || true
+      # Retry once
+      mkdir "${LOCK_FILE}" 2>/dev/null || exit 0
+    else
+      # Lock held — another instance is running
+      exit 0
+    fi
+  else
+    exit 0
+  fi
 fi
 trap 'rm -rf "${LOCK_FILE}"' EXIT
 
@@ -68,7 +80,7 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
   while IFS= read -r line; do
     [[ -z "${line}" ]] && continue
     [[ "${line}" =~ ^[[:space:]]*# ]] && continue
-    if ! echo "${line}" | grep -qE '^\s*-\s*\[.\]s*TASK-'; then
+    if ! echo "${line}" | grep -qE '^\s*-\s*\[.\]\s*TASK-'; then
       is_pure_queue=false
       break
     fi

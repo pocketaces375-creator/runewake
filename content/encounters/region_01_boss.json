@@ -1,84 +1,64 @@
 {
   "encounters": [
     {
-      "id": "region_01_warden",
-      "name": "Warden Aelin",
-      "portrait": "res://art/portraits/region_01_warden.png",
+      "id": "r1_duel_silt_reader",
+      "name": "Silt-Reader Maren",
+      "portrait": "res://art/portraits/silt_reader.png",
       "deck": [
+        "tid_c_tidal_scholar",
+        "tid_c_deep_one",
+        "tid_c_abyssal_gaze",
+        "tid_c_whirlpool_elemental",
+        "tid_c_silt_reader",
+        "tid_u_brine_witch",
+        "tid_u_coral_guardian",
+        "tid_u_memory_tides",
+        "tid_r_hydrokinetic_adept",
+        "tid_r_flood_of_secrets",
+        "tid_r_sunken_leviathan",
+        "tid_x_tidal_seal",
+        "hol_c_skeletal_reaver",
+        "hol_c_ossuary_guard",
+        "hol_c_bone_shard_volley",
+        "hol_c_deathspeaker",
+        "hol_c_gravewrit_thrall",
         "hol_u_soul_harvest",
         "hol_u_crypt_crawler",
-        "hol_c_gravewrit_thrall",
-        "dwn_c_dawn_warder",
-        "emb_r_magma_forger",
-        "vrd_u_elder_treant",
-        "tid_c_deep_one",
-        "hol_c_bone_shard_volley",
-        "dwn_r_radiant_prophet",
-        "dwn_u_morning_herald",
-        "dwn_r_holy_edict",
-        "tid_r_flood_of_secrets",
-        "tid_c_tidal_scholar",
-        "hol_c_deathspeaker",
-        "hol_r_hollow_herald",
+        "hol_u_barrow_revenant",
         "hol_r_wraith_stalker",
-        "emb_c_cinder_runner",
-        "tid_c_silt_reader",
-        "vrd_u_saphoof_charger",
         "hol_r_curse_of_binding",
-        "emb_u_lava_serpent",
-        "vrd_r_natures_renewal",
-        "vrd_r_undergrowth_eruption",
-        "tid_c_whirlpool_elemental",
-        "tid_u_memory_tides",
-        "vrd_r_bloomweaver",
-        "emb_r_inferno_burst",
-        "dwn_r_archangel_of_order",
-        "tid_r_sunken_leviathan",
-        "dwn_u_steadfast_bulwark"
+        "hol_r_hollow_herald",
+        "hol_x_the_black_barrow",
+        "vrd_c_verdant_sproutling",
+        "vrd_c_wildwood_stalker",
+        "emb_c_ember_hound",
+        "emb_c_flame_javelin",
+        "dwn_u_purifying_light",
+        "dwn_c_dawn_warder"
       ],
-      "shard_reward": 150,
-      "dig_charge_reward": 3,
       "dialogue_intro": [
-        "The path ahead is shrouded in mystery.",
-        "A presence stirs in the shadows of the warden aelin.",
-        "\"You are not welcome here.\""
+        "The ground underfoot changes from soil to damp shale. Brackish water pools between the rocks.",
+        "A woman sits cross-legged by a still pool, trailing her fingers through the water. Ripples carry images — places, faces, things you have not seen.",
+        "\"The past is not dead. It is not even past.\" She looks up. \"And you are about to dig through the grave of the world.\""
       ],
       "dialogue_outro": [
-        "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "Maren withdraws her hand from the water. The pool goes still.",
+        "\"You carry the Root-Binder's stone. Good. You'll need it below.\"",
+        "She smiles — sad, knowing. \"The Silt-Reader sees. And I see you reaching the seal. What comes after... I cannot see.\""
       ],
-      "fragment_reward": "verdant:3",
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
       "drops": [
-        {
-          "card_id": "vrd_r_bloomweaver",
-          "rate": 1.0
-        },
-        {
-          "card_id": "hol_u_soul_harvest",
-          "rate": 0.25
-        },
-        {
-          "card_id": "hol_u_crypt_crawler",
-          "rate": 0.25
-        },
-        {
-          "card_id": "hol_c_gravewrit_thrall",
-          "rate": 0.25
-        },
         {
           "card_id": "dwn_c_dawn_warder",
           "rate": 0.4
         },
         {
-          "card_id": "emb_r_magma_forger",
-          "rate": 0.1
+          "card_id": "emb_c_ember_hound",
+          "rate": 0.4
         },
         {
-          "card_id": "vrd_u_elder_treant",
-          "rate": 0.25
-        },
-        {
-          "card_id": "tid_c_deep_one",
+          "card_id": "emb_c_flame_javelin",
           "rate": 0.4
         },
         {
@@ -86,178 +66,39 @@
           "rate": 0.4
         },
         {
-          "card_id": "dwn_r_radiant_prophet",
-          "rate": 0.1
+          "card_id": "hol_c_deathspeaker",
+          "rate": 0.4
         },
         {
-          "card_id": "dwn_u_morning_herald",
-          "rate": 0.25
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.4
         },
         {
-          "card_id": "dwn_r_holy_edict",
-          "rate": 0.1
+          "card_id": "hol_c_ossuary_guard",
+          "rate": 0.4
         },
         {
-          "card_id": "tid_r_flood_of_secrets",
-          "rate": 0.1
+          "card_id": "hol_c_skeletal_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_abyssal_gaze",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_deep_one",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_silt_reader",
+          "rate": 0.4
         },
         {
           "card_id": "tid_c_tidal_scholar",
           "rate": 0.4
         },
         {
-          "card_id": "hol_c_deathspeaker",
-          "rate": 0.4
-        },
-        {
-          "card_id": "hol_r_hollow_herald",
-          "rate": 0.1
-        },
-        {
-          "card_id": "hol_r_wraith_stalker",
-          "rate": 0.1
-        },
-        {
-          "card_id": "emb_c_cinder_runner",
-          "rate": 0.4
-        },
-        {
-          "card_id": "tid_c_silt_reader",
-          "rate": 0.25
-        },
-        {
-          "card_id": "vrd_u_saphoof_charger",
-          "rate": 0.25
-        },
-        {
-          "card_id": "hol_r_curse_of_binding",
-          "rate": 0.1
-        },
-        {
-          "card_id": "emb_u_lava_serpent",
-          "rate": 0.25
-        },
-        {
-          "card_id": "vrd_r_natures_renewal",
-          "rate": 0.1
-        },
-        {
-          "card_id": "vrd_r_undergrowth_eruption",
-          "rate": 0.1
-        },
-        {
           "card_id": "tid_c_whirlpool_elemental",
-          "rate": 0.4
-        },
-        {
-          "card_id": "tid_u_memory_tides",
-          "rate": 0.25
-        },
-        {
-          "card_id": "vrd_r_bloomweaver",
-          "rate": 0.1
-        },
-        {
-          "card_id": "emb_r_inferno_burst",
-          "rate": 0.1
-        },
-        {
-          "card_id": "dwn_r_archangel_of_order",
-          "rate": 0.1
-        },
-        {
-          "card_id": "tid_r_sunken_leviathan",
-          "rate": 0.1
-        },
-        {
-          "card_id": "dwn_u_steadfast_bulwark",
-          "rate": 0.25
-        }
-      ]
-    },
-    {
-      "id": "region_01_boss",
-      "name": "Aelin, the Last Steward",
-      "portrait": "res://art/portraits/region_01_boss.png",
-      "deck": [
-        "emb_u_lava_serpent",
-        "emb_u_searing_blast",
-        "hol_u_crypt_crawler",
-        "emb_c_forgeguard_berserker",
-        "vrd_c_root_warden",
-        "hol_r_hollow_herald",
-        "vrd_r_natures_renewal",
-        "emb_c_ember_hound",
-        "vrd_c_verdant_sproutling",
-        "dwn_r_archangel_of_order",
-        "hol_u_soul_harvest",
-        "tid_c_silt_reader",
-        "hol_r_wraith_stalker",
-        "vrd_r_undergrowth_eruption",
-        "hol_c_ossuary_guard",
-        "hol_c_bone_shard_volley",
-        "vrd_u_saphoof_charger",
-        "emb_r_inferno_burst",
-        "emb_r_phoenix_ash",
-        "emb_u_wildfire_adept",
-        "emb_u_cinderstorm_elemental",
-        "hol_c_deathspeaker",
-        "dwn_r_radiant_prophet",
-        "emb_c_cinder_runner",
-        "dwn_c_dawn_warder",
-        "hol_u_barrow_revenant",
-        "tid_c_tidal_scholar",
-        "emb_r_magma_forger",
-        "dwn_u_morning_herald",
-        "tid_r_hydrokinetic_adept"
-      ],
-      "shard_reward": 300,
-      "dig_charge_reward": 5,
-      "dialogue_intro": [
-        "The path ahead is shrouded in mystery.",
-        "A presence stirs in the shadows of the aelin, the last steward.",
-        "\"You are not welcome here.\""
-      ],
-      "dialogue_outro": [
-        "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
-      ],
-      "fragment_reward": "verdant:5",
-      "drops": [
-        {
-          "card_id": "vrd_r_bloomweaver",
-          "rate": 1.0
-        },
-        {
-          "card_id": "emb_u_lava_serpent",
-          "rate": 0.25
-        },
-        {
-          "card_id": "emb_u_searing_blast",
-          "rate": 0.25
-        },
-        {
-          "card_id": "hol_u_crypt_crawler",
-          "rate": 0.25
-        },
-        {
-          "card_id": "emb_c_forgeguard_berserker",
-          "rate": 0.4
-        },
-        {
-          "card_id": "vrd_c_root_warden",
-          "rate": 0.4
-        },
-        {
-          "card_id": "hol_r_hollow_herald",
-          "rate": 0.1
-        },
-        {
-          "card_id": "vrd_r_natures_renewal",
-          "rate": 0.1
-        },
-        {
-          "card_id": "emb_c_ember_hound",
           "rate": 0.4
         },
         {
@@ -265,47 +106,176 @@
           "rate": 0.4
         },
         {
-          "card_id": "dwn_r_archangel_of_order",
-          "rate": 0.1
+          "card_id": "vrd_c_wildwood_stalker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_barrow_revenant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_crypt_crawler",
+          "rate": 0.25
         },
         {
           "card_id": "hol_u_soul_harvest",
           "rate": 0.25
         },
         {
-          "card_id": "tid_c_silt_reader",
+          "card_id": "tid_u_brine_witch",
           "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
         },
         {
           "card_id": "hol_r_wraith_stalker",
           "rate": 0.1
         },
         {
-          "card_id": "vrd_r_undergrowth_eruption",
+          "card_id": "tid_r_flood_of_secrets",
           "rate": 0.1
         },
         {
-          "card_id": "hol_c_ossuary_guard",
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_x_the_black_barrow",
+          "rate": 0.03
+        },
+        {
+          "card_id": "tid_x_tidal_seal",
+          "rate": 0.03
+        }
+      ]
+    },
+    {
+      "id": "r1_warden_aelin",
+      "name": "Warden Aelin",
+      "portrait": "res://art/portraits/warden_aelin.png",
+      "deck": [
+        "dwn_c_dawn_warder",
+        "dwn_r_sealing_light",
+        "dwn_c_sunblade_recruit",
+        "dwn_u_purifying_light",
+        "dwn_u_morning_herald",
+        "dwn_c_golden_retainer",
+        "dwn_c_dawnbreaker_charger",
+        "dwn_u_steadfast_bulwark",
+        "dwn_r_radiant_prophet",
+        "dwn_r_holy_edict",
+        "dwn_r_archangel_of_order",
+        "dwn_x_dawn_relic",
+        "vrd_c_root_warden",
+        "vrd_c_thornbark_defender",
+        "vrd_u_grove_healer",
+        "vrd_u_canopy_archer",
+        "vrd_u_elder_treant",
+        "vrd_u_saphoof_charger",
+        "vrd_r_bloomweaver",
+        "vrd_r_undergrowth_eruption",
+        "vrd_r_natures_renewal",
+        "vrd_x_heartwood_relic",
+        "vrd_c_verdant_sproutling",
+        "emb_u_cinderstorm_elemental",
+        "emb_r_magma_forger",
+        "hol_c_deathspeaker",
+        "hol_r_curse_of_binding",
+        "tid_r_hydrokinetic_adept",
+        "tut_c_iron_apprentice",
+        "vrd_t_verdant_bud"
+      ],
+      "dialogue_intro": [
+        "The summit is bare rock, wind-scoured and silent. A woman in white stands at the edge of a vast crater.",
+        "She does not turn. Her voice carries without effort.",
+        "\"I have held this post for forty-three years. I have watched friends grow old and die. I have watched the seal breathe.\"",
+        "She faces you. Her eyes are kind. Her blade is not.",
+        "\"You have walked through my Reach, defeated my wards, and proven yourself. But I cannot let you descend. Not because I am cruel. Because I have seen what the seal holds.\"",
+        "\"And I swore it would never wake.\""
+      ],
+      "dialogue_outro": [
+        "Aelin's blade shatters. She falls to one knee, her hand still raised as if to hold you back.",
+        "\"You are stronger than I was at your age. Stronger than I am now.\"",
+        "She presses something into your hand — a key of pale crystal, warm to the touch.",
+        "\"The seal has three locks. This is the first. The other two... you will find them deeper than I can follow.\"",
+        "\"When you see what lies beneath — judge me kindly.\""
+      ],
+      "shard_reward": 150,
+      "dig_charge_reward": 3,
+      "fragment_reward": "dawn:3",
+      "drops": [
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 1.0
+        },
+        {
+          "card_id": "dwn_c_dawn_warder",
           "rate": 0.4
         },
         {
-          "card_id": "hol_c_bone_shard_volley",
+          "card_id": "dwn_c_dawnbreaker_charger",
           "rate": 0.4
         },
         {
-          "card_id": "vrd_u_saphoof_charger",
+          "card_id": "dwn_c_golden_retainer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_sunblade_recruit",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_deathspeaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tut_c_iron_apprentice",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_root_warden",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_verdant_sproutling",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_morning_herald",
           "rate": 0.25
         },
         {
-          "card_id": "emb_r_inferno_burst",
-          "rate": 0.1
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
         },
         {
-          "card_id": "emb_r_phoenix_ash",
-          "rate": 0.1
-        },
-        {
-          "card_id": "emb_u_wildfire_adept",
+          "card_id": "dwn_u_steadfast_bulwark",
           "rate": 0.25
         },
         {
@@ -313,40 +283,247 @@
           "rate": 0.25
         },
         {
-          "card_id": "hol_c_deathspeaker",
-          "rate": 0.4
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_grove_healer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_saphoof_charger",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
         },
         {
           "card_id": "dwn_r_radiant_prophet",
           "rate": 0.1
         },
         {
-          "card_id": "emb_c_cinder_runner",
-          "rate": 0.4
-        },
-        {
-          "card_id": "dwn_c_dawn_warder",
-          "rate": 0.4
-        },
-        {
-          "card_id": "hol_u_barrow_revenant",
-          "rate": 0.25
-        },
-        {
-          "card_id": "tid_c_tidal_scholar",
-          "rate": 0.4
+          "card_id": "dwn_r_sealing_light",
+          "rate": 0.1
         },
         {
           "card_id": "emb_r_magma_forger",
           "rate": 0.1
         },
         {
-          "card_id": "dwn_u_morning_herald",
-          "rate": 0.25
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
         },
         {
           "card_id": "tid_r_hydrokinetic_adept",
           "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_x_dawn_relic",
+          "rate": 0.03
+        },
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.03
+        },
+        {
+          "card_id": "vrd_x_heartwood_relic",
+          "rate": 0.03
+        }
+      ]
+    },
+    {
+      "id": "r1_boss_warden_aelin",
+      "name": "Aelin, the Last Steward",
+      "portrait": "res://art/portraits/aelin_boss.png",
+      "deck": [
+        "dwn_c_dawn_warder",
+        "dwn_r_sealing_light",
+        "dwn_c_sunblade_recruit",
+        "dwn_u_purifying_light",
+        "dwn_u_morning_herald",
+        "dwn_c_golden_retainer",
+        "dwn_c_dawnbreaker_charger",
+        "dwn_u_steadfast_bulwark",
+        "dwn_r_radiant_prophet",
+        "dwn_r_holy_edict",
+        "dwn_r_archangel_of_order",
+        "dwn_x_dawn_relic",
+        "vrd_c_root_warden",
+        "vrd_c_thornbark_defender",
+        "vrd_u_grove_healer",
+        "vrd_u_canopy_archer",
+        "vrd_u_elder_treant",
+        "vrd_u_saphoof_charger",
+        "vrd_r_bloomweaver",
+        "vrd_r_undergrowth_eruption",
+        "vrd_x_heartwood_relic",
+        "vrd_c_verdant_sproutling",
+        "vrd_c_wildwood_stalker",
+        "emb_u_cinderstorm_elemental",
+        "emb_r_magma_forger",
+        "hol_c_deathspeaker",
+        "hol_r_wraith_stalker",
+        "tid_r_hydrokinetic_adept",
+        "tid_x_tidal_seal",
+        "emb_x_the_last_ember"
+      ],
+      "dialogue_intro": [
+        "Below the summit, in the chamber of the first seal, Aelin waits one last time.",
+        "She has shed her white mantle. She wears the cracked and faded plate of a soldier who has fought a war no one remembers.",
+        "\"I knew you would come. I hoped you would not.\"",
+        "She raises a blade that burns with pale fire. The seal behind her hums.",
+        "\"I have kept this gate for forty-three years. I will keep it one hour more.\"",
+        "Her voice breaks — just slightly. \"For the love I bear the world above, I will not let you pass.\"",
+        "She attacks."
+      ],
+      "dialogue_outro": [
+        "Aelin falls. The seal cracks. Light — ancient, terrible — bleeds through the fissure.",
+        "She smiles, blood on her lips. \"It is done, then.\"",
+        "She presses a key into your hand. The second lock.",
+        "\"The third key... is not in this region. Seek the forge city. Seek Cinderhold.\"",
+        "Her eyes close. \"Tell the world above that Aelin of the Fallow Reach kept her post to the end.\"",
+        "The seal shatters."
+      ],
+      "shard_reward": 300,
+      "dig_charge_reward": 5,
+      "fragment_reward": "dawn:5",
+      "drops": [
+        {
+          "card_id": "dwn_r_sealing_light",
+          "rate": 1.0
+        },
+        {
+          "card_id": "dwn_c_dawn_warder",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_dawnbreaker_charger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_golden_retainer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_sunblade_recruit",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_deathspeaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_root_warden",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_verdant_sproutling",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_wildwood_stalker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_morning_herald",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_steadfast_bulwark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_cinderstorm_elemental",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_grove_healer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_saphoof_charger",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_x_dawn_relic",
+          "rate": 0.03
+        },
+        {
+          "card_id": "emb_x_the_last_ember",
+          "rate": 0.03
+        },
+        {
+          "card_id": "tid_x_tidal_seal",
+          "rate": 0.03
+        },
+        {
+          "card_id": "vrd_x_heartwood_relic",
+          "rate": 0.03
         }
       ]
     }

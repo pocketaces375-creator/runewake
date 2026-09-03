@@ -3,77 +3,29 @@
     {
       "id": "region_01_dig",
       "name": "The Earthen Maw",
-      "description": "A shallow sinkhole at the base of a ruin. Soil and grit fill the basin \u2014 but something catches the light beneath the dust.",
+      "description": "A shallow sinkhole at the base of a ruin. Soil and grit fill the basin — but something catches the light beneath the dust.",
       "rows": 4,
       "cols": 4,
       "strikes": 4,
       "headline_threshold": 3,
-      "headline_reward": "relic:region_01_relic",
+      "headline_reward": "relic:r1_amber_shard",
       "tiles": [
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "SHARD",
-          "value": "19"
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "CODEX_PAGE",
-          "value": "region_01_codex_1"
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "SHARD",
-          "value": "7"
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "SHARD",
-          "value": "19"
-        },
-        {
-          "type": "RUNE_FRAGMENT",
-          "value": "dawn:1"
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        },
-        {
-          "type": "SHARD",
-          "value": "18"
-        },
-        {
-          "type": "SHARD",
-          "value": "21"
-        },
-        {
-          "type": "EMPTY",
-          "value": null
-        }
+        { "type": "EMPTY", "value": null },
+        { "type": "SHARD", "value": "15" },
+        { "type": "EMPTY", "value": null },
+        { "type": "RUNE_FRAGMENT", "value": "verdant:1" },
+        { "type": "SHARD", "value": "10" },
+        { "type": "EMPTY", "value": null },
+        { "type": "CODEX_PAGE", "value": "r1_awakening" },
+        { "type": "EMPTY", "value": null },
+        { "type": "EMPTY", "value": null },
+        { "type": "SHARD", "value": "20" },
+        { "type": "RUNE_FRAGMENT", "value": "tide:2" },
+        { "type": "EMPTY", "value": null },
+        { "type": "SHARD", "value": "5" },
+        { "type": "EMPTY", "value": null },
+        { "type": "EMPTY", "value": null },
+        { "type": "SHARD", "value": "25" }
       ]
     }
   ]
