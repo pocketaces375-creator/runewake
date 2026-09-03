@@ -16,6 +16,7 @@ parked=sum(1 for l in q if re.match(r'^- \[!\] TASK-',l))
 total=done+len(openn)+parked
 pct=round(100*done/total) if total else 0
 def firstsent(t):
+    t=re.sub(r'^(TOP PRIORITY|REOPEN of [A-Z0-9-]+)\.\s*','',t)
     return re.split(r'(?<=[.!?]) ',t)[0].strip()[:90]
 def desc_of(line):
     m=re.match(r'^- \[.\] TASK-[A-Z0-9-]+ [—–-] (.*)',line)
@@ -47,7 +48,13 @@ try:
     d=json.load(open(os.path.join(R,"artifacts/PLAYABLE.json")))
     play="Playable end to end: "+("yes" if d.get("playable") else "no")+"."
 except Exception: pass
-lines=[f"Runewake is about {pct}% done ({done} of {total} pieces built)."]
+st=os.path.expanduser("~/.runewake_ping_last")
+prev=None
+try: prev=int(open(st).read().strip())
+except Exception: pass
+open(st,"w").write(str(done))
+delta=f" (+{done-prev} since the last update)" if prev is not None and done>prev else (" (no change since the last update)" if prev is not None else "")
+lines=[f"Built: {done} pieces{delta}. About {pct}% of the {total} planned."]
 if lastdesc: lines.append(f"Last finished: {lastdesc} ({mins} min ago).")
 if nextup: lines.append(f"Next up: {nextup}")
 tail=f"Finished today: {fin}."
@@ -58,5 +65,5 @@ print("\n".join(lines))
 PY
 )
 [[ -z "$MSG" ]] && exit 0
-"$HERMES_BIN" send --to telegram:Runewake "$MSG" 2>/dev/null || true
+"$HERMES_BIN" -p tcgbot send --to telegram:-5481648844 "$MSG" >/dev/null 2>&1 || "$HERMES_BIN" -p tcgbot send --to telegram:7007731907 "$MSG" >/dev/null 2>&1 || true
 echo "$MSG"
