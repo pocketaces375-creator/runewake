@@ -24,3 +24,4 @@ The following directories have been allowed for tool access:
 ## Standing Lessons (from BORDER-FIX-2)
 1. **A gate is a floor, not a proof.** Before marking any visual task DONE, look at the capture as an image and describe what a player would see. If the description does not match the task's goal, it is not done.
 2. **Re-verify from zero when you change rendering mid-task.** When you change from one approach (TextureRects → StyleBox → NinePatchRect), your earlier measurements no longer apply to the new approach. Every approach change requires a full re-verification, not just delta-checking.
+3. **A task is done when tools/finish_task.sh exits 0.** Chat-session work must end by running it too — a report in the group without a finish_task.sh run is not done.

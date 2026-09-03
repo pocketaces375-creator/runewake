@@ -694,148 +694,14 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   exit 0
 fi
 
-# ── FIX #4: Fresh capture before gate — scoped: only if changes touch client/ or engine/ ──
-header "Regenerating capture"
-CAPTURE_REGEN_OK=0
-CAPTURE_SKIPPED=0
-# Derive NEW_COMMIT_SHA before the block needs it (avoids unbound-variable crash under set -u)
-NEW_COMMIT_SHA="${NEW_COMMIT_SHA:-$(git rev-parse HEAD 2>/dev/null || echo "")}"
-if [[ -n "${NEW_COMMIT_SHA}" ]]; then
-  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
-  if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
-    if [[ -x "${GODOT_BIN}" ]]; then
-      rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
-      mkdir -p "${CAPTURE_DIR}"
-      # Ensure Debug build (Release DLLs cause Sqlite mismatch — per CAPTURE_RECIPE.md)
-      (cd "${PROJECT_DIR}" && dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null)
-      CAPTURE_OUTPUT=$(cd "${PROJECT_DIR}" && timeout 120 xvfb-run -a "${GODOT_BIN}" --path client -- --capture=duel_test 2>&1 || true)
-      FRESH_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
-      if [[ -n "${FRESH_CAPTURE}" ]]; then
-        CAPTURE_REGEN_OK=1
-        ok "Capture regenerated"
-      else
-        warn "Capture regen failed"
-        echo "${CAPTURE_OUTPUT}" | tail -5
-      fi
-    else
-      warn "Godot not found at ${GODOT_BIN}, skipping capture"
-      info "Skipping capture regen"
-    fi
-  else
-    info "Changes do not touch client/ or engine/ — skipping capture regen"
-    CAPTURE_SKIPPED=1
-  fi
-else
-  info "No new commit SHA — skipping capture regen"
-  CAPTURE_SKIPPED=1
-fi
-
-# ── 5. Mechanical validation ─────────────────────────────────────────────────
-header "Validation"
-
-VALIDATION_FAILED=0
-VALIDATION_REASONS=""
-NEW_COMMIT_SHA=""
-
-# 5a. New commit?
-NEW_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
-if [[ "${NEW_HEAD}" == "${CURRENT_HEAD}" ]]; then
-  warn "No new commit"
-  VALIDATION_FAILED=1
-  VALIDATION_REASONS="${VALIDATION_REASONS}no_new_commit "
-else
-  NEW_COMMIT_SHA="${NEW_HEAD}"
-  ok "New commit: $(git log -1 --oneline)"
-fi
-
-# 5b. Queue checkbox flipped?
-CHECK_DONE=$(check_task_done "${TASK_ID}")
-if [[ "${CHECK_DONE}" == "done" ]]; then
-  ok "Task ${TASK_ID} marked [x]"
-else
-  warn "Task ${TASK_ID} not [x] in queue"
-  VALIDATION_FAILED=1
-  VALIDATION_REASONS="${VALIDATION_REASONS}checkbox_not_flipped "
-fi
-
-# 5c. Gate passes on fresh capture? (scoped: skip if capture was skipped for art-only tasks)
-GATE_PASSED=0
-LATEST_CAPTURE=""
-if [[ "${CAPTURE_SKIPPED}" -eq 1 ]]; then
-  info "Capture skipped (art-only task) — skipping gate"
-  GATE_PASSED=1
-elif ls "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1 >/dev/null 2>&1; then
-  LATEST_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
-  GATE_OUTPUT=$(cd "${PROJECT_DIR}" && python3 tools/capture_gate.py 2>&1 || true)
-  if echo "${GATE_OUTPUT}" | grep -q "PASS:"; then
-    GATE_PASSED=1
-    ok "Pixel gate passed"
-  else
-    warn "Pixel gate failed"
-    VALIDATION_FAILED=1
-    VALIDATION_REASONS="${VALIDATION_REASONS}gate_failure "
-  fi
-elif [[ "${CAPTURE_REGEN_OK}" -eq 0 ]]; then
-  warn "No capture — regen also failed"
-  VALIDATION_FAILED=1
-  VALIDATION_REASONS="${VALIDATION_REASONS}capture_regen_failed "
-else
-  info "No capture, skipping gate"
-  GATE_PASSED=1
-fi
-
-# 5d. Dotnet tests green? — scoped: run only if worker commit touched .NET or content files
-if command -v dotnet &>/dev/null && [[ -n "${NEW_COMMIT_SHA}" ]]; then
-  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
-  if echo "${CHANGED_FILES}" | grep -qE '\.(cs|csproj)$|content/.*\.json$'; then
-    if (cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --nologo -v q); then
-      ok "Dotnet tests passed"
-    else
-      warn "Dotnet tests failed"
-      VALIDATION_FAILED=1
-      VALIDATION_REASONS="${VALIDATION_REASONS}dotnet_test_failure "
-    fi
-  else
-    info "No .NET/content changes — skipping dotnet gate"
-  fi
-else
-  info "dotnet not available or no worker commit"
-fi
-
-# 5e. Python tests green? — scoped: run only if worker commit touched *.py; bound to pipeline venv
-if [[ -x "${PYTHON_BIN}" ]] && [[ -d "${PROJECT_DIR}/pipeline/tests" ]] && [[ -n "${NEW_COMMIT_SHA}" ]]; then
-  CHANGED_FILES=$(git diff --name-only "${CURRENT_HEAD}" "${NEW_COMMIT_SHA}" 2>/dev/null || echo "")
-  if echo "${CHANGED_FILES}" | grep -qE '\.py$'; then
-    if (cd "${PROJECT_DIR}" && "${PYTHON_BIN}" -m pytest pipeline/tests/ -x -q); then
-      ok "Python tests passed"
-    else
-      warn "Python tests failed"
-      VALIDATION_FAILED=1
-      VALIDATION_REASONS="${VALIDATION_REASONS}pytest_failure "
-    fi
-  else
-    info "No Python changes — skipping pytest gate"
-  fi
-else
-  info "pipeline venv not found or no worker commit — skipping pytest gate"
-fi
-
-# ── FIX #3: Enforce push on success ──────────────────────────────────────────
-PUSH_OK=0
-if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
-  PUSH_OUTPUT=$(cd "${PROJECT_DIR}" && git push origin main 2>&1 || true)
-  if echo "${PUSH_OUTPUT}" | grep -q "fatal\|error\|rejected"; then
-    warn "Git push failed"
-    VALIDATION_FAILED=1
-    VALIDATION_REASONS="${VALIDATION_REASONS}push_failure "
-  else
-    PUSH_OK=1
-    ok "Git push successful"
-  fi
-fi
-
-# ── 6. Outcome ───────────────────────────────────────────────────────────────
-if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
+# ── FIX #4: finish_task.sh — replaces old capture-regen + validation + test + commit blocks ──
+header "Running finish_task.sh"
+FINISH_EXIT=0
+FINISH_OUTPUT=$(bash "${PROJECT_DIR}/tools/finish_task.sh" "${TASK_ID}" "${TASK_DESC}" 2>&1) || FINISH_EXIT=$?
+echo "${FINISH_OUTPUT}"
+if [[ "${FINISH_EXIT}" -eq 0 ]]; then
+  VALIDATION_FAILED=0
+  NEW_COMMIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
   set_state "last_task_id" "\"${TASK_ID}\""
   set_state "last_commit_sha" "\"${NEW_COMMIT_SHA}\""
   set_state "retry_count" 0
@@ -843,76 +709,41 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
   set_state "blocked_notified" "False"
   set_state "consecutive_transients" 0
   set_state "transient_notified" "False"
-
-  # Increment validated counter for telemetry
   VALIDATED_COUNT=$((VALIDATED_COUNT + 1))
   set_state "validated_count" "${VALIDATED_COUNT}"
-
-  # ── 6b. No-progress breaker ──────────────────────────────────────────────────
-  # If the same task is still the top unchecked item after validation, the queue
-  # didn't advance. 3 consecutive such sessions → HALT (runaway guard for 24/7).
-  CURRENT_TOP=""
-  NEXT_TOP_LINE=$(find_top_task 2>/dev/null || echo "")
-  if [[ -n "${NEXT_TOP_LINE}" ]]; then
-    CURRENT_TOP=$(echo "${NEXT_TOP_LINE}" | cut -d'|' -f1)
-  fi
-  if [[ -n "${CURRENT_TOP}" ]] && [[ "${CURRENT_TOP}" == "${TASK_ID}" ]]; then
-    NO_PROGRESS_COUNT=$((NO_PROGRESS_COUNT + 1))
-    set_state "no_progress_count" "${NO_PROGRESS_COUNT}"
-    warn "No progress: same task ${CURRENT_TOP} still top — ${NO_PROGRESS_COUNT}/3"
-    if [[ "${NO_PROGRESS_COUNT}" -ge 3 ]]; then
-      warn "No progress after 3 consecutive sessions — creating HALT"
-      telegram_text "🚨 No-progress: 3 consecutive sessions without queue advancement — creating HALT"
-      touch "${HALT_FILE}"
-      exit 1
-    fi
-  else
-    set_state "no_progress_count" 0
-    NO_PROGRESS_COUNT=0
-  fi
-
   ok "Task ${TASK_ID} complete! (${SESSION_COUNT}/${DAILY_BUDGET})"
   telegram_text "${TASK_ID} done (${SESSION_COUNT}/${DAILY_BUDGET})"
-  if [[ "${GATE_PASSED}" -eq 1 ]] && [[ -n "${LATEST_CAPTURE}" ]]; then
+  # Attach latest capture if available
+  LATEST_CAPTURE=$(ls -t "${CAPTURE_DIR}"/*.png 2>/dev/null | head -1)
+  if [[ -n "${LATEST_CAPTURE}" ]]; then
     telegram_photo "${LATEST_CAPTURE}" "${TASK_ID} — capture"
   fi
+  VALIDATION_FAILED=0
 else
+  VALIDATION_FAILED=1
+  VALIDATION_REASONS="finish_task_failure"
   if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]]; then
     warn "Task ${TASK_ID} BLOCKED after ${RETRY_COUNT} retries"
-    telegram_text "BLOCKED: ${TASK_ID} — failed after retry (${VALIDATION_REASONS})"
+    telegram_text "BLOCKED: ${TASK_ID} — finish_task failed after retry"
     set_state "blocked_notified" "True"
-    # Sticky: do NOT reset retry_count/retry_task_id
   else
     NEW_RETRY=$((RETRY_COUNT + 1))
-    warn "Retry (${NEW_RETRY}/1): ${VALIDATION_REASONS}"
-    telegram_text "Retry ${TASK_ID} attempt ${NEW_RETRY} (${VALIDATION_REASONS})"
+    warn "Retry (${NEW_RETRY}/1): finish_task.sh failed"
+    telegram_text "Retry ${TASK_ID} attempt ${NEW_RETRY} (finish_task.sh failed)"
     set_state "retry_count" "${NEW_RETRY}"
     set_state "retry_task_id" "\"${TASK_ID}\""
-
-    # Save state before cleanup
     STATE_SNAPSHOT=$(cat "${STATE_FILE}" 2>/dev/null || echo "{}")
-
-    # Only revert if a failed worker commit actually exists
-    if [[ -n "${NEW_COMMIT_SHA}" ]] && [[ "${NEW_COMMIT_SHA}" != "${CURRENT_HEAD}" ]]; then
-      if git branch -r --contains "${NEW_COMMIT_SHA}" 2>/dev/null | grep -q "origin/main"; then
-        info "Reverting pushed commit ${NEW_COMMIT_SHA}"
-        git revert --no-edit "${NEW_COMMIT_SHA}" 2>/dev/null || true
-        git push origin main 2>/dev/null || true
-      else
-        info "Resetting local commit ${NEW_COMMIT_SHA}"
-        git reset --hard "${CURRENT_HEAD}" 2>/dev/null || true
-      fi
-      # Only clean up tracked changes when we reverted a failed commit
+    POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
+    if [[ -n "${POST_SESSION_HEAD}" ]] && [[ "${POST_SESSION_HEAD}" != "${CURRENT_HEAD}" ]]; then
+      git reset --hard "${CURRENT_HEAD}" 2>/dev/null || true
       git checkout -- . 2>/dev/null || true
       git clean -fd 2>/dev/null || true
-    else
-      info "No failed worker commit — leaving tree untouched"
     fi
     echo "${STATE_SNAPSHOT}" > "${STATE_FILE}"
   fi
 fi
 
-# ── FIX #5: Commit state each iteration ──────────────────────────────────────
+# ── 5. State commit ───────────────────────────────────────────────────────────
 OUTCOME_LABEL="success"
 if [[ "${VALIDATION_FAILED}" -ne 0 ]]; then
   if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]]; then

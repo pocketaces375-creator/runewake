@@ -10430,3 +10430,26 @@ Already up to date.
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
 foreman already running (PID 743324) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 33/48 (33 full + 0 bus, 66/96 halves)
+  Top task: TASK-REGION-GEN-1
+
+=== Running: TASK-REGION-GEN-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+- `--validate` flag for optional sim gate against class starters (40-60% band)
+- `--diff` flag for structural comparison against hand-built region_01
+- Deterministic via `--seed`
+
+**Committed aa7ea7c + 19ed889 → pushed to origin/main.**
+
+=== Regenerating capture ===
+
+tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
