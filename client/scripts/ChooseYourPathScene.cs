@@ -796,14 +796,26 @@ public partial class ChooseYourPathScene : Control
         border.SetAnchorsPreset(LayoutPreset.FullRect);
         panel.AddChild(border);
 
-        // ── Portrait — fills upper ~62% of panel ──
+        // ── Main layout VBox — fills entire panel ──
+        // Portrait expands to fill all space; text block shrinks to content.
+        var mainLayout = new VBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsVertical = (SizeFlags)3,
+            SizeFlagsHorizontal = (SizeFlags)3
+        };
+        mainLayout.SetAnchorsPreset(LayoutPreset.FullRect);
+        mainLayout.AddThemeConstantOverride("separation", 0);
+        panel.AddChild(mainLayout);
+
+        // ── Portrait — expands to fill all space the text block doesn't use ──
         var artRect = new TextureRect
         {
             MouseFilter = MouseFilterEnum.Ignore,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            AnchorLeft = 0, AnchorRight = 1,
-            AnchorTop = 0, AnchorBottom = 0.62f
+            SizeFlagsVertical = (SizeFlags)3,
+            SizeFlagsHorizontal = (SizeFlags)3
         };
         string artPath = $"res://content/art/classes/{cls.Id}.png";
         if (ResourceLoader.Exists(artPath))
@@ -818,22 +830,28 @@ public partial class ChooseYourPathScene : Control
         {
             SetFallbackPortrait(artRect, cls);
         }
-        panel.AddChild(artRect);
+        mainLayout.AddChild(artRect);
 
-        // ── Text block — sits below the portrait, lower ~38% ──
+        // ── Text block — sits below the portrait, sized to its content ──
         float margin = Mathf.Max(6f, _panelFullW * TextMarginRatio);
-        float textTopRatio = 0.62f;
-        var vbox = new VBoxContainer
+        var textBlock = new MarginContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            AnchorLeft = 0, AnchorRight = 1,
-            AnchorTop = textTopRatio, AnchorBottom = 1f,
-            OffsetLeft = margin, OffsetRight = -margin,
-            OffsetTop = 2, OffsetBottom = -2,
-            SizeFlagsVertical = (SizeFlags)3
+            SizeFlagsVertical = (SizeFlags)4, // Shrink Center — minimum height
+            SizeFlagsHorizontal = (SizeFlags)3
+        };
+        textBlock.AddThemeConstantOverride("margin_left", (int)margin);
+        textBlock.AddThemeConstantOverride("margin_right", (int)margin);
+        textBlock.AddThemeConstantOverride("margin_top", 2);
+        textBlock.AddThemeConstantOverride("margin_bottom", 2);
+        mainLayout.AddChild(textBlock);
+
+        var vbox = new VBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore
         };
         vbox.AddThemeConstantOverride("separation", 1);
-        panel.AddChild(vbox);
+        textBlock.AddChild(vbox);
 
         // Class name — font scales with panel size
         var nameLabel = new Label

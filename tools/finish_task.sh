@@ -124,7 +124,7 @@ else
   echo "  Skipped (no captures regenerated)"
 fi
 
-# ── Step 5: ui_lint — report findings (accept known failures until TASK-CHOOSEPATH-LAYOUT-2) ──
+# ── Step 5: ui_lint — report findings (EMPTY_BODY rule active) ──
 echo ""
 echo "── Step 5: ui_lint ──"
 if [[ -x "${PROJECT_DIR}/tools/ui_lint.py" ]]; then
@@ -134,8 +134,15 @@ if [[ -x "${PROJECT_DIR}/tools/ui_lint.py" ]]; then
   if [[ "$rc" -eq 0 ]]; then
     ok "ui_lint passed"
   else
-    warn "ui_lint found failures (expected for choose_path* — TASK-CHOOSEPATH-LAYOUT-2 will fix)"
-  fi
+    echo "  ui_lint exit code: $rc"
+    # Check if choose_path* captures have EMPTY_BODY failures (the only hard gate)
+    if echo "${LINT_OUTPUT}" | grep -qE "FAIL choose_path.*\n.*EMPTY_BODY"; then
+      fail "EMPTY_BODY on choose_path* capture — fix before committing"
+    elif echo "${LINT_OUTPUT}" | grep -q "EMPTY_BODY"; then
+      warn "EMPTY_BODY on non-choose_path capture (pre-existing — not blocking this gate)"
+    else
+      warn "ui_lint found non-EMPTY_BODY failures (pre-existing — not blocking this gate)"
+    fi
 else
   echo "  Skipping (tools/ui_lint.py not yet created)"
 fi

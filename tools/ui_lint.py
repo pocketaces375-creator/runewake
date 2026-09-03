@@ -572,9 +572,108 @@ def check_content_span(controls: list[dict], viewport: dict, height_pct: float =
     return failures
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
+def check_empty_body(controls: list[dict], viewport: dict) -> tuple[list[str], list[str]]:
+    """EMPTY_BODY rule: for any Control with Label or TextureRect descendants,
+    check that the control's rect doesn't leave >12% (or 60px) unoccupied vertical
+    band inside its bounds. Empty-plate TextureRects (no texture, no descendants)
+    are warnings, not failures."""
+    failures = []
+    warnings = []
+
+    # Find all TextureRects with no texture and no children → empty-plate candidates
+    blank_plates = []
+    for c in controls:
+        if c["class"] == "TextureRect" and not c.get("has_texture", False):
+            cr = c["rect"]
+            # Check if it has any visible descendants
+            descendants = [d for d in controls
+                           if d["path"].startswith(c["path"] + "/")]
+            if not descendants:
+                blank_plates.append(c)
+
+    # Report blank-plate warnings
+    for bp in blank_plates:
+        warnings.append(
+            f"EMPTY_PLATE: {bp['path']} at {bp['rect']} — TextureRect with no texture "
+            f"and no children (placeholder until TASK-CLASS-PORTRAITS-1)"
+        )
+
+    # For each Control that has at least one Label or TextureRect descendant,
+    # compute the union bounding box of descendants and check for unoccupied vertical band
+    for c in controls:
+        path = c["path"]
+        cr = c["rect"]
+
+        # Skip non-Container controls that don't hold children meaningfully
+        # Focus on Controls (the Godot Control class) and VBoxContainer/HBoxContainer
+        # Skip root-level full-screen backgrounds
+        if cr["w"] >= viewport.get("width", 9999) * 0.90 and cr["h"] >= viewport.get("height", 9999) * 0.90:
+            continue
+        # Skip Label, Button, TextureRect leaves (they hold text/content by nature)
+        if c["class"] in ("Label", "Button", "TextureButton", "LinkButton", "ColorRect",
+                          "NinePatchRect", "TextureRect", "PanelContainer"):
+            continue
+        # Only check Container-like controls (Control base class, VBox, HBox, etc.)
+        if c["class"] not in ("Control", "VBoxContainer", "HBoxContainer", "CenterContainer",
+                              "MarginContainer", "SplitContainer", "GridContainer",
+                              "ScrollContainer", "AspectRatioContainer"):
+            continue
+
+        # Find descendants that are Labels or TextureRects
+        target_descendants = [d for d in controls
+                              if d["path"].startswith(path + "/")
+                              and d["class"] in ("Label", "TextureRect")
+                              and d["rect"]["h"] > 0 and d["rect"]["w"] > 0]
+
+        if not target_descendants:
+            continue  # No content-bearing descendants — nothing to check
+
+        c_h = cr["h"]
+        if c_h <= 0:
+            continue
+
+        # Check gaps: above first descendant, between descendants (condensed), below last descendant
+        # Sort descendants by their top edge
+        sorted_by_top = sorted(target_descendants, key=lambda d: d["rect"]["y"])
+        # Merge overlapping/adjacent y-ranges
+        merged = []
+        for d in sorted_by_top:
+            d_top = d["rect"]["y"]
+            d_bot = d["rect"]["y"] + d["rect"]["h"]
+            if not merged:
+                merged.append([d_top, d_bot])
+            else:
+                last = merged[-1]
+                if d_top <= last[1]:
+                    last[1] = max(last[1], d_bot)
+                else:
+                    merged.append([d_top, d_bot])
+
+        # Each gap between merged ranges is a gap in content
+        # But the main concern: gap below the LAST content (the "empty body" problem)
+        last_content_bottom = merged[-1][1] if merged else 0
+        gap_below = (cr["y"] + c_h) - last_content_bottom
+
+        threshold = max(c_h * 0.12, 60.0)  # 12% of control height or 60px, whichever is larger
+
+        if gap_below > threshold:
+            failures.append(
+                f"EMPTY_BODY: {path} rect {cr} has {gap_below:.0f}px unoccupied vertical "
+                f"band below content (content ends at y={last_content_bottom:.0f}, "
+                f"control bottom at y={cr['y'] + c_h:.0f}) — exceeds {threshold:.0f}px threshold"
+            )
+
+        # Also check gap above first content
+        first_content_top = merged[0][0] if merged else 0
+        gap_above = first_content_top - cr["y"]
+        if gap_above > threshold:
+            failures.append(
+                f"EMPTY_BODY_TOP: {path} rect {cr} has {gap_above:.0f}px unoccupied vertical "
+                f"band above content (content starts at y={first_content_top:.0f}, "
+                f"control top at y={cr['y']:.0f})"
+            )
+
+    return failures, warnings
 
 def main():
     failures_global = []
@@ -600,6 +699,10 @@ def main():
         seen_basenames.append(basename)
         scene_failures = []
 
+        # (0) EMPTY_BODY rule — runs on EVERY capture
+        empty_body_fails, empty_body_warns = check_empty_body(controls, viewport)
+        scene_failures.extend(empty_body_fails)
+
         # (1) All-scene rules
         scene_failures.extend(check_all_scenes(controls, safe_area, viewport))
 
@@ -623,6 +726,10 @@ def main():
         else:
             print(f"PASS {basename}")
             passed += 1
+
+        # Print EMPTY_PLATE warnings (not failures)
+        for w in empty_body_warns:
+            print(f"  WARN: {w}")
 
     # Summary
     total = passed + failed + skipped
