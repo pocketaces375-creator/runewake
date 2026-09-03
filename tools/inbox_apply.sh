@@ -164,7 +164,37 @@ print('NO_INSERT')
   else
     # Free-form instruction — run as one-shot prompt
     info "Fable inbox: executing ${base_name} as one-shot prompt" >> "${LOG_FILE}"
-    "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q >> "${LOG_FILE}" 2>&1 || true
+
+    # Log the exact prompt before launching (capture garbled text for diagnostics)
+    ONE_SHOT_PROMPT=$(cat "${inbox_file}")
+    echo "  === ONE-SHOT PROMPT START ===" >> "${LOG_FILE}"
+    echo "${ONE_SHOT_PROMPT}" >> "${LOG_FILE}"
+    echo "  === ONE-SHOT PROMPT END ===" >> "${LOG_FILE}"
+
+    # Gate on foreman lock — only one work session at a time
+    FOREMAN_LOCKED=0
+    FOREMAN_PID_FILE="/tmp/runewake_foreman.pid"
+    while [[ -f "${FOREMAN_PID_FILE}" ]]; do
+      FPID=$(cat "${FOREMAN_PID_FILE}" 2>/dev/null || echo "")
+      if [[ -n "${FPID}" ]] && kill -0 "${FPID}" 2>/dev/null; then
+        LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${FOREMAN_PID_FILE}")))
+        if [[ "${LOCK_AGE}" -gt 300 ]]; then
+          info "Foreman lock stale (${LOCK_AGE}s) — clearing" >> "${LOG_FILE}"
+          rm -f "${FOREMAN_PID_FILE}"
+          break
+        fi
+        FOREMAN_LOCKED=1
+        info "Foreman running (PID ${FPID}) — skipping one-shot to prevent concurrent edits" >> "${LOG_FILE}"
+        break
+      else
+        rm -f "${FOREMAN_PID_FILE}"
+        break
+      fi
+    done
+
+    if [[ "${FOREMAN_LOCKED}" -eq 0 ]]; then
+      "${HERMES_BIN}" -p tcgbot chat -q "${ONE_SHOT_PROMPT}" -Q >> "${LOG_FILE}" 2>&1 || true
+    fi
   fi
 
   # Move file to applied/

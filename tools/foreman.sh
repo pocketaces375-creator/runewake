@@ -627,6 +627,7 @@ fi
 # ── FIX #4: finish_task.sh — replaces old capture-regen + validation + test + commit blocks ──
 header "Running finish_task.sh"
 FINISH_EXIT=0
+NEW_COMMIT_SHA=""
 FINISH_OUTPUT=$(bash "${PROJECT_DIR}/tools/finish_task.sh" "${TASK_ID}" "${TASK_DESC}" 2>&1) || FINISH_EXIT=$?
 echo "${FINISH_OUTPUT}"
 if [[ "${FINISH_EXIT}" -eq 0 ]]; then
@@ -641,6 +642,7 @@ if [[ "${FINISH_EXIT}" -eq 0 ]]; then
   set_state "transient_notified" "False"
   VALIDATED_COUNT=$((VALIDATED_COUNT + 1))
   set_state "validated_count" "${VALIDATED_COUNT}"
+  write_parked_heartbeat "running_${TASK_ID}"
   ok "Task ${TASK_ID} complete! (${SESSION_COUNT}/${DAILY_BUDGET})"
   telegram_text "${TASK_ID} done (${SESSION_COUNT}/${DAILY_BUDGET})"
   # Attach latest capture if available

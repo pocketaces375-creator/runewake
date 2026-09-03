@@ -320,7 +320,16 @@
   engine/ change; the foreman also runs it once a day even if nothing changed.
   Acceptance: PLAYABLE.json committed with playable=true; wired in.
 
-- [ ] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
+- [ ] TASK-OPS-CONCURRENCY-FIX-1 — Fix concurrent unguarded sessions. inbox_apply.sh one-shot
+  path must gate on /tmp/runewake_foreman.pid before launching hermes -p tcgbot chat -q.
+  Also log the exact prompt text before launching so garbled prompts are captured. Add
+  write_parked_heartbeat call on every successful task iteration (not just on block/exit paths).
+  Add defensive default for NEW_COMMIT_SHA in foreman.sh. Install progress_ping.sh cron
+  (5 */2 * * *), remove any per-task invocations. Acceptance: ps shows at most one work
+  session; crontab -l shows progress_ping; no unbound variable errors in foreman_cron.log;
+  heartbeat updates on each success.
+
+|- [ ] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
   current scene positions things in the top ~55% of the viewport and leaves the bottom black;
   the class-core chips are siblings of the Begin button instead of children of the cards.
   Rebuild the scene's layout with containers: a full-rect root; a VBoxContainer with the
