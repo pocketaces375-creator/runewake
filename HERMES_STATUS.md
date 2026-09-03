@@ -1,4 +1,5 @@
-| TASK-OPS-GIT-GATE-FIX-1 | 2026-09-03 | foreman failure path fetches origin before reset; inbox gate no longer clears live PID locks, preserves skipped files, honours FOREMAN_CALLER; find_top_task joins continuations; model.max_tokens=8192 | DONE |
+|| TASK-CHOOSEPATH-LAYOUT-2 | 2026-09-03 | Rebuild Choose Your Path with VBox layout: full-viewport height, carousel fills remaining space, core cards ~22% vh (142x208px), Begin fixed at bottom, stat chips anchored to core cards via CardPlate, ui_lint choose_path rules pass (CONTENT_SPAN, BEGIN_OVERLAP, FLOATING_STAT, BEGIN_MISSING), carousel VERIFY 0 failed at both resolutions | DONE |
+|| TASK-OPS-GIT-GATE-FIX-1 | 2026-09-03 | foreman failure path fetches origin before reset; inbox gate no longer clears live PID locks, preserves skipped files, honours FOREMAN_CALLER; find_top_task joins continuations; model.max_tokens=8192 | DONE |
 | TASK-OPS-CONCURRENCY-FIX-1 | 2026-09-03 | gate one-shot with foreman lock, log prompt, heartbeat on success, NEW_COMMIT_SHA default | DONE |
 | TASK-LOOP-GATE-1 | 2026-09-03 | "Playable" as a number Trikzos can read. Turn TASK-MAP-LOOP-SOAK-1's | DONE |
 | TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix pure-queue detection, full logging, and create progress_ping.sh | DONE |

@@ -329,7 +329,7 @@
   session; crontab -l shows progress_ping; no unbound variable errors in foreman_cron.log;
   heartbeat updates on each success.
 
-- [ ] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
+||- [x] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
   current scene positions things in the top ~55% of the viewport and leaves the bottom black;
   the class-core chips are siblings of the Begin button instead of children of the cards.
   Rebuild the scene's layout with containers: a full-rect root; a VBoxContainer with the
