@@ -1,30 +1,3 @@
-
-Patched all **12 capture sites** across 9 files to call `WriteLayoutJson` after every `SavePng`:
-- DuelScene.cs (duel_test, duel_test_wide, duel_test_r2, victory_overlay, defeat_overlay)
-- Main.cs (title_test, title_test_wide, title_deck)
-- ChooseYourPathScene.cs (choose_path, choose_path_wide)
-- SettingsScene.cs (settings_test, settings_test_wide)
-- DigScene.cs (dig_test, dig_test_wide)
-- DeckBuilderScene.cs (deck_test, deck_test_phone, deck_test_wide)
-- MapScene.cs (map_test, flow_test, soak_final_map)
-- ReliquaryScene.cs (reliquary_test, reliquary_test_wide — 2 capture sites)
-- TutorialRunner.cs (all tutorial step captures + gate capture)
-- CardPlateTest.cs
-
-**Part (b)** — `tools/ui_lint.py` created. Reads each `.layout.json`, applies rules:
-- **All scenes**: no control outside safe area; no overlapping interactive siblings
-- **duel_test***: cost badge in card's top-right quadrant; mouse_filter=Stop on hand/lane; artifact slots ≥72x96 with non-null texture
-- **choose_path***: content union ≥80% viewport height; Begin button overlaps nothing; stat chips inside core-card rects (no floating)
-- **General** (map/settings/title/reliquary/overlays): content union ≥70% height, ≥60% width
-
-**Part (c)** — Already wired in `finish_task.sh` (step 5 was written with `if [[ -x tools/ui_lint.py ]]` — it's active now). Layout JSONs generate on the next Godot headless capture run post-commit.
-
-**Commits pushed**: `0f3093c` (implementation) + `b69097e` (mark done). Build: 0 errors (pre-existing 22 test failures from REGION-GEN content restructure — unrelated to this change).
-========================================
-=== foreman: 2026-09-03T05:06:28Z TASK-UI-LINT-1 retry ===
-Session: 1/48
-Failures: finish_task_failure
---- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 ## TASK-UI-LINT-1 complete
 
@@ -47,4 +20,31 @@ Failures: finish_task_failure
 - choose_path: fails on safe-area + content span (expected — TASK-CHOOSEPATH-LAYOUT-2 fixes this)
 
 **Committed and pushed** — 2 commits (`ec8829d`, `edfc0a5`), checkbox flipped to [x], DONE line written to HERMES_STATUS.md. 5 `.layout.json` files for the current captures committed.
+========================================
+=== foreman: 2026-09-03T13:34:42Z TASK-INPUT-SMOKE-1 retry ===
+Session: 2/48
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-INPUT-SMOKE-1 complete. Here's the summary:
+
+**What was built:**
+- `CampaignContext.InputSmokeTest` flag
+- `--capture=input_smoke_test` mode in DebugCapture.cs
+- `StartInputSmokeTest()` in DuelScene.cs — injects `InputEventScreenTouch` and `InputEventMouseButton` events via `_GuiInput` handlers on hand cards and lane slots, and `EmitSignal(Pressed)` on End Turn button
+- `WriteInputSmokeResult()` — writes `input_smoke_result.json` with verdict per step
+- `tools/input_smoke.sh` — shell wrapper, runs headless Godot, parses result, exits 0/1
+
+**All 6 assertions PASS:**
+| Step | Test | Result |
+|------|------|--------|
+| TOUCH_CARD_SELECT | Touch card → SelectingLane state | PASS |
+| TOUCH_LANE_PLAY | Touch lane → tap-to-summon flow completes | PASS |
+| TOUCH_END_TURN | End Turn via EmitSignal → turn advances | PASS |
+| MOUSE_CARD_SELECT | Mouse click card → SelectingLane state | PASS |
+| MOUSE_LANE_PLAY | Mouse click lane → tap-to-summon flow completes | PASS |
+| MOUSE_END_TURN | Mouse End Turn → turn advances | PASS |
+
+**Committed:** `5ec14c1` (implementation) + `e88dc6c` (mark done)
+**Pushed to origin/main.**
 ========================================
