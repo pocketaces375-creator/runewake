@@ -148,3 +148,10 @@ a//home/fictive/runewake/tools/progress_ping.sh → b//home/fictive/runewake/too
    now_ts=$(date +%s)
    newest_min_ago=$(( (now_ts - commit_ts) / 60 ))
   Fable inbox: executing 2026-09-03_0002_inbox-fixes-and-ping.md as one-shot prompt
+2026-09-03 12:31:03 FABLE-INBOX: processed 2026-09-03_0006_no-downtime-policy.md (one-shot)
+  Fable inbox: inserting queue items from 2026-09-03_0007_choosepath3-and-trim.md
+[main 4b683f7] FABLE-INBOX: 2026-09-03_0007_choosepath3-and-trim.md
+ 1 file changed, 47 insertions(+)
+  Fable inbox: inserted queue items from 2026-09-03_0007_choosepath3-and-trim.md
+  Starting foreman after inbox insert
+2026-09-03 12:44:03 FABLE-INBOX: processed 2026-09-03_0007_choosepath3-and-trim.md (queue insert)

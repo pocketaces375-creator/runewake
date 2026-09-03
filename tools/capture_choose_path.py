@@ -16,13 +16,18 @@ def capture_at(w, h, tag):
     subprocess.run(["killall", "Xvfb", "fluxbox"], capture_output=True)
     time.sleep(1)
     
-    # Start Xvfb
+    # Start Xvfb with correct resolution
     xvfb = subprocess.Popen(
         ["Xvfb", ":99", "-screen", "0", f"{w}x{h}x24"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
-    time.sleep(1)
+    time.sleep(1.5)  # Wait for Xvfb to init
     os.environ["DISPLAY"] = ":99"
+
+    # Verify the screen size is set
+    screen_check = subprocess.run(["xdpyinfo", "-display", ":99"], capture_output=True, text=True, timeout=5)
+    if f"dimensions:  {w}x{h}" not in screen_check.stdout:
+        print(f"  ⚠ Xvfb screen might be wrong size: {screen_check.stdout[:200]}")
     
     # Start fluxbox
     fluxbox = subprocess.Popen(

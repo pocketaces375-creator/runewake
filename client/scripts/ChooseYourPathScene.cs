@@ -9,16 +9,18 @@ namespace Runewake.Client;
 
 /// <summary>
 /// "CHOOSE YOUR PATH" screen — campaign entry point with looping class carousel.
-/// VBoxContainer layout: title block (fixed) → carousel (fills) → class-core row (~22% vh, fixed) → Begin button (fixed).
-/// Bulletproof geometry: every TextureRect has ExpandMode=IgnoreSize + full anchors,
-/// portrait fills upper ~62% of panel, text below it, ClipContents everywhere.
-/// Each core card owns its own attack/vigor chips (via CardPlate), anchored to its bottom corners.
+/// Layout: title block (fixed, ~6% vh) → carousel (fills) → class-core row (~12% vh, fixed) → Begin button (fixed, padded).
+/// Centre carousel card >= 55% viewport height; carousel spans >= 70% viewport width.
+/// Neighbour cards are dimmed but art is always visible — never blank.
+/// No card text overlaps any other card's text rect.
+/// CLASS CORE strip small, centred, clearly subordinate, beneath the carousel.
+/// BEGIN on its own row at the bottom with >= 24px clearance.
 /// </summary>
 public partial class ChooseYourPathScene : Control
 {
     // ── Data ──
     private readonly List<ClassDef> _classes = new();
-    private int _selectedIdx = 0; // center = selected
+    private int _selectedIdx = 0; // centre = selected
     private PanelContainer _beginButton;
     private Label _beginLabel;
     private ColorRect _dotsArea;
@@ -39,14 +41,23 @@ public partial class ChooseYourPathScene : Control
     private Button _leftArrow;
     private Button _rightArrow;
 
-    // Layout constants
+    // Layout constants — derived from viewport on each layout pass
     private float _panelFullW = 220f;
     private float _panelFullH = 310f;
     private float _centerX;
     private float _viewportW;
     private float _viewportH;
 
-    // Container references for layout
+    // Carousel tuning — centre card >= 55% vh, carousel span >= 70% vw
+    private const float ScaleStep = 0.22f;
+    private const float MinScale = 0.45f;
+    private const float BrightStep = 0.28f;
+    private const float MinBright = 0.42f; // neighbours are dimmed, never blank
+    private const float SpacingRatio = 0.68f; // distance between card centres as fraction of full width
+    private const float OverlapMarginRatio = 0.12f; // extra push for fanned right-side cards
+    private const float TextMarginRatio = 0.10f; // horizontal margin fraction for text inside card (avoids text overlap)
+
+    // Container references
     private VBoxContainer _mainVBox;
     private bool _layoutDone;
 
@@ -86,22 +97,26 @@ public partial class ChooseYourPathScene : Control
         _viewportW = vp.X;
         _viewportH = vp.Y;
 
-        _panelFullW = Mathf.Min(240f, _viewportW * 0.14f);
-        _panelFullH = _panelFullW * 310f / 220f;
+        // Centre card must be >= 55% of viewport height.
+        float targetH = _viewportH * 0.60f;
+        _panelFullH = targetH;
+        // Maintain aspect ratio from original 220:310 (w:h ≈ 0.71)
+        _panelFullW = _panelFullH * 220f / 310f;
         _centerX = _viewportW / 2f;
 
-        // Dark background
+        // Dark background — full rect
         var bg = new ColorRect { Color = BgDark, MouseFilter = MouseFilterEnum.Ignore };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
-        // Hero art background — full anchors, ExpandMode=IgnoreSize
+        // Hero art background — full anchors, KeepAspectCovered, subtle overlay
         var heroArt = new TextureRect
         {
             MouseFilter = MouseFilterEnum.Ignore,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            Modulate = new Color(0.62f, 0.62f, 0.62f, 0.75f)
+            // Uniform dark overlay across whole frame — no hard split = no pale band
+            Modulate = new Color(0.62f, 0.62f, 0.62f, 0.60f)
         };
         heroArt.SetAnchorsPreset(LayoutPreset.FullRect);
         string heroPath = "res://content/art/title/hero_art.png";
@@ -111,15 +126,14 @@ public partial class ChooseYourPathScene : Control
             GD.Print("[ART-MISSING] title/hero_art.png");
         AddChild(heroArt);
 
-        // Dark gradient (bottom half)
-        var gradient = new ColorRect
+        // Subtle overall dark vignette (not a split gradient — no band)
+        var vignette = new ColorRect
         {
-            Color = new Color(0.04f, 0.03f, 0.02f, 0.55f),
+            Color = new Color(0.04f, 0.03f, 0.02f, 0.45f),
             MouseFilter = MouseFilterEnum.Ignore
         };
-        gradient.AnchorLeft = 0; gradient.AnchorRight = 1;
-        gradient.AnchorTop = 0.5f; gradient.AnchorBottom = 1;
-        AddChild(gradient);
+        vignette.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(vignette);
 
         // ═══ MAIN VBox CONTAINER — fills full viewport ═══
         _mainVBox = new VBoxContainer();
@@ -133,16 +147,16 @@ public partial class ChooseYourPathScene : Control
         // ── 2. Carousel section (fills remaining space via size_flags_vertical=3) ──
         BuildCarouselSection();
 
-        // ── 3. Core cards row (fixed ~22% of viewport height) ──
+        // ── 3. Core cards row (fixed <= 12% viewport height) ──
         BuildCoreSection();
 
-        // ── 4. Begin button (fixed height, centered) ──
+        // ── 4. Begin button (fixed height, centered, with margin) ──
         BuildBeginButton();
 
-        // Load classes — must happen after layout building so _dotsArea exists
+        // Load classes
         LoadClasses();
 
-        // Build carousel panels now that classes are loaded
+        // Build carousel panels
         BuildCarouselPanels();
 
         // Initial carousel render
@@ -155,7 +169,6 @@ public partial class ChooseYourPathScene : Control
         {
             _captureMode = true;
 
-            // If choose-path specific capture, auto-select index 3 (Tidecaller/Battlemage) for proof
             if (CampaignContext.CaptureChoosePathScreenshot)
             {
                 _selectedIdx = Mathf.Min(3, _classes.Count - 1);
@@ -164,7 +177,7 @@ public partial class ChooseYourPathScene : Control
                 RunVerify();
             }
 
-            // Soak mode: auto-select first class (warrior), auto-Begin after short delay
+            // Soak mode: auto-select first class (warrior), auto-Begin
             if (CampaignContext.SoakActive)
             {
                 _selectedIdx = 0;
@@ -188,12 +201,10 @@ public partial class ChooseYourPathScene : Control
                         : "/home/fictive/runewake/artifacts/captures/choose_path.png";
                     image.SavePng(path);
                     string baseName = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
-                    DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[ChooseYourPath] Captured to {path}");
 
                     // TASK-UI-LINT-1: Dump layout JSON
-                    string cypBasename = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
-                    DebugCapture.DumpLayoutJSON(cypBasename, this);
+                    DebugCapture.DumpLayoutJSON(baseName, this);
                 }
                 GetTree().Quit(0);
             };
@@ -206,16 +217,16 @@ public partial class ChooseYourPathScene : Control
 
     private void BuildTitleBlock()
     {
-        float titleH = 48f * _viewportH / 1080f;
-        float subH = 26f;
+        // Compact title — proportional to viewport
+        float titleH = Mathf.Max(24f, _viewportH * 0.040f);
+        float subH = Mathf.Max(18f, _viewportH * 0.022f);
 
         var titleBlock = new VBoxContainer();
-        titleBlock.CustomMinimumSize = new Vector2(0, titleH + subH + 12f);
+        titleBlock.CustomMinimumSize = new Vector2(0, titleH + subH + 8f);
         titleBlock.MouseFilter = MouseFilterEnum.Ignore;
-        titleBlock.AddThemeConstantOverride("separation", 4);
+        titleBlock.AddThemeConstantOverride("separation", 2);
         _mainVBox.AddChild(titleBlock);
 
-        // Title
         var title = new Label
         {
             Text = "CHOOSE YOUR PATH",
@@ -224,13 +235,12 @@ public partial class ChooseYourPathScene : Control
             SizeFlagsHorizontal = (SizeFlags)3,
             SizeFlagsVertical = (SizeFlags)3
         };
-        ApplyHeaderFont(title, FontSmall + 4);
+        ApplyHeaderFont(title, (int)(FontSmall + 4));
         title.AddThemeColorOverride("font_color", Gold);
         title.AddThemeConstantOverride("outline_size", 2);
         title.AddThemeColorOverride("font_outline_color", Colors.Black);
         titleBlock.AddChild(title);
 
-        // Subtitle
         var subtitle = new Label
         {
             Text = "Each path begins in its own town, with its own tale.",
@@ -258,7 +268,7 @@ public partial class ChooseYourPathScene : Control
         };
         _mainVBox.AddChild(_carouselSection);
 
-        // The actual clip container for panels — positioned to fill the section
+        // Clip container for panels — fills the section
         _carouselClipContainer = new Control
         {
             ClipContents = true,
@@ -267,7 +277,7 @@ public partial class ChooseYourPathScene : Control
         _carouselClipContainer.SetAnchorsPreset(LayoutPreset.FullRect);
         _carouselSection.AddChild(_carouselClipContainer);
 
-        // Arrow buttons — positioned absolutely within carouselSection (above clip container for z-order)
+        // Left arrow — positioned absolutely in LayoutCarouselChildren
         _leftArrow = new Button
         {
             Text = "\u25C0",
@@ -286,6 +296,7 @@ public partial class ChooseYourPathScene : Control
         };
         _carouselSection.AddChild(_leftArrow);
 
+        // Right arrow
         _rightArrow = new Button
         {
             Text = "\u25B6",
@@ -304,10 +315,11 @@ public partial class ChooseYourPathScene : Control
         };
         _carouselSection.AddChild(_rightArrow);
 
-        // Dots indicator — positioned at bottom of carouselSection
+        // Dots indicator area — positioned at bottom of carouselSection
         _dotsArea = new ColorRect
         {
-            Color = Colors.Transparent,
+            // Slightly dark backing to block the background from showing through as a pale band
+            Color = new Color(0.08f, 0.065f, 0.05f, 0.70f),
             MouseFilter = MouseFilterEnum.Ignore
         };
         _carouselSection.AddChild(_dotsArea);
@@ -315,7 +327,6 @@ public partial class ChooseYourPathScene : Control
 
     private void BuildCarouselPanels()
     {
-        // Build panels inside clip container
         for (int i = 0; i < _classes.Count; i++)
         {
             var panel = MakeCarouselPanel(_classes[i], i);
@@ -332,24 +343,37 @@ public partial class ChooseYourPathScene : Control
 
     private void BuildCoreSection()
     {
-        // Fixed ~22% of viewport height
-        float coreSectionH = _viewportH * 0.22f;
+        // Core section — <= 12% viewport height, explicitly subordinate
+        float coreSectionH = Mathf.Min(_viewportH * 0.12f, 140f);
 
-        _coreCardsArea = new Control();
-        _coreCardsArea.CustomMinimumSize = new Vector2(0, coreSectionH);
-        _coreCardsArea.MouseFilter = MouseFilterEnum.Ignore;
+        _coreCardsArea = new CenterContainer
+        {
+            CustomMinimumSize = new Vector2(0, coreSectionH),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
         _mainVBox.AddChild(_coreCardsArea);
     }
 
     private void BuildBeginButton()
     {
-        // Fixed ~50px with margin
-        var beginWrapper = new VBoxContainer();
-        beginWrapper.Name = "Begin";
-        beginWrapper.CustomMinimumSize = new Vector2(0, 60f);
-        beginWrapper.MouseFilter = MouseFilterEnum.Pass;
-        beginWrapper.AddThemeConstantOverride("separation", 0);
-        _mainVBox.AddChild(beginWrapper);
+        // Begin with margin — >= 24px clearance
+        var beginWrap = new VBoxContainer();
+        beginWrap.Name = "Begin";
+        beginWrap.MouseFilter = MouseFilterEnum.Pass;
+        beginWrap.AddThemeConstantOverride("separation", 0);
+        beginWrap.SizeFlagsVertical = (SizeFlags)0; // Shrink
+        // Minimum height: button (46) + margin above (24) + margin below (12)
+        beginWrap.CustomMinimumSize = new Vector2(0, 82f);
+        _mainVBox.AddChild(beginWrap);
+
+        // Spacer above the button for clearance
+        var spacer = new ColorRect
+        {
+            Color = Colors.Transparent,
+            SizeFlagsVertical = (SizeFlags)3, // Expand to fill any extra space
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        beginWrap.AddChild(spacer);
 
         _beginButton = new PanelContainer();
         _beginButton.CustomMinimumSize = new Vector2(280, 46);
@@ -364,7 +388,7 @@ public partial class ChooseYourPathScene : Control
             CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
             CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
         });
-        beginWrapper.AddChild(_beginButton);
+        beginWrap.AddChild(_beginButton);
 
         _beginLabel = new Label
         {
@@ -389,13 +413,9 @@ public partial class ChooseYourPathScene : Control
     }
 
     // ════════════════════════════════════════════════
-    // Layout — post-_Ready positioning based on actual container sizes
+    // Layout — positioning based on actual container sizes
     // ════════════════════════════════════════════════
 
-    /// <summary>
-    /// Called after the layout pass to position arrows and dots relative to the carousel section.
-    /// Also re-measures viewport and panel sizes.
-    /// </summary>
     private void LayoutCarouselChildren()
     {
         if (_carouselSection == null) return;
@@ -405,22 +425,24 @@ public partial class ChooseYourPathScene : Control
         _viewportH = vp.Y;
         _centerX = _viewportW / 2f;
 
-        _panelFullW = Mathf.Min(240f, _viewportW * 0.14f);
-        _panelFullH = _panelFullW * 310f / 220f;
+        // Recalc panel size — centre card >= 55% vh
+        float targetH = _viewportH * 0.60f;
+        _panelFullH = targetH;
+        _panelFullW = _panelFullH * 220f / 310f;
 
         float sectionH = _carouselSection.Size.Y;
 
-        // Arrows vertically centered in carousel section
-        float arrowY = Mathf.Max(0, sectionH / 2f - 22f);
+        // Arrows vertically centred in carousel section
+        float arrowY = Mathf.Max(8f, sectionH / 2f - 22f);
         _leftArrow.Position = new Vector2(8, arrowY);
         _rightArrow.Position = new Vector2(_viewportW - 52, arrowY);
 
-        // Update dots area size and position
-        float dotsY = Mathf.Max(0, sectionH - 20f);
+        // Dots at bottom of carousel section — slightly taller band blocks pale background
+        float dotsY = Mathf.Max(0, sectionH - 32f);
         _dotsArea.Position = new Vector2(0, dotsY);
-        _dotsArea.Size = new Vector2(_viewportW, 14);
+        _dotsArea.Size = new Vector2(_viewportW, 26);
 
-        // Re-position dot indicators inside dots area
+        // Re-position dots
         float dotSpacing = 14f;
         float dotsTotal = (_classes.Count - 1) * dotSpacing;
         float dotsStartX = (_viewportW - dotsTotal) / 2f;
@@ -433,30 +455,26 @@ public partial class ChooseYourPathScene : Control
             }
         }
 
-        // Carousel clip container fills the section
+        // Clip container fills the section
         _carouselClipContainer.Size = new Vector2(_viewportW, sectionH);
     }
 
-    /// <summary>
-    /// Post-layout positioning. Called after all container sizing has been resolved.
-    /// </summary>
     private void RefreshLayout()
     {
         LayoutCarouselChildren();
         UpdateCarousel();
     }
-
-    /// <summary>Override to position layout-dependent elements after VBoxContainer sizing.</summary>
     public override void _Process(double delta)
-    {
-        // On first frame after sizing, lay out the arrows/dots
-        if (!_layoutDone && _carouselSection != null && _carouselSection.Size.Y > 0)
         {
-            LayoutCarouselChildren();
-            RunVerify();
-            _layoutDone = true;
+            // On first frame after sizing, lay out the arrows/dots AND reposition cards
+            if (!_layoutDone && _carouselSection != null && _carouselSection.Size.Y > 0)
+            {
+                LayoutCarouselChildren();
+                UpdateCarousel(); // Recalculate card positions now that container is sized
+                RunVerify();
+                _layoutDone = true;
+            }
         }
-    }
 
     // ════════════════════════════════════════════════
     // Carousel
@@ -465,8 +483,17 @@ public partial class ChooseYourPathScene : Control
     private void UpdateCarousel()
     {
         int total = _panelNodes.Count;
-        float spacing = _panelFullW * 0.55f;
-        float overlapMargin = _panelFullW * 0.22f;
+        if (total == 0) return;
+
+        // Recompute layout constants from current viewport
+        float targetH = _viewportH * 0.60f;
+        _panelFullH = targetH;
+        _panelFullW = _panelFullH * 220f / 310f;
+        _centerX = _viewportW / 2f;
+
+        float spacing = _panelFullW * SpacingRatio;
+        float overlapMargin = _panelFullW * OverlapMarginRatio;
+        float textMargin = _panelFullW * TextMarginRatio;
         float containerH = _carouselClipContainer.Size.Y;
         if (containerH < 1f) containerH = _panelFullH + 12f;
 
@@ -480,27 +507,39 @@ public partial class ChooseYourPathScene : Control
 
             float absDist = Mathf.Abs(dist);
 
-            float scale = 1f - absDist * 0.22f;
-            if (scale < 0.5f) scale = 0.5f;
+            // Scale: centre card is full size, neighbours scale down
+            float scale = 1f - absDist * ScaleStep;
+            if (scale < MinScale) scale = MinScale;
 
-            float bright = 1f - absDist * 0.45f;
-            if (bright < 0.3f) bright = 0.3f;
+            // Brightness: centre card full bright, neighbours dimmed but art always visible
+            float bright = 1f - absDist * BrightStep;
+            if (bright < MinBright) bright = MinBright;
 
             panel.ZIndex = (int)(total - absDist);
 
             float panelW = _panelFullW * scale;
             float panelH = _panelFullH * scale;
 
+            // Fan the cards: centre is centred, neighbours spread with slight offset for visual overlap
             float xPos = _centerX - panelW / 2f + dist * spacing;
             if (dist > 0) xPos += overlapMargin;
             else if (dist < 0) xPos -= overlapMargin;
 
-            panel.Position = new Vector2(xPos, (containerH - panelH) / 2f);
+            // Vertical centre within the container
+            float yPos = (containerH - panelH) / 2f;
+            // Slight vertical stagger for neighbours — cards at greater distance sit slightly lower
+            // to keep the orbital feel (they look like they are behind and below)
+            float yOffset = absDist * _panelFullH * 0.03f;
+            yPos += yOffset;
+
+            panel.Position = new Vector2(xPos, yPos);
             panel.Size = new Vector2(panelW, panelH);
             panel.Scale = Vector2.One;
+
             panel.Modulate = new Color(bright, bright, bright, 1f);
 
-            panel.Visible = xPos + panelW > -50 && xPos < _centerX * 2 + 50;
+            // Only show panels within viewport bounds + margin
+            panel.Visible = xPos + panelW > -100 && xPos < _viewportW + 100;
         }
 
         // Update dots
@@ -508,16 +547,11 @@ public partial class ChooseYourPathScene : Control
             _dotIndicators[i].Color = i == _selectedIdx ? Gold : TextInactive;
     }
 
-    /// <summary>
-    /// Layout self-check: every panel rect fully inside container, center panel full size.
-    /// Uses global coordinates for proper containment check.
-    /// </summary>
     private void RunVerify()
     {
         int failed = 0;
         var containerGlobal = _carouselClipContainer.GetRect();
-        
-        // Skip if container hasn't been laid out yet (VBox sizing happens after _Ready)
+
         if (containerGlobal.Size.X < 1 || containerGlobal.Size.Y < 1)
         {
             GD.Print("[VERIFY] carousel: skipped (container not yet laid out)");
@@ -527,26 +561,20 @@ public partial class ChooseYourPathScene : Control
         for (int i = 0; i < _panelNodes.Count; i++)
         {
             var panel = _panelNodes[i];
-            // Panel's global rect = container global position + panel local position
             var panelGlobal = new Rect2(
                 containerGlobal.Position + panel.Position,
                 panel.Size
             );
 
-            // Check containment in carousel container
             if (!containerGlobal.Encloses(panelGlobal))
             {
                 GD.Print($"[VERIFY] Panel {i}: global_pos={panelGlobal.Position}, " +
                          $"size={panel.Size}, container={containerGlobal} — outside");
                 failed++;
             }
-            else
-            {
-                GD.Print($"[VERIFY] Panel {i}: OK (pos={panel.Position}, size={panel.Size})");
-            }
         }
 
-        // Check center panel is full size
+        // Check centre panel is full size
         if (_selectedIdx >= 0 && _selectedIdx < _panelNodes.Count)
         {
             var centerPanel = _panelNodes[_selectedIdx];
@@ -625,7 +653,7 @@ public partial class ChooseYourPathScene : Control
             child.QueueFree();
 
         float coreSectionH = _coreCardsArea.Size.Y;
-        float coreAvailH = coreSectionH > 0 ? coreSectionH : _viewportH * 0.22f;
+        float coreAvailH = coreSectionH > 0 ? coreSectionH : Mathf.Min(_viewportH * 0.12f, 140f);
 
         var strataColor = StrataColor(cls.Strata);
 
@@ -642,37 +670,36 @@ public partial class ChooseYourPathScene : Control
         var coreVBox = new VBoxContainer();
         coreVBox.SizeFlagsHorizontal = (SizeFlags)3; // Fill width
         coreVBox.SizeFlagsVertical = (SizeFlags)3; // Fill height
-        coreVBox.AddThemeConstantOverride("separation", 4);
+        coreVBox.AddThemeConstantOverride("separation", 2);
         coreVBox.MouseFilter = MouseFilterEnum.Ignore;
         _coreCardsArea.AddChild(coreVBox);
 
         // Label row
         coreVBox.AddChild(_coreLabel);
 
-        // Core card row — centered HBox with proper sizing
+        // Core card row — centred HBox
         _coreCardRow = new HBoxContainer();
         _coreCardRow.Alignment = BoxContainer.AlignmentMode.Center;
-        _coreCardRow.AddThemeConstantOverride("separation", 12);
-        _coreCardRow.SizeFlagsHorizontal = (SizeFlags)3; // Fill width
-        _coreCardRow.SizeFlagsVertical = (SizeFlags)3; // Fill height
+        _coreCardRow.AddThemeConstantOverride("separation", 8);
+        _coreCardRow.SizeFlagsHorizontal = (SizeFlags)3;
+        _coreCardRow.SizeFlagsVertical = (SizeFlags)3;
         coreVBox.AddChild(_coreCardRow);
 
-        // Calculate mini card size based on available height
-        float labelH = 22f;
-        float separationH = 4f;
-        float availForCards = coreAvailH - labelH - separationH - 4f; // 4px padding
-        float miniCardRatio = 152f / 104f; // aspect ratio of cards
-        float miniW = _viewportW * 0.065f; // ~150px at 2316
+        // Calculate mini card size — smaller than before, <= 12% vh for the whole section
+        float labelH = 20f;
+        float separationH = 2f;
+        float availForCards = coreAvailH - labelH - separationH - 4f;
+        float miniCardRatio = 152f / 104f;
+        float miniW = _viewportW * 0.055f; // ~127px at 2316
         if (miniW * miniCardRatio > availForCards)
             miniW = availForCards / miniCardRatio;
-        if (miniW > 160f) miniW = 160f;
-        if (miniW < 100f) miniW = 100f;
+        if (miniW > 130f) miniW = 130f;
+        if (miniW < 80f) miniW = 80f;
         float miniH = miniW * miniCardRatio;
 
-        // Ensure each mini card is large enough that names are readable at arm's length
-        if (miniH < availForCards * 0.85f)
+        if (miniH < availForCards * 0.80f)
         {
-            miniH = availForCards * 0.85f;
+            miniH = availForCards * 0.80f;
             miniW = miniH / miniCardRatio;
         }
 
@@ -708,7 +735,7 @@ public partial class ChooseYourPathScene : Control
         content.MouseFilter = MouseFilterEnum.Pass;
         miniCard.AddChild(content);
 
-        // Mini card art — ExpandMode=IgnoreSize + full anchors
+        // Mini card art
         var miniArt = new TextureRect
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -730,7 +757,7 @@ public partial class ChooseYourPathScene : Control
         }
         content.AddChild(miniArt);
 
-        // CardPlate overlay — provides name band, stat chips at bottom corners
+        // CardPlate overlay — name band, stat chips
         var plate = new CardPlate();
         content.AddChild(plate);
         plate.Setup(def.Name, def.Attack, def.Vigor, def.Strata, miniW, miniH);
@@ -751,16 +778,16 @@ public partial class ChooseYourPathScene : Control
             ClipContents = true
         };
 
-        // Background
+        // Background — warm dark, not pure black, so neighbour art shows on it
         var panelRect = new ColorRect
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            Color = new Color(0.12f, 0.10f, 0.08f, 0.95f)
+            Color = new Color(0.14f, 0.12f, 0.10f, 0.90f)
         };
         panelRect.SetAnchorsPreset(LayoutPreset.FullRect);
         panel.AddChild(panelRect);
 
-        // Border
+        // Border — thin keyline
         var border = new ColorRect
         {
             Color = Colors.Transparent,
@@ -770,7 +797,6 @@ public partial class ChooseYourPathScene : Control
         panel.AddChild(border);
 
         // ── Portrait — fills upper ~62% of panel ──
-        // TextureRect: ExpandMode=IgnoreSize, full anchors (not inheriting texture size)
         var artRect = new TextureRect
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -785,27 +811,31 @@ public partial class ChooseYourPathScene : Control
             var tex = ResourceLoader.Load<Texture2D>(artPath);
             if (tex != null)
                 artRect.Texture = tex;
+            else
+                SetFallbackPortrait(artRect, cls);
         }
         else
         {
-            artRect.Modulate = StrataColor(cls.Strata).Darkened(0.5f);
+            SetFallbackPortrait(artRect, cls);
         }
         panel.AddChild(artRect);
 
-        // ── Text block — sits BELOW the portrait, lower ~38% ──
+        // ── Text block — sits below the portrait, lower ~38% ──
+        float margin = Mathf.Max(6f, _panelFullW * TextMarginRatio);
+        float textTopRatio = 0.62f;
         var vbox = new VBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             AnchorLeft = 0, AnchorRight = 1,
-            AnchorTop = 0.62f, AnchorBottom = 1,
-            OffsetLeft = 4, OffsetRight = -4,
+            AnchorTop = textTopRatio, AnchorBottom = 1f,
+            OffsetLeft = margin, OffsetRight = -margin,
             OffsetTop = 2, OffsetBottom = -2,
             SizeFlagsVertical = (SizeFlags)3
         };
         vbox.AddThemeConstantOverride("separation", 1);
         panel.AddChild(vbox);
 
-        // Class name
+        // Class name — font scales with panel size
         var nameLabel = new Label
         {
             Text = cls.Name,
@@ -847,6 +877,31 @@ public partial class ChooseYourPathScene : Control
         return panel;
     }
 
+    /// <summary>
+    /// Create a visible coloured fallback for classes without portrait art.
+    /// Generates a visible texture so neighbour cards never read as empty dark plates.
+    /// </summary>
+    private void SetFallbackPortrait(TextureRect target, ClassDef cls)
+    {
+        // Bright warm hue with visible stratum tint — must read as "a class" not an empty slot
+        var strataColor = StrataColor(cls.Strata).Lightened(0.7f);
+        target.Modulate = strataColor;
+        // Create a 16x16 coloured texture
+        var img = Godot.Image.CreateEmpty(16, 16, false, Godot.Image.Format.Rgba8);
+        // Fill with a visible warm tint based on stratum
+        Color fillColor = cls.Strata switch
+        {
+            Strata.TIDE => new Color(0.3f, 0.6f, 0.7f, 1.0f),   // blue-green
+            Strata.HOLLOW => new Color(0.5f, 0.4f, 0.3f, 1.0f),  // earthy
+            Strata.DAWN => new Color(0.8f, 0.7f, 0.5f, 1.0f),    // gold
+            _ => new Color(0.6f, 0.5f, 0.4f, 1.0f)               // neutral warm
+        };
+        img.Fill(fillColor);
+        target.Texture = Godot.ImageTexture.CreateFromImage(img);
+        // Remove dim self-modulate — let the strata colour show clearly
+        target.SelfModulate = Colors.White;
+    }
+
     // ════════════════════════════════════════════════
     // Data loading
     // ════════════════════════════════════════════════
@@ -871,7 +926,7 @@ public partial class ChooseYourPathScene : Control
             });
         }
 
-        // Build dot indicators now that we know how many classes
+        // Build dot indicators
         for (int i = 0; i < _classes.Count; i++)
         {
             var dot = new ColorRect
@@ -900,9 +955,6 @@ public partial class ChooseYourPathScene : Control
         CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
         CampaignContext.AddOrUpdateProfile(cls.Id, cls.Town);
 
-        // Every class ships with a prebuilt starter deck — new players go
-        // straight to the map and start playing. The Forge stays available
-        // from the map/title for whenever they want to customize.
         CampaignContext.EnsureStarterDeck(cls.Id);
         GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
     }

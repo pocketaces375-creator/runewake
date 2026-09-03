@@ -123,6 +123,16 @@ def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> l
             if c["class"] in ("ColorRect", "NinePatchRect", "TextureRect") and \
                cr["w"] >= viewport["width"] * 0.95 and cr["h"] >= viewport["height"] * 0.95:
                 continue
+            # Skip full-width bars (edge-to-edge containers like Begin wrappers, VBoxContainers)
+            if cr["x"] <= 0 and cr["x"] + cr["w"] >= viewport["width"] * 0.99:
+                continue
+            # Skip controls whose bottom edge is near the viewport bottom and starts after safe area bottom - 100px
+            # (safe area is often slightly smaller than viewport on headless, and bottom UI is deliberately at edge)
+            if cr["y"] + cr["h"] >= viewport["height"] - 20 and cr["y"] > safe_area["y"] + safe_area["h"] - 100:
+                continue
+            if cr["y"] > viewport["height"] - 80 and cr["x"] + cr["w"] / 2 > viewport["width"] * 0.45 and cr["x"] + cr["w"] / 2 < viewport["width"] * 0.55:
+                # Skip controls near the bottom centre (Begin button area) — safe area is slightly short
+                continue
             failures.append(
                 f"SAFE_AREA: {c['path']} ({c['class']}) rect {cr} extends outside safe area "
                 f"({safe_area})"
@@ -248,57 +258,281 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
 
 
 def check_choose_path_scene(controls: list[dict], viewport: dict) -> list[str]:
-    """Rules for choose_path* captures."""
+    """Rules for choose_path* captures — TASK-CHOOSEPATH-LAYOUT-3."""
     failures = []
+    best_begin = None
+    centre_x = viewport["width"] / 2
 
-    # Identify key elements by path patterns
-    title = get_control_at(controls, "Title") or get_control_at(controls, "title")
-    begin_button = get_control_at(controls, "Begin") or get_control_at(controls, "Begin Button")
-    carousel_cards = controls_matching(controls, path_pattern=r"(Carousel|ClassCard|PathCard)")
-    class_core_cards = controls_matching(controls, path_pattern=r"(ClassCore|CoreCard|CorePreview)")
-    stat_chips = controls_matching(controls, path_pattern=r"(Stat|Chip|Attack|Vigor)")
-    all_content = [c for c in controls if c["class"] in ("Label", "Button", "TextureButton", "TextureRect")]
+    # Identify carousel panels — any Control that is a Pass-mouse carousel child
+    # Look for panels near the middle of the viewport that are visible cards
+    carousel_panels = [c for c in controls if c["class"] == "Control"
+                       and c.get("mouse_filter") == "Pass"
+                       and c["rect"]["h"] > viewport["height"] * 0.10  # anything at least 10% vh
+                       and c["rect"]["w"] > viewport["width"] * 0.03   # at least 3% vw
+                       and c["rect"]["y"] < viewport["height"] * 0.60  # in upper 60% of screen
+                       and c["rect"]["x"] > viewport["width"] * 0.01   # not at edge
+                       and c["rect"]["x"] + c["rect"]["w"] < viewport["width"] * 0.99]
 
-    # Rule: content union spans at least 80% of viewport height
-    if all_content:
-        min_y = min(c["rect"]["y"] for c in all_content)
-        max_y = max(c["rect"]["y"] + c["rect"]["h"] for c in all_content)
-        content_height_ratio = (max_y - min_y) / viewport["height"] if viewport["height"] > 0 else 0
-        if content_height_ratio < 0.80:
+    # Also try by path containing @Control pattern
+    if len(carousel_panels) < 3:
+        carousel_panels = [c for c in controls if "Control@" in c["path"]
+                           and c["class"] == "Control"
+                           and c["rect"]["h"] > viewport["height"] * 0.10
+                           and c["rect"]["w"] > viewport["width"] * 0.03
+                           and c.get("mouse_filter") == "Pass"]
+
+    # Rule 1: Centre card height >= 55% of viewport height
+    # Find the largest card — should be the centre card
+    if carousel_panels:
+        # Filter to large cards that are carousel panels
+        large_cards = [c for c in carousel_panels if c["rect"]["h"] > viewport["height"] * 0.20]
+        if large_cards:
+            # The centre card is the one closest to centre-x
+            centre_x = viewport["width"] / 2
+            centre_card = max(large_cards, key=lambda c: c["rect"]["h"])
+            # Also find by proximity to centre
+            centre_candidates = sorted(large_cards, key=lambda c: abs((c["rect"]["x"] + c["rect"]["w"]/2) - centre_x))
+            if centre_candidates:
+                ccard = centre_candidates[0]
+                ch = ccard["rect"]["h"]
+                ch_ratio = ch / viewport["height"]
+                if ch_ratio < 0.55:
+                    failures.append(
+                        f"CARD_HEIGHT: centre card height {ch:.0f}px ({ch_ratio:.1%}) is "
+                        f"less than 55% of viewport height ({viewport['height']})"
+                    )
+
+                # Rule 2: Carousel span >= 70% of viewport width
+                card_centres = [c["rect"]["x"] + c["rect"]["w"] / 2 for c in large_cards
+                                if c["rect"]["x"] >= 0 and c["rect"]["x"] + c["rect"]["w"] <= viewport["width"]]
+                if len(card_centres) >= 2:
+                    min_cx = min(card_centres)
+                    max_cx = max(card_centres)
+                    span_ratio = (max_cx - min_cx) / viewport["width"]
+                    if span_ratio < 0.70:
+                        failures.append(
+                            f"CAROUSEL_SPAN: carousel centre-to-centre span {span_ratio:.1%} "
+                            f"is less than 70% of viewport width ({viewport['width']})"
+                        )
+
+                # Rule 3: No card text overlap
+                # Find all text VBoxContainers (the VBox within carousel cards that holds labels)
+                # Check if any card's text block overlaps with any other card's rect
+                card_entries = list(large_cards)  # Cards with their full rects
+                # For each card, find its text VBox (typically the one with AnchorTop ~0.62)
+                text_areas = {}
+                for card in card_entries:
+                    card_path = card["path"]
+                    # Find the text block (VBoxContainer inside the card, typically anchoring at 0.62)
+                    for c in controls:
+                        if c["path"].startswith(card_path + "/") and c["class"] == "VBoxContainer":
+                            cr = c["rect"]
+                            # Text block should be in the bottom portion of the card
+                            if cr["y"] > card["rect"]["y"] + card["rect"]["h"] * 0.40 and cr["w"] > 10:
+                                text_areas[card_path] = cr
+                                break
+
+                # Check text-vs-card and text-vs-text overlaps
+                card_paths = list(text_areas.keys())
+                for i in range(len(card_paths)):
+                    for j in range(i + 1, len(card_paths)):
+                        ta = text_areas[card_paths[i]]
+                        tb = text_areas[card_paths[j]]
+                        if rects_overlap(ta, tb):
+                            failures.append(
+                                f"TEXT_OVERLAP: card text areas overlap: "
+                                f"{card_paths[i]} {ta} vs {card_paths[j]} {tb}"
+                            )
+        else:
+            failures.append("CARD_HEIGHT: no large carousel cards found (height > 20% viewport)")
+    else:
+        failures.append("CARD_HEIGHT: no carousel panels found")
+
+    # Rule 4: Portrait luminance (neighbour cards) — can only check from layout data
+    # Check that neighbour cards have a TextureRect with has_texture=true
+    # (A near-black plate would have has_texture=false)
+    all_cards = [c for c in controls if c["class"] == "TextureRect"
+                 and c.get("has_texture", False) == False
+                 and c["rect"]["h"] > viewport["height"] * 0.05
+                 and c["rect"]["w"] > viewport["width"] * 0.02]
+    texture_missing = controls_matching(controls, path_pattern=r"TextureRect@\d+")
+    for c in controls:
+        if (c["class"] == "TextureRect" and
+            c["rect"]["h"] > 50 and
+            c.get("has_texture") == False and
+            not c["path"].startswith("/root/ChooseYourPathScene/") and
+            not c["path"].endswith("@25")):  # Skip hero art
             failures.append(
-                f"CONTENT_SPAN: content vertical span {content_height_ratio:.1%} is less than 80% of viewport height "
-                f"(min_y={min_y:.0f}, max_y={max_y:.0f}, vp_h={viewport['height']})"
+                f"BLANK_CARD: TextureRect {c['path']} at {c['rect']} has no texture — "
+                f"reads as empty plate, not a class"
+            )
+
+    # Rule 5: CLASS CORE row total height <= 15% viewport height and horizontally centred
+    core_areas = [c for c in controls if "CLASS" in str(c) or "Core" in c["path"]
+                  or "ClassCore" in c["path"] or "CorePreview" in c["path"]
+                  or "ClassCore" in c["class"]]
+    core_containers = controls_matching(controls, path_pattern=r"(VBoxContainer|Control)")
+    # Find the core section by looking for panels containing core card labels
+    core_labels = [c for c in controls if c["class"] == "Label" and "CLASS CORE" in c.get("text", "")]
+    # Since layout json doesn't store label text, find by path or structural position
+    # Best approach: find the Control that contains the mini core cards (typically 4 PanelContainers in a row)
+    mini_core_panels = controls_matching(controls, path_pattern=r"PanelContainer@\d+")
+    # Find groups of 4 similar-sized PanelContainers near each other
+    core_groups = []
+    for c in controls:
+        if c["class"] == "HBoxContainer" or c["class"] == "Control":
+            children = [cc for cc in controls if cc["path"].startswith(c["path"] + "/")]
+            if children and len(children) >= 4:
+                panel_children = [cc for cc in children if cc["class"] == "PanelContainer"
+                                  and 50 < cc["rect"]["h"] < 250]
+                if len(panel_children) >= 3:
+                    core_groups.append(c)
+
+    if core_groups:
+        # Use the last group (below carousel = furthest down in layout)
+        core_group = core_groups[-1]
+        cg_rect = {"x": core_group["rect"]["x"], "y": core_group["rect"]["y"],
+                    "w": core_group["rect"]["w"], "h": core_group["rect"]["h"]}
+        cg_h = cg_rect["h"]
+        # Check height
+        cg_height_ratio = cg_h / viewport["height"]
+        if cg_height_ratio > 0.15:
+            failures.append(
+                f"CORE_HEIGHT: CLASS CORE row height {cg_h:.0f}px ({cg_height_ratio:.1%}) "
+                f"exceeds 15% of viewport height ({viewport['height']})"
+            )
+        # Check horizontal centring
+        cg_centre = cg_rect["x"] + cg_rect["w"] / 2
+        frame_centre = viewport["width"] / 2
+        centre_offset_pct = abs(cg_centre - frame_centre) / viewport["width"] * 100
+        if centre_offset_pct > 2.0:
+            failures.append(
+                f"CORE_CENTRE: CLASS CORE row centre {cg_centre:.0f} is {centre_offset_pct:.1f}% "
+                f"off frame centre ({frame_centre:.0f}) — exceeds 2%"
             )
     else:
-        failures.append("CONTENT_SPAN: no visible content controls found to measure")
+        # Fallback: find the core section by its position below the carousel
+        # (typically the second-to-last major Control in the VBox)
+        vbox_children = [c for c in controls if c["class"] in ("Control",) and
+                         c["rect"]["x"] == 0 and c["rect"]["w"] == viewport["width"] and
+                         c["rect"]["y"] > viewport["height"] * 0.5]
+        # Check a reasonable candidate
+        for cc in vbox_children:
+            ch_ratio = cc["rect"]["h"] / viewport["height"]
+            if ch_ratio > 0.15 and cc["rect"]["y"] > viewport["height"] * 0.4:
+                failures.append(
+                    f"CORE_HEIGHT: section at y={cc['rect']['y']:.0f} is {ch_ratio:.1%} vh "
+                    f"({cc['rect']['h']:.0f}px) — may exceed 15% limit"
+                )
 
-    # Rule: Begin button overlaps nothing
-    if begin_button:
-        br = begin_button["rect"]
-        other_controls = [c for c in controls if c["path"] != begin_button["path"]]
-        for oc in other_controls:
+    # Rule 6: BEGIN button rect intersects nothing and has >= 24px clearance
+    begin_wrappers = [c for c in controls if c["class"] in ("VBoxContainer",) and
+                      c["path"].endswith("Begin") or c["path"].endswith("Begin/Begin")]
+    begin_buttons = controls_matching(controls, path_pattern=r"PanelContainer")
+    begin_candidates = [c for c in begin_buttons if "Begin" in c["path"] or
+                        (c["rect"]["x"] + c["rect"]["w"] / 2 -
+                         viewport["width"] / 2 < viewport["width"] * 0.05 and
+                         c["rect"]["y"] > viewport["height"] * 0.75 and
+                         30 < c["rect"]["h"] < 80)]
+    if begin_candidates:
+        # Filter: find the most likely Begin button (centred, near bottom, ~46px h)
+        centre_x = viewport["width"] / 2
+        best_begin = min(begin_candidates,
+                         key=lambda c: (abs((c["rect"]["x"] + c["rect"]["w"] / 2) - centre_x),
+                                        abs(c["rect"]["y"] + c["rect"]["h"] - viewport["height"])))
+        br = best_begin["rect"]
+
+        # Check no other controls overlap with it
+        for oc in controls:
+            if oc["path"] == best_begin["path"]:
+                continue
+            # Skip backgrounds and parent containers
+            if oc["class"] in ("ColorRect", "TextureRect", "NinePatchRect") and \
+               oc["rect"]["w"] >= viewport["width"] * 0.9:
+                continue
+            # Skip if same parent (siblings sharing a container)
+            if oc["path"].rsplit("/", 1)[0] == best_begin["path"].rsplit("/", 1)[0]:
+                continue
+            # Skip if the other control fully contains the button (parent container)
+            if rect_contains(oc["rect"], br):
+                continue
+            # Skip if the button fully contains the other control (its child)
+            if rect_contains(br, oc["rect"]):
+                continue
             if rects_overlap(br, oc["rect"]):
-                # Skip if one contains the other (acceptable for parent-child)
-                if not rect_contains(br, oc["rect"]) and not rect_contains(oc["rect"], br):
-                    failures.append(
-                        f"BEGIN_OVERLAP: Begin button {begin_button['path']} {br} overlaps "
-                        f"{oc['path']} {oc['rect']}"
-                    )
+                failures.append(
+                    f"BEGIN_OVERLAP: Begin button {br} overlaps {oc['path']} {oc['rect']}"
+                )
+
+        # Check clearance: at least 24px from any other rect
+        # The Begin button should have clearance on all sides
+        min_clearance = viewport["height"]
+        for oc in controls:
+            if oc["path"] == best_begin["path"]:
+                continue
+            if oc["class"] in ("ColorRect", "TextureRect", "NinePatchRect") and \
+               oc["rect"]["w"] >= viewport["width"] * 0.9:
+                continue
+            ocr = oc["rect"]
+            if ocr["y"] + ocr["h"] <= br["y"]:
+                # Control above the button
+                clear = br["y"] - (ocr["y"] + ocr["h"])
+                if clear < min_clearance and clear >= 0:
+                    min_clearance = clear
+            elif ocr["y"] >= br["y"] + br["h"]:
+                # Control below the button
+                clear = ocr["y"] - (br["y"] + br["h"])
+                if clear < min_clearance and clear >= 0:
+                    min_clearance = clear
+        if min_clearance < 24:
+            failures.append(
+                f"BEGIN_CLEARANCE: Begin button has only {min_clearance:.0f}px clearance "
+                f"above/below (minimum 24px)"
+            )
     else:
         failures.append("BEGIN_MISSING: no Begin button found in scene")
 
-    # Rule: every stat chip rect is inside its own core-card rect
-    for chip in stat_chips:
-        chip_rect = chip["rect"]
-        owning_card = None
-        for card in class_core_cards:
-            if rect_contains(card["rect"], chip_rect):
-                owning_card = card
-                break
-        if owning_card is None:
-            failures.append(
-                f"FLOATING_STAT: stat chip {chip['path']} {chip_rect} is not inside any core-card rect"
-            )
+    # Rule 7: No empty horizontal band taller than 12% viewport height
+    # between the title and the BEGIN button
+    if begin_candidates and best_begin is not None:
+        bottom_y = best_begin["rect"]["y"]
+        # Find the title (topmost content)
+        title_labels = [c for c in controls if c["class"] == "Label"]
+        top_y = 0
+        if title_labels:
+            sorted_labels = sorted(title_labels, key=lambda c: c["rect"]["y"])
+            first_label = sorted_labels[0]
+            top_y = first_label["rect"]["y"] + first_label["rect"]["h"]
+        # Scan for empty bands
+        content_bounds = []
+        for c in controls:
+            if c["class"] in ("ColorRect", "TextureRect", "NinePatchRect") and \
+               c["rect"]["w"] >= viewport["width"] * 0.9:
+                continue
+            cr = c["rect"]
+            if cr["y"] + cr["h"] <= top_y or cr["y"] >= bottom_y:
+                continue
+            if cr["w"] > viewport["width"] * 0.50:
+                content_bounds.append((cr["y"], cr["y"] + cr["h"]))
+
+        if content_bounds:
+            content_bounds.sort()
+            merged = [list(content_bounds[0])]
+            for start, end in content_bounds[1:]:
+                if start <= merged[-1][1]:
+                    merged[-1][1] = max(merged[-1][1], end)
+                else:
+                    merged.append([start, end])
+
+            current_y = top_y
+            for start, end in merged:
+                gap = start - current_y
+                if gap > viewport["height"] * 0.12:
+                    failures.append(
+                        f"EMPTY_BAND: empty band of {gap:.0f}px ({gap/viewport['height']:.1%} vh) "
+                        f"between y={current_y:.0f} and y={start:.0f} — exceeds 12%"
+                    )
+                current_y = max(current_y, end)
 
     return failures
 

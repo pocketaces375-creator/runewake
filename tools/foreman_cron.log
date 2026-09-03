@@ -10455,3 +10455,20 @@ Already up to date.
 tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
 foreman already running (PID 386110) — exiting
 foreman already running (PID 702294) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 4/48 (4 full + 0 bus, 8/96 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-CHOOSEPATH-LAYOUT-3
+
+=== Running: TASK-CHOOSEPATH-LAYOUT-3 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 1633566) — exiting
