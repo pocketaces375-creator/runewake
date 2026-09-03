@@ -43,7 +43,7 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
-DAILY_BUDGET=48
+DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-96}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/.local/bin/godot}"
 # Python interpreter for the pipeline test gate — MUST be the env with pipeline deps
@@ -57,7 +57,7 @@ BUS_OUT="${BUS_DIR}/hermes_to_claude.md"
 BUS_TIMEOUT="${FOREMAN_BUS_TIMEOUT:-900}"  # 15 min
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
-STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
+STATE_FILE="${FOREMAN_STATE_FILE:-${PROJECT_DIR}/tools/foreman_state.json}"
 QUEUE_FILE="${PROJECT_DIR}/TASKS_QUEUE.md"
 CAPTURE_DIR="${PROJECT_DIR}/artifacts/captures"
 LAST_RUN_LOG="${PROJECT_DIR}/tools/foreman_last_run.log"
@@ -65,7 +65,7 @@ LAST_RUN_LOG="${PROJECT_DIR}/tools/foreman_last_run.log"
 HERMES_BIN="${HOME}/.local/bin/hermes"
 
 # PID-based lock (avoids FD inheritance into compiler daemons)
-LOCK_PID_FILE="/tmp/runewake_foreman.pid"
+LOCK_PID_FILE="${FOREMAN_LOCK_FILE:-/tmp/runewake_foreman.pid}"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -173,6 +173,10 @@ for i, line in enumerate(lines):
         m = re.match(r'^\s*-\s*\[\s*\]\s*(TASK-\S+)\s*[—–-]?\s*(.*)', line)
         if m:
             task_id = m.group(1)
+            _inc = '${FOREMAN_LANE_INCLUDE:-}'
+            _exc = '${FOREMAN_LANE_EXCLUDE:-}'
+            if _inc and not re.search(_inc, task_id): continue
+            if _exc and re.search(_exc, task_id): continue
             desc = m.group(2).strip()
             # Collect continuation lines: indented lines following the header,
             # up to the next blank line or the next '- [' task marker.
@@ -474,7 +478,7 @@ VALIDATED_COUNT=${VALIDATED_COUNT:-0}
 if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
   # Telemetry: log yesterday's activity to HERMES_STATUS.md
   if [[ -n "${STATE_DATE}" ]] && [[ "${STATE_DATE}" != "null" ]] && [[ "${SESSION_COUNT}" -gt 0 || "${BUS_SESSION_COUNT}" -gt 0 ]]; then
-    echo "- ${TODAY}: TEMPO — ${SESSION_COUNT} sessions yesterday, ${VALIDATED_COUNT} validated." >> "${PROJECT_DIR}/HERMES_STATUS.md"
+    echo "- ${TODAY}: TEMPO — ${SESSION_COUNT} sessions yesterday, ${VALIDATED_COUNT} validated." >> "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
   fi
   set_state "date" "'"${TODAY}"'"
   set_state "session_count" 0
@@ -543,10 +547,10 @@ tid,p=sys.argv[1],sys.argv[2]
 s=open(p).read()
 open(p,'w').write(re.sub(r'^- \[ \] '+re.escape(tid)+r'','- [!] '+tid,s,count=1,flags=re.M))
 PYPARK
-  echo "- $(today): PARKED ${TASK_ID} — failed 2 attempts, auto-parked by foreman; awaiting Fable." >> "${PROJECT_DIR}/HERMES_STATUS.md"
+  echo "- $(today): PARKED ${TASK_ID} — failed 2 attempts, auto-parked by foreman; awaiting Fable." >> "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
   git -C "${PROJECT_DIR}" add TASKS_QUEUE.md HERMES_STATUS.md 2>/dev/null || true
   git -C "${PROJECT_DIR}" -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "foreman: park ${TASK_ID} after 2 failed attempts, advancing to next task" 2>/dev/null || true
-  git -C "${PROJECT_DIR}" push -q origin main 2>/dev/null || true
+  bash tools/git_push_locked.sh 2>/dev/null || true
   telegram_text "Parked ${TASK_ID} after 2 tries — moving to the next task."
   set_state "retry_count" 0
   set_state "retry_task_id" "\"\""
@@ -757,9 +761,8 @@ if [[ "${VALIDATION_FAILED}" -eq 0 ]]; then
 
   # Mandatory cool-down after every 3 consecutive successes
   if [[ "${CONSECUTIVE_SUCCESSES}" -ge 3 ]]; then
-    warn "3 consecutive successes — 5-min cool-down (Claude review window)"
-    telegram_text "3 tasks done back-to-back — 5-min cool-down, then resume"
-    sleep 300
+    warn "3 consecutive successes — 30s breather"
+    sleep 30
     CONSECUTIVE_SUCCESSES=0
     ok "Cool-down over — resuming chain"
   fi

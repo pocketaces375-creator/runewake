@@ -182,16 +182,16 @@ git add -A
 git diff --cached --quiet || git commit -m "${TASK_ID}: ${SUMMARY}"
 
 # Push code commit
-git push 2>&1 || true
+bash "${PROJECT_DIR}/tools/git_push_locked.sh" 2>&1 || true
 
 # Append DONE entry to HERMES_STATUS.md
 DONE_LINE="| ${TASK_ID} | $(date '+%Y-%m-%d') | ${SUMMARY} | DONE |"
-if [[ -f "${PROJECT_DIR}/HERMES_STATUS.md" ]]; then
-  sed -i "1i ${DONE_LINE}" "${PROJECT_DIR}/HERMES_STATUS.md"
+if [[ -f "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}" ]]; then
+  sed -i "1i ${DONE_LINE}" "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
 else
-  echo "${DONE_LINE}" > "${PROJECT_DIR}/HERMES_STATUS.md"
+  echo "${DONE_LINE}" > "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
 fi
-git add "${PROJECT_DIR}/HERMES_STATUS.md"
+git add "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
 
 # Flip checkbox in TASKS_QUEUE.md
 sed -i "0,/^- \[ \] ${TASK_ID}/{s/^- \[ \] ${TASK_ID}/- [x] ${TASK_ID}/}" "${PROJECT_DIR}/TASKS_QUEUE.md"
@@ -199,7 +199,7 @@ git add "${PROJECT_DIR}/TASKS_QUEUE.md"
 
 # Commit status update
 git commit -m "${TASK_ID}: mark [x] + DONE entry" 2>/dev/null || true
-git push 2>&1 || true
+bash "${PROJECT_DIR}/tools/git_push_locked.sh" 2>&1 || true
 
 ok "Task ${TASK_ID} complete!"
 echo "═══════════════════════════════════════"
