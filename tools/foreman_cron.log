@@ -10472,3 +10472,74 @@ Already up to date.
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
 foreman already running (PID 1633566) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 7/48 (7 full + 0 bus, 14/96 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-BOARD-DEVICE-1
+
+=== Running: TASK-BOARD-DEVICE-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+  Hermes session completed
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+I reached the iteration limit and couldn't generate a summary.
+
+=== Running finish_task.sh ===
+
+═══ finish_task.sh: TASK-BOARD-DEVICE-1 ═══
+  Summary: Two things Trikzos sees on his phone that our captures don't. (1) Hand stat chips are clipped off the bottom edge on device (his screenshot). The hand tuck must respect DisplayServer.GetDisplaySafeArea(): the chips' rects stay fully inside the safe area with at least 8px margin. Add a DebugCapture flag that simulates an Android-style safe-area inset (e.g. bottom 48px, top 32px) and capture with it as duel_test_safe.png; ui_lint checks that capture too. (2) Artifact slots read as empty dark boxes because the 128px icons are dark-on-dark. Show the artifact's real card art (the same .webp the Reliquary uses) in the slot thumbnail with the teal rim, on a slightly lighter backing plate, so the slot is obviously occupied. Add a lint rule: an occupied slot's mean luminance differs from an empty slot's by a clear margin. Acceptance: ui_lint passes on duel_test, duel_test_wide and duel_test_safe; post the safe- area capture with one sentence.
+
+── Step 1: dotnet build (Debug) ──
+  ✅ Build succeeded
+
+── Step 2: Unit tests ──
+  One failure — retrying...
+  ✅ All tests passed (on retry)
+
+── Step 3: Diff check for client/engine changes ──
+  No diff to origin/main found (same commit or detached) — skipping capture regen
+
+── Step 4: Blob check ──
+  Skipped (no captures regenerated)
+
+── Step 5: ui_lint ──
+/home/fictive/runewake/tools/finish_task.sh: line 147: syntax error near unexpected token `else'
+  Attempt 2 failed for TASK-BOARD-DEVICE-1 (finish_task.sh)
+[main 45d435a] foreman: state after TASK-BOARD-DEVICE-1 (blocked)
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+  No progress: same task TASK-BOARD-DEVICE-1 still top — 1/3
+  Chain ends — TASK-BOARD-DEVICE-1 blocked
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 8/48 (8 full + 0 bus, 16/96 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-BOARD-DEVICE-1
+  Parking TASK-BOARD-DEVICE-1 after 2 attempts — advancing to next task
+
+=== Iteration 2 — chain mode ===
+
+Already up to date.
+  Budget: 8/48 (8 full + 0 bus, 16/96 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-BOARD-DEVICE-1
+
+=== Running: TASK-BOARD-DEVICE-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s

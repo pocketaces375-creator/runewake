@@ -114,6 +114,12 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugAlignMode = true;
                 GD.Print("[DebugCapture] Align capture mode enabled: --capture=duel_test_align");
             }
+            if (arg == "--capture=duel_test_safe")
+            {
+                _active = true;
+                CampaignContext.DebugSafeAreaMode = true;
+                GD.Print("[DebugCapture] Safe-area capture mode enabled: --capture=duel_test_safe");
+            }
             if (arg == "--capture=duel_test_r2")
             {
                 _active = true;
@@ -735,6 +741,17 @@ public partial class DebugCapture : Node
         var vp = root.GetViewport();
         var vpSize = vp != null ? vp.GetVisibleRect().Size : Vector2.Zero;
         var safeArea = DisplayServer.GetDisplaySafeArea();
+        // BOARD-DEVICE-1: Override safe area in layout JSON when simulating Android insets
+        if (CampaignContext.DebugSafeAreaMode)
+        {
+            float simulatedSafeBottom = vpSize.Y - 48f;
+            safeArea = new Rect2I(0, 32, (int)vpSize.X, (int)(simulatedSafeBottom - 32f));
+        }
+        else
+        {
+            // On headless the safe area may be smaller than the viewport — use viewport bounds
+            safeArea = new Rect2I(0, 0, (int)vpSize.X, (int)vpSize.Y);
+        }
 
         var data = new System.Collections.Generic.Dictionary<string, object>
         {
@@ -843,6 +860,17 @@ public partial class DebugCapture : Node
             var viewport = rootNode.GetViewport();
             var vpSize = viewport.GetVisibleRect().Size;
             var safeArea = DisplayServer.GetDisplaySafeArea();
+            // BOARD-DEVICE-1: Override safe area in layout JSON when simulating Android insets
+            if (CampaignContext.DebugSafeAreaMode)
+            {
+                float simulatedSafeBottom = vpSize.Y - 48f;
+                safeArea = new Rect2I(0, 32, (int)vpSize.X, (int)(simulatedSafeBottom - 32f));
+            }
+            else
+            {
+                // On headless the safe area may be smaller than the viewport — use viewport bounds
+                safeArea = new Rect2I(0, 0, (int)vpSize.X, (int)vpSize.Y);
+            }
             var captureDir = "/home/fictive/runewake/artifacts/captures";
             System.IO.Directory.CreateDirectory(captureDir);
             var layoutPath = System.IO.Path.Combine(captureDir, $"{captureName}.layout.json");

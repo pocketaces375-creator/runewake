@@ -157,7 +157,7 @@ public static class ThemeTokens
     /// <summary>Artifact inner border highlight — brighter teal-gold</summary>
     public static readonly Color ArtifactFrameInner = Color.FromHtml("#7AB8A8");
     /// <summary>Artifact fill inside the teal-gold border</summary>
-    public static readonly Color ArtifactFrameFill = Color.FromHtml("#1E2420");
+    public static readonly Color ArtifactFrameFill = Color.FromHtml("#363E38");
     /// <summary>ARTIFACT tag text color</summary>
     public static readonly Color ArtifactTagColor = Color.FromHtml("#6AAAAA");
     /// <summary>Suppressed art overlay — ashen desaturated tint</summary>

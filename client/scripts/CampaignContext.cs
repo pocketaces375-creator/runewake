@@ -157,6 +157,11 @@ public static class CampaignContext
     /// Set by --capture=duel_test_wide CLI arg via DebugCapture.</summary>
     public static bool WideCaptureMode { get; set; }
 
+    /// <summary>Test hook: simulate Android safe-area insets (bottom 48px, top 32px) for
+    /// hand-position and layout checks. Set by --capture=duel_test_safe CLI arg via DebugCapture.
+    /// When true, GetDisplaySafeArea() returns simulated insets instead of the headless defaults.</summary>
+    public static bool DebugSafeAreaMode { get; set; }
+
     /// <summary>Test hook: capture duel with visible slot outlines over the plate (no cards).
     /// Set by --capture=duel_test_align CLI arg via DebugCapture.</summary>
     public static bool DebugAlignMode { get; set; }

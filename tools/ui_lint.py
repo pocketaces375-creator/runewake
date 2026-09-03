@@ -10,6 +10,12 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
 CAPTURE_DIR = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
 
 
@@ -253,6 +259,9 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
             failures.append(
                 f"ARTIFACT_TEXTURE: artifact slot {aslot['path']} has no TextureRect child"
             )
+
+    # BOARD-DEVICE-1: Occupied slot luminance check
+    failures.extend(check_artifact_luminance(controls, capture_name))
 
     return failures
 
@@ -675,8 +684,87 @@ def check_empty_body(controls: list[dict], viewport: dict) -> tuple[list[str], l
 
     return failures, warnings
 
+
+def check_artifact_luminance(controls: list[dict], capture_name: str) -> list[str]:
+    """ARTIFACT_LUMINANCE rule: an occupied artifact slot's mean pixel luminance
+    must differ clearly from an empty slot's — ensuring the lighter backing plate
+    makes the art visible. Samples the PNG capture pixel region of each artifact slot.
+    """
+    failures = []
+    if not HAS_PIL:
+        # Can't check luminance without PIL — skip silently if tests were to check
+        return failures
+
+    png_path = CAPTURE_DIR / f"{capture_name}.png"
+    if not png_path.exists():
+        return failures  # No PNG to sample
+
+    try:
+        img = Image.open(png_path).convert("RGB")
+    except Exception as e:
+        failures.append(f"ARTIFACT_LUMINANCE: failed to open {png_path}: {e}")
+        return failures
+
+    # Find artifact slots — PanelContainers with ArtPlate in their child paths
+    slot_panels = [c for c in controls if c["class"] == "PanelContainer" and
+                   any("ArtPlate" in child["path"] for child in controls
+                       if child["path"].startswith(c["path"] + "/"))]
+
+    if not slot_panels:
+        return failures  # No artifact slots found
+
+    for panel in slot_panels:
+        pr = panel["rect"]
+        x, y, w, h = int(pr["x"]), int(pr["y"]), int(pr["w"]), int(pr["h"])
+        if w <= 0 or h <= 0:
+            continue
+        # Clamp to image bounds
+        x = max(0, min(x, img.width - 1))
+        y = max(0, min(y, img.height - 1))
+        w = min(w, img.width - x)
+        h = min(h, img.height - y)
+        if w <= 0 or h <= 0:
+            continue
+
+        # Sample center 60% of the slot to avoid border pixels
+        cx, cy = x + w // 2, y + h // 2
+        sw = max(1, w // 3)
+        sh = max(1, h // 3)
+        sample_region = img.crop((cx - sw // 2, cy - sh // 2, cx + sw // 2, cy + sh // 2))
+        pixels = list(sample_region.getdata())
+        if not pixels:
+            continue
+
+        # Compute mean luminance (ITU-R BT.601)
+        lum = sum(0.299 * r + 0.587 * g + 0.114 * b for r, g, b in pixels) / len(pixels)
+
+        # Check if this slot has an occupied art TextureRect
+        # (specifically the ArtPlate's texture, not RootBoundBorder slices)
+        tex_children = [c for c in controls if
+                        c["path"].startswith(panel["path"] + "/") and
+                        c["class"] == "TextureRect" and
+                        c.get("has_texture", False) and
+                        "ArtPlate" in c["path"]]
+
+        # Check if slot has an art plate with Setup done (name != "—" implies real artifact)
+        plate_children = [c for c in controls if
+                          c["path"].startswith(panel["path"] + "/") and
+                          "ArtPlate" in c["path"]]
+        has_real_artifact = bool(tex_children)  # has texture = occupied
+
+        if has_real_artifact:
+            # Occupied slot: mean luminance should be >= 22 (lighter backing plate + art)
+            # Old ArtifactFrameFill (#1E2420) gives ~14; new (#363E38) gives ~27
+            LUMINANCE_MIN_OCCUPIED = 18.0
+            if lum < LUMINANCE_MIN_OCCUPIED:
+                failures.append(
+                    f"ARTIFACT_LUMINANCE: occupied slot {panel['path']} at {pr} "
+                    f"has mean luminance {lum:.1f} — below {LUMINANCE_MIN_OCCUPIED:.0f} minimum, "
+                    f"reads as empty dark box"
+                )
+
+    return failures
 def main():
-    failures_global = []
     seen_basenames = []
     passed = 0
     failed = 0

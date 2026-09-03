@@ -71,21 +71,21 @@ WIDE_RC=$?
 capture_one "_r2" 2316 1080
 R2_RC=$?
 
+# 4. Safe-area simulation capture (Android-style insets: bottom 48px, top 32px)
+# BOARD-DEVICE-1: simulate device safe-area and capture hand-tuck verification
+capture_one "_safe" 2316 1080
+SAFE_RC=$?
+
 # Restore to standard viewport
 sed -i "s/^window\/size\/viewport_width=.*/window\/size\/viewport_width=2316/" "$PROJECT_GODOT"
 sed -i "s/^window\/size\/viewport_height=.*/window\/size\/viewport_height=1080/" "$PROJECT_GODOT"
 
-echo "=== Triple capture results ==="
+echo "=== Quad capture results ==="
 echo "Standard: $([ $STD_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
 echo "Wide:     $([ $WIDE_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
-echo "R2:      $([ $R2_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
-
-if [ $STD_RC -eq 0 ] && [ $WIDE_RC -eq 0 ] && [ $R2_RC -eq 0 ]; then
-    echo "All three captures PASSED"
-else
-    echo "Capture failed" >&2
-    exit 1
-fi
+echo "R2:       $([ $R2_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
+echo "Safe:     $([ $SAFE_RC -eq 0 ] && echo 'PASS' || echo 'FAIL')"
+exit $(( STD_RC | WIDE_RC | R2_RC | SAFE_RC ))
 
 # ─── Audio verification gate ───
 echo ""

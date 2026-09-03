@@ -77,7 +77,7 @@ public partial class ArtifactCardPlate : Control
             _artBg = new ColorRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
-                Color = new Color(0.15f, 0.12f, 0.10f, 1.0f) // dark parchment
+                Color = new Color(0.24f, 0.20f, 0.18f, 1.0f) // warm stone backing (lighter than original 0.15/0.12/0.10 for better art contrast)
             };
             _artBg.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_artBg);

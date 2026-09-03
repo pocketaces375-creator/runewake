@@ -552,6 +552,8 @@ public partial class DuelScene : Control
                     string captureSuffix;
                     if (CampaignContext.DebugAlignMode)
                         captureSuffix = "_align";
+                    else if (CampaignContext.DebugSafeAreaMode)
+                        captureSuffix = "_safe";
                     else if (CampaignContext.WideCaptureMode)
                         captureSuffix = "_wide";
                     else if (CampaignContext.R2CardScale)
@@ -1720,8 +1722,22 @@ public partial class DuelScene : Control
         }
 
         // BOARD-MATCH-1: Hand tray bottom-edge tucked into frame
-        // Hand top = viewport height - handCardHeight - 6px (less gap = tucked in)
-        _handArea.OffsetTop = -(_handCardHeight + 6f);
+        // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
+        var safeArea = DisplayServer.GetDisplaySafeArea();
+        float vh = GetViewportRect().Size.Y;
+        if (CampaignContext.DebugSafeAreaMode)
+        {
+            // Simulate Android-style safe-area inset: bottom 48px, top 32px
+            float simulatedSafeBottom = vh - 48f;
+            safeArea = new Rect2I(0, 32, (int)safeArea.Size.X, (int)(simulatedSafeBottom - 32f));
+        }
+        float safeAreaBottom = safeArea.Position.Y + safeArea.Size.Y;
+        // Chips are at the bottom edge of hand cards. Hand bottom must be <= safeAreaBottom - 8.
+        // Current: hand bottom = vh + OffsetTop + handCardHeight = 6px from vh bottom = tucked in
+        // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
+        float safeMargin = vh - safeAreaBottom;
+        float bottomGap = Mathf.Max(6f, safeMargin + 8f);
+        _handArea.OffsetTop = -(_handCardHeight + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
         float marginLeft = Mathf.Max(180f, 180f * scale);
@@ -1836,12 +1852,22 @@ public partial class DuelScene : Control
         GD.Print($"[DUEL] WORLD-POLISH-1: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
 
         // BOARD-MATCH-1: Hand anchored to viewport bottom, tighter tuck
+        // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
         float vhPop = GetViewportRect().Size.Y;
         float scalePop = vhPop / 1080f;
         float handCardHPop = Mathf.Max(140f, 340f * scalePop); // Hand larger than board cards
-        float handTopPop = vhPop - handCardHPop - 6f; // Tucked into bottom edge
+        var saPop = DisplayServer.GetDisplaySafeArea();
+        if (CampaignContext.DebugSafeAreaMode)
+        {
+            float simSafeBottomPop = vhPop - 48f;
+            saPop = new Rect2I(0, 32, (int)saPop.Size.X, (int)(simSafeBottomPop - 32f));
+        }
+        float saBottomPop = saPop.Position.Y + saPop.Size.Y;
+        float safeMarginPop = vhPop - saBottomPop;
+        float bottomGapPop = Mathf.Max(6f, safeMarginPop + 8f);
+        float handTopPop = vhPop - handCardHPop - bottomGapPop;
         _handArea.OffsetTop = -(vhPop - handTopPop);
-        GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}");
+        GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}, safe-area-bottom-margin={safeMarginPop:F0}");
 
         // [VERIFY] Band layout — DUELRES-1: enemy 100..412, player 448..740, gap 13px at design
         bool verifyFailed = false;
