@@ -296,10 +296,12 @@
 
 - [x] TASK-TESTS-GREEN-1 — Restore Region 1 hand-built files, guard region_gen.py with --force, test_region_gen.py uses tempdir, timeout 600 on headless launches, full test suite green (790/790)
 
-- [ ] TASK-TEST-ONE — First test task
-  This is a continuation line that goes with the first task
-- [ ] TASK-TEST-TWO — Second test task
-  Another continuation line for the second task
+- [ ] TASK-OPS-INBOX-FIX-1 — Fix inbox_apply.sh pure-queue detection, logging, and create progress_ping.sh
+  - inbox_apply.sh: fix pure-queue detection regex (missing backslash, no continuation-line support)
+  - inbox_apply.sh: fix verbatim insert (was indenting with 4 spaces, breaking queue parser)
+  - inbox_apply.sh: log full hermes one-shot output instead of tail -5
+  - progress_ping.sh: new cron script posting progress to Runewake group every 2 hours
+  Acceptance: tools/finish_task.sh exits 0 with this task.
 - [ ] TASK-INPUT-SMOKE-1 — Prove cards are clickable by machine. tools/input_smoke.sh runs the
   client headless into a seeded duel and injects an InputEventScreenTouch press+release (the
   Android event type — Trikzos plays on a phone) at the centre of a hand card's global rect,

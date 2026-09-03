@@ -22,15 +22,12 @@ DAILY_BUDGET=48
 
 # Lock — atomic mkdir with staleness check
 if ! mkdir "${LOCK_FILE}" 2>/dev/null; then
-  # Check if the lock is stale (> 5 minutes old)
   if [[ -d "${LOCK_FILE}" ]]; then
     LOCK_AGE=$(($(date +%s) - $(stat -c '%Y' "${LOCK_FILE}")))
     if [[ "${LOCK_AGE}" -gt 300 ]]; then
       rm -rf "${LOCK_FILE}" 2>/dev/null || true
-      # Retry once
       mkdir "${LOCK_FILE}" 2>/dev/null || exit 0
     else
-      # Lock held — another instance is running
       exit 0
     fi
   else
@@ -42,18 +39,15 @@ trap 'rm -rf "${LOCK_FILE}"' EXIT
 info()  { echo "  $*"; }
 warn()  { echo "  $*"; }
 
-# Today's budget state
 today() { date +%Y-%m-%d; }
 TODAY=$(today)
 
-# Read a field from foreman_state.json
 get_state() {
   python3 -c "import json,sys; d=json.load(open('${STATE_FILE}')); print(d.get('${1}',''));" 2>/dev/null || echo ""
 }
 
 INBOX_DIR="${HOME}/bridge/projects/runewake-export/inbox"
 
-# Exit instantly when inbox is empty
 shopt -s nullglob
 inbox_files=("${INBOX_DIR}"/*.md)
 shopt -u nullglob
@@ -77,12 +71,11 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
 
   # Check if content is pure queue blocks
   # Pure-queue: every non-blank, non-comment line is EITHER a task header
-  # (- [ ] TASK-...) OR a continuation line (starts with whitespace).
+  # (- [ ] TASK-<ID> — <desc>) OR a continuation line (starts with whitespace).
   is_pure_queue=true
   while IFS= read -r line; do
     [[ -z "${line}" ]] && continue
     [[ "${line}" =~ ^[[:space:]]*# ]] && continue
-    # Accept task header lines (- [ ] TASK-<ID> — <desc>) or continuation lines (indented)
     if echo "${line}" | grep -qE '^-\s+\[\s*\]\s+TASK-[A-Z0-9-]+\s+[—–-]'; then
       : # task header — ok
     elif echo "${line}" | grep -qE '^[[:space:]]'; then
@@ -94,7 +87,7 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
   done < "${inbox_file}"
 
   if [[ "${is_pure_queue}" == true ]]; then
-    # Pure queue insert: insert blocks above top unchecked task
+    # Pure queue insert: insert lines above top unchecked task
     info "Fable inbox: inserting queue items from ${base_name}"
     insert_lines=$(grep -v '^[[:space:]]*$' "${inbox_file}" | grep -v '^[[:space:]]*#' | grep -v '# from: fable')
     # Build insert text verbatim (no indentation prefix — queue parser expects
@@ -103,27 +96,31 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
     while IFS= read -r iline; do
       insert_text="${insert_text}${iline}"$'\n'
     done <<< "${insert_lines}"
-    # Find insert position using Python
-    insert_pos=$(python3 -c "
-import re
-with open('${QUEUE_FILE}') as f:
+
+    # Perform the insert via Python (character-accurate, handles UTF-8 multi-byte)
+    insert_result=$(echo "${insert_text}" | python3 -c "
+import re, sys
+queue_file = '${QUEUE_FILE}'
+insert_data = sys.stdin.read()
+with open(queue_file) as f:
     content = f.read()
 idx = content.find('## Queue')
 if idx < 0:
-    exit(1)
+    print('NO_INSERT')
+    sys.exit(0)
 after = content[idx:]
 for i, line in enumerate(after.split('\n')):
     if re.match(r'^\s*-\s*\[\s*\]\s*TASK-', line):
         pos = idx + sum(len(l)+1 for l in after.split('\n')[:i])
-        print(pos)
-        exit(0)
-exit(1)
-" 2>/dev/null || echo "")
-    if [[ -n "${insert_pos}" ]]; then
-      before=$(head -c "${insert_pos}" "${QUEUE_FILE}")
-      after=$(tail -c "+$((insert_pos + 1))" "${QUEUE_FILE}")
-      # Insert verbatim with a blank line before and after (no indentation prefix)
-      printf '%s\n%s\n%s' "${before}" "${insert_text}" "${after}" > "${QUEUE_FILE}"
+        # Insert verbatim with a blank line before and after
+        result = content[:pos] + '\n' + insert_data.rstrip('\n') + '\n' + content[pos:]
+        with open(queue_file, 'w') as f:
+            f.write(result)
+        print('INSERT_OK')
+        sys.exit(0)
+print('NO_INSERT')
+")
+    if [[ "${insert_result}" == "INSERT_OK" ]]; then
       git add "${QUEUE_FILE}"
       git commit -m "FABLE-INBOX: ${base_name}" 2>/dev/null || true
       git push 2>/dev/null || true
@@ -139,7 +136,6 @@ exit(1)
       BUDGET_HALVES=$(( DAILY_BUDGET * 2 ))
 
       if [[ "${STATE_DATE}" != "${TODAY}" ]]; then
-        # Budget resets daily — today is a fresh day, we have budget
         BUDGET_OK=true
       else
         if [[ "${SPENT_HALVES}" -ge "${BUDGET_HALVES}" ]]; then
