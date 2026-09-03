@@ -296,7 +296,7 @@
 
 - [x] TASK-TESTS-GREEN-1 — Restore Region 1 hand-built files, guard region_gen.py with --force, test_region_gen.py uses tempdir, timeout 600 on headless launches, full test suite green (790/790)
 
-- [ ] TASK-OPS-INBOX-FIX-1 — Fix inbox_apply.sh pure-queue detection, logging, and create progress_ping.sh
+- [x] TASK-OPS-INBOX-FIX-1 — Fix inbox_apply.sh pure-queue detection, logging, and create progress_ping.sh
   - inbox_apply.sh: fix pure-queue detection regex (missing backslash, no continuation-line support)
   - inbox_apply.sh: fix verbatim insert (was indenting with 4 spaces, breaking queue parser)
   - inbox_apply.sh: log full hermes one-shot output instead of tail -5
