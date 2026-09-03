@@ -76,11 +76,18 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
   fi
 
   # Check if content is pure queue blocks
+  # Pure-queue: every non-blank, non-comment line is EITHER a task header
+  # (- [ ] TASK-...) OR a continuation line (starts with whitespace).
   is_pure_queue=true
   while IFS= read -r line; do
     [[ -z "${line}" ]] && continue
     [[ "${line}" =~ ^[[:space:]]*# ]] && continue
-    if ! echo "${line}" | grep -qE '^\s*-\s*\[.\]\s*TASK-'; then
+    # Accept task header lines (- [ ] TASK-<ID> — <desc>) or continuation lines (indented)
+    if echo "${line}" | grep -qE '^-\s+\[\s*\]\s+TASK-[A-Z0-9-]+\s+[—–-]'; then
+      : # task header — ok
+    elif echo "${line}" | grep -qE '^[[:space:]]'; then
+      : # starts with whitespace — ok (continuation line)
+    else
       is_pure_queue=false
       break
     fi
@@ -90,12 +97,11 @@ for inbox_file in $(ls "${INBOX_DIR}"/*.md 2>/dev/null | sort); do
     # Pure queue insert: insert blocks above top unchecked task
     info "Fable inbox: inserting queue items from ${base_name}"
     insert_lines=$(grep -v '^[[:space:]]*$' "${inbox_file}" | grep -v '^[[:space:]]*#' | grep -v '# from: fable')
-    # Build indented insert text
-    indented=""
+    # Build insert text verbatim (no indentation prefix — queue parser expects
+    # task headers at column 0, continuation lines indented as-is)
+    insert_text=""
     while IFS= read -r iline; do
-      if [[ -n "${iline}" ]]; then
-        indented="${indented}    ${iline}"$'\n'
-      fi
+      insert_text="${insert_text}${iline}"$'\n'
     done <<< "${insert_lines}"
     # Find insert position using Python
     insert_pos=$(python3 -c "
@@ -116,7 +122,8 @@ exit(1)
     if [[ -n "${insert_pos}" ]]; then
       before=$(head -c "${insert_pos}" "${QUEUE_FILE}")
       after=$(tail -c "+$((insert_pos + 1))" "${QUEUE_FILE}")
-      printf '%s%s\n%s' "${before}" "${indented}" "${after}" > "${QUEUE_FILE}"
+      # Insert verbatim with a blank line before and after (no indentation prefix)
+      printf '%s\n%s\n%s' "${before}" "${insert_text}" "${after}" > "${QUEUE_FILE}"
       git add "${QUEUE_FILE}"
       git commit -m "FABLE-INBOX: ${base_name}" 2>/dev/null || true
       git push 2>/dev/null || true
@@ -161,7 +168,7 @@ exit(1)
   else
     # Free-form instruction — run as one-shot prompt
     info "Fable inbox: executing ${base_name} as one-shot prompt" >> "${LOG_FILE}"
-    "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q 2>&1 | tail -5 >> "${LOG_FILE}" || true
+    "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q >> "${LOG_FILE}" 2>&1 || true
   fi
 
   # Move file to applied/

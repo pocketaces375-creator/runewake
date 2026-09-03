@@ -1,0 +1,150 @@
+  Fable inbox: executing 2026-09-03_0001_tests-green.md as one-shot prompt
+  Fable inbox: executing 2026-09-03_0001_tests-green.md as one-shot prompt
+  Fable inbox: executing 2026-09-03_0001_tests-green.md as one-shot prompt
+2026-09-03 08:57:28 FABLE-INBOX: processed 2026-09-03_0001_tests-green.md (one-shot)
++    exit 0
++else
++    echo "=== Loop Smoke Test FAILED ===" >&2
++    exit 1
++fi
+      | TASK-FINISH-SCRIPT-1 | 2026-09-02 | finish_task.sh created, wired into foreman.sh, CLAUDE.md standing lesson added | DONE |
+ 1|**TASK-REGION-GEN-1 (2026-09-02):** Region generator TOOL — tools/region_gen.py takes a biome spec json and outputs region map, encounter files, and dig site. ✅
+
+session_id: 20260903_085609_545f8c
+TASK-TESTS-GREEN-1 complete. The queue is unblocked — next task is TASK-INPUT-SMOKE-1.
+  Fable inbox: executing 2026-09-03_0002_inbox-fixes-and-ping.md as one-shot prompt
+  Fable inbox: executing 2026-09-03_0002_inbox-fixes-and-ping.md as one-shot prompt
+  ┊ review diff
+a//home/fictive/runewake/tools/inbox_apply.sh → b//home/fictive/runewake/tools/inbox_apply.sh
+@@ -82,10 +82,10 @@
+   while IFS= read -r line; do
+     [[ -z "${line}" ]] && continue
+     [[ "${line}" =~ ^[[:space:]]*# ]] && continue
+-    # Accept task header lines (- [ ] TASK-...) or continuation lines (indented)
+-    if echo "${line}" | grep -qE '^\s*-\s*\[\s*\]\s*TASK-'; then
++    # Accept task header lines (- [ ] TASK-<ID> — <desc>) or continuation lines (indented)
++    if echo "${line}" | grep -qE '^-\s+\[\s*\]\s+TASK-[A-Z0-9-]+\s+[—–-]'; then
+       : # task header — ok
+-    elif echo "${line}" | grep -qE '^\s'; then
++    elif echo "${line}" | grep -qE '^[[:space:]]'; then
+       : # starts with whitespace — ok (continuation line)
+     else
+       is_pure_queue=false
+  ┊ review diff
+a//home/fictive/runewake/tools/inbox_apply.sh → b//home/fictive/runewake/tools/inbox_apply.sh
+@@ -122,8 +122,8 @@
+     if [[ -n "${insert_pos}" ]]; then
+       before=$(head -c "${insert_pos}" "${QUEUE_FILE}")
+       after=$(tail -c "+$((insert_pos + 1))" "${QUEUE_FILE}")
+-      # Insert verbatim with a blank line before (no indentation prefix)
+-      printf '%s\n%s%s' "${before}" "${insert_text}" "${after}" > "${QUEUE_FILE}"
++      # Insert verbatim with a blank line before and after (no indentation prefix)
++      printf '%s\n%s\n%s' "${before}" "${insert_text}" "${after}" > "${QUEUE_FILE}"
+       git add "${QUEUE_FILE}"
+       git commit -m "FABLE-INBOX: ${base_name}" 2>/dev/null || true
+       git push 2>/dev/null || true
+  ┊ review diff
+a//home/fictive/runewake/tools/inbox_apply.sh → b//home/fictive/runewake/tools/inbox_apply.sh
+@@ -168,7 +168,7 @@
+   else
+     # Free-form instruction — run as one-shot prompt
+     info "Fable inbox: executing ${base_name} as one-shot prompt" >> "${LOG_FILE}"
+-    "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q 2>&1 >> "${LOG_FILE}" || true
++    "${HERMES_BIN}" -p tcgbot chat -q "$(cat "${inbox_file}")" -Q >> "${LOG_FILE}" 2>&1 || true
+   fi
+ 
+   # Move file to applied/
+  ┊ review diff
+a/tools/progress_ping.sh → b/tools/progress_ping.sh
+@@ -0,0 +1,113 @@
++#!/usr/bin/env bash
++# tools/progress_ping.sh — Post progress % to Runewake Telegram group
++#
++# Cron: 5 */2 * * *
++# Posts ONE plain message with progress stats.
++#
++# Usage:
++#   bash tools/progress_ping.sh                    # post to Runewake group
++#   bash tools/progress_ping.sh --dry-run          # print to stdout only
++
++set -euo pipefail
++
++PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
++HERMES_BIN="${HOME}/.local/bin/hermes"
++QUEUE_FILE="${PROJECT_DIR}/TASKS_QUEUE.md"
++STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
++PLAYABLE_FILE="${PROJECT_DIR}/artifacts/PLAYABLE.json"
++TELEGRAM_TARGET="telegram:Runewake"
++
++DRY_RUN=false
++if [[ "${1:-}" == "--dry-run" ]]; then
++  DRY_RUN=true
++fi
++
++# Count done and open tasks from TASKS_QUEUE.md
++counts=$(python3 -c "
++import re
++with open('${QUEUE_FILE}') as f:
++    content = f.read()
++done = len(re.findall(r'^- \[x\] TASK-', content, re.MULTILINE))
++open_ = len(re.findall(r'^- \[ \] TASK-', content, re.MULTILINE))
++total = done + open_
++pct = round(done / total * 100) if total > 0 else 0
++print(f'{pct}|{done}|{total}')
++" 2>/dev/null || echo "0|0|0")
++
++PCT=$(echo "${counts}" | cut -d'|' -f1)
++DONE=$(echo "${counts}" | cut -d'|' -f2)
++TOTAL=$(echo "${counts}" | cut -d'|' -f3)
++
++# Find the newest TASK- commit message (plain English)
++newest_commit=$(git -C "${PROJECT_DIR}" log --oneline --grep='^TASK-' -1 2>/dev/null || echo "")
++newest_desc=""
++newest_min_ago=""
++if [[ -n "${newest_commit}" ]]; then
++  newest_desc=$(echo "${newest_commit}" | sed 's/^[a-f0-9]*\s*TASK-[A-Z0-9-]*\s*//')
++  commit_ts=$(git -C "${PROJECT_DIR}" log --format="%at" -1 2>/dev/null || echo "0")
++  now_ts=$(date +%s)
++  newest_min_ago=$(( (now_ts - commit_ts) / 60 ))
++  if [[ "${newest_min_ago}" -lt 1 ]]; then
++    newest_min_ago=1
++  fi
++fi
++
++# Build the message
++msg="Runewake is about ${PCT}% done (${DONE} of ${TOTAL} pieces built)."
++if [[ -n "${newest_desc}" ]]; then
++  msg="${msg} Last finished: ${newest_desc}, ${newest_min_ago} min ago."
++else
++  msg="${msg} No finished tasks yet."
++fi
++
++# Playable check
++if [[ -f "${PLAYABLE_FILE}" ]]; then
++  playable=$(python3 -c "
++import json
++try:
++    d = json.load(open('${PLAYABLE_FILE}'))
++    print(d.get('playable', False))
++except:
++    print('false')
++" 2>/dev/null || echo "false")
++  if [[ "${playable}" == "True" ]] || [[ "${playable}" == "true" ]]; then
++    msg="${msg} Playable end to end: yes."
++  else
++    msg="${msg} Playable end to end: no."
++  fi
++fi
+… omitted 35 diff line(s) across 1 additional file(s)/section(s)
+  ┊ review diff
+a//home/fictive/runewake/tools/progress_ping.sh → b//home/fictive/runewake/tools/progress_ping.sh
+@@ -43,7 +43,7 @@
+ newest_desc=""
+ newest_min_ago=""
+ if [[ -n "${newest_commit}" ]]; then
+-  newest_desc=$(echo "${newest_commit}" | sed 's/^[a-f0-9]*\s*TASK-[A-Z0-9-]*\s*//')
++  newest_desc=$(echo "${newest_commit}" | sed 's/^[a-f0-9]*\s*TASK-[A-Z0-9-]*\s*:\s*//')
+   commit_ts=$(git -C "${PROJECT_DIR}" log --format="%at" -1 2>/dev/null || echo "0")
+   now_ts=$(date +%s)
+   newest_min_ago=$(( (now_ts - commit_ts) / 60 ))
+  Fable inbox: executing 2026-09-03_0002_inbox-fixes-and-ping.md as one-shot prompt

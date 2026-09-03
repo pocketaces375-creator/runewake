@@ -10453,3 +10453,4 @@ Already up to date.
 === Regenerating capture ===
 
 tools/foreman.sh: line 627: NEW_COMMIT_SHA: unbound variable
+foreman already running (PID 386110) — exiting

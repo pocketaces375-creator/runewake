@@ -2969,19 +2969,9 @@ public partial class DuelScene : Control
                         GD.Print("[InputSmokeTest] PASS: Touch lane play — UI flow completed");
                         results.Add("TOUCH_LANE_PLAY:PASS");
 
-                        // Click End Turn via InputEventMouseButton
-                        GD.Print("[InputSmokeTest] Click End Turn via InputEventMouseButton");
-                        var btnDown = new InputEventMouseButton();
-                        btnDown.Position = Vector2.Zero;
-                        btnDown.Pressed = true;
-                        btnDown.ButtonIndex = MouseButton.Left;
-                        _endTurnButton._GuiInput(btnDown);
-
-                        var btnUp = new InputEventMouseButton();
-                        btnUp.Position = Vector2.Zero;
-                        btnUp.Pressed = false;
-                        btnUp.ButtonIndex = MouseButton.Left;
-                        _endTurnButton._GuiInput(btnUp);
+                        // Press End Turn button via its emitted signal
+                        GD.Print("[InputSmokeTest] Click End Turn via EmitSignal(Pressed)");
+                        _endTurnButton.EmitSignal(Button.SignalName.Pressed);
 
                         step = 10;
                         return;
@@ -3115,17 +3105,7 @@ public partial class DuelScene : Control
                         results.Add("MOUSE_LANE_PLAY:PASS");
 
                         GD.Print("[InputSmokeTest] Mouse click End Turn");
-                        var btnDown = new InputEventMouseButton();
-                        btnDown.Position = Vector2.Zero;
-                        btnDown.Pressed = true;
-                        btnDown.ButtonIndex = MouseButton.Left;
-                        _endTurnButton._GuiInput(btnDown);
-
-                        var btnUp = new InputEventMouseButton();
-                        btnUp.Position = Vector2.Zero;
-                        btnUp.Pressed = false;
-                        btnUp.ButtonIndex = MouseButton.Left;
-                        _endTurnButton._GuiInput(btnUp);
+                        _endTurnButton.EmitSignal(Button.SignalName.Pressed);
 
                         step = 7;
                         return;

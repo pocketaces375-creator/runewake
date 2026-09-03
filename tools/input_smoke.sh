@@ -15,6 +15,7 @@ RESULT_FILE="$CAPTURE_DIR/input_smoke_result.json"
 
 mkdir -p "$CAPTURE_DIR"
 rm -f "$RESULT_FILE"
+rm -f "$ROOT/client/artifacts/captures/input_smoke_result.json"
 
 echo "=== Input Smoke Test ==="
 
@@ -29,7 +30,15 @@ timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=input_smoke_tes
 sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "$PROJECT_GODOT"
 sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "$PROJECT_GODOT"
 
-# Check result file
+# Check result file — Godot writes relative to --path client, so it may be in client/artifacts/
+if [ ! -f "$RESULT_FILE" ]; then
+    CLIENT_RESULT="$ROOT/client/artifacts/captures/input_smoke_result.json"
+    if [ -f "$CLIENT_RESULT" ]; then
+        cp "$CLIENT_RESULT" "$RESULT_FILE"
+        echo "  Copied result from client/artifacts/captures/"
+    fi
+fi
+
 if [ ! -f "$RESULT_FILE" ]; then
     echo "FAIL: input_smoke_result.json not produced" >&2
     exit 1
