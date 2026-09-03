@@ -1,3 +1,4 @@
+| TASK-TESTS-GREEN-1 | 2026-09-03 | Restore Region 1 hand-built files, guard region_gen with --force, tempdir for tests, timeout 600 wrapping, full test suite green (790/790) | DONE |
 | TASK-UI-LINT-1 | 2026-09-03 | (a) DumpLayoutJSON writes .layout.json after each DebugCapture frame; (b) tools/ui_lint.py checks safe-area, overlap, mouse_filter, cost/stat position, artifact slot rules; (c) choose_path still fails (expected — TASK-CHOOSEPATH-LAYOUT-2 will fix) | DONE |
      | TASK-FINISH-SCRIPT-1 | 2026-09-02 | finish_task.sh created, wired into foreman.sh, CLAUDE.md standing lesson added | DONE |
 1|**TASK-REGION-GEN-1 (2026-09-02):** Region generator TOOL — tools/region_gen.py takes a biome spec json and outputs region map, encounter files, and dig site. ✅

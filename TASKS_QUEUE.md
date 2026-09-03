@@ -294,6 +294,7 @@
   Acceptance: layout json for every capture committed; ui_lint runs in finish_task.sh; post
   the plain-English list of rules and which currently pass/fail.
 
+- [x] TASK-TESTS-GREEN-1 — Restore Region 1 hand-built files, guard region_gen.py with --force, test_region_gen.py uses tempdir, timeout 600 on headless launches, full test suite green (790/790)
 - [ ] TASK-INPUT-SMOKE-1 — Prove cards are clickable by machine. tools/input_smoke.sh runs the
   client headless into a seeded duel and injects an InputEventScreenTouch press+release (the
   Android event type — Trikzos plays on a phone) at the centre of a hand card's global rect,
