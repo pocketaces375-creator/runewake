@@ -1,9 +1,3 @@
-========================================
-=== foreman: 2026-09-03T14:40:55Z TASK-CHOOSEPATH-LAYOUT-2 retry ===
-Session: 4/48
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 Here's what I've accomplished this session:
 
 **TASK-CHOOSEPATH-LAYOUT-2 — Complete layout rebuild of Choose Your Path screen.**
@@ -47,4 +41,10 @@ TASK-CHOOSEPATH-LAYOUT-3 complete. Here's the summary:
 - EMPTY_BAND: no gap > 12% vh ✓
 
 Captures committed to `artifacts/captures/choose_path.png` and `choose_path_wide.png`.
+========================================
+=== foreman: 2026-09-03T17:50:34Z TASK-OPS-TRIM-1 retry ===
+Session: 6/48
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 ========================================
