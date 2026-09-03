@@ -10,8 +10,8 @@
   "transient_notified": false,
   "bus_last_seq": 4,
   "bus_session_count": 0,
-  "no_progress_count": 0,
+  "no_progress_count": 1,
   "validated_count": 0,
-  "last_heartbeat_epoch": 1788409025,
+  "last_heartbeat_epoch": 1788412626,
   "last_heartbeat_reason": "sticky_block"
 }
