@@ -2751,8 +2751,20 @@ public partial class DuelScene : Control
                 GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
                 if (CampaignContext.SoakActive)
                 {
-                    GD.Print("[BotDuelTest] Soak mode active — game over, letting OnGameOver handle flow");
+                    GD.Print("[BotDuelTest] Soak mode — game over, navigating back to map");
                     t.Stop();
+                    // OnGameOver fires asynchronously on next engine tick, applying rewards and clearing nodes.
+                    // Navigate to map after a short delay to let OnGameOver finish.
+                    var navTimer = new Godot.Timer();
+                    navTimer.OneShot = true;
+                    navTimer.WaitTime = 0.3f;
+                    navTimer.Timeout += () =>
+                    {
+                        if (GodotObject.IsInstanceValid(GetTree()))
+                            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                    };
+                    GetTree().Root.AddChild(navTimer);
+                    navTimer.Start();
                     return;
                 }
                 GetTree().Quit();

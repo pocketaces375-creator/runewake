@@ -61,6 +61,32 @@ public partial class DebugCapture : Node
                 CampaignContext.InputSmokeTest = true;
                 GD.Print("[DebugCapture] Input smoke test enabled: --capture=input_smoke_test");
             }
+            if (arg == "--capture=loop_smoke_test")
+            {
+                // Don't set _active = true — loop smoke test handles everything via
+                // its own autoload and natural scene navigation, not through SetUpTestEncounter.
+                CampaignContext.LoopSmokeTest = true;
+                CampaignContext.BotDuelTest = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Loop smoke test enabled: --capture=loop_smoke_test");
+                // Clear save database for fresh campaign start
+                // Path: ~/.local/share/godot/app_userdata/Runewake/
+                string saveDir = System.IO.Path.Combine(
+                    System.Environment.GetEnvironmentVariable("HOME") ?? "/home/fictive",
+                    ".local", "share", "godot", "app_userdata", "Runewake");
+                if (System.IO.Directory.Exists(saveDir))
+                {
+                    foreach (var f in System.IO.Directory.GetFiles(saveDir, "*.json"))
+                    {
+                        System.IO.File.Delete(f);
+                        GD.Print($"[DebugCapture] Deleted save file: {f}");
+                    }
+                }
+                else
+                {
+                    GD.Print($"[DebugCapture] Save directory not found: {saveDir}");
+                }
+            }
             if (arg == "--capture=bot_duel")
             {
                 _active = true;
