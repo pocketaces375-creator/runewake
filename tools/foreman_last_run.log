@@ -1,10 +1,3 @@
-  TASK-BOARD-DEVICE-1: attempt 1 transient — cleaning dead-session tree litter
-  TASK-BOARD-DEVICE-1: attempt 2/3 — waiting 60s before retry
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-## Status — TASK-BOARD-DEVICE-1: ~95% implemented
-
-I've implemented both items of the task. Here's what's done:
-
 ### (1) Hand stat chips clipped on device ✓
 - Added `SimulatedSafeAreaTop=32`, `SimulatedSafeAreaBottom=48` to `CampaignContext`
 - Added `duel_test_safe` flag in `DebugCapture.cs` and `GetEffectiveSafeArea()` that returns simulated Android safe-area insets when that flag is on
@@ -47,4 +40,11 @@ Done. Here's the summary:
 - `soak_final_map_` — PASS on EMPTY_BODY
 
 **What a player sees now:** The class card portrait fills the card top to bottom, and the class name, blurb, and origin line sit in a compact text block at the bottom with tight padding — no large empty dark space below the text.
+========================================
+=== foreman: 2026-09-03T21:32:53Z TASK-BOARD-DEVICE-1 blocked ===
+Session: 8/48
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+I reached the iteration limit and couldn't generate a summary.
 ========================================
