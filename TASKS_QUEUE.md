@@ -240,7 +240,7 @@
 
 # ---- PHASE C — CONTENT AT SCALE (offline alpha) ----
 
-- [ ] TASK-BALANCE-ADOPT-1 — Adopt first-player compensation using TASK-BALANCE-MIRROR-1's table and this
+- [x] TASK-BALANCE-ADOPT-1 — Adopt first-player compensation using TASK-BALANCE-MIRROR-1's table and this
   rule from Fable: pick the variant whose overall P0 win% is closest to 50 among those with P0 >= 48%; if
   none qualifies, take the one closest to 50 overall; if that winner is within 1.5 points of baseline, adopt
   variant (b) instead. Implement it as the shipped rule (engine, docs/01_GAME_RULES.md, and the tutorial

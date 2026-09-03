@@ -139,8 +139,8 @@ public sealed class GameState
             // Shuffle deck using seeded RNG (Fisher-Yates)
             Shuffle(player.Deck, state.Rng, player.Deck.Count);
 
-            // Deal starting hands: P0 gets 4, P1 gets 5
-            int handSize = p == 0 ? 4 : 5;
+            // Deal starting hands: P0 gets 4, P1 gets 6 (first-player compensation)
+            int handSize = p == 0 ? 4 : 6;
             for (int i = 0; i < handSize && player.Deck.Count > 0; i++)
             {
                 var card = player.Deck[0];

@@ -240,7 +240,7 @@ public class ClientBindingTests
             drawn.Zone = Zone.Hand;
             state.Players[0].Hand.Add(drawn);
         }
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
         {
             var drawn = state.Players[1].Deck[0];
             state.Players[1].Deck.RemoveAt(0);

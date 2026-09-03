@@ -8,8 +8,7 @@ public class TurnLoopTests
 {
     /// <summary>
     /// Creates a GameState with both players having decks of the given size.
-    /// Player 0 gets 4 cards in hand, player 1 gets 5 (per §1 Setup).
-    /// Player 1 starts with +1 Attunement (Second Delver compensation).
+    /// Player 0 gets 4 cards in hand, player 1 gets 6 (Second Delver compensation).
     /// </summary>
     private static GameState CreateGameState(int deckSizePerPlayer = 30)
     {
@@ -30,10 +29,10 @@ public class TurnLoopTests
             }
         }
 
-        // Deal starting hands: P0 gets 4, P1 gets 5
+        // Deal starting hands: P0 gets 4, P1 gets 6
         for (int i = 0; i < 4; i++)
             DrawTopCard(state.Players[0], state);
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 6; i++)
             DrawTopCard(state.Players[1], state);
 
         // Both players start at 0 Attunement — the Attune phase in ApplyEndTurn
@@ -126,7 +125,7 @@ public class TurnLoopTests
         var state = CreateGameState(30);
 
         Assert.Equal(4, state.Players[0].Hand.Count);
-        Assert.Equal(5, state.Players[1].Hand.Count);
+        Assert.Equal(6, state.Players[1].Hand.Count);
 
         // P0's first turn: NO draw (first player skip), hand stays at 4.
         // EndTurn(P0) ends P0's turn and starts P1's turn. This is the test
@@ -142,11 +141,11 @@ public class TurnLoopTests
         Assert.Equal(26, state.Players[0].Deck.Count);
         Assert.Equal(0, state.Players[0].AttunementMax); // no attune yet — first turn starts at 0
 
-        // P1's first turn: attune (1→2), draw 1 → hand 5→6
+        // P1's first turn: attune (1→2), draw 1 → hand 6→7
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
 
-        Assert.Equal(6, state.Players[1].Hand.Count);
-        Assert.Equal(24, state.Players[1].Deck.Count); // 25 - 1 drawn
+        Assert.Equal(7, state.Players[1].Hand.Count);
+        Assert.Equal(23, state.Players[1].Deck.Count); // 24 - 1 drawn
     }
 
     // ——— Fatigue ———
@@ -155,7 +154,7 @@ public class TurnLoopTests
     public void FatigueDamagesOnEmptyDeck()
     {
         // P0: 5 cards — draw 4 starting hand → 1 left
-        // P1: 5 cards — draw 5 starting hand → 0 left
+        // P1: 5 cards — draw 6 starting hand → 0 left (deck exhausted)
         var state = CreateGameState(deckSizePerPlayer: 5);
 
         // EndTurn(P0) ends P0, starts P1 → P1 draws from empty → fatigue 1

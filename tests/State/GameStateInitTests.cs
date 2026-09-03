@@ -98,9 +98,9 @@ public class GameStateInitTests
         var config = MakeConfig(deckSize: 30);
         var state = GameState.Initialize(config);
 
-        // Each player started with 30 cards, dealt 4 (P0) or 5 (P1)
+        // Each player started with 30 cards, dealt 4 (P0) or 6 (P1)
         Assert.Equal(26, state.Players[0].Deck.Count);
-        Assert.Equal(25, state.Players[1].Deck.Count);
+        Assert.Equal(24, state.Players[1].Deck.Count);
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class GameStateInitTests
             var state = GameState.Initialize(config);
 
             int p0Expected = size - 4; // P0 dealt 4
-            int p1Expected = size - 5; // P1 dealt 5
+            int p1Expected = size - 6; // P1 dealt 6
             Assert.Equal(p0Expected, state.Players[0].Deck.Count);
             Assert.Equal(p1Expected, state.Players[1].Deck.Count);
         }
@@ -142,9 +142,9 @@ public class GameStateInitTests
         var config = MakeConfig();
         var state = GameState.Initialize(config);
 
-        // P0 gets 4 (first player), P1 gets 5 (second delver)
+        // P0 gets 4 (first player), P1 gets 6 (second delver compensation)
         Assert.Equal(4, state.Players[0].Hand.Count);
-        Assert.Equal(5, state.Players[1].Hand.Count);
+        Assert.Equal(6, state.Players[1].Hand.Count);
     }
 
     [Fact]

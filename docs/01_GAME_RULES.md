@@ -9,7 +9,7 @@ Design goal: readable on a phone in one thumb-length screen, resolvable by a det
 - Deck: exactly **30 cards**, max **2 copies** of any card, max **1 copy** of any Relic-rarity card.
 - Deck may contain cards from **one or two Strata** (see §2).
 - Each player starts at **25 Vigor** (life).
-- Starting hand: **4 cards**. The player going second draws **5** and starts with **+1 Attunement** on turn one (the "Second Delver" compensation).
+- Starting hand: **4 cards**. The player going second draws **6** (the "Second Delver" compensation: first-player advantage is offset by a larger opening hand).
 - Both players mulligan once: select any subset to shuffle back, redraw the same number.
 
 ## 2. Strata (the five colors)
@@ -110,8 +110,8 @@ These three exist to make the duel feel like digging, and to give the generation
 
 All randomness draws from a single seeded PRNG stored in `GameState.Rng`. Same seed + same action list = same game, always. Every match writes a replay file of `(seed, contentVersion, List<Action>)`. This is how we debug, how we validate PvP later, and how balance simulation stays reproducible.
 
-## 12. Open questions to resolve during P2 playtesting
+## 12. Resolved decisions and remaining open questions
 
+- **[RESOLVED] First-player advantage compensation** — The second player (P1) now draws 6 cards instead of 5. Confirmed by mirror-mismatch study (variant c, P0 winrate 57.3%, down from 63.0% baseline). The original +1 Attunement compensation was retired after testing showed it over-corrected (P0 winrate 19.6%).
 - Is 25 Vigor right, or does 20 make games too fast at 5 lanes? (Sim first, then feel.)
 - Should Guard force lane-attack or be Hearthstone-style global taunt? Current answer: lane-based, as written.
-- Does the second-player +1 Attunement over- or under-correct? Measure win rate over 10k sim games; target 50% ±2%.

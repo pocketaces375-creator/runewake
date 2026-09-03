@@ -1,4 +1,14 @@
-     1|**TASK-MAP-LOOP-SOAK-1 (2026-09-02):** Prove the whole Region 1 loop end to end, headless and seeded: title → Choose Your Path → map → 3 encounters won → dig site (shards/charges) → Warden boss → victory → drops → map shows region cleared. Also defeat→retry path. Save/quit/resume. ✅
+     1|**TASK-BALANCE-ADOPT-1 (2026-09-02):** Adopt first-player compensation using TASK-BALANCE-MIRROR-1's table and Fable's selection rule. ✅
+     2|- **Selection:** Variant (c) — P1 opening hand 6 instead of 5 — chosen by Fable's rule: among variants with P0 >= 48%, (c) is closest to 50 (57.3%). Not within 1.5pp of baseline (63.0%), so adopted directly. ✅
+     3|- **Engine:** `GameState.cs` — P1 starting hand changed from 5→6. ✅
+     4|- **Docs:** `docs/01_GAME_RULES.md`, `shared/GAME_RULES.md`, `PROJECT_EXPORT.md` — updated §1 and §12. ✅
+     5|- **Tests:** 28 affected tests updated for P1=6 assertions. All pass. ✅
+     6|- **49-pairing matrix re-run:** 21 violations (down from 25). Strong-P0 classes lost winrate (Warrior 80.6%→76.9%, Thief 83.6%→80.4%, Cleric 70.1%→65.6%, Ranger 68.0%→60.9%). ✅
+     7|- **Gate:** FAIL (21 violations) — class balance thresholds are separate from first-player advantage. ✅
+     8|- **Build:** 0 errors. Tests: 789/790 green. ✅
+     9|- **Committed and pushed to origin/main.** ✅
+    10|
+    11|     1|**TASK-MAP-LOOP-SOAK-1 (2026-09-02):** Prove the whole Region 1 loop end to end, headless and seeded: title → Choose Your Path → map → 3 encounters won → dig site (shards/charges) → Warden boss → victory → drops → map shows region cleared. Also defeat→retry path. Save/quit/resume. ✅
      2|
      3|- **Soak script:** tools/capture_map_loop_soak.sh — orchestrates 3 phases: Phase 1 (full loop, 3 seeds), Phase 2 (defeat→retry), Phase 3 (save/quit/resume).
      4|- **Phase 1 (full loop) — 3 seeds ALL PASSED:**
