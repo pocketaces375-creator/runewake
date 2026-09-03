@@ -247,6 +247,148 @@
   text if it mentions the first turn), then re-run the 49-pairing matrix and the threshold gate.
   Acceptance: gate result with numbers in HERMES_STATUS.md; tests green; rule documented.
 
+- [ ] TASK-FINISH-SCRIPT-1 — The one "done" button. Create tools/finish_task.sh <TASK-ID>
+  "<one-line summary>". It runs, in order, and STOPS at the first failure without marking
+  anything done:
+  (1) dotnet build (Debug) — 0 errors.
+  (2) engine + pipeline tests — green (a pre-existing flaky test may be retried once).
+  (3) if the diff since origin/main touches client/ or engine/: regenerate EVERY capture that
+      has a DebugCapture mode (duel_test, duel_test_wide, duel_test_r2, choose_path,
+      choose_path_wide, title, map, settings, victory/defeat overlays, reliquary, tutorial
+      first step) — build first, then capture, every time.
+  (4) blob check: if client/ changed, at least one regenerated capture's git blob must differ
+      from origin/main's. If none changed, fail with "captures unchanged — did you build?".
+  (5) tools/ui_lint.py on every capture's .layout.json (from TASK-UI-LINT-1; skip this step
+      until that task exists) — all rules pass.
+  (6) tools/input_smoke.sh and tools/loop_smoke.sh when they exist (TASK-INPUT-SMOKE-1,
+      TASK-LOOP-GATE-1) — pass.
+  (7) git add -A; commit "<TASK-ID>: <summary>"; push; append a DONE skeleton line for the task
+      to the top of HERMES_STATUS.md (you fill in the plain-English details); flip the task's
+      "- [ ]" to "- [x]" in TASKS_QUEUE.md; commit "<TASK-ID>: mark [x] + DONE entry"; push.
+  Then wire it in: foreman.sh's post-session steps call this script instead of doing their
+  own version; and add to CLAUDE.md under Standing Lessons: "A task is done when
+  tools/finish_task.sh exits 0. Chat-session work must end by running it too — a report in
+  the group without a finish_task.sh run is not done."
+  Acceptance: the script exists, is executable, and you close THIS task with it.
+
+- [ ] TASK-UI-LINT-1 — Rules instead of eyes. (a) In DebugCapture mode, after the frame is
+  captured, walk the scene tree and write artifacts/captures/<name>.layout.json: for every
+  visible Control — node path, class, global rect (x,y,w,h), mouse_filter, and for
+  TextureRects whether the texture is non-null. Include the viewport size and the display
+  safe area (DisplayServer.GetDisplaySafeArea()). (b) tools/ui_lint.py reads a layout json and
+  checks rules by scene; print every failure in plain English and exit non-zero on any:
+    all scenes: no visible Label/Button/card rect extends outside the safe area; no two
+      visible interactive siblings (Buttons, cards, slots) overlap.
+    duel_test*: for every card plate (hand, board, enemy): cost badge centre in the card's
+      top-right quadrant; attack chip centre in bottom-left quadrant; vigor chip centre in
+      bottom-right quadrant; all three fully inside the card rect AND inside the safe area;
+      hand cards and lane slots have mouse_filter = Stop; each artifact slot rect is at least
+      72x96 and its art TextureRect has a non-null texture.
+    choose_path*: the union of visible content (title, carousel cards, class-core row, Begin
+      button) spans at least 80% of the viewport height; the Begin button overlaps nothing;
+      every stat chip rect is inside its own core-card rect (none floating).
+    map/settings/title/reliquary/overlays: content union spans at least 70% of viewport
+      height and 60% of width — no half-empty screens.
+  (c) Run it on all current captures. It WILL fail on choose_path today — that is the point;
+  commit the failing rule as-is, do not weaken it. TASK-CHOOSEPATH-LAYOUT-2 makes it pass.
+  Acceptance: layout json for every capture committed; ui_lint runs in finish_task.sh; post
+  the plain-English list of rules and which currently pass/fail.
+
+- [ ] TASK-INPUT-SMOKE-1 — Prove cards are clickable by machine. tools/input_smoke.sh runs the
+  client headless into a seeded duel and injects an InputEventScreenTouch press+release (the
+  Android event type — Trikzos plays on a phone) at the centre of a hand card's global rect,
+  then asserts the card is selected / a lane highlight appears; then a touch on a lane slot —
+  asserts the card was played; then End Turn — asserts the turn advanced. Same three with
+  InputEventMouseButton so desktop stays covered. Fail loudly if any assertion fails.
+  Acceptance: passes now (BOARD-MATCH-5 added touch handling — this proves it), wired into
+  finish_task.sh for any client/ change.
+
+- [ ] TASK-LOOP-GATE-1 — "Playable" as a number Trikzos can read. Turn TASK-MAP-LOOP-SOAK-1's
+  headless seeded loop into tools/loop_smoke.sh (title → Choose Your Path → map → dig →
+  encounter duel → victory → drops reveal → Reliquary → Deck Forge → map, all with injected
+  input, not direct scene calls). It must finish in under 10 minutes. On every run it writes
+  artifacts/PLAYABLE.json: {"playable": true|false, "commit": "<sha>", "checked_at":
+  "<iso>", "failed_step": "<name or null>"}. finish_task.sh runs it for any client/ or
+  engine/ change; the foreman also runs it once a day even if nothing changed.
+  Acceptance: PLAYABLE.json committed with playable=true; wired in.
+
+- [ ] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
+  current scene positions things in the top ~55% of the viewport and leaves the bottom black;
+  the class-core chips are siblings of the Begin button instead of children of the cards.
+  Rebuild the scene's layout with containers: a full-rect root; a VBoxContainer with the
+  title block (fixed), the carousel (expands to fill), the CLASS CORE row (fixed, ~22% of
+  viewport height, cards large enough that names are readable at arm's length), and the
+  Begin button (fixed, with margin), all inside the safe area. Each core card owns its own
+  attack/vigor chips anchored to its bottom corners. Keep the orbital carousel feel Trikzos
+  liked in alpha-2026-08-23-carousel — check that tag for reference. Portrait art unchanged.
+  Acceptance: ui_lint choose_path rules pass at 2316x1080 and wide; fresh captures; post both
+  and one sentence on what a player sees now.
+
+- [ ] TASK-BOARD-DEVICE-1 — Two things Trikzos sees on his phone that our captures don't.
+  (1) Hand stat chips are clipped off the bottom edge on device (his screenshot). The hand
+      tuck must respect DisplayServer.GetDisplaySafeArea(): the chips' rects stay fully inside
+      the safe area with at least 8px margin. Add a DebugCapture flag that simulates an
+      Android-style safe-area inset (e.g. bottom 48px, top 32px) and capture with it as
+      duel_test_safe.png; ui_lint checks that capture too.
+  (2) Artifact slots read as empty dark boxes because the 128px icons are dark-on-dark. Show
+      the artifact's real card art (the same .webp the Reliquary uses) in the slot thumbnail
+      with the teal rim, on a slightly lighter backing plate, so the slot is obviously
+      occupied. Add a lint rule: an occupied slot's mean luminance differs from an empty
+      slot's by a clear margin.
+  Acceptance: ui_lint passes on duel_test, duel_test_wide and duel_test_safe; post the safe-
+  area capture with one sentence.
+
+- [ ] TASK-RUNE-SHOP-1 — Replace what TASK-RUNE-SINK-1 built (wrong economy — Fable's spec
+  arrived late, not your error). Trikzos' rule: Runes (RuneDust) are earned by grinding extra
+  card copies (TASK-GRIND-RUNES-1, correct, keep) and buy CARDS from a rotating shop. They do
+  NOT unlock rune slots or upgrade runes — rune slots are a separate pre-existing system.
+  (1) Restore rune-slot unlock/upgrade gating to whatever it was before commit 04679bb (check
+      git history of RunePageScene.cs / RunePage.cs / ProgressionState.cs) — RuneDust no
+      longer touches rune slots at all.
+  (2) Rotating card shop, reachable from the Reliquary: ~6 cards at a time priced by rarity in
+      RuneDust — Common 5, Uncommon 15, Rare 40, Mythic 120. Buying adds a copy to the
+      collection exactly like a drop does. Rotate per in-game day (simple v1). Insufficient
+      funds shows the shortfall.
+  (3) Keep the RuneDust balance/save-schema work from RUNE-SINK-1; only the spend side changes.
+      Replace the 21 slot-spending tests with shop tests.
+  Acceptance: shop capture (add a DebugCapture mode for it, and layout json); tests green.
+
+- [ ] TASK-KEYSTORE-1 — Signed builds. Generate a release keystore with keytool and store it
+  OUTSIDE the repo at ~/.runewake/release.keystore with a generated password saved next to it
+  in ~/.runewake/release.env (never commit either; add ~/.runewake to nothing, add
+  client/exports/release.keystore to .gitignore in case). Point the Android release export
+  preset at it through environment variables read by tools/export_and_verify.sh. Tell Trikzos
+  in the group where the keystore and its password live on his box — he owns them.
+  Acceptance: `tools/export_and_verify.sh release` produces a signed APK; size noted.
+
+- [ ] TASK-PERF-1 — APK size and cold start. Release export (--headless), strip unused import
+  artifacts, confirm .webp quality settings (no double compression), lazy-load region assets.
+  Measure cold start on the box's emulator or by headless timing. Target 150MB or less for
+  the release APK.
+  Acceptance: before/after size and cold-start timings in HERMES_STATUS.md.
+
+- [ ] TASK-APK-SHIP-5 — PLAYABLE ALPHA. Ships only if, on the same commit: PLAYABLE.json says
+  playable=true, ui_lint passes on every capture, input_smoke passes, and the build is the
+  signed release export. Tag alpha-playable-1. Post URL, size, sha256 and a plain sentence
+  for Trikzos: what he can do end to end in this build, and the one thing to look at first.
+  Acceptance: DONE line contains release URL, size, sha256 and the four gate results.
+
+- [ ] TASK-CLASS-PORTRAITS-1 — Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
+  OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
+  class, generate 6 candidates and post them to the group as separate images as a veto gate,
+  then wire the one Trikzos picks (or the best if he hasn't answered within a day — he can
+  swap later). If FLUX credits or the API are unavailable, write BLOCKED with the exact error
+  and do NOT substitute any other generator or hand-made art. Remove the
+  portrait_placeholder flags when done.
+  Acceptance: three .webp portraits wired into classes.json; Choose Your Path capture; posted.
+
+- [ ] TASK-ARTIFACT-VARIANTS-HOLD — Checkpoint, no build work. 14 of 42 launch artifacts exist;
+  the remaining 28 variants are a Fable design decision (rule: no strictly-better variants,
+  ever). Post one line to the group: "artifact variants: waiting on Fable's list" and mark
+  this [x]. If you reach TASK-CARD-WAVE-1 below and Fable has not yet queued the variants
+  task, SKIP the four wave tasks and continue past them — do not generate cards against an
+  unfinished artifact set.
+
 - [ ] TASK-REGION-GEN-1 — Region generator TOOL (no new region in this task). tools/region_gen.py takes a
   biome spec json (name, stratum, palette, 8-12 encounter slots, 1 elite, 1 Warden boss, 1 dig site, lore
   blurb) and outputs content/map/region_NN.json (a graph with an unlock chain like region_01), the encounter
@@ -262,6 +404,13 @@
   task. All decks must pass the sim gate.
   Acceptance: map capture showing Region 2 reachable after a seeded Region 1 clear; a clean soak of 3
   encounters plus the boss; posted.
+
+- [ ] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
+  saved deck and fight an AI-piloted opponent drawn from the pool (all class starters, every encounter deck,
+  and the Region 2 decks), seeded, with a win/loss ledger in the save and a Runes reward per win — 10
+  normally, 25 against a Warden deck.
+  Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
+  posted.
 
 - [ ] TASK-CARD-WAVE-1 — 40 new deck cards through the existing pipeline (gen → IP screen → pixel gate →
   sim gate): 8 per stratum, rarity mix 22C / 12U / 5R / 1M, every card's DSL valid, no keyword outside the
@@ -284,21 +433,9 @@
 - [ ] TASK-ART-WAVE-2 — As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
   Acceptance: as TASK-ART-WAVE-1.
 
-- [ ] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
-  saved deck and fight an AI-piloted opponent drawn from the pool (all class starters, every encounter deck,
-  and the Region 2 decks), seeded, with a win/loss ledger in the save and a Runes reward per win — 10
-  normally, 25 against a Warden deck.
-  Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
-  posted.
-
-- [ ] TASK-PERF-1 — APK size and cold start. Release export (--headless), strip unused import artifacts,
-  confirm .webp quality settings (no double compression), lazy-load region assets. Measure cold start on the
-  box's emulator or by headless timing. Target 150MB or less for the release APK.
-  Acceptance: before/after size and cold-start timings in HERMES_STATUS.md.
-
-- [ ] TASK-APK-SHIP-5 — Ship the content build (release export), tagged alpha-2026-09-XX-content. Post URL,
-  size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
-  Acceptance: DONE line contains release URL, APK size and sha256.
+- [ ] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
+  Post URL, size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
+  Acceptance: DONE line contains release URL, APK size and sha256, PLAYABLE.json playable=true.
 
 # NOT IN THIS PACKET — these need Trikzos' keys or a decision, and will be queued later:
 # Supabase and accounts, the Tower, store signing and listing, FLUX credit refills.
