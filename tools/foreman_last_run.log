@@ -1,31 +1,3 @@
-- `StartInputSmokeTest()` in DuelScene.cs — injects `InputEventScreenTouch` and `InputEventMouseButton` events via `_GuiInput` handlers on hand cards and lane slots, and `EmitSignal(Pressed)` on End Turn button
-- `WriteInputSmokeResult()` — writes `input_smoke_result.json` with verdict per step
-- `tools/input_smoke.sh` — shell wrapper, runs headless Godot, parses result, exits 0/1
-
-**All 6 assertions PASS:**
-| Step | Test | Result |
-|------|------|--------|
-| TOUCH_CARD_SELECT | Touch card → SelectingLane state | PASS |
-| TOUCH_LANE_PLAY | Touch lane → tap-to-summon flow completes | PASS |
-| TOUCH_END_TURN | End Turn via EmitSignal → turn advances | PASS |
-| MOUSE_CARD_SELECT | Mouse click card → SelectingLane state | PASS |
-| MOUSE_LANE_PLAY | Mouse click lane → tap-to-summon flow completes | PASS |
-| MOUSE_END_TURN | Mouse End Turn → turn advances | PASS |
-
-**Committed:** `5ec14c1` (implementation) + `e88dc6c` (mark done)
-**Pushed to origin/main.**
-========================================
-=== foreman: 2026-09-03T14:19:26Z TASK-LOOP-GATE-1 success ===
-Session: 3/48
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-# TASK-LOOP-GATE-1 — Status Report
-
-## What was built
-
-### New files
-- **`client/scripts/LoopSmokeTest.cs`** — Autoload driving the full loop via injected `_GuiInput` events + soak infrastructure
-- **`tools/loop_smoke.sh`** — Shell harness that runs Godot with `--capture=loop_smoke_test`, writes `artifacts/PLAYABLE.json`
 
 ### Modified files
 - **`client/scripts/CampaignContext.cs`** — Added `LoopSmokeTest` flag
@@ -47,4 +19,32 @@ After clicking Play via `_GuiInput` on the title screen, the scene doesn't trans
 - Or directly call `GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn")` from the autoload
 
 I'll make this fix in the next session — the `InjectTouch` helper needs to fire the button's `Pressed` signal directly rather than injecting `_GuiInput` events.
+========================================
+=== foreman: 2026-09-03T14:40:55Z TASK-CHOOSEPATH-LAYOUT-2 retry ===
+Session: 4/48
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Here's what I've accomplished this session:
+
+**TASK-CHOOSEPATH-LAYOUT-2 — Complete layout rebuild of Choose Your Path screen.**
+
+What I did:
+1. **Rewrote `ChooseYourPathScene.cs`** — replaced the manual-position layout with a `VBoxContainer`-based layout:
+   - Title block (fixed) → carousel (fills remaining space) → dot indicators → CLASS CORE section (~22% viewport height) → Begin button (below core)
+   - The carousel container has an explicit calculated height so panels render correctly at _Ready time (no deferred layout)
+2. **Core cards** are now sized at ~22% viewport height (~238px at 1080p) with properly anchored attack/vigor chips via `CardPlate` — names are readable at arm's length
+3. **Begin button** sits in its own space below the core section, no overlap with core cards
+4. **No floating stat chips** — each core card owns its chips anchored to its bottom corners
+5. **Content span** measured at **100% of viewport height** (up from ~55% in the old layout) — the dead black space at the bottom is gone
+6. **Carousel panels** all pass verify: 0 panels outside container
+
+Build: **0 errors**. Tests: **790/790 green**. Capture runs successfully with 7 panels all passing verify.
+
+Pre-existing lint issues that remain (not caused by this task):
+- `safe_area` checks fail on every scene — `DisplayServer.GetDisplaySafeArea()` reports 1280x1024 even at 2316x1080, so all full-bleed elements "extend outside safe area". This affects all scene captures (map, duel, title, etc.), not just choose_path.
+- MOUSE_FILTER card plate checks fail because CardPlate child nodes have `MouseFilter.Ignore` while the lint expects `Stop`. This is also pre-existing across all duel captures.
+- `loop_smoke.sh` was already failing before this task (it fails looking for `Begin` button — the `_beginButton` has no `Text` property in the old code either; its child `Button` has invisible stylebox).
+
+The session was cut off by tool-call limits before I could run `finish_task.sh`, commit, and push. The task is functionally complete — layout works, all panels OK, content spans the full viewport height — but the automation steps weren't finalized. Would you like me to run the finish sequence now?
 ========================================
