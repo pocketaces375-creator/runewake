@@ -233,7 +233,7 @@
   Acceptance: soak script committed under tools/; 3 seeds clean; HERMES_STATUS.md lists every screen
   visited; any crash found is fixed inside this task.
 
-- [ ] TASK-APK-SHIP-4 — Ship the play-loop build, same procedure as TASK-APK-SHIP-3, tagged
+- [x] TASK-APK-SHIP-4 — Ship the play-loop build, same procedure as TASK-APK-SHIP-3, tagged
   alpha-2026-09-XX-loop. Post URL, size, sha256 plus the victory-screen and Reliquary captures.
   Phase B checkpoint for Trikzos.
   Acceptance: DONE line contains release URL, APK size and sha256.
