@@ -1,3 +1,4 @@
+| TASK-LOOP-GATE-1 | 2026-09-03 | "Playable" as a number Trikzos can read. Turn TASK-MAP-LOOP-SOAK-1's | DONE |
 | TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix pure-queue detection, full logging, and create progress_ping.sh | DONE |
 | TASK-REQUEUE-FIX-1 | 2026-09-03 | Re-confirm TASK-INPUT-SMOKE-1 after queue-corruption bug. Verified tools/input_smoke.sh passes (6/6 steps). TASK-INPUT-SMOKE-1 already [x]; also found and fixed TASK-OPS-INBOX-FIX-1 silently reopened in working tree. | DONE |
 | TASK-OPS-INBOX-FIX-1 | 2026-09-03 | Fix inbox_apply.sh (pure-queue detection, verbatim insert, full logging) + progress_ping.sh (cron every 2h) | DONE |

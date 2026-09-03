@@ -311,7 +311,7 @@
   Acceptance: passes now (BOARD-MATCH-5 added touch handling — this proves it), wired into
   finish_task.sh for any client/ change.
 
-- [ ] TASK-LOOP-GATE-1 — "Playable" as a number Trikzos can read. Turn TASK-MAP-LOOP-SOAK-1's
+- [x] TASK-LOOP-GATE-1 — "Playable" as a number Trikzos can read. Turn TASK-MAP-LOOP-SOAK-1's
   headless seeded loop into tools/loop_smoke.sh (title → Choose Your Path → map → dig →
   encounter duel → victory → drops reveal → Reliquary → Deck Forge → map, all with injected
   input, not direct scene calls). It must finish in under 10 minutes. On every run it writes
