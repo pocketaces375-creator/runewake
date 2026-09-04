@@ -4759,8 +4759,9 @@ private void ShowGameOverOverlay(int winnerIndex)
             float delay = baseDelay + counter.Index * stagger;
             var tween = GetTree().CreateTween();
             tween.SetParallel(false);
+            var capturedLabel = label;
             tween.TweenMethod(
-                Callable.From<double>(v => { label.Text = ((int)v).ToString(); }),
+                Callable.From<double>(v => { if (GodotObject.IsInstanceValid(capturedLabel)) capturedLabel.Text = ((int)v).ToString(); }),
                 0.0, (double)target, counterTime
             ).SetDelay(delay);
         }
