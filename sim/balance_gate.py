@@ -49,6 +49,7 @@ HERE = Path(__file__).resolve().parent  # sim/
 ROOT = HERE.parent  # runewake/
 SIM_BIN = ROOT / "sim" / "bin" / "Debug" / "net8.0" / "Runewake.Sim"
 ARTIFACTS_PATH = ROOT / "content" / "artifacts" / "launch_artifacts.json"
+ARTIFACTS_VARIANTS_DIR = ROOT / "content" / "artifacts" / "variants"
 
 CLASSES = [
     "warrior",

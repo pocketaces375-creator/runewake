@@ -354,6 +354,59 @@ public partial class Main : Control
             GD.PrintErr("No card packs loaded — game cannot function.");
         }
 
+        _statusLabel.Text = "Loading artifacts...";
+
+        // Load launch artifacts + variant files
+        var artifactsDir = "res://content/artifacts";
+        string launchArtifactPath = $"{artifactsDir}/launch_artifacts.json";
+        try
+        {
+            string json = Godot.FileAccess.GetFileAsString(launchArtifactPath);
+            if (!string.IsNullOrEmpty(json))
+            {
+                int count = ArtifactLoader.LoadFromString(json);
+                GD.Print($"Loaded {count} artifacts from launch_artifacts.json");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Failed to load launch_artifacts.json: {ex.Message}");
+        }
+
+        // Load all variant files
+        string variantsDir = $"{artifactsDir}/variants";
+        try
+        {
+            var dir = Godot.DirAccess.Open(variantsDir);
+            if (dir != null)
+            {
+                dir.ListDirBegin();
+                string fileName;
+                int variantCount = 0;
+                while ((fileName = dir.GetNext()) != "")
+                {
+                    if (!fileName.EndsWith(".json")) continue;
+                    string variantPath = $"{variantsDir}/{fileName}";
+                    string variantJson = Godot.FileAccess.GetFileAsString(variantPath);
+                    if (!string.IsNullOrEmpty(variantJson))
+                    {
+                        variantCount += ArtifactLoader.LoadFromString(variantJson);
+                    }
+                }
+                dir.ListDirEnd();
+                if (variantCount > 0)
+                    GD.Print($"Loaded {variantCount} artifacts from {variantCount} variant file(s)");
+            }
+            else
+            {
+                GD.Print("No artifacts/variants directory — skipping variant artifacts");
+            }
+        }
+        catch (Exception ex)
+        {
+            GD.Print($"No variant artifact files: {ex.Message}");
+        }
+
         _statusLabel.Text = "Loading encounters...";
 
         // Load encounter definitions

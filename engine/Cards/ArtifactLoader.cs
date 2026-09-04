@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace Runewake.Engine.Cards;
@@ -19,6 +21,24 @@ public static class ArtifactLoader
 
         ArtifactRegistry.RegisterMany(artifacts);
         return artifacts.Count;
+    }
+
+    /// <summary>
+    /// Load all Artifact variant files from a directory.
+    /// Every *.json file in the directory is loaded with the same schema and validation
+    /// as launch_artifacts.json. Non-existent directories are silently skipped.
+    /// </summary>
+    public static int LoadAllVariants(string variantsDir)
+    {
+        if (!Directory.Exists(variantsDir))
+            return 0;
+
+        int total = 0;
+        foreach (var file in Directory.GetFiles(variantsDir, "*.json"))
+        {
+            total += LoadPack(file);
+        }
+        return total;
     }
 
     /// <summary>

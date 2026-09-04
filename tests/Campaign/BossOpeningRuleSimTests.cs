@@ -51,6 +51,15 @@ public class BossOpeningRuleSimulationTests : IDisposable
         var artifactsPath = Path.Combine(ContentRoot, "artifacts", "launch_artifacts.json");
         if (File.Exists(artifactsPath))
             ArtifactLoader.LoadPack(artifactsPath);
+
+        // Load variant artifacts
+        var variantsDir = Path.Combine(ContentRoot, "artifacts", "variants");
+        if (Directory.Exists(variantsDir))
+        {
+            int variantCount = ArtifactLoader.LoadAllVariants(variantsDir);
+            if (variantCount > 0)
+                System.Console.Error.WriteLine($"Loaded {variantCount} variant artifacts from {variantsDir}");
+        }
     }
 
     private static List<string> LoadEncounterDeck(string encounterId)

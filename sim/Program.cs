@@ -105,7 +105,20 @@ static void RunCommand(string[] args)
             Environment.Exit(1);
         }
         int count = ArtifactLoader.LoadPack(artifactsPath);
-        Console.Error.WriteLine($"Loaded {count} artifact definitions.");
+        Console.Error.WriteLine($"Loaded {count} artifact definitions from {artifactsPath}");
+
+        // Load variant artifacts from sibling variants/ directory
+        var artifactsDir = Path.GetDirectoryName(artifactsPath);
+        if (artifactsDir is not null)
+        {
+            var variantsDir = Path.Combine(artifactsDir, "variants");
+            if (Directory.Exists(variantsDir))
+            {
+                int variantCount = ArtifactLoader.LoadAllVariants(variantsDir);
+                if (variantCount > 0)
+                    Console.Error.WriteLine($"Loaded {variantCount} variant artifacts from {variantsDir}");
+            }
+        }
     }
 
     var deckAIds = BatchRunner.LoadDeckFromPack(deckA);

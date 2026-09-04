@@ -451,6 +451,173 @@ public partial class ReliquaryScene : Control
         _allCards = _allCards.OrderBy(c => c.Strata.ToString()).ThenBy(c => c.Id).ToList();
     }
 
+    /// <summary>
+    /// Build artifact tiles for the Reliquary. Each artifact is shown as a tile
+    /// with its name, class, slot_pool, and art (or silhouette fallback when missing).
+    /// Artifacts are grouped by class, then by slot_pool.
+    /// </summary>
+    private void BuildArtifactTiles()
+    {
+        var allArtifacts = ArtifactRegistry.GetAll()
+            .OrderBy(a => a.Class)
+            .ThenBy(a => a.SlotPool)
+            .ThenBy(a => a.Id)
+            .ToList();
+
+        if (allArtifacts.Count == 0) return;
+
+        // Section header: "ARTIFACTS"
+        var sectionHeader = new PanelContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            SizeFlagsVertical = SizeFlags.ShrinkCenter,
+            CustomMinimumSize = new Vector2(0, 36),
+        };
+        sectionHeader.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.065f, 0.04f, 0.6f),
+            BorderColor = new Color(0.72f, 0.6f, 0.3f, 0.3f),
+            BorderWidthLeft = 0, BorderWidthTop = 1,
+            BorderWidthRight = 0, BorderWidthBottom = 1,
+            ContentMarginLeft = 8, ContentMarginTop = 4,
+            ContentMarginRight = 8, ContentMarginBottom = 4
+        });
+        var headerLabel = new Label
+        {
+            Text = "ARTIFACTS",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            SizeFlagsHorizontal = SizeFlags.Fill,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        ApplyHeaderFont(headerLabel, 16);
+        headerLabel.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
+        sectionHeader.AddChild(headerLabel);
+        _cardGrid.AddChild(sectionHeader);
+
+        // Add a full-width spacer row (5 columns)
+        for (int i = 0; i < 5; i++)
+        {
+            _cardGrid.AddChild(new Control
+            {
+                CustomMinimumSize = new Vector2(0, 4),
+                MouseFilter = MouseFilterEnum.Ignore
+            });
+        }
+
+        // Build tiles
+        float tileW = 180f;
+        float tileH = 100f; // shorter than card tiles since artifacts have less info
+
+        foreach (var artifact in allArtifacts)
+        {
+            var tile = BuildArtifactTile(artifact, tileW, tileH);
+            _cardGrid.AddChild(tile);
+        }
+    }
+
+    private Control BuildArtifactTile(ArtifactDef artifact, float tileW, float tileH)
+    {
+        var container = new Panel
+        {
+            CustomMinimumSize = new Vector2(tileW, tileH),
+            Size = new Vector2(tileW, tileH),
+            MouseFilter = MouseFilterEnum.Stop,
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+            SizeFlagsVertical = SizeFlags.ShrinkCenter
+        };
+        var panelStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.10f, 0.08f, 1f),
+            BorderColor = new Color(0.72f, 0.6f, 0.3f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 0, ContentMarginTop = 0,
+            ContentMarginRight = 0, ContentMarginBottom = 0
+        };
+        container.AddThemeStyleboxOverride("panel", panelStyle);
+
+        var content = new Control
+        {
+            Size = new Vector2(tileW, tileH),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        container.AddChild(content);
+
+        // Art or silhouette fallback
+        var artRect = new TextureRect
+        {
+            Size = new Vector2(tileW, tileH * 0.65f),
+            Position = new Vector2(0, 0),
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        string artPath = $"res://content/art/artifacts/{artifact.Id}.webp";
+        if (ResourceLoader.Exists(artPath, nameof(Texture2D)))
+        {
+            var tex = ResourceLoader.Load<Texture2D>(artPath);
+            if (tex != null)
+                artRect.Texture = tex;
+            artRect.Modulate = Colors.White;
+        }
+        else
+        {
+            // Silhouette fallback for missing art
+            artRect.Modulate = new Color(0.08f, 0.06f, 0.04f, 1f);
+        }
+        content.AddChild(artRect);
+
+        // Name label
+        var nameLabel = new Label
+        {
+            Text = artifact.Name,
+            Position = new Vector2(4, tileH * 0.67f),
+            Size = new Vector2(tileW - 8, 18),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        nameLabel.AddThemeFontSizeOverride("font_size", 11);
+        nameLabel.AddThemeColorOverride("font_color", Color.FromHtml("#F0E8D0"));
+        ApplyHeaderFont(nameLabel, 11);
+        content.AddChild(nameLabel);
+
+        // Class tag
+        var classLabel = new Label
+        {
+            Text = artifact.Class.ToUpper(),
+            Position = new Vector2(4, tileH * 0.83f),
+            Size = new Vector2(tileW * 0.5f, 14),
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        classLabel.AddThemeFontSizeOverride("font_size", 8);
+        classLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.3f, 0.8f));
+        content.AddChild(classLabel);
+
+        // Slot pool tag
+        var slotLabel = new Label
+        {
+            Text = artifact.SlotPool.ToUpper(),
+            Position = new Vector2(tileW * 0.5f, tileH * 0.83f),
+            Size = new Vector2(tileW * 0.5f - 8, 14),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+        };
+        slotLabel.AddThemeFontSizeOverride("font_size", 8);
+        slotLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.6f, 0.7f, 0.8f));
+        content.AddChild(slotLabel);
+
+        return container;
+    }
+
     private void RefreshGrid()
     {
         // Clear existing grid items
@@ -520,6 +687,9 @@ public partial class ReliquaryScene : Control
             if (count > 0)
                 progression.MarkCardSeen(card.Id);
         }
+
+        // Append artifact tiles below the card grid
+        BuildArtifactTiles();
     }
 
     private Control BuildCardTile(CardDef card, float cardW, float cardH, int ownedCount, bool isOwned, bool isNew)

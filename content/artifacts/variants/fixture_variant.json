@@ -1,0 +1,12 @@
+[
+  {
+    "id": "artf_warrior_fixture_blade",
+    "class": "warrior",
+    "slot_pool": "sword",
+    "name": "Fixture Blade",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ATTACKING", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING" },
+    "trigger": null,
+    "charges": null,
+    "flavor": "A test blade forged for the proving grounds."
+  }
+]
