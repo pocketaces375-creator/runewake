@@ -1,18 +1,3 @@
-**Bugs found and fixed:**
-- `region_gen.py`'s `build_region_graph()` produces self-referencing unlock conditions on Warden/Boss nodes (renumbering doesn't remap unlock values). Fixed manually in region_02.json. This should be patched in the generator for future regions.
-
-**Verification:**
-- Build: 0 errors
-- Tests: 809/809 green
-- Commit 9fa0bce pushed; DONE entry written to HERMES_STATUS.md
-- Task marked [x] in TASKS_QUEUE.md
-========================================
-=== foreman: 2026-09-04T05:25:08Z TASK-CLASS-IDENTITY-1C success ===
-Session: 1/96
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-========================================
-=== foreman: 2026-09-04T05:40:05Z TASK-TUTORIAL-VERIFY-1 retry ===
 Session: 1/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +32,19 @@ DONE. Here's the summary.
 **Commits:** `139b7e6` (art files) + `225b77d` (mark [x] + DONE) — both pushed.
 
 **Note:** Some regenerations had lower 64px colour counts than the originals (e.g. emb_x_the_last_ember 2946->1593, tid_c_deep_one 3072->1815) because FLUX's dark fantasy style uses more shadow areas. All still pass the 1000-colour threshold and the new art matches the playbook. A second pass could target these with brighter compositions if needed.
+========================================
+=== foreman: 2026-09-04T05:55:38Z TASK-MAP-POLISH-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-MAP-POLISH-1 complete. Commits 7a8a605 + f649bc9 pushed.
+
+**What a player sees:** The region map shows the name "THE FALLOW REACH" in a serif banner at the top, with a branching network of path lines connecting stone medallion nodes — cleared nodes are green-tinted gold with a checkmark badge, locked nodes are near-invisible dark stone with a padlock, available nodes glow warm bronze with bright gold borders, and the currently selected Shrine node pulses with a gold ring animation.
+
+Summary of changes:
+- **MapScene.cs** — added region name banner (Cinzel 16px, gold, overlay text), seeded partial clear in capture mode (r1_n01, r1_n02 pre-cleared to show all three states)
+- **MapNodeIcon.cs** — better state colors (locked=dark stone, available=warm bronze with bright gold border, cleared=green-tinted gold with checkmark), selected node pulse tween animation on the ring
+- **finish_task.sh** — added map_test / map_test_wide to the capture regeneration list
+- **map_test.png/map_test_wide.png** — fresh captures showing the seeded partial clear state at 2316x1080 and 2999x1080
 ========================================
