@@ -358,6 +358,14 @@ public class CadencePassiveTests
 
         var eleBond = byId["artf_druid_elemental_bond"].GetProperty("passive");
         Assert.Equal("HEAL", eleBond.GetProperty("op").GetString());
-        Assert.Equal("ON_TURN_START", eleBond.GetProperty("cadence").GetString());
+
+        // Elemental Bond's bonding effect now lives in its ON_TURN_START trigger,
+        // not in the passive cadence. Verify the trigger exists with BUFF + GRANT_KEY.
+        var trigger = byId["artf_druid_elemental_bond"].GetProperty("trigger");
+        Assert.Equal("ON_TURN_START", trigger.GetProperty("trigger").GetString());
+        var effects = trigger.GetProperty("effects");
+        Assert.Equal(2, effects.GetArrayLength());
+        Assert.Equal("BUFF", effects[0].GetProperty("op").GetString());
+        Assert.Equal("GRANT_KEY", effects[1].GetProperty("op").GetString());
     }
 }

@@ -48,7 +48,8 @@ public enum Op
     // Artifact-specific ops
     SUPPRESS, ADD_CHARGE, SET_PREY, REVIVE_TOKEN,
     PREVENT_DAMAGE, COST_MOD, RESET_CHARGES,
-    FORGE, HEAL_FULL
+    FORGE, HEAL_FULL,
+    UNEARTH_FROM_GRAVEYARD
 }
 
 // ——— Target Scope ———

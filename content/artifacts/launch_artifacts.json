@@ -25,7 +25,7 @@
     "slot_pool": "grimoire",
     "name": "Skull",
     "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "condition": { "op": "CREATURE_DIED_THIS_TURN", "side": "ANY" }, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
-    "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "REVIVE_TOKEN", "target": { "scope": "PLAYER_SELF" }, "token": "artf_revenant_token", "stats": { "attack": 3, "vigor": 3 }, "on_board_full": "FIZZLE" }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "REVIVE_TOKEN", "target": { "scope": "PLAYER_SELF" }, "token_id": "artf_revenant_token", "attack": 3, "vigor": 3, "keyword": "FADING" }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
     "charges": { "max": 3, "gain_on": "on_ally_dies", "spend_on": "on_charge_full" },
     "flavor": "Death is a door. The Court holds the key."
   },
@@ -33,11 +33,15 @@
     "id": "artf_necromancer_ritual_piece",
     "class": "necromancer",
     "slot_pool": "phylactery",
-    "name": "Ritual Piece",
-    "passive": { "op": "PREVENT_DAMAGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "source": "ATTACK", "condition": { "op": "FEWER_ALLY_CREATURES_THAN_ENEMY" }, "note": "evaluated at damage-application time (R21); TEMPORARY placeholder from retired phylactery (strongest existing tests)" },
-    "trigger": { "trigger": "ON_CREATURE_DIES", "condition": { "op": "ENEMY" }, "effects": [{ "op": "HEAL", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
-    "charges": null,
-    "flavor": "A fragment of a forgotten rite, pulsing with death-whispers."
+    "name": "Ritual Fetish",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": { "trigger": "ON_CREATURE_DIES", "condition": { "op": "FRIENDLY" }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "full_charge": [
+      { "op": "UNEARTH_FROM_GRAVEYARD", "target": { "scope": "PLAYER_SELF" } },
+      { "op": "RESET_CHARGES", "target": { "scope": "PLAYER_SELF" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "A fetish carved from bone, humming with death-whispers. It hungers for the fallen."
   },
   {
     "id": "artf_paladin_hammer",
@@ -53,31 +57,52 @@
     "id": "artf_paladin_banner",
     "class": "paladin",
     "slot_pool": "banner",
-    "name": "Banner",
-    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "HAS_PERMANENT_BUFF", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_PRESENT" },
-    "trigger": { "trigger": "ON_TURN_END_NO_ATTACK", "condition": { "op": "AND", "all": [{ "op": "ALLY_CREATURE_EXISTS" }, { "op": "PARTNER_CHARGES_GTE", "value": 1 }] }, "effects": [{ "op": "FORGE", "spend_from": "PARTNER_SLOT", "spend": "ALL", "target": { "scope": "ALLY_CREATURE", "filter": "HIGHEST_COST", "count": 1, "tiebreak": "OLDEST_IN_PLAY" }, "per_charge": { "attack": 1, "vigor": 1 }, "duration": "PERMANENT" }] },
-    "charges": null,
-    "flavor": "The banner of Sunspire, a rallying point for the faithful. TEMPORARY: copied from retired anvil."
+    "name": "Banner of Sunspire",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "count": "ALL" }, "attack": 0, "vigor": 1, "duration": "WHILE_PRESENT" },
+    "trigger": { "trigger": "ON_ALLY_ATTACKED", "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "full_charge": [
+      { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "count": "ALL" }, "amount": 2 },
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "count": "ALL" }, "keyword": "WARD" },
+      { "op": "RESET_CHARGES", "target": { "scope": "PLAYER_SELF" } }
+    ],
+    "charges": { "max": 3, "max_per_turn": 1 },
+    "flavor": "The sun-kissed banner of Sunspire. While it flies, the faithful stand strong."
   },
   {
     "id": "artf_druid_book_of_familiar",
     "class": "druid",
     "slot_pool": "book",
     "name": "Book of Familiar",
-    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_SUMMONED_THIS_TURN", "count": 1 }, "attack": 0, "vigor": 1, "duration": "PERMANENT" },
-    "trigger": { "trigger": "ON_SUMMON", "condition": { "op": "FRIENDLY_ON_YOUR_TURN" }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": { "trigger": "ON_TURN_START", "effects": [
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_familiar", "attack": 1, "vigor": 1, "keyword": "ROOTED" },
+      { "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+    ] },
+    "full_charge": [
+      { "op": "SET_STAT", "target": { "scope": "ALLY_CREATURE", "filter": "TYPE:TOKEN", "count": "ALL" }, "attack": 2, "vigor": 2 },
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "TYPE:TOKEN", "count": "ALL" }, "keyword": "GUARD" },
+      { "op": "RESET_CHARGES", "target": { "scope": "PLAYER_SELF" } }
+    ],
     "charges": { "max": 3, "gain_on": "on_ally_summoned", "spend_on": "none" },
-    "flavor": "A weathered tome bound in moss-leather, full of sketches of wild creatures. TEMPORARY: copied from retired staff."
+    "flavor": "A weathered tome bound in moss-leather. Each page holds the seed of a loyal companion."
   },
   {
     "id": "artf_druid_elemental_bond",
     "class": "druid",
     "slot_pool": "totem",
     "name": "Elemental Bond",
-    "passive": { "op": "HEAL", "cadence": "ON_TURN_START", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1, "tiebreak": "OWNER_CHOOSES" }, "amount": 1 },
-    "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "HEAL_FULL", "target": { "scope": "ALLY_CREATURE", "count": "ALL" } }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
-    "charges": { "max": 3, "gain_on": "on_creature_survived_combat_damage", "max_per_turn": 1, "spend_on": "on_charge_full" },
-    "flavor": "A living bond between the druid and the wild. TEMPORARY: copied from retired totem."
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": { "trigger": "ON_TURN_START", "effects": [
+      { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1 }, "attack": 0, "vigor": 2, "duration": "PERMANENT" },
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1 }, "keyword": "ROOTED" }
+    ] },
+    "full_charge": [
+      { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "KEYWORD:ROOTED", "count": 1, "tiebreak": "OLDEST_IN_PLAY" }, "attack": 2, "vigor": 2, "duration": "PERMANENT" },
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "KEYWORD:ROOTED", "count": 1, "tiebreak": "OLDEST_IN_PLAY" }, "keyword": "REACH" },
+      { "op": "RESET_CHARGES", "target": { "scope": "PLAYER_SELF" } }
+    ],
+    "charges": { "max": 3, "gain_on": "on_turn_start", "spend_on": "on_charge_full" },
+    "flavor": "A living bond between the druid and the wild. It grows stronger with time."
   },
   {
     "id": "artf_rogue_dagger_dusk",

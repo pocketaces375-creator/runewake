@@ -57,7 +57,7 @@ public static class EffectExecutor
                     ApplyUnbury(target, effect.Amount ?? 1, state);
                     break;
                 case Op.SUMMON:
-                    ApplySummon(target, effect.TokenId ?? "tst_token", source, state);
+                    ApplySummon(target, effect, source, state);
                     break;
                 case Op.GRANT_KEY:
                     ApplyGrantKey(target, effect.Keyword ?? "");
@@ -121,6 +121,9 @@ public static class EffectExecutor
                     break;
                 case Op.FORGE:
                     ApplyForge(target, effect, source, state);
+                    break;
+                case Op.UNEARTH_FROM_GRAVEYARD:
+                    ApplyUnearthFromGraveyard(target, source, state);
                     break;
             }
         }
@@ -304,7 +307,14 @@ public static class EffectExecutor
         }
     }
 
-    private static void ApplySummon(ResolvedTarget target, string tokenId, CardInstance source, GameState state)
+    /// <summary>
+    /// SUMMON: Create a token in the first empty lane on the target player's board.
+    /// Token id from effect.TokenId (or "tst_token" as default).
+    /// BaseAttack from effect.Attack (or 0), BaseVigor from effect.Vigor (or 1).
+    /// If effect.Keyword is set, grants that keyword to the summoned token.
+    /// If no empty lane exists, fails silently.
+    /// </summary>
+    private static void ApplySummon(ResolvedTarget target, EffectDef effect, CardInstance source, GameState state)
     {
         // Target should be a player or creature indicating whose board to summon on
         PlayerState? player = target switch
@@ -314,6 +324,8 @@ public static class EffectExecutor
             _ => null
         };
         if (player is null) return;
+
+        string tokenId = effect.TokenId ?? "tst_token";
 
         // Find an empty lane
         for (int i = 0; i < 5; i++)
@@ -328,11 +340,13 @@ public static class EffectExecutor
                     Zone = Zone.Lane,
                     LaneIndex = i,
                     CardType = CardType.TOKEN,
-                    BaseAttack = 0,
-                    BaseVigor = 1,
+                    BaseAttack = effect.Attack ?? 0,
+                    BaseVigor = effect.Vigor ?? 1,
                     Cost = 0,
                     IsExhausted = true
                 };
+                if (!string.IsNullOrEmpty(effect.Keyword))
+                    token.Keywords.Add(effect.Keyword);
                 player.Lanes[i].Occupant = token;
                 return;
             }
@@ -666,6 +680,55 @@ public static class EffectExecutor
             }
         }
         // No empty lane — revive fails silently
+    }
+
+    /// <summary>
+    /// UNEARTH_FROM_GRAVEYARD: Find the creature with the highest attack in the
+    /// owner's discard pile and place it in the first empty lane.
+    /// If no empty lane exists or the discard has no creatures, fails silently.
+    /// </summary>
+    private static void ApplyUnearthFromGraveyard(ResolvedTarget target, CardInstance source, GameState state)
+    {
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null) return;
+
+        // Find first empty lane
+        int emptyLane = -1;
+        for (int i = 0; i < 5; i++)
+        {
+            if (player.Lanes[i].Occupant is null)
+            {
+                emptyLane = i;
+                break;
+            }
+        }
+        if (emptyLane < 0) return; // no empty lane
+
+        // Find the creature with highest attack in discard pile
+        CardInstance? best = null;
+        int bestIdx = -1;
+        for (int i = 0; i < player.Discard.Count; i++)
+        {
+            var card = player.Discard[i];
+            if (card.CardType == CardType.CREATURE && (best is null || card.CurrentAttack > best.CurrentAttack))
+            {
+                best = card;
+                bestIdx = i;
+            }
+        }
+        if (best is null || bestIdx < 0) return; // no valid creature in discard
+
+        // Remove from discard and place in lane
+        player.Discard.RemoveAt(bestIdx);
+        best.Zone = Zone.Lane;
+        best.LaneIndex = emptyLane;
+        best.IsExhausted = true;
+        player.Lanes[emptyLane].Occupant = best;
     }
 
     /// <summary>

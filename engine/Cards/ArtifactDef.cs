@@ -65,7 +65,18 @@ public sealed class ArtifactDef
     [JsonPropertyName("art")]
     public ArtDef? Art { get; set; }
 
-    /// <summary>Version of the content schema this artifact targets.</summary>
+    /// <summary>
+    /// Optional — effects to execute when this artifact reaches full charges.
+    /// When set, the engine automatically creates an ON_CHARGE_FULL ability
+    /// with these effects (in addition to any trigger-defined ability).
+    /// This allows the artifact's trigger to handle charge-gain events while
+    /// the full-charge effect fires separately.
+    /// </summary>
+    [JsonPropertyName("full_charge")]
+    public List<EffectDef>? FullCharge { get; set; }
+
+    /// <summary>
+    /// Version of the content schema this artifact targets.</summary>
     [JsonPropertyName("content_version")]
     public int ContentVersion { get; set; } = 1;
 }

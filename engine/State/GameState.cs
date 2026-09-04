@@ -213,6 +213,18 @@ public sealed class GameState
                 instance.Abilities.Add(passiveAbility);
                 instance.Abilities.Add(triggerAbility);
 
+                // If the artifact has a dedicated full_charge effects list,
+                // add an ON_CHARGE_FULL ability for them. This lets the trigger
+                // handle charge-gain events while the full-charge effect is separate.
+                if (artDef.FullCharge is { Count: > 0 })
+                {
+                    instance.Abilities.Add(new AbilityDef
+                    {
+                        Trigger = Trigger.ON_CHARGE_FULL,
+                        Effects = artDef.FullCharge
+                    });
+                }
+
                 // Initialize Charges if configured
                 if (artDef.Charges is { } chargeCfg)
                 {
