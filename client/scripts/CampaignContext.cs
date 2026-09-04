@@ -846,7 +846,15 @@ public static class CampaignContext
             "res://content/encounters/region_02_early.json",
             "res://content/encounters/region_02_mid.json",
             "res://content/encounters/region_02_late.json",
-            "res://content/encounters/region_02_boss.json"
+            "res://content/encounters/region_02_boss.json",
+            "res://content/encounters/region_03_early.json",
+            "res://content/encounters/region_03_mid.json",
+            "res://content/encounters/region_03_late.json",
+            "res://content/encounters/region_03_boss.json",
+            "res://content/encounters/region_04_early.json",
+            "res://content/encounters/region_04_mid.json",
+            "res://content/encounters/region_04_late.json",
+            "res://content/encounters/region_04_boss.json"
         };
 
         foreach (var resPath in packs)
@@ -950,7 +958,9 @@ public static class CampaignContext
             var paths = new[]
             {
                 "res://content/dig_sites/region_01_dig.json",
-                "res://content/dig_sites/region_02_dig.json"
+                "res://content/dig_sites/region_02_dig.json",
+                "res://content/dig_sites/region_03_dig.json",
+                "res://content/dig_sites/region_04_dig.json"
             };
 
             foreach (var resPath in paths)
@@ -1036,11 +1046,26 @@ public static class CampaignContext
         public static bool SoakSaveQuitPhase { get; set; }
 
         /// <summary>
+        /// Test hook: force a specific region ID for map capture.
+        /// Set by --capture=map_test_r3 or --capture=map_test_r4.
+        /// When set, overrides the normal progression-based unlock chain.
+        /// </summary>
+        public static string ForceRegionId { get; set; } = "";
+
+        /// <summary>
         /// Determine which region's map to show based on progression state.
-        /// Returns "region_02" if Region 1's WardenBoss (r1_n12) is cleared, else "region_01".
+        /// Chain: region_01 → r1_n12 → region_02 → region_02_n11 → region_03 → region_03_n11 → region_04
+        /// Each WardenBoss node unlock advances to the next region.
+        /// ForceRegionId overrides for capture tests.
         /// </summary>
         public static string GetRegionIdForMap()
         {
+            if (!string.IsNullOrEmpty(ForceRegionId))
+                return ForceRegionId;
+            if (Progression != null && Progression.IsNodeCleared("region_03_n11"))
+                return "region_04";
+            if (Progression != null && Progression.IsNodeCleared("region_02_n11"))
+                return "region_03";
             if (Progression != null && Progression.IsNodeCleared("r1_n12"))
                 return "region_02";
             return CurrentRegionId;

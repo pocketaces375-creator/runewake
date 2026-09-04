@@ -192,6 +192,22 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Map screen R2 wide (ember skin) capture mode enabled: --capture=map_test_r2_wide");
             }
+            if (arg == "--capture=map_test_r3")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.ForceRegionId = "region_03";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen R3 (Tide) capture mode enabled: --capture=map_test_r3");
+            }
+            if (arg == "--capture=map_test_r4")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.ForceRegionId = "region_04";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen R4 (Dawn) capture mode enabled: --capture=map_test_r4");
+            }
             if (arg == "--capture=victory_overlay")
             {
                 _active = true;

@@ -1,0 +1,59 @@
+{
+  "region_id": "region_03",
+  "name": "The Drowned Depths",
+  "stratum": "TIDE",
+  "stratum2": null,
+  "palette": {
+    "primary": "#1a6a8a",
+    "secondary": "#3a9ac8",
+    "accent": "#7acef0",
+    "text": "#b8dce8",
+    "bg_dark": "#0a1828"
+  },
+  "encounter_slots": 10,
+  "elite_count": 2,
+  "warden_name": "The Abyssal Warden",
+  "boss_name": "The Leviathan's Heart",
+  "dig_name": "The Brine Warrens",
+  "dig_description": "A flooded labyrinth below the tide line. Strange bioluminescence pulses from submerged vaults.",
+  "lore_blurb": "The third stratum descends below the drowned cities — salt-crusted ruins where the tide never truly ebbs.",
+  "signature_card": "tid_r_sunken_leviathan",
+  "entry_encounter_name": "The Tidal Gate",
+  "encounter_names": [
+    "The Tidal Gate",
+    "Brine-Crusted Ruins",
+    "The Coral Spire",
+    "Salt-Tongue Prophet",
+    "The Drowned Passage",
+    "Abyssal Current",
+    "The Sunken Hall",
+    "Tide-Swept Vault",
+    "The Pressure Drop",
+    "The Black Reach"
+  ],
+  "elite_names": [
+    "The Deep-Tide Oracle",
+    "The Serpent-Crowned"
+  ],
+  "warden_intro": [
+    "The water stills — a terrible pressure builds in the dark.",
+    "A voice, ancient and wet, speaks from every bubble:",
+    "\"You tread the abyss as though it were a road.\"",
+    "The Abyssal Warden unfolds from the murk — a crown of coral and eyes that do not blink."
+  ],
+  "warden_outro": [
+    "The coral crown shatters; the water lightens.",
+    "The way to the heart of the deep lies open."
+  ],
+  "boss_intro": [
+    "The abyss falls silent — even the currents hold their breath.",
+    "A second pulse, deafening, shakes the stone around you.",
+    "\"LEVIATHAN STIRS. THE DEEP DEMANDS TRIBUTE.\"",
+    "A shape vast as a drowned cathedral rises from the dark."
+  ],
+  "boss_outro": [
+    "The great heart ceases its pulse. The waters recede.",
+    "The Leviathan's Heart crumbles into sediment and brine.",
+    "Far above, a crack of light breaks through the deep."
+  ]
+}

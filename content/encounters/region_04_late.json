@@ -1,0 +1,514 @@
+{
+  "encounters": [
+    {
+      "id": "region_04_duel_late_1",
+      "name": "The Sunblade Crucible",
+      "portrait": "res://art/portraits/region_04_duel_late_1.png",
+      "deck": [
+        "emb_c_cinder_runner",
+        "dwn_u_morning_herald",
+        "emb_c_smoldering_pike",
+        "hol_r_hollow_herald",
+        "vrd_u_forest_poultice",
+        "tid_u_memory_tides",
+        "hol_c_barrow_call",
+        "vrd_c_thornbark_defender",
+        "tid_c_coral_diviner",
+        "tid_c_echoing_depth",
+        "emb_c_forgeguard_berserker",
+        "emb_c_stone_slinger",
+        "tid_c_undertow_current",
+        "dwn_c_warden_of_the_light",
+        "tid_r_hydrokinetic_adept",
+        "vrd_u_ironbark_guard",
+        "hol_c_plague_rat",
+        "tid_r_echo_caller",
+        "tid_c_saltthorn_scout",
+        "emb_u_lava_caller",
+        "dwn_r_aurora_warden",
+        "hol_r_black_tide",
+        "hol_c_bone_tick",
+        "hol_c_deathspeaker",
+        "dwn_c_daybreak_guard",
+        "tid_r_flood_of_secrets",
+        "emb_u_flame_tongue_knight",
+        "vrd_c_wildwood_stalker",
+        "hol_c_ghoul_scavenger",
+        "vrd_c_bark_sentinel"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the the sunblade crucible.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "emb_c_cinder_runner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_morning_herald",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_smoldering_pike",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_forest_poultice",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_barrow_call",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_coral_diviner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_echoing_depth",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_forgeguard_berserker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_stone_slinger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_undertow_current",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_plague_rat",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_echo_caller",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_saltthorn_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_lava_caller",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_aurora_warden",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_bone_tick",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_deathspeaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_daybreak_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_flame_tongue_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_wildwood_stalker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_ghoul_scavenger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_bark_sentinel",
+          "rate": 0.4
+        }
+      ]
+    },
+    {
+      "id": "region_04_duel_late_2",
+      "name": "The Reflection Chamber",
+      "portrait": "res://art/portraits/region_04_duel_late_2.png",
+      "deck": [
+        "tid_c_whirlpool_elemental",
+        "emb_u_lava_serpent",
+        "hol_c_wraith_bonebreaker",
+        "emb_u_wildfire_adept",
+        "hol_u_soul_harvest",
+        "vrd_u_canopy_archer",
+        "tid_r_hydrokinetic_adept",
+        "emb_c_forgeguard_berserker",
+        "vrd_c_warding_vine",
+        "dwn_c_light_bearer",
+        "vrd_c_moss_shield",
+        "hol_r_curse_of_binding",
+        "dwn_u_morning_herald",
+        "dwn_r_archangel_of_order",
+        "tid_u_memory_tides",
+        "hol_u_barrow_rite",
+        "emb_u_burnout_mage",
+        "emb_u_lava_burst",
+        "tid_u_tidal_seer",
+        "emb_c_scorch_imp",
+        "dwn_u_blessing_of_dawn",
+        "emb_u_lava_caller",
+        "emb_c_blaze_scout",
+        "tid_c_undertow_current",
+        "tid_r_deep_tides_diviner",
+        "tid_c_tide_reacher",
+        "vrd_u_greatwood_guardian",
+        "vrd_c_root_tender",
+        "vrd_c_root_warden",
+        "dwn_c_sunblade_recruit"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the the reflection chamber.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_lava_serpent",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_wraith_bonebreaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_wildfire_adept",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_soul_harvest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_c_forgeguard_berserker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_warding_vine",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_light_bearer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_moss_shield",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_morning_herald",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_barrow_rite",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_burnout_mage",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_burst",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_tidal_seer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_scorch_imp",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_blessing_of_dawn",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_caller",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_blaze_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_undertow_current",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_deep_tides_diviner",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_tide_reacher",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_greatwood_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_root_tender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_root_warden",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_sunblade_recruit",
+          "rate": 0.4
+        }
+      ]
+    },
+    {
+      "id": "region_04_duel_late_3",
+      "name": "The Pillars of Dawn",
+      "portrait": "res://art/portraits/region_04_duel_late_3.png",
+      "deck": [
+        "hol_u_barrow_rite",
+        "vrd_u_bramble_heart",
+        "tid_c_kelp_diviner",
+        "emb_r_ember_warleader",
+        "tid_u_coral_guardian",
+        "tid_c_whirlpool_elemental",
+        "hol_c_stygian_hound",
+        "hol_c_gravewrit_thrall",
+        "hol_c_skeletal_reaver",
+        "dwn_c_warden_of_the_light",
+        "dwn_u_steadfast_bulwark",
+        "emb_u_lava_serpent",
+        "hol_u_crypt_crawler",
+        "dwn_c_sunblade_recruit",
+        "vrd_r_bloomweaver",
+        "dwn_r_gilded_seraph",
+        "vrd_c_moss_shield",
+        "vrd_c_thornbark_defender",
+        "dwn_r_aurora_warden",
+        "hol_c_venom_fang",
+        "hol_c_bone_tick",
+        "tid_u_tidal_seer",
+        "emb_r_phoenix_ash",
+        "tid_r_flood_of_secrets",
+        "vrd_c_root_sprout",
+        "emb_c_stone_slinger",
+        "emb_r_magma_forger",
+        "dwn_r_holy_edict",
+        "tid_c_silt_reader",
+        "emb_u_cinder_venom"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the the pillars of dawn.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "hol_u_barrow_rite",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_bramble_heart",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_kelp_diviner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_r_ember_warleader",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_stygian_hound",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_skeletal_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_steadfast_bulwark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_serpent",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_crypt_crawler",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_sunblade_recruit",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_gilded_seraph",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_moss_shield",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_r_aurora_warden",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_venom_fang",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_bone_tick",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_u_tidal_seer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_r_phoenix_ash",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_root_sprout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_stone_slinger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_silt_reader",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_cinder_venom",
+          "rate": 0.25
+        }
+      ]
+    }
+  ]
+}

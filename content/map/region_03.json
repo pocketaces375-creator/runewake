@@ -1,0 +1,297 @@
+{
+  "id": "region_03",
+  "name": "The Drowned Depths",
+  "strata": "TIDE",
+  "nodes": [
+    {
+      "id": "region_03_n01",
+      "type": "Duel",
+      "position": [
+        400,
+        80
+      ],
+      "encounter": "region_03_duel_early_1",
+      "rewards": [
+        "shard:30"
+      ],
+      "connects": [
+        "region_03_n02",
+        "region_03_n03"
+      ]
+    },
+    {
+      "id": "region_03_n02",
+      "type": "Duel",
+      "position": [
+        240,
+        190
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n01"
+        ]
+      },
+      "encounter": "region_03_duel_early_2",
+      "rewards": [
+        "shard:30"
+      ],
+      "connects": [
+        "region_03_n04",
+        "region_03_n05"
+      ]
+    },
+    {
+      "id": "region_03_n03",
+      "type": "Duel",
+      "position": [
+        560,
+        190
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n01"
+        ]
+      },
+      "encounter": "region_03_duel_mid_1",
+      "rewards": [
+        "shard:50"
+      ],
+      "connects": [
+        "region_03_n05",
+        "region_03_n04"
+      ]
+    },
+    {
+      "id": "region_03_n04",
+      "type": "Duel",
+      "position": [
+        160,
+        340
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n02",
+          "region_03_n03"
+        ]
+      },
+      "encounter": "region_03_duel_mid_2",
+      "rewards": [
+        "shard:50"
+      ],
+      "connects": [
+        "region_03_n06",
+        "region_03_dig"
+      ]
+    },
+    {
+      "id": "region_03_n05",
+      "type": "Duel",
+      "position": [
+        560,
+        340
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n02",
+          "region_03_n03"
+        ]
+      },
+      "encounter": "region_03_duel_mid_3",
+      "rewards": [
+        "shard:50"
+      ],
+      "connects": [
+        "region_03_dig",
+        "region_03_n07"
+      ]
+    },
+    {
+      "id": "region_03_n06",
+      "type": "Elite",
+      "position": [
+        320,
+        480
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n04",
+          "region_03_n05"
+        ]
+      },
+      "encounter": "region_03_elite_1",
+      "rewards": [
+        "shard:80",
+        "dig_charge:1"
+      ],
+      "connects": [
+        "region_03_n08",
+        "region_03_n09"
+      ]
+    },
+    {
+      "id": "region_03_n07",
+      "type": "Elite",
+      "position": [
+        640,
+        480
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n04",
+          "region_03_n05"
+        ]
+      },
+      "encounter": "region_03_elite_2",
+      "rewards": [
+        "shard:80",
+        "dig_charge:1"
+      ],
+      "connects": [
+        "region_03_n09",
+        "region_03_n08"
+      ]
+    },
+    {
+      "id": "region_03_dig",
+      "type": "Dig",
+      "position": [
+        480,
+        480
+      ],
+      "rewards": [
+        "shard:20"
+      ],
+      "encounter": "region_03_dig",
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n01",
+          "region_03_n02",
+          "region_03_n03",
+          "region_03_n04",
+          "region_03_n05"
+        ]
+      },
+      "connects": [
+        "region_03_n10",
+        "region_03_n11"
+      ]
+    },
+    {
+      "id": "region_03_n08",
+      "type": "Duel",
+      "position": [
+        320,
+        600
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n06",
+          "region_03_dig",
+          "region_03_n07"
+        ]
+      },
+      "encounter": "region_03_duel_late_1",
+      "rewards": [
+        "shard:60"
+      ],
+      "connects": [
+        "region_03_n10"
+      ]
+    },
+    {
+      "id": "region_03_n09",
+      "type": "Duel",
+      "position": [
+        560,
+        600
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n06",
+          "region_03_dig",
+          "region_03_n07"
+        ]
+      },
+      "encounter": "region_03_duel_late_2",
+      "rewards": [
+        "shard:60"
+      ],
+      "connects": [
+        "region_03_n10"
+      ]
+    },
+    {
+      "id": "region_03_n10",
+      "type": "Warden",
+      "position": [
+        440,
+        720
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n08",
+          "region_03_n09"
+        ]
+      },
+      "encounter": "region_03_warden",
+      "rewards": [
+        "shard:150",
+        "dig_charge:3"
+      ],
+      "connects": [
+        "region_03_n12"
+      ]
+    },
+    {
+      "id": "region_03_n11",
+      "type": "WardenBoss",
+      "position": [
+        440,
+        820
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n12"
+        ]
+      },
+      "encounter": "region_03_boss",
+      "rewards": [
+        "shard:300",
+        "dig_charge:5"
+      ]
+    },
+    {
+      "id": "region_03_n12",
+      "type": "Duel",
+      "position": [
+        320,
+        920
+      ],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "region_03_n10"
+        ]
+      },
+      "encounter": "region_03_duel_late_3",
+      "rewards": [
+        "shard:60"
+      ],
+      "connects": [
+        "region_03_n11"
+      ]
+    }
+  ],
+  "board_skin": "default"
+}

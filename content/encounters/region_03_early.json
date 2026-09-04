@@ -1,0 +1,344 @@
+{
+  "encounters": [
+    {
+      "id": "region_03_duel_early_1",
+      "name": "The Tidal Gate",
+      "portrait": "res://art/portraits/region_03_duel_early_1.png",
+      "deck": [
+        "vrd_t_verdant_bud",
+        "tid_c_echoing_depth",
+        "tid_c_saltthorn_scout",
+        "tid_c_sea_raider",
+        "vrd_r_undergrowth_eruption",
+        "emb_c_forgeguard_berserker",
+        "vrd_c_wildwood_stalker",
+        "emb_c_blaze_scout",
+        "hol_c_ossuary_guard",
+        "vrd_c_thornbark_defender",
+        "hol_c_ghoul_scavenger",
+        "hol_r_black_tide",
+        "tid_c_whirlpool_elemental",
+        "tid_r_flood_of_secrets",
+        "tid_c_tide_reacher",
+        "tid_c_undertow_current",
+        "hol_c_plague_rat",
+        "dwn_c_sunpearl_healer",
+        "tid_c_coral_diviner",
+        "dwn_c_dawn_warder",
+        "tid_c_foam_runner",
+        "tid_c_brine_scout",
+        "dwn_c_golden_retainer",
+        "dwn_c_warden_of_the_light",
+        "emb_c_ember_impaler",
+        "hol_c_dust_spinner",
+        "vrd_c_leaf_mender",
+        "vrd_u_ironbark_guard",
+        "emb_c_firecrown_raider",
+        "emb_c_furnace_reaver"
+      ],
+      "shard_reward": 30,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the the tidal gate.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_echoing_depth",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_saltthorn_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_sea_raider",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_c_forgeguard_berserker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_wildwood_stalker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_blaze_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_ossuary_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_ghoul_scavenger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_tide_reacher",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_undertow_current",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_plague_rat",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_sunpearl_healer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_coral_diviner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_dawn_warder",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_foam_runner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_brine_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_golden_retainer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_ember_impaler",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_dust_spinner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_leaf_mender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_firecrown_raider",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_furnace_reaver",
+          "rate": 0.4
+        }
+      ]
+    },
+    {
+      "id": "region_03_duel_early_2",
+      "name": "Brine-Crusted Ruins",
+      "portrait": "res://art/portraits/region_03_duel_early_2.png",
+      "deck": [
+        "hol_c_wraith_bonebreaker",
+        "tid_c_brine_scout",
+        "emb_c_scorch_imp",
+        "hol_u_soul_picker",
+        "tid_c_whirlpool_elemental",
+        "emb_c_forgeguard_berserker",
+        "hol_c_skeletal_reaver",
+        "dwn_c_templar_initiate",
+        "emb_c_firecrown_raider",
+        "tid_c_deep_one",
+        "hol_u_barrow_rite",
+        "dwn_c_sunpearl_healer",
+        "dwn_r_gilded_seraph",
+        "vrd_t_verdant_bud",
+        "dwn_c_warden_of_the_light",
+        "hol_c_barrow_call",
+        "tid_u_tidal_barrier",
+        "vrd_c_thorn_wall",
+        "tid_c_sea_raider",
+        "hol_c_unearth_scavenger",
+        "vrd_c_thornbark_defender",
+        "tid_c_saltthorn_scout",
+        "hol_c_ghoul_scavenger",
+        "hol_r_wraith_stalker",
+        "vrd_u_elder_treant",
+        "hol_r_black_tide",
+        "hol_c_stygian_hound",
+        "emb_u_searing_blast",
+        "emb_c_furnace_reaver",
+        "dwn_c_sunblade_recruit"
+      ],
+      "shard_reward": 30,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the brine-crusted ruins.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "hol_c_wraith_bonebreaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_brine_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_scorch_imp",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_soul_picker",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_forgeguard_berserker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_skeletal_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_templar_initiate",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_firecrown_raider",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_deep_one",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_barrow_rite",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_sunpearl_healer",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_r_gilded_seraph",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_barrow_call",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_u_tidal_barrier",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_thorn_wall",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_sea_raider",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_unearth_scavenger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_saltthorn_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_ghoul_scavenger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_stygian_hound",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_searing_blast",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_furnace_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_c_sunblade_recruit",
+          "rate": 0.4
+        }
+      ]
+    }
+  ]
+}

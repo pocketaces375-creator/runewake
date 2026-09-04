@@ -1,0 +1,60 @@
+{
+  "region_id": "region_04",
+  "name": "The Sunspire",
+  "stratum": "DAWN",
+  "stratum2": null,
+  "palette": {
+    "primary": "#c8a84a",
+    "secondary": "#f0d870",
+    "accent": "#fff8d0",
+    "text": "#f0e8c8",
+    "bg_dark": "#1a1410"
+  },
+  "encounter_slots": 10,
+  "elite_count": 2,
+  "warden_name": "The Light Warden",
+  "boss_name": "The First Dawn",
+  "dig_name": "The Gilded Vault",
+  "dig_description": "A sealed treasury beneath the Sunspire's foundation. Gilt fragments and shattered reliquaries litter the floor.",
+  "lore_blurb": "The highest stratum — a soaring bastion of light and order, built atop the remains of an older covenant.",
+  "signature_card": "dwn_r_archangel_of_order",
+  "entry_encounter_name": "The Portal Guard",
+  "encounter_names": [
+    "The Portal Guard",
+    "The Gilded Corridor",
+    "The Candle-Lit Hall",
+    "Oathkeeper's Post",
+    "The Lantern Court",
+    "The Sunblade Crucible",
+    "The Reflection Chamber",
+    "The Pillars of Dawn",
+    "The Sanctum Threshold",
+    "The Final Pyre"
+  ],
+  "elite_names": [
+    "The Sun-Lost Sentinel",
+    "The Searing Choir"
+  ],
+  "warden_intro": [
+    "The air turns warm. Gold light spills across the marble.",
+    "A figure of blinding radiance blocks the sanctum gates.",
+    "\"You have come far, dust-child. Farther than most. No farther.\"",
+    "The Light Warden draws a blade of pure dawn."
+  ],
+  "warden_outro": [
+    "The light dims to ember-glow as the Warden kneels and dissolves.",
+    "The sanctum gates groan open before you."
+  ],
+  "boss_intro": [
+    "Beyond the gates, an infinite white expanse.",
+    "At its centre: a shard of the First Dawn — the covenant's heart.",
+    "A voice without a speaker fills the space:",
+    "\"THE FIRST LIGHT REMEMBERS EVERY PROMISE. AND EVERY BROKEN ONE.\"",
+    "The First Dawn ignites."
+  ],
+  "boss_outro": [
+    "The light falters, dims, and finally fades to dusk.",
+    "The First Dawn shatters into a million fading embers.",
+    "Silence. Then, far away, a single birdsong."
+  ]
+}

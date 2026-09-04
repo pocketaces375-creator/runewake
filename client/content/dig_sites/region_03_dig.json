@@ -1,0 +1,80 @@
+{
+  "dig_sites": [
+    {
+      "id": "region_03_dig",
+      "name": "The Brine Warrens",
+      "description": "A flooded labyrinth below the tide line. Strange bioluminescence pulses from submerged vaults.",
+      "rows": 4,
+      "cols": 4,
+      "strikes": 4,
+      "headline_threshold": 3,
+      "headline_reward": "relic:region_03_relic",
+      "tiles": [
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "23"
+        },
+        {
+          "type": "CODEX_PAGE",
+          "value": "region_03_codex_1"
+        },
+        {
+          "type": "SHARD",
+          "value": "17"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "5"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "14"
+        },
+        {
+          "type": "RUNE_FRAGMENT",
+          "value": "verdant:2"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "6"
+        }
+      ]
+    }
+  ]
+}

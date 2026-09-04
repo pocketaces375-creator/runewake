@@ -1,0 +1,357 @@
+{
+  "encounters": [
+    {
+      "id": "region_03_warden",
+      "name": "The Abyssal Warden",
+      "portrait": "res://art/portraits/region_03_warden.png",
+      "deck": [
+        "tid_r_deep_tides_diviner",
+        "emb_r_magma_forger",
+        "emb_u_burnout_mage",
+        "hol_u_soul_harvest",
+        "hol_r_death_drummer",
+        "emb_u_lava_burst",
+        "tid_u_coral_guardian",
+        "hol_r_black_tide",
+        "vrd_c_leaf_mender",
+        "hol_u_crypt_crawler",
+        "vrd_c_root_sprout",
+        "dwn_u_fading_spark",
+        "vrd_r_deeproot_ancients",
+        "emb_u_cinder_venom",
+        "tid_u_depth_charge",
+        "dwn_r_aurora_warden",
+        "vrd_r_undergrowth_eruption",
+        "hol_u_nightshade_priest",
+        "emb_c_scorch_imp",
+        "vrd_r_natures_renewal",
+        "hol_r_wraith_stalker",
+        "tid_r_hydrokinetic_adept",
+        "hol_c_plague_rat",
+        "dwn_u_reckoning_strike",
+        "vrd_r_worldtree_custodian",
+        "hol_c_bone_shard_volley",
+        "tid_r_echo_caller",
+        "tid_u_memory_tides",
+        "hol_u_soul_picker",
+        "dwn_u_steadfast_bulwark"
+      ],
+      "shard_reward": 150,
+      "dig_charge_reward": 3,
+      "dialogue_intro": [
+        "The water stills \u2014 a terrible pressure builds in the dark.",
+        "A voice, ancient and wet, speaks from every bubble:",
+        "\"You tread the abyss as though it were a road.\"",
+        "The Abyssal Warden unfolds from the murk \u2014 a crown of coral and eyes that do not blink."
+      ],
+      "dialogue_outro": [
+        "The coral crown shatters; the water lightens.",
+        "The way to the heart of the deep lies open."
+      ],
+      "fragment_reward": "tide:3",
+      "drops": [
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 1.0
+        },
+        {
+          "card_id": "tid_r_deep_tides_diviner",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_burnout_mage",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_soul_harvest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_death_drummer",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_lava_burst",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_leaf_mender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_crypt_crawler",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_root_sprout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_fading_spark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_r_deeproot_ancients",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_cinder_venom",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_depth_charge",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_aurora_warden",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_u_nightshade_priest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_scorch_imp",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_plague_rat",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_reckoning_strike",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_r_worldtree_custodian",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_bone_shard_volley",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_echo_caller",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_soul_picker",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_steadfast_bulwark",
+          "rate": 0.25
+        }
+      ]
+    },
+    {
+      "id": "region_03_boss",
+      "name": "The Leviathan's Heart",
+      "portrait": "res://art/portraits/region_03_boss.png",
+      "deck": [
+        "dwn_u_blessing_of_dawn",
+        "tid_r_echo_caller",
+        "vrd_u_ironbark_guard",
+        "tid_u_tidal_barrier",
+        "vrd_u_greatwood_guardian",
+        "tid_r_deep_tides_diviner",
+        "vrd_u_saphoof_charger",
+        "tid_r_hydrokinetic_adept",
+        "vrd_c_root_sprout",
+        "dwn_r_radiant_prophet",
+        "emb_u_flame_tongue_knight",
+        "dwn_u_purifying_light",
+        "hol_c_gravewrit_thrall",
+        "dwn_r_archangel_of_order",
+        "emb_u_scoria_prowler",
+        "vrd_r_natures_renewal",
+        "tid_c_whirlpool_elemental",
+        "tid_r_flood_of_secrets",
+        "dwn_r_holy_edict",
+        "tid_r_sunken_leviathan",
+        "emb_r_sharptongue_elder",
+        "vrd_c_moss_shield",
+        "hol_r_hollow_herald",
+        "tid_u_tidal_seer",
+        "dwn_u_fading_spark",
+        "tid_c_tidal_scholar",
+        "vrd_t_verdant_bud",
+        "vrd_r_bloomweaver",
+        "vrd_u_sylvan_pulse",
+        "dwn_r_aurora_warden"
+      ],
+      "shard_reward": 300,
+      "dig_charge_reward": 5,
+      "dialogue_intro": [
+        "The abyss falls silent \u2014 even the currents hold their breath.",
+        "A second pulse, deafening, shakes the stone around you.",
+        "\"LEVIATHAN STIRS. THE DEEP DEMANDS TRIBUTE.\"",
+        "A shape vast as a drowned cathedral rises from the dark."
+      ],
+      "dialogue_outro": [
+        "The great heart ceases its pulse. The waters recede.",
+        "The Leviathan's Heart crumbles into sediment and brine.",
+        "Far above, a crack of light breaks through the deep."
+      ],
+      "fragment_reward": "tide:5",
+      "drops": [
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 1.0
+        },
+        {
+          "card_id": "dwn_u_blessing_of_dawn",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_echo_caller",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_tidal_barrier",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_greatwood_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_deep_tides_diviner",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_saphoof_charger",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_root_sprout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_flame_tongue_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_scoria_prowler",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_sharptongue_elder",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_moss_shield",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_tidal_seer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_fading_spark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_tidal_scholar",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_sylvan_pulse",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_aurora_warden",
+          "rate": 0.1
+        }
+      ]
+    }
+  ]
+}

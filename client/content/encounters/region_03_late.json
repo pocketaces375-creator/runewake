@@ -1,0 +1,514 @@
+{
+  "encounters": [
+    {
+      "id": "region_03_duel_late_1",
+      "name": "Abyssal Current",
+      "portrait": "res://art/portraits/region_03_duel_late_1.png",
+      "deck": [
+        "dwn_u_reckoning_strike",
+        "vrd_u_greatwood_guardian",
+        "tid_u_brine_witch",
+        "emb_u_lava_caller",
+        "dwn_c_warden_of_the_light",
+        "tid_r_flood_of_secrets",
+        "vrd_c_verdant_sproutling",
+        "hol_c_bone_shard_volley",
+        "hol_u_soul_picker",
+        "hol_c_stygian_hound",
+        "hol_r_death_drummer",
+        "tid_c_echoing_depth",
+        "emb_c_ember_impaler",
+        "dwn_r_aurora_warden",
+        "dwn_c_templar_initiate",
+        "emb_u_wildfire_adept",
+        "vrd_u_canopy_archer",
+        "tid_c_whirlpool_elemental",
+        "emb_c_scorch_imp",
+        "vrd_c_warding_vine",
+        "vrd_c_leaf_mender",
+        "hol_c_gravewrit_thrall",
+        "vrd_r_natures_renewal",
+        "vrd_r_worldtree_custodian",
+        "dwn_r_radiant_prophet",
+        "emb_u_flame_tongue_knight",
+        "emb_u_cinder_venom",
+        "hol_c_skeletal_reaver",
+        "vrd_u_ironbark_guard",
+        "vrd_u_forest_poultice"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the abyssal current.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "dwn_u_reckoning_strike",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_greatwood_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_caller",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_c_verdant_sproutling",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_bone_shard_volley",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_soul_picker",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_stygian_hound",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_death_drummer",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_echoing_depth",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_ember_impaler",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_r_aurora_warden",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_c_templar_initiate",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_wildfire_adept",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_whirlpool_elemental",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_scorch_imp",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_warding_vine",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_leaf_mender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_worldtree_custodian",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_flame_tongue_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_cinder_venom",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_skeletal_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_forest_poultice",
+          "rate": 0.25
+        }
+      ]
+    },
+    {
+      "id": "region_03_duel_late_2",
+      "name": "The Sunken Hall",
+      "portrait": "res://art/portraits/region_03_duel_late_2.png",
+      "deck": [
+        "vrd_c_thorn_wall",
+        "emb_c_blaze_scout",
+        "hol_r_black_tide",
+        "vrd_r_deeproot_ancients",
+        "dwn_r_archangel_of_order",
+        "emb_u_cinder_venom",
+        "emb_c_flame_javelin",
+        "vrd_t_verdant_bud",
+        "emb_r_magma_forger",
+        "hol_c_ossuary_guard",
+        "hol_c_bone_tick",
+        "dwn_u_purifying_light",
+        "tid_u_memory_tides",
+        "hol_r_hollow_herald",
+        "tid_c_undertow_current",
+        "tid_r_echo_caller",
+        "vrd_r_natures_renewal",
+        "tid_r_hydrokinetic_adept",
+        "emb_u_lava_serpent",
+        "tid_u_coral_guardian",
+        "vrd_c_thornbark_defender",
+        "emb_u_lava_burst",
+        "dwn_c_gleam_sentinel",
+        "hol_c_skeletal_reaver",
+        "vrd_u_bramble_heart",
+        "tid_u_brine_witch",
+        "tid_c_brine_scout",
+        "vrd_u_saphoof_charger",
+        "tid_c_foam_runner",
+        "hol_u_soul_harvest"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the the sunken hall.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "vrd_c_thorn_wall",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_blaze_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_deeproot_ancients",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_cinder_venom",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_flame_javelin",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_ossuary_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_bone_tick",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_undertow_current",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_echo_caller",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_lava_serpent",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_lava_burst",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_gleam_sentinel",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_skeletal_reaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_bramble_heart",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_brine_scout",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_saphoof_charger",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_foam_runner",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_soul_harvest",
+          "rate": 0.25
+        }
+      ]
+    },
+    {
+      "id": "region_03_duel_late_3",
+      "name": "Tide-Swept Vault",
+      "portrait": "res://art/portraits/region_03_duel_late_3.png",
+      "deck": [
+        "tid_u_brine_witch",
+        "emb_c_stone_slinger",
+        "vrd_c_vine_weaver",
+        "vrd_c_root_tender",
+        "emb_u_scoria_prowler",
+        "vrd_c_leaf_mender",
+        "emb_c_ember_hound",
+        "emb_u_cinderstorm_elemental",
+        "dwn_c_templar_initiate",
+        "hol_c_deathspeaker",
+        "emb_u_flame_tongue_knight",
+        "emb_u_lava_serpent",
+        "hol_r_black_tide",
+        "dwn_u_steadfast_bulwark",
+        "tid_u_memory_tides",
+        "dwn_c_dawnbreaker_charger",
+        "vrd_u_elder_treant",
+        "emb_u_wildfire_adept",
+        "vrd_u_forest_poultice",
+        "tid_c_silt_reader",
+        "vrd_u_canopy_archer",
+        "hol_c_plague_rat",
+        "hol_u_barrow_revenant",
+        "emb_r_magma_forger",
+        "vrd_t_verdant_bud",
+        "tid_u_depth_charge",
+        "dwn_c_warden_of_the_light",
+        "hol_c_bone_tick",
+        "dwn_u_reckoning_strike",
+        "vrd_c_thornbark_defender"
+      ],
+      "shard_reward": 60,
+      "dig_charge_reward": 0,
+      "dialogue_intro": [
+        "The path ahead is shrouded in mystery.",
+        "A presence stirs in the shadows of the tide-swept vault.",
+        "\"You are not welcome here.\""
+      ],
+      "dialogue_outro": [
+        "The threat fades, leaving only silence.",
+        "The way forward is clear \u2014 for now."
+      ],
+      "drops": [
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_stone_slinger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_vine_weaver",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_root_tender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_scoria_prowler",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_leaf_mender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_ember_hound",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_cinderstorm_elemental",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_templar_initiate",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_deathspeaker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_flame_tongue_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_serpent",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_steadfast_bulwark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_dawnbreaker_charger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_wildfire_adept",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_forest_poultice",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_c_silt_reader",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_plague_rat",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_barrow_revenant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_t_verdant_bud",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_u_depth_charge",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_bone_tick",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_reckoning_strike",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        }
+      ]
+    }
+  ]
+}

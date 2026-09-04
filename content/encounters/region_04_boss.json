@@ -1,0 +1,358 @@
+{
+  "encounters": [
+    {
+      "id": "region_04_warden",
+      "name": "The Light Warden",
+      "portrait": "res://art/portraits/region_04_warden.png",
+      "deck": [
+        "vrd_u_forest_stalker",
+        "dwn_r_archangel_of_order",
+        "tid_u_memory_tides",
+        "tid_u_brine_witch",
+        "emb_u_searing_blast",
+        "tid_u_tidal_seer",
+        "hol_r_black_tide",
+        "vrd_r_deeproot_ancients",
+        "dwn_u_purifying_light",
+        "vrd_u_sylvan_pulse",
+        "emb_u_wildfire_adept",
+        "dwn_c_daybreak_guard",
+        "dwn_u_fading_spark",
+        "dwn_u_reckoning_strike",
+        "hol_r_wraith_stalker",
+        "hol_r_death_drummer",
+        "dwn_c_oath_sworn_guard",
+        "vrd_c_moss_shield",
+        "vrd_u_grove_healer",
+        "tid_u_coral_guardian",
+        "hol_u_putrid_knight",
+        "emb_c_firecrown_raider",
+        "tid_r_hydrokinetic_adept",
+        "emb_r_sharptongue_elder",
+        "emb_r_magma_forger",
+        "hol_r_curse_of_binding",
+        "vrd_r_undergrowth_eruption",
+        "vrd_u_ironbark_guard",
+        "emb_r_ember_warleader",
+        "vrd_u_bramble_heart"
+      ],
+      "shard_reward": 150,
+      "dig_charge_reward": 3,
+      "dialogue_intro": [
+        "The air turns warm. Gold light spills across the marble.",
+        "A figure of blinding radiance blocks the sanctum gates.",
+        "\"You have come far, dust-child. Farther than most. No farther.\"",
+        "The Light Warden draws a blade of pure dawn."
+      ],
+      "dialogue_outro": [
+        "The light dims to ember-glow as the Warden kneels and dissolves.",
+        "The sanctum gates groan open before you."
+      ],
+      "fragment_reward": "dawn:3",
+      "drops": [
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 1.0
+        },
+        {
+          "card_id": "vrd_u_forest_stalker",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_searing_blast",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_tidal_seer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_deeproot_ancients",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_sylvan_pulse",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_wildfire_adept",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_daybreak_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_fading_spark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_reckoning_strike",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_death_drummer",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_c_oath_sworn_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_moss_shield",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_u_grove_healer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_putrid_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_c_firecrown_raider",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_sharptongue_elder",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_r_ember_warleader",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_bramble_heart",
+          "rate": 0.25
+        }
+      ]
+    },
+    {
+      "id": "region_04_boss",
+      "name": "The First Dawn",
+      "portrait": "res://art/portraits/region_04_boss.png",
+      "deck": [
+        "tid_r_flood_of_secrets",
+        "vrd_r_deeproot_ancients",
+        "hol_r_black_tide",
+        "dwn_u_reckoning_strike",
+        "hol_u_soul_harvest",
+        "dwn_r_archangel_of_order",
+        "tid_c_star_reader",
+        "emb_u_searing_blast",
+        "dwn_c_warden_of_the_light",
+        "hol_u_nightshade_priest",
+        "vrd_u_elder_treant",
+        "vrd_u_ironbark_guard",
+        "vrd_u_bramble_heart",
+        "emb_u_scoria_prowler",
+        "hol_u_putrid_knight",
+        "dwn_r_sealing_light",
+        "hol_c_plague_rat",
+        "vrd_r_undergrowth_eruption",
+        "hol_r_death_drummer",
+        "tid_r_deep_tides_diviner",
+        "vrd_r_natures_renewal",
+        "hol_r_wraith_stalker",
+        "emb_r_phoenix_ash",
+        "hol_r_curse_of_binding",
+        "dwn_r_radiant_prophet",
+        "emb_r_ember_warleader",
+        "emb_r_magma_forger",
+        "tid_c_silt_reader",
+        "dwn_u_blessing_of_dawn",
+        "vrd_c_warding_vine"
+      ],
+      "shard_reward": 300,
+      "dig_charge_reward": 5,
+      "dialogue_intro": [
+        "Beyond the gates, an infinite white expanse.",
+        "At its centre: a shard of the First Dawn \u2014 the covenant's heart.",
+        "A voice without a speaker fills the space:",
+        "\"THE FIRST LIGHT REMEMBERS EVERY PROMISE. AND EVERY BROKEN ONE.\"",
+        "The First Dawn ignites."
+      ],
+      "dialogue_outro": [
+        "The light falters, dims, and finally fades to dusk.",
+        "The First Dawn shatters into a million fading embers.",
+        "Silence. Then, far away, a single birdsong."
+      ],
+      "fragment_reward": "dawn:5",
+      "drops": [
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 1.0
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_deeproot_ancients",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_black_tide",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_reckoning_strike",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_soul_harvest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_star_reader",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_u_searing_blast",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_warden_of_the_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_u_nightshade_priest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_ironbark_guard",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_bramble_heart",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_scoria_prowler",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_u_putrid_knight",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_sealing_light",
+          "rate": 0.4
+        },
+        {
+          "card_id": "hol_c_plague_rat",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_death_drummer",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_deep_tides_diviner",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_phoenix_ash",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_ember_warleader",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_c_silt_reader",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_u_blessing_of_dawn",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_warding_vine",
+          "rate": 0.4
+        }
+      ]
+    }
+  ]
+}

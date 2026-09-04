@@ -1,0 +1,80 @@
+{
+  "dig_sites": [
+    {
+      "id": "region_04_dig",
+      "name": "The Gilded Vault",
+      "description": "A sealed treasury beneath the Sunspire's foundation. Gilt fragments and shattered reliquaries litter the floor.",
+      "rows": 4,
+      "cols": 4,
+      "strikes": 4,
+      "headline_threshold": 3,
+      "headline_reward": "relic:region_04_relic",
+      "tiles": [
+        {
+          "type": "SHARD",
+          "value": "9"
+        },
+        {
+          "type": "RUNE_FRAGMENT",
+          "value": "tide:1"
+        },
+        {
+          "type": "CODEX_PAGE",
+          "value": "region_04_codex_3"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "13"
+        },
+        {
+          "type": "SHARD",
+          "value": "17"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "12"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "25"
+        }
+      ]
+    }
+  ]
+}
