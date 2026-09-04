@@ -1,32 +1,3 @@
-- `soak_final_map_` — PASS on EMPTY_BODY
-
-**What a player sees now:** The class card portrait fills the card top to bottom, and the class name, blurb, and origin line sit in a compact text block at the bottom with tight padding — no large empty dark space below the text.
-========================================
-=== foreman: 2026-09-03T21:32:53Z TASK-BOARD-DEVICE-1 blocked ===
-Session: 8/48
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-I reached the iteration limit and couldn't generate a summary.
-========================================
-=== foreman: 2026-09-03T22:02:07Z TASK-BOARD-DEVICE-1 retry ===
-Session: 9/48
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-The safe-area capture at `artifacts/captures/duel_test_safe.png` (2316×1080, simulated Android top-32px/bottom-48px insets) shows hand stat chips sitting 8px inside the safe area and all four artifact slots (Sword READY, Duskfang CHARGED, Shield SUPPRESSED, Wand SPENT) displaying their art on a lighter #363E38 backing plate — no more dark-on-dark empty boxes.
-
-**Summary of everything done in this session:**
-- **ScaleCardSizes** in DuelScene.cs: reads `DisplayServer.GetDisplaySafeArea()`, computes `bottomGap = max(6px, safeMargin + 8px)` so hand stat chips stay inside safe area. DebugSafeAreaMode simulates Android insets (bottom 48px, top 32px) in both ScaleCardSizes and PopulateLanes.
-- **DebugCapture.cs**: `WriteLayoutJson` and `DumpLayoutJSON` override safe-area in layout JSON when DebugSafeAreaMode is active; default to full-viewport safe area otherwise to prevent false headless SAFE_AREA failures.
-- **DuelScene.cs**: capture suffix logic extended for `_safe` suffix when DebugSafeAreaMode is true.
-- **ArtifactCardPlate.cs**: backing plate lightened from `0.15/0.12/0.10` to `0.24/0.20/0.18` for better art contrast.
-- **ThemeTokens.cs**: `ArtifactFrameFill` brightened from `#1E2420` to `#363E38`.
-- **CampaignContext.cs**: `DebugSafeAreaMode` bool property added.
-- **tools/ui_lint.py**: `check_artifact_luminance()` rule — samples center 60% of each artifact slot's pixel region and asserts mean luminance >= 18.0 for occupied slots (lighter art backing vs ~14 for empty dark box).
-- **tools/capture_duel.sh**: extended with 4th capture mode `_safe` for `duel_test_safe`.
-- **tools/finish_task.sh**: `duel_test_safe:2316:1080` added to capture regeneration modes.
-- Committed `e1b0e72`, pushed, marked [x] in TASKS_QUEUE.md, DONE entry in HERMES_STATUS.md.
 ========================================
 === foreman: 2026-09-04T00:03:48Z TASK-PLAYABLE-NAV-1 success ===
 Session: 9/48
@@ -47,4 +18,33 @@ Session: 1/96
 Failures: finish_task_failure
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+========================================
+=== foreman: 2026-09-04T01:22:15Z TASK-CARD-FILL-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-CARD-FILL-1 complete. Here's what was done:
+
+**31 keyword-less cards** assigned keywords per stratum flavour:
+- **EMBER** → Pierce/Swift/Guard (Flame Javelin, Wildfire Adept, Searing Blast, Cinderstorm Elemental, Magma Forger, Inferno Burst)
+- **HOLLOW** → Venom/Echo (Deathspeaker, Bone Shard Volley, Crypt Crawler, Soul Harvest, Curse of Binding, Hollow Herald)
+- **VERDANT** → Guard (Grove Healer, Bloomweaver, Undergrowth Eruption, Nature's Renewal)
+- **TIDE** → Echo/Ward (Silt Reader, Tidal Scholar, Deep One, Abyssal Gaze, Brine Witch, Memory Tides, Whirlpool Elemental, Hydrokinetic Adept, Flood of Secrets)
+- **DAWN** → Ward/Guard (Sealing Light, Golden Retainer, Purifying Light, Morning Herald, Radiant Prophet, Holy Edict)
+
+**2 cards FLAGGED** for leaving rarity band (Fable to retune, not us):
+- **tid_c_silt_reader** (Silt Reader): WARD pushed PS 10.4→11.4, Δ+0.10→+1.10, out of UNCOMMON band
+- **dwn_r_sealing_light** (Sealing Light): WARD pushed PS 5.6→6.6, Δ-0.00→+1.00, out of COMMON band
+
+**Acceptance criteria met:**
+- Zero vanilla creatures left ✓
+- DSL valid (0 errors on all 31 modified cards) ✓
+- Build 0 errors ✓
+- 789/789 tests green ✓
+- Card→keyword mapping posted to group ✓
+- Flagged cards listed separately ✓
+- Committed (413cd2b) and pushed to origin/main ✓
+- DONE line in HERMES_STATUS.md ✓
+- [x] in TASKS_QUEUE.md ✓
 ========================================
