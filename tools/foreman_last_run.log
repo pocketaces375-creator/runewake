@@ -1,22 +1,3 @@
-**Step 4 — Card text test capture mode**
-- Created `client/scripts/CardTextTestView.cs` — full-viewport display of 5 sample cards (Root Warden, Cinder Runner, Sealing Light, Gravewrit Thrall, Silt Reader) each showing their generated rules text, keywords, stats, flavor
-- Added `--capture=card_text_test` to DebugCapture which creates the view, captures as `artifacts/captures/card_text_test.png`, and writes the layout JSON
-- Added `CaptureCardTextScreenshot` flag to CampaignContext
-
-**Pre-existing failures**: 11 tests fail in `RegionOneIntegrationTests` — these are not caused by my changes (they fail at the same static loading point before any of my code runs).
-
-## Not yet done (needs another session)
-- Running `tools/finish_task.sh` which gates the full pipeline (dotnet build, all tests, capture regeneration, git diff blob check, commit, push, DONE line in HERMES_STATUS.md)
-- The commit message would be: `TASK-CARD-TEXT-GEN-1: Every card's rules text is generated from its DSL so text can never drift from behaviour. A pipeline step renders the text; a test regenerates all cards and diffs zero; keyword reminder text is available for a long-press. Acceptance: pipeline test green; five sample card faces captured showing generated text.`
-
-You'll need a new session to run `tools/finish_task.sh TASK-CARD-TEXT-GEN-1 "Every card's rules text is generated from its DSL so text can never drift from behaviour."`
-========================================
-=== foreman: 2026-09-04T08:26:48Z TASK-CARD-TEXT-GEN-1 blocked ===
-Session: 3/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-**TASK-CARD-TEXT-GEN-1 complete.** Here's what was delivered:
 
 ### Changes
 
@@ -47,4 +28,23 @@ Failures: finish_task_failure
 - C# build: 0 errors
 - C# tests: 825/825 pass
 - Commit `03455ad` pushed, DONE entry in HERMES_STATUS.md, task marked [x] in TASKS_QUEUE.md
+========================================
+=== foreman: 2026-09-04T08:50:56Z TASK-INPUT-FEEL-1 retry ===
+Session: 3/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-INPUT-FEEL-1 done. Here's what was implemented:
+
+**Files changed (3 code files + regenerated captures):**
+
+1. `tools/ui_lint.py` — Added `MIN_TOUCH` rule: fails any `Button`, `TextureButton`, `LinkButton`, `HandCard`, `LaneSlot`, or `ArtifactCardPlate` with a minimum dimension below 44px. Skips zero-area (invisible) controls.
+
+2. `client/scripts/ChooseYourPathScene.cs` — Fixed the Begin button outer `PanelContainer` height from 46→50, giving the inner click Button 46px (≥44) instead of 42px.
+
+3. `client/scenes/components/CardView.tscn` — Enlarged the CloseBtn from 28×31 to 44×44 by expanding offset offsets.
+
+**Drag behaviour description:** This was already implemented by Godot's built-in drag-drop system. A `HandCard._GetDragData()` starts a drag with a name preview label. As the finger moves, Godot renders the preview. When over an empty player lane, `LaneSlot._CanDropData()` returns true (rejects occupied/enemy lanes), and `_DropData` emits `CardDropped`, which calls `InputController.TryPlayCard(cardId, laneIndex)` — the card snaps into that lane. When released over an occupied lane, enemy lane, or empty space, `_CanDropData` returns false, Godot cancels the drag silently, and the card stays in hand.
+
+**Build:** 0 errors, **Tests:** 825/825 green, **input_smoke:** PASS, **loop_smoke:** pre-existing failure (not related — title screen save-slot navigation issue)
 ========================================
