@@ -15,17 +15,14 @@ namespace Runewake.Client;
 /// </summary>
 public partial class Main : Control
 {
-    private Button _startButton = default!;
+    private Label _statusLabel = default!;
+    private Label _saveWarningLabel = default!;
     private Button _decksButton = default!;
     private Button _runeButton = default!;
     private Button _forgeButton = default!;
-    private Label _statusLabel = default!;
-    private Label _saveWarningLabel = default!;
     private Button _diagButton = default!;
-    private Button _newPathButton = default!;
-    private Control? _pathsOverlay;
-    private Button _pathsButton = default!;
-    private Panel? _diagPanel;
+    private Control? _slotPickerContainer;
+    private Control? _diagPanel;
     private bool _loading;
 
     public override void _Ready()
@@ -176,15 +173,10 @@ public partial class Main : Control
             return btn;
         }
 
-        // Play button → Start Campaign
-        var playButton = MakeStoneButton("Play");
-        playButton.AnchorTop = 0.55f;
-        playButton.AnchorBottom = 0.63f;
-        playButton.Pressed += OnStartCampaign;
-        AddChild(playButton);
-        _startButton = playButton;
+        // ═══ Build slot picker (3 campaign slots) ═══
+        BuildSlotPicker();
 
-        // Decks button
+        // ── Decks button ──
         var decksButton = MakeStoneButton("Decks");
         decksButton.AnchorTop = 0.65f;
         decksButton.AnchorBottom = 0.73f;
@@ -202,7 +194,7 @@ public partial class Main : Control
         };
         AddChild(reliquaryButton);
 
-        // Settings button
+        // Settings button (bottom row)
         var settingsButton = MakeStoneButton("Settings");
         settingsButton.AnchorTop = 0.85f;
         settingsButton.AnchorBottom = 0.93f;
@@ -222,11 +214,12 @@ public partial class Main : Control
         _forgeButton.Pressed += OnOpenForge;
         AddChild(_forgeButton);
 
-        // ── Campaign profile (CONTINUE state + Paths picker) ──
+        // ── Campaign profile (v2 save system: 3 slots) ──
         CampaignContext.LoadCampaignProfile();
         CampaignContext.LoadDeckLibrary();
 
         // ═══ SAVE LOAD: synchronous, before any deferred work ═══
+        // (must happen AFTER LoadCampaignProfile which sets up per-slot SaveManager)
         // Critical: the save MUST be loaded before the first scene reads it.
         // The race condition (deferred LoadGameData leaving IsLoaded=false when
         // buttons are interactive) is the suspected root cause of skipped
@@ -234,20 +227,8 @@ public partial class Main : Control
         // synchronously in _Ready, before any CallDeferred.
         CampaignContext.SaveManager.Initialize();
 
-        if (CampaignContext.HasSavedCampaign)
-        {
-            _startButton.Text = $"CONTINUE";
-
-            // PATHS button (stone-style, below Settings button)
-            _pathsButton = MakeStoneButton("PATHS");
-            _pathsButton.AnchorTop = 0.93f;
-            _pathsButton.AnchorBottom = 1f;
-            _pathsButton.AddThemeFontSizeOverride("font_size", 12);
-            _pathsButton.Modulate = new Color(1, 1, 1, 0.7f);
-            _pathsButton.Pressed += OnOpenPathsOverlay;
-            AddChild(_pathsButton);
-            GD.Print($"[Main] Campaign profile found — {CampaignContext.Profiles.Count} path(s) saved");
-        }
+        // Refresh slot picker to show current state
+        BuildSlotPicker();
 
         // Persistent save warning label (hidden until/unless a save error occurs)
         _saveWarningLabel = new Label
@@ -515,7 +496,6 @@ public partial class Main : Control
 
         _statusLabel.Text = "";
         _statusLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
-        _startButton.Disabled = false;
         _decksButton.Disabled = false;
         _runeButton.Disabled = false;
         _forgeButton.Disabled = false;
@@ -577,6 +557,14 @@ public partial class Main : Control
         // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
         {
+            // Slot picker test runs on the title screen itself
+            if (CampaignContext.SlotPickerTestMode)
+            {
+                GD.Print("[Main] Slot picker test mode — running slot create/load/delete test");
+                // Use deferred call so the title screen has rendered
+                Callable.From(RunSlotPickerTest).CallDeferred();
+                return;
+            }
             if (CampaignContext.CaptureTitleTestScreenshot)
             {
                 // Capture title screen only
@@ -928,308 +916,152 @@ public partial class Main : Control
         panel.AddChild(closeBtn);
     }
 
-    private void OnStartCampaign()
+    // ═══════════════════════════════════════════════════════════════════
+    // SLOT PICKER — 3 campaign slots on the title screen
+    // ═══════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Build or rebuild the 3 campaign slot cards in the middle of the screen.
+    /// Removes previous container if one exists.
+    /// </summary>
+    private void BuildSlotPicker()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        if (CampaignContext.HasSavedCampaign)
-        {
-            // Continue existing campaign — go straight to map.
-            // EnsureStarterDeck also heals older profiles that predate
-            // class starter decks (creates + activates one if missing).
-            var activeProfile = CampaignContext.ActiveProfile;
-            if (activeProfile != null && !string.IsNullOrEmpty(activeProfile.ClassId))
-                CampaignContext.EnsureStarterDeck(activeProfile.ClassId);
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-        }
-        else
-        {
-            // New campaign — route through ChooseYourPath
-            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
-        }
-    }
+        // Remove previous container
+        if (_slotPickerContainer != null && IsInstanceValid(_slotPickerContainer))
+            _slotPickerContainer.QueueFree();
 
-    private void OnStartNewPath()
-    {
-        CampaignContext.AddOrUpdateProfile("", "");
-        CampaignContext.ChosenClass = "";
-        CampaignContext.ChosenTown = "";
-        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
-    }
-
-    private void OnOpenPathsOverlay()
-    {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        if (_pathsOverlay != null && IsInstanceValid(_pathsOverlay))
+        _slotPickerContainer = new HBoxContainer
         {
-            _pathsOverlay.QueueFree();
-            _pathsOverlay = null;
-        }
-
-        // Full-screen dim
-        var dim = new ColorRect
-        {
-            Color = new Color(0, 0, 0, 0.5f),
-            AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0f, AnchorBottom = 1f,
-            MouseFilter = MouseFilterEnum.Stop
-        };
-        AddChild(dim);
-        _pathsOverlay = dim;
-
-        // Close overlay when clicking the dim background
-        dim.GuiInput += (InputEvent @event) =>
-        {
-            if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
-            {
-                ClosePathsOverlay();
-            }
-        };
-
-        // Centered panel container
-        var anchorLeft = 0.28f;
-        var anchorRight = 0.72f;
-        var anchorTop = 0.20f;
-        var anchorBottom = 0.80f;
-
-        var panelContainer = new PanelContainer
-        {
-            AnchorLeft = anchorLeft,
-            AnchorRight = anchorRight,
-            AnchorTop = anchorTop,
-            AnchorBottom = anchorBottom,
-            MouseFilter = MouseFilterEnum.Stop
-        };
-        var panelBg = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A2520"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 16, ContentMarginTop = 16,
-            ContentMarginRight = 16, ContentMarginBottom = 16
-        };
-        panelContainer.AddThemeStyleboxOverride("panel", panelBg);
-        dim.AddChild(panelContainer);
-
-        // VBox for vertical layout
-        var vbox = new VBoxContainer
-        {
-            CustomMinimumSize = new Vector2(0, 0),
+            AnchorLeft = 0.05f, AnchorRight = 0.95f,
+            AnchorTop = 0.38f, AnchorBottom = 0.63f,
             SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill
+            SizeFlagsVertical = Control.SizeFlags.Fill,
+            MouseFilter = MouseFilterEnum.Stop
         };
-        panelContainer.AddChild(vbox);
-
-        // Title "Paths"
-        var titleLabel = new Label
-        {
-            Text = "Paths",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-        };
-        ThemeTokens.ApplyHeaderFont(titleLabel, 28);
-        titleLabel.Modulate = Color.FromHtml("#D4B84C"); // gold
-        vbox.AddChild(titleLabel);
-
-        // Spacer
-        vbox.AddChild(new ColorRect
-        {
-            Color = new Color(0, 0, 0, 0),
-            CustomMinimumSize = new Vector2(0, 4)
-        });
-
-        // Build slot cards
-        RefreshPathsOverlayCards(vbox);
-
-        // Close button at bottom (stone-style)
-        var closeBtn = new Button
-        {
-            Text = "Close",
-            CustomMinimumSize = new Vector2(0, 36)
-        };
-        closeBtn.AddThemeFontSizeOverride("font_size", 13);
-        closeBtn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
-        closeBtn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
-        closeBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
-        var closeNormal = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#3A3530"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 4,
-            ContentMarginRight = 16, ContentMarginBottom = 4
-        };
-        var closeHover = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#4A4540"),
-            BorderColor = Color.FromHtml("#C9A84C"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 4,
-            ContentMarginRight = 16, ContentMarginBottom = 4
-        };
-        var closePressed = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A2520"),
-            BorderColor = Color.FromHtml("#A08838"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 4,
-            ContentMarginRight = 16, ContentMarginBottom = 4
-        };
-        closeBtn.AddThemeStyleboxOverride("normal", closeNormal);
-        closeBtn.AddThemeStyleboxOverride("hover", closeHover);
-        closeBtn.AddThemeStyleboxOverride("pressed", closePressed);
-        closeBtn.Pressed += () =>
-        {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            ClosePathsOverlay();
-        };
-        vbox.AddChild(closeBtn);
-    }
-
-    private void RefreshPathsOverlayCards(VBoxContainer vbox)
-    {
-        // Remove existing slot cards (keep title, spacer, and close button)
-        for (int i = vbox.GetChildCount() - 1; i >= 0; i--)
-        {
-            var child = vbox.GetChild(i);
-            if (child is Panel slotPanel && slotPanel.HasMeta("slot_index"))
-                slotPanel.QueueFree();
-        }
+        AddChild(_slotPickerContainer);
 
         var profiles = CampaignContext.Profiles;
 
         for (int i = 0; i < 3; i++)
         {
             int slotIdx = i;
-            var slotCard = new Panel
+            bool occupied = i < profiles.Count && !string.IsNullOrEmpty(profiles[i].ClassId);
+
+            var slotCard = new PanelContainer
             {
-                CustomMinimumSize = new Vector2(0, 130),
-                SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                MouseFilter = MouseFilterEnum.Stop
+                SizeFlagsHorizontal = Control.SizeFlags.Expand | Control.SizeFlags.Fill,
+                SizeFlagsVertical = Control.SizeFlags.Fill,
+                MouseFilter = MouseFilterEnum.Stop,
+                CustomMinimumSize = new Vector2(0, 180)
             };
-            slotCard.SetMeta("slot_index", i);
 
             var slotStyle = new StyleBoxFlat
             {
-                BgColor = i < profiles.Count
+                BgColor = occupied
                     ? Color.FromHtml("#3A3530")
-                    : new Color(0.25f, 0.22f, 0.18f, 0.6f),
-                BorderColor = Color.FromHtml("#5A5048"),
+                    : Color.FromHtml("#2A2520"),
+                BorderColor = occupied
+                    ? Color.FromHtml("#6A6048")
+                    : Color.FromHtml("#4A4038"),
                 BorderWidthLeft = 1, BorderWidthTop = 1,
                 BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-                ContentMarginLeft = 12, ContentMarginTop = 8,
-                ContentMarginRight = 12, ContentMarginBottom = 8
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                ContentMarginLeft = 10, ContentMarginTop = 8,
+                ContentMarginRight = 10, ContentMarginBottom = 8
             };
             slotCard.AddThemeStyleboxOverride("panel", slotStyle);
 
-            var hbox = new HBoxContainer
+            var vbox = new VBoxContainer
             {
                 SizeFlagsHorizontal = Control.SizeFlags.Fill,
                 SizeFlagsVertical = Control.SizeFlags.Fill
             };
-            slotCard.AddChild(hbox);
+            slotCard.AddChild(vbox);
 
-            if (i < profiles.Count)
+            if (occupied)
             {
-                // ── Occupied slot (existing path) ──
+                // ── Occupied slot ──
                 var profile = profiles[i];
-                string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
-                string townName = profile.TownName;
+                string classId = profile.ClassId;
+                string className = char.ToUpper(classId[0]) + classId.Substring(1);
 
-                // Look up active deck name from DeckLibrary
-                string deckName = "Default";
-                if (!string.IsNullOrEmpty(profile.ActiveDeckId))
+                // Class portrait
+                string portraitPath = CampaignContext.GetClassPortraitPath(classId);
+                if (ResourceLoader.Exists(portraitPath))
                 {
-                    var deck = CampaignContext.DeckLibrary.Find(d => d.DeckId == profile.ActiveDeckId);
-                    if (deck != null)
-                        deckName = deck.Name;
+                    var portrait = new TextureRect
+                    {
+                        Texture = ResourceLoader.Load<Texture2D>(portraitPath),
+                        StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                        CustomMinimumSize = new Vector2(48, 48),
+                        SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                        ExpandMode = TextureRect.ExpandModeEnum.FitWidth
+                    };
+                    vbox.AddChild(portrait);
                 }
 
-                // Info side (left)
-                var infoVbox = new VBoxContainer
-                {
-                    SizeFlagsHorizontal = Control.SizeFlags.Expand | Control.SizeFlags.Fill,
-                    SizeFlagsVertical = Control.SizeFlags.Fill
-                };
-
-                var classLabel = new Label
+                // Class name
+                var nameLabel = new Label
                 {
                     Text = className,
-                    HorizontalAlignment = HorizontalAlignment.Left,
+                    HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
                 };
-                classLabel.AddThemeFontSizeOverride("font_size", 16);
-                classLabel.Modulate = Color.FromHtml("#E8DCC8");
-                infoVbox.AddChild(classLabel);
+                nameLabel.AddThemeFontSizeOverride("font_size", 14);
+                nameLabel.Modulate = Color.FromHtml("#E8DCC8");
+                vbox.AddChild(nameLabel);
 
-                var townLabel = new Label
+                // Region
+                string region = CampaignContext.GetSlotRegion(i);
+                var regionLabel = new Label
                 {
-                    Text = townName,
-                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Text = region,
+                    HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
                 };
-                townLabel.AddThemeFontSizeOverride("font_size", 13);
-                townLabel.Modulate = Color.FromHtml("#C8B88A");
-                infoVbox.AddChild(townLabel);
+                regionLabel.AddThemeFontSizeOverride("font_size", 11);
+                regionLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
+                vbox.AddChild(regionLabel);
 
-                string progress = string.IsNullOrEmpty(profile.MapProgress) ? "No progress" : profile.MapProgress;
-                var progressLabel = new Label
+                // Pieces collected
+                int pieces = CampaignContext.GetSlotPiecesCollected(i);
+                var piecesLabel = new Label
                 {
-                    Text = progress,
-                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Text = $"Cards: {pieces}",
+                    HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
                 };
-                progressLabel.AddThemeFontSizeOverride("font_size", 11);
-                progressLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
-                infoVbox.AddChild(progressLabel);
+                piecesLabel.AddThemeFontSizeOverride("font_size", 11);
+                piecesLabel.Modulate = new Color(0.65f, 0.6f, 0.5f);
+                vbox.AddChild(piecesLabel);
 
-                var deckLabel = new Label
+                // Spacer
+                var spacer = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
+                vbox.AddChild(spacer);
+
+                // Buttons row
+                var btnHbox = new HBoxContainer
                 {
-                    Text = $"Deck: {deckName}",
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+                    SizeFlagsHorizontal = Control.SizeFlags.Fill,
+                    Alignment = BoxContainer.AlignmentMode.Center
                 };
-                deckLabel.AddThemeFontSizeOverride("font_size", 11);
-                deckLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
-                infoVbox.AddChild(deckLabel);
+                vbox.AddChild(btnHbox);
 
-                hbox.AddChild(infoVbox);
-
-                // Buttons side (right)
-                var btnVbox = new VBoxContainer
+                // Continue button
+                var continueBtn = new Button
                 {
-                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkEnd,
-                    SizeFlagsVertical = Control.SizeFlags.ShrinkCenter
+                    Text = "Continue",
+                    CustomMinimumSize = new Vector2(90, 28),
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
                 };
-
-                // Resume button (gold)
-                var resumeBtn = new Button
-                {
-                    Text = "Resume",
-                    CustomMinimumSize = new Vector2(90, 30)
-                };
-                resumeBtn.AddThemeFontSizeOverride("font_size", 13);
-                resumeBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
-                resumeBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
-                var resumeNormal = new StyleBoxFlat
+                continueBtn.AddThemeFontSizeOverride("font_size", 12);
+                continueBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
+                continueBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+                var contNormal = new StyleBoxFlat
                 {
                     BgColor = new Color(0.3f, 0.25f, 0.1f, 0.5f),
                     BorderColor = Color.FromHtml("#C9A84C"),
@@ -1238,33 +1070,45 @@ public partial class Main : Control
                     CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
                     CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
                 };
-                resumeBtn.AddThemeStyleboxOverride("normal", resumeNormal);
-                int capturedSlot = slotIdx;
-                resumeBtn.Pressed += () =>
-                {
-                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    if (capturedSlot < CampaignContext.Profiles.Count)
-                    {
-                        CampaignContext.ActiveProfileSlot = capturedSlot;
-                        var p = CampaignContext.Profiles[capturedSlot];
-                        CampaignContext.ChosenClass = p.ClassId;
-                        CampaignContext.ChosenTown = p.TownName ?? "";
-                        _startButton.Text = $"CONTINUE";
-                        ClosePathsOverlay();
-                    }
-                };
-                btnVbox.AddChild(resumeBtn);
+                continueBtn.AddThemeStyleboxOverride("normal", contNormal);
+                continueBtn.Pressed += () => OnSlotContinueClicked(slotIdx);
+                btnHbox.AddChild(continueBtn);
 
-                // Abandon button (muted)
-                var abandonBtn = new Button
+                // Delete button
+                var deleteBtn = new Button
                 {
-                    Text = "Abandon",
-                    CustomMinimumSize = new Vector2(90, 30)
+                    Text = "Delete",
+                    CustomMinimumSize = new Vector2(90, 28),
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
                 };
-                abandonBtn.AddThemeFontSizeOverride("font_size", 11);
-                abandonBtn.AddThemeColorOverride("font_color", new Color(0.6f, 0.55f, 0.45f, 0.6f));
-                abandonBtn.AddThemeColorOverride("font_hover_color", new Color(0.9f, 0.3f, 0.2f));
-                var abandonNormal = new StyleBoxFlat
+                deleteBtn.AddThemeFontSizeOverride("font_size", 12);
+                deleteBtn.AddThemeColorOverride("font_color", new Color(0.8f, 0.3f, 0.2f));
+                deleteBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.4f, 0.3f));
+                var delNormal = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.3f, 0.1f, 0.05f, 0.3f),
+                    BorderColor = new Color(0.6f, 0.2f, 0.1f, 0.4f),
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                    CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+                };
+                deleteBtn.AddThemeStyleboxOverride("normal", delNormal);
+                int capturedSlot = slotIdx;
+                deleteBtn.Pressed += () => OnSlotDeleteClicked(capturedSlot);
+                btnHbox.AddChild(deleteBtn);
+
+                // Overwrite — New Campaign on top of existing
+                var newOverwriteBtn = new Button
+                {
+                    Text = "New",
+                    CustomMinimumSize = new Vector2(90, 28),
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
+                };
+                newOverwriteBtn.AddThemeFontSizeOverride("font_size", 11);
+                newOverwriteBtn.AddThemeColorOverride("font_color", new Color(0.6f, 0.55f, 0.45f, 0.7f));
+                newOverwriteBtn.AddThemeColorOverride("font_hover_color", new Color(0.9f, 0.8f, 0.6f));
+                var newNormal = new StyleBoxFlat
                 {
                     BgColor = new Color(0.2f, 0.18f, 0.15f, 0.4f),
                     BorderColor = new Color(0.4f, 0.35f, 0.25f, 0.3f),
@@ -1273,77 +1117,209 @@ public partial class Main : Control
                     CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
                     CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3
                 };
-                abandonBtn.AddThemeStyleboxOverride("normal", abandonNormal);
-                int abandonSlot = slotIdx;
-                abandonBtn.Pressed += () =>
-                {
-                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    var dialog = new ConfirmationDialog
-                    {
-                        DialogText = "Abandon this path? All progress will be lost.",
-                        OkButtonText = "Abandon",
-                        CancelButtonText = "Cancel",
-                        Title = "Abandon Path"
-                    };
-                    int capturedAbandonSlot = abandonSlot;
-                    dialog.Confirmed += () =>
-                    {
-                        CampaignContext.DeleteProfile(capturedAbandonSlot);
-                        RefreshPathsOverlayCards(vbox);
-                        // If no profiles remain, close overlay and reset button
-                        if (CampaignContext.Profiles.Count == 0)
-                        {
-                            ClosePathsOverlay();
-                            _startButton.Text = "Play";
-                            if (_pathsButton != null && IsInstanceValid(_pathsButton))
-                                _pathsButton.QueueFree();
-                        }
-                    };
-                    AddChild(dialog);
-                    dialog.PopupCentered();
-                };
-                btnVbox.AddChild(abandonBtn);
-
-                hbox.AddChild(btnVbox);
+                newOverwriteBtn.AddThemeStyleboxOverride("normal", newNormal);
+                newOverwriteBtn.Pressed += () => OnSlotNewClicked(slotIdx, overwrite: true);
+                btnHbox.AddChild(newOverwriteBtn);
             }
             else
             {
-                // ── Empty slot — "A new path awaits" ──
-                slotCard.MouseFilter = MouseFilterEnum.Stop;
-                slotCard.GuiInput += (InputEvent @event) =>
-                {
-                    if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
-                    {
-                        ClosePathsOverlay();
-                        OnStartNewPath();
-                    }
-                };
+                // ── Empty slot — "New Campaign" ──
+                var emptySpacer = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
+                vbox.AddChild(emptySpacer);
 
                 var emptyLabel = new Label
                 {
-                    Text = "A new path awaits",
+                    Text = "Empty",
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                    SizeFlagsVertical = Control.SizeFlags.Fill,
                     AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
                 };
-                emptyLabel.AddThemeFontSizeOverride("font_size", 14);
-                emptyLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f); // muted
-                hbox.AddChild(emptyLabel);
+                emptyLabel.AddThemeFontSizeOverride("font_size", 13);
+                emptyLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f);
+                vbox.AddChild(emptyLabel);
+
+                var newBtn = new Button
+                {
+                    Text = "New Campaign",
+                    CustomMinimumSize = new Vector2(130, 32),
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
+                };
+                newBtn.AddThemeFontSizeOverride("font_size", 12);
+                newBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
+                newBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+                var newBtnNormal = new StyleBoxFlat
+                {
+                    BgColor = new Color(0.3f, 0.25f, 0.1f, 0.5f),
+                    BorderColor = Color.FromHtml("#C9A84C"),
+                    BorderWidthLeft = 1, BorderWidthTop = 1,
+                    BorderWidthRight = 1, BorderWidthBottom = 1,
+                    CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                    CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+                };
+                newBtn.AddThemeStyleboxOverride("normal", newBtnNormal);
+                newBtn.Pressed += () => OnSlotNewClicked(slotIdx, overwrite: false);
+                vbox.AddChild(newBtn);
+
+                var emptySpacer2 = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
+                vbox.AddChild(emptySpacer2);
             }
 
-            vbox.AddChild(slotCard);
+            _slotPickerContainer.AddChild(slotCard);
         }
     }
 
-    private void ClosePathsOverlay()
+    /// <summary>
+    /// Handle clicking "New Campaign" on a slot (empty or overwrite).
+    /// </summary>
+    private void OnSlotNewClicked(int slotIndex, bool overwrite)
     {
-        if (_pathsOverlay != null && IsInstanceValid(_pathsOverlay))
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        if (overwrite)
         {
-            _pathsOverlay.QueueFree();
-            _pathsOverlay = null;
+            // Confirm overwrite first
+            var confirm = new ConfirmationDialog
+            {
+                DialogText = "Create a new campaign in this slot? All existing progress will be lost.",
+                OkButtonText = "Overwrite",
+                CancelButtonText = "Cancel",
+                Title = "New Campaign"
+            };
+            int capturedSlot = slotIndex;
+            confirm.Confirmed += () =>
+            {
+                // Delete old slot data first
+                CampaignContext.DeleteProfile(capturedSlot);
+                // Add new empty profile
+                CampaignContext.AddOrUpdateProfile("", "");
+                CampaignContext.ChosenClass = "";
+                CampaignContext.ChosenTown = "";
+                GD.Print($"[Main] New campaign starting in slot {capturedSlot}");
+                GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+            };
+            AddChild(confirm);
+            confirm.PopupCentered();
         }
+        else
+        {
+            // Empty slot — just start new campaign
+            CampaignContext.AddOrUpdateProfile("", "");
+            CampaignContext.ChosenClass = "";
+            CampaignContext.ChosenTown = "";
+            GD.Print($"[Main] New campaign starting in slot {slotIndex}");
+            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        }
+    }
+
+    /// <summary>
+    /// Handle clicking "Continue" on an occupied slot.
+    /// </summary>
+    private void OnSlotContinueClicked(int slotIndex)
+    {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        if (slotIndex < 0 || slotIndex >= CampaignContext.Profiles.Count)
+        {
+            GD.PrintErr($"[Main] Cannot continue slot {slotIndex} — no profile");
+            return;
+        }
+
+        var profile = CampaignContext.Profiles[slotIndex];
+        if (string.IsNullOrEmpty(profile.ClassId))
+        {
+            GD.PrintErr($"[Main] Cannot continue slot {slotIndex} — class not set");
+            return;
+        }
+
+        // Switch SaveManager to this slot's database
+        CampaignContext.ActiveProfileSlot = slotIndex;
+        CampaignContext.SaveManager.SwitchSlot(slotIndex);
+        CampaignContext.ChosenClass = profile.ClassId;
+        CampaignContext.ChosenTown = profile.TownName ?? "";
+
+        GD.Print($"[Main] Continuing slot {slotIndex}: {profile.ClassId} ({profile.TownName})");
+
+        // Ensure starter deck exists for this class
+        CampaignContext.EnsureStarterDeck(profile.ClassId);
+        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+    }
+
+    /// <summary>
+    /// Handle clicking "Delete" on an occupied slot — shows confirmation dialog.
+    /// </summary>
+    private void OnSlotDeleteClicked(int slotIndex)
+    {
+        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        var profile = CampaignContext.Profiles[slotIndex];
+        string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
+
+        var dialog = new ConfirmationDialog
+        {
+            DialogText = $"Delete {className}'s campaign? All progress in this slot will be lost forever.",
+            OkButtonText = "Delete",
+            CancelButtonText = "Cancel",
+            Title = "Delete Campaign"
+        };
+        int capturedSlot = slotIndex;
+        dialog.Confirmed += () =>
+        {
+            CampaignContext.DeleteProfile(capturedSlot);
+            GD.Print($"[Main] Deleted slot {capturedSlot}");
+            // Rebuild the slot picker to reflect the change
+            BuildSlotPicker();
+        };
+        AddChild(dialog);
+        dialog.PopupCentered();
+    }
+
+    /// <summary>
+    /// Check if the slot picker test mode is active and handle it.
+    /// Creates a slot, captures, continues, deletes, captures again.
+    /// </summary>
+    private void RunSlotPickerTest()
+    {
+        // Phase 1: Capture the initial empty slot picker
+        string suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+        var img = GetViewport().GetTexture().GetImage();
+        if (img != null)
+            img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}.png");
+        DebugCapture.WriteLayoutJson(this, $"slots_test{suffix}");
+        GD.Print($"[Main] slots_test{suffix}.png saved (initial empty slots)");
+
+        // Phase 2: Create a new campaign (simulate class selection)
+        CampaignContext.AddOrUpdateProfile("warrior", "Emberhold");
+        // Set some progression data
+        CampaignContext.Progression.AddCard("vrd_c_root_warden");
+        CampaignContext.Progression.AddCard("emb_c_ember_hound");
+        CampaignContext.Progression.AddCard("dwn_c_dawn_warder");
+        CampaignContext.SaveManager.Save();
+        GD.Print("[Main] Slot 0 created: warrior in Emberhold with 3 cards");
+
+        // Rebuild picker and capture
+        BuildSlotPicker();
+        var img2 = GetViewport().GetTexture().GetImage();
+        if (img2 != null)
+            img2.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}_filled.png");
+        DebugCapture.WriteLayoutJson(this, $"slots_test{suffix}_filled");
+        GD.Print($"[Main] slots_test{suffix}_filled.png saved (occupied slot)");
+
+        // Phase 3: Load the slot (trigger a Continue flow) — just switch slot and verify
+        CampaignContext.ActiveProfileSlot = 0;
+        CampaignContext.ChosenClass = "warrior";
+        CampaignContext.ChosenTown = "Emberhold";
+        GD.Print("[Main] Slot 0 loaded (continue flow)");
+
+        // Phase 4: Delete the slot
+        CampaignContext.DeleteProfile(0);
+        GD.Print("[Main] Slot 0 deleted");
+
+        // Rebuild picker and capture final state
+        BuildSlotPicker();
+        var img3 = GetViewport().GetTexture().GetImage();
+        if (img3 != null)
+            img3.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}_deleted.png");
+        GD.Print($"[Main] slots_test{suffix}_deleted.png saved (after delete)");
+
+        GetTree().Quit();
     }
 
     /// <summary>

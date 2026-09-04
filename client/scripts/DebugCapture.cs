@@ -363,6 +363,23 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Shop wide capture mode enabled: --capture=shop_test_wide");
             }
+            if (arg == "--capture=slots_test")
+            {
+                CampaignContext.CaptureSlotPickerScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.SlotPickerTestMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Slot picker capture mode enabled: --capture=slots_test");
+            }
+            if (arg == "--capture=slots_test_wide")
+            {
+                CampaignContext.CaptureSlotPickerScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.SlotPickerTestMode = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Slot picker wide capture mode enabled: --capture=slots_test_wide");
+            }
             if (arg == "--capture=map_loop_soak")
             {
                 _active = true;

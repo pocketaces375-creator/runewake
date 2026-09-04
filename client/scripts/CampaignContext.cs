@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
+using Runewake.Persistence;
 
 namespace Runewake.Client;
 
@@ -136,6 +137,12 @@ public static class CampaignContext
     /// <summary>Test hook: capture reliquary screenshot.</summary>
     public static bool CaptureReliquaryScreenshot { get; set; }
 
+    /// <summary>Test hook: capture slot picker screenshot.</summary>
+    public static bool CaptureSlotPickerScreenshot { get; set; }
+
+    /// <summary>Test hook: capture slot picker, then create a slot, load it, delete it, capture again.</summary>
+    public static bool SlotPickerTestMode { get; set; }
+
     /// <summary>Test hook: capture card shop screenshot.</summary>
     public static bool CaptureShopScreenshot { get; set; }
 
@@ -208,7 +215,9 @@ public static class CampaignContext
         /// </summary>
         public static List<string>? CoreCardIds { get; set; }
 
-        /// <summary>Path to campaign profile JSON (user:// sandbox).</summary>
+        /// <summary>
+        /// Path to campaign profile JSON (user:// sandbox).
+        /// </summary>
         private const string CampaignProfilePath = "user://campaign.json";
         private const string ProfilesPathV2 = "user://profiles.json";
 
@@ -227,7 +236,66 @@ public static class CampaignContext
         public static CampaignProfile? ActiveProfile =>
             ActiveProfileSlot >= 0 && ActiveProfileSlot < Profiles.Count ? Profiles[ActiveProfileSlot] : null;
 
-        /// <summary>Save ALL profiles to disk.</summary>
+        /// <summary>
+        /// Region label for a given slot, derived from its MapProgress.
+        /// Returns "Region 1" as default, or a descriptive label if progress indicates further.
+        /// </summary>
+        public static string GetSlotRegion(int slotIndex)
+        {
+            if (slotIndex < 0 || slotIndex >= Profiles.Count)
+                return "New Path";
+            var profile = Profiles[slotIndex];
+            if (string.IsNullOrEmpty(profile.MapProgress))
+                return "Region 1";
+            return profile.MapProgress;
+        }
+
+        /// <summary>
+        /// Pieces (unique cards) collected for a given slot.
+        /// Returns the count from the save DB if available, or 0.
+        /// </summary>
+        public static int GetSlotPiecesCollected(int slotIndex)
+        {
+            // If this is the active slot, read from Progression directly
+            if (slotIndex == ActiveProfileSlot)
+                return Progression?.Collection.Count ?? 0;
+
+            // For other slots, try to read from their DB
+            int activeSaveSlot = ActiveProfileSlot;
+            try
+            {
+                // Temporarily switch to read the other slot's data
+                string dataDir = ProjectSettings.GlobalizePath("user://");
+                string dbPath = System.IO.Path.Combine(dataDir, $"runewake_save_slot{slotIndex}.db");
+                if (System.IO.File.Exists(dbPath))
+                {
+                    var repo = new SaveRepository(dbPath);
+                    var state = repo.Load();
+                    return state.Collection.Count;
+                }
+            }
+            catch
+            {
+                // If reading fails, slot is corrupt — report 0
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Get class portrait texture path for a given class ID.
+        /// Handles migration from old class names if needed.
+        /// </summary>
+        public static string GetClassPortraitPath(string classId)
+        {
+            if (string.IsNullOrEmpty(classId))
+                return "";
+            string mapped = ClassIdMigration.ApplyMigration(classId);
+            return $"res://content/art/classes/{mapped}.png";
+        }
+
+        /// <summary>
+        /// Save ALL profiles to disk.</summary>
         public static void SaveCampaignProfile()
         {
             try
@@ -274,6 +342,11 @@ public static class CampaignContext
                                 MigrateLegacyClassIds();
                                 ChosenClass = Profiles[0].ClassId;
                                 ChosenTown = Profiles[0].TownName ?? "";
+
+                                // Switch SaveManager to slot 0's per-slot DB
+                                try { SaveManager.SwitchSlot(0); }
+                                catch (Exception ex) { GD.PrintErr($"[CampaignContext] Slot 0 save switch: {ex.Message}"); }
+
                                 GD.Print($"[CampaignContext] {Profiles.Count} profiles loaded (v2 format)");
                                 return;
                             }
@@ -305,6 +378,11 @@ public static class CampaignContext
                                 ChosenTown = old.TownName ?? "";
                                 // Save to new format immediately
                                 SaveCampaignProfile();
+
+                                // Switch SaveManager to slot 0's per-slot DB
+                                try { SaveManager.SwitchSlot(0); }
+                                catch (Exception ex) { GD.PrintErr($"[CampaignContext] Slot 0 save switch: {ex.Message}"); }
+
                                 GD.Print($"[CampaignContext] Migrated v1 profile to v2: {old.ClassId}");
                                 return;
                             }
@@ -353,44 +431,47 @@ public static class CampaignContext
         {
             if (slot >= 0 && slot < Profiles.Count)
             {
-                // Update existing
+                // Update existing — save current progression to old slot, then switch
+                SaveManager.SwitchSlot(slot);
                 var p = Profiles[slot];
                 p.ClassId = classId;
                 p.TownName = townName;
                 ActiveProfileSlot = slot;
-            }
-            else
-            {
-                // Add new — find first empty slot or append
-                int newSlot = 0;
-                for (int i = 0; i < Profiles.Count; i++)
-                {
-                    if (Profiles[i].Slot == -1 || Profiles[i].Slot == Profiles.Count)
-                        newSlot = i;
-                }
-                if (Profiles.Count >= 3)
-                {
-                    GD.PrintErr("[CampaignContext] Max 3 profiles reached — replacing oldest");
-                    Profiles.RemoveAt(0);
-                }
-                var profile = new CampaignProfile
-                {
-                    Slot = Profiles.Count,
-                    ClassId = classId,
-                    TownName = townName,
-                    CreatedAt = DateTime.UtcNow.ToString("O"),
-                    ActiveDeckId = "",
-                    MapProgress = "",
-                    StoryFlags = ""
-                };
-                Profiles.Add(profile);
-                ActiveProfileSlot = Profiles.Count - 1;
+                ChosenClass = classId;
+                ChosenTown = townName;
+                SaveCampaignProfile();
+                GD.Print($"[CampaignContext] Updated profile slot {slot}: {classId}");
+                return;
             }
 
-            // Sync static fields
+            // Add new — first empty slot or append
+            int newSlot = Profiles.Count;
+            if (Profiles.Count >= 3)
+            {
+                GD.PrintErr("[CampaignContext] Max 3 profiles reached — replacing oldest");
+                Profiles.RemoveAt(0);
+                newSlot = 2;
+            }
+
+            var profile = new CampaignProfile
+            {
+                Slot = newSlot,
+                ClassId = classId,
+                TownName = townName,
+                CreatedAt = DateTime.UtcNow.ToString("O"),
+                ActiveDeckId = "",
+                MapProgress = "",
+                StoryFlags = ""
+            };
+
+            // Switch SaveManager to this slot before adding to list
+            SaveManager.SwitchSlot(newSlot);
+            Profiles.Add(profile);
+            ActiveProfileSlot = Profiles.Count - 1;
             ChosenClass = classId;
             ChosenTown = townName;
             SaveCampaignProfile();
+            GD.Print($"[CampaignContext] New profile slot {newSlot}: {classId}");
         }
 
         /// <summary>Delete a profile by slot.</summary>
@@ -398,21 +479,57 @@ public static class CampaignContext
         {
             if (slot >= 0 && slot < Profiles.Count)
             {
+                // Delete the slot's save database file if it exists
+                try
+                {
+                    string dataDir = ProjectSettings.GlobalizePath("user://");
+                    string dbPath = System.IO.Path.Combine(dataDir, $"runewake_save_slot{slot}.db");
+                    if (System.IO.File.Exists(dbPath))
+                    {
+                        System.IO.File.Delete(dbPath);
+                        GD.Print($"[CampaignContext] Deleted save DB for slot {slot}");
+                    }
+                    // Also clean up WAL/SHM files
+                    foreach (var ext in new[] { "-wal", "-shm" })
+                    {
+                        string extra = dbPath + ext;
+                        if (System.IO.File.Exists(extra))
+                            System.IO.File.Delete(extra);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    GD.PrintErr($"[CampaignContext] Failed to delete DB for slot {slot}: {ex.Message}");
+                }
+
                 Profiles.RemoveAt(slot);
                 if (ActiveProfileSlot == slot)
                 {
                     ActiveProfileSlot = -1;
                     ChosenClass = "";
                     ChosenTown = "";
+
+                    // If there are remaining profiles, load the first one
+                    if (Profiles.Count > 0)
+                    {
+                        ActiveProfileSlot = 0;
+                        var p = Profiles[0];
+                        ChosenClass = p.ClassId;
+                        ChosenTown = p.TownName ?? "";
+                        SaveManager.SwitchSlot(0);
+                        GD.Print($"[CampaignContext] Switched to remaining profile slot 0: {p.ClassId}");
+                    }
                 }
                 else if (ActiveProfileSlot > slot)
+                {
                     ActiveProfileSlot--;
+                }
                 SaveCampaignProfile();
                 GD.Print($"[CampaignContext] Deleted profile slot {slot}");
             }
         }
 
-        /// <summary>Delete the active profile. Kept for backward compat.</summary>
+        /// <summary>Delete the active profile. In multi-slot mode, use DeleteProfile(slot) instead.</summary>
         public static void DeleteCampaignProfile()
         {
             if (ActiveProfileSlot >= 0)

@@ -16,8 +16,7 @@ namespace Runewake.Client;
 /// </summary>
 public class SaveManager
 {
-    private readonly SaveRepository _repository;
-
+    private SaveRepository _repository;
     /// <summary>Current in-memory progression state.</summary>
     public ProgressionState State { get; } = new();
 
@@ -48,9 +47,49 @@ public class SaveManager
         // user:// is the Godot-managed, platform sandboxed data directory.
         // On Android it resolves to the app's internal storage (not res://,
         // not an absolute hardcoded path) — safe against app sandboxing.
+        _repository = CreateRepository(0);
+    }
+
+    /// <summary>
+    /// Create a repository for a specific campaign slot.
+    /// </summary>
+    public SaveManager(int slotIndex)
+    {
+        _repository = CreateRepository(slotIndex);
+    }
+
+    /// <summary>
+    /// Create the appropriate repository for a given slot.
+    /// </summary>
+    private static SaveRepository CreateRepository(int slotIndex)
+    {
         string dataDir = ProjectSettings.GlobalizePath("user://");
-        string dbPath = System.IO.Path.Combine(dataDir, "runewake_save.db");
-        _repository = new SaveRepository(dbPath);
+        string dbPath = slotIndex >= 0
+            ? System.IO.Path.Combine(dataDir, $"runewake_save_slot{slotIndex}.db")
+            : System.IO.Path.Combine(dataDir, "runewake_save.db");
+        return new SaveRepository(dbPath);
+    }
+
+    /// <summary>
+    /// Switch to a different campaign slot, saving the current state first.
+    /// The new slot's data is loaded into <see cref="State"/>.
+    /// </summary>
+    public void SwitchSlot(int slotIndex)
+    {
+        // Save current progression to the old slot's DB
+        if (IsFunctional)
+            _repository.Save(State);
+
+        // Create a new repository for the target slot
+        _repository = CreateRepository(slotIndex);
+
+        // Reset state
+        LastError = null;
+        IsFunctional = true;
+        IsLoaded = false;
+
+        // Load the new slot's data
+        Initialize();
     }
 
     /// <summary>
