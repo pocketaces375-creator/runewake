@@ -458,6 +458,12 @@ public partial class DebugCapture : Node
                     GD.Print("[DebugCapture] Defeat test phase: will test defeat->retry flow");
                 }
             }
+            if (arg.StartsWith("--soak-force-region="))
+            {
+                var regionId = arg.Substring("--soak-force-region=".Length);
+                CampaignContext.ForceRegionId = regionId;
+                GD.Print($"[DebugCapture] Soak forced region: {regionId}");
+            }
             if (arg.StartsWith("--tutorial="))
             {
                 tutorialScriptId = arg.Substring("--tutorial=".Length);

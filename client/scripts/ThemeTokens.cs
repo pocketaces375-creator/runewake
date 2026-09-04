@@ -351,7 +351,10 @@ public static class ThemeTokens
         { "plate_ember", "res://content/art/board/plate_default.png" },
         { "tide", "res://content/art/board/default.png" },
         { "backdrop_tide", "res://content/art/board/backdrop_default.png" },
-        { "plate_tide", "res://content/art/board/plate_default.png" }
+        { "plate_tide", "res://content/art/board/plate_default.png" },
+        { "dawn", "res://content/art/board/default.png" },
+        { "backdrop_dawn", "res://content/art/board/backdrop_default.png" },
+        { "plate_dawn", "res://content/art/board/plate_default.png" }
     };
 
     /// <summary>Get the texture path for a board skin ID. Returns null for unknown IDs.</summary>
@@ -385,6 +388,7 @@ public static class ThemeTokens
         {
             "ember" or "backdrop_ember" or "plate_ember" => new Color(1.0f, 0.6f, 0.3f, 1.0f), // warm ember tint
             "tide" or "backdrop_tide" or "plate_tide" => new Color(0.23f, 0.62f, 0.77f, 1.0f), // cool tide tint
+            "dawn" or "backdrop_dawn" or "plate_dawn" => new Color(0.78f, 0.65f, 0.25f, 1.0f), // warm dawn gold tint
             _ => Colors.White
         };
     }

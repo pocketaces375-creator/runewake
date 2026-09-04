@@ -5,70 +5,84 @@
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 2
+      "callCount": 1
     },
     {
       "id": "unlock",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 21
+      "callCount": 15
     },
     {
       "id": "card_draw",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 231
+      "callCount": 190
     },
     {
       "id": "wind_reach",
       "type": "ambient",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 21
+      "callCount": 14
     },
     {
       "id": "ambient_reach",
       "type": "music",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 21
+      "callCount": 14
     },
     {
       "id": "card_shuffle",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 21
+      "callCount": 14
+    },
+    {
+      "id": "card_play",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 296
     },
     {
       "id": "death",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 210
-    },
-    {
-      "id": "damage",
-      "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
-      "callCount": 210
+      "callCount": 205
     },
     {
       "id": "hit_light",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 252
+      "callCount": 40
+    },
+    {
+      "id": "damage",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 123
+    },
+    {
+      "id": "hit_heavy",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 68
     },
     {
       "id": "defeat",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 42
+      "callCount": 28
     }
   ],
   "manifestEventIds": [
@@ -91,9 +105,7 @@
     "ambient:wind_reach"
   ],
   "unhookedEventIds": [
-    "sfx:card_play",
     "sfx:coins",
-    "sfx:hit_heavy",
     "sfx:metal_clink",
     "sfx:spell",
     "sfx:stone_rumble",
@@ -101,7 +113,7 @@
   ],
   "musicExercised": true,
   "sfxExercised": true,
-  "totalMusicCalls": 21,
-  "totalSfxCalls": 989,
-  "totalAmbientCalls": 21
+  "totalMusicCalls": 14,
+  "totalSfxCalls": 980,
+  "totalAmbientCalls": 14
 }
