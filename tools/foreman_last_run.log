@@ -1,15 +1,3 @@
-**4. Build & tests green** — `dotnet build` succeeds with 0 errors, 825/825 tests pass.
-
-**5. Capture runs** — `capture_reliquary.sh` produces all 4 reliquary captures. The auto-inspect opens on frame 2, but the capture on frame 3 needs verification — the logs show "Capture mode active" + "capture triggered" but I don't see the "Auto-inspecting card" log line, which suggests the frame-counter approach may need adjustment (the old stale DLL was cached). A clean build was done.
-
-## What remains
-
-1. Verify the Reliquary capture shows the keyword icons in the inspect panel (run a clean build + capture)
-2. Run `tools/finish_task.sh TASK-ART-ICONS-1 "A matching icon set for the eleven keywords and five strata in the locked style, .webp with .import files, wired into the card frame next to the keyword text. Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list."` — this will build, test, capture, commit, push, mark [x], and write the DONE line
-3. The CENTER_DARK gate failure on `reliquary_test` is pre-existing (caused by the Ember-filtered view being darker, unrelated to this task)
-
-To finish: the next session just needs to run a clean capture to verify icons show, then run `finish_task.sh`. The files are ready to go.
-========================================
 === foreman: 2026-09-04T09:55:55Z TASK-AI-TACTICIAN-1 blocked ===
 Session: 3/96
 Failures: finish_task_failure
@@ -47,4 +35,16 @@ Remaining (needs one more session step):
 - Note: finish_task.sh was run and stopped at loop_smoke (PLAYABLE.json shows playable:false, failed_step "no_output") — this is a pre-existing harness/environment failure, not caused by this task. The icon/UI work passed build, tests, and the lint gate's non-blocking checks.
 
 Acceptance alignment: a Reliquary capture showing icons on real cards exists (artifacts/captures/reliquary_test.png / _wide.png), no upscaling (32px icons rendered at 16px), file list ready (16 .webp + 16 .import under client/content/art/icons/).
+========================================
+=== foreman: 2026-09-04T13:27:51Z TASK-REGION-1-DROPS-1 success ===
+Session: 5/96
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+**TASK-REGION-1-DROPS-1 DONE.**
+
+Committed `78988e5` → pushed as `8013a5b`. 3 files changed:
+
+- `tests/test_region_01_drops.py` — pipeline test: 6 validation checks (every encounter has drops, every deck card in drops, valid rate bounds, signature drops at 1.0 for warden/boss, dig site fragments) + 200-clear seeded soak per encounter reporting observed vs expected rates
+- `HERMES_STATUS.md` — rate table appended, showing all 9 encounters' drop tiers with observed averages within 5σ variance
+- `TASKS_QUEUE.md` — `[ ]` → `[x]` on TASK-REGION-1-DROPS-1
 ========================================
