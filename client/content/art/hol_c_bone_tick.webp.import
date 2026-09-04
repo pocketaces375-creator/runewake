@@ -1,0 +1,22 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://holcbonetick"
+path="res://.godot/imported/hol_c_bone_tick.webp-hol_c_bone_tick_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/hol_c_bone_tick.webp"
+dest_files=["res://.godot/imported/hol_c_bone_tick.webp-hol_c_bone_tick_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal

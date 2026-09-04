@@ -1,0 +1,22 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://vrdcmossshield"
+path="res://.godot/imported/vrd_c_moss_shield.webp-vrd_c_moss_shield_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/vrd_c_moss_shield.webp"
+dest_files=["res://.godot/imported/vrd_c_moss_shield.webp-vrd_c_moss_shield_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
