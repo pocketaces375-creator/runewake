@@ -582,7 +582,7 @@
       Replace the 21 slot-spending tests with shop tests.
   Acceptance: shop capture (add a DebugCapture mode for it, and layout json); tests green.
 
-- [ ] TASK-KEYSTORE-1 — Signed builds. Generate a release keystore with keytool and store it
+- [x] TASK-KEYSTORE-1 — Signed builds. Generate a release keystore with keytool and store it
   OUTSIDE the repo at ~/.runewake/release.keystore with a generated password saved next to it
   in ~/.runewake/release.env (never commit either; add ~/.runewake to nothing, add
   client/exports/release.keystore to .gitignore in case). Point the Android release export

@@ -74,8 +74,8 @@ else
     VERSION_CODE=$(echo "$PACKAGE" | grep -oP "versionCode='\K[^']+")
     PKG_NAME=$(echo "$PACKAGE" | grep -oP "package: name='\K[^']+")
 
-    # Check package name
-    if [ "$PKG_NAME" = "com.runewake.game" ]; then
+    # Check package name (debug=com.runewake.game, release=com.runewake.buriedage)
+    if [ "$PKG_NAME" = "com.runewake.game" ] || [ "$PKG_NAME" = "com.runewake.buriedage" ]; then
         report PASS "Package name: $PKG_NAME"
     else
         report FAIL "Package name: $PKG_NAME (expected com.runewake.game)"

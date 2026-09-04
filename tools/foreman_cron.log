@@ -10589,28 +10589,50 @@ Already up to date.
 
 === Fable inbox ===
 
-  Top task: TASK-CARD-FILL-1
+  Top task: TASK-KEYSTORE-1
 
-=== Running: TASK-CARD-FILL-1 ===
+=== Running: TASK-KEYSTORE-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
-foreman already running (PID 48642) — exiting
-foreman already running (PID 48642) — exiting
+foreman already running (PID 87541) — exiting
+foreman already running (PID 87541) — exiting
+foreman already running (PID 87541) — exiting
+foreman already running (PID 87541) — exiting
+  Hermes session completed
+```
+cd /home/fictive/runewake-lane3
+git add -A && git commit -m "TASK-KEYSTORE-1: Signed builds. Generate a release keystore with keytool and store it OUTSIDE the repo at ~/.runewake/release.keystore with a generated password saved next to it in ~/.runewake/release.env (never commit either; add ~/.runewake to nothing, add client/exports/release.keystore to .gitignore in case). Point the Android release export preset at it through environment variables read by tools/export_and_verify.sh. Tell Trikzos in the group where the keystore and its password live on his box — he owns them. Acceptance: `tools/export_and_verify.sh release` produces a signed APK; size noted." && git push
+```
+Then append the DONE line to HERMES_STATUS.md and mark `[x]` in TASKS_QUEUE.md.
+
+=== Running finish_task.sh ===
+
+═══ finish_task.sh: TASK-KEYSTORE-1 ═══
+  Summary: Signed builds. Generate a release keystore with keytool and store it OUTSIDE the repo at ~/.runewake/release.keystore with a generated password saved next to it in ~/.runewake/release.env (never commit either; add ~/.runewake to nothing, add client/exports/release.keystore to .gitignore in case). Point the Android release export preset at it through environment variables read by tools/export_and_verify.sh. Tell Trikzos in the group where the keystore and its password live on his box — he owns them. Acceptance: `tools/export_and_verify.sh release` produces a signed APK; size noted.
+
+── Step 1: dotnet build (Debug) ──
+  ✅ Build succeeded
+
+── Step 2: Unit tests ──
+/usr/lib/dotnet/sdk/8.0.130/Sdks/Microsoft.NET.Sdk/targets/Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1004: Assets file '/home/fictive/runewake-lane3/tests/obj/project.assets.json' not found. Run a NuGet package restore to generate this file. [/home/fictive/runewake-lane3/tests/Runewake.Tests.csproj]
+  ❌ Tests failed
+  Attempt 1 failed for TASK-KEYSTORE-1 (finish_task.sh)
+  No progress: same task TASK-KEYSTORE-1 still top — 1/3
+  Chain ends — TASK-KEYSTORE-1 retry
 
 === Foreman — chain mode ===
 
 
 === Iteration 1 — chain mode ===
 
-Already up to date.
-  Budget: 0/96 (0 full + 0 bus, 0/192 halves)
+Updating fb10ca4..57081fe
+  git pull failed (network or dirty tree)
+  Budget: 1/96 (1 full + 0 bus, 2/192 halves)
 
 === Fable inbox ===
 
-  Top task: TASK-RUNE-SHOP-1
+  Top task: TASK-KEYSTORE-1
 
-=== Running: TASK-RUNE-SHOP-1 ===
+=== Running: TASK-KEYSTORE-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
-foreman already running (PID 221796) — exiting
-foreman already running (PID 221796) — exiting
