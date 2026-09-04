@@ -312,6 +312,7 @@ public partial class DebugCapture : Node
                 CampaignContext.CaptureReliquaryScreenshot = true;
                 CampaignContext.AutoCaptureScreenshot = true;
                 CampaignContext.CaptureOverrideStrataIdx = 2; // EMBER for visual variety
+                CampaignContext.CaptureReliquaryBasename = "reliquary_test";
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Reliquary capture mode enabled: --capture=reliquary_test");
             }
@@ -322,8 +323,30 @@ public partial class DebugCapture : Node
                 CampaignContext.AutoCaptureScreenshot = true;
                 CampaignContext.WideCaptureMode = true;
                 CampaignContext.CaptureOverrideStrataIdx = 2; // EMBER for visual variety
+                CampaignContext.CaptureReliquaryBasename = "reliquary_test_wide";
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Reliquary wide capture mode enabled: --capture=reliquary_test_wide");
+            }
+            if (arg == "--capture=reliquary_test_all")
+            {
+                reliquaryMode = true;
+                CampaignContext.CaptureReliquaryScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureOverrideStrataIdx = 0; // ALL — unfiltered
+                CampaignContext.CaptureReliquaryBasename = "reliquary_test_all";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Reliquary all-cards capture mode enabled: --capture=reliquary_test_all");
+            }
+            if (arg == "--capture=reliquary_test_all_wide")
+            {
+                reliquaryMode = true;
+                CampaignContext.CaptureReliquaryScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.CaptureOverrideStrataIdx = 0; // ALL — unfiltered
+                CampaignContext.CaptureReliquaryBasename = "reliquary_test_all_wide";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Reliquary all-cards wide capture mode enabled: --capture=reliquary_test_all_wide");
             }
             if (arg == "--capture=shop_test")
             {
@@ -745,7 +768,10 @@ public partial class DebugCapture : Node
     /// </summary>
     public static void WriteLayoutJson(Node root, string captureBaseName)
     {
-        var path = $"/home/fictive/runewake/artifacts/captures/{captureBaseName}.layout.json";
+        var projectDir = ProjectSettings.GlobalizePath("res://");
+        var rootDir = System.IO.Path.GetDirectoryName(System.IO.Path.TrimEndingDirectorySeparator(projectDir));
+        var captureDir = System.IO.Path.Combine(rootDir!, "artifacts", "captures");
+        var path = System.IO.Path.Combine(captureDir, $"{captureBaseName}.layout.json");
         var dir = System.IO.Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir))
             System.IO.Directory.CreateDirectory(dir);
@@ -886,7 +912,9 @@ public partial class DebugCapture : Node
                 // On headless the safe area may be smaller than the viewport — use viewport bounds
                 safeArea = new Rect2I(0, 0, (int)vpSize.X, (int)vpSize.Y);
             }
-            var captureDir = "/home/fictive/runewake/artifacts/captures";
+            var projectDir2 = ProjectSettings.GlobalizePath("res://");
+            var rootDir2 = System.IO.Path.GetDirectoryName(System.IO.Path.TrimEndingDirectorySeparator(projectDir2));
+            var captureDir = System.IO.Path.Combine(rootDir2!, "artifacts", "captures");
             System.IO.Directory.CreateDirectory(captureDir);
             var layoutPath = System.IO.Path.Combine(captureDir, $"{captureName}.layout.json");
 

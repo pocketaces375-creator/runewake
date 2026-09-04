@@ -1,5 +1,6 @@
 #!/bin/bash
 # capture_reliquary.sh — Capture the Reliquary (collection browser) at both resolutions.
+# Captures: filtered (EMBER) + unfiltered (ALL) at standard and wide.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -12,7 +13,7 @@ mkdir -p "$CAPTURE_DIR"
 rm -f "$CAPTURE_DIR"/reliquary_test*.png "$CAPTURE_DIR"/reliquary_test*.meta.json
 
 capture_one() {
-    local suffix="$1"    # "" or "_wide"
+    local suffix="$1"    # e.g. "" or "_wide" or "_all" or "_all_wide"
     local width="$2"
     local height="$3"
 
@@ -64,13 +65,23 @@ with open('${CAPTURE_DIR}/reliquary_test${suffix}.png','rb') as f:
     return $rc
 }
 
-# Capture standard (2316x1080)
+# ── Filtered captures (EMBER strata, via --capture=reliquary_test) ──
 capture_one "" 2316 1080
 
 echo ""
 
-# Capture wide (2999x1080)
+# ── Wide filtered (EMBER, via --capture=reliquary_test_wide) ──
 capture_one "_wide" 2999 1080
+
+echo ""
+
+# ── Unfiltered captures (ALL strata, via --capture=reliquary_test_all) ──
+capture_one "_all" 2316 1080
+
+echo ""
+
+# ── Wide unfiltered (ALL, via --capture=reliquary_test_all_wide) ──
+capture_one "_all_wide" 2999 1080
 
 # ---- Restore project.godot to standard resolution ----
 sed -i 's|^window/size/viewport_width=.*|window/size/viewport_width=2316|' "$PROJECT_GODOT"
@@ -81,6 +92,10 @@ echo "=== Running gate ==="
 python3 "$ROOT/tools/capture_gate.py" reliquary_test
 echo ""
 python3 "$ROOT/tools/capture_gate.py" reliquary_test_wide
+echo ""
+python3 "$ROOT/tools/capture_gate.py" reliquary_test_all
+echo ""
+python3 "$ROOT/tools/capture_gate.py" reliquary_test_all_wide
 
 echo ""
 echo "=== Done ==="

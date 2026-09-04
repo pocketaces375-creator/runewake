@@ -15,6 +15,14 @@ namespace Runewake.Client;
 /// </summary>
 public partial class ReliquaryScene : Control
 {
+    /// <summary>Compute the capture output directory relative to the project root.</summary>
+    private static string CaptureDir()
+    {
+        var projectDir = ProjectSettings.GlobalizePath("res://");
+        return System.IO.Path.Combine(
+            System.IO.Path.GetDirectoryName(System.IO.Path.TrimEndingDirectorySeparator(projectDir))!,
+            "artifacts", "captures");
+    }
     // ── Nodes ──
     private Control _filterChipRow;
     private GridContainer _cardGrid = default!;
@@ -196,22 +204,22 @@ public partial class ReliquaryScene : Control
         _captureTriggered = true;
 
         GD.Print("[ReliquaryScene] _Process capture triggered");
-        var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+        var basename = CampaignContext.CaptureReliquaryBasename;
         var img = GetViewport().GetTexture().GetImage();
         if (img != null)
         {
-            string path = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.png";
+            string captureDir = CaptureDir();
+            string path = System.IO.Path.Combine(captureDir, $"{basename}.png");
             img.SavePng(path);
-            DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
+            DebugCapture.WriteLayoutJson(this, basename);
             GD.Print($"[ReliquaryScene] Saved {path}");
 
             // TASK-UI-LINT-1: Dump layout JSON
-            string reliqBasename = CampaignContext.WideCaptureMode ? "reliquary_test_wide" : "reliquary_test";
-            DebugCapture.DumpLayoutJSON(reliqBasename, this);
+            DebugCapture.DumpLayoutJSON(basename, this);
 
             var meta = new System.Text.StringBuilder();
             meta.Append("{\n");
-            meta.Append($"  \"capture_type\": \"reliquary_test{suffix}\",\n");
+            meta.Append($"  \"capture_type\": \"{basename}\",\n");
             meta.Append($"  \"view_width\": {(int)GetViewportRect().Size.X},\n");
             meta.Append($"  \"view_height\": {(int)GetViewportRect().Size.Y},\n");
             meta.Append($"  \"strata_filter_idx\": {_selectedStrataIdx},\n");
@@ -219,7 +227,7 @@ public partial class ReliquaryScene : Control
             meta.Append($"  \"grid_columns\": 5\n");
             meta.Append("}\n");
 
-            string metaPath = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.meta.json";
+            string metaPath = System.IO.Path.Combine(captureDir, $"{basename}.meta.json");
             using (var writer = new System.IO.StreamWriter(metaPath))
                 writer.Write(meta.ToString());
             GD.Print($"[ReliquaryScene] Saved {metaPath}");
@@ -1224,23 +1232,23 @@ public partial class ReliquaryScene : Control
         capTimer.WaitTime = 1.5f;
         capTimer.Timeout += () =>
         {
-            var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+            var basename = CampaignContext.CaptureReliquaryBasename;
             var img = GetViewport().GetTexture().GetImage();
             if (img != null)
             {
-                string path = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.png";
+                string captureDir = CaptureDir();
+                string path = System.IO.Path.Combine(captureDir, $"{basename}.png");
                 img.SavePng(path);
-                DebugCapture.WriteLayoutJson(this, $"reliquary_test{suffix}");
+                DebugCapture.WriteLayoutJson(this, basename);
                 GD.Print($"[ReliquaryScene] Saved {path}");
 
                 // TASK-UI-LINT-1: Dump layout JSON
-                string reliqBasename2 = CampaignContext.WideCaptureMode ? "reliquary_test_wide" : "reliquary_test";
-                DebugCapture.DumpLayoutJSON(reliqBasename2, this);
+                DebugCapture.DumpLayoutJSON(basename, this);
 
                 // Write meta.json
                 var meta = new System.Text.StringBuilder();
                 meta.Append("{\n");
-                meta.Append($"  \"capture_type\": \"reliquary_test{suffix}\",\n");
+                meta.Append($"  \"capture_type\": \"{basename}\",\n");
                 meta.Append($"  \"view_width\": {(int)GetViewportRect().Size.X},\n");
                 meta.Append($"  \"view_height\": {(int)GetViewportRect().Size.Y},\n");
                 meta.Append($"  \"strata_filter_idx\": {_selectedStrataIdx},\n");
@@ -1248,7 +1256,7 @@ public partial class ReliquaryScene : Control
                 meta.Append($"  \"grid_columns\": 5\n");
                 meta.Append("}\n");
 
-                string metaPath = $"/home/fictive/runewake/artifacts/captures/reliquary_test{suffix}.meta.json";
+                string metaPath = System.IO.Path.Combine(captureDir, $"{basename}.meta.json");
                 using (var writer = new System.IO.StreamWriter(metaPath))
                     writer.Write(meta.ToString());
                 GD.Print($"[ReliquaryScene] Saved {metaPath}");

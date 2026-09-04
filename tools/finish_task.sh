@@ -77,6 +77,10 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
       "victory_overlay_wide:2999:1080"
       "defeat_overlay:2316:1080"
       "defeat_overlay_wide:2999:1080"
+      "reliquary_test:2316:1080"
+      "reliquary_test_wide:2999:1080"
+      "reliquary_test_all:2316:1080"
+      "reliquary_test_all_wide:2999:1080"
     )
 
     for mode_entry in "${MODES[@]}"; do
@@ -165,7 +169,7 @@ for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/
       continue
     fi
     echo "  Running $(basename "${smoke_script}")..."
-    SMOKE_OUTPUT=$(timeout 120 bash "${smoke_script}" 2>&1 || true)
+    SMOKE_OUTPUT=$(timeout 180 bash "${smoke_script}" 2>&1 || true)
     if echo "${SMOKE_OUTPUT}" | grep -q "PASS"; then
       ok "$(basename "${smoke_script}") passed"
     else

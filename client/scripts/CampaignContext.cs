@@ -106,6 +106,9 @@ public static class CampaignContext
     /// </summary>
     public static int CaptureOverrideStrataIdx { get; set; } = -1;
 
+    /// <summary>Capture basename override for Reliquary screenshots (e.g. "reliquary_test_all").</summary>
+    public static string CaptureReliquaryBasename { get; set; } = "reliquary_test";
+
     /// <summary>Test hook: phone-resolution (390x844) capture mode.
     /// Set by --capture=deck_test_phone CLI arg via DebugCapture.
     /// </summary>
