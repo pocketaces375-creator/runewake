@@ -483,5 +483,178 @@
     "content_version": 1,
     "art": {},
     "power_score": 10.62
+  },
+  {
+    "id": "vrd_c_root_sprout",
+    "set": "buried_age",
+    "name": "Root Sprout",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Even the smallest root can trip a giant.",
+    "content_version": 1,
+    "art": {},
+    "attack": 1,
+    "vigor": 2
+  },
+  {
+    "id": "vrd_c_thorn_wall",
+    "set": "buried_age",
+    "name": "Thorn Wall",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "The forest knows how to defend itself.",
+    "content_version": 1,
+    "art": {},
+    "attack": 2,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_c_warding_vine",
+    "set": "buried_age",
+    "name": "Warding Vine",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "It weaves a barrier of thorn and prayer.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_c_leaf_mender",
+    "set": "buried_age",
+    "name": "Leaf Mender",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "Every fallen leaf returns as medicine.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_u_ironbark_guard",
+    "set": "buried_age",
+    "name": "Ironbark Guard",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "GUARD",
+      "ROOTED"
+    ],
+    "abilities": [],
+    "flavor": "Wood tempered by a hundred battles.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_u_sylvan_pulse",
+    "set": "buried_age",
+    "name": "Sylvan Pulse",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 9
+          }
+        ]
+      }
+    ],
+    "flavor": "The heartbeat of the forest, given form.",
+    "content_version": 1,
+    "art": {}
+  },
+  {
+    "id": "vrd_u_forest_stalker",
+    "set": "buried_age",
+    "name": "Forest Stalker",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It moves between the trees like a shadow.",
+    "content_version": 1,
+    "art": {},
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_r_worldtree_custodian",
+    "set": "buried_age",
+    "name": "Worldtree Custodian",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ROOTED",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She remembers when the world was young.",
+    "content_version": 1,
+    "art": {},
+    "attack": 6,
+    "vigor": 6
   }
 ]

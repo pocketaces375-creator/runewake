@@ -507,9 +507,187 @@
         ]
       }
     ],
-    "flavor": "The rhythm of the grave—steady, patient, inevitable.",
+    "flavor": "The rhythm of the grave\u2014steady, patient, inevitable.",
     "content_version": 1,
     "art": {},
     "power_score": 7.95
+  },
+  {
+    "id": "hol_c_plague_rat",
+    "set": "buried_age",
+    "name": "Plague Rat",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "Rats carry what kings leave behind.",
+    "content_version": 1,
+    "art": {},
+    "attack": 1,
+    "vigor": 1
+  },
+  {
+    "id": "hol_c_venom_fang",
+    "set": "buried_age",
+    "name": "Venom Fang",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "One scratch is enough.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 1
+  },
+  {
+    "id": "hol_c_bone_trader",
+    "set": "buried_age",
+    "name": "Bone Trader",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "Everything has a price in the barrow.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "hol_c_stygian_hound",
+    "set": "buried_age",
+    "name": "Stygian Hound",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "It tracks by scent of the grave.",
+    "content_version": 1,
+    "art": {},
+    "attack": 5,
+    "vigor": 2
+  },
+  {
+    "id": "hol_c_unearth_scavenger",
+    "set": "buried_age",
+    "name": "Unearth Scavenger",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "abilities": [],
+    "flavor": "Nothing stays buried forever.",
+    "content_version": 1,
+    "art": {},
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "hol_u_barrow_rite",
+    "set": "buried_age",
+    "name": "Barrow Rite",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 6
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A whispered bargain with what lies below.",
+    "content_version": 1,
+    "art": {}
+  },
+  {
+    "id": "hol_u_nightshade_priest",
+    "set": "buried_age",
+    "name": "Nightshade Priest",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [
+      "ECHO",
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "She serves a god whose name is only spoken once.",
+    "content_version": 1,
+    "art": {},
+    "attack": 5,
+    "vigor": 4
+  },
+  {
+    "id": "hol_r_black_tide",
+    "set": "buried_age",
+    "name": "Black Tide",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It rises when the moon is dark.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 3
   }
 ]

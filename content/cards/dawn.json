@@ -291,7 +291,7 @@
       "GUARD"
     ],
     "abilities": [],
-    "flavor": "She does not fight — she enforces.",
+    "flavor": "She does not fight \u2014 she enforces.",
     "power_score": 11.5,
     "content_version": 1
   },
@@ -512,5 +512,208 @@
     "content_version": 1,
     "art": {},
     "power_score": 10.38
+  },
+  {
+    "id": "dwn_c_gleam_sentinel",
+    "set": "buried_age",
+    "name": "Gleam Sentinel",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "It sees what others cannot.",
+    "content_version": 1,
+    "art": {},
+    "attack": 1,
+    "vigor": 2
+  },
+  {
+    "id": "dwn_c_light_lancer",
+    "set": "buried_age",
+    "name": "Light Lancer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Spear-tip of the morning.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "dwn_c_daybreak_guard",
+    "set": "buried_age",
+    "name": "Daybreak Guard",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "No shadow crosses her post.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "dwn_c_sunpearl_healer",
+    "set": "buried_age",
+    "name": "Sunpearl Healer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "She carries a fragment of the first sunrise.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "dwn_u_fading_spark",
+    "set": "buried_age",
+    "name": "Fading Spark",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "FRAGILE",
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Brightest just before the end.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 1
+  },
+  {
+    "id": "dwn_u_reckoning_strike",
+    "set": "buried_age",
+    "name": "Reckoning Strike",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": 1
+            },
+            "amount": 7
+          }
+        ]
+      }
+    ],
+    "flavor": "For every unpunished wrong.",
+    "content_version": 1,
+    "art": {}
+  },
+  {
+    "id": "dwn_r_aurora_warden",
+    "set": "buried_age",
+    "name": "Aurora Warden",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She weaves the aurora into a shield.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 5
+  },
+  {
+    "id": "dwn_m_last_dawn",
+    "set": "buried_age",
+    "name": "Last Dawn",
+    "strata": "DAWN",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 6,
+    "keywords": [
+      "SEALED"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The final sunrise \u2014 endless, blinding, absolute.",
+    "content_version": 1,
+    "art": {},
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 8
+    }
   }
 ]

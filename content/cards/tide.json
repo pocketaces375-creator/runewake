@@ -73,7 +73,7 @@
         ]
       }
     ],
-    "flavor": "Knowledge flows like water — endlessly, unstoppably.",
+    "flavor": "Knowledge flows like water \u2014 endlessly, unstoppably.",
     "power_score": 5.5,
     "content_version": 1
   },
@@ -393,7 +393,7 @@
         ]
       }
     ],
-    "flavor": "She reads the sky the way others read a map — every star a signpost.",
+    "flavor": "She reads the sky the way others read a map \u2014 every star a signpost.",
     "power_score": 4.5,
     "content_version": 1
   },
@@ -561,5 +561,177 @@
     "content_version": 1,
     "art": {},
     "power_score": 13.2
+  },
+  {
+    "id": "tid_c_foam_runner",
+    "set": "buried_age",
+    "name": "Foam Runner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It dances on waves that no one else sees.",
+    "content_version": 1,
+    "art": {},
+    "attack": 1,
+    "vigor": 2
+  },
+  {
+    "id": "tid_c_tide_reacher",
+    "set": "buried_age",
+    "name": "Tide Reacher",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "The tide reaches further each year.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "tid_c_kelp_diviner",
+    "set": "buried_age",
+    "name": "Kelp Diviner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "She reads the kelp like scrolls.",
+    "content_version": 1,
+    "art": {},
+    "attack": 2,
+    "vigor": 3
+  },
+  {
+    "id": "tid_c_saltthorn_scout",
+    "set": "buried_age",
+    "name": "Salthorn Scout",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Its spines taste the salt air.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "tid_c_undertow_current",
+    "set": "buried_age",
+    "name": "Undertow Current",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "It pulls everything down eventually.",
+    "content_version": 1,
+    "art": {},
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "tid_u_tidal_barrier",
+    "set": "buried_age",
+    "name": "Tidal Barrier",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Water that holds its shape.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 5
+  },
+  {
+    "id": "tid_u_depth_charge",
+    "set": "buried_age",
+    "name": "Depth Charge",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 7
+          }
+        ]
+      }
+    ],
+    "flavor": "Pressure from below. A lot of it.",
+    "content_version": 1,
+    "art": {}
+  },
+  {
+    "id": "tid_r_echo_caller",
+    "set": "buried_age",
+    "name": "Echo Caller",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ECHO",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Her voice carries across every wave.",
+    "content_version": 1,
+    "art": {},
+    "attack": 5,
+    "vigor": 4
   }
 ]

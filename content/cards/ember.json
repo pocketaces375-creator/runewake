@@ -80,7 +80,7 @@
       "PIERCE"
     ],
     "abilities": [],
-    "flavor": "He fights like the fire — without mercy, without memory.",
+    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
     "power_score": 5.5,
     "content_version": 1
   },
@@ -496,9 +496,194 @@
         ]
       }
     ],
-    "flavor": "The ember never dies—it only waits for kindling.",
+    "flavor": "The ember never dies\u2014it only waits for kindling.",
     "content_version": 1,
     "art": {},
     "power_score": 8.45
+  },
+  {
+    "id": "emb_c_stone_slinger",
+    "set": "buried_age",
+    "name": "Stone Slinger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Fling first, ask later.",
+    "content_version": 1,
+    "art": {},
+    "attack": 2,
+    "vigor": 1
+  },
+  {
+    "id": "emb_c_smoldering_pike",
+    "set": "buried_age",
+    "name": "Smoldering Pike",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Heated to the point of shattering.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "emb_c_furnace_reaver",
+    "set": "buried_age",
+    "name": "Furnace Reaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "It drags a length of red-hot chain.",
+    "content_version": 1,
+    "art": {},
+    "attack": 5,
+    "vigor": 3
+  },
+  {
+    "id": "emb_c_volcanic_boon",
+    "set": "buried_age",
+    "name": "Volcanic Boon",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "The mountain rewards those who climb it.",
+    "content_version": 1,
+    "art": {},
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "emb_u_lava_burst",
+    "set": "buried_age",
+    "name": "Lava Burst",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 5
+          }
+        ]
+      }
+    ],
+    "flavor": "The ground remembers the heat.",
+    "content_version": 1,
+    "art": {}
+  },
+  {
+    "id": "emb_u_cinder_venom",
+    "set": "buried_age",
+    "name": "Cinder Venom",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A bite that burns twice.",
+    "content_version": 1,
+    "art": {},
+    "attack": 3,
+    "vigor": 1
+  },
+  {
+    "id": "emb_u_scoria_prowler",
+    "set": "buried_age",
+    "name": "Scoria Prowler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "It hunts through fields of broken glass.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 3
+  },
+  {
+    "id": "emb_r_sharptongue_elder",
+    "set": "buried_age",
+    "name": "Sharptongue Elder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:PIERCE",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every word from his mouth is a weapon.",
+    "content_version": 1,
+    "art": {},
+    "attack": 4,
+    "vigor": 3
   }
 ]
