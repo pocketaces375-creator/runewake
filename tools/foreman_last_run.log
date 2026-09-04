@@ -1,19 +1,3 @@
-
-**Artifact definitions (4 items, 2 JSON files):**
-- **Ritual Fetish**: ON_CREATURE_DIES (FRIENDLY) → ADD_CHARGE; Full: UNEARTH highest-attack creature from graveyard + RESET_CHARGES
-- **Banner of Sunspire**: Passive BUFF +0/+1 WHILE_PRESENT to all creatures; ON_ALLY_ATTACKED → ADD_CHARGE; Full: HEAL 2 all + GRANT WARD + RESET_CHARGES
-- **Book of Familiar**: ON_TURN_START → SUMMON 1/1 Familiar token with ROOTED + ADD_CHARGE; Full: SET_STAT tokens to 2/2 + GRANT GUARD + RESET_CHARGES
-- **Elemental Bond**: ON_TURN_START → BUFF +0/+2 PERMANENT + GRANT ROOTED to most-wounded creature; Full: BUFF +2/+2 PERMANENT + GRANT REACH + RESET_CHARGES
-
-**Tests:** 16 unit tests in `tests/Engine/HeroIdentityTests.cs` covering every effect for all 4 items
-
-**Gate:** 809/809 tests green, input_smoke PASS, loop_smoke PASS, finish_task.sh exit 0
-========================================
-=== foreman: 2026-09-04T04:46:54Z TASK-COLLECTION-1 retry ===
-Session: 1/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 TASK-COLLECTION-1 is done. Here's the summary:
 
 **What was built:** The Collection browser (`ReliquaryScene`) was already fully implemented. Verified all acceptance criteria:
@@ -47,4 +31,20 @@ Failures: finish_task_failure
 - ✅ `tools/capture_settings.sh` — both captures (2316x1080 + 2999x1080) produced and passed gate
 - ✅ Committed as `8e5075a` and pushed; DONE entry written to HERMES_STATUS.md
 - ✅ Second commit `3841d8e` with DONE line, pushed
+========================================
+=== foreman: 2026-09-04T05:09:55Z TASK-SETTINGS-COMPLETE-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-SETTINGS-COMPLETE-1 was already implemented (commit 8e5075a — code, tests, captures all landed) but the TASKS_QUEUE.md checkbox was left `[ ]`. Flipped to `[x]`, committed `f038f8d`, pushed.
+
+Summary of what's done:
+- **Music/SFX/Ambient sliders** wired to AudioManager buses via `AudioServer.SetBusVolumeDb` (music→Music bus, sfx→SFX bus, ambient→Ambient bus), saved to SQLite via SaveRepository
+- **Graphics Quality toggle** — Low (nearest filtering) / High (linear filtering), persisted in `SettingsState.GraphicsQuality`
+- **Replay Intro** — resets `IntroSeen = false`, next launch shows the splash
+- **Credits panel** — overlay reads `AUDIO_CREDITS.md`, Close button dismisses
+- **Version + build hash** — bottom-right, from `application/config/version` + `build_info.txt` sha
+- **Layout** — scroll container fills 12%-82%, save/back at 85%-96%, version at 96%-99.5%, background full-rect. Captures at 2316×1080 and 2999×1080 pass gate.
+- **Persistence tests** — 4 settings tests (defaults, clone, GraphicsQuality round-trip, save/load round-trip with Music/SFX/MasterMute/ReduceMotion/LargeText) all green
 ========================================
