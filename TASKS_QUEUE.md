@@ -441,7 +441,7 @@
   green gate alone — the DONE line must quote the PLAYABLE.json playable=true and the reached
   steps.
 
-- [ ] TASK-ROSTER-LOCK-1 — Lock the permanent 7 classes and their 2 starting items everywhere (Trikzos,
+- [x] TASK-ROSTER-LOCK-1 — Lock the permanent 7 classes and their 2 starting items everywhere (Trikzos,
   final): Battlemage (wand, aura) · Necromancer (skull, ritual piece) · Paladin (hammer, banner) ·
   Druid (book of familiar, elemental bond) · Rogue (dagger, dagger) · Astrologist (orb, constellation
   starlight) · Warrior (sword, shield). Changes: rename Thief -> Rogue everywhere; replace Ranger with
