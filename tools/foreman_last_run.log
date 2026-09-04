@@ -1,37 +1,3 @@
-Session: 12/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-REGION-4-BUILD-1 on deepseek/deepseek-v4-flash: 1750s
-## Task Complete: TASK-REGION-4-BUILD-1
-
-Here's a summary of everything accomplished:
-
-### Changes Made
-
-1. **board_skin set to "dawn" for Region 4**
-   - `content/map/region_04.json` — `board_skin` changed from `"default"` to `"dawn"`
-   - `client/content/map/region_04.json` — mirrored the change for client-side access
-
-2. **Dawn board skin registered in ThemeTokens.cs**
-   - Added `dawn`, `backdrop_dawn`, `plate_dawn` texture entries (all pointing to `default.png`/`backdrop_default.png`/`plate_default.png`, same pattern as Tide/Ember)
-   - Added dawn tint color `(0.78, 0.65, 0.25)` — warm gold tint matching the Dawn stratum palette
-
-3. **Soak harness support (DebugCapture.cs)**
-   - Added `--soak-force-region=<regionId>` CLI argument to override the region the soak uses, enabling headless validation of Region 4
-
-### Gates Passed
-
-- **dotnet build** — 0 errors
-- **dotnet test** — 828/828 passed
-- **Map capture** (`--capture=map_test_r4`) — Region 4 map with `board_skin='dawn'` loaded, tint applied
-- **Soak** (`--soak-force-region=region_04`) — Region 4 map loaded, all nodes reported as cleared
-- **loop_smoke** — PASS
-
-### Commit
-
-```
-0e0d7a8 TASK-REGION-4-BUILD-1: Region 4 wired. board_skin='dawn'. Dawn skin in ThemeTokens.
-```
 
 ### Telegram
 
@@ -47,4 +13,38 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 31s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-04T23:52:55Z TASK-CARD-ART-VERIFY-1 success ===
+Session: 13/96
+--- session tail ---
+  session TASK-CARD-ART-VERIFY-1 on deepseek/deepseek-v4-flash: 975s
+**Done.** Here's the full summary:
+
+## TASK-CARD-ART-VERIFY-1 — Complete ✅
+
+**Findings:**
+- **146 card IDs** from 6 content/cards/*.json files
+- **145/146 art files present** in client/content/art/ — all pass `art_check.py portrait` (≥1000 distinct colours at 64px, 832×1216 portrait aspect)
+- **1 missing:** `tid_c_star_reader` (Tide Star-Reader) — no .webp and no .import
+
+**Regenerated:**
+1. **`tid_c_star_reader.webp`** (NEW) — TIDE astronomer figure reading constellations by tidal pools, FLUX.2 Pro 832×1216. art_check: PASS (1972 colours, 832×1216). Vision check: PASS (astronomer by water at night).
+2. **`emb_r_sharptongue_elder.webp`** (REGEN) — Old art showed a human elder on a stone throne. New art: a monstrous creature of living slag/obsidian with a forked tongue. art_check: PASS (2562 colours). Vision check: PASS (monstrous creature, not human).
+
+**20 lowest-colour scorers vision-checked:** 19/20 matched their card subject. `emb_r_sharptongue_elder` was the one clear mismatch — now fixed with proper regeneration.
+
+**Mirror check:** All 6 client/content/cards/ files byte-for-byte identical to content/cards/.
+
+**Zero missing files:** All 146 cards have .webp + .import.
+
+**Tests:** 828/828 pass (GrindCard flake retried OK).
+
+**Artifacts:** `docs/ART_AUDIT.md` — full 146-row table (id, status, score, dimensions).
+
+**Deferred:** Reliquary capture deferred — Godot binary not configured on this lane. Will need a separate session with Godot access to produce the capture.
+
+**Report posted** to Runewake Telegram. Commit `649496d`.
+
+⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
+  • /home/fictive/runewake-lane2/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file
 ========================================
