@@ -58,7 +58,14 @@ BUS_TIMEOUT="${FOREMAN_BUS_TIMEOUT:-900}"  # 15 min
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
 STATE_FILE="${FOREMAN_STATE_FILE:-${PROJECT_DIR}/tools/foreman_state.json}"
-[[ -f "${STATE_FILE}" ]] || echo '{}' > "${STATE_FILE}"
+if [[ ! -f "${STATE_FILE}" ]]; then
+  python3 -c "
+import json
+d={}
+try: d['bus_last_seq']=json.load(open('${PROJECT_DIR}/tools/foreman_state.json')).get('bus_last_seq',0)
+except Exception: pass
+json.dump(d,open('${STATE_FILE}','w'))"
+fi
 QUEUE_FILE="${PROJECT_DIR}/TASKS_QUEUE.md"
 CAPTURE_DIR="${PROJECT_DIR}/artifacts/captures"
 LAST_RUN_LOG="${PROJECT_DIR}/tools/foreman_last_run.log"
