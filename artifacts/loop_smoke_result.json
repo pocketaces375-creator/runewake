@@ -1,4 +1,4 @@
 {
-  "verdict": "FAIL",
-  "failed_step": "No Play/CONTINUE button on title screen"
+  "verdict": "PASS",
+  "failed_step": null
 }

@@ -85,6 +85,7 @@ public partial class DuelScene : Control
         public string Name;
         public int Attack;
         public int Vigor;
+        public Strata Strata;
     }
     private BoardSnapshot[] _prevEnemyBoard = new BoardSnapshot[5];
     private BoardSnapshot[] _prevPlayerBoard = new BoardSnapshot[5];
@@ -103,8 +104,14 @@ public partial class DuelScene : Control
     // TASK-AUDIO-HOOK-1: Track hand size for card_draw detection
     private int _prevHandSize;
     private int _prevPlayerChargesFull; // tracks which slots were at max charges last render
+    // TASK-JUICE-1: Previous turn number for end-turn ring detection
+    private int _prevTurnNumber;
 
-    // TASK-TUT-BUILD-1: Internal accessors for TutorialRunner highlight resolution
+    /// <summary>Stratum of prev attacking lane per side for hit flare colour.</summary>
+    private Strata _lastAttackerStratum = Strata.VERDANT;
+
+    // ── Juice-edge pulse overlay (lazy-created, reused) ──
+    private ColorRect? _screenEdgePulse;
     internal List<HandCard> TutorialHandCards => _handCards;
     internal List<LaneSlot> TutorialPlayerSlots => _playerSlots;
     internal List<LaneSlot> TutorialEnemySlots => _enemySlots;
@@ -2043,6 +2050,46 @@ public partial class DuelScene : Control
             _prevPlayerChargesFull = fullMask;
         }
 
+        // ═══ TASK-JUICE-1: Artifact charge brighten — detect per-slot charge gain ═══
+        if (state != null && !_firstRender)
+        {
+            for (int side = 0; side <= 1; side++)
+            {
+                for (int ai = 0; ai < (state.Players[side].ArtifactSlots?.Length ?? 0); ai++)
+                {
+                    var slot = state.Players[side].ArtifactSlots[ai];
+                    if (slot.Occupant == null || slot.MaxCharges <= 0) continue;
+                    
+                    int prevCharges = side == 0 ? _prevPlayerCharges[ai] : _prevEnemyCharges[ai];
+                    if (slot.Charges > prevCharges)
+                    {
+                        var plate = side == 0 ? _playerArtifactPlates[ai] : _enemyArtifactPlates[ai];
+                        if (plate != null && IsInstanceValid(plate) && plate.IsInsideTree())
+                        {
+                            bool isFull = slot.Charges >= slot.MaxCharges;
+                            RitualEffects.PlayChargeBrighten(plate, isFull, CampaignContext.ReduceMotion);
+                        }
+                    }
+                    if (side == 0) _prevPlayerCharges[ai] = slot.Charges;
+                    else _prevEnemyCharges[ai] = slot.Charges;
+                }
+            }
+        }
+
+        // ═══ TASK-JUICE-1: End Turn — altar ring turns one notch ═══
+        if (state != null && !_firstRender && _gsm.TurnNumber != _prevTurnNumber)
+        {
+            if (!CampaignContext.ReduceMotion)
+            {
+                var altar = GetNodeOrNull<Control>("Board/AltarContainer");
+                if (altar != null && altar.IsInsideTree())
+                    RitualEffects.PlayRingTurnNotch(altar);
+                else
+                    RitualEffects.PlayRingTurnNotch(this);
+            }
+            _prevTurnNumber = _gsm.TurnNumber;
+        }
+
         // Compute diffs and trigger animations using the previous snapshot
         if (!_firstRender)
         {
@@ -2124,7 +2171,8 @@ public partial class DuelScene : Control
                 IsEmpty = lanes[i].IsEmpty,
                 Name = lanes[i].Name,
                 Attack = lanes[i].Attack,
-                Vigor = lanes[i].Vigor
+                Vigor = lanes[i].Vigor,
+                Strata = lanes[i].Strata
             };
         }
         return result;
@@ -2134,7 +2182,9 @@ public partial class DuelScene : Control
         BoardSnapshot[] newEnemy, BoardSnapshot[] newPlayer)
     {
         // TASK-AUDIO-HOOK-1: one sound per resolution, not per target
-        bool audioPlayed = false;
+        // Track audio per side to avoid overlap
+        bool audioPlayedEnemy = false;
+        bool audioPlayedPlayer = false;
 
         for (int i = 0; i < 5; i++)
         {
@@ -2143,13 +2193,20 @@ public partial class DuelScene : Control
             var cur = newEnemy[i];
 
             if (prev.IsEmpty && !cur.IsEmpty)
+            {
                 slot.PlaySummonEffect();
+                if (!audioPlayedEnemy)
+                {
+                    audioPlayedEnemy = true;
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("card_play");
+                }
+            }
             else if (!prev.IsEmpty && cur.IsEmpty)
             {
-                slot.PlayDeathEffect();
-                if (!audioPlayed)
+                slot.PlayDeathEffect(prev.Strata);
+                if (!audioPlayedEnemy)
                 {
-                    audioPlayed = true;
+                    audioPlayedEnemy = true;
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
                 }
             }
@@ -2158,10 +2215,11 @@ public partial class DuelScene : Control
                 int dmg = prev.Vigor - cur.Vigor;
                 if (dmg > 0 && !CampaignContext.ReduceMotion)
                 {
-                    slot.ShowDamageNumber(dmg);
-                    if (!audioPlayed)
+                    RitualEffects.PlayRuneFlare(slot, prev.Strata);
+                    slot.ShowDamageNumber(dmg, prev.Strata);
+                    if (!audioPlayedEnemy)
                     {
-                        audioPlayed = true;
+                        audioPlayedEnemy = true;
                         GetNode<AudioManager>("/root/AudioManager").PlaySfx("damage");
                     }
                 }
@@ -2176,13 +2234,20 @@ public partial class DuelScene : Control
             var cur = newPlayer[i];
 
             if (prev.IsEmpty && !cur.IsEmpty)
+            {
                 slot.PlaySummonEffect();
+                if (!audioPlayedPlayer)
+                {
+                    audioPlayedPlayer = true;
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("card_play");
+                }
+            }
             else if (!prev.IsEmpty && cur.IsEmpty)
             {
-                slot.PlayDeathEffect();
-                if (!audioPlayed)
+                slot.PlayDeathEffect(prev.Strata);
+                if (!audioPlayedPlayer)
                 {
-                    audioPlayed = true;
+                    audioPlayedPlayer = true;
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
                 }
             }
@@ -2191,10 +2256,11 @@ public partial class DuelScene : Control
                 int dmg = prev.Vigor - cur.Vigor;
                 if (dmg > 0 && !CampaignContext.ReduceMotion)
                 {
-                    slot.ShowDamageNumber(dmg);
-                    if (!audioPlayed)
+                    RitualEffects.PlayRuneFlare(slot, prev.Strata);
+                    slot.ShowDamageNumber(dmg, prev.Strata);
+                    if (!audioPlayedPlayer)
                     {
-                        audioPlayed = true;
+                        audioPlayedPlayer = true;
                         GetNode<AudioManager>("/root/AudioManager").PlaySfx("damage");
                     }
                 }
@@ -2208,10 +2274,26 @@ public partial class DuelScene : Control
         var enemyHud = _gsm.GetPlayerHud(1);
         var playerHud = _gsm.GetPlayerHud(0);
 
+        // TASK-JUICE-1: Determine the attacker stratum for face damage colour
+        // Use the last non-empty player slot's stratum as the player's attacking colour
+        // (simplified: default to gold if no specific attacker)
+
         if (_prevEnemyVigor >= 0 && enemyHud.Vigor != _prevEnemyVigor)
         {
             int diff = _prevEnemyVigor - enemyHud.Vigor;
             ShowFaceDamage(true, diff);
+            // Screen edge pulse in player's attacking colour (enemy is being hit by player)
+            Color pulseColor = Gold;
+            var playerLaneInfo = _gsm.GetLanes(0);
+            foreach (var li in playerLaneInfo)
+            {
+                if (!li.IsEmpty)
+                {
+                    pulseColor = ThemeTokens.StrataColor(li.Strata);
+                    break; // Use first occupied lane's stratum
+                }
+            }
+            RitualEffects.PlayFaceDamagePulse(this, GetOrCreateScreenEdgePulse(), pulseColor, CampaignContext.ReduceMotion);
             // TASK-AUDIO-HOOK-1: hit_light (dmg ≤3) / hit_heavy (dmg ≥4)
             if (diff > 0)
             {
@@ -2224,6 +2306,18 @@ public partial class DuelScene : Control
         {
             int diff = _prevPlayerVigor - playerHud.Vigor;
             ShowFaceDamage(false, diff);
+            // Screen edge pulse in enemy's attacking colour (player is being hit by enemy)
+            Color pulseColor = Ember;
+            var enemyLaneInfo = _gsm.GetLanes(1);
+            foreach (var li in enemyLaneInfo)
+            {
+                if (!li.IsEmpty)
+                {
+                    pulseColor = ThemeTokens.StrataColor(li.Strata);
+                    break;
+                }
+            }
+            RitualEffects.PlayFaceDamagePulse(this, GetOrCreateScreenEdgePulse(), pulseColor, CampaignContext.ReduceMotion);
             // TASK-AUDIO-HOOK-1: hit_light (dmg ≤3) / hit_heavy (dmg ≥4)
             if (diff > 0)
             {
@@ -2234,6 +2328,24 @@ public partial class DuelScene : Control
 
         _prevEnemyVigor = enemyHud.Vigor;
         _prevPlayerVigor = playerHud.Vigor;
+    }
+
+    /// <summary>Get or create the reusable screen-edge pulse overlay.</summary>
+    private ColorRect GetOrCreateScreenEdgePulse()
+    {
+        if (_screenEdgePulse != null && IsInstanceValid(_screenEdgePulse) && _screenEdgePulse.IsInsideTree())
+            return _screenEdgePulse;
+        
+        _screenEdgePulse = new ColorRect
+        {
+            Name = "ScreenEdgePulse",
+            Color = new Color(0, 0, 0, 0),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Visible = false,
+        };
+        _screenEdgePulse.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        AddChild(_screenEdgePulse);
+        return _screenEdgePulse;
     }
 
     private void ShowFaceDamage(bool isEnemy, int amount)
@@ -4392,6 +4504,12 @@ private void ShowGameOverOverlay(int winnerIndex)
         _gameOverOverlay.AddChild(container);
 
         AddChild(_gameOverOverlay);
+
+        // ═══ TASK-JUICE-1: Victory/defeat light effects ═══
+        if (playerWon)
+            RitualEffects.PlayVictoryLight(this, CampaignContext.ReduceMotion);
+        else
+            RitualEffects.PlayDefeatDrain(this, CampaignContext.ReduceMotion);
 
         // ── TASK-DROPS-UI-1: Start the drop reveal sequence ──
         if (_dropRevealCards.Count > 0)

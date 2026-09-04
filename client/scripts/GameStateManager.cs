@@ -380,7 +380,8 @@ public partial class GameStateManager : Node
                     Controller = occ.Controller,
                     IsExhausted = occ.IsExhausted,
                     IsIdentified = occ.IsIdentified,
-                    CardDefId = occ.CardDefId
+                    CardDefId = occ.CardDefId,
+                    Strata = def?.Strata ?? Strata.VERDANT
                 });
             }
             else
@@ -482,6 +483,7 @@ public struct LaneInfo
     public bool IsExhausted;
     public bool IsIdentified;
     public string CardDefId;
+    public Strata Strata;
 }
 
 public struct PlayerHudInfo

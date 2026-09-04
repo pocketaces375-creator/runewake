@@ -300,15 +300,55 @@ public partial class LaneSlot : PanelContainer
     }
 
     /// <summary>
-    /// Show a floating damage number (red) at this lane's position.
+    /// Show a floating damage number (stratum-coloured) at this lane's position.
+    /// Uses Cinzel serif font for the dark fae ritual feel.
     /// </summary>
-    public void ShowDamageNumber(int amount)
+    public void ShowDamageNumber(int amount, Strata strata = Strata.VERDANT)
     {
         if (amount <= 0) return;
+        if (CampaignContext.ReduceMotion)
+        {
+            // Skip animated floating text, just show a brief static label
+            ShowStaticDamageLabel(amount, strata);
+            return;
+        }
+        
         var ftScene = GD.Load<PackedScene>("res://scenes/effects/FloatingText.tscn");
         var ft = ftScene.Instantiate<FloatingText>();
         GetParent().AddChild(ft);
-        ft.ShowAt($"-{amount}", new Color(1, 0.2f, 0.2f), GlobalPosition + new Vector2(32, 0));
+        
+        // Stratum-coloured damage number — the spec says the number itself
+        // takes on the character of the attacker's stratum
+        Color textColor = ThemeTokens.StrataColor(strata);
+        ft.ShowAt($"-{amount}", textColor, GlobalPosition + new Vector2(32, 0));
+        
+        // Apply Cinzel serif font for the ritual feel
+        var headerFont = ThemeTokens.GetHeaderFont(22);
+        if (headerFont != null)
+            ft.AddThemeFontOverride("font", headerFont);
+    }
+    
+    /// <summary>
+    /// Non-animated fallback for reduce-motion mode.
+    /// </summary>
+    private void ShowStaticDamageLabel(int amount, Strata strata)
+    {
+        var label = new Label
+        {
+            Text = $"-{amount}",
+            Modulate = ThemeTokens.StrataColor(strata),
+            Position = GlobalPosition + new Vector2(32, 0),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        label.AddThemeFontSizeOverride("font_size", 18);
+        var headerFont = ThemeTokens.GetHeaderFont(18);
+        if (headerFont != null)
+            label.AddThemeFontOverride("font", headerFont);
+        GetParent().AddChild(label);
+        
+        var tween = CreateTween();
+        tween.TweenProperty(label, "modulate:a", 0.0f, 0.4f);
+        tween.TweenCallback(Callable.From(() => { if (label.IsInsideTree()) label.QueueFree(); }));
     }
 
     /// <summary>
@@ -327,6 +367,10 @@ public partial class LaneSlot : PanelContainer
 
     public void PlaySummonEffect()
     {
+        // Stone dust puff
+        RitualEffects.PlayStoneDustPuff(this, CampaignContext.ReduceMotion);
+        
+        // Keep the existing scale-up animation for the card seating feel
         Scale = new Vector2(0, 0);
         Modulate = new Color(2, 2, 2, 1);
         var tween = CreateTween();
@@ -336,14 +380,17 @@ public partial class LaneSlot : PanelContainer
         tween.TweenProperty(this, "modulate", new Color(1, 1, 1, 1), 0.2f);
     }
 
-    public void PlayDeathEffect()
+    public void PlayDeathEffect(Strata strata = Strata.VERDANT)
     {
-        Modulate = new Color(1, 0.2f, 0.2f, 1);
+        // Stratum-coloured crumbling death
+        RitualEffects.PlayCrumblingDeath(this, strata, CampaignContext.ReduceMotion);
+        
+        // Keep the existing shrink + fade for structural cleanup
         var tween = CreateTween();
         tween.TweenInterval(0.1f);
         tween.SetParallel();
-        tween.TweenProperty(this, "modulate:a", 0.0f, 0.4f);
-        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.4f)
+        tween.TweenProperty(this, "modulate:a", 0.0f, 0.35f);
+        tween.TweenProperty(this, "scale", new Vector2(0, 0), 0.35f)
             .SetEase(Tween.EaseType.In).SetTrans(Tween.TransitionType.Back);
         tween.SetParallel(false);
         tween.TweenCallback(Callable.From(() =>
