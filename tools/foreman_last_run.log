@@ -1,11 +1,4 @@
 
-5. **ArenaScene.cs** — Full scene with:
-   - Deck list (saved decks + campaign deck fallback)
-   - Opponent panel (name, warden badge, deck size)
-   - Reroll opponent button (increments seed part)
-   - Fight button → builds synthetic EncounterDef, sets ArenaMode, transitions to DuelScene
-   - Capture test and soak modes with auto-navigation
-
 6. **ArenaScene.tscn** — Minimal scene wired to `ArenaScene.cs`
 
 7. **DuelScene.cs** — Modified:
@@ -46,5 +39,12 @@ Session: 4/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 32s
+API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-04T22:33:57Z TASK-DUEL-ARENA-1 retry ===
+Session: 12/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-DUEL-ARENA-1 on z-ai/glm-5.2:free: 23s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
