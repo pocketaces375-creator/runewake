@@ -1,9 +1,3 @@
-- `choose_path` — PASS on EMPTY_BODY (FAIL on SAFE_AREA — pre-existing, all card controls extend beyond headless safe area)
-- `choose_path_wide` — same
-- `duel_test` — EMPTY_BODY reports the Board/AltarContainer gap (pre-existing, not scoped here)
-- `duel_test_r2` — same
-- `duel_test_safe` — same
-- `duel_test_wide` — same
 - `soak_final_map_` — PASS on EMPTY_BODY
 
 **What a player sees now:** The class card portrait fills the card top to bottom, and the class name, blurb, and origin line sit in a compact text block at the bottom with tight padding — no large empty dark space below the text.
@@ -47,4 +41,10 @@ Session: 9/48
 **What a player can now do start to finish:** Launch → Main menu → Play → Choose Your Path (warrior auto-selected, Begin auto-pressed) → Map (first encounter auto-selected, Challenge pressed) → Duel (BotDuelTest plays P0's cards automatically, bot plays P1, duel resolves) → victory/defeat → back to Map → node marked cleared.
 
 **Acceptance:** `artifacts/PLAYABLE.json` shows `{"playable": true}`. The loop_smoke test passed reaching ChooseYourPath → duel → map with cleared nodes before proceeding through Reliquary → Forge → complete.
+========================================
+=== foreman: 2026-09-04T00:52:32Z TASK-CARD-FILL-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 ========================================
