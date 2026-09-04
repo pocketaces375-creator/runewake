@@ -725,7 +725,7 @@
   Acceptance: 20 replacements plus the missing card committed with .import files, each passing
   art_check.py portrait; docs/ART_AUDIT.md lists before/after scores; post 6 of the biggest improvements.
 
-- [ ] TASK-CARD-WAVE-1 — 40 new deck cards through the existing pipeline (gen → IP screen → pixel gate →
+- [x] TASK-CARD-WAVE-1 — 40 new deck cards through the existing pipeline (gen → IP screen → pixel gate →
   sim gate): 8 per stratum, rarity mix 22C / 12U / 5R / 1M, every card's DSL valid, no keyword outside the
   closed set, each family feeding its class's artifact patterns. DATA ONLY — leave the art field as a
   placeholder; the Reliquary silhouette path covers missing art.
