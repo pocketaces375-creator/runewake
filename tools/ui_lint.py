@@ -97,6 +97,15 @@ def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> l
     """Rules that apply to every scene."""
     failures = []
 
+    # TASK-DUEL-HUD-1: MIN_TEXT — every Label must have font_size >= 8px
+    for c in controls:
+        if c["class"] == "Label" and "font_size" in c:
+            fs = c["font_size"]
+            if fs < 8:
+                failures.append(
+                    f"MIN_TEXT: {c['path']} has font_size={fs} — minimum is 8px"
+                )
+
     # Rule: no visible interactive siblings overlap
     # Interactive = Buttons, or controls whose path contains Card/Slot/Interactive
     interactives = [c for c in controls if (
@@ -783,6 +792,11 @@ def main():
         viewport = data.get("viewport", {"width": 1920, "height": 1080})
         safe_area = data.get("safe_area", {"x": 0, "y": 0, "w": viewport["width"], "h": viewport["height"]})
         capture_name = data.get("capture", basename)
+
+        # Normalize controls: convert flat x,y,w,h to rect dict for backward compat
+        for c in controls:
+            if "rect" not in c and "x" in c:
+                c["rect"] = {"x": c["x"], "y": c["y"], "w": c["w"], "h": c["h"]}
 
         seen_basenames.append(basename)
         scene_failures = []

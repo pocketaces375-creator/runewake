@@ -256,13 +256,48 @@ public partial class DuelScene : Control
             _endTurnButton = new Button();
             _endTurnButton.Text = "End Turn";
             _endTurnButton.ActionMode = Button.ActionModeEnum.Press;
-            _endTurnButton.AddThemeFontSizeOverride("font_size", FontLargeBody);
-            _endTurnButton.AddThemeColorOverride("font_color", TextPrimary);
+            _endTurnButton.AddThemeFontSizeOverride("font_size", FontSubtitle);
+            _endTurnButton.AddThemeColorOverride("font_color", Colors.Black);
+            _endTurnButton.AddThemeColorOverride("font_hover_color", Colors.Black);
+            _endTurnButton.AddThemeColorOverride("font_pressed_color", Colors.Black);
+            _endTurnButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+            {
+                BgColor = new Color(0.85f, 0.65f, 0.15f, 1.0f), // gold
+                BorderColor = new Color(0.70f, 0.50f, 0.10f, 1.0f),
+                BorderWidthLeft = 2, BorderWidthTop = 2,
+                BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+                CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+                ContentMarginLeft = 8, ContentMarginTop = 4,
+                ContentMarginRight = 8, ContentMarginBottom = 4
+            });
+            _endTurnButton.AddThemeStyleboxOverride("hover", new StyleBoxFlat
+            {
+                BgColor = new Color(0.95f, 0.75f, 0.25f, 1.0f),
+                BorderColor = new Color(0.80f, 0.60f, 0.15f, 1.0f),
+                BorderWidthLeft = 2, BorderWidthTop = 2,
+                BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+                CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+                ContentMarginLeft = 8, ContentMarginTop = 4,
+                ContentMarginRight = 8, ContentMarginBottom = 4
+            });
+            _endTurnButton.AddThemeStyleboxOverride("pressed", new StyleBoxFlat
+            {
+                BgColor = new Color(0.70f, 0.50f, 0.10f, 1.0f),
+                BorderColor = new Color(0.60f, 0.40f, 0.05f, 1.0f),
+                BorderWidthLeft = 2, BorderWidthTop = 2,
+                BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+                CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+                ContentMarginLeft = 8, ContentMarginTop = 4,
+                ContentMarginRight = 8, ContentMarginBottom = 4
+            });
             _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
-            _endTurnButton.OffsetRight = -10;
-            _endTurnButton.OffsetLeft = -100;
-            _endTurnButton.OffsetBottom = -70;
-            _endTurnButton.OffsetTop = -106;
+            _endTurnButton.OffsetRight = -16;
+            _endTurnButton.OffsetLeft = -156;
+            _endTurnButton.OffsetBottom = -80;
+            _endTurnButton.OffsetTop = -128;
             AddChild(_endTurnButton);
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
@@ -1067,6 +1102,7 @@ public partial class DuelScene : Control
         };
         _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
         _enemyDeckValue.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(12 * scale));
         dbRow.AddChild(_enemyDeckValue);
 
         var deckLabel = new Label
@@ -1078,6 +1114,7 @@ public partial class DuelScene : Control
         };
         deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         deckLabel.AddThemeColorOverride("font_color", TextMuted);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
         dbRow.AddChild(deckLabel);
 
         // Barrow count
@@ -1090,6 +1127,7 @@ public partial class DuelScene : Control
         };
         _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
         _enemyBarrowValue.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(12 * scale));
         dbRow.AddChild(_enemyBarrowValue);
 
         var barrowLabel = new Label
@@ -1101,6 +1139,7 @@ public partial class DuelScene : Control
         };
         barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         barrowLabel.AddThemeColorOverride("font_color", TextMuted);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
@@ -1302,6 +1341,7 @@ public partial class DuelScene : Control
         };
         _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
         _playerShrineDeckLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(12 * scale));
         dbRow.AddChild(_playerShrineDeckLabel);
 
         var deckLabel = new Label
@@ -1313,6 +1353,7 @@ public partial class DuelScene : Control
         };
         deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         deckLabel.AddThemeColorOverride("font_color", TextMuted);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
         dbRow.AddChild(deckLabel);
 
         _playerShrineBarrowLabel = new Label
@@ -1324,6 +1365,7 @@ public partial class DuelScene : Control
         };
         _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
         _playerShrineBarrowLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(12 * scale));
         dbRow.AddChild(_playerShrineBarrowLabel);
 
         var barrowLabel = new Label
@@ -1335,6 +1377,7 @@ public partial class DuelScene : Control
         };
         barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         barrowLabel.AddThemeColorOverride("font_color", TextMuted);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Player Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
@@ -1372,6 +1415,7 @@ public partial class DuelScene : Control
         };
         _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
         _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.2f, 1));
+        ApplyHeaderFont(_playerShrineAttuneLabel, Mathf.RoundToInt(9 * scale));
         // BOARD-MATCH-3: Position below artifacts panel, between deck/barrow and nameplate
         _playerShrineAttuneLabel.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f + panelH + 2f * scale);
         AddChild(_playerShrineAttuneLabel);

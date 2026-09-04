@@ -858,6 +858,13 @@ public partial class DebugCapture : Node
             entry["texture_non_null"] = texRect.Texture != null;
         }
 
+        // For Labels, record font_size from theme override
+        if (control is Label label)
+        {
+            int fontSize = label.GetThemeFontSize("font_size");
+            entry["font_size"] = fontSize;
+        }
+
         entries.Add(entry);
 
         foreach (var child in node.GetChildren())

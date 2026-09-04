@@ -16,10 +16,8 @@ public class ProgressionStateGrindTests
     /// </summary>
     private static void EnsureTestCardsRegistered()
     {
-        // Only register if not already present (avoids redundant work between tests in the same batch)
-        if (CardRegistry.Get("test_common") != null)
-            return;
-
+        // Always re-register to guard against CardRegistry.Clear() in other test classes
+        // (xUnit interleaves test methods across classes, so static state is unreliable)
         CardRegistry.RegisterRange(new[]
         {
             new CardDef { Id = "test_common", Name = "Test Common", Cost = 3,
@@ -118,9 +116,14 @@ public class ProgressionStateGrindTests
         state.AddCard("test_relic", 2);
 
         int total = 0;
+        // Re-register before each grind to guard against CardRegistry.Clear() in other test classes
+        EnsureTestCardsRegistered();
         total += state.GrindCard("test_common", new Dictionary<string, List<string>>()); // +5
+        EnsureTestCardsRegistered();
         total += state.GrindCard("test_uncommon", new Dictionary<string, List<string>>()); // +15
+        EnsureTestCardsRegistered();
         total += state.GrindCard("test_rare", new Dictionary<string, List<string>>()); // +40
+        EnsureTestCardsRegistered();
         total += state.GrindCard("test_relic", new Dictionary<string, List<string>>()); // +120
 
         Assert.Equal(180, total);
