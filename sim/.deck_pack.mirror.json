@@ -1,0 +1,856 @@
+[
+  {
+    "id": "vrd_c_root_warden",
+    "set": "buried_age",
+    "name": "Root Warden",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The grove keeps its own ledgers, and it does not forgive debts.",
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_root_warden",
+    "set": "buried_age",
+    "name": "Root Warden",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The grove keeps its own ledgers, and it does not forgive debts.",
+    "power_score": 7.1,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_verdant_sproutling",
+    "set": "buried_age",
+    "name": "Verdant Sproutling",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Life finds a way through every crack.",
+    "power_score": 2.0,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_verdant_sproutling",
+    "set": "buried_age",
+    "name": "Verdant Sproutling",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Life finds a way through every crack.",
+    "power_score": 2.0,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_grove_healer",
+    "set": "buried_age",
+    "name": "Grove Healer",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "The touch of living bark closes wounds in moments.",
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_wildwood_stalker",
+    "set": "buried_age",
+    "name": "Wildwood Stalker",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It hunts between the roots, patient and swift.",
+    "power_score": 3.5,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_wildwood_stalker",
+    "set": "buried_age",
+    "name": "Wildwood Stalker",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It hunts between the roots, patient and swift.",
+    "power_score": 3.5,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_canopy_archer",
+    "set": "buried_age",
+    "name": "Canopy Archer",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "She waits in the high branches, arrow nocked.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_sunblade_recruit",
+    "set": "buried_age",
+    "name": "Sunblade Recruit",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Steel and sunlight, sworn to the covenant.",
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_sunblade_recruit",
+    "set": "buried_age",
+    "name": "Sunblade Recruit",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Steel and sunlight, sworn to the covenant.",
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_golden_retainer",
+    "set": "buried_age",
+    "name": "Golden Retainer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Gold and duty, inseparable in service.",
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_golden_retainer",
+    "set": "buried_age",
+    "name": "Golden Retainer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Gold and duty, inseparable in service.",
+    "power_score": 8.0,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_morning_herald",
+    "set": "buried_age",
+    "name": "Morning Herald",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "DAMAGED",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Each dawn brings the promise of renewal.",
+    "power_score": 6.4,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_forgeguard_berserker",
+    "set": "buried_age",
+    "name": "Forgeguard Berserker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_forgeguard_berserker",
+    "set": "buried_age",
+    "name": "Forgeguard Berserker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_magma_forger",
+    "set": "buried_age",
+    "name": "Magma Forger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "He hammers strength into every ally's blade.",
+    "power_score": 8.4,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_deep_one",
+    "set": "buried_age",
+    "name": "Deep One",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "From the abyss it rises, silent and patient.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_deep_one",
+    "set": "buried_age",
+    "name": "Deep One",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "From the abyss it rises, silent and patient.",
+    "power_score": 5.5,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_silt_reader",
+    "set": "buried_age",
+    "name": "Silt Reader",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      },
+      {
+        "trigger": "ON_TURN_START",
+        "condition": {
+          "op": "BARROW_COUNT_GTE",
+          "value": 4
+        },
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She read the riverbed the way her mother read faces.",
+    "power_score": 11.4,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_whirlpool_elemental",
+    "set": "buried_age",
+    "name": "Whirlpool Elemental",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It unravels into foam, dragging you down with it.",
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_whirlpool_elemental",
+    "set": "buried_age",
+    "name": "Whirlpool Elemental",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It unravels into foam, dragging you down with it.",
+    "power_score": 6.0,
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_brine_witch",
+    "set": "buried_age",
+    "name": "Brine Witch",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Salt and spell, wrought together.",
+    "power_score": 6.5,
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_deathspeaker",
+    "set": "buried_age",
+    "name": "Deathspeaker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "He whispers to the wounded, promising the quiet.",
+    "power_score": 6.4,
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_deathspeaker",
+    "set": "buried_age",
+    "name": "Deathspeaker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "He whispers to the wounded, promising the quiet.",
+    "power_score": 6.4,
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_crypt_crawler",
+    "set": "buried_age",
+    "name": "Crypt Crawler",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "It drags itself from the dark, clutching forgotten things.",
+    "power_score": 7.9,
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_natures_renewal",
+    "set": "buried_age",
+    "name": "Nature's Renewal",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Spring comes even to the deepest shadows.",
+    "power_score": 5.9,
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_searing_blast",
+    "set": "buried_age",
+    "name": "Searing Blast",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 4
+          }
+        ]
+      }
+    ],
+    "flavor": "The heat of a dying star, focused to a point.",
+    "power_score": 6.1,
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_sealing_light",
+    "set": "buried_age",
+    "name": "Sealing Light",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "WARD"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The wardens did not build doors. They built reasons not to open them.",
+    "power_score": 6.6,
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ember_hound",
+    "set": "buried_age",
+    "name": "Ember Hound",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Pack-forged and flame-tempered.",
+    "power_score": 3.2,
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_gravewrit_thrall",
+    "set": "buried_age",
+    "name": "Gravewrit Thrall",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 2,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Its name was scraped off the stone. It came anyway.",
+    "power_score": 8.2,
+    "content_version": 1
+  }
+]
