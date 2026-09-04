@@ -1,10 +1,3 @@
-
-6. **ArenaScene.tscn** — Minimal scene wired to `ArenaScene.cs`
-
-7. **DuelScene.cs** — Modified:
-   - Arena win/loss handler: +10 Runes (normal) or +25 (warden), tracks W/L, saves
-   - Arena soak auto-navigation back to ArenaScene loop (5 duels via ArenaSoakActive)
-   - "Back to Arena" button in GameOver overlay instead of "Back to Title"
    - Arena soak auto-play timer (auto-skip mulligan, auto-end P0 turns)
    - Bot speed increased during arena soak
 
@@ -46,5 +39,12 @@ Session: 12/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-DUEL-ARENA-1 on z-ai/glm-5.2:free: 23s
+API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-04T22:53:53Z TASK-COLLECTION-VERIFY-1 retry ===
+Session: 13/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-COLLECTION-VERIFY-1 on z-ai/glm-5.2:free: 24s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
