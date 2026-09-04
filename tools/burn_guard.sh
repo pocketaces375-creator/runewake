@@ -31,7 +31,7 @@ succ_today=$(git log origin/main --since="$today 00:00" --format='%s' 2>/dev/nul
 streak=$(echo "$outcomes" | head -n "$FAIL_STREAK" | grep -cvE '^success$')
 n_recent=$(echo "$outcomes" | head -n "$FAIL_STREAK" | grep -c .)
 
-python3 - "$STATE" "$now" "$usage" "$today" <<'PY'
+watched=$(python3 - "$STATE" "$now" "$usage" "$today" <<'PY'
 import json,sys,os
 p,now,usage,today=sys.argv[1],int(sys.argv[2]),sys.argv[3],sys.argv[4]
 d=json.load(open(p)) if os.path.exists(p) else {"samples":[],"canary":{},"halted_by":None,"warned":None}
@@ -39,7 +39,10 @@ try: u=float(usage)
 except: u=None
 if u is not None: d["samples"]=[s for s in d["samples"] if s[2]==today][-60:]+[[now,u,today]]
 json.dump(d,open(p,"w"))
+# spend the guard has actually watched today = usage now minus the first sample of the day
+print(f"{(d['samples'][-1][1]-d['samples'][0][1]):.2f}" if d["samples"] else "0")
 PY
+)
 
 rate=$(python3 - "$STATE" "$now" <<'PY'
 import json,sys
@@ -66,11 +69,11 @@ unhalt_all(){ for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HAL
 
 # ── 1 + 2: budget tripwires ──
 if [[ "$usage" != "nan" ]]; then
-  over=$(python3 -c "print(1 if $usage > $DAILY_CAP else 0)")
-  if [[ "$over" == "1" && -z "$halted_by" ]]; then halt_all budget "daily cap \$${DAILY_CAP} exceeded"; exit 0; fi
-  warn=$(python3 -c "print(1 if $usage > $DAILY_CAP*$WARN_AT else 0)")
+  over=$(python3 -c "print(1 if $watched > $DAILY_CAP else 0)")
+  if [[ "$over" == "1" && -z "$halted_by" ]]; then halt_all budget "lanes spent \$${watched} under watch today, over the \$${DAILY_CAP} cap"; exit 0; fi
+  warn=$(python3 -c "print(1 if $watched > $DAILY_CAP*$WARN_AT else 0)")
   warned=$(python3 -c "import json;print(json.load(open('$STATE')).get('warned') or '')")
-  if [[ "$warn" == "1" && "$warned" != "$today" ]]; then set_state warned "\"$today\""; $TG "⚠️ Burn guard: \$${usage} spent today, ${WARN_AT} of the \$${DAILY_CAP} cap. Rate \$${rate}/h, ${sessions_today} sessions, ${succ_today} passed." >/dev/null 2>&1 || true; fi
+  if [[ "$warn" == "1" && "$warned" != "$today" ]]; then set_state warned "\"$today\""; $TG "⚠️ Burn guard: \$${watched} spent under watch today (key total \$${usage}), ${WARN_AT} of the \$${DAILY_CAP} cap. Rate \$${rate}/h, ${sessions_today} sessions, ${succ_today} passed." >/dev/null 2>&1 || true; fi
   hot=$(python3 -c "print(1 if $rate > $HOURLY_CAP else 0)")
   if [[ "$hot" == "1" ]]; then
     hot_prev=$(python3 -c "import json;print(json.load(open('$STATE')).get('hot_prev') or 0)")
@@ -100,4 +103,4 @@ fi
 
 # summary line for the hourly progress ping
 pass_pct=$([[ "$sessions_today" -gt 0 ]] && python3 -c "print(round(100*$succ_today/$sessions_today))" || echo "-")
-echo "Spend today \$${usage} of \$${DAILY_CAP} cap · \$${rate}/h · ${sessions_today} sessions, ${pass_pct}% passed$( [[ -n "$halted_by" ]] && echo " · HALTED (${halted_by#burn_guard:})" )" > /tmp/runewake_burn_line.txt
+echo "Lane spend today \$${watched} of \$${DAILY_CAP} cap (key total \$${usage}) · \$${rate}/h · ${sessions_today} sessions, ${pass_pct}% passed$( [[ -n "$halted_by" ]] && echo " · HALTED (${halted_by#burn_guard:})" )" > /tmp/runewake_burn_line.txt
