@@ -153,7 +153,7 @@ public class RegionOneIntegrationTests : IDisposable
         var cards = new List<CardDef>();
         foreach (var file in Directory.GetFiles(CardsDir, "*.json"))
             cards.AddRange(CardLoader.LoadPack(file));
-        Assert.Equal(65, cards.Count);
+        Assert.Equal(66, cards.Count);
     }
 
     [Fact]

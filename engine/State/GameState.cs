@@ -220,6 +220,11 @@ public sealed class GameState
                     slot.Charges = 0;
                     slot.ChargeConfigMaxPerTurn = chargeCfg.MaxPerTurn;
                     slot.ChargeConfigMaxPerCreaturePerTurn = chargeCfg.MaxPerCreaturePerTurn;
+
+                    // Store auto-charge gain trigger from ChargeConfig
+                    string? gainOn = chargeCfg.GainOn;
+                    if (!string.IsNullOrEmpty(gainOn) && (gainOn == "on_turn_start" || gainOn == "on_turn_end"))
+                        slot.AutoChargeGainOn = gainOn;
                 }
 
                 // Determine if this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN

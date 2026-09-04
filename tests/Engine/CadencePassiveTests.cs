@@ -346,7 +346,7 @@ public class CadencePassiveTests
     // ——— launch_artifacts.json wiring ———
 
     [Fact]
-    public void LaunchArtifacts_BowAndCenserCarryCadence()
+    public void LaunchArtifacts_ElementalBondCarriesCadence()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..",
             "content", "artifacts", "launch_artifacts.json");
@@ -355,11 +355,6 @@ public class CadencePassiveTests
         using var doc = JsonDocument.Parse(json);
         var byId = doc.RootElement.EnumerateArray()
             .ToDictionary(a => a.GetProperty("id").GetString()!);
-
-        var bow = byId["artf_astrologist_orb"].GetProperty("passive");
-        Assert.Equal("SET_PREY", bow.GetProperty("op").GetString());
-        Assert.Equal("ON_TURN_START", bow.GetProperty("cadence").GetString());
-        Assert.Equal("BEFORE_ALL_OTHER_TURN_START_EFFECTS", bow.GetProperty("order").GetString());
 
         var eleBond = byId["artf_druid_elemental_bond"].GetProperty("passive");
         Assert.Equal("HEAL", eleBond.GetProperty("op").GetString());

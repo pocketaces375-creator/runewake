@@ -103,21 +103,27 @@
     "id": "artf_astrologist_orb",
     "class": "astrologist",
     "slot_pool": "orb",
-    "name": "Orb",
-    "passive": { "op": "SET_PREY", "cadence": "ON_TURN_START", "order": "BEFORE_ALL_OTHER_TURN_START_EFFECTS", "target": { "scope": "ENEMY_CREATURE", "filter": "HIGHEST_ATTACK", "count": 1, "tiebreak": "OLDEST_IN_PLAY" } },
-    "trigger": { "trigger": "ON_PREY_DESTROYED", "condition": { "op": "DURING_YOUR_TURN" }, "effects": [{ "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }], "frequency": "ONCE_PER_TURN" },
-    "charges": null,
-    "flavor": "A crystal sphere that holds a fragment of night sky. TEMPORARY: copied from retired ranger bow."
+    "name": "Seer's Orb",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "condition": null, "effects": [
+      { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ] },
+    "charges": { "max": 3, "gain_on": "on_turn_start", "spend_on": "on_charge_full" },
+    "flavor": "A crystal sphere that holds a fragment of night sky. Look deep and see what will be."
   },
   {
     "id": "artf_astrologist_constellation_starlight",
     "class": "astrologist",
     "slot_pool": "starlight",
     "name": "Constellation Starlight",
-    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ATTACKS_PREY", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING" },
-    "trigger": { "trigger": "ON_CREATURE_ATTACKS", "condition": { "op": "NTH_ATTACKER_ON_PREY_THIS_TURN", "value": 2 }, "effects": [{ "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 }], "frequency": "ONCE_PER_TURN" },
-    "charges": null,
-    "flavor": "A vial of captured starlight that guides fate's hand. TEMPORARY: copied from retired ranger quiver."
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "condition": null, "effects": [
+      { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "count": "ALL" }, "amount": 4 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ] },
+    "charges": { "max": 3, "gain_on": "on_turn_end", "spend_on": "on_charge_full" },
+    "flavor": "A vial of captured starlight that erupts in a cascade of celestial fire."
   },
   {
     "id": "artf_warrior_sword",

@@ -125,6 +125,14 @@ public sealed class ArtifactSlot
     /// </summary>
     public bool HasDeferredChargeFull { get; set; }
 
+    /// <summary>
+    /// Auto-charge gain trigger from the artifact's ChargeConfig.
+    /// "on_turn_start" = gain 1 charge at start of owner's turn,
+    /// "on_turn_end" = gain 1 charge at end of owner's turn,
+    /// null or empty = no auto-gain.
+    /// </summary>
+    public string? AutoChargeGainOn { get; set; }
+
     public ArtifactSlot(int index)
     {
         Index = index;
@@ -147,6 +155,7 @@ public sealed class ArtifactSlot
         ChargeConfigMaxPerTurn = other.ChargeConfigMaxPerTurn;
         ChargeConfigMaxPerCreaturePerTurn = other.ChargeConfigMaxPerCreaturePerTurn;
         HasDeferredChargeFull = other.HasDeferredChargeFull;
+        AutoChargeGainOn = other.AutoChargeGainOn;
     }
 
     /// <summary>

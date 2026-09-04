@@ -85,7 +85,12 @@
     "description": "Star and prophecy. The astrologist reads the sky and bends fate.",
     "blurb": "In the observatory-spires of Starfall Reach, astrologists chart the celestial tide and whisper to the constellations.",
     "starting_items": ["orb", "constellation starlight"],
-    "core_cards": [],
+    "core_cards": [
+      "tid_c_star_reader",
+      "tid_c_tidal_scholar",
+      "tid_c_deep_one",
+      "tid_c_whirlpool_elemental"
+    ],
     "portrait_placeholder": true
   },
   {

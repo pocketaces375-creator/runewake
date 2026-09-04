@@ -367,5 +367,34 @@
     "flavor": "Bound with the seal of the deep, holding back the flood.",
     "power_score": 12.5,
     "content_version": 1
+  },
+  {
+    "id": "tid_c_star_reader",
+    "set": "buried_age",
+    "name": "Star-Reader",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SCY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "She reads the sky the way others read a map — every star a signpost.",
+    "power_score": 4.5,
+    "content_version": 1
   }
 ]

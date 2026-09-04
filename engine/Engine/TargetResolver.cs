@@ -38,6 +38,7 @@ public static class TargetResolver
             Scope.ANY_CREATURE => GetAllCreaturesOnBoard(sourcePlayer, opponent),
             Scope.PLAYER_SELF => new List<ResolvedTarget> { new PlayerTarget(sourcePlayer) },
             Scope.PLAYER_ENEMY => new List<ResolvedTarget> { new PlayerTarget(opponent) },
+            Scope.SELF_ARTIFACT => new List<ResolvedTarget> { new PlayerTarget(sourcePlayer) },
             Scope.LANE => new List<ResolvedTarget>(), // Not directly resolved as a target type for effects
             Scope.NONE => new List<ResolvedTarget>(),
             _ => new List<ResolvedTarget>()

@@ -95,6 +95,9 @@ public static class EffectExecutor
                 case Op.REFRESH:
                     ApplyRefresh(target);
                     break;
+                case Op.SCY:
+                    ApplyScry(target, effect.Amount ?? 2, state);
+                    break;
                 case Op.SUPPRESS:
                     ApplySuppress(target, effect.Amount ?? 1, source, state);
                     break;
@@ -474,6 +477,38 @@ public static class EffectExecutor
     /// Suppression removes PREVENT_DAMAGE shields from the suppressed Artifacts
     /// immediately (G3: passive off, triggers don't fire, Charges frozen).
     /// </summary>
+    private static void ApplyScry(ResolvedTarget target, int amount, GameState state)
+    {
+        PlayerState? player = target switch
+        {
+            PlayerTarget pt => pt.Player,
+            CreatureTarget ct => state.Player(ct.PlayerIndex),
+            _ => null
+        };
+        if (player is null || amount <= 0) return;
+
+        int canSee = Math.Min(amount, player.Deck.Count);
+        if (canSee < 1) return;
+
+        // Scry: look at the top N cards. Put the first card back on top,
+        // the rest on the bottom of the deck, preserving their relative order.
+        var topCard = player.Deck[0];
+        player.Deck.RemoveAt(0);
+
+        // Move the rest (cards 1..canSee-1) to the bottom of the deck
+        int toSink = Math.Min(canSee - 1, player.Deck.Count);
+        for (int i = 0; i < toSink && player.Deck.Count > 0; i++)
+        {
+            var sunk = player.Deck[0];
+            player.Deck.RemoveAt(0);
+            sunk.Zone = Zone.Deck;  // stays in deck
+            player.Deck.Add(sunk);
+        }
+
+        // Put the top card back on top
+        player.Deck.Insert(0, topCard);
+    }
+
     private static void ApplySuppress(ResolvedTarget target, int turns, CardInstance source, GameState state)
     {
         PlayerState? targetPlayer = target switch

@@ -57,6 +57,9 @@ public static partial class DuelEngine
         // that had PendingChargeFull set during this turn (Censer, Grimoire per G8).
         FireDeferredChargeFull(state, endingPlayer);
 
+        // 1.6 Auto-charge gain for artifacts with gain_on="on_turn_end"
+        AutoGainCharges(endingPlayer, state, "on_turn_end");
+
         // 2. Switch to next player
         state.CurrentPlayerIndex = state.OpponentIndex(action.PlayerIndex);
         if (state.CurrentPlayerIndex == 0)
@@ -90,6 +93,9 @@ public static partial class DuelEngine
         // before all other turn-start effects (R15); Censer heal after;
         // then draw (R11, R15).
         FireCadencedPassives(state, nextPlayer);
+
+        // 3.6 Auto-charge gain for artifacts with gain_on="on_turn_start"
+        AutoGainCharges(nextPlayer, state, "on_turn_start");
 
         // 4. Draw phase
         bool firstPlayerSkipsDraw =
@@ -585,6 +591,43 @@ public static partial class DuelEngine
             // Fire ON_CHARGE_FULL for THIS slot only (G6: the opponent's mirror
             // artifact must not fire when this player's charges filled).
             TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, endingPlayer.Index, slot.Index);
+        }
+    }
+
+    /// <summary>
+    /// Auto-gain 1 charge for all of the player's artifact slots whose
+    /// AutoChargeGainOn matches the given trigger string (e.g. "on_turn_end").
+    /// Skips suppressed artifacts. Triggers ON_CHARGE_FULL when charges fill.
+    /// </summary>
+    private static void AutoGainCharges(PlayerState player, GameState state, string trigger)
+    {
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is null || slot.IsSuppressed)
+                continue;
+            if (slot.MaxCharges <= 0 || slot.AutoChargeGainOn != trigger)
+                continue;
+            if (slot.Charges >= slot.MaxCharges)
+                continue; // already full
+
+            int before = slot.Charges;
+            slot.AddCharges(1);
+            int added = slot.Charges - before;
+            if (added <= 0)
+                continue;
+
+            // Fire ON_CHARGE_GAINED for this slot
+            TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_GAINED, player.Index, slot.Index);
+
+            // Fire ON_CHARGE_FULL if charges just hit max
+            bool justFilled = before < slot.MaxCharges && slot.Charges >= slot.MaxCharges;
+            if (justFilled)
+            {
+                if (slot.HasDeferredChargeFull)
+                    slot.PendingChargeFull = true;
+                else
+                    TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, player.Index, slot.Index);
+            }
         }
     }
 }

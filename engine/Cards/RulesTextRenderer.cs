@@ -254,6 +254,12 @@ public static class RulesTextRenderer
             case Op.IDENTIFY:
                 return "Identify";
 
+            case Op.SCY:
+            {
+                string amt = effect.Amount?.ToString() ?? "2";
+                return $"Scry {amt}";
+            }
+
             case Op.MOVE_LANE:
             {
                 string tgt = RenderTargetPhrase(target);
