@@ -1,19 +1,3 @@
-Session: 2/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-CRASH-GUARD-1 complete. Here's what was done:
-
-**Implementation**
-1. **`client/scripts/CrashReporter.cs`** — Enhanced from JSON-only reporting to full crash recovery:
-   - `AppDomain.CurrentDomain.UnhandledException` + `TaskScheduler.UnobservedTaskException` hooks installed on startup
-   - Public `TriggerCrashRecovery(Exception)` static method — can be called from anywhere to show recovery
-   - On crash: writes `user://crash_reports/<timestamp>_crash.json` (JSON report, existing behavior preserved for Supabase upload), appends full stack to `user://crash.log` (plain text), shows full-screen overlay with "Something went wrong — returning to the title" message + stack trace in the serif face, then navigates to title scene after 2.5s
-   - Debug trigger: `--test-crash` CLI flag fires the recovery handler after 0.5s delay
-
-2. **`client/scripts/Main.cs`** — Two additions:
-   - Diagnostics panel shows a red "Test Crash" button (debug builds only, `OS.IsDebugBuild()` gated) that calls `CrashReporter.TriggerCrashRecovery`
-   - `--capture=crash_test` capture mode added under `CampaignContext.CrashTestMode`: waits 1s for title to render, triggers crash via `TriggerCrashRecovery`, captures the recovery overlay after 1.5s
 
 3. **`client/scripts/DebugCapture.cs`** — Added `--capture=crash_test` handler
 
@@ -47,4 +31,20 @@ TASK-CLASS-GENDER-1 complete. Here's what was done:
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake/HERMES_STATUS.md — [patch] Escape-drift detected: old_string and new_string contain the literal sequence '\\"' but the matched region of the file does not. This is almost always a tool-call serialization ar…
+========================================
+=== foreman: 2026-09-04T07:41:39Z TASK-ART-WAVE-2 retry ===
+Session: 2/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-ART-WAVE-2 complete. Summary:
+
+- **40 card art images** generated via FLUX.2 Pro on OpenRouter (832x1216, ART_PROMPT_PLAYBOOK v1, style v3.0)
+- **6-sample veto gate** posted to Adam/Telegram as separate messages: emb_r_sharptongue_elder, hol_r_black_tide, vrd_r_worldtree_custodian, tid_r_echo_caller, dwn_r_aurora_warden, dwn_m_last_dawn
+- **40 .webp files + .import** committed at `client/content/art/` with locked naming convention
+- **Art wired into JSON** — all 40 card entries in stratum files updated with `{"file": "<id>.webp"}`
+- **Batch:** EMBER 4C/3U/1R, HOLLOW 5C/2U/1R, VERDANT 4C/3U/1R, TIDE 5C/2U/1R, DAWN 4C/2U/1R/1M
+- **Cost:** $1.40
+- **Build:** 0 errors, tests green, commit 5563b76 (task) + c302092 (DONE entry)
+- **DONE line** written to HERMES_STATUS.md, task marked [x] in TASKS_QUEUE.md
 ========================================
