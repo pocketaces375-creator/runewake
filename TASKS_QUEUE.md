@@ -246,7 +246,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-REGION-GEN-BATCH-1 — Use tools/region_gen.py to produce Regions 3 and 4 specs and files
+- [x] TASK-REGION-GEN-BATCH-1 — Use tools/region_gen.py to produce Regions 3 and 4 specs and files
   (Tide and Dawn strata, one Warden each), every deck through the sim gate, wired to unlock in
   sequence after Region 2. No painted art.
   Acceptance: map capture showing the unlock chain; a clean soak of two encounters plus each
