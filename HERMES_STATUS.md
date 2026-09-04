@@ -40,3 +40,4 @@ _Older entries archived to docs/archive/HERMES_STATUS_ARCHIVE.md on 2026-09-04. 
 - 2026-09-04: TEMPO — 12 sessions yesterday, 4 validated.
 - 2026-09-04: DONE TASK-SETTINGS-COMPLETE-1 — Settings finished: Music/SFX/Ambient sliders wired to AudioManager buses via AudioServer.SetBusVolumeDb, persisted in SQLite SaveRepository (graphics_quality column added); Graphics Quality toggle (Low=nearest/High=linear texture filtering); Replay Intro resets IntroSeen; Credits overlay reads AUDIO_CREDITS.md; Reset Progress with typed "RESET" confirm wipes all save data; Version + build hash string bottom-right. Both captures at 2316×1080 and 2999×1080 pass gate. 9/9 settings tests pass including GraphicsQuality round-trip. ✅
 - 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
+- 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
