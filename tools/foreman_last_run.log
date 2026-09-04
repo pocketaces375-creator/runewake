@@ -1,31 +1,3 @@
-=== foreman: 2026-09-04T09:55:55Z TASK-AI-TACTICIAN-1 blocked ===
-Session: 3/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-========================================
-=== foreman: 2026-09-04T10:08:28Z TASK-ART-ICONS-1 retry ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  TASK-ART-ICONS-1: attempt 1 transient — cleaning dead-session tree litter
-Removing client/content/art/icons/
-Removing pipeline/work/fix_venom.py
-Removing pipeline/work/gen_icons.py
-Removing pipeline/work/read_key.py
-Removing pipeline/work/regenerate_venom.py
-  TASK-ART-ICONS-1: attempt 2/3 — waiting 60s before retry
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-ART-ICONS-1 — status: implementation done, final commit/push/mark-DONE not completed within tool budget. Summary of what's done and what remains:
-
-Done:
-- Generated 16 icons (11 keywords: guard/swift/pierce/ward/venom/reach/rooted/unearth/echo/fragile/sealed + 5 strata: verdant/ember/tide/hollow/dawn) as 32×32 WebP with proper .import files under client/content/art/icons/.
-- Write tool: tools/generate_icons.py (Pillow-based proper WebP encoding; the earlier PNG-named-as-webp version was replaced and re-imported cleanly — `godot --headless --import` shows no icon import errors).
-- Wired icons next to keyword text:
-  - CardView.tscn: KeywordLine is now a RichTextLabel with bbcode_enabled.
-  - CardView.cs: renders `[img=16x16]...kw_<name>.webp[/img] <Name>` inline.
-  - ReliquaryScene.cs (inspect overlay): same BBCode keyword row added; capture mode auto-selects the first keyword card so the Reliquary capture demonstrates icons on a real card.
-- Builds: Runewake.sln 0 errors; client/Runewake.Client.csproj 0 errors; tests 825/825 pass.
 - Captures regenerated: reliquary_test / _wide / _all / _all_wide now show the auto-inspected keyword card (emb_c_cinder_runner) with Swift icon visible.
 - Committed an earlier version of the icon set (commit cd701b2). Since then the icon WebPs were replaced with proper WebP encoding and the capture files were regenerated; those changes are currently staged but not yet committed.
 
@@ -47,4 +19,32 @@ Committed `78988e5` → pushed as `8013a5b`. 3 files changed:
 - `tests/test_region_01_drops.py` — pipeline test: 6 validation checks (every encounter has drops, every deck card in drops, valid rate bounds, signature drops at 1.0 for warden/boss, dig site fragments) + 200-clear seeded soak per encounter reporting observed vs expected rates
 - `HERMES_STATUS.md` — rate table appended, showing all 9 encounters' drop tiers with observed averages within 5σ variance
 - `TASKS_QUEUE.md` — `[ ]` → `[x]` on TASK-REGION-1-DROPS-1
+========================================
+=== foreman: 2026-09-04T13:36:48Z TASK-JUICE-1 success ===
+Session: 6/96
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-JUICE-1 is complete and pushed. Here's what was implemented:
+
+**New file:**
+- `client/scripts/effects/RitualEffects.cs` — 8 centralized visual effect methods
+
+**Modified:**
+- `client/scripts/LaneSlot.cs` — upgraded PlaySummonEffect (stone dust puff), PlayDeathEffect (stratum-coloured crumbling), ShowDamageNumber (stratum-coloured serif font)
+- `client/scripts/DuelScene.cs` — wired all effects into the render diff cycle, added `BoardSnapshot.Strata`, added `GetOrCreateScreenEdgePulse()`, end-turn ring notch, artifact charge brighten, victory light/defeat drain
+- `client/scripts/GameStateManager.cs` — added `Strata` field to `LaneInfo`, populated from card definition
+
+**Effects implemented:**
+| Effect | Mechanism | Audio hook |
+|--------|-----------|------------|
+| Card play | Expanding stone-colour dust rect + existing scale-up tween | `card_play` |
+| Hit | Coloured rune-flare overlay (Add blend) + stratum-coloured damage number in Cinzel serif | `damage` (existing) |
+| Face damage | Full-screen edge pulse overlay + altar container scale tremble | `hit_light`/`hit_heavy` (existing) |
+| Death | Stratum-coloured crumble overlay (ash/roots/brine/bone-dust/light) + shrink | `death` (existing) |
+| Artifact charge | Brief bright flash + halo at max charges | `metal_clink` (existing) |
+| End Turn | Rotating arc sweeping 72° around ring center | — |
+| Victory | Radial golden light expanding from altar center | `victory` (existing) |
+| Defeat | Dark vignette shrinking into altar center | `defeat` (existing) |
+
+All effects: <400ms, skippable via `CampaignContext.ReduceMotion`, no layout changes, all 825 tests pass, ui_lint pre-existing failures only.
 ========================================
