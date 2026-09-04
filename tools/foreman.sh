@@ -58,6 +58,7 @@ BUS_TIMEOUT="${FOREMAN_BUS_TIMEOUT:-900}"  # 15 min
 
 HALT_FILE="${PROJECT_DIR}/FOREMAN_HALT"
 STATE_FILE="${FOREMAN_STATE_FILE:-${PROJECT_DIR}/tools/foreman_state.json}"
+[[ -f "${STATE_FILE}" ]] || echo '{}' > "${STATE_FILE}"
 QUEUE_FILE="${PROJECT_DIR}/TASKS_QUEUE.md"
 CAPTURE_DIR="${PROJECT_DIR}/artifacts/captures"
 LAST_RUN_LOG="${PROJECT_DIR}/tools/foreman_last_run.log"
@@ -208,6 +209,8 @@ for i, line in enumerate(lines):
                     if _pid > 0:
                         try:
                             os.kill(_pid, 0); _alive = True
+                        except PermissionError:
+                            _alive = True
                         except OSError:
                             _alive = False
                     if _alive and _age < 4*3600 and _pid != int('$$'):
@@ -425,7 +428,16 @@ if [[ -f "${HALT_FILE}" ]]; then
 fi
 
 # ── 1b. Sync with origin (bus messages + queue edits land here) ──────────────
-git pull --ff-only origin main 2>/dev/null || warn "git pull failed (network or dirty tree)"
+# Clean start: every iteration begins from origin/main exactly (keeps this lane's state file)
+_sb=$(mktemp); cp "${STATE_FILE}" "${_sb}" 2>/dev/null || true
+if git fetch -q origin main 2>/dev/null; then
+  git reset -q --hard origin/main 2>/dev/null || warn "git reset failed"
+  git clean -qfd -e art_output -e client/android -e exports -e tools/foreman_lane*.log 2>/dev/null || true
+  info "Tree reset to origin/main $(git rev-parse --short HEAD)"
+else
+  warn "git fetch failed (network) — continuing on current tree"
+fi
+cp "${_sb}" "${STATE_FILE}" 2>/dev/null || true; rm -f "${_sb}"
 # Also fetch claude-bus for the dual-branch bus watch (ignore if absent)
 git fetch origin claude-bus 2>/dev/null || true
 

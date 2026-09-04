@@ -532,7 +532,7 @@
   Acceptance: the full matrix and the per-class table in HERMES_STATUS.md; the numbers actually shipped
   (or "not adopted") stated explicitly; soak + smokes green.
 
-- [ ] TASK-ART-ROSTER-1 — AFTER: TASK-ROSTER-LOCK-1 (if it is not [x] yet, stop without changes). Generate the art for the permanent roster (art FILES ONLY — do not edit any Generate the art for the permanent roster (art FILES ONLY — do not edit any
+- [x] TASK-ART-ROSTER-1 — DONE 2026-09-04 (commit 9a777fc, verified by Fable: real FLUX portraits for all 7 classes incl. astrologist/rogue/battlemage/paladin; real tiles for the 6 new items). Generate the art for the permanent roster (art FILES ONLY — do not edit any Generate the art for the permanent roster (art FILES ONLY — do not edit any
   json or code; TASK-ROSTER-LOCK-1 wires the references). FLUX.2 Pro via OpenRouter, style v3.0,
   matching the existing four portraits' framing and palette and the existing artifact tiles' look.
   Portraits needed (client/content/art/classes/<id>.png): astrologist (NEW class — a star-reader with
@@ -550,6 +550,17 @@
   Acceptance: every file above exists at the exact path as a real generated .webp/.png with
   .import; the 6-sample sets posted; a Reliquary capture and a Choose Your Path capture showing
   the new art; no placeholder plates left for any of the 7 classes.
+- [ ] TASK-ART-TILES-1 — Real FLUX tiles for the 8 base artifacts that are still flat placeholder glyphs:
+  artf_battlemage_wand, artf_battlemage_aura, artf_necromancer_skull, artf_paladin_hammer, artf_rogue_dagger_dusk,
+  artf_rogue_dagger_whisper, artf_warrior_sword, artf_warrior_shield. One image each via
+  pipeline/gen_image_openrouter.py (FLUX.2 Pro, docs/ART_STYLE_SPEC.md style, the item alone on a dark
+  ground, no text, no border, 832x832) saved as client/content/art/artifacts/<id>.webp (128px like the
+  existing real tiles) with its .import; delete the matching placeholder .png/.png.import so only the webp
+  remains. Dusk = a black-bladed dagger with a dusk-violet edge; Whisper = a slim pale dagger with a
+  faint breath of mist. If the API or credits fail, write BLOCKED with the exact error — never a placeholder.
+  Acceptance: all 8 webps are real art (a 64px downsample has 1000+ distinct colours); Reliquary capture
+  shows the 14 tiles; posted with one sentence.
+
 - [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how

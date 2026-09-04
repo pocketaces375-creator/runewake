@@ -1,0 +1,4 @@
+artifacts/PLAYABLE.json merge=ours
+tools/foreman_cron.log merge=ours
+tools/foreman_state*.json merge=ours
+HERMES_STATUS*.md merge=union

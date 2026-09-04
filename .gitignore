@@ -46,3 +46,6 @@ client/exports/release.keystore
 *.o
 *.so
 FOREMAN_HALT
+
+# per-lane foreman logs (never tracked)
+tools/foreman_lane*.log

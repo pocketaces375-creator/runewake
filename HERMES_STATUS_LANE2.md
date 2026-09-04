@@ -1,0 +1,1 @@
+- 2026-09-04: DONE TASK-ART-ROSTER-1 — verified by Fable: 7 real FLUX class portraits (astrologist, rogue, battlemage, paladin new) + 6 real item tiles (orb, constellation starlight, ritual piece, banner, book of familiar, elemental bond). The 8 base-item tiles remain placeholders -> TASK-ART-TILES-1.
