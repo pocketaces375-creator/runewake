@@ -1,24 +1,4 @@
 --- session tail ---
-  session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 32s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-04T22:33:57Z TASK-DUEL-ARENA-1 retry ===
-Session: 12/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-DUEL-ARENA-1 on z-ai/glm-5.2:free: 23s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-04T22:53:53Z TASK-COLLECTION-VERIFY-1 retry ===
-Session: 13/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-COLLECTION-VERIFY-1 on z-ai/glm-5.2:free: 24s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-04T23:04:59Z TASK-REGION-3-BUILD-1 success ===
-Session: 11/96
---- session tail ---
   session TASK-REGION-3-BUILD-1 on deepseek/deepseek-v4-flash: 504s
 TASK-REGION-3-BUILD-1 complete. Here's the summary:
 
@@ -47,4 +27,24 @@ The unlock chain (`region_02_n11` cleared → `region_03` shown) was already wir
   • /home/fictive/runewake-lane2/client/scripts/ThemeTokens.cs — [patch] Found 4 matches for old_string. Provide more context to make it unique, or use replace_all=True.
   • /home/fictive/runewake-lane2/content/map/region_03.json — [patch] {"success": false, "error": "Escape-drift detected: old_string and new_string contain the literal sequence '\\\\\"' but the matched region of the file does not. This is almost alw…
   • /home/fictive/runewake-lane2/client/content/map/region_03.json — [patch] {"success": false, "error": "Escape-drift detected: old_string and new_string contain the literal sequence '\\\\\"' but the matched region of the file does not. This is almost alw…
+========================================
+=== foreman: 2026-09-04T23:09:05Z TASK-COLLECTION-VERIFY-1 success ===
+Session: 14/96
+--- session tail ---
+  session TASK-COLLECTION-VERIFY-1 on deepseek/deepseek-v4-flash: 620s
+TASK-COLLECTION-VERIFY-1 done. Here's the report:
+
+**Three screens verified with fresh captures (all dated 2026-09-04):**
+
+**Collection (Reliquary):** 142 cards in a 5-column scrollable grid with Ember stratum filter active (28 shown). Owned cards display their art; unowned show silhouette placeholders. Filter chips (ALL/EMBER/VERDANT/TIDE/DAWN/HOLLOW) at top, back button and rune counter in the header bar. Dark-fae theme consistent throughout.
+
+**Settings:** Title "SETTINGS", slider controls for music/sfx/ambient, version text at bottom. All pass the settings capture gate (title area, slider area, version text area within expected luminance ranges).
+
+**Reward (victory/defeat overlay):** Victory shows "Victory!" gold text on a dimmed duel board with card drop rewards, shard/dig-charge counters, and Continue/Fight Again buttons. Defeat shows "Defeated" in muted red with Try Again/Return to Map buttons.
+
+**Fix applied:** `ObjectDisposedException` in `StartAnimatedCounters` (DuelScene.cs:4763) — tweens were updating disposed Labels after the overlay scene transition. Added `GodotObject.IsInstanceValid()` guard.
+
+**Nothing else needed fixing** on these three screens — no overlap, no clipped text, no empty panels, no dead buttons. Layouts are correct.
+
+Commit `e3c5cd8`, pushed to main. DONE line written in HERMES_STATUS.md. Task marked [x] in TASKS_QUEUE.md.
 ========================================
