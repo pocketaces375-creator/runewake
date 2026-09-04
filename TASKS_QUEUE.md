@@ -425,7 +425,7 @@
   Acceptance: ui_lint passes on duel_test, duel_test_wide and duel_test_safe; post the safe-
   area capture with one sentence.
 
-- [ ] TASK-PLAYABLE-NAV-1 — TOP PRIORITY. The game is not playable end to end: the playable
+- [x] TASK-PLAYABLE-NAV-1 — TOP PRIORITY. The game is not playable end to end: the playable
   smoke / PLAYABLE.json check fails with "Expected ChooseYourPath but got Main" — starting the
   game lands on the main menu and never transitions into the Choose Your Path screen, so a
   player (and the harness) is stuck at the entry. This is the gate to the playable alpha.
