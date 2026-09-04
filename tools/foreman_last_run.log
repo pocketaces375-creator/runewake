@@ -1,30 +1,3 @@
-
-### Changes
-
-**1. `pipeline/modules/render_rules.py` — DSL-to-text renderer updated**
-- Added `SCY` op → "Scry {value}"
-- Added `EXHAUSTED` filter → "exhausted"
-- Added `KEYWORD:*` filter support → e.g. `KEYWORD:SWIFT` → "with swift"
-- Added `KEYWORD_REMINDERS` dict — short descriptions for tooltip/long-press (13 keywords, each shorter than its full description)
-- Added `render_filter()` helper for dynamic filter rendering
-
-**2. `pipeline/tests/test_card_text_gen.py` — Golden-master test (new)**
-- `test_all_card_text_matches_golden()`: loads all 146 cards from content/cards/*.json, renders each via `render_rules_text()`, compares against `cards_rules_text.json` — fails with per-card diff on any change
-- `test_keyword_reminders_are_shorter()`: every reminder is shorter than its description
-- `test_every_keyword_has_reminder()`: every defined keyword has a reminder entry
-- `--regenerate` flag to update the golden file when card data changes intentionally
-
-**3. `pipeline/tests/cards_rules_text.json` — Golden reference (new)**
-- All 146 cards' rendered rules text, stored as `{card_id: text}` — the source of truth
-
-**4. Five sample card face captures** (existing capture modes, on disk):
-- `duel_test` / `duel_test_wide` — board cards with rules text
-- `reliquary_test` / `reliquary_test_all` — collection browser card plates
-- `shop_test` — shop cards
-
-### Verification
-- Pipeline golden test: ✅ (146 cards match golden)
-- All existing render tests: ✅ (14 tests)
 - C# build: 0 errors
 - C# tests: 825/825 pass
 - Commit `03455ad` pushed, DONE entry in HERMES_STATUS.md, task marked [x] in TASKS_QUEUE.md
@@ -47,4 +20,31 @@ TASK-INPUT-FEEL-1 done. Here's what was implemented:
 **Drag behaviour description:** This was already implemented by Godot's built-in drag-drop system. A `HandCard._GetDragData()` starts a drag with a name preview label. As the finger moves, Godot renders the preview. When over an empty player lane, `LaneSlot._CanDropData()` returns true (rejects occupied/enemy lanes), and `_DropData` emits `CardDropped`, which calls `InputController.TryPlayCard(cardId, laneIndex)` — the card snaps into that lane. When released over an occupied lane, enemy lane, or empty space, `_CanDropData` returns false, Godot cancels the drag silently, and the card stays in hand.
 
 **Build:** 0 errors, **Tests:** 825/825 green, **input_smoke:** PASS, **loop_smoke:** pre-existing failure (not related — title screen save-slot navigation issue)
+========================================
+=== foreman: 2026-09-04T09:19:32Z TASK-ART-ICONS-1 blocked ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+I've made significant progress on TASK-ART-ICONS-1 but hit the tool-call limit before completing the final commit-and-push cycle. Here's the status:
+
+## What's done
+
+**1. Generated 16 icons** — All 11 keyword icons (Guard, Swift, Pierce, Ward, Venom, Reach, Rooted, Unearth, Echo, Fragile, Sealed) and 5 strata icons (Verdant, Ember, Tide, Hollow, Dawn) at 128x128 painted-style .webp files in `client/content/art/icons/`. Each has a matching `.webp.import` file with deterministic UIDs.
+
+**2. Wired icons into CardView** — The `client/scripts/CardView.cs` now renders keywords as icon+label chips using `BuildKeywordChip()`. The scene file `client/scenes/components/CardView.tscn` was updated to use an `HBoxContainer` (KeywordsRow) instead of a plain Label. Icons load from `res://content/art/icons/icon_kwd_<keyword>.webp` with 16x16 display.
+
+**3. Wired icons into ReliquaryScene** — The Reliquary's `ShowCardInspect()` now shows keyword icon chips in the inspect overlay. Auto-inspect during capture: on frame 2 of `_Process`, the Reliquary finds the first owned card with keywords and opens its detail panel, so captures show icons on real cards.
+
+**4. Build & tests green** — `dotnet build` succeeds with 0 errors, 825/825 tests pass.
+
+**5. Capture runs** — `capture_reliquary.sh` produces all 4 reliquary captures. The auto-inspect opens on frame 2, but the capture on frame 3 needs verification — the logs show "Capture mode active" + "capture triggered" but I don't see the "Auto-inspecting card" log line, which suggests the frame-counter approach may need adjustment (the old stale DLL was cached). A clean build was done.
+
+## What remains
+
+1. Verify the Reliquary capture shows the keyword icons in the inspect panel (run a clean build + capture)
+2. Run `tools/finish_task.sh TASK-ART-ICONS-1 "A matching icon set for the eleven keywords and five strata in the locked style, .webp with .import files, wired into the card frame next to the keyword text. Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list."` — this will build, test, capture, commit, push, mark [x], and write the DONE line
+3. The CENTER_DARK gate failure on `reliquary_test` is pre-existing (caused by the Ember-filtered view being darker, unrelated to this task)
+
+To finish: the next session just needs to run a clean capture to verify icons show, then run `finish_task.sh`. The files are ready to go.
 ========================================
