@@ -567,7 +567,7 @@
   Acceptance: zero vanilla creatures left; DSL valid; pipeline tests green; a plain list
   "card → what it does now" posted to the group; flagged cards listed separately.
 
-- [ ] TASK-RUNE-SHOP-1 — Replace what TASK-RUNE-SINK-1 built (wrong economy — Fable's spec
+- [x] TASK-RUNE-SHOP-1 — Replace what TASK-RUNE-SINK-1 built (wrong economy — Fable's spec
   arrived late, not your error). Trikzos' rule: Runes (RuneDust) are earned by grinding extra
   card copies (TASK-GRIND-RUNES-1, correct, keep) and buy CARDS from a rotating shop. They do
   NOT unlock rune slots or upgrade runes — rune slots are a separate pre-existing system.
