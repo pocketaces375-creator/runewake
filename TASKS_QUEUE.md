@@ -767,7 +767,7 @@
   Acceptance: two captures (unfiltered, one stratum filtered) at both resolutions; ui_lint green;
   NEW badge clears after viewing and persists in the save.
 
-- [ ] TASK-SETTINGS-COMPLETE-1 — Settings finished: Music and SFX sliders wired to the AudioManager
+- [x] TASK-SETTINGS-COMPLETE-1 — Settings finished: Music and SFX sliders wired to the AudioManager
   buses and saved; Graphics quality (low/high) toggle; Replay Intro; Credits panel; version and
   build tag string bottom-right. Layout fills the frame, no empty plates.
   Acceptance: capture; slider values survive a save/load round trip in a headless test.
