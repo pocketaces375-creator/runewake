@@ -785,7 +785,7 @@
   Acceptance: map capture after a seeded partial clear; ui_lint green; one sentence on what a
   player sees.
 
-- [ ] TASK-DUEL-HUD-1 — The duel HUD is readable at arm's length on a phone: attunement, deck count,
+- [x] TASK-DUEL-HUD-1 — The duel HUD is readable at arm's length on a phone: attunement, deck count,
   turn indicator and both vigor totals use the serif face at sizes no smaller than 8px at
   2316x1080; End Turn is an obvious, large button. Add a ui_lint rule MIN_TEXT that fails any
   Label under 8px on every capture.
