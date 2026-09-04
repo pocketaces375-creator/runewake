@@ -72,6 +72,16 @@ public class EncounterDef
     [JsonPropertyName("is_tutorial")]
     public bool IsTutorial { get; set; }
 
+    /// <summary>
+    /// Optional opening rule — a scripted effect active from turn 1.
+    /// Shown as a banner card at the top of the board.
+    /// Only bosses should have one; everyday encounters must not.
+    /// Example: "root_choked" — the challenger's leftmost lane is buried
+    /// until the Warden's first creature dies.
+    /// </summary>
+    [JsonPropertyName("opening_rule")]
+    public string? OpeningRule { get; set; }
+
     /// <summary>Drop table: card_id + probability entries, rolled on victory.</summary>
     [JsonPropertyName("drops")]
     public List<DropEntry> Drops { get; set; } = new();

@@ -64,10 +64,29 @@ public sealed class GameState
     public int[] CreatureDiedThisTurnCount { get; set; } = new int[2];
 
     /// <summary>
+    /// Per-player count of total creatures died this entire game.
+    /// Used to evaluate opening rule lift conditions
+    /// (e.g. root_choked: lifts when Warden's first creature dies).
+    /// </summary>
+    public int[] TotalCreatureDiedCount { get; set; } = new int[2];
+
+    /// <summary>
     /// Player index of the most recently deceased creature.
     /// Set before firing ON_CREATURE_DIES so conditions (FRIENDLY/ENEMY) can evaluate.
     /// </summary>
     public int LastDeathPlayerIndex { get; set; }
+
+    /// <summary>
+    /// The opening rule active in this game (e.g. "root_choked"), or null if none.
+    /// Set at Initialize from GameConfig.OpeningRule.
+    /// </summary>
+    public string? OpeningRule { get; set; }
+
+    /// <summary>
+    /// Tracks whether each player's opening rule has been lifted.
+    /// [0] = P0's rule lifted, [1] = P1's rule lifted.
+    /// </summary>
+    public bool[] OpeningRuleLifted { get; set; } = new bool[2];
 
     public GameState(ulong seed, int contentVersion = 1)
     {
@@ -256,6 +275,13 @@ public sealed class GameState
             Engine.TriggerBus.Fire(state, Trigger.ON_ARTIFACT_REVEAL, p);
         }
 
+        // ——— Apply opening rule from encounter ———
+        if (!string.IsNullOrEmpty(config.OpeningRule))
+        {
+            state.OpeningRule = config.OpeningRule;
+            Engine.OpeningRuleHandler.ApplyRule(state, config.OpeningRule);
+        }
+
         return state;
     }
 
@@ -287,6 +313,9 @@ public sealed class GameState
         WinnerIndex = other.WinnerIndex;
         CreatureDiedThisTurnCount = (int[])other.CreatureDiedThisTurnCount.Clone();
         LastDeathPlayerIndex = other.LastDeathPlayerIndex;
+        TotalCreatureDiedCount = (int[])other.TotalCreatureDiedCount.Clone();
+        OpeningRule = other.OpeningRule;
+        OpeningRuleLifted = (bool[])other.OpeningRuleLifted.Clone();
     }
 
     /// <summary>
@@ -402,6 +431,10 @@ public sealed class GameState
         h = HashInt(h, CreatureDiedThisTurnCount[0]);
         h = HashInt(h, CreatureDiedThisTurnCount[1]);
         h = HashInt(h, LastDeathPlayerIndex);
+        h = HashInt(h, TotalCreatureDiedCount[0]);
+        h = HashInt(h, TotalCreatureDiedCount[1]);
+        h = HashBool(h, OpeningRuleLifted[0]);
+        h = HashBool(h, OpeningRuleLifted[1]);
 
         // Players
         for (int p = 0; p < 2; p++)

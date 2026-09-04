@@ -141,6 +141,13 @@ public sealed class BatchConfig
 
     [JsonPropertyName("compensation_variant")]
     public int CompensationVariant { get; init; } = 0; // 0=baseline, 1=P1+1Attune, 2=P1+1Card, 3=both, 4=P0delay
+
+    /// <summary>
+    /// Optional opening rule to apply (e.g. "root_choked").
+    /// When set, the sim applies the rule during GameConfig initialization.
+    /// </summary>
+    [JsonPropertyName("opening_rule")]
+    public string? OpeningRule { get; init; }
 }
 
 /// <summary>
@@ -198,6 +205,7 @@ public static class BatchRunner
                 Player1ArtifactIds = p1ArtifactIds,
                 Player0Class = config.Player0Class,
                 Player1Class = config.Player1Class,
+                OpeningRule = config.OpeningRule,
             };
 
             var state = GameState.Initialize(gameConfig);

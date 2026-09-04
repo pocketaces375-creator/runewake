@@ -128,6 +128,10 @@ public partial class DuelScene : Control
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
     
+    // TASK-WARDEN-RULE-1: Opening rule banner card (top-center, below enemy nameplate)
+    private Control? _openingRuleBanner;
+    private Label? _openingRuleLabel;
+    
     // TASK-E: Game-over overlay (lazy-created on first IsGameOver=true)
     private Control? _gameOverOverlay;
 
@@ -326,6 +330,47 @@ public partial class DuelScene : Control
         _turnIndicatorLabel.OffsetTop = -126;
         AddChild(_turnIndicatorLabel);
 
+        // ═══ TASK-WARDEN-RULE-1: Opening rule banner (created hidden, shown in OnStateChanged) ═══
+        float s = GetViewportRect().Size.Y / 1080f;
+        var ruleBanner = new PanelContainer
+        {
+            Name = "OpeningRuleBanner",
+            MouseFilter = MouseFilterEnum.Ignore,
+            Visible = false
+        };
+        float ruleBannerH = 36f * s;
+        var ruleBannerStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.12f, 0.08f, 0.90f), // dark green-black
+            BorderColor = new Color(0.26f, 0.42f, 0.18f, 0.9f), // moss green
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 6,
+            CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6,
+            CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 10, ContentMarginTop = 2,
+            ContentMarginRight = 10, ContentMarginBottom = 2
+        };
+        ruleBanner.AddThemeStyleboxOverride("panel", ruleBannerStyle);
+        float vw_banner = GetViewportRect().Size.X;
+        ruleBanner.Position = new Vector2(vw_banner / 2f - 180f * s, 44f * s);
+        ruleBanner.Size = new Vector2(360f * s, ruleBannerH);
+        AddChild(ruleBanner);
+
+        _openingRuleLabel = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore,
+            AutowrapMode = TextServer.AutowrapMode.Off
+        };
+        _openingRuleLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(14 * s));
+        _openingRuleLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.9f, 0.5f)); // pale green
+        ruleBanner.AddChild(_openingRuleLabel);
+        _openingRuleBanner = ruleBanner;
+
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
 
@@ -395,7 +440,8 @@ public partial class DuelScene : Control
                 RunePage = CampaignContext.CurrentRunePage,
                 Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds,
                 Player0Class = CampaignContext.TutorialPlayerClass,
-                MatchConfig = null
+                MatchConfig = null,
+                OpeningRule = encounter.OpeningRule
             };
             _gsm.Initialize(config);
         }
@@ -2018,6 +2064,32 @@ public partial class DuelScene : Control
         RenderHud();
         RenderBoard();
         RenderHand();
+
+        // ═══ TASK-WARDEN-RULE-1: Update opening rule banner ═══
+        if (_openingRuleBanner != null && _openingRuleLabel != null)
+        {
+            var st = _gsm.State;
+            if (st != null && !string.IsNullOrEmpty(st.OpeningRule))
+            {
+                string ruleText = GetOpeningRuleDisplayText(st.OpeningRule);
+                bool isLifted = st.OpeningRuleLifted[1];
+                if (!string.IsNullOrEmpty(ruleText))
+                {
+                    _openingRuleLabel.Text = isLifted
+                        ? $"[LIFTED] {ruleText}"
+                        : ruleText;
+                    _openingRuleBanner.Visible = true;
+                }
+                else
+                {
+                    _openingRuleBanner.Visible = false;
+                }
+            }
+            else
+            {
+                _openingRuleBanner.Visible = false;
+            }
+        }
 
         // ═══ TASK-AUDIO-HOOK-1: Detect card draw ═══
         if (state != null && state.Players.Length > 0)
@@ -5388,5 +5460,17 @@ private void ShowGameOverOverlay(int winnerIndex)
 
         state.NextInstanceId = nextId;
         GD.Print($"[CAPTURE] Inflated player hand from {templateCards.Count} to {hand.Count} cards");
+    }
+
+    /// <summary>
+    /// TASK-WARDEN-RULE-1: Translate opening rule identifiers to display text for the banner.
+    /// </summary>
+    private static string GetOpeningRuleDisplayText(string ruleId)
+    {
+        return ruleId switch
+        {
+            "root_choked" => "Root-choked — your leftmost lane is buried until the Warden's first creature dies.",
+            _ => $"Rule: {ruleId}"
+        };
     }
 }

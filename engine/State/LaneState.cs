@@ -19,6 +19,12 @@ public sealed class LaneState
     /// </summary>
     public List<int> AttachedCurseIds { get; } = new();
 
+    /// <summary>
+    /// If true, this lane is buried — no creature can be played to it.
+    /// Used by opening rules (e.g. Root-choked) and similar effects.
+    /// </summary>
+    public bool IsBuried { get; set; }
+
     public LaneState(int index)
     {
         Index = index;

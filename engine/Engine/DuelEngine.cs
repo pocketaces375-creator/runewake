@@ -177,6 +177,8 @@ public static partial class DuelEngine
             var lane = player.Lanes[laneIdx];
             if (lane.Occupant is not null)
                 throw new InvalidOperationException($"Lane {laneIdx} is already occupied.");
+            if (lane.IsBuried)
+                throw new InvalidOperationException($"Lane {laneIdx} is buried — nothing can be played there.");
             lane.Occupant = card;
             card.Zone = Zone.Lane;
             card.LaneIndex = laneIdx;
@@ -312,7 +314,9 @@ public static partial class DuelEngine
             if (defenderKilled)
             {
                 state.CreatureDiedThisTurnCount[opponent.Index]++;
+                state.TotalCreatureDiedCount[opponent.Index]++;
                 state.LastDeathPlayerIndex = opponent.Index;
+                OpeningRuleHandler.CheckLiftConditions(state, opponent.Index);
                 bool isUnearthed = false;
                 if (!KeywordHandlers.OnDeath(defender, opponent))
                 {
@@ -345,7 +349,9 @@ public static partial class DuelEngine
         if (attacker.CurrentVigor <= 0)
         {
             state.CreatureDiedThisTurnCount[player.Index]++;
+            state.TotalCreatureDiedCount[player.Index]++;
             state.LastDeathPlayerIndex = player.Index;
+            OpeningRuleHandler.CheckLiftConditions(state, player.Index);
             if (!KeywordHandlers.OnDeath(attacker, player))
             {
                 sourceLane.Occupant = null;

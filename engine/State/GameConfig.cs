@@ -42,4 +42,10 @@ public sealed class GameConfig
     /// When null, the engine uses default values (StartingVigor=25).
     /// </summary>
     public MatchConfig? MatchConfig { get; init; }
+
+    /// <summary>
+    /// Optional opening rule identifier from the encounter (e.g. "root_choked").
+    /// Applied at game init. Shown as a banner card in the UI.
+    /// </summary>
+    public string? OpeningRule { get; init; }
 }

@@ -393,6 +393,7 @@
         "Her voice breaks — just slightly. \"For the love I bear the world above, I will not let you pass.\"",
         "She attacks."
       ],
+      "opening_rule": "root_choked",
       "dialogue_outro": [
         "Aelin falls. The seal cracks. Light — ancient, terrible — bleeds through the fissure.",
         "She smiles, blood on her lips. \"It is done, then.\"",
