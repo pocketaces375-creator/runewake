@@ -492,7 +492,7 @@
   Acceptance: both effects exist as DSL/engine with a unit test that fires each; the Astrologist starter
   deck plays a 5-duel headless soak; loop_smoke and input_smoke pass; no other card or item value changed.
 
-- [ ] TASK-CLASS-IDENTITY-1B — Four items get their own feel: Ritual Fetish, Banner of Sunspire, Book of
+- [x] TASK-CLASS-IDENTITY-1B — Four items get their own feel: Ritual Fetish, Banner of Sunspire, Book of
   Familiar, Elemental Bond. AFTER: TASK-CLASS-IDENTITY-1A. Fable's design; starting values, bounds for tuning.
   NECROMANCER RITUAL PIECE ("Ritual Fetish"): +1 charge whenever a friendly creature dies. Full (3): Unearth
   the highest-attack creature from your graveyard into an empty lane. Bounds: it may return with -1 vigor
