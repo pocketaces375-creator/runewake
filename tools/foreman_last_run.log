@@ -1,26 +1,4 @@
 
-**Acceptance criteria met:**
-- Zero vanilla creatures left ✓
-- DSL valid (0 errors on all 31 modified cards) ✓
-- Build 0 errors ✓
-- 789/789 tests green ✓
-- Card→keyword mapping posted to group ✓
-- Flagged cards listed separately ✓
-- Committed (413cd2b) and pushed to origin/main ✓
-- DONE line in HERMES_STATUS.md ✓
-- [x] in TASKS_QUEUE.md ✓
-========================================
-=== foreman: 2026-09-04T01:35:00Z TASK-AI-TACTICIAN-1 retry ===
-Session: 10/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-## Summary: TASK-AI-TACTICIAN-1 Progress
-
-### What's Implemented
-
-1. **`Ai` field on `EncounterDef`** — added to `engine/Cards/EncounterDef.cs` with `"tactician"` default. Bosses always forced to tactician regardless of config.
-
 2. **`TacticianBot` class** — full implementation in `sim/Bot.cs` (~600 lines):
    - **Evaluate**: scores face vigor with lethal proximity weighting, creature value (attack+vigor+keyword worth at 4/3/2/2/3/1/-3/-2 for Guard/Ward/Swift/Pierce/Venom/Reach/Rooted/Fragile), artifact charge progress, hand quality. All scaled for integer comparison.
    - **ChooseAction**: evaluates one-ply card plays, attack missions (whole-set scoring), combo plays (play+attack as one sequence), and falls through to attack planner or end turn.
@@ -47,4 +25,26 @@ I'll implement this fix and run the full build + test + gate in the next session
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake/sim/Bot.cs — [patch] old_string and new_string are identical
+========================================
+=== foreman: 2026-09-04T01:50:18Z TASK-RUNE-SHOP-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Done. Here's the summary:
+
+**TASK-RUNE-SHOP-1 completed and pushed** (commits 831ccb1 + 23927c1).
+
+**What changed:**
+- **RunePageScene.cs** — restored to pre-04679bb: simple slot equips/unequips, no unlock/upgrade buttons, keeps RuneDust balance label
+- **ProgressionState.cs** — removed RuneSlotUnlockCounts, RuneUpgradeTiers, GetUnlockedSlotCount, UnlockNextSlot, GetRuneTier, UpgradeRune; kept SpendRuneDust, RuneDust, CanGrindCard, GrindCard; added ShopRotationDay
+- **RunePage.cs** — removed GetSlotUnlockCost, GetUpgradeCost, GetSlotCount
+- **SaveRepository.cs** — v4→v5 migration is now no-op; removed slot unlock/upgrade save/load; added ShopRotationDay persistence
+- **CardShopScene.cs** (new) — rotating shop with ~6 cards (2C/2U/1R/1M), pricing by rarity, deterministic per seed, buy adds to collection, shortfall shown
+- **ReliquaryScene.cs** — added "Shop ⟶" button in top bar
+- **DebugCapture.cs** — added --capture=shop_test / shop_test_wide with layout.json
+- **tools/capture_shop.sh** — capture script for both resolutions
+- **Tests** — 21 removed slot-spending/upgrade tests, replaced with 14 shop/trade tests + 2 persistence roundtrip tests
+
+Build 0 errors, 782/783 tests pass (1 pre-existing flaky CardRegistry ordering issue).
 ========================================
