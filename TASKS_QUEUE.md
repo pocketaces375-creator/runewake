@@ -509,7 +509,7 @@
   Acceptance: every effect above exists as DSL/engine with a unit test that fires it; the 5-duel soak,
   loop_smoke and input_smoke pass; no other card or item value changed in this task.
 
-- [ ] TASK-CLASS-IDENTITY-1C — Rogue's twin daggers get their own feel, and the whole item set is soaked
+- [x] TASK-CLASS-IDENTITY-1C — Rogue's twin daggers get their own feel, and the whole item set is soaked
   and explained. AFTER: TASK-CLASS-IDENTITY-1B.
   DUSK: your first attack each turn by a Swift creature deals +1 and is not stopped by Guard (STEALTH_STRIKE).
   WHISPER: +1 charge whenever a friendly creature deals damage to the enemy face. Full (3): 3 damage to the
