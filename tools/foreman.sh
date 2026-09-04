@@ -627,6 +627,39 @@ PYPARK
   continue
 fi
 
+# ── 3c. WASTE GUARD — never spend against a tree that cannot pass ────────────
+_CH=$(bash "${PROJECT_DIR}/tools/code_hash.sh" "${PROJECT_DIR}" 2>/dev/null || echo "")
+if [[ -n "${_CH}" && -f "/tmp/runewake_gate/${_CH}" ]]; then
+  if [[ "$(cat "/tmp/runewake_gate/${_CH}")" == "bad" ]]; then
+    warn "Gate is RED for this code state (${_CH}) — holding instead of spending: $(cat "/tmp/runewake_gate/${_CH}.reason" 2>/dev/null)"
+    write_parked_heartbeat "gate_red"
+    exit 0
+  fi
+fi
+MAX_TASK_SPEND="${MAX_TASK_SPEND:-1.50}"
+_SPENT=$(python3 -c "
+import json,os
+p='/home/fictive/runewake_state/task_spend.json'
+d=json.load(open(p)) if os.path.exists(p) else {}
+print(round(float(d.get('${TASK_ID}',0)),3))" 2>/dev/null || echo 0)
+if python3 -c "import sys; sys.exit(0 if float('${_SPENT}') >= float('${MAX_TASK_SPEND}') else 1)" 2>/dev/null; then
+  fail "Parking ${TASK_ID} — it has cost \$${_SPENT}, over the \$${MAX_TASK_SPEND} ceiling for one task"
+  python3 - "${TASK_ID}" "${PROJECT_DIR}/TASKS_QUEUE.md" <<'PYSP'
+import sys,re
+tid,p=sys.argv[1],sys.argv[2]
+s=open(p).read()
+open(p,'w').write(re.sub(r'^- \[ \] '+re.escape(tid)+r'','- [!] '+tid,s,count=1,flags=re.M))
+PYSP
+  echo "- $(today): PARKED ${TASK_ID} — spend ceiling reached (\$${_SPENT}); awaiting Fable." >> "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
+  git -C "${PROJECT_DIR}" add TASKS_QUEUE.md "${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}" 2>/dev/null || true
+  git -C "${PROJECT_DIR}" -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "foreman: park ${TASK_ID} — spend ceiling" 2>/dev/null || true
+  bash tools/git_push_locked.sh 2>/dev/null || true
+  telegram_text "Parked ${TASK_ID} — it had cost \$${_SPENT} without passing. Moving on."
+  set_state "retry_count" 0
+  set_state "retry_task_id" "\"\""
+  continue
+fi
+
 # ── 4. Execute model session ─────────────────────────────────────────────────
 header "Running: ${TASK_ID}"
 SESSION_MODEL="${FOREMAN_MODEL}"
@@ -639,7 +672,20 @@ info "Model: ${SESSION_MODEL}  Profile: ${FOREMAN_PROFILE}  Timeout: ${FOREMAN_T
 # Capture HEAD before the session so we can detect new commits
 CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
 
+_USE0=$(bash "${PROJECT_DIR}/tools/spend_sample.sh" 2>/dev/null || echo "")
 SESSION_OUTPUT=$(run_hermes_session "${TASK_ID}" "${TASK_DESC}")
+_USE1=$(bash "${PROJECT_DIR}/tools/spend_sample.sh" 2>/dev/null || echo "")
+python3 - "${TASK_ID}" "${_USE0}" "${_USE1}" <<'PYLEDGER' 2>/dev/null || true
+import json,os,sys
+tid,u0,u1=sys.argv[1],sys.argv[2],sys.argv[3]
+try: delta=float(u1)-float(u0)
+except Exception: raise SystemExit
+if delta<0 or delta>20: raise SystemExit
+p='/home/fictive/runewake_state/task_spend.json'
+d=json.load(open(p)) if os.path.exists(p) else {}
+d[tid]=round(float(d.get(tid,0))+delta,4)
+json.dump(d,open(p,'w'),indent=1)
+PYLEDGER
 
 if echo "${SESSION_OUTPUT}" | grep -q "HERMES_EXIT_CODE="; then
   HERMES_EXIT=$(echo "${SESSION_OUTPUT}" | grep "HERMES_EXIT_CODE=" | tail -1 | sed 's/.*HERMES_EXIT_CODE=//')
@@ -750,6 +796,11 @@ if [[ "${FINISH_EXIT}" -eq 0 ]]; then
   if [[ -n "${LATEST_CAPTURE}" ]]; then
     telegram_photo "${LATEST_CAPTURE}" "${TASK_ID} — capture"
   fi
+  python3 -c "
+import json,os
+p='/home/fictive/runewake_state/task_spend.json'
+d=json.load(open(p)) if os.path.exists(p) else {}
+d.pop('${TASK_ID}',None); json.dump(d,open(p,'w'),indent=1)" 2>/dev/null || true
   VALIDATION_FAILED=0
 else
   VALIDATION_FAILED=1

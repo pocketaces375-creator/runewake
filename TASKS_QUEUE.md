@@ -156,11 +156,24 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [ ] TASK-PERF-1 — APK size and cold start. Release export (--headless), strip unused import
-  artifacts, confirm .webp quality settings (no double compression), lazy-load region assets.
-  Measure cold start on the box's emulator or by headless timing. Target 150MB or less for
-  the release APK.
-  Acceptance: before/after size and cold-start timings in HERMES_STATUS.md.
+- [ ] TASK-PERF-1 — Get the APK under 150MB. It is 308MB today and that is very likely why it will
+  not install on Trikzos' phone (Android needs roughly 2-3x the APK size free to install, and it fails
+  silently when it cannot get it). Fable measured the current contents, so do not re-measure, fix these:
+  (1) 207MB is 206 imported textures (assets/.godot/imported/*.ctex) — the card and portrait art is
+      imported uncompressed at full size. Set VRAM-compressed import (ETC2/ASTC) for card and portrait
+      textures, and cap the imported size at what a phone actually shows (portraits ~832x1216 source is
+      fine on disk; the imported texture does not need to be). Re-import, then LOOK at a duel capture and
+      a Choose Your Path capture to confirm no visible quality loss.
+  (2) 48MB is static build libraries shipped inside the app: assets/.godot/mono/publish/arm64/*.a
+      (libmonosgen-2.0.a, libmono-component-*.a). Those are link-time artifacts, not runtime files —
+      exclude them from the export (export preset exclude filter, or stop the publish step emitting
+      them). Also exclude the 4 *.pdb debug-symbol files.
+  (3) assets/extension_api.json is 5.6MB and is only needed by GDExtension tooling — exclude it if
+      nothing at runtime reads it (prove it by launching the build after removal).
+  Do not touch lib/arm64-v8a/libgodot_android.so (57MB) — that is the engine itself.
+  Acceptance: before/after size (308MB -> target under 150MB) in HERMES_STATUS.md, the signed release
+  APK still passes tools/apk_preflight.sh, loop_smoke green, and a duel capture plus a Choose Your Path
+  capture posted so the art quality can be judged by eye.
 
 - [x] TASK-APK-SHIP-5 — PLAYABLE ALPHA. Ships only if, on the same commit: PLAYABLE.json says
   playable=true, ui_lint passes on every capture, input_smoke passes, and the build is the
