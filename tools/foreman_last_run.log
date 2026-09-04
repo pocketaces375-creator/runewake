@@ -1,35 +1,3 @@
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-INPUT-FEEL-1 done. Here's what was implemented:
-
-**Files changed (3 code files + regenerated captures):**
-
-1. `tools/ui_lint.py` — Added `MIN_TOUCH` rule: fails any `Button`, `TextureButton`, `LinkButton`, `HandCard`, `LaneSlot`, or `ArtifactCardPlate` with a minimum dimension below 44px. Skips zero-area (invisible) controls.
-
-2. `client/scripts/ChooseYourPathScene.cs` — Fixed the Begin button outer `PanelContainer` height from 46→50, giving the inner click Button 46px (≥44) instead of 42px.
-
-3. `client/scenes/components/CardView.tscn` — Enlarged the CloseBtn from 28×31 to 44×44 by expanding offset offsets.
-
-**Drag behaviour description:** This was already implemented by Godot's built-in drag-drop system. A `HandCard._GetDragData()` starts a drag with a name preview label. As the finger moves, Godot renders the preview. When over an empty player lane, `LaneSlot._CanDropData()` returns true (rejects occupied/enemy lanes), and `_DropData` emits `CardDropped`, which calls `InputController.TryPlayCard(cardId, laneIndex)` — the card snaps into that lane. When released over an occupied lane, enemy lane, or empty space, `_CanDropData` returns false, Godot cancels the drag silently, and the card stays in hand.
-
-**Build:** 0 errors, **Tests:** 825/825 green, **input_smoke:** PASS, **loop_smoke:** pre-existing failure (not related — title screen save-slot navigation issue)
-========================================
-=== foreman: 2026-09-04T09:19:32Z TASK-ART-ICONS-1 blocked ===
-Session: 4/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-I've made significant progress on TASK-ART-ICONS-1 but hit the tool-call limit before completing the final commit-and-push cycle. Here's the status:
-
-## What's done
-
-**1. Generated 16 icons** — All 11 keyword icons (Guard, Swift, Pierce, Ward, Venom, Reach, Rooted, Unearth, Echo, Fragile, Sealed) and 5 strata icons (Verdant, Ember, Tide, Hollow, Dawn) at 128x128 painted-style .webp files in `client/content/art/icons/`. Each has a matching `.webp.import` file with deterministic UIDs.
-
-**2. Wired icons into CardView** — The `client/scripts/CardView.cs` now renders keywords as icon+label chips using `BuildKeywordChip()`. The scene file `client/scenes/components/CardView.tscn` was updated to use an `HBoxContainer` (KeywordsRow) instead of a plain Label. Icons load from `res://content/art/icons/icon_kwd_<keyword>.webp` with 16x16 display.
-
-**3. Wired icons into ReliquaryScene** — The Reliquary's `ShowCardInspect()` now shows keyword icon chips in the inspect overlay. Auto-inspect during capture: on frame 2 of `_Process`, the Reliquary finds the first owned card with keywords and opens its detail panel, so captures show icons on real cards.
-
 **4. Build & tests green** — `dotnet build` succeeds with 0 errors, 825/825 tests pass.
 
 **5. Capture runs** — `capture_reliquary.sh` produces all 4 reliquary captures. The auto-inspect opens on frame 2, but the capture on frame 3 needs verification — the logs show "Capture mode active" + "capture triggered" but I don't see the "Auto-inspecting card" log line, which suggests the frame-counter approach may need adjustment (the old stale DLL was cached). A clean build was done.
@@ -47,4 +15,36 @@ Session: 3/96
 Failures: finish_task_failure
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+========================================
+=== foreman: 2026-09-04T10:08:28Z TASK-ART-ICONS-1 retry ===
+Session: 5/96
+Failures: finish_task_failure
+--- session tail ---
+  TASK-ART-ICONS-1: attempt 1 transient — cleaning dead-session tree litter
+Removing client/content/art/icons/
+Removing pipeline/work/fix_venom.py
+Removing pipeline/work/gen_icons.py
+Removing pipeline/work/read_key.py
+Removing pipeline/work/regenerate_venom.py
+  TASK-ART-ICONS-1: attempt 2/3 — waiting 60s before retry
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-ART-ICONS-1 — status: implementation done, final commit/push/mark-DONE not completed within tool budget. Summary of what's done and what remains:
+
+Done:
+- Generated 16 icons (11 keywords: guard/swift/pierce/ward/venom/reach/rooted/unearth/echo/fragile/sealed + 5 strata: verdant/ember/tide/hollow/dawn) as 32×32 WebP with proper .import files under client/content/art/icons/.
+- Write tool: tools/generate_icons.py (Pillow-based proper WebP encoding; the earlier PNG-named-as-webp version was replaced and re-imported cleanly — `godot --headless --import` shows no icon import errors).
+- Wired icons next to keyword text:
+  - CardView.tscn: KeywordLine is now a RichTextLabel with bbcode_enabled.
+  - CardView.cs: renders `[img=16x16]...kw_<name>.webp[/img] <Name>` inline.
+  - ReliquaryScene.cs (inspect overlay): same BBCode keyword row added; capture mode auto-selects the first keyword card so the Reliquary capture demonstrates icons on a real card.
+- Builds: Runewake.sln 0 errors; client/Runewake.Client.csproj 0 errors; tests 825/825 pass.
+- Captures regenerated: reliquary_test / _wide / _all / _all_wide now show the auto-inspected keyword card (emb_c_cinder_runner) with Swift icon visible.
+- Committed an earlier version of the icon set (commit cd701b2). Since then the icon WebPs were replaced with proper WebP encoding and the capture files were regenerated; those changes are currently staged but not yet committed.
+
+Remaining (needs one more session step):
+- Commit the staged changes (icons .webp/.import, CardView.cs/tscn, ReliquaryScene.cs, tools/generate_icons.py, reliquary captures) with the task message.
+- Push to origin/main, add `[x]` to TASK-ART-ICONS-1 in TASKS_QUEUE.md, write the DONE line in HERMES_STATUS.md.
+- Note: finish_task.sh was run and stopped at loop_smoke (PLAYABLE.json shows playable:false, failed_step "no_output") — this is a pre-existing harness/environment failure, not caused by this task. The icon/UI work passed build, tests, and the lint gate's non-blocking checks.
+
+Acceptance alignment: a Reliquary capture showing icons on real cards exists (artifacts/captures/reliquary_test.png / _wide.png), no upscaling (32px icons rendered at 16px), file list ready (16 .webp + 16 .import under client/content/art/icons/).
 ========================================
