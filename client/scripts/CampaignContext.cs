@@ -21,6 +21,13 @@ public static class CampaignContext
     /// <summary>Current region shown on the map. Defaults to region_01; switches to region_02 after r1_n12 cleared.</summary>
     public static string CurrentRegionId { get; set; } = "region_01";
 
+    /// <summary>
+    /// Board skin ID for the current region (e.g. "default", "ember").
+    /// Set by MapScene when loading a region; read by DuelScene to apply the correct tint.
+    /// Defaults to "default" when no region skin is specified.
+    /// </summary>
+    public static string CurrentRegionSkinId { get; set; } = "default";
+
     /// <summary>Persistent save manager — initialized once at title screen.</summary>
     public static SaveManager SaveManager { get; } = new();
 
@@ -95,9 +102,13 @@ public static class CampaignContext
     public static bool InputSmokeTest { get; set; }
 
     /// <summary>Test hook: auto-navigate to map scene, select first unlocked node, capture.
-    /// Set by --capture-map CLI arg.
-    /// </summary>
-    public static bool CaptureMapScreenshot { get; set; }
+        /// Set by --capture-map CLI arg or --capture=map_test/duel_map_test.
+        /// </summary>
+        public static bool CaptureMapScreenshot { get; set; }
+
+        /// <summary>Test hook: capture Region 2 map screenshot with ember skin tint.
+        /// Set by --capture=map_test_r2 CLI arg.</summary>
+        public static bool CaptureMapR2Screenshot { get; set; }
 
     /// <summary>Crash recovery test mode: triggers a test exception on the title screen, proving the recovery handler fires.</summary>
     public static bool CrashTestMode { get; set; }

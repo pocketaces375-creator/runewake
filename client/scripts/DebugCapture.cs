@@ -124,7 +124,8 @@ public partial class DebugCapture : Node
             {
                 _active = true;
                 CampaignContext.R2CardScale = true;
-                GD.Print("[DebugCapture] R2 card scale variant enabled: --capture=duel_test_r2");
+                CampaignContext.CurrentRegionSkinId = "ember";
+                GD.Print("[DebugCapture] R2 card scale variant enabled: --capture=duel_test_r2 — ember skin active");
             }
             if (arg == "--capture=deck_test")
             {
@@ -171,6 +172,25 @@ public partial class DebugCapture : Node
                 CampaignContext.WideCaptureMode = true;
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Map screen wide capture mode enabled: --capture=map_test_wide");
+            }
+            if (arg == "--capture=map_test_r2")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.CaptureMapR2Screenshot = true;
+                CampaignContext.CurrentRegionId = "region_02";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen R2 (ember skin) capture mode enabled: --capture=map_test_r2");
+            }
+            if (arg == "--capture=map_test_r2_wide")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CaptureMapScreenshot = true;
+                CampaignContext.CaptureMapR2Screenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.CurrentRegionId = "region_02";
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Map screen R2 wide (ember skin) capture mode enabled: --capture=map_test_r2_wide");
             }
             if (arg == "--capture=victory_overlay")
             {

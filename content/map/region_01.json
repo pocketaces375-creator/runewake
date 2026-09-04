@@ -3,6 +3,7 @@
   "name": "The Fallow Reach",
   "strata": "VERDANT",
   "strata2": "DAWN",
+  "board_skin": "default",
   "nodes": [
     {
       "id": "r1_n01",

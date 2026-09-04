@@ -2,6 +2,7 @@
   "id": "region_02",
   "name": "Cinderfall Steps",
   "strata": "EMBER",
+  "board_skin": "ember",
   "nodes": [
     {
       "id": "region_02_n01",

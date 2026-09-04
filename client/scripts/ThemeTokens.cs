@@ -358,14 +358,20 @@ public static class ThemeTokens
     }
 
     /// <summary>Get the backdrop texture path — the landscape environment behind the altar field.</summary>
-    public static string? GetBackdropPath()
+    public static string? GetBackdropPath(string skinId = "default")
     {
+        string backdropKey = $"backdrop_{skinId}";
+        if (_boardSkins.TryGetValue(backdropKey, out var backdrop))
+            return backdrop;
         return _boardSkins.GetValueOrDefault("backdrop_default");
     }
 
     /// <summary>Get the painted plate texture path — single-image battlefield with ring painted in.</summary>
-    public static string? GetPlatePath()
+    public static string? GetPlatePath(string skinId = "default")
     {
+        string plateKey = $"plate_{skinId}";
+        if (_boardSkins.TryGetValue(plateKey, out var plate))
+            return plate;
         return _boardSkins.GetValueOrDefault("plate_default");
     }
 

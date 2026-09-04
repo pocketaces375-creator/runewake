@@ -126,6 +126,8 @@ public partial class MapScene : Control
                 snapTimer.Timeout += () =>
                 {
                     var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
+                    if (CampaignContext.CaptureMapR2Screenshot)
+                        suffix = "_r2" + suffix;
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
                         img.SavePng($"{ProjectPaths.Artifacts}/captures/map_test{suffix}.png");
@@ -407,13 +409,7 @@ public partial class MapScene : Control
         }
         _mapContainer.AddChild(_platePlate);
 
-        // Apply region-based tint (ember for Region 2, white/none for Region 1)
-        string regionId = CampaignContext.GetRegionIdForMap();
-        if (regionId == "region_02")
-        {
-            _platePlate.Modulate = ThemeTokens.GetSkinTint("ember");
-            GD.Print("[MAP] Region 2 (Cinderfall Steps) — applying ember tint");
-        }
+        // Tint applied in BuildMap() after the region skin is known
 
         // Line drawer (edges between nodes) — sits directly on map art
         _lineDrawer = new LineDrawer();
@@ -619,6 +615,14 @@ public partial class MapScene : Control
         string json = Godot.FileAccess.GetFileAsString($"res://content/map/{regionId}.json");
         _region = MapLoader.LoadRegionFromString(json);
         if (_region == null) return;
+
+        // Store the region's board skin for DuelScene to use
+        CampaignContext.CurrentRegionSkinId = _region.BoardSkin ?? "default";
+        GD.Print($"[MAP] Loaded region '{_region.Id}' with board_skin '{CampaignContext.CurrentRegionSkinId}'");
+
+        // Apply tint to the plate now that we know the skin
+        _platePlate.Modulate = ThemeTokens.GetSkinTint(CampaignContext.CurrentRegionSkinId);
+        GD.Print($"[MAP] Applying plate tint for skin '{CampaignContext.CurrentRegionSkinId}'");
 
         var iconScene = GD.Load<PackedScene>("res://scenes/components/MapNodeIcon.tscn");
 

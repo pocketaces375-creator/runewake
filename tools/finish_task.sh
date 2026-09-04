@@ -69,6 +69,8 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
     MODES=(
       "map_test:2316:1080"
       "map_test_wide:2999:1080"
+      "map_test_r2:2316:1080"
+      "map_test_r2_wide:2999:1080"
       "duel_test:2316:1080"
       "duel_test_wide:2999:1080"
       "duel_test_safe:2316:1080"

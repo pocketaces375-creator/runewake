@@ -168,11 +168,12 @@ public partial class DuelScene : Control
         // ═══ END TASK-UI3d ═══
 
         // ── Backdrop environment behind the altar field ──
-        // PAINTED-PLATE-1: The battlefield is a single painted image (plate_default.png)
-        // that fills the full board rect, cover-cropped at any aspect.
-        // The altar ring, stone floor, roots, and lighting are all in the plate.
+        // PAINTED-PLATE-1 + TASK-ART-BOARD-SKINS-1: The battlefield is a single painted image
+        // (plate_<skin>.png) that fills the full board rect, cover-cropped at any aspect.
+        // The plate is tinted by the region's board skin (default = white/none, ember = warm orange).
         var boardBg = GetNode<TextureRect>("BoardBg");
-        var platePath = ThemeTokens.GetPlatePath();
+        string skinId = CampaignContext.CurrentRegionSkinId;
+        var platePath = ThemeTokens.GetPlatePath(skinId);
         if (platePath != null)
         {
             var plateTex = GD.Load<Texture2D>(platePath);
@@ -180,14 +181,13 @@ public partial class DuelScene : Control
             {
                 boardBg.Texture = plateTex;
                 boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                // No Modulate — plate renders at native brightness.
-                // Atmosphere overlay above it provides ambient tint.
+                boardBg.Modulate = ThemeTokens.GetSkinTint(skinId);
             }
         }
         else
         {
             GD.PrintErr("[DuelScene] No painted plate — falling back to backdrop");
-            var fallbackPath = ThemeTokens.GetBackdropPath();
+            var fallbackPath = ThemeTokens.GetBackdropPath(skinId);
             if (fallbackPath != null)
             {
                 var fallbackTex = GD.Load<Texture2D>(fallbackPath);
@@ -195,6 +195,7 @@ public partial class DuelScene : Control
                 {
                     boardBg.Texture = fallbackTex;
                     boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
+                    boardBg.Modulate = ThemeTokens.GetSkinTint(skinId);
                 }
             }
         }

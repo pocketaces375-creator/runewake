@@ -79,6 +79,13 @@ public class MapRegion
     /// <summary>Secondary strata, if the region uses two.</summary>
     public string? Strata2 { get; set; }
 
+    /// <summary>
+    /// Board skin ID for this region (e.g. "default", "ember").
+    /// Controls which textures and tint are applied to the duel board and map.
+    /// </summary>
+    [JsonPropertyName("board_skin")]
+    public string? BoardSkin { get; set; }
+
     /// <summary>All nodes in this region.</summary>
     public List<MapNode> Nodes { get; set; } = new();
 }
