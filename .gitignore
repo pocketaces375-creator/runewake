@@ -49,3 +49,4 @@ FOREMAN_HALT
 
 # per-lane foreman logs (never tracked)
 tools/foreman_lane*.log
+tools/burn_guard.log
