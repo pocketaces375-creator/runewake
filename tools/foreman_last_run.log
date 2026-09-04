@@ -1,29 +1,3 @@
-========================================
-=== foreman: 2026-09-04T06:12:09Z TASK-CARD-WAVE-1 retry ===
-Session: 2/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-CARD-WAVE-1 done. What shipped:
-
-**40 cards added** across 5 strata (8 per stratum):
-- **EMBER**: 4C (Scorch Imp, Blaze Scout, Ember Impaler, Firecrown Raider) + 3U (Flame-Tongue Knight, Burnout Mage, Lava Caller) + 1R (Ember Warleader) — Swift/Pierce aggro
-- **HOLLOW**: 5C (Bone Tick, Dust Spinner, Ghoul Scavenger, Barrow Caller, Wraith Bonebreaker) + 2U (Soul Picker, Putrid Knight) + 1R (Death Drummer) — Venom/Echo/graveyard
-- **VERDANT**: 4C (Moss Shield, Root Tender, Bark Sentinel, Vine Weaver) + 3U (Forest Poultice, Bramble Heart, Greatwood Guardian) + 1R (Deeproot Ancient) — Guard/Rooted/heal
-- **TIDE**: 5C (Brine Scout, Echoing Depth, Tide Oracle, Sea Raider, Coral Diviner) + 2U (Tidal Seer, Abyss Watcher) + 1R (Deep Tides Diviner) — Echo/Ward/draw
-- **DAWN**: 4C (Templar Initiate, Light Bearer, Oath-Sworn Guard, Warden of the Light) + 2U (Blessing of Dawn, Vigil Guardian) + 1R (Gilded Seraph) + 1M (Radiant Shard relic) — Ward/Guard/Sealed
-
-**Gates passed:**
-- JSON schema + C# engine bridge: 40/40 valid (100 total pass, 2 pre-existing rejects: hol_u_soul_harvest EXHAUSTED filter, tid_c_star_reader SCY op)
-- Score stage: 40/40 within rarity band
-- Build: 0 errors
-- Tests: 822/822 pass (1 flaky retry)
-- No existing card values changed
-- Commit: `0c488b0` + `c1178b8` pushed to main
-- DONE entry written at top of HERMES_STATUS.md
-========================================
-=== foreman: 2026-09-04T06:15:23Z TASK-DUEL-HUD-1 retry ===
-Session: 1/96
 Failures: finish_task_failure
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
@@ -47,4 +21,30 @@ TASK-DUEL-HUD-1 complete. Here's what was done:
 - `loop_smoke` — playable=true, no failed steps
 - `input_smoke` — all 6 steps PASS
 - Commit pushed: `359ca54` (code) + `45cd8b5` (status)
+========================================
+=== foreman: 2026-09-04T06:34:30Z TASK-SAVE-SLOTS-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-SAVE-SLOTS-1 is complete. Here's what was implemented:
+
+**Save system (per-slot):**
+- `SaveRepository` / `SaveManager`: each campaign slot (0,1,2) gets its own SQLite DB at `user://runewake_save_slotN.db`
+- `SaveManager.SwitchSlot(slotIndex)`: saves current progression to old DB, creates new repo, loads new slot's data
+- `CampaignContext.AddOrUpdateProfile`/`DeleteProfile`: handle per-slot DB switching and cleanup (DB file deleted on profile delete)
+
+**Title screen slot picker:**
+- Replaced the single "Play" button + "PATHS" overlay with 3 visible slot cards (HBoxContainer, y=0.38-0.63)
+- Each occupied slot shows: **class portrait**, **class name**, **region**, **cards collected**, plus **Continue / Delete / New** buttons
+- Empty slots show "Empty" label + "New Campaign" button
+- Delete shows a confirmation dialog
+- Corrupt/missing slot data → displays as empty (never crashes)
+
+**Capture + test:**
+- `--capture=slots_test` mode: captures empty slots → creates warrior slot with 3 cards → captures filled → loads → deletes → captures final state
+- Captures committed: `slots_test.png`, `slots_test_filled.png`, `slots_test_deleted.png`
+- Wired into `finish_task.sh` as `slots_test:2316:1080`
+
+**Build:** 0 errors, 822/822 tests pass. Commit `d851b55` pushed.
 ========================================
