@@ -34,10 +34,6 @@
       }
     ],
     "flavor": "Its name was scraped off the stone. It came anyway.",
-    "art": {
-      "prompt": "a bound figure wrapped in inscribed stone tablets, one arm reaching from the earth",
-      "asset": "res://content/art/hol_c_gravewrit_thrall.webp"
-    },
     "power_score": 8.2,
     "content_version": 1
   },
@@ -51,15 +47,13 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [],
     "flavor": "Bones that remember the sword.",
     "power_score": 2.2,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/hol_c_skeletal_reaver.webp",
-      "prompt": "A skeletal figure in tattered black cloth, wielding a scythe made of fused bone, standing in a misty graveyard under a sickly green moon"
-    }
+    "content_version": 1
   },
   {
     "id": "hol_c_deathspeaker",
@@ -71,7 +65,9 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_TURN_END",
@@ -89,7 +85,7 @@
       }
     ],
     "flavor": "He whispers to the wounded, promising the quiet.",
-    "power_score": 5.0,
+    "power_score": 6.4,
     "content_version": 1
   },
   {
@@ -100,7 +96,9 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -118,7 +116,7 @@
       }
     ],
     "flavor": "The dead do not miss.",
-    "power_score": 3.5,
+    "power_score": 4.5,
     "content_version": 1
   },
   {
@@ -131,7 +129,9 @@
     "cost": 4,
     "attack": 4,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
@@ -147,7 +147,7 @@
       }
     ],
     "flavor": "It drags itself from the dark, clutching forgotten things.",
-    "power_score": 6.5,
+    "power_score": 7.9,
     "content_version": 1
   },
   {
@@ -158,7 +158,9 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -182,7 +184,7 @@
       }
     ],
     "flavor": "The barrow gives. And takes.",
-    "power_score": 4.5,
+    "power_score": 5.5,
     "content_version": 1
   },
   {
@@ -248,7 +250,9 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -274,12 +278,8 @@
       }
     ],
     "flavor": "Words that bind the soul and break the will.",
-    "power_score": 6.5,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/hol_r_curse_of_binding.webp",
-      "prompt": "Shadowy chains wrapping around a stone throne, each link inscribed with runes that glow with murky violet light, a lone figure bound in the center"
-    }
+    "power_score": 7.5,
+    "content_version": 1
   },
   {
     "id": "hol_r_hollow_herald",
@@ -291,7 +291,9 @@
     "cost": 6,
     "attack": 5,
     "vigor": 6,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -307,7 +309,7 @@
       }
     ],
     "flavor": "Her voice echoes from the barrow, calling the buried home.",
-    "power_score": 10.0,
+    "power_score": 11.4,
     "content_version": 1
   },
   {
@@ -344,5 +346,364 @@
     "flavor": "The barrow's hunger reaches beyond the grave.",
     "power_score": 10.0,
     "content_version": 1
+  },
+  {
+    "id": "hol_c_bone_tick",
+    "set": "buried_age",
+    "name": "Bone Tick",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It burrows into the marrow and waits.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.5
+  },
+  {
+    "id": "hol_c_dust_spinner",
+    "set": "buried_age",
+    "name": "Dust Spinner",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "It weaves shrouds from the dust of forgotten kings.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.1
+  },
+  {
+    "id": "hol_c_ghoul_scavenger",
+    "set": "buried_age",
+    "name": "Ghoul Scavenger",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "It picks the bones clean and moves on.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.15
+  },
+  {
+    "id": "hol_c_barrow_call",
+    "set": "buried_age",
+    "name": "Barrow Caller",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The barrow remembers every soul it has claimed.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "hol_c_wraith_bonebreaker",
+    "set": "buried_age",
+    "name": "Wraith Bonebreaker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Brittle as old bone, sharp as a broken edge.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "hol_u_soul_picker",
+    "set": "buried_age",
+    "name": "Soul Picker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "She claims the souls that others leave behind.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.8
+  },
+  {
+    "id": "hol_u_putrid_knight",
+    "set": "buried_age",
+    "name": "Putrid Knight",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "His oath died before he did. He fights on regardless.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.65
+  },
+  {
+    "id": "hol_r_death_drummer",
+    "set": "buried_age",
+    "name": "Death Drummer",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The rhythm of the grave\u2014steady, patient, inevitable.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.95
+  },
+  {
+    "id": "hol_c_plague_rat",
+    "set": "buried_age",
+    "name": "Plague Rat",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "Rats carry what kings leave behind.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_c_plague_rat.webp"
+    },
+    "attack": 1,
+    "vigor": 1
+  },
+  {
+    "id": "hol_c_venom_fang",
+    "set": "buried_age",
+    "name": "Venom Fang",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "One scratch is enough.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_c_venom_fang.webp"
+    },
+    "attack": 3,
+    "vigor": 1
+  },
+  {
+    "id": "hol_c_bone_trader",
+    "set": "buried_age",
+    "name": "Bone Trader",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "Everything has a price in the barrow.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_c_bone_trader.webp"
+    },
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "hol_c_stygian_hound",
+    "set": "buried_age",
+    "name": "Stygian Hound",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "It tracks by scent of the grave.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_c_stygian_hound.webp"
+    },
+    "attack": 5,
+    "vigor": 2
+  },
+  {
+    "id": "hol_c_unearth_scavenger",
+    "set": "buried_age",
+    "name": "Unearth Scavenger",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "abilities": [],
+    "flavor": "Nothing stays buried forever.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_c_unearth_scavenger.webp"
+    },
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "hol_u_barrow_rite",
+    "set": "buried_age",
+    "name": "Barrow Rite",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 6
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A whispered bargain with what lies below.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_u_barrow_rite.webp"
+    }
+  },
+  {
+    "id": "hol_u_nightshade_priest",
+    "set": "buried_age",
+    "name": "Nightshade Priest",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [
+      "ECHO",
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "She serves a god whose name is only spoken once.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_u_nightshade_priest.webp"
+    },
+    "attack": 5,
+    "vigor": 4
+  },
+  {
+    "id": "hol_r_black_tide",
+    "set": "buried_age",
+    "name": "Black Tide",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It rises when the moon is dark.",
+    "content_version": 1,
+    "art": {
+      "file": "hol_r_black_tide.webp"
+    },
+    "attack": 3,
+    "vigor": 3
   }
 ]

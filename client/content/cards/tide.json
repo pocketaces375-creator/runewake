@@ -9,7 +9,9 @@
     "cost": 4,
     "attack": 2,
     "vigor": 5,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -41,11 +43,7 @@
       }
     ],
     "flavor": "She read the riverbed the way her mother read faces.",
-    "art": {
-      "prompt": "a robed scholar kneeling in shallow grey water, sifting silt through a bronze sieve",
-      "asset": "res://content/art/tid_c_silt_reader.webp"
-    },
-    "power_score": 10.4,
+    "power_score": 11.4,
     "content_version": 1
   },
   {
@@ -58,7 +56,9 @@
     "cost": 2,
     "attack": 1,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -74,12 +74,8 @@
       }
     ],
     "flavor": "Knowledge flows like water \u2014 endlessly, unstoppably.",
-    "power_score": 4.5,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/tid_c_tidal_scholar.webp",
-      "prompt": "A robed figure kneeling in shallow tide pools, reading from a weathered stone tablet, bioluminescent blue algae glowing around their feet"
-    }
+    "power_score": 5.5,
+    "content_version": 1
   },
   {
     "id": "tid_c_deep_one",
@@ -91,10 +87,25 @@
     "cost": 3,
     "attack": 3,
     "vigor": 3,
-    "keywords": [],
-    "abilities": [],
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "From the abyss it rises, silent and patient.",
-    "power_score": 4.5,
+    "power_score": 5.5,
     "content_version": 1
   },
   {
@@ -105,7 +116,9 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -121,12 +134,8 @@
       }
     ],
     "flavor": "The depths see you as clearly as you see them.",
-    "power_score": 2.0,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/tid_c_abyssal_gaze.webp",
-      "prompt": "A single enormous eye opening in the dark depths of the ocean, surrounded by drifting kelp and faint blue light, ancient and unknowable"
-    }
+    "power_score": 3.0,
+    "content_version": 1
   },
   {
     "id": "tid_u_brine_witch",
@@ -138,7 +147,9 @@
     "cost": 4,
     "attack": 3,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -154,7 +165,7 @@
       }
     ],
     "flavor": "Salt and spell, wrought together.",
-    "power_score": 5.5,
+    "power_score": 6.5,
     "content_version": 1
   },
   {
@@ -183,7 +194,9 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -206,7 +219,7 @@
       }
     ],
     "flavor": "The tide brings, and the tide takes away.",
-    "power_score": 4.0,
+    "power_score": 5.0,
     "content_version": 1
   },
   {
@@ -219,7 +232,9 @@
     "cost": 3,
     "attack": 2,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
@@ -237,7 +252,7 @@
       }
     ],
     "flavor": "It unravels into foam, dragging you down with it.",
-    "power_score": 5.0,
+    "power_score": 6.0,
     "content_version": 1
   },
   {
@@ -250,7 +265,9 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "ON_ALLY_DEATH",
@@ -266,7 +283,7 @@
       }
     ],
     "flavor": "Every drop that falls tells her a story.",
-    "power_score": 7.0,
+    "power_score": 8.0,
     "content_version": 1
   },
   {
@@ -277,7 +294,9 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 4,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -293,7 +312,7 @@
       }
     ],
     "flavor": "The tide washes away all hidden things.",
-    "power_score": 6.5,
+    "power_score": 7.5,
     "content_version": 1
   },
   {
@@ -306,7 +325,9 @@
     "cost": 7,
     "attack": 7,
     "vigor": 7,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [],
     "flavor": "It sleeps in the deep, dreaming of cities it swallowed.",
     "power_score": 10.5,
@@ -346,5 +367,387 @@
     "flavor": "Bound with the seal of the deep, holding back the flood.",
     "power_score": 12.5,
     "content_version": 1
+  },
+  {
+    "id": "tid_c_star_reader",
+    "set": "buried_age",
+    "name": "Star-Reader",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SCY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "She reads the sky the way others read a map \u2014 every star a signpost.",
+    "power_score": 4.5,
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_brine_scout",
+    "set": "buried_age",
+    "name": "Brine Scout",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "It rides the current ahead of the tide.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.5
+  },
+  {
+    "id": "tid_c_echoing_depth",
+    "set": "buried_age",
+    "name": "Echoing Depth",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "The deep remembers every stone that ever fell.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.5
+  },
+  {
+    "id": "tid_c_tide_oracle",
+    "set": "buried_age",
+    "name": "Tide Oracle",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "She reads the foam like scripture.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.15
+  },
+  {
+    "id": "tid_c_sea_raider",
+    "set": "buried_age",
+    "name": "Sea Raider",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "They come with the tide and vanish before it ebbs.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "tid_c_coral_diviner",
+    "set": "buried_age",
+    "name": "Coral Diviner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "She sees the future in the branching coral.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.1
+  },
+  {
+    "id": "tid_u_tidal_seer",
+    "set": "buried_age",
+    "name": "Tidal Seer",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "She reads the tide, and the tide obeys.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 8.0
+  },
+  {
+    "id": "tid_u_abyss_watcher",
+    "set": "buried_age",
+    "name": "Abyss Watcher",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It sees what the deep has swallowed.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "tid_r_deep_tides_diviner",
+    "set": "buried_age",
+    "name": "Deep Tides Diviner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She drinks from wells that have no bottom.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 13.2
+  },
+  {
+    "id": "tid_c_foam_runner",
+    "set": "buried_age",
+    "name": "Foam Runner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It dances on waves that no one else sees.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_c_foam_runner.webp"
+    },
+    "attack": 1,
+    "vigor": 2
+  },
+  {
+    "id": "tid_c_tide_reacher",
+    "set": "buried_age",
+    "name": "Tide Reacher",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "The tide reaches further each year.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_c_tide_reacher.webp"
+    },
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "tid_c_kelp_diviner",
+    "set": "buried_age",
+    "name": "Kelp Diviner",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "She reads the kelp like scrolls.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_c_kelp_diviner.webp"
+    },
+    "attack": 2,
+    "vigor": 3
+  },
+  {
+    "id": "tid_c_saltthorn_scout",
+    "set": "buried_age",
+    "name": "Salthorn Scout",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Its spines taste the salt air.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_c_saltthorn_scout.webp"
+    },
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "tid_c_undertow_current",
+    "set": "buried_age",
+    "name": "Undertow Current",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "It pulls everything down eventually.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_c_undertow_current.webp"
+    },
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "tid_u_tidal_barrier",
+    "set": "buried_age",
+    "name": "Tidal Barrier",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Water that holds its shape.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_u_tidal_barrier.webp"
+    },
+    "attack": 3,
+    "vigor": 5
+  },
+  {
+    "id": "tid_u_depth_charge",
+    "set": "buried_age",
+    "name": "Depth Charge",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 7
+          }
+        ]
+      }
+    ],
+    "flavor": "Pressure from below. A lot of it.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_u_depth_charge.webp"
+    }
+  },
+  {
+    "id": "tid_r_echo_caller",
+    "set": "buried_age",
+    "name": "Echo Caller",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ECHO",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Her voice carries across every wave.",
+    "content_version": 1,
+    "art": {
+      "file": "tid_r_echo_caller.webp"
+    },
+    "attack": 5,
+    "vigor": 4
   }
 ]

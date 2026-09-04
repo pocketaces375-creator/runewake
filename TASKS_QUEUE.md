@@ -46,7 +46,7 @@
   Acceptance: before/after byte sizes of both files in the report; find_top_task returns the
   same top task before and after; one full foreman iteration completes green after the trim.
 
-- [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
+- [!] TASK-AI-TACTICIAN-1 — PARKED by Fable 2026-09-04: 4 failed sessions on a 65% bar; re-queue with a 55% bar once the gate is green. The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
   close either is to lethal; creature value = attack + vigor + keyword worth; favorable
@@ -126,7 +126,7 @@
 
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
-- [ ] TASK-ART-ICONS-1 — A matching icon set for the eleven keywords and five strata in the locked
+- [!] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
 

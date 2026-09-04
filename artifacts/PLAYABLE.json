@@ -1,6 +1,6 @@
 {
   "playable": false,
-  "commit": "unknown",
-  "checked_at": "2026-09-04T08:44:28.6907763Z",
-  "failed_step": "No Play/CONTINUE button on title screen"
+  "commit": "6a23785cced35e5028611528deaf5f3a462ca8b6",
+  "checked_at": "2026-09-04T13:07:12.090030",
+  "failed_step": "no_output"
 }

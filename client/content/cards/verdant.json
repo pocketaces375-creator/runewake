@@ -29,10 +29,6 @@
       }
     ],
     "flavor": "The grove keeps its own ledgers, and it does not forgive debts.",
-    "art": {
-      "prompt": "a moss-armored sentinel of woven roots standing in a ruined stone doorway",
-      "asset": "res://content/art/vrd_c_root_warden.webp"
-    },
     "power_score": 7.1,
     "content_version": 1
   },
@@ -46,15 +42,13 @@
     "cost": 1,
     "attack": 1,
     "vigor": 2,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "Life finds a way through every crack.",
     "power_score": 2.0,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/vrd_c_verdant_sproutling.webp",
-      "prompt": "A small animated sprout with glowing green eyes, tiny leaves unfurling, emerging from a mossy stone in a ancient forest"
-    }
+    "content_version": 1
   },
   {
     "id": "vrd_c_thornbark_defender",
@@ -85,7 +79,9 @@
     "cost": 2,
     "attack": 3,
     "vigor": 2,
-    "keywords": [],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "It hunts between the roots, patient and swift.",
     "power_score": 3.5,
@@ -101,7 +97,9 @@
     "cost": 3,
     "attack": 1,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -119,7 +117,7 @@
       }
     ],
     "flavor": "The touch of living bark closes wounds in moments.",
-    "power_score": 5.2,
+    "power_score": 6.1,
     "content_version": 1
   },
   {
@@ -187,7 +185,9 @@
     "cost": 4,
     "attack": 1,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_TURN_START",
@@ -203,12 +203,8 @@
       }
     ],
     "flavor": "Each morning, a new bloom unfolds in her footsteps.",
-    "power_score": 8.5,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/vrd_r_bloomweaver.webp",
-      "prompt": "An ethereal fey figure with vines weaving through their hair, hands weaving threads of golden pollen, flowers blooming around them in a dark forest glade"
-    }
+    "power_score": 9.4,
+    "content_version": 1
   },
   {
     "id": "vrd_r_undergrowth_eruption",
@@ -218,7 +214,9 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 3,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -236,7 +234,7 @@
       }
     ],
     "flavor": "The soil remembers the blood it has drunk.",
-    "power_score": 6.5,
+    "power_score": 7.4,
     "content_version": 1
   },
   {
@@ -247,7 +245,9 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -265,7 +265,7 @@
       }
     ],
     "flavor": "Spring comes even to the deepest shadows.",
-    "power_score": 5.0,
+    "power_score": 5.9,
     "content_version": 1
   },
   {
@@ -318,5 +318,359 @@
     ],
     "abilities": [],
     "content_version": 1
+  },
+  {
+    "id": "vrd_c_moss_shield",
+    "set": "buried_age",
+    "name": "Moss Shield",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The forest provides cover to those who respect it.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.6
+  },
+  {
+    "id": "vrd_c_root_tender",
+    "set": "buried_age",
+    "name": "Root Tender",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "She speaks to the roots, and they carry her words.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.1
+  },
+  {
+    "id": "vrd_c_bark_sentinel",
+    "set": "buried_age",
+    "name": "Bark Sentinel",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It has stood watch since the first acorn fell.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "vrd_c_vine_weaver",
+    "set": "buried_age",
+    "name": "Vine Weaver",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Her vines stretch across the battlefield before the enemy takes a step.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.1
+  },
+  {
+    "id": "vrd_u_forest_poultice",
+    "set": "buried_age",
+    "name": "Forest Poultice",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "Bark and bloom, woven into a second chance.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.25
+  },
+  {
+    "id": "vrd_u_bramble_heart",
+    "set": "buried_age",
+    "name": "Bramble Heart",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "Even cut down, it sends one last seed into the world.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.8
+  },
+  {
+    "id": "vrd_u_greatwood_guardian",
+    "set": "buried_age",
+    "name": "Greatwood Guardian",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The greatwood does not yield. It remembers the axe.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "vrd_r_deeproot_ancients",
+    "set": "buried_age",
+    "name": "Deeproot Ancient",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ROOTED",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Its roots reach deeper than the barrow itself.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.62
+  },
+  {
+    "id": "vrd_c_root_sprout",
+    "set": "buried_age",
+    "name": "Root Sprout",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Even the smallest root can trip a giant.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_c_root_sprout.webp"
+    },
+    "attack": 1,
+    "vigor": 2
+  },
+  {
+    "id": "vrd_c_thorn_wall",
+    "set": "buried_age",
+    "name": "Thorn Wall",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "The forest knows how to defend itself.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_c_thorn_wall.webp"
+    },
+    "attack": 2,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_c_warding_vine",
+    "set": "buried_age",
+    "name": "Warding Vine",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "It weaves a barrier of thorn and prayer.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_c_warding_vine.webp"
+    },
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_c_leaf_mender",
+    "set": "buried_age",
+    "name": "Leaf Mender",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [],
+    "flavor": "Every fallen leaf returns as medicine.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_c_leaf_mender.webp"
+    },
+    "attack": 4,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_u_ironbark_guard",
+    "set": "buried_age",
+    "name": "Ironbark Guard",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "GUARD",
+      "ROOTED"
+    ],
+    "abilities": [],
+    "flavor": "Wood tempered by a hundred battles.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_u_ironbark_guard.webp"
+    },
+    "attack": 3,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_u_sylvan_pulse",
+    "set": "buried_age",
+    "name": "Sylvan Pulse",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 9
+          }
+        ]
+      }
+    ],
+    "flavor": "The heartbeat of the forest, given form.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_u_sylvan_pulse.webp"
+    }
+  },
+  {
+    "id": "vrd_u_forest_stalker",
+    "set": "buried_age",
+    "name": "Forest Stalker",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It moves between the trees like a shadow.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_u_forest_stalker.webp"
+    },
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "vrd_r_worldtree_custodian",
+    "set": "buried_age",
+    "name": "Worldtree Custodian",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ROOTED",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She remembers when the world was young.",
+    "content_version": 1,
+    "art": {
+      "file": "vrd_r_worldtree_custodian.webp"
+    },
+    "attack": 6,
+    "vigor": 6
   }
 ]

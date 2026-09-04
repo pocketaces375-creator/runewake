@@ -14,10 +14,6 @@
     ],
     "abilities": [],
     "flavor": "Forge-children learned to run before they learned to breathe.",
-    "art": {
-      "prompt": "a soot-streaked young courier sprinting through a molten foundry, trailing sparks",
-      "asset": "res://content/art/emb_c_cinder_runner.webp"
-    },
     "power_score": 4.85,
     "content_version": 1
   },
@@ -37,11 +33,7 @@
     "abilities": [],
     "flavor": "Pack-forged and flame-tempered.",
     "power_score": 3.2,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/emb_c_ember_hound.webp",
-      "prompt": "A lean hound with molten orange cracks running through its dark fur, embers drifting from its jaws, standing on volcanic rock at night"
-    }
+    "content_version": 1
   },
   {
     "id": "emb_c_flame_javelin",
@@ -51,7 +43,9 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -69,7 +63,7 @@
       }
     ],
     "flavor": "A spear of fire, thrown from the heart of the forge.",
-    "power_score": 3.0,
+    "power_score": 3.6,
     "content_version": 1
   },
   {
@@ -82,15 +76,13 @@
     "cost": 3,
     "attack": 4,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [],
     "flavor": "He fights like the fire \u2014 without mercy, without memory.",
     "power_score": 5.5,
-    "content_version": 1,
-    "art": {
-      "asset": "res://content/art/emb_c_forgeguard_berserker.webp",
-      "prompt": "A muscular warrior in blackened iron plate, a great hammer resting on one shoulder, forge-glow illuminating his face from below, sparks flying"
-    }
+    "content_version": 1
   },
   {
     "id": "emb_u_wildfire_adept",
@@ -102,7 +94,9 @@
     "cost": 2,
     "attack": 2,
     "vigor": 2,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "ON_CAST_RITUAL",
@@ -120,7 +114,7 @@
       }
     ],
     "flavor": "Every spell she casts fans the flames higher.",
-    "power_score": 5.0,
+    "power_score": 5.6,
     "content_version": 1
   },
   {
@@ -150,7 +144,9 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 3,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -166,7 +162,7 @@
       }
     ],
     "flavor": "The heat of a dying star, focused to a point.",
-    "power_score": 5.5,
+    "power_score": 6.1,
     "content_version": 1
   },
   {
@@ -179,7 +175,9 @@
     "cost": 4,
     "attack": 4,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
@@ -197,7 +195,7 @@
       }
     ],
     "flavor": "Even in dying, it burns.",
-    "power_score": 7.8,
+    "power_score": 8.4,
     "content_version": 1
   },
   {
@@ -210,7 +208,9 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
@@ -228,7 +228,7 @@
       }
     ],
     "flavor": "He hammers strength into every ally's blade.",
-    "power_score": 7.5,
+    "power_score": 8.4,
     "content_version": 1
   },
   {
@@ -239,7 +239,9 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 5,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -264,7 +266,7 @@
       }
     ],
     "flavor": "The forge-gods demand sacrifice.",
-    "power_score": 8.5,
+    "power_score": 9.1,
     "content_version": 1
   },
   {
@@ -318,5 +320,386 @@
     "flavor": "The last spark of a world that burned too brightly.",
     "power_score": 9.0,
     "content_version": 1
+  },
+  {
+    "id": "emb_c_scorch_imp",
+    "set": "buried_age",
+    "name": "Scorch Imp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Born in the heart of the forge, it knows only fire.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.6
+  },
+  {
+    "id": "emb_c_blaze_scout",
+    "set": "buried_age",
+    "name": "Blaze Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "She runs ahead, leaving a trail of ash.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.6
+  },
+  {
+    "id": "emb_c_ember_impaler",
+    "set": "buried_age",
+    "name": "Ember Impaler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Its spear is a shard of the mountain's heart.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.35
+  },
+  {
+    "id": "emb_c_firecrown_raider",
+    "set": "buried_age",
+    "name": "Firecrown Raider",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Crowned in flame, it burns twice as bright and half as long.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.1
+  },
+  {
+    "id": "emb_u_flame_tongue_knight",
+    "set": "buried_age",
+    "name": "Flame-Tongue Knight",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "His blade speaks the language of ash.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.65
+  },
+  {
+    "id": "emb_u_burnout_mage",
+    "set": "buried_age",
+    "name": "Burnout Mage",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "She pours everything into one spell. It is always enough.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.8
+  },
+  {
+    "id": "emb_u_lava_caller",
+    "set": "buried_age",
+    "name": "Lava Caller",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The mountain answers when she calls.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "emb_r_ember_warleader",
+    "set": "buried_age",
+    "name": "Ember Warleader",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:SWIFT",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The ember never dies\u2014it only waits for kindling.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 8.45
+  },
+  {
+    "id": "emb_c_stone_slinger",
+    "set": "buried_age",
+    "name": "Stone Slinger",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Fling first, ask later.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_c_stone_slinger.webp"
+    },
+    "attack": 2,
+    "vigor": 1
+  },
+  {
+    "id": "emb_c_smoldering_pike",
+    "set": "buried_age",
+    "name": "Smoldering Pike",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "Heated to the point of shattering.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_c_smoldering_pike.webp"
+    },
+    "attack": 3,
+    "vigor": 2
+  },
+  {
+    "id": "emb_c_furnace_reaver",
+    "set": "buried_age",
+    "name": "Furnace Reaver",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "It drags a length of red-hot chain.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_c_furnace_reaver.webp"
+    },
+    "attack": 5,
+    "vigor": 3
+  },
+  {
+    "id": "emb_c_volcanic_boon",
+    "set": "buried_age",
+    "name": "Volcanic Boon",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "The mountain rewards those who climb it.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_c_volcanic_boon.webp"
+    },
+    "attack": 6,
+    "vigor": 4
+  },
+  {
+    "id": "emb_u_lava_burst",
+    "set": "buried_age",
+    "name": "Lava Burst",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 5
+          }
+        ]
+      }
+    ],
+    "flavor": "The ground remembers the heat.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_u_lava_burst.webp"
+    }
+  },
+  {
+    "id": "emb_u_cinder_venom",
+    "set": "buried_age",
+    "name": "Cinder Venom",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A bite that burns twice.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_u_cinder_venom.webp"
+    },
+    "attack": 3,
+    "vigor": 1
+  },
+  {
+    "id": "emb_u_scoria_prowler",
+    "set": "buried_age",
+    "name": "Scoria Prowler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "It hunts through fields of broken glass.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_u_scoria_prowler.webp"
+    },
+    "attack": 4,
+    "vigor": 3
+  },
+  {
+    "id": "emb_r_sharptongue_elder",
+    "set": "buried_age",
+    "name": "Sharptongue Elder",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:PIERCE",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every word from his mouth is a weapon.",
+    "content_version": 1,
+    "art": {
+      "file": "emb_r_sharptongue_elder.webp"
+    },
+    "attack": 4,
+    "vigor": 3
   }
 ]
