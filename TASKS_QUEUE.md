@@ -739,7 +739,7 @@
   Acceptance: 40 .webp files at the locked naming convention with .import files, wired into the json; a
   Reliquary capture showing a page of the new cards; posted.
 
-- [ ] TASK-CARD-WAVE-2 — As TASK-CARD-WAVE-1, the next 40 cards (different families; prioritise any stratum
+- [x] TASK-CARD-WAVE-2 — As TASK-CARD-WAVE-1, the next 40 cards (different families; prioritise any stratum
   that WAVE-1's sim report showed as weak).
   Acceptance: as TASK-CARD-WAVE-1.
 
