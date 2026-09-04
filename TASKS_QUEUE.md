@@ -480,6 +480,52 @@
   artifacts, names matching; all tests green; loop_smoke and input_smoke pass; Choose Your Path
   capture shows the 7 classes in the listed order; migration test green; post the capture and
   one sentence.
+- [ ] TASK-CLASS-IDENTITY-1 — Give Astrologist and the six new items their own feel (Fable's design; Trikzos:
+  "reimagine and rebalance"). Implement in the DSL/engine with tests. Baseline numbers below are Fable's
+  starting values; TASK-TUNE-5050-1 may move them within the stated bounds, nothing else may.
+  ASTROLOGIST (stratum Tide, origin "Starfall Reach"; a seer — weak early, inevitable late):
+    class-core: 4 sworn cards rebuilt from the Tide pool with an Echo / draw / Ward bias, one of them
+    "Star-Reader" (on play: scry 2). Starter deck: hard-30 from Tide + neutrals, singleton, valid.
+    ORB ("Seer's Orb"): start of your turn: look at the top 2 cards of your deck, put one on top and one
+      on the bottom. +1 charge at the start of each of your turns. Full (3): draw 2. Bounds: scry 1-3;
+      draw 1-2.
+    CONSTELLATION STARLIGHT ("the stars align"): +1 charge at the END of each of your turns (turn
+      counter). Full (3): Starfall — deal 4 damage to the enemy creature in EVERY lane, ignoring Guard,
+      then reset. Bounds: damage 3-6. (This is the wide-board answer and the control archetype.)
+  NECROMANCER RITUAL PIECE ("Ritual Fetish"): +1 charge whenever a friendly creature dies. Full (3):
+    Unearth the highest-attack creature from your graveyard into an empty lane. Bounds: it may return
+    with -1 vigor or with Venom (pick one during tuning, never both).
+  PALADIN BANNER ("Banner of Sunspire"): passive: while you control 2+ creatures, your creatures have
+    +0/+1. +1 charge whenever a friendly creature SURVIVES combat damage. Full (3): restore 2 vigor to
+    each friendly creature and give them Ward until your next turn. Bounds: aura +0/+1 or Guard; heal 1-3.
+  DRUID BOOK OF FAMILIAR: start of your turn: if you have an empty lane, summon a 1/1 Familiar token with
+    Rooted there. +1 charge per Familiar summoned. Full (3): all your Familiars become 2/2 and gain
+    Guard. Bounds: token 1/1 to 2/2; cadence every turn or every other turn.
+  DRUID ELEMENTAL BOND: on play, bond one friendly creature: it gains Rooted and +0/+2 and prevents 1
+    damage from each source (PREVENT_DAMAGE). +1 charge each turn the bonded creature survives. Full
+    (3): it gains +2/+2 permanently and Reach. Bounds: +0/+2 to +1/+3; prevent 1 (fixed).
+  ROGUE TWIN DAGGERS: DUSK: your first attack each turn by a Swift creature deals +1 and is not stopped
+    by Guard (STEALTH_STRIKE). WHISPER: +1 charge whenever a friendly creature deals damage to the enemy
+    face. Full (3): 3 damage to the enemy face, and the creature it last hit gains Venom. TWIN rule:
+    when either dagger's full-charge effect fires, the other gains +1 charge. Bounds: Dusk +1 to +2;
+    Whisper 2-4 face damage. Rush must stay viable.
+  Existing items (wand, aura, skull, hammer, sword, shield) keep their current effects.
+  Acceptance: every effect above exists as DSL/engine with a unit test that fires it; the 5-duel soak,
+  loop_smoke and input_smoke pass; a plain "item → what it does" list posted to the group; no other
+  card or item value changed in this task.
+
+- [ ] TASK-TUNE-5050-1 — Balance all 7 classes to a 45-55% win rate against each other (Trikzos: "closer
+  to 50/50"). Run the 49-pairing class matrix (200 seeded games per pairing, tactician AI on both
+  sides, mirrors excluded from each class's average). Report per class: win%, best and worst matchup.
+  If any class is outside 45-55%: adjust ONLY numbers named in TASK-CLASS-IDENTITY-1's bounds and, if
+  still needed, the six existing items' numbers by at most +/-1 per number per iteration — never card
+  values, never keywords, never new effects — re-run, up to 3 iterations. Rush classes (Rogue, Warrior)
+  must not drop below 45%. If every class lands in band: ADOPT the numbers, commit, and post the final
+  matrix in plain words. If not in band after 3 iterations: do NOT adopt — commit the report only, post
+  the matrix and the two worst outliers, and stop (Fable decides).
+  Acceptance: the full matrix and the per-class table in HERMES_STATUS.md; the numbers actually shipped
+  (or "not adopted") stated explicitly; soak + smokes green.
+
 - [ ] TASK-ART-ROSTER-1 — Generate the art for the permanent roster (art FILES ONLY — do not edit any
   json or code; TASK-ROSTER-LOCK-1 wires the references). FLUX.2 Pro via OpenRouter, style v3.0,
   matching the existing four portraits' framing and palette and the existing artifact tiles' look.
