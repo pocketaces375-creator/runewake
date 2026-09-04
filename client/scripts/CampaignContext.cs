@@ -99,6 +99,9 @@ public static class CampaignContext
     /// </summary>
     public static bool CaptureMapScreenshot { get; set; }
 
+    /// <summary>Crash recovery test mode: triggers a test exception on the title screen, proving the recovery handler fires.</summary>
+    public static bool CrashTestMode { get; set; }
+
     /// <summary>Test hook: auto-navigate to deck builder scene and capture screenshot.
     /// Set by --capture=deck_test CLI arg via DebugCapture.
     /// </summary>

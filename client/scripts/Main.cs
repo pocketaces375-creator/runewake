@@ -589,6 +589,43 @@ public partial class Main : Control
                 titleCapTimer.Start();
                 return;
             }
+            if (CampaignContext.CrashTestMode)
+            {
+                // Crash recovery test: show title, trigger crash, capture the recovery screen
+                GD.Print("[Main] Crash test capture mode");
+                var crashCapTimer = new Godot.Timer();
+                crashCapTimer.OneShot = true;
+                crashCapTimer.WaitTime = 1.0f;
+                crashCapTimer.Timeout += () =>
+                {
+                    GD.Print("[Main] Triggering test crash for capture...");
+                    // The crash will be caught by CrashReporter which shows the recovery overlay.
+                    // Schedule the capture 1.5s after the crash so the overlay has rendered.
+                    var captureTimer = new Godot.Timer();
+                    captureTimer.OneShot = true;
+                    captureTimer.WaitTime = 1.5f;
+                    captureTimer.Timeout += () =>
+                    {
+                        var img = GetViewport().GetTexture().GetImage();
+                        if (img != null)
+                            img.SavePng("/home/fictive/runewake-lane4/artifacts/captures/crash_test.png");
+                        DebugCapture.WriteLayoutJson(this, "crash_test");
+                        GD.Print("[Main] crash_test.png saved");
+                        DebugCapture.DumpLayoutJSON("crash_test", this);
+                        GetTree().Quit();
+                    };
+                    AddChild(captureTimer);
+                    captureTimer.Start();
+
+                    // Trigger crash through the recovery handler directly
+                    GD.Print("[Main] Triggering test crash via CrashReporter.TriggerCrashRecovery...");
+                    CrashReporter.TriggerCrashRecovery(new InvalidOperationException(
+                        "TEST CRASH from crash_test capture mode — the recovery overlay should be visible now."));
+                };
+                AddChild(crashCapTimer);
+                crashCapTimer.Start();
+                return;
+            }
             if (CampaignContext.CaptureTitleDeckScreenshot)
             {
                 // Capture title screen with Decks button visible, then navigate to deck builder
@@ -899,21 +936,60 @@ public partial class Main : Control
         pathLabel.Modulate = new Color(0.5f, 0.5f, 0.6f);
         vbox.AddChild(pathLabel);
 
-        // Close button at bottom of panel
+        // Action button row at bottom of panel
+        var buttonRow = new HBoxContainer
+        {
+            AnchorLeft = 0.2f,
+            AnchorRight = 0.8f,
+            AnchorTop = 0.88f,
+            AnchorBottom = 0.97f
+        };
+        panel.AddChild(buttonRow);
+
+        // Close button
         var closeBtn = new Button
         {
             Text = "Close",
-            AnchorLeft = 0.3f,
-            AnchorRight = 0.7f,
-            AnchorTop = 0.88f,
-            AnchorBottom = 0.97f
+            SizeFlagsHorizontal = Control.SizeFlags.Expand | Control.SizeFlags.Fill
         };
         closeBtn.Pressed += () =>
         {
             panel.QueueFree();
             _diagPanel = null;
         };
-        panel.AddChild(closeBtn);
+        buttonRow.AddChild(closeBtn);
+
+        // Test Crash button (debug builds only — triggers the crash handler)
+        if (OS.IsDebugBuild())
+        {
+            var spacer = new Control { CustomMinimumSize = new Vector2(16, 0) };
+            buttonRow.AddChild(spacer);
+
+            var crashBtn = new Button
+            {
+                Text = "Test Crash",
+                SizeFlagsHorizontal = Control.SizeFlags.Expand | Control.SizeFlags.Fill
+            };
+            crashBtn.AddThemeColorOverride("font_color", new Color(1f, 0.3f, 0.2f));
+            crashBtn.Pressed += () =>
+            {
+                panel.QueueFree();
+                _diagPanel = null;
+                // Short delay so the panel is removed before the crash
+                var crashTimer = new Godot.Timer();
+                crashTimer.OneShot = true;
+                crashTimer.WaitTime = 0.3f;
+                crashTimer.Timeout += () =>
+                {
+                    GD.Print("[Main] Diagnostics: triggering crash via CrashReporter.TriggerCrashRecovery...");
+                    CrashReporter.TriggerCrashRecovery(new InvalidOperationException(
+                        "TEST CRASH from diagnostics panel — this is intentional."));
+                };
+                AddChild(crashTimer);
+                crashTimer.Start();
+            };
+            buttonRow.AddChild(crashBtn);
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════

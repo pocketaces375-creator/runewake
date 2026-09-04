@@ -266,6 +266,13 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Settings wide capture mode enabled: --capture=settings_test_wide");
             }
+            if (arg == "--capture=crash_test")
+            {
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.CrashTestMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Crash test capture mode enabled: --capture=crash_test");
+            }
             if (arg == "--capture=dig_test")
             {
                 CampaignContext.CaptureDigScreenshot = true;
