@@ -2,14 +2,14 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://592ec5a93c96"
-path="res://.godot/imported/emb_r_sharptongue_elder.webp-02998f146795c77183d0fce82749db56.ctex"
+uid="uid://2259dd7af36c"
+path="res://.godot/imported/tid_c_star_reader.webp-ae18c816938e09854d429c7e487449a2.ctex"
 metadata={"vram_texture":false}
 
 [deps]
 
-source_file="res://content/art/emb_r_sharptongue_elder.webp"
-dest_files=["res://.godot/imported/emb_r_sharptongue_elder.webp-02998f146795c77183d0fce82749db56.ctex"]
+source_file="res://content/art/tid_c_star_reader.webp"
+dest_files=["res://.godot/imported/tid_c_star_reader.webp-ae18c816938e09854d429c7e487449a2.ctex"]
 
 [params]
 
