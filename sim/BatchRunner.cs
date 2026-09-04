@@ -156,12 +156,12 @@ public static class BatchRunner
     private static readonly Dictionary<string, string[]> ClassArtifactMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["warrior"] = new[] { "artf_warrior_sword", "artf_warrior_shield" },
-        ["mage"] = new[] { "artf_mage_wand", "artf_mage_aura" },
-        ["thief"] = new[] { "artf_thief_dagger_whisper", "artf_thief_dagger_dusk" },
-        ["cleric"] = new[] { "artf_cleric_censer", "artf_cleric_icon" },
-        ["ranger"] = new[] { "artf_ranger_bow", "artf_ranger_quiver" },
-        ["necromancer"] = new[] { "artf_necromancer_grimoire", "artf_necromancer_phylactery" },
-        ["runesmith"] = new[] { "artf_runesmith_hammer", "artf_runesmith_anvil" },
+        ["battlemage"] = new[] { "artf_battlemage_wand", "artf_battlemage_aura" },
+        ["necromancer"] = new[] { "artf_necromancer_skull", "artf_necromancer_ritual_piece" },
+        ["paladin"] = new[] { "artf_paladin_hammer", "artf_paladin_banner" },
+        ["druid"] = new[] { "artf_druid_book_of_familiar", "artf_druid_elemental_bond" },
+        ["rogue"] = new[] { "artf_rogue_dagger_dusk", "artf_rogue_dagger_whisper" },
+        ["astrologist"] = new[] { "artf_astrologist_orb", "artf_astrologist_constellation_starlight" },
     };
 
     /// <summary>

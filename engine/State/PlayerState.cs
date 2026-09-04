@@ -85,7 +85,7 @@ public sealed class PlayerState
     public int? PreyTargetId { get; set; }
 
     /// <summary>
-    /// Current class name for this player (e.g. "warrior", "mage", "thief").
+    /// Current class name for this player (e.g. "warrior", "rogue", "battlemage").
     /// Empty string if not yet assigned.
     /// </summary>
     public string ArtifactClass { get; set; } = string.Empty;

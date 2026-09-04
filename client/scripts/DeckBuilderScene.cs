@@ -106,11 +106,11 @@ public partial class DeckBuilderScene : Control
             CampaignContext.CoreCardIds = null;
         }
 
-        // Default strata filter for cross-strata classes (RANGER, OCCULTIST)
+        // Default strata filter for cross-strata classes (ASTROLOGIST, OCCULTIST)
         string chosen = CampaignContext.ChosenClass;
         if (CampaignContext.CaptureOverrideStrataIdx >= 0)
             _selectedStrataIdx = CampaignContext.CaptureOverrideStrataIdx;
-        else if (chosen == "ranger" || chosen == "occultist" || string.IsNullOrEmpty(chosen))
+        else if (chosen == "astrologist" || chosen == "occultist" || string.IsNullOrEmpty(chosen))
             _selectedStrataIdx = 0; // ALL
         UpdateFilterChips();
 
@@ -257,10 +257,10 @@ public partial class DeckBuilderScene : Control
                     Color classDotColor = Gold; // fallback
                     string cls = CampaignContext.ChosenClass.ToLowerInvariant();
                     if (cls == "warrior") classDotColor = StrataEmber;
-                    else if (cls == "necromancer" || cls == "occultist") classDotColor = StrataHollow;
-                    else if (cls == "druid" || cls == "ranger") classDotColor = StrataVerdant;
-                    else if (cls == "tidecaller") classDotColor = StrataTide;
-                    else if (cls == "dawnward") classDotColor = StrataDawn;
+                    else if (cls == "necromancer" || cls == "occultist" || cls == "rogue") classDotColor = StrataHollow;
+                    else if (cls == "druid") classDotColor = StrataVerdant;
+                    else if (cls == "battlemage" || cls == "astrologist") classDotColor = StrataTide;
+                    else if (cls == "paladin") classDotColor = StrataDawn;
 
                     var classDot = new ColorRect
                     {

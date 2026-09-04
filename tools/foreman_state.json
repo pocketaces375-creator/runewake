@@ -10,7 +10,7 @@
   "transient_notified": false,
   "bus_last_seq": 4,
   "bus_session_count": 0,
-  "no_progress_count": 0,
+  "no_progress_count": 1,
   "validated_count": 2,
   "last_heartbeat_epoch": 1788480225,
   "last_heartbeat_reason": "running_TASK-PLAYABLE-NAV-1"

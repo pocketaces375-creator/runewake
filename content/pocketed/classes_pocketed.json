@@ -1,0 +1,95 @@
+[
+  {
+    "id": "mage",
+    "name": "MAGE",
+    "strata": "TIDE",
+    "town": "Saltmere",
+    "description": "Arcane mastery. The mage bends the weave of the world with focused will.",
+    "blurb": "In the subaqueous libraries of Saltmere, mages pore over forbidden texts etched in coral.",
+    "core_cards": [],
+    "artifact_ids": ["artf_mage_wand", "artf_mage_aura"],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "cleric",
+    "name": "CLERIC",
+    "strata": "DAWN",
+    "town": "Sunspire",
+    "description": "Faith and healing. The cleric mends what the battle breaks.",
+    "blurb": "In the radiant cloisters of Sunspire, clerics tend to the wounded and the weary.",
+    "core_cards": [],
+    "artifact_ids": ["artf_cleric_censer", "artf_cleric_icon"],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "runesmith",
+    "name": "RUNESMITH",
+    "strata": "EMBER",
+    "town": "Emberhold",
+    "description": "Hammer and rune. The runesmith carves power into permanence.",
+    "blurb": "In the forge-deeps of Emberhold, runesmiths speak the language of molten stone.",
+    "core_cards": [],
+    "artifact_ids": ["artf_runesmith_hammer", "artf_runesmith_anvil"],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "tidecaller",
+    "name": "TIDECALLER",
+    "strata": "TIDE",
+    "town": "Saltmere",
+    "description": "Waves and whispers. The tidecaller commands the ocean's memory.",
+    "blurb": "From the drowned spires of Saltmere, tidecallers sing the old songs that move the sea.",
+    "core_cards": [],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "dawnward",
+    "name": "DAWNWARD",
+    "strata": "DAWN",
+    "town": "Sunspire",
+    "description": "Light and boundary. The dawnward stands at the edge of the dark.",
+    "blurb": "At the outer courts of Sunspire, dawnwards hold the line between day and what follows.",
+    "core_cards": [],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "occultist",
+    "name": "OCCULTIST",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Secrets and sacrifice. The occultist bargains with what should not be named.",
+    "blurb": "In the veiled catacombs of Duskchapel, occultists trade pieces of themselves for forbidden knowledge.",
+    "core_cards": [],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "thief",
+    "name": "THIEF",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Shadow and silver. The thief strikes where the light forgets to look.",
+    "blurb": "From the candle-lit crypts of Duskchapel, thieves move through the silence between heartbeats, taking what the dead no longer need.",
+    "core_cards": [],
+    "artifact_ids": ["artf_thief_dagger_whisper", "artf_thief_dagger_dusk"],
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "ranger",
+    "name": "RANGER",
+    "strata": "VERDANT",
+    "town": "Greyhollow",
+    "description": "Shot and silence. The ranger moves unseen between the old trees.",
+    "blurb": "In the mist-choked lowlands of Greyhollow, rangers walk the paths that exist only between heartbeats.",
+    "core_cards": [],
+    "artifact_ids": ["artf_ranger_bow", "artf_ranger_quiver"],
+    "pocketed": true,
+    "future_release": true
+  }
+]

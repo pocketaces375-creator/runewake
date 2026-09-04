@@ -4906,7 +4906,7 @@ private void ShowGameOverOverlay(int winnerIndex)
         int nextId = state.NextInstanceId;
 
         // ——— Player 0: 2 artifacts (READY + CHARGED) ———
-        var p0ArtIds = new[] { "artf_warrior_sword", "artf_thief_dagger_dusk" };
+        var p0ArtIds = new[] { "artf_warrior_sword", "artf_rogue_dagger_dusk" };
         state.Players[0].ArtifactDefIds = p0ArtIds;
         state.Players[0].ArtifactClass = "warrior";
         state.Players[0].ArtifactSlots = new ArtifactSlot[2];
@@ -4980,7 +4980,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 slot.Charges = 0;
                 slot.IsSuppressed = true;
                 slot.SuppressionRemaining = 2;
-                slot.SuppressionSourceId = "artf_thief_dagger_dusk";
+                slot.SuppressionSourceId = "artf_rogue_dagger_dusk";
             }
             // Second artifact: SPENT (HasTriggeredThisTurn = true)
             else

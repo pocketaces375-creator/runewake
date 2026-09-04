@@ -466,12 +466,12 @@ Display names were shortened to one word by TASK-NAMES (aliases in docs/ARTIFACT
 - TRIGGER: `{"trigger": "ON_CREATURE_ATTACKS", "condition": {"op": "ENEMY_ATTACKS_YOUR_CHARACTER"}, "effects": [{"op": "COST_MOD", "applies_to": "SPELL", "target": {"scope": "PLAYER_SELF"}, "amount": 1, "duration": "THIS_TURN", "stacks": true}]}`
 - other fields: `{"flavor": "The rune breathes. So does the mage."}`
 
-### Whisperfang  (`artf_thief_dagger_whisper`) — class thief, slot pool dagger
+### Whisperfang  (`artf_rogue_dagger_whisper`) — class rogue, slot pool dagger
 - PASSIVE: `{"op": "GRANT_KEY", "target": {"scope": "ALLY_CREATURE", "filter": "FIRST_ATTACKER", "count": 1}, "keyword": "STEALTH_STRIKE"}`
 - TRIGGER: `{"trigger": "ON_TURN_END", "condition": {"op": "ATTACKERS_THIS_TURN_EQ", "value": 1}, "effects": [{"op": "DRAW", "target": {"scope": "PLAYER_SELF"}, "amount": 1}]}`
 - other fields: `{"flavor": "Strike once. Vanish. Collect."}`
 
-### Duskfang  (`artf_thief_dagger_dusk`) — class thief, slot pool dagger
+### Duskfang  (`artf_rogue_dagger_dusk`) — class rogue, slot pool dagger
 - PASSIVE: `{"op": "COST_MOD", "applies_to": "CREATURE", "filter": "ATTACK_LTE", "value": 2, "target": {"scope": "PLAYER_SELF"}, "amount": 1}`
 - TRIGGER: `{"trigger": "ON_CHARGE_FULL", "condition": null, "effects": [{"op": "SUPPRESS", "target": {"scope": "PLAYER_ENEMY", "slots": "ALL"}, "turns": 1}, {"op": "RESET_CHARGES", "target": {"scope": "SELF_ARTIFACT"}}]}`
 - CHARGES: `{"max": 3, "gain_on": "on_creature_deals_damage_to_character", "max_per_creature_per_turn": 1, "spend_on": "on_charge_full"}`
@@ -488,23 +488,23 @@ Display names were shortened to one word by TASK-NAMES (aliases in docs/ARTIFACT
 - TRIGGER: `{"trigger": "ON_ALLY_DEATH", "condition": null, "effects": [{"op": "HEAL", "target": {"scope": "PLAYER_SELF"}, "amount": 2}]}`
 - other fields: `{"flavor": "Faith is not fragile. It is forged."}`
 
-### Bow  (`artf_ranger_bow`) — class ranger, slot pool bow
+### Bow  (`artf_astrologist_orb`) — class astrologist, slot pool bow
 - PASSIVE: `{"op": "SET_PREY", "cadence": "ON_TURN_START", "order": "BEFORE_ALL_OTHER_TURN_START_EFFECTS", "target": {"scope": "ENEMY_CREATURE", "filter": "HIGHEST_ATTACK", "count": 1, "tiebreak": "OLDEST_IN_PLAY"}}`
 - TRIGGER: `{"trigger": "ON_PREY_DESTROYED", "condition": {"op": "DURING_YOUR_TURN"}, "effects": [{"op": "DRAW", "target": {"scope": "PLAYER_SELF"}, "amount": 1}], "frequency": "ONCE_PER_TURN"}`
 - other fields: `{"flavor": "The forest marks its own."}`
 
-### Quiver  (`artf_ranger_quiver`) — class ranger, slot pool quiver
+### Quiver  (`artf_astrologist_constellation_starlight`) — class astrologist, slot pool quiver
 - PASSIVE: `{"op": "BUFF", "target": {"scope": "ALLY_CREATURE", "filter": "ATTACKS_PREY", "count": "ALL"}, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING"}`
 - TRIGGER: `{"trigger": "ON_CREATURE_ATTACKS", "condition": {"op": "NTH_ATTACKER_ON_PREY_THIS_TURN", "value": 2}, "effects": [{"op": "DAMAGE", "target": {"scope": "PLAYER_ENEMY"}, "amount": 1}], "frequency": "ONCE_PER_TURN"}`
 - other fields: `{"flavor": "The whispers guide every arrow."}`
 
-### Skull  (`artf_necromancer_grimoire`) — class necromancer, slot pool grimoire
+### Skull  (`artf_necromancer_skull`) — class necromancer, slot pool grimoire
 - PASSIVE: `{"op": "COST_MOD", "applies_to": "CREATURE", "condition": {"op": "CREATURE_DIED_THIS_TURN", "side": "ANY"}, "target": {"scope": "PLAYER_SELF"}, "amount": 1}`
 - TRIGGER: `{"trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{"op": "REVIVE_TOKEN", "target": {"scope": "PLAYER_SELF"}, "token": "artf_revenant_token", "stats": {"attack": 3, "vigor": 3}, "on_board_full": "FIZZLE"}, {"op": "RESET_CHARGES", "target": {"scope": "SELF_ARTIFACT"}}]}`
 - CHARGES: `{"max": 3, "gain_on": "on_ally_dies", "spend_on": "on_charge_full"}`
 - other fields: `{"flavor": "Death is a door. The Court holds the key."}`
 
-### Shard  (`artf_necromancer_phylactery`) — class necromancer, slot pool phylactery
+### Shard  (`artf_necromancer_ritual_piece`) — class necromancer, slot pool phylactery
 - PASSIVE: `{"op": "PREVENT_DAMAGE", "target": {"scope": "PLAYER_SELF"}, "amount": 1, "source": "ATTACK", "condition": {"op": "FEWER_ALLY_CREATURES_THAN_ENEMY"}, "note": "evaluated at damage-application time (R21)"}`
 - TRIGGER: `{"trigger": "ON_CREATURE_DIES", "condition": {"op": "ENEMY"}, "effects": [{"op": "HEAL", "target": {"scope": "PLAYER_SELF"}, "amount": 1}]}`
 - other fields: `{"flavor": "Even death pays its dues."}`
@@ -515,7 +515,7 @@ Display names were shortened to one word by TASK-NAMES (aliases in docs/ARTIFACT
 - CHARGES: `{"max": 3, "gain_on": "on_ally_summoned", "spend_on": "partner_anvil"}`
 - other fields: `{"flavor": "Strike deep. The mountain remembers."}`
 
-### Anvil  (`artf_runesmith_anvil`) — class runesmith, slot pool anvil
+### Anvil  (`artf_paladin_banner`) — class runesmith, slot pool anvil
 - PASSIVE: `{"op": "BUFF", "target": {"scope": "ALLY_CREATURE", "filter": "HAS_PERMANENT_BUFF", "count": "ALL"}, "attack": 1, "vigor": 0, "duration": "WHILE_PRESENT"}`
 - TRIGGER: `{"trigger": "ON_TURN_END_NO_ATTACK", "condition": {"op": "AND", "all": [{"op": "ALLY_CREATURE_EXISTS"}, {"op": "PARTNER_CHARGES_GTE", "value": 1}]}, "effects": [{"op": "FORGE", "spend_from": "PARTNER_SLOT", "spend": "ALL", "target": {"scope": "ALLY_CREATURE", "filter": "HIGHEST_COST", "count": 1, "tiebreak": "OLDEST_IN_PLAY"}, "per_charge": {"attack": 1, "vigor": 1}, "duration": "PERMANENT"}]}`
 - other fields: `{"flavor": "What is not broken can be reforged."}`

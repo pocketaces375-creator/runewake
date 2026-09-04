@@ -889,4 +889,42 @@ public class SaveRepositoryTests : IDisposable
         var loaded = repo.Load();
         Assert.Equal(0, loaded.ShopRotationDay);
     }
+
+    // ─────────────────────────────────────────────
+    //  TASK-ROSTER-LOCK-1: ClassId migration tests
+    // ─────────────────────────────────────────────
+
+    [Fact]
+    public void Load_ThiefClass_MigratesToRogue()
+    {
+        Assert.Equal("rogue", ClassIdMigration.ApplyMigration("thief"));
+        Assert.Equal("rogue", ClassIdMigration.ApplyMigration("THIEF"));
+        Assert.Equal("rogue", ClassIdMigration.ApplyMigration("Thief"));
+    }
+
+    [Fact]
+    public void Load_RangerClass_MigratesToAstrologist()
+    {
+        Assert.Equal("astrologist", ClassIdMigration.ApplyMigration("ranger"));
+        Assert.Equal("astrologist", ClassIdMigration.ApplyMigration("RANGER"));
+        Assert.Equal("astrologist", ClassIdMigration.ApplyMigration("Ranger"));
+    }
+
+    [Fact]
+    public void Migration_UnaffectedClasses_StayUnchanged()
+    {
+        Assert.Equal("warrior", ClassIdMigration.ApplyMigration("warrior"));
+        Assert.Equal("battlemage", ClassIdMigration.ApplyMigration("battlemage"));
+        Assert.Equal("necromancer", ClassIdMigration.ApplyMigration("necromancer"));
+        Assert.Equal("paladin", ClassIdMigration.ApplyMigration("paladin"));
+        Assert.Equal("druid", ClassIdMigration.ApplyMigration("druid"));
+        Assert.Equal("astrologist", ClassIdMigration.ApplyMigration("astrologist"));
+        Assert.Equal("rogue", ClassIdMigration.ApplyMigration("rogue"));
+    }
+
+    [Fact]
+    public void Migration_EmptyOrNull_ReturnsOriginal()
+    {
+        Assert.Equal("", ClassIdMigration.ApplyMigration(""));
+    }
 }

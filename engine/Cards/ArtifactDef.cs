@@ -20,7 +20,7 @@ public sealed class ArtifactDef
     [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
-    /// <summary>The class this Artifact belongs to (e.g. "warrior", "mage", "thief").</summary>
+    /// <summary>The class this Artifact belongs to (e.g. "warrior", "rogue", "battlemage").</summary>
     [JsonPropertyName("class")]
     public string Class { get; set; } = string.Empty;
 

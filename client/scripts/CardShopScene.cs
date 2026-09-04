@@ -194,7 +194,7 @@ public partial class CardShopScene : Control
         {
             OneShot = true,
             WaitTime = 2.5f,
-            AutoStart = false
+            Autostart = false
         };
         _shortfallTimer.Timeout += () => _shortfallLabel.Visible = false;
         AddChild(_shortfallTimer);
@@ -219,9 +219,9 @@ public partial class CardShopScene : Control
         {
             Columns = CardColumns,
             AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.18f, AnchorBottom = 0.9f,
-            AddThemeConstantOverride = { ["separation"] = 12 }
+            AnchorTop = 0.18f, AnchorBottom = 0.9f
         };
+        _cardGrid.AddThemeConstantOverride("separation", 12);
         AddChild(_cardGrid);
     }
 

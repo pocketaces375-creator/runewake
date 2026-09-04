@@ -682,7 +682,7 @@ public class RulingMageThiefTests
 
         // Grant STEALTH_STRIKE to FIRST_ATTACKER (Whisperfang passive fires
         // at declaration, before combat damage)
-        var source = new CardInstance(state.NextInstanceId++, "artf_thief_dagger_whisper", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_rogue_dagger_whisper", 0);
         var grantEffect = new EffectDef
         {
             Op = Op.GRANT_KEY,
@@ -730,7 +730,7 @@ public class RulingMageThiefTests
         // Grant STEALTH_STRIKE to the FIRST_ATTACKER (which has now already
         // attacked — this simulates the passive applying at declaration time,
         // before the second attacker declares)
-        var source = new CardInstance(state.NextInstanceId++, "artf_thief_dagger_whisper", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_rogue_dagger_whisper", 0);
         var grantEffect = new EffectDef
         {
             Op = Op.GRANT_KEY,
@@ -765,7 +765,7 @@ public class RulingMageThiefTests
         var attacker = PlaceCreature(state, 0, 0, attack: 2, vigor: 3);
 
         // Duskfang in slot 0 with charge config
-        AddArtifact(state, 0, 0, "artf_thief_dagger_dusk", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_rogue_dagger_dusk", maxCharges: 3,
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE, Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } } }
@@ -794,7 +794,7 @@ public class RulingMageThiefTests
         var attacker = PlaceCreature(state, 0, 0, attack: 2, vigor: 3);
         state.Players[1].Vigor = 10;
 
-        AddArtifact(state, 0, 0, "artf_thief_dagger_dusk", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_rogue_dagger_dusk", maxCharges: 3,
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE, Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } } }
@@ -830,7 +830,7 @@ public class RulingMageThiefTests
         AddArtifact(state, 1, 0, "artf_enemy_a", maxCharges: 3);
         AddArtifact(state, 1, 1, "artf_enemy_b", maxCharges: 3);
         // Our Duskfang
-        AddArtifact(state, 0, 0, "artf_thief_dagger_dusk", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_rogue_dagger_dusk", maxCharges: 3,
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE, Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } } },
@@ -865,7 +865,7 @@ public class RulingMageThiefTests
         // after reset, new charges can be accumulated.
         var state = CreateState();
         AddArtifact(state, 1, 0, "artf_enemy_a", maxCharges: 3);
-        AddArtifact(state, 0, 0, "artf_thief_dagger_dusk", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_rogue_dagger_dusk", maxCharges: 3,
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE, Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } } },
@@ -906,7 +906,7 @@ public class RulingMageThiefTests
         var state = CreateState();
 
         // Same def id for both daggers (R10: same dagger twice)
-        string duskfangId = "artf_thief_dagger_dusk";
+        string duskfangId = "artf_rogue_dagger_dusk";
 
         // Wire up P0's two artifact slots
         state.Players[0].ArtifactSlots = new ArtifactSlot[2];
@@ -972,7 +972,7 @@ public class RulingMageThiefTests
         // Charge pools.  Two Duskfang artifacts — a charge event fires
         // both triggers independently, each with its own charge tracking.
         var state = CreateState();
-        string duskfangId = "artf_thief_dagger_dusk";
+        string duskfangId = "artf_rogue_dagger_dusk";
 
         state.Players[0].ArtifactSlots = new ArtifactSlot[2];
         state.Players[0].ArtifactSlots[0] = new ArtifactSlot(0);
@@ -1072,7 +1072,7 @@ public class RulingMageThiefTests
         // ON_TURN_END trigger independently.  Test with ATTACKERS_THIS_TURN_EQ
         // condition (draw 1 at end of turn).
         var state = CreateState();
-        string whisperId = "artf_thief_dagger_whisper";
+        string whisperId = "artf_rogue_dagger_whisper";
 
         state.Players[0].ArtifactSlots = new ArtifactSlot[2];
         state.Players[0].ArtifactSlots[0] = new ArtifactSlot(0);
@@ -1127,7 +1127,7 @@ public class RulingMageThiefTests
         // R10: Two daggers (same def id) have separate charge pools.
         // Filling slot 0 to 3 does NOT affect slot 1's charges.
         var state = CreateState();
-        string duskfangId = "artf_thief_dagger_dusk";
+        string duskfangId = "artf_rogue_dagger_dusk";
 
         state.Players[0].ArtifactSlots = new ArtifactSlot[2];
         state.Players[0].ArtifactSlots[0] = new ArtifactSlot(0);

@@ -158,7 +158,7 @@ public class RulingNecromancerRunesmithTests
         var state = CreateState();
 
         // Set up Grimoire with COST_MOD passive: -1 to creatures while >=1 creature died this turn
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire",
+        AddArtifact(state, 0, 0, "artf_necromancer_skull",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -199,7 +199,7 @@ public class RulingNecromancerRunesmithTests
         // R19: All creatures cost less, not just the first one played.
         var state = CreateState();
 
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire",
+        AddArtifact(state, 0, 0, "artf_necromancer_skull",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -236,7 +236,7 @@ public class RulingNecromancerRunesmithTests
         // R19: No discount when no creature died this turn.
         var state = CreateState();
 
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire",
+        AddArtifact(state, 0, 0, "artf_necromancer_skull",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -276,7 +276,7 @@ public class RulingNecromancerRunesmithTests
         var player = state.Players[0];
 
         // Grimoire with deferred ON_CHARGE_FULL that revives a token
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_necromancer_skull", maxCharges: 3,
             hasDeferredChargeFull: true,
             abilities: new List<AbilityDef>
             {
@@ -346,7 +346,7 @@ public class RulingNecromancerRunesmithTests
         for (int i = 0; i < 5; i++)
             PlaceCreature(state, 0, i, attack: 1, vigor: 1);
 
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire", maxCharges: 3,
+        AddArtifact(state, 0, 0, "artf_necromancer_skull", maxCharges: 3,
             hasDeferredChargeFull: true,
             abilities: new List<AbilityDef>
             {
@@ -413,7 +413,7 @@ public class RulingNecromancerRunesmithTests
         state.Players[0].Vigor = 25;
 
         // Phylactery with PREVENT_DAMAGE 1, source ATTACK, condition FEWER_ALLY_CREATURES_THAN_ENEMY
-        AddArtifact(state, 0, 0, "artf_necromancer_phylactery",
+        AddArtifact(state, 0, 0, "artf_necromancer_ritual_piece",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -484,7 +484,7 @@ public class RulingNecromancerRunesmithTests
         PlaceCreature(state, 1, 0, attack: 2, vigor: 5);
         state.Players[0].Vigor = 25;
 
-        AddArtifact(state, 0, 0, "artf_necromancer_phylactery",
+        AddArtifact(state, 0, 0, "artf_necromancer_ritual_piece",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -530,7 +530,7 @@ public class RulingNecromancerRunesmithTests
         PlaceCreature(state, 1, 0, attack: 2, vigor: 1); // fragile enemy
 
         // Phylactery with ON_CREATURE_DIES + condition ENEMY → HEAL 1
-        AddArtifact(state, 0, 0, "artf_necromancer_phylactery",
+        AddArtifact(state, 0, 0, "artf_necromancer_ritual_piece",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -578,7 +578,7 @@ public class RulingNecromancerRunesmithTests
         PlaceCreature(state, 0, 0, attack: 2, vigor: 1); // fragile ally
         PlaceCreature(state, 1, 0, attack: 5, vigor: 5);
 
-        AddArtifact(state, 0, 0, "artf_necromancer_phylactery",
+        AddArtifact(state, 0, 0, "artf_necromancer_ritual_piece",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -626,7 +626,7 @@ public class RulingNecromancerRunesmithTests
         // P1 has a creature
         PlaceCreature(state, 1, 0, attack: 2, vigor: 1);
 
-        AddArtifact(state, 0, 0, "artf_necromancer_phylactery",
+        AddArtifact(state, 0, 0, "artf_necromancer_ritual_piece",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -888,7 +888,7 @@ public class RulingNecromancerRunesmithTests
             });
 
         // Anvil trigger: ON_TURN_END_NO_ATTACK → FORGE
-        AddArtifact(state, 0, 1, "artf_runesmith_anvil",
+        AddArtifact(state, 0, 1, "artf_paladin_banner",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -1006,7 +1006,7 @@ public class RulingNecromancerRunesmithTests
                 }
             });
 
-        AddArtifact(state, 0, 1, "artf_runesmith_anvil",
+        AddArtifact(state, 0, 1, "artf_paladin_banner",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -1095,7 +1095,7 @@ public class RulingNecromancerRunesmithTests
                 Count = TargetCount.All
             }
         };
-        var source = new CardInstance(state.NextInstanceId++, "artf_runesmith_anvil", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_paladin_banner", 0);
         var targets = TargetResolver.Resolve(effect.Target!, source,
             state.Players[0], state.Players[1], state);
 
@@ -1126,7 +1126,7 @@ public class RulingNecromancerRunesmithTests
                 Count = TargetCount.All
             }
         };
-        var source = new CardInstance(state.NextInstanceId++, "artf_runesmith_anvil", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_paladin_banner", 0);
         var targets = TargetResolver.Resolve(effect.Target!, source,
             state.Players[0], state.Players[1], state);
 
@@ -1159,7 +1159,7 @@ public class RulingNecromancerRunesmithTests
                 Count = TargetCount.All
             }
         };
-        var source = new CardInstance(state.NextInstanceId++, "artf_runesmith_anvil", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_paladin_banner", 0);
         var targets = TargetResolver.Resolve(effect.Target!, source,
             state.Players[0], state.Players[1], state);
 
@@ -1180,7 +1180,7 @@ public class RulingNecromancerRunesmithTests
         // Barrow, or RemovedFromGame.
         var state = CreateState();
 
-        AddArtifact(state, 0, 0, "artf_necromancer_grimoire");
+        AddArtifact(state, 0, 0, "artf_necromancer_skull");
         var artifact = state.Players[0].ArtifactSlots[0].Occupant!;
 
         // Verify initial zone

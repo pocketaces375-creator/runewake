@@ -683,8 +683,7 @@ public partial class SettingsScene : Control
             CampaignContext.SaveManager.State.DiscoveredRelics.Clear();
             CampaignContext.SaveManager.State.DeckCardIds.Clear();
             CampaignContext.SaveManager.State.SavedDecks.Clear();
-            CampaignContext.SaveManager.State.RuneSlotUnlockCounts.Clear();
-            CampaignContext.SaveManager.State.RuneUpgradeTiers.Clear();
+            // RuneSlotUnlockCounts/RuneUpgradeTiers were removed from ProgressionState (v4→v5)
             CampaignContext.SaveManager.State.SavedRunePageJson = "";
             CampaignContext.SaveManager.State.Tutorial = null;
             CampaignContext.Progression.Collection.Clear();

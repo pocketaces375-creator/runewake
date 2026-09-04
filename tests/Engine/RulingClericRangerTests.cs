@@ -661,7 +661,7 @@ public class RulingClericRangerTests
             }
         };
 
-        var source = new CardInstance(state.NextInstanceId++, "artf_ranger_bow", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_astrologist_orb", 0);
         var targets = TargetResolver.Resolve(setPreyEffect.Target!, source,
             state.Players[0], state.Players[1], state);
 
@@ -713,7 +713,7 @@ public class RulingClericRangerTests
                 Count = TargetCount.Exactly(1)
             }
         };
-        var source = new CardInstance(state.NextInstanceId++, "artf_ranger_bow", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_astrologist_orb", 0);
         var targets = TargetResolver.Resolve(setPreyEffect.Target!, source,
             state.Players[0], state.Players[1], state);
         EffectExecutor.Execute(setPreyEffect, source, state, targets);
@@ -740,7 +740,7 @@ public class RulingClericRangerTests
         int handBefore = state.Players[0].Hand.Count;
 
         // Bow artifact with ON_PREY_DESTROYED trigger: draw 1
-        AddArtifact(state, 0, 0, "artf_ranger_bow",
+        AddArtifact(state, 0, 0, "artf_astrologist_orb",
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE,
@@ -823,7 +823,7 @@ public class RulingClericRangerTests
                 Count = TargetCount.Exactly(1)
             }
         };
-        var source = new CardInstance(state.NextInstanceId++, "artf_ranger_bow", 0);
+        var source = new CardInstance(state.NextInstanceId++, "artf_astrologist_orb", 0);
         var targets = TargetResolver.Resolve(setPreyEffect.Target!, source,
             state.Players[0], state.Players[1], state);
         EffectExecutor.Execute(setPreyEffect, source, state, targets);
@@ -849,7 +849,7 @@ public class RulingClericRangerTests
 
         // Place Quiver in slot 1 with ON_ATTACK trigger gated by
         // NTH_ATTACKER_ON_PREY_THIS_TURN ≥ 2
-        AddArtifact(state, 0, 1, "artf_ranger_quiver",
+        AddArtifact(state, 0, 1, "artf_astrologist_constellation_starlight",
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE,
@@ -905,7 +905,7 @@ public class RulingClericRangerTests
         var prey = PlaceCreature(state, 1, 0, attack: 3, vigor: 5);
         state.Players[0].PreyTargetId = prey.InstanceId;
 
-        AddArtifact(state, 0, 1, "artf_ranger_quiver",
+        AddArtifact(state, 0, 1, "artf_astrologist_constellation_starlight",
             abilities: new List<AbilityDef>
             {
                 new() { Trigger = Trigger.PASSIVE,
@@ -972,7 +972,7 @@ public class RulingClericRangerTests
         // Bow in slot 0; enemy creature available as prey target.
         var enemy = PlaceCreature(state, 1, 0, attack: 5, vigor: 5);
 
-        AddArtifact(state, 0, 0, "artf_ranger_bow",
+        AddArtifact(state, 0, 0, "artf_astrologist_orb",
             abilities: new List<AbilityDef>
             {
                 new()
@@ -1021,7 +1021,7 @@ public class RulingClericRangerTests
         state.Players[0].PreyTargetId = prey.InstanceId;
 
         // Bow gets suppressed
-        AddArtifact(state, 0, 0, "artf_ranger_bow");
+        AddArtifact(state, 0, 0, "artf_astrologist_orb");
         state.Players[0].ArtifactSlots[0].IsSuppressed = true;
         state.Players[0].ArtifactSlots[0].SuppressionRemaining = 1;
 

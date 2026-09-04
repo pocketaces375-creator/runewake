@@ -1,77 +1,19 @@
 [
   {
-    "id": "warrior",
-    "name": "WARRIOR",
-    "strata": "EMBER",
-    "town": "Emberhold",
-    "description": "Steel and fire. The warrior forges victory from the anvil of battle.",
-    "blurb": "Tempered in the forge-fires of Emberhold, warriors carry the ancient craft of war into every fight.",
-    "core_cards": [
-      "emb_c_forgeguard_berserker",
-      "emb_c_ember_hound",
-      "emb_c_cinder_runner",
-      "emb_u_wildfire_adept"
-    ]
-  },
-  {
     "id": "battlemage",
     "name": "BATTLEMAGE",
     "strata": "TIDE",
     "town": "Saltmere",
     "description": "Arcane and steel. The battlemage wields magic as a weapon, not a study.",
     "blurb": "In the drowned markets of Saltmere, battlemage aspirants trade spells for secrets and carve their names into the tide.",
+    "starting_items": ["wand", "aura"],
     "core_cards": [
       "tid_c_tidal_scholar",
       "tid_c_deep_one",
       "tid_c_whirlpool_elemental",
       "tid_u_brine_witch"
     ],
-    "placeholder": true,
     "portrait_placeholder": true
-  },
-  {
-    "id": "thief",
-    "name": "THIEF",
-    "strata": "HOLLOW",
-    "town": "Duskchapel",
-    "description": "Shadow and silver. The thief strikes where the light forgets to look.",
-    "blurb": "From the candle-lit crypts of Duskchapel, thieves move through the silence between heartbeats, taking what the dead no longer need.",
-    "core_cards": [
-      "hol_u_crypt_crawler",
-      "hol_u_soul_harvest",
-      "hol_u_barrow_revenant",
-      "hol_c_bone_shard_volley"
-    ],
-    "placeholder": true,
-    "portrait_placeholder": true
-  },
-  {
-    "id": "druid",
-    "name": "DRUID",
-    "strata": "VERDANT",
-    "town": "Mossgrave",
-    "description": "Root and renewal. The druid speaks the language of the living earth.",
-    "blurb": "Deep in the canopies of Mossgrave, druids tend the old growth and awaken the deep roots.",
-    "core_cards": [
-      "vrd_c_root_warden",
-      "vrd_c_verdant_sproutling",
-      "vrd_c_wildwood_stalker",
-      "vrd_u_grove_healer"
-    ]
-  },
-  {
-    "id": "ranger",
-    "name": "RANGER",
-    "strata": "VERDANT",
-    "town": "Greyhollow",
-    "description": "Shot and silence. The ranger moves unseen between the old trees.",
-    "blurb": "In the mist-choked lowlands of Greyhollow, rangers walk the paths that exist only between heartbeats.",
-    "core_cards": [
-      "vrd_c_thornbark_defender",
-      "vrd_u_canopy_archer",
-      "vrd_u_saphoof_charger",
-      "vrd_u_elder_treant"
-    ]
   },
   {
     "id": "necromancer",
@@ -80,6 +22,7 @@
     "town": "Palewatch",
     "description": "Bone and bargain. The necromancer commands what others fear to wake.",
     "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
+    "starting_items": ["skull", "ritual piece"],
     "core_cards": [
       "hol_c_gravewrit_thrall",
       "hol_c_skeletal_reaver",
@@ -94,13 +37,70 @@
     "town": "Sunspire",
     "description": "Oath and iron. The paladin is the unbroken wall between the dark and the dawn.",
     "blurb": "From the golden halls of Sunspire, paladins carry the ancient oaths into every shadow, and the light follows.",
+    "starting_items": ["hammer", "banner"],
     "core_cards": [
       "dwn_c_dawn_warder",
       "dwn_c_sunblade_recruit",
       "dwn_c_golden_retainer",
       "dwn_u_steadfast_bulwark"
     ],
-    "placeholder": true,
     "portrait_placeholder": true
+  },
+  {
+    "id": "druid",
+    "name": "DRUID",
+    "strata": "VERDANT",
+    "town": "Mossgrave",
+    "description": "Root and renewal. The druid speaks the language of the living earth.",
+    "blurb": "Deep in the canopies of Mossgrave, druids tend the old growth and awaken the deep roots.",
+    "starting_items": ["book of familiar", "elemental bond"],
+    "core_cards": [
+      "vrd_c_root_warden",
+      "vrd_c_verdant_sproutling",
+      "vrd_c_wildwood_stalker",
+      "vrd_u_grove_healer"
+    ]
+  },
+  {
+    "id": "rogue",
+    "name": "ROGUE",
+    "strata": "HOLLOW",
+    "town": "Duskchapel",
+    "description": "Shadow and silver. The rogue strikes where the light forgets to look.",
+    "blurb": "From the candle-lit crypts of Duskchapel, rogues move through the silence between heartbeats, taking what the dead no longer need.",
+    "starting_items": ["dagger_dusk", "dagger_whisper"],
+    "core_cards": [
+      "hol_u_crypt_crawler",
+      "hol_u_soul_harvest",
+      "hol_u_barrow_revenant",
+      "hol_c_bone_shard_volley"
+    ],
+    "portrait_placeholder": true
+  },
+  {
+    "id": "astrologist",
+    "name": "ASTROLOGIST",
+    "strata": "TIDE",
+    "town": "Starfall Reach",
+    "description": "Star and prophecy. The astrologist reads the sky and bends fate.",
+    "blurb": "In the observatory-spires of Starfall Reach, astrologists chart the celestial tide and whisper to the constellations.",
+    "starting_items": ["orb", "constellation starlight"],
+    "core_cards": [],
+    "portrait_placeholder": true
+  },
+  {
+    "id": "warrior",
+    "name": "WARRIOR",
+    "strata": "EMBER",
+    "town": "Emberhold",
+    "description": "Steel and fire. The warrior forges victory from the anvil of battle.",
+    "blurb": "Tempered in the forge-fires of Emberhold, warriors carry the ancient craft of war into every fight.",
+    "starting_items": ["sword", "shield"],
+    "core_cards": [
+      "emb_c_forgeguard_berserker",
+      "emb_c_ember_hound",
+      "emb_c_cinder_runner",
+      "emb_u_wildfire_adept"
+    ]
   }
 ]

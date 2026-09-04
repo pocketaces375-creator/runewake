@@ -14,12 +14,12 @@ STYLE = (
 
 PORTRAITS = [
     ("warrior", "An armored forge-warrior wreathed in ember light and drifting ash, heavy plate armor, orange glow, dark forge background"),
+    ("battlemage", "A battlemage wielding arcane steel, crackling blue-white energy, tide-marked armor, storm-tossed harbor background"),
     ("necromancer", "A pale robed necromancer amid bone-lanterns, gaunt face, skeletal hands, purple-black shadows, bone-white light"),
+    ("paladin", "A golden-armored paladin bearing oath and hammer, warm dawn light, Sunspire architecture behind them"),
     ("druid", "An antlered druid grown into living roots and moss, bark-textured skin, deep forest greens, earthy browns, golden highlights"),
-    ("tidecaller", "A tide-cloaked scholar with luminous water coils swirling around them, deep blue-teal depths, pale foam edges, sea-green light"),
-    ("dawnward", "A radiant knight-warden at first light, polished golden armor, warm cream and pale gold tones, soft amber dawn light"),
-    ("ranger", "A hooded wildland archer half in green forest shade, half in gold morning light, drawn bow, treeline horizon"),
-    ("occultist", "A gaunt seer wrapped in dripping votive cloth, pale candles reflected in dark water, murky violet shadows, bone-white highlights"),
+    ("rogue", "A hooded rogue in shadow and candlelight, twin daggers drawn, dark crypt background, silver highlights"),
+    ("astrologist", "A stargazer astrologist wrapped in a cloak of deep indigo, celestial charts glowing faintly, observatory spire night sky"),
 ]
 
 HERE = os.path.dirname(os.path.abspath(__file__))

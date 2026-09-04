@@ -1,0 +1,178 @@
+[
+  {
+    "id": "artf_mage_wand",
+    "class": "mage",
+    "slot_pool": "wand",
+    "name": "Wand",
+    "passive": { "op": "COST_MOD", "applies_to": "SPELL", "filter": "FIRST_SPELL_EACH_TURN", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "trigger": { "trigger": "ON_SPELL_CAST", "condition": { "op": "SPELLS_CAST_THIS_TURN_EQ", "value": 2 }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "charges": { "max": 3, "gain_on": "on_spell_second", "spend_on": "on_spell_targets_creature", "spend_note": "auto-spend ALL on next spell with >=1 creature target; +1 damage OR +1 healing per charge, FIRST creature target only; buff spells do not spend (R4)" },
+    "flavor": "The warden's eye never blinks.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_mage_aura",
+    "class": "mage",
+    "slot_pool": "aura",
+    "name": "Aura",
+    "passive": { "op": "PREVENT_DAMAGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "filter": "FIRST_ATTACK_EACH_TURN", "source": "ATTACK" },
+    "trigger": { "trigger": "ON_CREATURE_ATTACKS", "condition": { "op": "ENEMY_ATTACKS_YOUR_CHARACTER" }, "effects": [{ "op": "COST_MOD", "applies_to": "SPELL", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "duration": "THIS_TURN", "stacks": true }] },
+    "charges": null,
+    "flavor": "The rune breathes. So does the mage.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_cleric_censer",
+    "class": "cleric",
+    "slot_pool": "censer",
+    "name": "Censer",
+    "passive": { "op": "HEAL", "cadence": "ON_TURN_START", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1, "tiebreak": "OWNER_CHOOSES" }, "amount": 1 },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "HEAL_FULL", "target": { "scope": "ALLY_CREATURE", "count": "ALL" } }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
+    "charges": { "max": 3, "gain_on": "on_creature_survived_combat_damage", "max_per_turn": 1, "spend_on": "on_charge_full" },
+    "flavor": "The light remembers every wound.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_cleric_icon",
+    "class": "cleric",
+    "slot_pool": "icon",
+    "name": "Icon",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "HEALED_THIS_TURN", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "THIS_TURN", "note": "only actual heals >=1 restored health count; overheal excluded (R13)" },
+    "trigger": { "trigger": "ON_ALLY_DEATH", "condition": null, "effects": [{ "op": "HEAL", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }] },
+    "charges": null,
+    "flavor": "Faith is not fragile. It is forged.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_ranger_bow",
+    "class": "ranger",
+    "slot_pool": "bow",
+    "name": "Bow",
+    "passive": { "op": "SET_PREY", "cadence": "ON_TURN_START", "order": "BEFORE_ALL_OTHER_TURN_START_EFFECTS", "target": { "scope": "ENEMY_CREATURE", "filter": "HIGHEST_ATTACK", "count": 1, "tiebreak": "OLDEST_IN_PLAY" } },
+    "trigger": { "trigger": "ON_PREY_DESTROYED", "condition": { "op": "DURING_YOUR_TURN" }, "effects": [{ "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }], "frequency": "ONCE_PER_TURN" },
+    "charges": null,
+    "flavor": "The forest marks its own.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_ranger_quiver",
+    "class": "ranger",
+    "slot_pool": "quiver",
+    "name": "Quiver",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ATTACKS_PREY", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING" },
+    "trigger": { "trigger": "ON_CREATURE_ATTACKS", "condition": { "op": "NTH_ATTACKER_ON_PREY_THIS_TURN", "value": 2 }, "effects": [{ "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 }], "frequency": "ONCE_PER_TURN" },
+    "charges": null,
+    "flavor": "The whispers guide every arrow.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_necromancer_grimoire",
+    "class": "necromancer",
+    "slot_pool": "grimoire",
+    "name": "Skull",
+    "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "condition": { "op": "CREATURE_DIED_THIS_TURN", "side": "ANY" }, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "timing": "END_OF_TURN", "condition": null, "effects": [{ "op": "REVIVE_TOKEN", "target": { "scope": "PLAYER_SELF" }, "token": "artf_revenant_token", "stats": { "attack": 3, "vigor": 3 }, "on_board_full": "FIZZLE" }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
+    "charges": { "max": 3, "gain_on": "on_ally_dies", "spend_on": "on_charge_full" },
+    "flavor": "Death is a door. The Court holds the key.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_necromancer_phylactery",
+    "class": "necromancer",
+    "slot_pool": "phylactery",
+    "name": "Shard",
+    "passive": { "op": "PREVENT_DAMAGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1, "source": "ATTACK", "condition": { "op": "FEWER_ALLY_CREATURES_THAN_ENEMY" }, "note": "evaluated at damage-application time (R21)" },
+    "trigger": { "trigger": "ON_CREATURE_DIES", "condition": { "op": "ENEMY" }, "effects": [{ "op": "HEAL", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "charges": null,
+    "flavor": "Even death pays its dues.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_runesmith_hammer",
+    "class": "runesmith",
+    "slot_pool": "hammer",
+    "name": "Hammer",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_SUMMONED_THIS_TURN", "count": 1 }, "attack": 0, "vigor": 1, "duration": "PERMANENT", "note": "no cost threshold; tokens count (R23)" },
+    "trigger": { "trigger": "ON_SUMMON", "condition": { "op": "FRIENDLY_ON_YOUR_TURN" }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "charges": { "max": 3, "gain_on": "on_ally_summoned", "spend_on": "partner_anvil" },
+    "flavor": "Strike deep. The mountain remembers.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_runesmith_anvil",
+    "class": "runesmith",
+    "slot_pool": "anvil",
+    "name": "Anvil",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "HAS_PERMANENT_BUFF", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_PRESENT" },
+    "trigger": { "trigger": "ON_TURN_END_NO_ATTACK", "condition": { "op": "AND", "all": [{ "op": "ALLY_CREATURE_EXISTS" }, { "op": "PARTNER_CHARGES_GTE", "value": 1 }] }, "effects": [{ "op": "FORGE", "spend_from": "PARTNER_SLOT", "spend": "ALL", "target": { "scope": "ALLY_CREATURE", "filter": "HIGHEST_COST", "count": 1, "tiebreak": "OLDEST_IN_PLAY" }, "per_charge": { "attack": 1, "vigor": 1 }, "duration": "PERMANENT" }] },
+    "charges": null,
+    "flavor": "What is not broken can be reforged.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_necromancer_scythe",
+    "class": "necromancer",
+    "slot_pool": "scythe",
+    "name": "Scythe",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_druid_staff",
+    "class": "druid",
+    "slot_pool": "staff",
+    "name": "Staff",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_druid_totem",
+    "class": "druid",
+    "slot_pool": "totem",
+    "name": "Totem",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_paladin_anvil",
+    "class": "paladin",
+    "slot_pool": "anvil",
+    "name": "Anvil",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_thief_dagger_whisper",
+    "class": "thief",
+    "slot_pool": "dagger",
+    "name": "Whisperfang",
+    "passive": { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_ATTACKER", "count": 1 }, "keyword": "STEALTH_STRIKE" },
+    "trigger": { "trigger": "ON_TURN_END", "condition": { "op": "ATTACKERS_THIS_TURN_EQ", "value": 1 }, "effects": [{ "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "charges": null,
+    "flavor": "Strike once. Vanish. Collect.",
+    "pocketed": true,
+    "future_release": true
+  },
+  {
+    "id": "artf_thief_dagger_dusk",
+    "class": "thief",
+    "slot_pool": "dagger",
+    "name": "Duskfang",
+    "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "filter": "ATTACK_LTE", "value": 2, "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "trigger": { "trigger": "ON_CHARGE_FULL", "condition": null, "effects": [{ "op": "SUPPRESS", "target": { "scope": "PLAYER_ENEMY", "slots": "ALL" }, "turns": 1 }, { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }] },
+    "charges": { "max": 3, "gain_on": "on_creature_deals_damage_to_character", "max_per_creature_per_turn": 1, "spend_on": "on_charge_full" },
+    "flavor": "The night always collects.",
+    "pocketed": true,
+    "future_release": true
+  }
+]

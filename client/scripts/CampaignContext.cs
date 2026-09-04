@@ -265,6 +265,7 @@ public static class CampaignContext
                             {
                                 Profiles = data.Profiles;
                                 ActiveProfileSlot = 0;
+                                MigrateLegacyClassIds();
                                 ChosenClass = Profiles[0].ClassId;
                                 ChosenTown = Profiles[0].TownName ?? "";
                                 GD.Print($"[CampaignContext] {Profiles.Count} profiles loaded (v2 format)");
@@ -293,6 +294,7 @@ public static class CampaignContext
                                 old.StoryFlags = "";
                                 Profiles.Add(old);
                                 ActiveProfileSlot = 0;
+                                MigrateLegacyClassIds();
                                 ChosenClass = old.ClassId;
                                 ChosenTown = old.TownName ?? "";
                                 // Save to new format immediately
@@ -310,6 +312,34 @@ public static class CampaignContext
             }
 
             GD.Print("[CampaignContext] No profiles found");
+        }
+
+        /// <summary>
+        /// Migrate legacy class IDs from old saves to the new roster (TASK-ROSTER-LOCK-1).
+        /// thief → rogue, ranger → astrologist.
+        /// </summary>
+        private static void MigrateLegacyClassIds()
+        {
+            foreach (var profile in Profiles)
+            {
+                if (string.IsNullOrEmpty(profile.ClassId)) continue;
+                string mapped = ClassIdMigration.ApplyMigration(profile.ClassId);
+                if (mapped != profile.ClassId)
+                {
+                    GD.Print($"[CampaignContext] Migrating profile class: {profile.ClassId} → {mapped}");
+                    profile.ClassId = mapped;
+                }
+            }
+            // Also migrate deck library
+            foreach (var deck in DeckLibrary)
+            {
+                if (string.IsNullOrEmpty(deck.ClassId)) continue;
+                string mapped = ClassIdMigration.ApplyMigration(deck.ClassId);
+                if (mapped != deck.ClassId)
+                {
+                    deck.ClassId = mapped;
+                }
+            }
         }
 
         /// <summary>Add or update a profile in the list (max 3 slots).</summary>

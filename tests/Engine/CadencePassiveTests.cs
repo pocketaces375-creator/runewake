@@ -227,7 +227,7 @@ public class CadencePassiveTests
         var state = CreateState();
 
         // P0: Bow (SET_PREY, BEFORE_ALL_OTHER) + Censer (HEAL, default).
-        AddArtifact(state, 0, 0, "artf_ranger_bow", PreyMarkEffect());
+        AddArtifact(state, 0, 0, "artf_astrologist_orb", PreyMarkEffect());
         AddArtifact(state, 0, 1, "artf_cleric_censer", CenserHealEffect());
 
         // P1 enemy creature with the highest attack — prey target.
@@ -253,7 +253,7 @@ public class CadencePassiveTests
     public void PreyMarking_NoEnemies_NoMark()
     {
         var state = CreateState();
-        AddArtifact(state, 0, 0, "artf_ranger_bow", PreyMarkEffect());
+        AddArtifact(state, 0, 0, "artf_astrologist_orb", PreyMarkEffect());
 
         // No enemy creatures → no valid prey target (R15).
         state = EndTurn(state, 1);
@@ -331,7 +331,7 @@ public class CadencePassiveTests
         var state = CreateState();
 
         // Bow in slot 0; enemy creature available as prey target.
-        AddArtifact(state, 0, 0, "artf_ranger_bow", PreyMarkEffect());
+        AddArtifact(state, 0, 0, "artf_astrologist_orb", PreyMarkEffect());
         PlaceCreature(state, 1, 0, 5, 5);
 
         // Suppress the Bow — cadence passive must NOT fire (R18).
@@ -356,13 +356,13 @@ public class CadencePassiveTests
         var byId = doc.RootElement.EnumerateArray()
             .ToDictionary(a => a.GetProperty("id").GetString()!);
 
-        var bow = byId["artf_ranger_bow"].GetProperty("passive");
+        var bow = byId["artf_astrologist_orb"].GetProperty("passive");
         Assert.Equal("SET_PREY", bow.GetProperty("op").GetString());
         Assert.Equal("ON_TURN_START", bow.GetProperty("cadence").GetString());
         Assert.Equal("BEFORE_ALL_OTHER_TURN_START_EFFECTS", bow.GetProperty("order").GetString());
 
-        var censer = byId["artf_cleric_censer"].GetProperty("passive");
-        Assert.Equal("HEAL", censer.GetProperty("op").GetString());
-        Assert.Equal("ON_TURN_START", censer.GetProperty("cadence").GetString());
+        var eleBond = byId["artf_druid_elemental_bond"].GetProperty("passive");
+        Assert.Equal("HEAL", eleBond.GetProperty("op").GetString());
+        Assert.Equal("ON_TURN_START", eleBond.GetProperty("cadence").GetString());
     }
 }

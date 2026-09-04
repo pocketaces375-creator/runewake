@@ -511,20 +511,21 @@ public class CostModTests
         // Every discount previously encoded as ATTUNE is now COST_MOD.
         var byId = artifacts.ToDictionary(a => a.GetProperty("id").GetString()!);
 
-        Assert.Equal("COST_MOD", byId["artf_mage_wand"].GetProperty("passive").GetProperty("op").GetString());
-        Assert.Equal("FIRST_SPELL_EACH_TURN", byId["artf_mage_wand"].GetProperty("passive").GetProperty("filter").GetString());
+        // Battlemage wand (placeholder BUFF until TASK-CLASS-IDENTITY-1)
+        Assert.Equal("BUFF", byId["artf_battlemage_wand"].GetProperty("passive").GetProperty("op").GetString());
+        Assert.Equal("ATTACKING", byId["artf_battlemage_wand"].GetProperty("passive").GetProperty("target").GetProperty("filter").GetString());
 
-        var auraTriggerEffects = byId["artf_mage_aura"].GetProperty("trigger").GetProperty("effects");
-        Assert.Equal("COST_MOD", auraTriggerEffects[0].GetProperty("op").GetString());
-        Assert.Equal("THIS_TURN", auraTriggerEffects[0].GetProperty("duration").GetString());
-        Assert.True(auraTriggerEffects[0].GetProperty("stacks").GetBoolean());
+        // Battlemage aura (placeholder BUFF until TASK-CLASS-IDENTITY-1)
+        var auraPassive = byId["artf_battlemage_aura"].GetProperty("passive");
+        Assert.Equal("BUFF", auraPassive.GetProperty("op").GetString());
+        Assert.Equal("HAS_NOT_ATTACKED", auraPassive.GetProperty("target").GetProperty("filter").GetString());
 
-        var duskfangPassive = byId["artf_thief_dagger_dusk"].GetProperty("passive");
+        var duskfangPassive = byId["artf_rogue_dagger_dusk"].GetProperty("passive");
         Assert.Equal("COST_MOD", duskfangPassive.GetProperty("op").GetString());
         Assert.Equal("ATTACK_LTE", duskfangPassive.GetProperty("filter").GetString());
         Assert.Equal(2, duskfangPassive.GetProperty("value").GetInt32());
 
-        var grimoirePassive = byId["artf_necromancer_grimoire"].GetProperty("passive");
+        var grimoirePassive = byId["artf_necromancer_skull"].GetProperty("passive");
         Assert.Equal("COST_MOD", grimoirePassive.GetProperty("op").GetString());
         Assert.Equal("CREATURE_DIED_THIS_TURN", grimoirePassive.GetProperty("condition").GetProperty("op").GetString());
 
