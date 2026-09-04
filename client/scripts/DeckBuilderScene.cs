@@ -133,10 +133,10 @@ public partial class DeckBuilderScene : Control
                     if (image != null)
                     {
                         string path = CampaignContext.WideCaptureMode
-                            ? "/home/fictive/runewake-lane4/artifacts/captures/deck_test_wide.png"
+                            ? ProjectPaths.Artifacts + "/captures/deck_test_wide.png"
                             : CampaignContext.PhoneCaptureMode
-                                ? "/home/fictive/runewake-lane4/artifacts/captures/deck_test_phone.png"
-                                : "/home/fictive/runewake-lane4/artifacts/captures/deck_test.png";
+                                ? ProjectPaths.Artifacts + "/captures/deck_test_phone.png"
+                                : ProjectPaths.Artifacts + "/captures/deck_test.png";
                         image.SavePng(path);
                         string baseName = System.IO.Path.GetFileNameWithoutExtension(path.Substring(path.LastIndexOf('/') + 1));
                         DebugCapture.WriteLayoutJson(this, baseName);

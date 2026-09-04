@@ -577,7 +577,7 @@ public partial class Main : Control
                     var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/title_test{suffix}.png");
+                        img.SavePng($"{ProjectPaths.Artifacts}/captures/title_test{suffix}.png");
                     DebugCapture.WriteLayoutJson(this, $"title_test{suffix}");
                     GD.Print($"[Main] title_test{suffix}.png saved");
 
@@ -608,7 +608,7 @@ public partial class Main : Control
                     {
                         var img = GetViewport().GetTexture().GetImage();
                         if (img != null)
-                            img.SavePng("/home/fictive/runewake-lane4/artifacts/captures/crash_test.png");
+                            img.SavePng(ProjectPaths.Artifacts + "/captures/crash_test.png");
                         DebugCapture.WriteLayoutJson(this, "crash_test");
                         GD.Print("[Main] crash_test.png saved");
                         DebugCapture.DumpLayoutJSON("crash_test", this);
@@ -638,7 +638,7 @@ public partial class Main : Control
                     // Capture title screen
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake-lane4/artifacts/captures/title_deck.png");
+                        img.SavePng(ProjectPaths.Artifacts + "/captures/title_deck.png");
                     DebugCapture.WriteLayoutJson(this, "title_deck");
                     GD.Print("[Main] title_deck.png saved");
 
@@ -659,7 +659,7 @@ public partial class Main : Control
                     meta.Append("  \"expected_deck_button_label\": \"Decks\"\n");
                     meta.Append("}\n");
 
-                    var metaPath = "/home/fictive/runewake-lane4/artifacts/captures/title_deck.meta.json";
+                    var metaPath = ProjectPaths.Artifacts + "/captures/title_deck.meta.json";
                     using (var writer = new System.IO.StreamWriter(metaPath))
                     {
                         writer.Write(meta.ToString());
@@ -1357,7 +1357,7 @@ public partial class Main : Control
         string suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
         var img = GetViewport().GetTexture().GetImage();
         if (img != null)
-            img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}.png");
+            img.SavePng($"{ProjectPaths.Artifacts}/captures/slots_test{suffix}.png");
         DebugCapture.WriteLayoutJson(this, $"slots_test{suffix}");
         GD.Print($"[Main] slots_test{suffix}.png saved (initial empty slots)");
 
@@ -1374,7 +1374,7 @@ public partial class Main : Control
         BuildSlotPicker();
         var img2 = GetViewport().GetTexture().GetImage();
         if (img2 != null)
-            img2.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}_filled.png");
+            img2.SavePng($"{ProjectPaths.Artifacts}/captures/slots_test{suffix}_filled.png");
         DebugCapture.WriteLayoutJson(this, $"slots_test{suffix}_filled");
         GD.Print($"[Main] slots_test{suffix}_filled.png saved (occupied slot)");
 
@@ -1392,7 +1392,7 @@ public partial class Main : Control
         BuildSlotPicker();
         var img3 = GetViewport().GetTexture().GetImage();
         if (img3 != null)
-            img3.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/slots_test{suffix}_deleted.png");
+            img3.SavePng($"{ProjectPaths.Artifacts}/captures/slots_test{suffix}_deleted.png");
         GD.Print($"[Main] slots_test{suffix}_deleted.png saved (after delete)");
 
         GetTree().Quit();

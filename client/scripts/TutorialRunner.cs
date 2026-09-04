@@ -78,7 +78,7 @@ public partial class TutorialRunner : Node
     private readonly List<int> _headlessSummonedLanes = new();
 
     // ── Capture directory ──
-    private string _captureDir = "/home/fictive/runewake-lane4/artifacts/captures";
+    private string _captureDir = ProjectPaths.Artifacts + "/captures";
     private string _tutorialCapturePrefix = "tutorial_";
 
     // ── Events ──
