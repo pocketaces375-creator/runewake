@@ -22,6 +22,20 @@ RESULT_FILE="$CAPTURE_DIR/loop_smoke_result.json"
 mkdir -p "$CAPTURE_DIR" "$ROOT/artifacts"
 rm -f "$PLAYABLE_FILE" "$RESULT_FILE"
 
+# ── CLEAN INSTALL ────────────────────────────────────────────────────────────
+# The loop test asks "can a NEW PLAYER get from the title screen to the end of the loop?", so it must
+# start with no save. Without this, one earlier run (a soak, an APK check, another lane — they all share
+# ~/.local/share/godot/app_userdata/<app>) leaves a save behind, the title offers Continue instead of
+# New Campaign, the test lands on the Map and reports the game unplayable when it is fine.
+APP_NAME=$(grep -m1 '^config/name=' "$PROJECT_GODOT" | cut -d'"' -f2)
+if [ -n "${APP_NAME}" ]; then
+  USER_DIR="$HOME/.local/share/godot/app_userdata/${APP_NAME}"
+  if [ -d "${USER_DIR}" ]; then
+    rm -rf "${USER_DIR}"
+    echo "  Cleared save data at ${USER_DIR} (the loop test always runs as a new player)"
+  fi
+fi
+
 # Ensure headless rendering backend
 export GODOT_RENDERER=Headless
 
