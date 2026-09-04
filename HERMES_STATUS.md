@@ -38,6 +38,24 @@ _Older entries archived to docs/archive/HERMES_STATUS_ARCHIVE.md on 2026-09-04. 
 - 2026-09-03: PARKED TASK-BOARD-DEVICE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-04: DONE TASK-ART-TILES-1 — Fable regenerated all 14 artifact tiles (objects only, framed with margin) and all 7 class portraits (epic signature moments) from docs/ART_PROMPT_PLAYBOOK.md; retired-class art pocketed. Signed release APK alpha-2026-09-03-2309-release shipped (versionCode 12, CN=Runewake key).
 - 2026-09-04: TEMPO — 12 sessions yesterday, 4 validated.
-- 2026-09-04: DONE TASK-SETTINGS-COMPLETE-1 — Settings finished: Music/SFX/Ambient sliders wired to AudioManager buses via AudioServer.SetBusVolumeDb, persisted in SQLite SaveRepository (graphics_quality column added); Graphics Quality toggle (Low=nearest/High=linear texture filtering); Replay Intro resets IntroSeen; Credits overlay reads AUDIO_CREDITS.md; Reset Progress with typed "RESET" confirm wipes all save data; Version + build hash string bottom-right. Both captures at 2316×1080 and 2999×1080 pass gate. 9/9 settings tests pass including GraphicsQuality round-trip. ✅
+**TASK-REGION-1-DROPS-1 (2026-09-04):** Every Region 1 encounter has its drop table. ✅
+- Drops JSON: every encounter in content/encounters/region_01_*.json has a `drops` array with per-card rates
+- R1 Warden (r1_warden_aelin): `vrd_r_bloomweaver` at 1.00 (guaranteed)  
+- R1 Boss (r1_boss_warden_aelin): `dwn_r_sealing_light` at 1.00 (guaranteed)  
+- Dig site (region_01_dig.json): 2 RUNE_FRAGMENT tiles (verdant:1, tide:2)
+- Pipeline test: tests/test_region_01_drops.py exits 0 (6 validation checks + 200-clear soak)
+- Rate table (200 seeded clears per encounter):
+  ```
+  r1_duel_wayfarer:        23@0.4, 5@0.25, 2@0.1 — observed avg/rate: 0.407/0.243/0.115
+  r1_duel_thornbark:       17@0.4, 7@0.25, 4@0.1, 2@0.03 — obs: 0.399/0.239/0.098/0.038
+  r1_elite_rootbinder:     16@0.4, 7@0.25, 5@0.1, 2@0.03 — obs: 0.394/0.246/0.103/0.043
+  r1_duel_wildwood:        16@0.4, 6@0.25, 6@0.1, 2@0.03 — obs: 0.408/0.273/0.091/0.038
+  r1_duel_grove_warden:    10@0.4, 8@0.25, 9@0.1, 3@0.03 — obs: 0.400/0.230/0.109/0.038
+  r1_elite_ashkeeper:      14@0.4, 8@0.25, 6@0.1, 2@0.03 — obs: 0.395/0.249/0.093/0.040
+  r1_duel_silt_reader:     15@0.4, 7@0.25, 6@0.1, 2@0.03 — obs: 0.416/0.236/0.107/0.023
+  r1_warden_aelin:          1@1.0 (sig), 9@0.4, 8@0.25, 9@0.1, 3@0.03 — sig=1.000
+  r1_boss_warden_aelin:     1@1.0 (sig), 9@0.4, 8@0.25, 8@0.1, 4@0.03 — sig=1.000
+  ```
+  All observed rates within 5σ expected variance. ✅
 - 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.

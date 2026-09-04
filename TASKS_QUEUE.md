@@ -130,7 +130,7 @@
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
 
-- [ ] TASK-REGION-1-DROPS-1 — Every Region 1 encounter has its drop table per the drops design:
+- [x] TASK-REGION-1-DROPS-1 — Every Region 1 encounter has its drop table per the drops design:
   foes drop their own cards at a per-card rate, the Warden drops a rare, the dig site drops a
   fragment. Data only, validated by a pipeline test; a headless soak reports observed drop rates
   over 200 seeded clears.
