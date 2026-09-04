@@ -172,6 +172,12 @@ find_top_task() {
 import re, sys, os, time
 with open('${QUEUE_FILE}') as f:
     content = f.read()
+# archived (done) tasks still satisfy AFTER: dependencies
+_done_extra = ''
+try:
+    _done_extra = open('${PROJECT_DIR}/docs/archive/TASKS_DONE.md').read()
+except Exception:
+    pass
 lines = content.split('\n')
 in_queue = False
 for i, line in enumerate(lines):
@@ -206,7 +212,7 @@ for i, line in enumerate(lines):
             if _aft:
                 _blocked = False
                 for _d in re.findall(r'TASK-[A-Z0-9-]+', _aft.group(1)):
-                    if not re.search(r'^\s*-\s*\[\s*x\s*\]\s*' + re.escape(_d) + r'(?![A-Z0-9-])', content, re.M):
+                    if not re.search(r'^\|?\s*-\s*\[\s*x\s*\]\s*' + re.escape(_d) + r'(?![A-Z0-9-])', content + '\n' + _done_extra, re.M):
                         _blocked = True
                 if _blocked: continue
             # claim gate — skip a task another LIVE lane is working on
