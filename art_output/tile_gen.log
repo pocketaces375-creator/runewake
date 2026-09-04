@@ -1,0 +1,227 @@
+=== Generating 6 candidates for each of 6 item tiles ===
+=== artf_necromancer_ritual_piece ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_1.png (1436588 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_1.png (1436588 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_2.png (1620500 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_2.png (1620500 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_3.png (1693860 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_3.png (1693860 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_4.png (1675434 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_4.png (1675434 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_5.png (1528552 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_5.png (1528552 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a ritual fetish — a small bone-...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_6.png (1495658 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_necromancer_ritual_piece_candidate_6.png (1495658 bytes)
+HTTP status: 200
+=== artf_paladin_banner ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_1.png (1771241 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_1.png (1771241 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_2.png (1745643 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_2.png (1745643 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_3.png (1897348 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_3.png (1897348 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_4.png (1832535 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_4.png (1832535 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_5.png (1908764 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_5.png (1908764 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a battle-worn ceremonial banner...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_6.png (1845158 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_paladin_banner_candidate_6.png (1845158 bytes)
+HTTP status: 200
+=== artf_druid_book_of_familiar ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_1.png (1752862 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_1.png (1752862 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_2.png (1823305 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_2.png (1823305 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_3.png (1935868 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_3.png (1935868 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_4.png (1903688 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_4.png (1903688 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_5.png (1737984 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_5.png (1737984 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of an ancient leather-bound tome w...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_6.png (1720831 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_book_of_familiar_candidate_6.png (1720831 bytes)
+HTTP status: 200
+=== artf_druid_elemental_bond ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_1.png (2070568 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_1.png (2070568 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_2.png (1922703 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_2.png (1922703 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_3.png (1618876 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_3.png (1618876 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_4.png (1734739 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_4.png (1734739 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_5.png (1683046 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_5.png (1683046 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a rune-etched green elemental s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_6.png (1770831 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_druid_elemental_bond_candidate_6.png (1770831 bytes)
+HTTP status: 200
+=== artf_astrologist_orb ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_1.png (2012187 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_1.png (2012187 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_2.png (1655179 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_2.png (1655179 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_3.png (1821655 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_3.png (1821655 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_4.png (1731783 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_4.png (1731783 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_5.png (1395440 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_5.png (1395440 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a crystal orb filled with tiny ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_6.png (1725647 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_orb_candidate_6.png (1725647 bytes)
+HTTP status: 200
+=== artf_astrologist_constellation_starlight ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_1.png (1770138 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_1.png (1770138 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_2.png (1672316 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_2.png (1672316 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_3.png (1801461 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_3.png (1801461 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_4.png (1478662 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_4.png (1478662 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_5.png (2004977 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_5.png (2004977 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting of a fantasy game item icon, a close-up painted icon of a constellation pattern glowing...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_6.png (2071050 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/tiles/artf_astrologist_constellation_starlight_candidate_6.png (2071050 bytes)
+HTTP status: 200
+=== ALL 36 TILE CANDIDATES GENERATED ===
+total 61876
+drwxrwxr-x 2 fictive fictive    4096 Sep  3 22:11 .
+drwxrwxr-x 4 fictive fictive    4096 Sep  3 22:03 ..
+-rw-rw-r-- 1 fictive fictive 1770138 Sep  3 22:10 artf_astrologist_constellation_starlight_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1672316 Sep  3 22:10 artf_astrologist_constellation_starlight_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1801461 Sep  3 22:11 artf_astrologist_constellation_starlight_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1478662 Sep  3 22:11 artf_astrologist_constellation_starlight_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 2004977 Sep  3 22:11 artf_astrologist_constellation_starlight_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 2071050 Sep  3 22:11 artf_astrologist_constellation_starlight_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 2012187 Sep  3 22:09 artf_astrologist_orb_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1655179 Sep  3 22:09 artf_astrologist_orb_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1821655 Sep  3 22:09 artf_astrologist_orb_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1731783 Sep  3 22:10 artf_astrologist_orb_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1395440 Sep  3 22:10 artf_astrologist_orb_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1725647 Sep  3 22:10 artf_astrologist_orb_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 1752862 Sep  3 22:06 artf_druid_book_of_familiar_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1823305 Sep  3 22:06 artf_druid_book_of_familiar_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1935868 Sep  3 22:06 artf_druid_book_of_familiar_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1903688 Sep  3 22:07 artf_druid_book_of_familiar_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1737984 Sep  3 22:07 artf_druid_book_of_familiar_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1720831 Sep  3 22:07 artf_druid_book_of_familiar_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 2070568 Sep  3 22:07 artf_druid_elemental_bond_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1922703 Sep  3 22:08 artf_druid_elemental_bond_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1618876 Sep  3 22:08 artf_druid_elemental_bond_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1734739 Sep  3 22:08 artf_druid_elemental_bond_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1683046 Sep  3 22:08 artf_druid_elemental_bond_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1770831 Sep  3 22:09 artf_druid_elemental_bond_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 1436588 Sep  3 22:03 artf_necromancer_ritual_piece_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1620500 Sep  3 22:04 artf_necromancer_ritual_piece_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1693860 Sep  3 22:04 artf_necromancer_ritual_piece_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1675434 Sep  3 22:04 artf_necromancer_ritual_piece_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1528552 Sep  3 22:04 artf_necromancer_ritual_piece_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1495658 Sep  3 22:04 artf_necromancer_ritual_piece_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 1771241 Sep  3 22:05 artf_paladin_banner_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1745643 Sep  3 22:05 artf_paladin_banner_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1897348 Sep  3 22:05 artf_paladin_banner_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1832535 Sep  3 22:05 artf_paladin_banner_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1908764 Sep  3 22:06 artf_paladin_banner_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1845158 Sep  3 22:06 artf_paladin_banner_candidate_6.png

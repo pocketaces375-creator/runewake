@@ -1,0 +1,60 @@
+{
+  "region_id": "region_02",
+  "name": "Cinderfall Steps",
+  "stratum": "EMBER",
+  "stratum2": "HOLLOW",
+  "palette": {
+    "primary": "#8a3a2a",
+    "secondary": "#c95a2a",
+    "accent": "#e8a84c",
+    "text": "#e8d8c8",
+    "bg_dark": "#2a1a10"
+  },
+  "encounter_slots": 10,
+  "elite_count": 2,
+  "warden_name": "The Kilnwarden",
+  "boss_name": "Kilnwarden's Fury",
+  "dig_name": "The Slag Pit",
+  "dig_description": "A collapsed forge-pit, still radiating heat. Something glows in the ash.",
+  "lore_blurb": "Volcanic terraces rise above an ancient forge city. The air burns.",
+  "signature_card": "emb_r_magma_forger",
+  "entry_encounter_name": "The Ember Guard",
+  "encounter_names": [
+    "The Ember Guard",
+    "Cinder Hound",
+    "Ash-Choked Hall",
+    "The Pyre Walker",
+    "Smoke-Tongue Seer",
+    "Blistering Earth",
+    "Forgeguard Sentinel",
+    "Magma Channel",
+    "The Furnace-Keeper",
+    "Rubble Crawler"
+  ],
+  "elite_names": [
+    "The Ashen Captain",
+    "Burning Colossus"
+  ],
+  "warden_intro": [
+    "The heat amplifies with every step.",
+    "A voice, vast as the forge-fires, speaks:",
+    "\"You climb toward your own end, delver.\"",
+    "The Kilnwarden rises from the molten stone."
+  ],
+  "warden_outro": [
+    "The Kilnwarden crumbles into cooling slag.",
+    "The way to the heart of the forge lies open."
+  ],
+  "boss_intro": [
+    "The mountain itself shudders.",
+    "A great cracking sound — then silence.",
+    "And from the silence, a roar:",
+    "\"YOU HAVE AWAKENED THE FURY.\"",
+    "The forge-city's final guardian stirs."
+  ],
+  "boss_outro": [
+    "The Fury scatters into embers on the wind.",
+    "The Cinderfall Steps lie conquered.",
+    "Buried beneath the ash, something ancient stirs."
+  ]
+}

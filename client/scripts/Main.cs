@@ -1423,20 +1423,24 @@ public partial class Main : Control
         }
 
         // 3. Every map node encounter must resolve to a real encounter or dig site
-        string mapJson = Godot.FileAccess.GetFileAsString("res://content/map/region_01.json");
-        var mapRegion = MapLoader.LoadRegionFromString(mapJson);
-        if (mapRegion != null)
+        var regionIds = new[] { "region_01", "region_02" };
+        foreach (var regionId in regionIds)
         {
-            foreach (var node in mapRegion.Nodes)
+            string mapJson = Godot.FileAccess.GetFileAsString($"res://content/map/{regionId}.json");
+            var mapRegion = MapLoader.LoadRegionFromString(mapJson);
+            if (mapRegion != null)
             {
-                if (node.Encounter != null)
+                foreach (var node in mapRegion.Nodes)
                 {
-                    if (CampaignContext.EncounterIndex.ContainsKey(node.Encounter))
-                        continue;
-                    if (CampaignContext.DigSiteIndex.ContainsKey(node.Encounter))
-                        continue;
-                    GD.PrintErr($"[ContentValidation] MAP NODE '{node.Id}' references unknown encounter/dig site '{node.Encounter}'");
-                    errors++;
+                    if (node.Encounter != null)
+                    {
+                        if (CampaignContext.EncounterIndex.ContainsKey(node.Encounter))
+                            continue;
+                        if (CampaignContext.DigSiteIndex.ContainsKey(node.Encounter))
+                            continue;
+                        GD.PrintErr($"[ContentValidation] MAP NODE '{node.Id}' (region {regionId}) references unknown encounter/dig site '{node.Encounter}'");
+                        errors++;
+                    }
                 }
             }
         }

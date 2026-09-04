@@ -1,0 +1,358 @@
+{
+  "encounters": [
+    {
+      "id": "region_02_warden",
+      "name": "The Kilnwarden",
+      "portrait": "res://art/portraits/region_02_warden.png",
+      "deck": [
+        "tid_u_brine_witch",
+        "hol_c_gravewrit_thrall",
+        "hol_c_bone_shard_volley",
+        "dwn_r_archangel_of_order",
+        "tid_r_hydrokinetic_adept",
+        "vrd_r_bloomweaver",
+        "hol_c_ossuary_guard",
+        "vrd_c_wildwood_stalker",
+        "tid_r_flood_of_secrets",
+        "hol_r_hollow_herald",
+        "emb_r_inferno_burst",
+        "emb_r_magma_forger",
+        "dwn_r_holy_edict",
+        "hol_r_wraith_stalker",
+        "vrd_r_natures_renewal",
+        "vrd_u_canopy_archer",
+        "tid_r_sunken_leviathan",
+        "emb_r_phoenix_ash",
+        "hol_r_curse_of_binding",
+        "vrd_r_undergrowth_eruption",
+        "emb_u_wildfire_adept",
+        "dwn_r_radiant_prophet",
+        "hol_u_barrow_revenant",
+        "emb_u_cinderstorm_elemental",
+        "emb_u_searing_blast",
+        "dwn_c_dawnbreaker_charger",
+        "emb_c_flame_javelin",
+        "tid_u_memory_tides",
+        "vrd_c_thornbark_defender",
+        "dwn_u_purifying_light"
+      ],
+      "shard_reward": 150,
+      "dig_charge_reward": 3,
+      "dialogue_intro": [
+        "The heat amplifies with every step.",
+        "A voice, vast as the forge-fires, speaks:",
+        "\"You climb toward your own end, delver.\"",
+        "The Kilnwarden rises from the molten stone."
+      ],
+      "dialogue_outro": [
+        "The Kilnwarden crumbles into cooling slag.",
+        "The way to the heart of the forge lies open."
+      ],
+      "fragment_reward": "ember:3",
+      "drops": [
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 1.0
+        },
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_c_bone_shard_volley",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_ossuary_guard",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_wildwood_stalker",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_inferno_burst",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_canopy_archer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_phoenix_ash",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_u_wildfire_adept",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_u_barrow_revenant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_cinderstorm_elemental",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_searing_blast",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_dawnbreaker_charger",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_c_flame_javelin",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_c_thornbark_defender",
+          "rate": 0.4
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        }
+      ]
+    },
+    {
+      "id": "region_02_boss",
+      "name": "Kilnwarden's Fury",
+      "portrait": "res://art/portraits/region_02_boss.png",
+      "deck": [
+        "tid_r_hydrokinetic_adept",
+        "vrd_u_grove_healer",
+        "tid_r_flood_of_secrets",
+        "tid_u_memory_tides",
+        "dwn_r_holy_edict",
+        "tid_u_coral_guardian",
+        "emb_r_phoenix_ash",
+        "hol_r_curse_of_binding",
+        "hol_c_gravewrit_thrall",
+        "vrd_u_elder_treant",
+        "hol_r_hollow_herald",
+        "dwn_r_archangel_of_order",
+        "hol_c_bone_shard_volley",
+        "vrd_c_verdant_sproutling",
+        "tid_r_sunken_leviathan",
+        "emb_c_ember_hound",
+        "emb_r_magma_forger",
+        "dwn_r_radiant_prophet",
+        "vrd_r_undergrowth_eruption",
+        "emb_r_inferno_burst",
+        "hol_u_soul_harvest",
+        "vrd_r_natures_renewal",
+        "vrd_r_bloomweaver",
+        "dwn_u_purifying_light",
+        "tid_u_brine_witch",
+        "hol_r_wraith_stalker",
+        "dwn_u_steadfast_bulwark",
+        "emb_u_lava_serpent",
+        "dwn_c_dawn_warder",
+        "tid_c_silt_reader"
+      ],
+      "shard_reward": 300,
+      "dig_charge_reward": 5,
+      "dialogue_intro": [
+        "The mountain itself shudders.",
+        "A great cracking sound \u2014 then silence.",
+        "And from the silence, a roar:",
+        "\"YOU HAVE AWAKENED THE FURY.\"",
+        "The forge-city's final guardian stirs."
+      ],
+      "dialogue_outro": [
+        "The Fury scatters into embers on the wind.",
+        "The Cinderfall Steps lie conquered.",
+        "Buried beneath the ash, something ancient stirs."
+      ],
+      "fragment_reward": "ember:5",
+      "drops": [
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 1.0
+        },
+        {
+          "card_id": "tid_r_hydrokinetic_adept",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_u_grove_healer",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_r_flood_of_secrets",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_memory_tides",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_r_holy_edict",
+          "rate": 0.1
+        },
+        {
+          "card_id": "tid_u_coral_guardian",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_r_phoenix_ash",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_r_curse_of_binding",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_gravewrit_thrall",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_u_elder_treant",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_hollow_herald",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_archangel_of_order",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_c_bone_shard_volley",
+          "rate": 0.4
+        },
+        {
+          "card_id": "vrd_c_verdant_sproutling",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_r_sunken_leviathan",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_c_ember_hound",
+          "rate": 0.4
+        },
+        {
+          "card_id": "emb_r_magma_forger",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_r_radiant_prophet",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_undergrowth_eruption",
+          "rate": 0.1
+        },
+        {
+          "card_id": "emb_r_inferno_burst",
+          "rate": 0.1
+        },
+        {
+          "card_id": "hol_u_soul_harvest",
+          "rate": 0.25
+        },
+        {
+          "card_id": "vrd_r_natures_renewal",
+          "rate": 0.1
+        },
+        {
+          "card_id": "vrd_r_bloomweaver",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_purifying_light",
+          "rate": 0.25
+        },
+        {
+          "card_id": "tid_u_brine_witch",
+          "rate": 0.25
+        },
+        {
+          "card_id": "hol_r_wraith_stalker",
+          "rate": 0.1
+        },
+        {
+          "card_id": "dwn_u_steadfast_bulwark",
+          "rate": 0.25
+        },
+        {
+          "card_id": "emb_u_lava_serpent",
+          "rate": 0.25
+        },
+        {
+          "card_id": "dwn_c_dawn_warder",
+          "rate": 0.4
+        },
+        {
+          "card_id": "tid_c_silt_reader",
+          "rate": 0.25
+        }
+      ]
+    }
+  ]
+}

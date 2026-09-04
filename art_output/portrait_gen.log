@@ -1,0 +1,60 @@
+=== Generating 6 astrologist candidates ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_1.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_1.png (1744645 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_1.png (1744645 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_2.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_2.png (1758485 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_2.png (1758485 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic chiaroscuro lighting, swirli...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_3.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_3.png (1614336 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_3.png (1614336 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_4.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_4.png (1683869 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_4.png (1683869 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light, chiaroscuro, ...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_5.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_5.png (1754523 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_5.png (1754523 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_6.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_6.png (1584613 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/astrologist_candidate_6.png (1584613 bytes)
+HTTP status: 200
+=== Generating remaining portraits ===
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/rogue.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/rogue.png (1660383 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/rogue.png (1660383 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/battlemage.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/battlemage.png (1759626 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/battlemage.png (1759626 bytes)
+HTTP status: 200
+Generating: model=black-forest-labs/flux.2-pro, size=832x1216, prompt=oil painting in the style of classical storybook illustration, dramatic painted light against deep s...
+[ensure_true_png] Detected JPEG data in /home/fictive/runewake-lane2/art_output/portraits/paladin.png — re-encoding to true PNG
+[ensure_true_png] Re-encoded /home/fictive/runewake-lane2/art_output/portraits/paladin.png (2102312 bytes, format=RGB)
+Saved: /home/fictive/runewake-lane2/art_output/portraits/paladin.png (2102312 bytes)
+HTTP status: 200
+=== ALL PORTRAITS GENERATED ===
+total 15324
+drwxrwxr-x 2 fictive fictive    4096 Sep  3 22:06 .
+drwxrwxr-x 4 fictive fictive    4096 Sep  3 22:03 ..
+-rw-rw-r-- 1 fictive fictive 1744645 Sep  3 22:04 astrologist_candidate_1.png
+-rw-rw-r-- 1 fictive fictive 1758485 Sep  3 22:04 astrologist_candidate_2.png
+-rw-rw-r-- 1 fictive fictive 1614336 Sep  3 22:04 astrologist_candidate_3.png
+-rw-rw-r-- 1 fictive fictive 1683869 Sep  3 22:04 astrologist_candidate_4.png
+-rw-rw-r-- 1 fictive fictive 1754523 Sep  3 22:05 astrologist_candidate_5.png
+-rw-rw-r-- 1 fictive fictive 1584613 Sep  3 22:05 astrologist_candidate_6.png
+-rw-rw-r-- 1 fictive fictive 1759626 Sep  3 22:05 battlemage.png
+-rw-rw-r-- 1 fictive fictive 2102312 Sep  3 22:06 paladin.png
+-rw-rw-r-- 1 fictive fictive 1660383 Sep  3 22:05 rogue.png

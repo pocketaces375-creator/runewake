@@ -17,6 +17,9 @@ public static class CampaignContext
     /// <summary>The map node ID the player is entering (for reward routing).</summary>
     public static string? CurrentNodeId { get; set; }
 
+    /// <summary>Current region shown on the map. Defaults to region_01; switches to region_02 after r1_n12 cleared.</summary>
+    public static string CurrentRegionId { get; set; } = "region_01";
+
     /// <summary>Persistent save manager — initialized once at title screen.</summary>
     public static SaveManager SaveManager { get; } = new();
 
@@ -686,7 +689,11 @@ public static class CampaignContext
             "res://content/encounters/region_01_early.json",
             "res://content/encounters/region_01_mid.json",
             "res://content/encounters/region_01_late.json",
-            "res://content/encounters/region_01_boss.json"
+            "res://content/encounters/region_01_boss.json",
+            "res://content/encounters/region_02_early.json",
+            "res://content/encounters/region_02_mid.json",
+            "res://content/encounters/region_02_late.json",
+            "res://content/encounters/region_02_boss.json"
         };
 
         foreach (var resPath in packs)
@@ -789,7 +796,8 @@ public static class CampaignContext
             DigSiteIndex.Clear();
             var paths = new[]
             {
-                "res://content/dig_sites/region_01_dig.json"
+                "res://content/dig_sites/region_01_dig.json",
+                "res://content/dig_sites/region_02_dig.json"
             };
 
             foreach (var resPath in paths)
@@ -873,4 +881,15 @@ public static class CampaignContext
 
         /// <summary>Soak test: if true, in the save/quit/resume sub-test.</summary>
         public static bool SoakSaveQuitPhase { get; set; }
+
+        /// <summary>
+        /// Determine which region's map to show based on progression state.
+        /// Returns "region_02" if Region 1's WardenBoss (r1_n12) is cleared, else "region_01".
+        /// </summary>
+        public static string GetRegionIdForMap()
+        {
+            if (Progression != null && Progression.IsNodeCleared("r1_n12"))
+                return "region_02";
+            return CurrentRegionId;
+        }
     };

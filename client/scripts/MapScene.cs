@@ -397,6 +397,14 @@ public partial class MapScene : Control
         }
         _mapContainer.AddChild(_platePlate);
 
+        // Apply region-based tint (ember for Region 2, white/none for Region 1)
+        string regionId = CampaignContext.GetRegionIdForMap();
+        if (regionId == "region_02")
+        {
+            _platePlate.Modulate = ThemeTokens.GetSkinTint("ember");
+            GD.Print("[MAP] Region 2 (Cinderfall Steps) — applying ember tint");
+        }
+
         // Line drawer (edges between nodes) — sits directly on map art
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
@@ -582,7 +590,8 @@ public partial class MapScene : Control
 
     private void BuildMap()
     {
-        string json = Godot.FileAccess.GetFileAsString("res://content/map/region_01.json");
+        string regionId = CampaignContext.GetRegionIdForMap();
+        string json = Godot.FileAccess.GetFileAsString($"res://content/map/{regionId}.json");
         _region = MapLoader.LoadRegionFromString(json);
         if (_region == null) return;
 

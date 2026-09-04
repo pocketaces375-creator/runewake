@@ -1,0 +1,80 @@
+{
+  "dig_sites": [
+    {
+      "id": "region_02_dig",
+      "name": "The Slag Pit",
+      "description": "A collapsed forge-pit, still radiating heat. Something glows in the ash.",
+      "rows": 4,
+      "cols": 4,
+      "strikes": 4,
+      "headline_threshold": 3,
+      "headline_reward": "relic:region_02_relic",
+      "tiles": [
+        {
+          "type": "SHARD",
+          "value": "19"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "6"
+        },
+        {
+          "type": "SHARD",
+          "value": "25"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "CODEX_PAGE",
+          "value": "region_02_codex_2"
+        },
+        {
+          "type": "RUNE_FRAGMENT",
+          "value": "ember:2"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "5"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        },
+        {
+          "type": "SHARD",
+          "value": "20"
+        },
+        {
+          "type": "EMPTY",
+          "value": null
+        }
+      ]
+    }
+  ]
+}

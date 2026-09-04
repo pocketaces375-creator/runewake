@@ -345,7 +345,10 @@ public static class ThemeTokens
     {
         { "default", "res://content/art/board/default.png" },
         { "backdrop_default", "res://content/art/board/backdrop_default.png" },
-        { "plate_default", "res://content/art/board/plate_default.png" }
+        { "plate_default", "res://content/art/board/plate_default.png" },
+        { "ember", "res://content/art/board/default.png" },
+        { "backdrop_ember", "res://content/art/board/backdrop_default.png" },
+        { "plate_ember", "res://content/art/board/plate_default.png" }
     };
 
     /// <summary>Get the texture path for a board skin ID. Returns null for unknown IDs.</summary>
@@ -364,6 +367,16 @@ public static class ThemeTokens
     public static string? GetPlatePath()
     {
         return _boardSkins.GetValueOrDefault("plate_default");
+    }
+
+    /// <summary>Get the tint color for a board/map skin. Default = white (no tint). Ember = warm orange tint.</summary>
+    public static Color GetSkinTint(string skinId)
+    {
+        return skinId.ToLowerInvariant() switch
+        {
+            "ember" or "backdrop_ember" or "plate_ember" => new Color(1.0f, 0.6f, 0.3f, 1.0f), // warm ember tint
+            _ => Colors.White
+        };
     }
 
     // ════════════════════════════════════════════
