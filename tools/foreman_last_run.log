@@ -1,10 +1,3 @@
-========================================
-=== foreman: 2026-09-04T22:03:57Z TASK-DUEL-ARENA-1 blocked ===
-Session: 9/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-DUEL-ARENA-1 on deepseek/deepseek-v4-flash: 647s
-Here's a summary of what's been accomplished so far for implementing TASK-DUEL-ARENA-1 — Ghost duels:
 
 ## Completed
 
@@ -47,4 +40,11 @@ Here's a summary of what's been accomplished so far for implementing TASK-DUEL-A
 - Post to Runewake Telegram group
 
 The session was cut off mid-implementation due to tool-call limits. To finish: fix the two remaining `new DeckProfile` calls in ArenaScene.cs (lines 311 and 452/487), build, run the gate, and commit.
+========================================
+=== foreman: 2026-09-04T22:08:54Z TASK-DUEL-ARENA-1 retry ===
+Session: 10/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-DUEL-ARENA-1 on z-ai/glm-5.2:free: 23s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
