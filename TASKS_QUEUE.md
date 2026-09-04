@@ -550,7 +550,7 @@
   Acceptance: every file above exists at the exact path as a real generated .webp/.png with
   .import; the 6-sample sets posted; a Reliquary capture and a Choose Your Path capture showing
   the new art; no placeholder plates left for any of the 7 classes.
-- [ ] TASK-ART-TILES-1 — Regenerate ALL 14 base artifact tiles to the new playbook so every weapon
+- [x] TASK-ART-TILES-1 — DONE 2026-09-04 by Fable directly (all 14 tiles regenerated from docs/ART_PROMPT_PLAYBOOK.md prompts: weapon/relic alone, whole object inside frame, per-slot variation; posted to the group). Regenerate ALL 14 base artifact tiles to the new playbook so every weapon
   looks hand-painted and no two of a slot are alike. Read docs/ART_PROMPT_PLAYBOOK.md FIRST and follow it
   exactly: subject-first prompts, never a negative phrase, stratum hex palette, 85mm/f4 tile camera clause.
   TRIKZOS' RULE, absolute: an artifact is the character's WEAPON OR RELIC — the object alone. No people, no

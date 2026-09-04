@@ -565,3 +565,4 @@
 - **Delivery:** URL, size, sha256 listed above. Victory-screen and Reliquary captures posted to the group. ✅
 - 2026-09-03: TEMPO — 35 sessions yesterday, 0 validated.
 - 2026-09-03: PARKED TASK-BOARD-DEVICE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
+- 2026-09-04: DONE TASK-ART-TILES-1 — Fable regenerated all 14 artifact tiles (objects only, framed with margin) and all 7 class portraits (epic signature moments) from docs/ART_PROMPT_PLAYBOOK.md; retired-class art pocketed. Signed release APK alpha-2026-09-03-2309-release shipped (versionCode 12, CN=Runewake key).
