@@ -70,7 +70,7 @@ unhalt_all(){ for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HAL
 # ── 1 + 2: budget tripwires ──
 if [[ "$usage" != "nan" ]]; then
   over=$(python3 -c "print(1 if $watched > $DAILY_CAP else 0)")
-  if [[ "$over" == "1" && -z "$halted_by" ]]; then halt_all budget "lanes spent \$${watched} under watch today, over the \$${DAILY_CAP} cap"; exit 0; fi
+  if [[ "$over" == "1" && -z "$halted_by" ]]; then halt_all budget "lanes spent \$${watched} under watch today, over the \$${DAILY_CAP} cap in tools/burn_guard.conf — raise the cap or wait for the day to roll"; exit 0; fi
   warn=$(python3 -c "print(1 if $watched > $DAILY_CAP*$WARN_AT else 0)")
   warned=$(python3 -c "import json;print(json.load(open('$STATE')).get('warned') or '')")
   if [[ "$warn" == "1" && "$warned" != "$today" ]]; then set_state warned "\"$today\""; $TG "⚠️ Burn guard: \$${watched} spent under watch today (key total \$${usage}), ${WARN_AT} of the \$${DAILY_CAP} cap. Rate \$${rate}/h, ${sessions_today} sessions, ${succ_today} passed." >/dev/null 2>&1 || true; fi
@@ -82,22 +82,63 @@ if [[ "$usage" != "nan" ]]; then
   else set_state hot_prev 0; fi
 fi
 
-# ── 3: failure streak (the gate is probably broken) ──
+# ── 3: failure streak → force a canary NOW; a red canary halts, a green one means the tasks are hard, not the gate ──
+force_canary=0
 if [[ "$n_recent" -ge "$FAIL_STREAK" && "$streak" -ge "$FAIL_STREAK" && -z "$halted_by" ]]; then
-  halt_all streak "last ${FAIL_STREAK} lane sessions all failed — the gate itself is probably broken"; exit 0
+  streak_warned=$(python3 -c "import json;print(json.load(open('$STATE')).get('streak_warned') or 0)")
+  if (( now - streak_warned > 3600 )); then
+    $TG "⚠️ Burn guard: the last ${FAIL_STREAK} lane sessions all failed — checking the gate on a clean tree now. If the gate is green the tasks themselves need rewriting; the medic session will look." >/dev/null 2>&1 || true
+    set_state streak_warned "$now"
+  fi
+  force_canary=1
 fi
 
 # ── 4: hourly gate canary on a clean origin/main ──
 last_canary=$(python3 -c "import json;print(json.load(open('$STATE')).get('canary',{}).get('ts',0))")
-if (( now - last_canary >= CANARY_EVERY )); then
-  cd "$B" && git reset -q --hard origin/main && git clean -qfd -e client/android -e exports 2>/dev/null
-  if dotnet build client/Runewake.Client.csproj -c Debug --nologo -v q >/tmp/canary_build.log 2>&1 && timeout 600 bash tools/loop_smoke.sh >/tmp/canary_smoke.log 2>&1 && grep -q '"playable": true' artifacts/PLAYABLE.json 2>/dev/null; then
-    python3 -c "import json;d=json.load(open('$STATE'));d['canary']={'ts':$now,'ok':True,'commit':'$(git rev-parse --short HEAD)'};json.dump(d,open('$STATE','w'))"
-    if [[ "$halted_by" == "burn_guard:canary" ]]; then unhalt_all "gate is green again on $(git rev-parse --short HEAD)"; fi
+gate_green(){ dotnet build client/Runewake.Client.csproj -c Debug --nologo -v q >/tmp/canary_build.log 2>&1 && timeout 600 bash tools/loop_smoke.sh >/tmp/canary_smoke.log 2>&1 && grep -q '"playable": true' artifacts/PLAYABLE.json 2>/dev/null; }
+canary_reason(){ grep -oE 'failed_step[^,}]*|error CS[0-9]+[^\[]{0,80}|ContentValidation\][^\n]{0,100}|Phase [A-Za-z]+ timed out[^\n]{0,40}' /tmp/canary_build.log /tmp/canary_smoke.log artifacts/PLAYABLE.json 2>/dev/null | head -3 | tr '\n' ' '; }
+if (( now - last_canary >= CANARY_EVERY || force_canary == 1 )); then
+  cd "$B" && git fetch -q origin main && git reset -q --hard origin/main && git clean -qfd -e client/android -e exports 2>/dev/null
+  head=$(git rev-parse --short HEAD)
+  if gate_green; then
+    python3 -c "import json;d=json.load(open('$STATE'));d['canary']={'ts':$now,'ok':True,'commit':'$head'};json.dump(d,open('$STATE','w'))"
+    rm -f /tmp/runewake_halt_reason.json
+    if [[ "$halted_by" == "burn_guard:canary" ]]; then unhalt_all "gate is green again on $head"; fi
   else
-    reason=$(grep -oE 'failed_step[^,}]*|error CS[0-9]+[^\[]{0,80}|ContentValidation\][^\n]{0,100}' /tmp/canary_build.log /tmp/canary_smoke.log artifacts/PLAYABLE.json 2>/dev/null | head -2 | tr '\n' ' ')
-    python3 -c "import json;d=json.load(open('$STATE'));d['canary']={'ts':$now,'ok':False,'commit':'$(git rev-parse --short HEAD)','reason':'''${reason//\'/}'''};json.dump(d,open('$STATE','w'))"
-    [[ -z "$halted_by" ]] && halt_all canary "gate is RED on a clean origin/main ($(git rev-parse --short HEAD)): ${reason:-see /tmp/canary_smoke.log}"
+    first_reason=$(canary_reason)
+    # ── self-heal, tier 1: failure classes we have already met, fixed mechanically ──
+    fixed=""
+    if ! diff -rq content/cards client/content/cards >/dev/null 2>&1; then
+      cp content/cards/*.json client/content/cards/ && fixed="${fixed}synced client/content/cards; "
+    fi
+    if grep -rlE '/home/fictive/|runewake-lane[0-9]' client/scripts >/dev/null 2>&1; then
+      python3 - <<'PYFIX'
+import re,glob
+for f in glob.glob("client/scripts/**/*.cs", recursive=True):
+    t=open(f).read(); o=t
+    t=re.sub(r'\$"/home/fictive/runewake(?:-lane\d)?/artifacts', '$"{ProjectPaths.Artifacts}', t)
+    t=re.sub(r'"/home/fictive/runewake(?:-lane\d)?/artifacts', 'ProjectPaths.Artifacts + "', t)
+    if t!=o: open(f,"w").write(t)
+PYFIX
+      fixed="${fixed}replaced hardcoded paths; "
+    fi
+    if [[ -n "$fixed" ]] && gate_green; then
+      git add -A && git -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "guard: self-heal — ${fixed}gate green again" && bash tools/git_push_locked.sh >/dev/null 2>&1
+      python3 -c "import json;d=json.load(open('$STATE'));d['canary']={'ts':$now,'ok':True,'commit':'$(git rev-parse --short HEAD)','healed':'${fixed}'};json.dump(d,open('$STATE','w'))"
+      $TG "🩹 Burn guard self-healed the gate (${fixed}) — lanes keep running." >/dev/null 2>&1 || true
+      [[ "$halted_by" == "burn_guard:canary" ]] && unhalt_all "self-healed: ${fixed}"
+    else
+      # ── tier 2: halt, and leave a dossier for the medic session to investigate, fix and resume ──
+      python3 - "$STATE" "$now" "$head" "$first_reason" <<'PYR'
+import json,sys,subprocess
+p,now,head,reason=sys.argv[1],int(sys.argv[2]),sys.argv[3],sys.argv[4]
+d=json.load(open(p)); d['canary']={'ts':now,'ok':False,'commit':head,'reason':reason}; json.dump(d,open(p,'w'))
+tail=lambda f,n=40: subprocess.run(['tail','-n',str(n),f],capture_output=True,text=True).stdout
+recent=subprocess.run(['git','log','--format=%h %ct %s','-8'],capture_output=True,text=True).stdout
+json.dump({'ts':now,'commit':head,'reason':reason,'recent_commits':recent,'build_tail':tail('/tmp/canary_build.log'),'smoke_tail':tail('/tmp/canary_smoke.log',60)},open('/tmp/runewake_halt_reason.json','w'),indent=1)
+PYR
+      [[ -z "$halted_by" ]] && halt_all canary "gate is RED on a clean origin/main ($head): ${first_reason:-see /tmp/canary_smoke.log}. Dossier in /tmp/runewake_halt_reason.json — the next medic session investigates, fixes and resumes"
+    fi
   fi
 fi
 
