@@ -732,7 +732,7 @@
   Acceptance: 40 cards committed to content/cards/*.json; pipeline tests green; sim gate report in
   HERMES_STATUS.md; no shipped values changed on existing cards.
 
-- [ ] TASK-ART-WAVE-1 — AFTER: TASK-CARD-WAVE-1. Art for TASK-CARD-WAVE-1 per docs/ART_PROMPT_PLAYBOOK.md (binding: subject-first, no negative phrases, stratum hex palette, per-card variation) and docs/ART_WAVES.md: FLUX.2 Pro via OpenRouter, style
+- [x] TASK-ART-WAVE-1 — AFTER: TASK-CARD-WAVE-1. Art for TASK-CARD-WAVE-1 per docs/ART_PROMPT_PLAYBOOK.md (binding: subject-first, no negative phrases, stratum hex palette, per-card variation) and docs/ART_WAVES.md: FLUX.2 Pro via OpenRouter, style
   v3.0, the 6-sample veto gate first (post those 6 as separate messages), then the batch. If FLUX credits or
   the API are unavailable, write BLOCKED with the exact error and do NOT substitute any other generator or
   any hand-made placeholder.
