@@ -96,7 +96,7 @@
   and the slowest, so we can see whether rush decks stay viable. Plain words in the group,
   full table in HERMES_STATUS.md. Fable decides what ships.
 
-- [ ] TASK-WARDEN-RULE-1 — Bosses get a signature; everyday encounters never do. Engine
+- [x] TASK-WARDEN-RULE-1 — Bosses get a signature; everyday encounters never do. Engine
   primitive: an encounter json may declare one "opening rule" — a scripted effect active from
   turn 1, shown as a banner card at the top of the board. Implement the primitive and ONE
   rule, for the Region 1 Warden only: "Root-choked — the challenger's leftmost lane is buried
