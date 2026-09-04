@@ -162,7 +162,7 @@
   the release APK.
   Acceptance: before/after size and cold-start timings in HERMES_STATUS.md.
 
-- [ ] TASK-APK-SHIP-5 — PLAYABLE ALPHA. Ships only if, on the same commit: PLAYABLE.json says
+- [x] TASK-APK-SHIP-5 — PLAYABLE ALPHA. Ships only if, on the same commit: PLAYABLE.json says
   playable=true, ui_lint passes on every capture, input_smoke passes, and the build is the
   signed release export. Tag alpha-playable-1. Post URL, size, sha256 and a plain sentence
   for Trikzos: what he can do end to end in this build, and the one thing to look at first.
