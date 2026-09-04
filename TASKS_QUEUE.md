@@ -808,7 +808,7 @@
   Acceptance: MIN_TOUCH green on all captures; input_smoke passes; a short description of the
   drag behaviour.
 
-- [ ] TASK-CARD-TEXT-GEN-1 — Every card's rules text is generated from its DSL so text can never
+- [x] TASK-CARD-TEXT-GEN-1 — Every card's rules text is generated from its DSL so text can never
   drift from behaviour. A pipeline step renders the text; a test regenerates all cards and diffs
   zero; keyword reminder text is available for a long-press.
   Acceptance: pipeline test green; five sample card faces captured showing generated text.
