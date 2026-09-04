@@ -1,30 +1,3 @@
-All effects: <400ms, skippable via `CampaignContext.ReduceMotion`, no layout changes, all 825 tests pass, ui_lint pre-existing failures only.
-========================================
-=== foreman: 2026-09-04T13:53:00Z TASK-WARDEN-RULE-1 success ===
-Session: 3/96
---- session tail ---
-  TASK-WARDEN-RULE-1: attempt 1 transient — cleaning dead-session tree litter
-Removing tmp/boss_deck.json
-Removing tmp/player_deck.json
-  TASK-WARDEN-RULE-1: attempt 2/3 — waiting 60s before retry
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Here's what I've accomplished so far:
-
-**Engine primitive (opening_rule):**
-- Added `opening_rule` field to `EncounterDef.cs` — boss encounters can declare one
-- Added `OpeningRule` to `GameConfig.cs` — flows through to `GameState.Initialize`
-- Added `OpeningRule`, `OpeningRuleLifted[]`, `TotalCreatureDiedCount[]` to `GameState.cs`
-- Added `IsBuried` to `LaneState.cs` — lanes can be blocked
-- Created `OpeningRuleHandler.cs` — applies rules at init, checks lift conditions on creature death
-
-**Root-choked rule:**
-- Buries P0's lane 0 (leftmost) at game start
-- Lifts when the Warden (P1) loses their first creature (any creature, any cause)
-- Enforced in `DuelEngine.ApplyPlayCard` — throws if a buried lane is targeted
-
-**Banner card UI:**
-- Created a dark-green styled `PanelContainer` banner at the top of the board in `DuelScene._Ready`
-- Shown/hidden in `OnStateChanged` based on `state.OpeningRule`
 - Displays "Root-choked — your leftmost lane is buried..." in pale green, switches to "[LIFTED] ..." when the condition is met
 
 **JSON wiring:**
@@ -47,4 +20,31 @@ Here's what I've accomplished so far:
 5. Commit with message, push, write DONE line in HERMES_STATUS.md
 
 The test file at `/home/fictive/runewake-lane4/tests/Campaign/BossOpeningRuleSimTests.cs` runs 200 sims without the rule, then 200 with root_choked, and reports the delta. Need to rebuild and run it.
+========================================
+=== foreman: 2026-09-04T14:30:40Z TASK-CARD-BALANCE-REPORT-1 success ===
+Session: 6/96
+--- session tail ---
+  TASK-CARD-BALANCE-REPORT-1: attempt 1 transient — cleaning dead-session tree litter
+Removing sim/.balance_report_results.json
+Removing sim/.deck_packs/
+Removing sim/card_ablation.py
+Removing sim/card_balance_report.py
+Removing sim/run_matrix.py
+  TASK-CARD-BALANCE-REPORT-1: attempt 2/3 — waiting 60s before retry
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-CARD-BALANCE-REPORT-1 complete.
+
+**What was done:**
+1. Ran the full 49-pairing class matrix (200 games per matchup, seed 42) via tune_5050.py — no values changed.
+2. Matrix and per-class analysis written to `HERMES_STATUS.md` — all 7 classes outside [40%, 60%].
+3. Paragraph sent to Adam (profile doesn't have Runewake group access — relayed for paste).
+4. Build ✅, All tests pass ✅, input_smoke ✅, commit pushed ✅
+
+**Results summary:**
+- **Above 60%:** Warrior 79.1%, Paladin 76.2%, Battlemage 66.5% — all three share the +1 atk to attackers artifact engine
+- **Below 40%:** Astrologist 27.4%, Druid 28.4%, Necromancer 35.2%, Rogue 37.3%
+- **Widest gap:** Warrior beats Druid 100-0 (400 games)
+- Three cards most responsible listed per class in HERMES_STATUS.md
+
+DONE line written, task checked [x] in TASKS_QUEUE.md.
 ========================================
