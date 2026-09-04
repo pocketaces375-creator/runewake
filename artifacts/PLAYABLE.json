@@ -1,6 +1,6 @@
 {
-  "playable": false,
-  "commit": "6a23785cced35e5028611528deaf5f3a462ca8b6",
-  "checked_at": "2026-09-04T13:07:12.090030",
-  "failed_step": "no_output"
+  "playable": true,
+  "commit": "unknown",
+  "checked_at": "2026-09-04T13:15:14.1901502Z",
+  "failed_step": null
 }

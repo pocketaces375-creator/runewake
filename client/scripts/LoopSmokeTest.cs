@@ -145,7 +145,9 @@ public partial class LoopSmokeTest : Node
             if (_settleFrames < 8) { _settleFrames++; return; }
             _settleFrames = 0;
 
-            var playBtn = FindVisibleButton(scene, "Play") ?? FindVisibleButton(scene, "CONTINUE");
+            var playBtn = FindVisibleButton(scene, "Play") ?? FindVisibleButton(scene, "CONTINUE")
+                ?? FindVisibleButton(scene, "Continue") ?? FindVisibleButton(scene, "New Campaign")
+                ?? FindVisibleButton(scene, "New") ?? FindVisibleButtonContaining(scene, "New");
             if (playBtn == null)
             {
                 _noProgressCounter++;
@@ -495,6 +497,18 @@ public partial class LoopSmokeTest : Node
         target._GuiInput(release);
     }
 
+    private static Button? FindVisibleButtonContaining(Node? root, string part)
+    {
+        if (root == null) return null;
+        foreach (var btn in FindAllNodes<Button>(root))
+        {
+            if (btn.Visible && !btn.Disabled && btn.MouseFilter != Control.MouseFilterEnum.Ignore
+                && btn.Text.Contains(part, System.StringComparison.OrdinalIgnoreCase))
+                return btn;
+        }
+        return null;
+    }
+
     private static Button? FindVisibleButton(Node? root, string text)
     {
         if (root == null) return null;
@@ -551,7 +565,8 @@ public partial class LoopSmokeTest : Node
 
         try
         {
-            string dir = "/home/fictive/runewake-lane4/artifacts";
+            // artifacts/ lives next to client/ — resolve from the project, never a hardcoded lane path
+            string dir = System.IO.Path.GetFullPath(System.IO.Path.Combine(ProjectSettings.GlobalizePath("res://"), "..", "artifacts"));
             System.IO.Directory.CreateDirectory(dir);
 
             string path = System.IO.Path.Combine(dir, "PLAYABLE.json");
