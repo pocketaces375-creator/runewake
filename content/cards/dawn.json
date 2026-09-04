@@ -527,7 +527,9 @@
     "abilities": [],
     "flavor": "It sees what others cannot.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_c_gleam_sentinel.webp"
+    },
     "attack": 1,
     "vigor": 2
   },
@@ -545,7 +547,9 @@
     "abilities": [],
     "flavor": "Spear-tip of the morning.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_c_light_lancer.webp"
+    },
     "attack": 3,
     "vigor": 2
   },
@@ -563,7 +567,9 @@
     "abilities": [],
     "flavor": "No shadow crosses her post.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_c_daybreak_guard.webp"
+    },
     "attack": 4,
     "vigor": 4
   },
@@ -581,7 +587,9 @@
     "abilities": [],
     "flavor": "She carries a fragment of the first sunrise.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_c_sunpearl_healer.webp"
+    },
     "attack": 4,
     "vigor": 4
   },
@@ -615,7 +623,9 @@
     ],
     "flavor": "Brightest just before the end.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_u_fading_spark.webp"
+    },
     "attack": 4,
     "vigor": 1
   },
@@ -648,7 +658,9 @@
     ],
     "flavor": "For every unpunished wrong.",
     "content_version": 1,
-    "art": {}
+    "art": {
+      "file": "dwn_u_reckoning_strike.webp"
+    }
   },
   {
     "id": "dwn_r_aurora_warden",
@@ -677,7 +689,9 @@
     ],
     "flavor": "She weaves the aurora into a shield.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_r_aurora_warden.webp"
+    },
     "attack": 4,
     "vigor": 5
   },
@@ -710,7 +724,9 @@
     ],
     "flavor": "The final sunrise \u2014 endless, blinding, absolute.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "dwn_m_last_dawn.webp"
+    },
     "identify_condition": {
       "op": "TURN_GTE",
       "value": 8

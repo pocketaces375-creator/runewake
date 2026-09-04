@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://tidutidalbarrier"
+path="res://.godot/imported/tid_u_tidal_barrier.webp-tid_u_tidal_barrier_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/tid_u_tidal_barrier.webp"
+dest_files=["res://.godot/imported/tid_u_tidal_barrier.webp-tid_u_tidal_barrier_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

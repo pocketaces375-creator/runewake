@@ -515,7 +515,9 @@
     "abilities": [],
     "flavor": "Fling first, ask later.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_c_stone_slinger.webp"
+    },
     "attack": 2,
     "vigor": 1
   },
@@ -533,7 +535,9 @@
     "abilities": [],
     "flavor": "Heated to the point of shattering.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_c_smoldering_pike.webp"
+    },
     "attack": 3,
     "vigor": 2
   },
@@ -551,7 +555,9 @@
     "abilities": [],
     "flavor": "It drags a length of red-hot chain.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_c_furnace_reaver.webp"
+    },
     "attack": 5,
     "vigor": 3
   },
@@ -569,7 +575,9 @@
     "abilities": [],
     "flavor": "The mountain rewards those who climb it.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_c_volcanic_boon.webp"
+    },
     "attack": 6,
     "vigor": 4
   },
@@ -602,7 +610,9 @@
     ],
     "flavor": "The ground remembers the heat.",
     "content_version": 1,
-    "art": {}
+    "art": {
+      "file": "emb_u_lava_burst.webp"
+    }
   },
   {
     "id": "emb_u_cinder_venom",
@@ -631,7 +641,9 @@
     ],
     "flavor": "A bite that burns twice.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_u_cinder_venom.webp"
+    },
     "attack": 3,
     "vigor": 1
   },
@@ -649,7 +661,9 @@
     "abilities": [],
     "flavor": "It hunts through fields of broken glass.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_u_scoria_prowler.webp"
+    },
     "attack": 4,
     "vigor": 3
   },
@@ -682,7 +696,9 @@
     ],
     "flavor": "Every word from his mouth is a weapon.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "emb_r_sharptongue_elder.webp"
+    },
     "attack": 4,
     "vigor": 3
   }

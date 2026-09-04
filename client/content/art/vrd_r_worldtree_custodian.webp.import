@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://vrdrworldtreecustodian"
+path="res://.godot/imported/vrd_r_worldtree_custodian.webp-vrd_r_worldtree_custodian_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/vrd_r_worldtree_custodian.webp"
+dest_files=["res://.godot/imported/vrd_r_worldtree_custodian.webp-vrd_r_worldtree_custodian_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

@@ -498,7 +498,9 @@
     "abilities": [],
     "flavor": "Even the smallest root can trip a giant.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_c_root_sprout.webp"
+    },
     "attack": 1,
     "vigor": 2
   },
@@ -516,7 +518,9 @@
     "abilities": [],
     "flavor": "The forest knows how to defend itself.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_c_thorn_wall.webp"
+    },
     "attack": 2,
     "vigor": 4
   },
@@ -534,7 +538,9 @@
     "abilities": [],
     "flavor": "It weaves a barrier of thorn and prayer.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_c_warding_vine.webp"
+    },
     "attack": 4,
     "vigor": 4
   },
@@ -552,7 +558,9 @@
     "abilities": [],
     "flavor": "Every fallen leaf returns as medicine.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_c_leaf_mender.webp"
+    },
     "attack": 4,
     "vigor": 4
   },
@@ -571,7 +579,9 @@
     "abilities": [],
     "flavor": "Wood tempered by a hundred battles.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_u_ironbark_guard.webp"
+    },
     "attack": 3,
     "vigor": 4
   },
@@ -604,7 +614,9 @@
     ],
     "flavor": "The heartbeat of the forest, given form.",
     "content_version": 1,
-    "art": {}
+    "art": {
+      "file": "vrd_u_sylvan_pulse.webp"
+    }
   },
   {
     "id": "vrd_u_forest_stalker",
@@ -620,7 +632,9 @@
     "abilities": [],
     "flavor": "It moves between the trees like a shadow.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_u_forest_stalker.webp"
+    },
     "attack": 6,
     "vigor": 4
   },
@@ -653,7 +667,9 @@
     ],
     "flavor": "She remembers when the world was young.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "vrd_r_worldtree_custodian.webp"
+    },
     "attack": 6,
     "vigor": 6
   }

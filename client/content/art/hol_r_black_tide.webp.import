@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://holrblacktide"
+path="res://.godot/imported/hol_r_black_tide.webp-hol_r_black_tide_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/hol_r_black_tide.webp"
+dest_files=["res://.godot/imported/hol_r_black_tide.webp-hol_r_black_tide_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

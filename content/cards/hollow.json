@@ -526,7 +526,9 @@
     "abilities": [],
     "flavor": "Rats carry what kings leave behind.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_c_plague_rat.webp"
+    },
     "attack": 1,
     "vigor": 1
   },
@@ -544,7 +546,9 @@
     "abilities": [],
     "flavor": "One scratch is enough.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_c_venom_fang.webp"
+    },
     "attack": 3,
     "vigor": 1
   },
@@ -562,7 +566,9 @@
     "abilities": [],
     "flavor": "Everything has a price in the barrow.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_c_bone_trader.webp"
+    },
     "attack": 3,
     "vigor": 2
   },
@@ -580,7 +586,9 @@
     "abilities": [],
     "flavor": "It tracks by scent of the grave.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_c_stygian_hound.webp"
+    },
     "attack": 5,
     "vigor": 2
   },
@@ -598,7 +606,9 @@
     "abilities": [],
     "flavor": "Nothing stays buried forever.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_c_unearth_scavenger.webp"
+    },
     "attack": 6,
     "vigor": 4
   },
@@ -638,7 +648,9 @@
     ],
     "flavor": "A whispered bargain with what lies below.",
     "content_version": 1,
-    "art": {}
+    "art": {
+      "file": "hol_u_barrow_rite.webp"
+    }
   },
   {
     "id": "hol_u_nightshade_priest",
@@ -655,7 +667,9 @@
     "abilities": [],
     "flavor": "She serves a god whose name is only spoken once.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_u_nightshade_priest.webp"
+    },
     "attack": 5,
     "vigor": 4
   },
@@ -686,7 +700,9 @@
     ],
     "flavor": "It rises when the moon is dark.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "hol_r_black_tide.webp"
+    },
     "attack": 3,
     "vigor": 3
   }

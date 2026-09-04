@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://dwnureckoningstrike"
+path="res://.godot/imported/dwn_u_reckoning_strike.webp-dwn_u_reckoning_strike_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/dwn_u_reckoning_strike.webp"
+dest_files=["res://.godot/imported/dwn_u_reckoning_strike.webp-dwn_u_reckoning_strike_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

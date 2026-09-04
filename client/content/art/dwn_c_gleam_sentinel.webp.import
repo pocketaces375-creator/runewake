@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://dwncgleamsentinel"
+path="res://.godot/imported/dwn_c_gleam_sentinel.webp-dwn_c_gleam_sentinel_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/dwn_c_gleam_sentinel.webp"
+dest_files=["res://.godot/imported/dwn_c_gleam_sentinel.webp-dwn_c_gleam_sentinel_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

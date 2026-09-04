@@ -576,7 +576,9 @@
     "abilities": [],
     "flavor": "It dances on waves that no one else sees.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_c_foam_runner.webp"
+    },
     "attack": 1,
     "vigor": 2
   },
@@ -594,7 +596,9 @@
     "abilities": [],
     "flavor": "The tide reaches further each year.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_c_tide_reacher.webp"
+    },
     "attack": 3,
     "vigor": 2
   },
@@ -612,7 +616,9 @@
     "abilities": [],
     "flavor": "She reads the kelp like scrolls.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_c_kelp_diviner.webp"
+    },
     "attack": 2,
     "vigor": 3
   },
@@ -630,7 +636,9 @@
     "abilities": [],
     "flavor": "Its spines taste the salt air.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_c_saltthorn_scout.webp"
+    },
     "attack": 4,
     "vigor": 4
   },
@@ -648,7 +656,9 @@
     "abilities": [],
     "flavor": "It pulls everything down eventually.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_c_undertow_current.webp"
+    },
     "attack": 6,
     "vigor": 4
   },
@@ -666,7 +676,9 @@
     "abilities": [],
     "flavor": "Water that holds its shape.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_u_tidal_barrier.webp"
+    },
     "attack": 3,
     "vigor": 5
   },
@@ -699,7 +711,9 @@
     ],
     "flavor": "Pressure from below. A lot of it.",
     "content_version": 1,
-    "art": {}
+    "art": {
+      "file": "tid_u_depth_charge.webp"
+    }
   },
   {
     "id": "tid_r_echo_caller",
@@ -730,7 +744,9 @@
     ],
     "flavor": "Her voice carries across every wave.",
     "content_version": 1,
-    "art": {},
+    "art": {
+      "file": "tid_r_echo_caller.webp"
+    },
     "attack": 5,
     "vigor": 4
   }

@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://tidcfoamrunner"
+path="res://.godot/imported/tid_c_foam_runner.webp-tid_c_foam_runner_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/tid_c_foam_runner.webp"
+dest_files=["res://.godot/imported/tid_c_foam_runner.webp-tid_c_foam_runner_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+

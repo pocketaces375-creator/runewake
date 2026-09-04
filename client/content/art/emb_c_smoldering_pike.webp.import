@@ -1,0 +1,23 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://embcsmolderingpike"
+path="res://.godot/imported/emb_c_smoldering_pike.webp-emb_c_smoldering_pike_placeholder.ctex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://content/art/emb_c_smoldering_pike.webp"
+dest_files=["res://.godot/imported/emb_c_smoldering_pike.webp-emb_c_smoldering_pike_placeholder.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=true
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal
+
