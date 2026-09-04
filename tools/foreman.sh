@@ -713,7 +713,7 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   tail -50 "${LAST_RUN_LOG}" > "${LAST_RUN_LOG}.tmp" 2>/dev/null || true && mv "${LAST_RUN_LOG}.tmp" "${LAST_RUN_LOG}" 2>/dev/null || true
 
   cd "${PROJECT_DIR}"
-  git add "${STATE_FILE}" "${LAST_RUN_LOG}" 2>/dev/null || true
+  git add "${LAST_RUN_LOG}" 2>/dev/null || true; git add "${STATE_FILE}" 2>/dev/null || true
   if ! git diff --cached --quiet 2>/dev/null; then
     git commit -m "foreman: state after ${TASK_ID} (transient)" 2>/dev/null || true
     git push origin main 2>/dev/null || true
@@ -766,10 +766,12 @@ else
     set_state "blocked_notified" "False"
     POST_SESSION_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
     if [[ -n "${POST_SESSION_HEAD}" ]] && [[ "${POST_SESSION_HEAD}" != "${CURRENT_HEAD}" ]]; then
+      _rb=$(mktemp); cp "${STATE_FILE}" "${_rb}" 2>/dev/null || true
       git fetch origin main 2>/dev/null || true
       git reset --hard origin/main 2>/dev/null || true
       git checkout -- . 2>/dev/null || true
       git clean -fd 2>/dev/null || true
+      cp "${_rb}" "${STATE_FILE}" 2>/dev/null || true; rm -f "${_rb}"
     fi
 fi
 
@@ -796,7 +798,7 @@ fi
 tail -50 "${LAST_RUN_LOG}" > "${LAST_RUN_LOG}.tmp" 2>/dev/null || true && mv "${LAST_RUN_LOG}.tmp" "${LAST_RUN_LOG}" 2>/dev/null || true
 
 cd "${PROJECT_DIR}"
-git add "${STATE_FILE}" "${LAST_RUN_LOG}" 2>/dev/null || true
+git add "${LAST_RUN_LOG}" 2>/dev/null || true; git add "${STATE_FILE}" 2>/dev/null || true
 if ! git diff --cached --quiet 2>/dev/null; then
   git commit -m "foreman: state after ${TASK_ID} (${OUTCOME_LABEL})" 2>/dev/null || true
   git push origin main 2>/dev/null || true
@@ -813,10 +815,22 @@ if [[ -n "${CURRENT_TOP}" ]] && [[ "${CURRENT_TOP}" == "${TASK_ID}" ]]; then
   set_state "no_progress_count" "${NO_PROGRESS_COUNT}"
   warn "No progress: same task ${CURRENT_TOP} still top — ${NO_PROGRESS_COUNT}/3"
   if [[ "${NO_PROGRESS_COUNT}" -ge 3 ]]; then
-    warn "No progress after 3 consecutive sessions — creating HALT"
-    telegram_text "🚨 No-progress: 3 consecutive sessions without queue advancement — creating HALT"
-    touch "${HALT_FILE}"
-    exit 1
+    warn "No progress after 3 consecutive sessions — parking ${TASK_ID} and moving on"
+    python3 - "${TASK_ID}" "${PROJECT_DIR}/TASKS_QUEUE.md" <<'PYNP'
+import sys,re
+tid,p=sys.argv[1],sys.argv[2]
+s=open(p).read()
+open(p,'w').write(re.sub(r'^- \[ \] '+re.escape(tid)+r'','- [!] '+tid,s,count=1,flags=re.M))
+PYNP
+    echo "- $(today): PARKED ${TASK_ID} — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable." >> "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
+    git -C "${PROJECT_DIR}" add TASKS_QUEUE.md "${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}" 2>/dev/null || true
+    git -C "${PROJECT_DIR}" -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "foreman: park ${TASK_ID} — no progress after 3 sessions, advancing" 2>/dev/null || true
+    bash tools/git_push_locked.sh 2>/dev/null || true
+    telegram_text "Parked ${TASK_ID} (3 sessions, no progress) — moving to the next task."
+    set_state "no_progress_count" 0
+    set_state "retry_count" 0
+    set_state "retry_task_id" "\"\""
+    exit 0
   fi
 else
   set_state "no_progress_count" 0

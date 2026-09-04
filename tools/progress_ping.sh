@@ -11,6 +11,8 @@ def sh(*a):
     except Exception: return ""
 q=open(os.path.join(R,"TASKS_QUEUE.md")).read().splitlines()
 done=sum(1 for l in q if re.match(r'^- \[x\] TASK-',l))
+try: done+=sum(1 for l in open(os.path.join(R,"docs/archive/TASKS_DONE.md")).read().splitlines() if re.match(r'^\|?- \[x\] TASK-',l))
+except Exception: pass
 openn=[l for l in q if re.match(r'^- \[ \] TASK-',l)]
 parked=sum(1 for l in q if re.match(r'^- \[!\] TASK-',l))
 total=done+len(openn)+parked
