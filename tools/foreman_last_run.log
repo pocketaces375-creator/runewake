@@ -1,8 +1,3 @@
-- `content/artifacts/launch_artifacts.json` — exactly 14 launch artifacts, all IDs matching spec
-- `client/content/classes.json` and `client/content/artifacts/launch_artifacts.json` — mirrored
-
-**2. Pocketed data (retired classes/artifacts):**
-- `content/pocketed/classes_pocketed.json` — mage, cleric, runesmith, tidecaller, dawnward, occultist, thief, ranger
 - `content/pocketed/artifacts_pocketed.json` — all 16 retired artifacts
 - `client/content/art/pocketed/classes/` — 8 retired class portraits
 - `client/content/art/pocketed/artifacts/` — all retired artifact art files
@@ -47,4 +42,9 @@
 - Git commit + push not done
 
 **Ready for finish_task.sh** once Godot headless setup is available. All content data, engine code, and test code changes are complete and verified.
+========================================
+=== foreman: 2026-09-04T02:34:09Z TASK-ROSTER-LOCK-1 success ===
+Session: 11/96
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
 ========================================
