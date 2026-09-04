@@ -1,10 +1,3 @@
-
-## Completed
-
-1. **ProgressionState.cs** — Added Arena stats: `ArenaWins`, `ArenaLosses`, `ArenaRunesEarned`, `ArenaMatchCount`
-
-2. **SaveRepository.cs** — Persisted all 4 new arena fields to SQLite (load/save meta entries)
-
 3. **CampaignContext.cs** — Added:
    - `ArenaMode`, `ArenaCurrentOpponent`, `ArenaCaptureTest`, `ArenaSoakActive/Remaining/Seed` flags
    - `ArenaOpponentDef` class with `DisplayName`, `Id`, `Deck`, `IsWarden`
@@ -47,4 +40,11 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-DUEL-ARENA-1 on z-ai/glm-5.2:free: 23s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-04T22:15:01Z TASK-ITEMS-0 blocked ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-0 on deepseek/deepseek-v4-flash: 622s
+TASK-ITEMS-0: `content/artifacts/variants/*.json` now load alongside `launch_artifacts.json` across engine, client, and sim; the Reliquary shows all 15 artifacts (14 launch + 1 fixture) under an ARTIFACTS section with class/slot_pool tags and silhouette fallback for missing art; 828/828 tests green, loop_smoke and input_smoke both PASS, and the fixture variant (`Fixture Blade`, `res://content/artifacts/artf_warrior_fixture_blade.webp`) renders in the Reliquary capture with its dark-silhouette fallback — committed at `f82da25`.
 ========================================
