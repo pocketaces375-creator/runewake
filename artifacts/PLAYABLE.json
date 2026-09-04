@@ -1,6 +1,6 @@
 {
-  "playable": false,
+  "playable": true,
   "commit": "unknown",
-  "checked_at": "2026-09-03T17:15:08.0351241Z",
-  "failed_step": "Expected ChooseYourPath but got Main"
+  "checked_at": "2026-09-04T00:03:34.5981723Z",
+  "failed_step": null
 }

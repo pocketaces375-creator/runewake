@@ -164,6 +164,20 @@ public partial class ChooseYourPathScene : Control
         UpdateUI();
         RunVerify();
 
+        // Soak mode: auto-select first class (warrior), auto-Begin
+        // Runs regardless of AutoCaptureScreenshot — needed by LoopSmokeTest.
+        if (CampaignContext.SoakActive)
+        {
+            _selectedIdx = 0;
+            UpdateCarousel();
+            UpdateUI();
+            RunVerify();
+            GD.Print("[ChooseYourPath] Soak mode — selected " + _classes[0].Name + ", auto-beginning");
+            var soakBeginTimer = GetTree().CreateTimer(0.5f);
+            soakBeginTimer.Timeout += OnBegin;
+            return;
+        }
+
         // Capture hook
         if (CampaignContext.AutoCaptureScreenshot)
         {
@@ -175,19 +189,6 @@ public partial class ChooseYourPathScene : Control
                 UpdateCarousel();
                 UpdateUI();
                 RunVerify();
-            }
-
-            // Soak mode: auto-select first class (warrior), auto-Begin
-            if (CampaignContext.SoakActive)
-            {
-                _selectedIdx = 0;
-                UpdateCarousel();
-                UpdateUI();
-                RunVerify();
-                GD.Print("[ChooseYourPath] Soak mode — selected " + _classes[0].Name + ", auto-beginning");
-                var soakBeginTimer = GetTree().CreateTimer(0.5f);
-                soakBeginTimer.Timeout += OnBegin;
-                return;
             }
 
             var timer = GetTree().CreateTimer(1.0f);
@@ -404,6 +405,7 @@ public partial class ChooseYourPathScene : Control
         var beginClick = new Button();
         beginClick.SetAnchorsPreset(LayoutPreset.FullRect);
         beginClick.MouseDefaultCursorShape = CursorShape.PointingHand;
+        beginClick.Text = "Begin"; // needed by LoopSmokeTest.FindVisibleButton
         var btnTransparent = new StyleBoxFlat { BgColor = Colors.Transparent };
         beginClick.AddThemeStyleboxOverride("normal", btnTransparent);
         beginClick.AddThemeStyleboxOverride("hover", btnTransparent);

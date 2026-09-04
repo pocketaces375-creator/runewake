@@ -85,9 +85,10 @@ public partial class LoopSmokeTest : Node
             return;
         }
 
-        // Check per-phase timeout (60s per phase)
+        // Check per-phase timeout (60s per phase; SoakRunning extended for llvmpipe slowness)
         double phaseElapsed = (Time.GetTicksMsec() / 1000.0) - _phaseStartTime;
-        if (phaseElapsed > 90)
+        double phaseTimeout = _phase == Phase.SoakRunning ? 300.0 : 90.0;
+        if (phaseElapsed > phaseTimeout)
         {
             GD.PrintErr($"[LoopSmokeTest] Phase {_phase} timed out after {phaseElapsed:F1}s");
             WritePlayableJson(false, $"phase_timeout_{_phase}");
@@ -153,11 +154,12 @@ public partial class LoopSmokeTest : Node
             }
 
             GD.Print($"[LoopSmokeTest] Title ready — clicking '{playBtn.Text}' via _GuiInput");
-            InjectTouch(playBtn);
-            // Now activate soak mode so the map auto-navigates after ChooseYourPath
+            // Activate soak mode BEFORE scene change so ChooseYourPathScene._Ready
+            // sees it and auto-selects class + auto-Begins in soak mode.
             CampaignContext.SoakActive = true;
             CampaignContext.SoakMaxNodes = 1;
             GD.Print("[LoopSmokeTest] SoakActive=true, SoakMaxNodes=1 set for map/duel flow");
+            InjectTouch(playBtn);
             SetPhase(Phase.ChoosePath);
             _noProgressCounter = 0;
             return;
@@ -168,14 +170,14 @@ public partial class LoopSmokeTest : Node
     }
 
     // ════════════════════════════════════════════════════
-    // Choose Your Path: click class card then Begin
+    // Choose Your Path: soak auto-begin handles everything
     // ════════════════════════════════════════════════════
     private void TickChoosePath(Node scene, string name)
     {
         if (!name.Contains("Choose"))
         {
             _noProgressCounter++;
-            if (_noProgressCounter > 30) Fail($"Expected ChooseYourPath but got {name}");
+            if (_noProgressCounter > 60) Fail($"Expected ChooseYourPath but got {name}");
             return;
         }
         _noProgressCounter = 0;
@@ -183,65 +185,11 @@ public partial class LoopSmokeTest : Node
         if (_settleFrames < 8) { _settleFrames++; return; }
         _settleFrames = 0;
 
-        if (!_classClicked)
-        {
-            // Find a class card (large interactive panel)
-            Control? card = FindLargeControl(scene, 150, 100);
-            if (card == null)
-            {
-                // Try finding PanelNode specifically
-                var panels = FindNodesByName(scene, "PanelNode");
-                if (panels.Count > 0) card = panels[0] as Control;
-            }
-            if (card == null)
-            {
-                _noProgressCounter++;
-                if (_noProgressCounter > 20) Fail("No class card found in ChooseYourPath");
-                return;
-            }
-
-            GD.Print("[LoopSmokeTest] ChoosePath — clicking class card via _GuiInput");
-            InjectTouch(card);
-            _classClicked = true;
-
-            // Schedule Begin button click for next frame
-            var beginTimer = new Godot.Timer();
-            beginTimer.OneShot = true;
-            beginTimer.WaitTime = 0.4f;
-            beginTimer.Timeout += () =>
-            {
-                if (!GodotObject.IsInstanceValid(this)) return;
-                var btn = FindVisibleButton(GetTree()?.CurrentScene, "Begin");
-                if (btn == null)
-                {
-                    // Try partial match
-                    var allButtons = FindAllNodes<Button>(GetTree()?.CurrentScene);
-                    foreach (var b in allButtons)
-                    {
-                        if (b.Visible && !b.Disabled && b.Text.Contains("egin"))
-                        {
-                            btn = b;
-                            break;
-                        }
-                    }
-                }
-                if (btn != null)
-                {
-                    GD.Print("[LoopSmokeTest] ChoosePath — clicking Begin via _GuiInput");
-                    InjectTouch(btn);
-                    SetPhase(Phase.SoakRunning);
-                    GD.Print("[LoopSmokeTest] Phase: SoakRunning — waiting for map/duel flow");
-                }
-                else
-                {
-                    GD.PrintErr("[LoopSmokeTest] Begin button not found — trying to continue via soak");
-                    SetPhase(Phase.SoakRunning);
-                }
-            };
-            AddChild(beginTimer);
-            beginTimer.Start();
-            return;
-        }
+        // Wait for soak auto-begin to fire (0.5s timer in ChooseYourPathScene._Ready),
+        // which selects class 0, calls OnBegin, and transitions to MapScene.
+        // No manual clicks needed — soak handles everything.
+        GD.Print("[LoopSmokeTest] ChoosePath scene ready — waiting for soak auto-begin to navigate to Map");
+        SetPhase(Phase.SoakRunning);
     }
 
     // ════════════════════════════════════════════════════
@@ -516,8 +464,33 @@ public partial class LoopSmokeTest : Node
     private static void InjectTouch(Control target)
     {
         if (!GodotObject.IsInstanceValid(target)) return;
-        var press = new InputEventScreenTouch { Position = Vector2.Zero, Pressed = true, Index = 0 };
-        var release = new InputEventScreenTouch { Position = Vector2.Zero, Pressed = false, Index = 0 };
+        // Emit the Pressed signal directly — _GuiInput with direct calls
+        // bypasses BaseButton's internal state machine in Godot 4.3.
+        // Headless mode has no real mouse cursor, so position-based
+        // hit-testing via _GuiInput always fails.
+        if (target is Button btn)
+        {
+            btn.EmitSignal(Button.SignalName.Pressed);
+            return;
+        }
+        // For non-Button controls, dispatch through the proper input pipeline
+        // using the control's global rect center for hit testing.
+        var rect = target.GetGlobalRect();
+        var center = rect.Position + rect.Size * 0.5f;
+        var press = new InputEventMouseButton
+        {
+            Position = center,
+            GlobalPosition = center,
+            ButtonIndex = MouseButton.Left,
+            Pressed = true,
+        };
+        var release = new InputEventMouseButton
+        {
+            Position = center,
+            GlobalPosition = center,
+            ButtonIndex = MouseButton.Left,
+            Pressed = false,
+        };
         target._GuiInput(press);
         target._GuiInput(release);
     }

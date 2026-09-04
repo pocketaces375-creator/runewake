@@ -1,4 +1,4 @@
 {
-  "verdict": "FAIL",
-  "failed_step": "Expected ChooseYourPath but got Main"
+  "verdict": "PASS",
+  "failed_step": null
 }

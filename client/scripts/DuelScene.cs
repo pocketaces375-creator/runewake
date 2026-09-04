@@ -366,7 +366,7 @@ public partial class DuelScene : Control
         if (isTutorialEncounter || CampaignContext.SoakActive)
         {
             _bot.ThinkDelay = 0.1f;
-            _bot.ActionInterval = 0.1f;
+            _bot.ActionInterval = 0.05f; // TASK-PLAYABLE-NAV-1: fast bot actions for soak duels
         }
 
         // Show mulligan overlay if not in tutorial mode or tutorial script mode
@@ -2766,7 +2766,7 @@ public partial class DuelScene : Control
         int p0Turns = 0;
         var t = new Godot.Timer();
         t.OneShot = false;
-        t.WaitTime = 0.3f;
+        t.WaitTime = 0.05f; // TASK-PLAYABLE-NAV-1: 50ms cycle for fast soak duels (llvmpipe is slow)
         t.Timeout += () =>
         {
             if (_gsm == null) return;
@@ -2777,13 +2777,19 @@ public partial class DuelScene : Control
                 GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport("artifacts/captures/audio_verify.json");
                 if (CampaignContext.SoakActive)
                 {
+                    // TASK-PLAYABLE-NAV-1: Always mark the node cleared in soak mode (win or loss)
+                    // so the soak loop does not re-select the same node and loop forever.
+                    if (CampaignContext.CurrentNodeId != null)
+                    {
+                        CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
+                        CampaignContext.SaveManager.Save();
+                        GD.Print($"[BotDuelTest] Soak mode — marked node {CampaignContext.CurrentNodeId} cleared (winner={st.WinnerIndex})");
+                    }
                     GD.Print("[BotDuelTest] Soak mode — game over, navigating back to map");
                     t.Stop();
-                    // OnGameOver fires asynchronously on next engine tick, applying rewards and clearing nodes.
-                    // Navigate to map after a short delay to let OnGameOver finish.
                     var navTimer = new Godot.Timer();
                     navTimer.OneShot = true;
-                    navTimer.WaitTime = 0.3f;
+                    navTimer.WaitTime = 0.05f; // TASK-PLAYABLE-NAV-1: fast map nav after duel
                     navTimer.Timeout += () =>
                     {
                         if (GodotObject.IsInstanceValid(GetTree()))

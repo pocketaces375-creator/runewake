@@ -10543,3 +10543,20 @@ Already up to date.
 === Running: TASK-BOARD-DEVICE-1 ===
 
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 8/48 (8 full + 0 bus, 16/96 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-PLAYABLE-NAV-1
+
+=== Running: TASK-PLAYABLE-NAV-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 3812693) — exiting
