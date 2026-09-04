@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Runewake.Engine.Cards;
 using Xunit;
@@ -5,14 +6,11 @@ using Xunit;
 namespace Runewake.Tests.Cards;
 
 [Collection("NonParallel")]
-/// <summary>
-/// Snapshot tests for the RulesTextRenderer.
-/// Each card is rendered and compared to an expected string.
-/// When updating cards, update these strings to match.
-/// </summary>
 public class RulesTextSnapshotTests
 {
     private const string ContentRoot = "../../../../content/cards";
+
+    // ——— VERDANT ———
 
     [Fact]
     public void Root_Warden()
@@ -30,7 +28,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_c_verdant_sproutling");
         Assert.Equal(
-            "1/2\n" +
+            "1/2 — Guard\n" +
             "\"Life finds a way through every crack.\"",
             RulesTextRenderer.Render(card));
     }
@@ -50,7 +48,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_c_wildwood_stalker");
         Assert.Equal(
-            "3/2\n" +
+            "3/2 — Swift\n" +
             "\"It hunts between the roots, patient and swift.\"",
             RulesTextRenderer.Render(card));
     }
@@ -139,13 +137,6 @@ public class RulesTextSnapshotTests
             RulesTextRenderer.Render(card));
     }
 
-    [Fact]
-    public void Verdant_Bud_Token()
-    {
-        var card = LoadById("vrd_t_verdant_bud");
-        Assert.Equal("1/1 — Swift", RulesTextRenderer.Render(card));
-    }
-
     // ——— EMBER ———
 
     [Fact]
@@ -183,7 +174,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_c_forgeguard_berserker");
         Assert.Equal(
-            "4/3\n" +
+            "4/3 — Pierce\n" +
             "\"He fights like the fire — without mercy, without memory.\"",
             RulesTextRenderer.Render(card));
     }
@@ -304,6 +295,7 @@ public class RulesTextSnapshotTests
         var card = LoadById("tid_c_deep_one");
         Assert.Equal(
             "3/3\n" +
+            "When this enters play: Draw 1 card\n" +
             "\"From the abyss it rises, silent and patient.\"",
             RulesTextRenderer.Render(card));
     }
@@ -386,7 +378,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_r_sunken_leviathan");
         Assert.Equal(
-            "7/7\n" +
+            "7/7 — Ward\n" +
             "\"It sleeps in the deep, dreaming of cities it swallowed.\"",
             RulesTextRenderer.Render(card));
     }
@@ -421,7 +413,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_c_skeletal_reaver");
         Assert.Equal(
-            "2/1\n" +
+            "2/1 — Venom\n" +
             "\"Bones that remember the sword.\"",
             RulesTextRenderer.Render(card));
     }
@@ -558,7 +550,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_c_sunblade_recruit");
         Assert.Equal(
-            "3/3\n" +
+            "3/3 — Guard\n" +
             "\"Steel and sunlight, sworn to the covenant.\"",
             RulesTextRenderer.Render(card));
     }

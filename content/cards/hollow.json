@@ -33,7 +33,7 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": [],
+    "keywords": ["VENOM"],
     "abilities": [],
     "flavor": "Bones that remember the sword.",
     "power_score": 2.2,

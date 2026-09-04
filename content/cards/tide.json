@@ -63,7 +63,14 @@
     "attack": 3,
     "vigor": 3,
     "keywords": [],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+        ]
+      }
+    ],
     "flavor": "From the abyss it rises, silent and patient.",
     "power_score": 4.5,
     "content_version": 1
@@ -227,7 +234,7 @@
     "cost": 7,
     "attack": 7,
     "vigor": 7,
-    "keywords": [],
+    "keywords": ["WARD"],
     "abilities": [],
     "flavor": "It sleeps in the deep, dreaming of cities it swallowed.",
     "power_score": 10.5,
