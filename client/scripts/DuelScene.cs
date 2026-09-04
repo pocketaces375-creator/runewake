@@ -3533,6 +3533,16 @@ public partial class DuelScene : Control
     private Godot.Timer? _revealTimer;
     private bool _revealTapped;          // player tapped to advance
 
+    // ── TASK-REWARD-SCREEN-1: Animated reward counters ──
+    private struct AnimatedRewardCounter
+    {
+        public Label ValueLabel;
+        public int TargetValue;
+        public int Index;
+    }
+    private readonly List<AnimatedRewardCounter> _rewardCounters = [];
+    private bool _countersStarted;
+
     /// <summary>
     /// Start the drop reveal sequence on the victory overlay.
     /// </summary>
@@ -3898,8 +3908,9 @@ public partial class DuelScene : Control
         } // closes if (winnerIndex == 0 && ...)
         else
         {
-            // Campaign defeat — show game-over overlay
-            ShowGameOverOverlay(winnerIndex);
+            // Campaign defeat — BuildGameOverOverlay handles this via RenderFromState.
+            // Do NOT call ShowGameOverOverlay here — it creates a conflicting overlay.
+            GD.Print("[DuelScene] Campaign defeat — overlay will be built by RenderFromState via BuildGameOverOverlay");
         }
     } // closes if (_isCampaignEncounter && !_isGameOverHandled)
     else
@@ -4026,7 +4037,7 @@ private void ShowGameOverOverlay(int winnerIndex)
 
         // ── Central stone panel ──
         var panel = new Panel();
-        panel.CustomMinimumSize = new Vector2(520, 0);
+        panel.CustomMinimumSize = new Vector2(640, 0);
         panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         var panelStyle = StyleWornBorder(
             borderColor: accentColor,
@@ -4059,6 +4070,40 @@ private void ShowGameOverOverlay(int winnerIndex)
         ApplyHeaderFont(statusLabelNode, FontLarge);
         statusLabelNode.Modulate = accentColor;
         panelVBox.AddChild(statusLabelNode);
+
+        // ── TASK-REWARD-SCREEN-1: Encounter portrait ──
+        if (encounter != null && !string.IsNullOrEmpty(encounter.Portrait))
+        {
+            var portraitCtr = new CenterContainer
+            {
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                CustomMinimumSize = new Vector2(0, 72),
+                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            };
+            var portraitTex = ResourceLoader.Load<Texture2D>(encounter.Portrait);
+            if (portraitTex != null)
+            {
+                var portrait = new TextureRect
+                {
+                    Texture = portraitTex,
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                    CustomMinimumSize = new Vector2(72, 72),
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                };
+                var portraitStyle = new StyleBoxFlat
+                {
+                    BgColor = SurfaceStone,
+                    BorderColor = accentColor,
+                    BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                    CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
+                    CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
+                };
+                portrait.AddThemeStyleboxOverride("normal", portraitStyle);
+                portraitCtr.AddChild(portrait);
+            }
+            panelVBox.AddChild(portraitCtr);
+        }
 
         // ── Encounter name headline ──
         var headlineLabel = new Label
@@ -4114,6 +4159,7 @@ private void ShowGameOverOverlay(int winnerIndex)
         // ── Reward summary panel (victory only) ──
         if (playerWon && encounter != null)
         {
+            // ── TASK-REWARD-SCREEN-1: Rewards section with animated counters ──
             panelVBox.AddChild(MakeDivider());
 
             var rewardPanel = new Panel();
@@ -4141,18 +4187,24 @@ private void ShowGameOverOverlay(int winnerIndex)
             rewardHeader.Modulate = Gold;
             rewardGrid.AddChild(rewardHeader);
 
-            // Shards
+            int rewardIdx = 0;
+
+            // Shards — animated counter
             if (encounter.ShardReward > 0)
             {
-                var shardRow = MakeRewardRow("● Shards", $"+{encounter.ShardReward}", Gold);
+                var (shardRow, shardVal) = MakeAnimatedRewardRow("● Shards", encounter.ShardReward, Gold, rewardIdx);
                 rewardGrid.AddChild(shardRow);
+                _rewardCounters.Add(new AnimatedRewardCounter { ValueLabel = shardVal, TargetValue = encounter.ShardReward, Index = rewardIdx });
+                rewardIdx++;
             }
 
-            // Dig charges
+            // Dig charges — animated counter
             if (encounter.DigChargeReward > 0)
             {
-                var digRow = MakeRewardRow("◇ Dig Charges", $"+{encounter.DigChargeReward}", Moss);
+                var (digRow, digVal) = MakeAnimatedRewardRow("◇ Dig Charges", encounter.DigChargeReward, Moss, rewardIdx);
                 rewardGrid.AddChild(digRow);
+                _rewardCounters.Add(new AnimatedRewardCounter { ValueLabel = digVal, TargetValue = encounter.DigChargeReward, Index = rewardIdx });
+                rewardIdx++;
             }
 
             // Fragments
@@ -4200,6 +4252,47 @@ private void ShowGameOverOverlay(int winnerIndex)
                 };
                 panelVBox.AddChild(dropCtr);
                 _dropRevealContainer = dropCtr;
+            }
+        }
+        else if (!playerWon && encounter != null)
+        {
+            // ── TASK-REWARD-SCREEN-1: Defeat — show what was lost (forfeited rewards) ──
+            bool hasRewards = encounter.ShardReward > 0 || encounter.DigChargeReward > 0
+                              || !string.IsNullOrEmpty(encounter.FragmentReward)
+                              || !string.IsNullOrEmpty(_grantedCardName)
+                              || _dropRevealCards.Count > 0;
+            if (hasRewards)
+            {
+                panelVBox.AddChild(MakeDivider());
+
+                var forfeitLabel = new Label
+                {
+                    Text = "— Rewards forfeited —",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                };
+                ApplyBodyFont(forfeitLabel, FontSmall);
+                forfeitLabel.Modulate = Ember;
+                panelVBox.AddChild(forfeitLabel);
+
+                if (encounter.ShardReward > 0)
+                {
+                    panelVBox.AddChild(MakeRewardRow("● Shards", $"+{encounter.ShardReward}", TextMuted));
+                }
+                if (encounter.DigChargeReward > 0)
+                {
+                    panelVBox.AddChild(MakeRewardRow("◇ Dig Charges", $"+{encounter.DigChargeReward}", TextMuted));
+                }
+                if (!string.IsNullOrEmpty(encounter.FragmentReward))
+                {
+                    panelVBox.AddChild(MakeRewardRow("◆ Fragments", $"+{encounter.FragmentReward}", TextMuted));
+                }
+                if (_dropRevealCards.Count > 0)
+                {
+                    int dropCount = _dropRevealCards.Count;
+                    panelVBox.AddChild(MakeRewardRow("♠ Card Drops", $"{dropCount} card{(dropCount != 1 ? "s" : "")}", TextMuted));
+                }
             }
         }
 
@@ -4267,6 +4360,15 @@ private void ShowGameOverOverlay(int winnerIndex)
             _gameOverOverlay.AddChild(startTimer);
             startTimer.Start();
         }
+
+        // ── TASK-REWARD-SCREEN-1: Start animated reward counters ──
+        // Starts counting up immediately; staggered delays managed by StartAnimatedCounters
+        var counterTimer = new Godot.Timer();
+        counterTimer.WaitTime = 0.1f;
+        counterTimer.OneShot = true;
+        counterTimer.Timeout += StartAnimatedCounters;
+        _gameOverOverlay.AddChild(counterTimer);
+        counterTimer.Start();
 
         // Play audio event
         var audio = GetNode<AudioManager>("/root/AudioManager");
@@ -4366,6 +4468,67 @@ private void ShowGameOverOverlay(int winnerIndex)
         row.AddChild(val);
 
         return row;
+    }
+
+    // ── TASK-REWARD-SCREEN-1: Animated reward row ──
+    /// <summary>Create a reward row with a label and a value label that will count up from 0 to the target.</summary>
+    private (Control Row, Label ValueLabel) MakeAnimatedRewardRow(string label, int targetValue, Color valueColor, int index)
+    {
+        var row = new HBoxContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Alignment = BoxContainer.AlignmentMode.Center,
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+        };
+        row.AddThemeConstantOverride("separation", 12);
+
+        var lbl = new Label
+        {
+            Text = label,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ApplyBodyFont(lbl, FontBody);
+        lbl.Modulate = TextSecondary;
+        row.AddChild(lbl);
+
+        var val = new Label
+        {
+            Text = "0",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ApplyHeaderFont(val, FontLargeBody);
+        val.Modulate = valueColor;
+        row.AddChild(val);
+
+        return (row, val);
+    }
+
+    /// <summary>Start the animated reward counters counting up from 0 to their target values.</summary>
+    private void StartAnimatedCounters()
+    {
+        if (_countersStarted || _rewardCounters.Count == 0) return;
+        _countersStarted = true;
+
+        float baseDelay = 0.5f; // brief pause after overlay appears
+        float counterTime = 1.2f;
+        float stagger = 0.3f;
+
+        foreach (var counter in _rewardCounters)
+        {
+            int target = counter.TargetValue;
+            Label label = counter.ValueLabel;
+            if (target <= 0) continue;
+
+            float delay = baseDelay + counter.Index * stagger;
+            var tween = GetTree().CreateTween();
+            tween.SetParallel(false);
+            tween.TweenMethod(
+                Callable.From<double>(v => { label.Text = ((int)v).ToString(); }),
+                0.0, (double)target, counterTime
+            ).SetDelay(delay);
+        }
     }
 
     /// <summary>Create a stone-styled action button with ThemeTokens colors.</summary>

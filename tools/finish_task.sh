@@ -73,6 +73,10 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
       "duel_test_r2:2316:1080"
       "choose_path:2316:1080"
       "choose_path_wide:2999:1080"
+      "victory_overlay:2316:1080"
+      "victory_overlay_wide:2999:1080"
+      "defeat_overlay:2316:1080"
+      "defeat_overlay_wide:2999:1080"
     )
 
     for mode_entry in "${MODES[@]}"; do
