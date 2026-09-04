@@ -211,7 +211,8 @@ public sealed class GameState
                 var triggerAbility = artDef.Trigger;
 
                 instance.Abilities.Add(passiveAbility);
-                instance.Abilities.Add(triggerAbility);
+                if (triggerAbility is not null)
+                    instance.Abilities.Add(triggerAbility);
 
                 // If the artifact has a dedicated full_charge effects list,
                 // add an ON_CHARGE_FULL ability for them. This lets the trigger
@@ -240,7 +241,8 @@ public sealed class GameState
                 }
 
                 // Determine if this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN
-                slot.HasDeferredChargeFull = artDef.Trigger.Trigger == Trigger.ON_CHARGE_FULL
+                slot.HasDeferredChargeFull = artDef.Trigger is not null
+                    && artDef.Trigger.Trigger == Trigger.ON_CHARGE_FULL
                     && artDef.Trigger.Timing == "END_OF_TURN";
 
                 slot.Occupant = instance;
