@@ -521,9 +521,8 @@ public class CostModTests
         Assert.Equal("HAS_NOT_ATTACKED", auraPassive.GetProperty("target").GetProperty("filter").GetString());
 
         var duskfangPassive = byId["artf_rogue_dagger_dusk"].GetProperty("passive");
-        Assert.Equal("COST_MOD", duskfangPassive.GetProperty("op").GetString());
-        Assert.Equal("ATTACK_LTE", duskfangPassive.GetProperty("filter").GetString());
-        Assert.Equal(2, duskfangPassive.GetProperty("value").GetInt32());
+        Assert.Equal("GRANT_KEY", duskfangPassive.GetProperty("op").GetString());
+        Assert.Equal("STEALTH_STRIKE", duskfangPassive.GetProperty("keyword").GetString());
 
         var grimoirePassive = byId["artf_necromancer_skull"].GetProperty("passive");
         Assert.Equal("COST_MOD", grimoirePassive.GetProperty("op").GetString());
