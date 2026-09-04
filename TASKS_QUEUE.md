@@ -97,7 +97,7 @@
   Acceptance: map capture showing Region 3 reachable after a seeded Region 2 clear; a clean soak of 3
   encounters plus the boss; loop_smoke green; posted.
 
-- [ ] TASK-REGION-4-BUILD-1 — AFTER: TASK-REGION-3-BUILD-1. Same as TASK-REGION-3-BUILD-1 for Region 4
+- [x] TASK-REGION-4-BUILD-1 — AFTER: TASK-REGION-3-BUILD-1. Same as TASK-REGION-3-BUILD-1 for Region 4
   (content/map/region_04.json, region_04_*.json), unlocking when the Region 3 Warden falls.
   Acceptance: map capture showing Region 4 reachable after a seeded Region 3 clear; a clean soak of 3
   encounters plus the boss; loop_smoke green; posted.
