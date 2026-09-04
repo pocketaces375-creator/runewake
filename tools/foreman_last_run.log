@@ -1,40 +1,3 @@
-`TASK-CARD-ART-VERIFY-1` — cross-check every shipped card against its art file.
-========================================
-=== foreman: 2026-09-04T23:50:14Z TASK-ITEMS-WARRIOR-1 retry ===
-Session: 8/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 31s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-04T23:52:55Z TASK-CARD-ART-VERIFY-1 success ===
-Session: 13/96
---- session tail ---
-  session TASK-CARD-ART-VERIFY-1 on deepseek/deepseek-v4-flash: 975s
-**Done.** Here's the full summary:
-
-## TASK-CARD-ART-VERIFY-1 — Complete ✅
-
-**Findings:**
-- **146 card IDs** from 6 content/cards/*.json files
-- **145/146 art files present** in client/content/art/ — all pass `art_check.py portrait` (≥1000 distinct colours at 64px, 832×1216 portrait aspect)
-- **1 missing:** `tid_c_star_reader` (Tide Star-Reader) — no .webp and no .import
-
-**Regenerated:**
-1. **`tid_c_star_reader.webp`** (NEW) — TIDE astronomer figure reading constellations by tidal pools, FLUX.2 Pro 832×1216. art_check: PASS (1972 colours, 832×1216). Vision check: PASS (astronomer by water at night).
-2. **`emb_r_sharptongue_elder.webp`** (REGEN) — Old art showed a human elder on a stone throne. New art: a monstrous creature of living slag/obsidian with a forked tongue. art_check: PASS (2562 colours). Vision check: PASS (monstrous creature, not human).
-
-**20 lowest-colour scorers vision-checked:** 19/20 matched their card subject. `emb_r_sharptongue_elder` was the one clear mismatch — now fixed with proper regeneration.
-
-**Mirror check:** All 6 client/content/cards/ files byte-for-byte identical to content/cards/.
-
-**Zero missing files:** All 146 cards have .webp + .import.
-
-**Tests:** 828/828 pass (GrindCard flake retried OK).
-
-**Artifacts:** `docs/ART_AUDIT.md` — full 146-row table (id, status, score, dimensions).
-
-**Deferred:** Reliquary capture deferred — Godot binary not configured on this lane. Will need a separate session with Godot access to produce the capture.
 
 **Report posted** to Runewake Telegram. Commit `649496d`.
 
@@ -47,4 +10,41 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-BATTLEMAGE-1 on z-ai/glm-5.2:free: 41s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-04T23:57:43Z TASK-ENGINE-FIRST-PLAYER-1 success ===
+Session: 9/96
+--- session tail ---
+  session TASK-ENGINE-FIRST-PLAYER-1 on deepseek/deepseek-v4-flash: 1316s
+## DONE
+
+**TASK-ENGINE-FIRST-PLAYER-1** — Mirror matchups must be a coin flip.
+
+### What was wrong
+`engine/Engine/DuelEngine.cs` line 103: `firstPlayerSkipsDraw = CurrentPlayerIndex == 0 && TurnNumber == 1`. Dead code — `TurnNumber` is incremented to 2 when `CurrentPlayerIndex` wraps back to 0, so the condition never evaluates true. P0 never skipped their turn-1 draw.
+
+### Fix
+Changed to `!state.HasSkippedFirstDraw` with an `else state.HasSkippedFirstDraw = true` branch. Added `HasSkippedFirstDraw` flag to `GameState` with clone + hash support. The draw skip now fires exactly once, for P0 only.
+
+### Before/After mirror P0 win rates (200 games, seed 42, GreedyBot)
+
+| Class | Before (dead code) | After (fixed) | Delta |
+|-------|-------------------|---------------|-------|
+| warrior | 64.0% | **58.5%** | -5.5% |
+| battlemage | 64.0% | **58.5%** | -5.5% |
+| necromancer | 50.0% | **40.5%** | -9.5% |
+| paladin | 64.0% | **58.5%** | -5.5% |
+| druid | 99.0% | **99.0%** | — (separate bug, next task) |
+| rogue | 50.0% | **40.0%** | -10.0% |
+| astrologist | 41.0% | **32.5%** | -8.5% |
+
+### Acceptance check
+- **5/7 within [40,60]** ✓ (warrior, battlemage, necromancer, paladin, rogue)
+- **Druid outside [30,70]** — known bug (CARD-BALANCE-REPORT-1: Druid P0 beats P1 98%), tracked as TASK-ENGINE-DRUID-P1-1. The first-player fix doesn't touch class-specific issues.
+- **dotnet test green** — 829/829 pass
+- **No card or artifact values changed** ✓
+- **Unit test added** — `FirstPlayerDrawSkip_FiresOnce_OnlyForP0` proves skip fires exactly once for P0 only
+
+### Commits
+- `80ca566` — engine fix + tests
+- `498051b` — mark [x] + DONE entry
 ========================================
