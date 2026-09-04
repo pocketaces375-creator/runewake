@@ -589,7 +589,7 @@ public partial class Main : Control
                     var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng($"/home/fictive/runewake/artifacts/captures/title_test{suffix}.png");
+                        img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/title_test{suffix}.png");
                     DebugCapture.WriteLayoutJson(this, $"title_test{suffix}");
                     GD.Print($"[Main] title_test{suffix}.png saved");
 
@@ -613,7 +613,7 @@ public partial class Main : Control
                     // Capture title screen
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng("/home/fictive/runewake/artifacts/captures/title_deck.png");
+                        img.SavePng("/home/fictive/runewake-lane4/artifacts/captures/title_deck.png");
                     DebugCapture.WriteLayoutJson(this, "title_deck");
                     GD.Print("[Main] title_deck.png saved");
 
@@ -634,7 +634,7 @@ public partial class Main : Control
                     meta.Append("  \"expected_deck_button_label\": \"Decks\"\n");
                     meta.Append("}\n");
 
-                    var metaPath = "/home/fictive/runewake/artifacts/captures/title_deck.meta.json";
+                    var metaPath = "/home/fictive/runewake-lane4/artifacts/captures/title_deck.meta.json";
                     using (var writer = new System.IO.StreamWriter(metaPath))
                     {
                         writer.Write(meta.ToString());

@@ -118,7 +118,7 @@ public partial class MapScene : Control
                     var suffix = CampaignContext.WideCaptureMode ? "_wide" : "";
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng($"/home/fictive/runewake/artifacts/captures/map_test{suffix}.png");
+                        img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/map_test{suffix}.png");
                     DebugCapture.WriteLayoutJson(this, $"map_test{suffix}");
                     GD.Print($"[MAPCAPTURE] map_test{suffix}.png saved");
 
@@ -152,7 +152,7 @@ public partial class MapScene : Control
             {
                 var img = GetViewport().GetTexture().GetImage();
                 if (img != null)
-                    img.SavePng($"/home/fictive/runewake/artifacts/captures/flow_{prefix}_map{suffix}.png");
+                    img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/flow_{prefix}_map{suffix}.png");
                 DebugCapture.WriteLayoutJson(this, $"flow_{prefix}_map{suffix}");
                 GD.Print($"[FLOWTEST] flow_{prefix}_map{suffix}.png saved — round-trip complete");
 
@@ -204,7 +204,7 @@ public partial class MapScene : Control
                     GD.Print("[MAPSOAK] All nodes cleared — capturing final map and quitting");
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
-                        img.SavePng($"/home/fictive/runewake/artifacts/captures/soak_final_map_{CampaignContext.SoakSeedStr}.png");
+                        img.SavePng($"/home/fictive/runewake-lane4/artifacts/captures/soak_final_map_{CampaignContext.SoakSeedStr}.png");
                     GD.Print($"[MAPSOAK] soak_final_map saved for seed {CampaignContext.SoakSeedStr}");
 
                     // TASK-UI-LINT-1: Dump layout JSON for soak final map

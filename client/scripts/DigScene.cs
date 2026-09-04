@@ -62,8 +62,8 @@ public partial class DigScene : Control
                 if (image != null)
                 {
                     string path = CampaignContext.WideCaptureMode
-                        ? "/home/fictive/runewake/artifacts/captures/dig_test_wide.png"
-                        : "/home/fictive/runewake/artifacts/captures/dig_test.png";
+                        ? "/home/fictive/runewake-lane4/artifacts/captures/dig_test_wide.png"
+                        : "/home/fictive/runewake-lane4/artifacts/captures/dig_test.png";
                     image.SavePng(path);
                     string baseName = CampaignContext.WideCaptureMode ? "dig_test_wide" : "dig_test";
                     DebugCapture.WriteLayoutJson(this, baseName);

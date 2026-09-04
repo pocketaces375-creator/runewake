@@ -562,11 +562,11 @@ public partial class DuelScene : Control
                         captureSuffix = "";
 
                     var capturePath = CampaignContext.CaptureVictoryOverlay
-                        ? $"/home/fictive/runewake/artifacts/captures/victory_overlay{captureSuffix}.png"
+                        ? $"/home/fictive/runewake-lane4/artifacts/captures/victory_overlay{captureSuffix}.png"
                         : CampaignContext.CaptureDefeatOverlay
-                        ? $"/home/fictive/runewake/artifacts/captures/defeat_overlay{captureSuffix}.png"
-                        : $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.png";
-                    var metaPath = $"/home/fictive/runewake/artifacts/captures/duel_test{captureSuffix}.meta.json";
+                        ? $"/home/fictive/runewake-lane4/artifacts/captures/defeat_overlay{captureSuffix}.png"
+                        : $"/home/fictive/runewake-lane4/artifacts/captures/duel_test{captureSuffix}.png";
+                    var metaPath = $"/home/fictive/runewake-lane4/artifacts/captures/duel_test{captureSuffix}.meta.json";
 
                     var img = GetViewport().GetTexture().GetImage();
                     if (img != null)
@@ -765,7 +765,7 @@ public partial class DuelScene : Control
                         GD.Print($"[VERIFY] Layout checks: {failed} failed");
                         // TASK-AUDIO-VERIFY-1: Write audio verification report
                         GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport(
-                            "/home/fictive/runewake/artifacts/captures/audio_verify.json");
+                            "/home/fictive/runewake-lane4/artifacts/captures/audio_verify.json");
                         if (failed > 0)
                             GetTree().Quit(1);
                         else
@@ -783,7 +783,7 @@ public partial class DuelScene : Control
                         }
                         // TASK-AUDIO-VERIFY-1: Write audio verification report
                         GetNode<AudioManager>("/root/AudioManager").WriteAudioVerificationReport(
-                            "/home/fictive/runewake/artifacts/captures/audio_verify.json");
+                            "/home/fictive/runewake-lane4/artifacts/captures/audio_verify.json");
                         GetTree().Quit(0);
                     }
                 };

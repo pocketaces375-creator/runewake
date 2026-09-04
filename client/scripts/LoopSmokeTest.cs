@@ -551,7 +551,7 @@ public partial class LoopSmokeTest : Node
 
         try
         {
-            string dir = "/home/fictive/runewake/artifacts";
+            string dir = "/home/fictive/runewake-lane4/artifacts";
             System.IO.Directory.CreateDirectory(dir);
 
             string path = System.IO.Path.Combine(dir, "PLAYABLE.json");

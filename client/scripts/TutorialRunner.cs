@@ -78,7 +78,7 @@ public partial class TutorialRunner : Node
     private readonly List<int> _headlessSummonedLanes = new();
 
     // ── Capture directory ──
-    private string _captureDir = "/home/fictive/runewake/artifacts/captures";
+    private string _captureDir = "/home/fictive/runewake-lane4/artifacts/captures";
     private string _tutorialCapturePrefix = "tutorial_";
 
     // ── Events ──
@@ -299,6 +299,26 @@ public partial class TutorialRunner : Node
         // TASK-TUTORIAL-VERIFY-1: Player ended their turn — advance to opponent turn
         if (_state == RunnerState.PlayerTurn && turnChanged && state.CurrentPlayerIndex != 0)
         {
+            // Check if there's an active beat with END_TURN or NO_ATTACK_END_TURN trigger
+            // that must be matched BEFORE advancing, so its popup shows and gets captured.
+            var beat = CurrentBeat;
+            if (beat is { TriggerEvent: "END_TURN" or "NO_ATTACK_END_TURN" })
+            {
+                GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: Player ended turn — matching '{beat.Id}' first");
+                // Match the beat manually to show popup and capture
+                _prevAttackCount = state.Players[0].AttackCountThisTurn;
+                _prevSummonCount = state.Players[0].Lanes.Count(l => l.Occupant != null);
+                CheckPlayerAction(state);
+                // If matched and showing popup, don't advance yet — wait for dismiss
+                // If not matched (shouldn't happen for END_TURN), fall through to normal advance
+                if (_state == RunnerState.ShowingPopup)
+                {
+                    GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: END_TURN beat '{beat.Id}' matched — showing popup before advance");
+                    return;
+                }
+                // Fall through to normal advance if beat didn't match
+            }
+
             GD.Print($"[TutorialRunner] Turn {state.TurnNumber}: Player turn ended → opponent turn");
             _pendingAdvance = true;
             return;
@@ -698,6 +718,14 @@ public partial class TutorialRunner : Node
             _state = RunnerState.PlayerTurn;
             ClearActionRestrictions();
             GD.Print("[TutorialRunner] All beats complete for this turn — free play until end turn");
+
+            // If the game state already shows the opponent's turn active (END_TURN was matched
+            // and popup dismissed), advance to the next script turn now.
+            if (_gsm?.State?.CurrentPlayerIndex != 0)
+            {
+                GD.Print("[TutorialRunner] All beats done and opponent's turn active — advancing to next script turn");
+                _pendingAdvance = true;
+            }
         }
         else
         {

@@ -56,7 +56,7 @@ public partial class CardPlateTest : Control
             if (image != null)
             {
                 string resolution = $"{(int)GetViewportRect().Size.X}x{(int)GetViewportRect().Size.Y}";
-                string path = $"/home/fictive/runewake/artifacts/captures/cardplate_test_{resolution}.png";
+                string path = $"/home/fictive/runewake-lane4/artifacts/captures/cardplate_test_{resolution}.png";
                 var dir = System.IO.Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dir))
                     System.IO.Directory.CreateDirectory(dir);

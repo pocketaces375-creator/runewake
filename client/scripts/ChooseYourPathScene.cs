@@ -198,8 +198,8 @@ public partial class ChooseYourPathScene : Control
                 if (image != null)
                 {
                     string path = CampaignContext.WideCaptureMode
-                        ? "/home/fictive/runewake/artifacts/captures/choose_path_wide.png"
-                        : "/home/fictive/runewake/artifacts/captures/choose_path.png";
+                        ? "/home/fictive/runewake-lane4/artifacts/captures/choose_path_wide.png"
+                        : "/home/fictive/runewake-lane4/artifacts/captures/choose_path.png";
                     image.SavePng(path);
                     string baseName = CampaignContext.WideCaptureMode ? "choose_path_wide" : "choose_path";
                     GD.Print($"[ChooseYourPath] Captured to {path}");

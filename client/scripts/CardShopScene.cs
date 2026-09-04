@@ -75,7 +75,7 @@ public partial class CardShopScene : Control
         var img = GetViewport().GetTexture().GetImage();
         if (img != null)
         {
-            string path = $"/home/fictive/runewake/artifacts/captures/shop_test{suffix}.png";
+            string path = $"/home/fictive/runewake-lane4/artifacts/captures/shop_test{suffix}.png";
             img.SavePng(path);
             DebugCapture.WriteLayoutJson(this, $"shop_test{suffix}");
             DebugCapture.DumpLayoutJSON($"shop_test{suffix}", this);
