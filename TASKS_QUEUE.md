@@ -102,7 +102,7 @@
   Acceptance: map capture showing Region 4 reachable after a seeded Region 3 clear; a clean soak of 3
   encounters plus the boss; loop_smoke green; posted.
 
-- [ ] TASK-CARD-ART-VERIFY-1 — Every shipped card must show its own art. Cross-check every card id in
+- [x] TASK-CARD-ART-VERIFY-1 — Every shipped card must show its own art. Cross-check every card id in
   content/cards/*.json against client/content/art/<id>.webp (+ .import): list missing files, files whose
   art_check.py score fails, and any card whose image is visibly not its subject (look at the 20 lowest
   scorers). Regenerate only what fails, with docs/ART_PROMPT_PLAYBOOK.md prompts (subject first, stratum
