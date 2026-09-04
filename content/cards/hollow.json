@@ -346,5 +346,170 @@
     "flavor": "The barrow's hunger reaches beyond the grave.",
     "power_score": 10.0,
     "content_version": 1
+  },
+  {
+    "id": "hol_c_bone_tick",
+    "set": "buried_age",
+    "name": "Bone Tick",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "ECHO"
+    ],
+    "abilities": [],
+    "flavor": "It burrows into the marrow and waits.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.5
+  },
+  {
+    "id": "hol_c_dust_spinner",
+    "set": "buried_age",
+    "name": "Dust Spinner",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "It weaves shrouds from the dust of forgotten kings.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.1
+  },
+  {
+    "id": "hol_c_ghoul_scavenger",
+    "set": "buried_age",
+    "name": "Ghoul Scavenger",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "It picks the bones clean and moves on.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.15
+  },
+  {
+    "id": "hol_c_barrow_call",
+    "set": "buried_age",
+    "name": "Barrow Caller",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The barrow remembers every soul it has claimed.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "hol_c_wraith_bonebreaker",
+    "set": "buried_age",
+    "name": "Wraith Bonebreaker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Brittle as old bone, sharp as a broken edge.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "hol_u_soul_picker",
+    "set": "buried_age",
+    "name": "Soul Picker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "She claims the souls that others leave behind.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.8
+  },
+  {
+    "id": "hol_u_putrid_knight",
+    "set": "buried_age",
+    "name": "Putrid Knight",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "His oath died before he did. He fights on regardless.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.65
+  },
+  {
+    "id": "hol_r_death_drummer",
+    "set": "buried_age",
+    "name": "Death Drummer",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The rhythm of the grave—steady, patient, inevitable.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.95
   }
 ]

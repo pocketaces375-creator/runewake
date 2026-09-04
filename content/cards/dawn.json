@@ -291,7 +291,7 @@
       "GUARD"
     ],
     "abilities": [],
-    "flavor": "She does not fight \u2014 she enforces.",
+    "flavor": "She does not fight — she enforces.",
     "power_score": 11.5,
     "content_version": 1
   },
@@ -329,5 +329,188 @@
     "flavor": "A fragment of the First Dawn, imbued with unbreakable light.",
     "power_score": 14.0,
     "content_version": 1
+  },
+  {
+    "id": "dwn_c_templar_initiate",
+    "set": "buried_age",
+    "name": "Templar Initiate",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The first vow is silence. The second is steel.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.6
+  },
+  {
+    "id": "dwn_c_light_bearer",
+    "set": "buried_age",
+    "name": "Light Bearer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "She carries the dawn with her, even into shadow.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.1
+  },
+  {
+    "id": "dwn_c_oath_sworn_guard",
+    "set": "buried_age",
+    "name": "Oath-Sworn Guard",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Bound by oath, unbroken by blade.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "dwn_c_warden_of_the_light",
+    "set": "buried_age",
+    "name": "Warden of the Light",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The light does not abandon its wardens.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "dwn_u_blessing_of_dawn",
+    "set": "buried_age",
+    "name": "Blessing of Dawn",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "A whispered prayer that mends both flesh and faith.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.1
+  },
+  {
+    "id": "dwn_u_vigil_guardian",
+    "set": "buried_age",
+    "name": "Vigil Guardian",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [],
+    "flavor": "Where she stands, the dawn reaches a little further.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.9
+  },
+  {
+    "id": "dwn_r_gilded_seraph",
+    "set": "buried_age",
+    "name": "Gilded Seraph",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Wings of gold, eyes of starlight, heart of the dawn.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 13.2
+  },
+  {
+    "id": "dwn_x_radiant_shard",
+    "set": "buried_age",
+    "name": "Radiant Shard",
+    "strata": "DAWN",
+    "type": "RELIC",
+    "rarity": "RELIC",
+    "cost": 4,
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 6
+    },
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A sliver of the first morning, sealed in crystal.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.38
   }
 ]

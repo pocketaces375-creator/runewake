@@ -147,13 +147,13 @@ public class RegionOneIntegrationTests : IDisposable
     // ─── Content validation ─────────────────────────────
 
     [Fact]
-    public void AllCards_LoadFromRealFiles_Have65Definitions()
+    public void AllCards_LoadFromRealFiles_Have106Definitions()
     {
-        // The 5 strata + 1 tutorial pack define 65 cards total
+        // The 5 strata + 1 tutorial pack define 106 cards total (66 base + 40 new TASK-CARD-WAVE-1)
         var cards = new List<CardDef>();
         foreach (var file in Directory.GetFiles(CardsDir, "*.json"))
             cards.AddRange(CardLoader.LoadPack(file));
-        Assert.Equal(66, cards.Count);
+        Assert.Equal(106, cards.Count);
     }
 
     [Fact]

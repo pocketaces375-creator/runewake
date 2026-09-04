@@ -318,5 +318,170 @@
     ],
     "abilities": [],
     "content_version": 1
+  },
+  {
+    "id": "vrd_c_moss_shield",
+    "set": "buried_age",
+    "name": "Moss Shield",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The forest provides cover to those who respect it.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 3.6
+  },
+  {
+    "id": "vrd_c_root_tender",
+    "set": "buried_age",
+    "name": "Root Tender",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "PIERCE"
+    ],
+    "abilities": [],
+    "flavor": "She speaks to the roots, and they carry her words.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.1
+  },
+  {
+    "id": "vrd_c_bark_sentinel",
+    "set": "buried_age",
+    "name": "Bark Sentinel",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 5,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "It has stood watch since the first acorn fell.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.6
+  },
+  {
+    "id": "vrd_c_vine_weaver",
+    "set": "buried_age",
+    "name": "Vine Weaver",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 6,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Her vines stretch across the battlefield before the enemy takes a step.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.1
+  },
+  {
+    "id": "vrd_u_forest_poultice",
+    "set": "buried_age",
+    "name": "Forest Poultice",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [],
+    "flavor": "Bark and bloom, woven into a second chance.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 5.25
+  },
+  {
+    "id": "vrd_u_bramble_heart",
+    "set": "buried_age",
+    "name": "Bramble Heart",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "REACH"
+    ],
+    "abilities": [],
+    "flavor": "Even cut down, it sends one last seed into the world.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 7.8
+  },
+  {
+    "id": "vrd_u_greatwood_guardian",
+    "set": "buried_age",
+    "name": "Greatwood Guardian",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "The greatwood does not yield. It remembers the axe.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 9.85
+  },
+  {
+    "id": "vrd_r_deeproot_ancients",
+    "set": "buried_age",
+    "name": "Deeproot Ancient",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "KEYWORD:ROOTED",
+              "count": "ALL"
+            },
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Its roots reach deeper than the barrow itself.",
+    "content_version": 1,
+    "art": {},
+    "power_score": 10.62
   }
 ]
