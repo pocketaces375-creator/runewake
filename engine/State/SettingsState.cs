@@ -33,6 +33,9 @@ public class SettingsState
     /// <summary>Language code (reserved for i18n).</summary>
     public string Language { get; set; } = "en";
 
+    /// <summary>Graphics quality: false = low (nearest filtering, performance), true = high (linear filtering, smooth).</summary>
+    public bool GraphicsQuality { get; set; } = false;
+
     /// <summary>Whether the player has seen the story intro splash.</summary>
     public bool IntroSeen { get; set; } = false;
 

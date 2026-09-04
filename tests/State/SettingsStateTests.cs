@@ -41,6 +41,23 @@ public class SettingsStateTests
         Assert.True(original.ReduceMotion);
         Assert.True(original.LargeText);
     }
+
+    [Fact]
+    public void SettingsState_GraphicsQuality_DefaultIsLow()
+    {
+        var s = new SettingsState();
+        Assert.False(s.GraphicsQuality, "Default graphics quality should be Low");
+    }
+
+    [Fact]
+    public void SettingsState_GraphicsQuality_SurvivesClone()
+    {
+        var original = new SettingsState { GraphicsQuality = true };
+        var clone = original.Clone();
+        Assert.True(clone.GraphicsQuality);
+        clone.GraphicsQuality = false;
+        Assert.True(original.GraphicsQuality, "Clone mutation should not affect original");
+    }
 }
 
 /// <summary>
@@ -126,5 +143,30 @@ public class SettingsPersistenceTests : IDisposable
         Assert.Equal(1.0f, loaded.SfxVolume);   // default
         Assert.False(loaded.ReduceMotion);       // default
         Assert.Equal("en", loaded.Language);      // default
+    }
+
+    [Fact]
+    public void SaveRepository_GraphicsQualityRoundTrip()
+    {
+        var repo = NewRepo();
+        var saved = new SettingsState
+        {
+            MasterVolume = 0.5f,
+            MusicVolume = 0.5f,
+            SfxVolume = 0.5f,
+            GraphicsQuality = true
+        };
+        repo.SaveSettings(saved);
+
+        var loaded = repo.LoadSettings();
+        Assert.True(loaded.GraphicsQuality);
+    }
+
+    [Fact]
+    public void SaveRepository_GraphicsQualityDefaultLow_WhenMissing()
+    {
+        var repo = NewRepo();
+        var loaded = repo.LoadSettings();
+        Assert.False(loaded.GraphicsQuality);
     }
 }

@@ -47,8 +47,8 @@ public partial class SettingsScene : Control
                 if (image != null)
                 {
                     string path = CampaignContext.WideCaptureMode
-                        ? "/home/fictive/runewake/artifacts/captures/settings_test_wide.png"
-                        : "/home/fictive/runewake/artifacts/captures/settings_test.png";
+                        ? "/home/fictive/runewake-lane4/artifacts/captures/settings_test_wide.png"
+                        : "/home/fictive/runewake-lane4/artifacts/captures/settings_test.png";
                     image.SavePng(path);
                     string baseName = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
                     DebugCapture.WriteLayoutJson(this, baseName);
@@ -127,6 +127,55 @@ public partial class SettingsScene : Control
 
         // ═══ MASTER MUTE ═══
         _muteToggle = AddToggle(vbox, "Mute All", OnMuteToggled);
+
+        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 16) });
+
+        // ═══ GRAPHICS QUALITY ═══
+        var gfxHbox = new HBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
+            CustomMinimumSize = new Vector2(0, 44)
+        };
+        vbox.AddChild(gfxHbox);
+
+        var gfxLbl = new Label
+        {
+            Text = "Graphics Quality",
+            CustomMinimumSize = new Vector2(100, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ThemeTokens.ApplyBodyFont(gfxLbl, ThemeTokens.FontBody);
+        gfxLbl.Modulate = Color.FromHtml("#E8DCC8");
+        gfxHbox.AddChild(gfxLbl);
+
+        gfxHbox.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.Fill });
+
+        var gfxValue = new Label
+        {
+            Text = "Low",
+            CustomMinimumSize = new Vector2(60, 0),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ThemeTokens.ApplyBodyFont(gfxValue, ThemeTokens.FontSmall);
+        gfxValue.Modulate = Color.FromHtml("#C9A84C");
+        gfxHbox.AddChild(gfxValue);
+
+        var gfxToggle = new CheckButton
+        {
+            CustomMinimumSize = new Vector2(48, 0),
+            ButtonPressed = CampaignContext.Settings.GraphicsQuality
+        };
+        gfxValue.Text = gfxToggle.ButtonPressed ? "High" : "Low";
+        gfxToggle.Toggled += on =>
+        {
+            _dirty = true;
+            CampaignContext.Settings.GraphicsQuality = on;
+            gfxValue.Text = on ? "High" : "Low";
+            ApplyGraphicsQuality(on);
+            GD.Print($"[Settings] Graphics quality set to {(on ? "High" : "Low")}");
+        };
+        gfxHbox.AddChild(gfxToggle);
 
         vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 16) });
 
@@ -749,6 +798,9 @@ public partial class SettingsScene : Control
         if (_sfxSlider != null) _sfxSlider.Value = (int)(s.SfxVolume * 100);
         if (_ambientSlider != null) _ambientSlider.Value = (int)(s.AmbientVolume * 100);
         if (_muteToggle != null) _muteToggle.ButtonPressed = s.MasterMute;
+
+        // Apply saved graphics quality
+        ApplyGraphicsQuality(s.GraphicsQuality);
     }
 
     private void OnVolumeChanged(double value)
@@ -798,6 +850,20 @@ public partial class SettingsScene : Control
         _dirty = false;
 
         GD.Print("[Settings] Saved and applied.");
+    }
+
+    private void ApplyGraphicsQuality(bool highQuality)
+    {
+        var filter = highQuality
+            ? Viewport.DefaultCanvasItemTextureFilter.Linear
+            : Viewport.DefaultCanvasItemTextureFilter.Nearest;
+        // Apply to the main viewport — affects all 2D rendering
+        var tree = GetTree();
+        if (tree != null && tree.Root != null)
+        {
+            tree.Root.CanvasItemDefaultTextureFilter = filter;
+            GD.Print($"[Settings] Viewport texture filter set to {(highQuality ? "Linear" : "Nearest")}");
+        }
     }
 
     private static void ApplyAudioSettings(SettingsState s)

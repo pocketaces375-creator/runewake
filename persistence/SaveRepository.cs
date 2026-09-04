@@ -248,6 +248,7 @@ public sealed class SaveRepository
         InsertSetting(conn, "high_contrast", settings.HighContrast ? "1" : "0");
         InsertSetting(conn, "intro_seen", settings.IntroSeen ? "1" : "0");
         InsertSetting(conn, "language", settings.Language);
+        InsertSetting(conn, "graphics_quality", settings.GraphicsQuality ? "1" : "0");
     }
 
     /// <summary>
@@ -287,6 +288,7 @@ public sealed class SaveRepository
             if (dict.TryGetValue("high_contrast", out var hc)) s.HighContrast = hc == "1";
             if (dict.TryGetValue("intro_seen", out var ins)) s.IntroSeen = ins == "1";
             if (dict.TryGetValue("language", out var lang)) s.Language = lang;
+            if (dict.TryGetValue("graphics_quality", out var gq)) s.GraphicsQuality = gq == "1";
         }
         catch
         {
