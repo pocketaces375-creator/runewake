@@ -480,7 +480,7 @@
   artifacts, names matching; all tests green; loop_smoke and input_smoke pass; Choose Your Path
   capture shows the 7 classes in the listed order; migration test green; post the capture and
   one sentence.
-- [ ] TASK-CLASS-IDENTITY-1A — Astrologist becomes a real class: the seer of the Tide (weak early, inevitable
+- [x] TASK-CLASS-IDENTITY-1A — Astrologist becomes a real class: the seer of the Tide (weak early, inevitable
   late). AFTER: TASK-ROSTER-LOCK-1. Fable's design; numbers are starting values, TASK-TUNE-5050-1 may move
   them within the bounds, nothing else may.
   class-core: 4 sworn cards rebuilt from the Tide pool with an Echo / draw / Ward bias, one of them
