@@ -1,29 +1,3 @@
-
-RESULTS AFTER 3 ITERATIONS (final, per-class, mirrors excluded)
-Warrior     58.1%  HIGH (worst vs Druid 47.0%)
-Battlemage  30.5%  LOW  (worst vs Druid 5.0%)
-Rogue       40.6%  LOW  (worst vs Druid 6.5%)  — rush, below 45% floor
-Druid       48.2%  IN BAND
-Necromancer 48.0%  IN BAND
-Paladin     61.0%  HIGH (best vs Battlemage 76.0%)
-Astrologist 54.8%  IN BAND
-
-Not in band after 3 iterations. Per the task rule: DO NOT ADOPT. I reverted content/artifacts/launch_artifacts.json and artifacts/PLAYABLE.json back to origin/main — so the numbers actually shipped are "not adopted": no balance numbers changed on disk. The matrix at sim/tune_matrix.md and the runner at sim/balance_tune.py are written and staged.
-
-TWO KNOWN OUTLIERS (for Fable's decision): Battlemage at 30.5% and Paladin at 61.0%.
-
-CRITICAL SPEC CAVEAT: the task asked for "tactician AI on both sides," but TASK-AI-TACTICIAN-1 (still unchecked in the queue) is what builds the tactician — it doesn't exist yet. The matrix ran with the existing GreedyBot on both sides. That's noted in the report header. If Fable insists on tactician-vs-tactician, this whole matrix must be re-run after TASK-AI-TACTICIAN-1 lands.
-
-WHAT REMAINS (next session, ~5-10 min):
-1. Commit the report + fixes: git add engine/State/GameState.cs sim/balance_tune.py sim/tune_matrix.md .gitignore; commit with the TASK-TUNE-5050-1 message; push.
-2. Write the acceptance block in HERMES_STATUS.md: full matrix + per-class table + "numbers actually shipped: NOT ADOPTED".
-3. Run soak + smokes for green (input_smoke.sh, loop_smoke.sh — I did not get to these; engine changed, so finish_task.sh would also want them).
-4. Post to the group: the matrix in plain words, the two worst outliers, and stop (Fable decides).
-5. Mark the task [x] in TASKS_QUEUE.md.
-
-Note: 4 tutorial capture PNGs had a pre-existing unmerged state in the index before I started; I resolved that by removing them from the index (git rm --cached). They need a quick verification/cleanup in the finishing pass.
-
-I did not fabricate a pass — the honest verdict is NOT ADOPTED after 3 iterations, per the task's own stop rule.
 ========================================
 === foreman: 2026-09-04T06:12:09Z TASK-CARD-WAVE-1 retry ===
 Session: 2/96
@@ -47,4 +21,30 @@ TASK-CARD-WAVE-1 done. What shipped:
 - No existing card values changed
 - Commit: `0c488b0` + `c1178b8` pushed to main
 - DONE entry written at top of HERMES_STATUS.md
+========================================
+=== foreman: 2026-09-04T06:15:23Z TASK-DUEL-HUD-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-DUEL-HUD-1 complete. Here's what was done:
+
+**What changed (5 files, 79 insertions, 11 deletions):**
+
+1. **DebugCapture.cs** — WalkControls now captures `font_size` for Label controls in the layout JSON, so the lint rule can check them.
+
+2. **DuelScene.cs** — Applied serif (Cinzel) font via `ApplyHeaderFont()` to all HUD labels that were missing it: player/enemy deck count, barrow count, DECK/BARROW labels, and the attunement label. Made the End Turn button a large gold pill (140x48px, FontSubtitle 24px) with hover/pressed states — visually obvious at arm's length on a phone.
+
+3. **ProgressionStateGrindTests.cs** — Fixed the flaky `GrindCard_AccumulatesAcrossMultipleGrinds` test by re-registering test cards before each `GrindCard` call, guarding against `CardRegistry.Clear()` pollution from other test classes.
+
+4. **ui_lint.py** — Added `MIN_TEXT` rule that fails any Label with `font_size < 8px` on every capture. Also added rect normalization for backward compat with old layout JSON format (flat x/y/w/h vs rect dict).
+
+5. **HERMES_STATUS.md** + **TASKS_QUEUE.md** — DONE entry written, task flipped to [x].
+
+**Acceptance:**
+- `dotnet build` — 0 errors
+- 822/822 tests green
+- `loop_smoke` — playable=true, no failed steps
+- `input_smoke` — all 6 steps PASS
+- Commit pushed: `359ca54` (code) + `45cd8b5` (status)
 ========================================
