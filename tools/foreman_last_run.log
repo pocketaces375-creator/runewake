@@ -1,50 +1,50 @@
-- Captures regenerated: reliquary_test / _wide / _all / _all_wide now show the auto-inspected keyword card (emb_c_cinder_runner) with Swift icon visible.
-- Committed an earlier version of the icon set (commit cd701b2). Since then the icon WebPs were replaced with proper WebP encoding and the capture files were regenerated; those changes are currently staged but not yet committed.
-
-Remaining (needs one more session step):
-- Commit the staged changes (icons .webp/.import, CardView.cs/tscn, ReliquaryScene.cs, tools/generate_icons.py, reliquary captures) with the task message.
-- Push to origin/main, add `[x]` to TASK-ART-ICONS-1 in TASKS_QUEUE.md, write the DONE line in HERMES_STATUS.md.
-- Note: finish_task.sh was run and stopped at loop_smoke (PLAYABLE.json shows playable:false, failed_step "no_output") — this is a pre-existing harness/environment failure, not caused by this task. The icon/UI work passed build, tests, and the lint gate's non-blocking checks.
-
-Acceptance alignment: a Reliquary capture showing icons on real cards exists (artifacts/captures/reliquary_test.png / _wide.png), no upscaling (32px icons rendered at 16px), file list ready (16 .webp + 16 .import under client/content/art/icons/).
-========================================
-=== foreman: 2026-09-04T13:27:51Z TASK-REGION-1-DROPS-1 success ===
-Session: 5/96
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-**TASK-REGION-1-DROPS-1 DONE.**
-
-Committed `78988e5` → pushed as `8013a5b`. 3 files changed:
-
-- `tests/test_region_01_drops.py` — pipeline test: 6 validation checks (every encounter has drops, every deck card in drops, valid rate bounds, signature drops at 1.0 for warden/boss, dig site fragments) + 200-clear seeded soak per encounter reporting observed vs expected rates
-- `HERMES_STATUS.md` — rate table appended, showing all 9 encounters' drop tiers with observed averages within 5σ variance
-- `TASKS_QUEUE.md` — `[ ]` → `[x]` on TASK-REGION-1-DROPS-1
-========================================
-=== foreman: 2026-09-04T13:36:48Z TASK-JUICE-1 success ===
-Session: 6/96
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-JUICE-1 is complete and pushed. Here's what was implemented:
-
-**New file:**
-- `client/scripts/effects/RitualEffects.cs` — 8 centralized visual effect methods
-
-**Modified:**
-- `client/scripts/LaneSlot.cs` — upgraded PlaySummonEffect (stone dust puff), PlayDeathEffect (stratum-coloured crumbling), ShowDamageNumber (stratum-coloured serif font)
-- `client/scripts/DuelScene.cs` — wired all effects into the render diff cycle, added `BoardSnapshot.Strata`, added `GetOrCreateScreenEdgePulse()`, end-turn ring notch, artifact charge brighten, victory light/defeat drain
-- `client/scripts/GameStateManager.cs` — added `Strata` field to `LaneInfo`, populated from card definition
-
-**Effects implemented:**
-| Effect | Mechanism | Audio hook |
-|--------|-----------|------------|
-| Card play | Expanding stone-colour dust rect + existing scale-up tween | `card_play` |
-| Hit | Coloured rune-flare overlay (Add blend) + stratum-coloured damage number in Cinzel serif | `damage` (existing) |
-| Face damage | Full-screen edge pulse overlay + altar container scale tremble | `hit_light`/`hit_heavy` (existing) |
-| Death | Stratum-coloured crumble overlay (ash/roots/brine/bone-dust/light) + shrink | `death` (existing) |
-| Artifact charge | Brief bright flash + halo at max charges | `metal_clink` (existing) |
-| End Turn | Rotating arc sweeping 72° around ring center | — |
-| Victory | Radial golden light expanding from altar center | `victory` (existing) |
-| Defeat | Dark vignette shrinking into altar center | `defeat` (existing) |
-
 All effects: <400ms, skippable via `CampaignContext.ReduceMotion`, no layout changes, all 825 tests pass, ui_lint pre-existing failures only.
+========================================
+=== foreman: 2026-09-04T13:53:00Z TASK-WARDEN-RULE-1 success ===
+Session: 3/96
+--- session tail ---
+  TASK-WARDEN-RULE-1: attempt 1 transient — cleaning dead-session tree litter
+Removing tmp/boss_deck.json
+Removing tmp/player_deck.json
+  TASK-WARDEN-RULE-1: attempt 2/3 — waiting 60s before retry
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+Here's what I've accomplished so far:
+
+**Engine primitive (opening_rule):**
+- Added `opening_rule` field to `EncounterDef.cs` — boss encounters can declare one
+- Added `OpeningRule` to `GameConfig.cs` — flows through to `GameState.Initialize`
+- Added `OpeningRule`, `OpeningRuleLifted[]`, `TotalCreatureDiedCount[]` to `GameState.cs`
+- Added `IsBuried` to `LaneState.cs` — lanes can be blocked
+- Created `OpeningRuleHandler.cs` — applies rules at init, checks lift conditions on creature death
+
+**Root-choked rule:**
+- Buries P0's lane 0 (leftmost) at game start
+- Lifts when the Warden (P1) loses their first creature (any creature, any cause)
+- Enforced in `DuelEngine.ApplyPlayCard` — throws if a buried lane is targeted
+
+**Banner card UI:**
+- Created a dark-green styled `PanelContainer` banner at the top of the board in `DuelScene._Ready`
+- Shown/hidden in `OnStateChanged` based on `state.OpeningRule`
+- Displays "Root-choked — your leftmost lane is buried..." in pale green, switches to "[LIFTED] ..." when the condition is met
+
+**JSON wiring:**
+- Added `"opening_rule": "root_choked"` to the `r1_boss_warden_aelin` encounter in `region_01_boss.json`
+- No other encounter gets a rule
+
+**Sim support:**
+- Added `OpeningRule` to `BatchConfig` and `BatchRunner.Run` — the sim pipeline passes it through
+
+**Verification:**
+- Engine builds: 0 errors, 4 warnings (pre-existing)
+- Sim builds: 0 errors
+- All 825 existing tests pass
+
+**Remaining (ran out of iterations):**
+1. Rebuild tests (`dotnet build tests/`) — I fixed the artifact loading path in the test file
+2. Run the sim test to get before/after win% (`dotnet test tests/ --filter BossDeck_WinPercent_WithOpeningRule`)
+3. Run loop_smoke to verify it still passes
+4. Take a capture of the banner in the boss fight
+5. Commit with message, push, write DONE line in HERMES_STATUS.md
+
+The test file at `/home/fictive/runewake-lane4/tests/Campaign/BossOpeningRuleSimTests.cs` runs 200 sims without the rule, then 200 with root_choked, and reports the delta. Need to rebuild and run it.
 ========================================
