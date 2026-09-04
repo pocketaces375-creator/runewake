@@ -13,6 +13,7 @@
       "tid_c_whirlpool_elemental",
       "tid_u_brine_witch"
     ],
+    "portraits": {"m": "battlemage_m.png", "f": "battlemage_f.png"},
     "portrait_placeholder": true
   },
   {
@@ -28,7 +29,8 @@
       "hol_c_skeletal_reaver",
       "hol_c_ossuary_guard",
       "hol_c_deathspeaker"
-    ]
+    ],
+    "portraits": {"m": "necromancer_m.png", "f": "necromancer_f.png"}
   },
   {
     "id": "paladin",
@@ -44,6 +46,7 @@
       "dwn_c_golden_retainer",
       "dwn_u_steadfast_bulwark"
     ],
+    "portraits": {"m": "paladin_m.png", "f": "paladin_f.png"},
     "portrait_placeholder": true
   },
   {
@@ -59,7 +62,8 @@
       "vrd_c_verdant_sproutling",
       "vrd_c_wildwood_stalker",
       "vrd_u_grove_healer"
-    ]
+    ],
+    "portraits": {"m": "druid_m.png", "f": "druid_f.png"}
   },
   {
     "id": "rogue",
@@ -75,6 +79,7 @@
       "hol_u_barrow_revenant",
       "hol_c_bone_shard_volley"
     ],
+    "portraits": {"m": "rogue_m.png", "f": "rogue_f.png"},
     "portrait_placeholder": true
   },
   {
@@ -91,6 +96,7 @@
       "tid_c_deep_one",
       "tid_c_whirlpool_elemental"
     ],
+    "portraits": {"m": "astrologist_m.png", "f": "astrologist_f.png"},
     "portrait_placeholder": true
   },
   {
@@ -106,6 +112,7 @@
       "emb_c_ember_hound",
       "emb_c_cinder_runner",
       "emb_u_wildfire_adept"
-    ]
+    ],
+    "portraits": {"m": "warrior_m.png", "f": "warrior_f.png"}
   }
 ]

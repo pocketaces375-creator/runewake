@@ -219,6 +219,13 @@ public static class CampaignContext
         public static List<string>? CoreCardIds { get; set; }
 
         /// <summary>
+        /// Chosen portrait variant for the active class ("m" or "f").
+        /// Used everywhere the class portrait appears.
+        /// Defaults to "m" for existing saves with no field set.
+        /// </summary>
+        public static string PortraitVariant { get; set; } = "m";
+
+        /// <summary>
         /// Path to campaign profile JSON (user:// sandbox).
         /// </summary>
         private const string CampaignProfilePath = "user://campaign.json";
@@ -286,14 +293,20 @@ public static class CampaignContext
         }
 
         /// <summary>
-        /// Get class portrait texture path for a given class ID.
+        /// Get class portrait texture path for a given class ID and variant.
         /// Handles migration from old class names if needed.
+        /// Variant is "m" or "f"; when provided, returns the gendered variant path.
+        /// When null or empty, returns the plain fallback portrait path.
         /// </summary>
-        public static string GetClassPortraitPath(string classId)
+        public static string GetClassPortraitPath(string classId, string? variant = null)
         {
             if (string.IsNullOrEmpty(classId))
                 return "";
             string mapped = ClassIdMigration.ApplyMigration(classId);
+
+            if (!string.IsNullOrEmpty(variant) && (variant == "m" || variant == "f"))
+                return $"res://content/art/classes/{mapped}_{variant}.png";
+
             return $"res://content/art/classes/{mapped}.png";
         }
 
@@ -345,6 +358,7 @@ public static class CampaignContext
                                 MigrateLegacyClassIds();
                                 ChosenClass = Profiles[0].ClassId;
                                 ChosenTown = Profiles[0].TownName ?? "";
+                                PortraitVariant = Profiles[0].PortraitVariant;
 
                                 // Switch SaveManager to slot 0's per-slot DB
                                 try { SaveManager.SwitchSlot(0); }
@@ -379,6 +393,7 @@ public static class CampaignContext
                                 MigrateLegacyClassIds();
                                 ChosenClass = old.ClassId;
                                 ChosenTown = old.TownName ?? "";
+                                PortraitVariant = old.PortraitVariant;
                                 // Save to new format immediately
                                 SaveCampaignProfile();
 
@@ -430,7 +445,7 @@ public static class CampaignContext
         }
 
         /// <summary>Add or update a profile in the list (max 3 slots).</summary>
-        public static void AddOrUpdateProfile(string classId, string townName, int slot = -1)
+        public static void AddOrUpdateProfile(string classId, string townName, int slot = -1, string? portraitVariant = null)
         {
             if (slot >= 0 && slot < Profiles.Count)
             {
@@ -439,11 +454,14 @@ public static class CampaignContext
                 var p = Profiles[slot];
                 p.ClassId = classId;
                 p.TownName = townName;
+                if (!string.IsNullOrEmpty(portraitVariant))
+                    p.PortraitVariant = portraitVariant;
                 ActiveProfileSlot = slot;
                 ChosenClass = classId;
                 ChosenTown = townName;
+                PortraitVariant = p.PortraitVariant;
                 SaveCampaignProfile();
-                GD.Print($"[CampaignContext] Updated profile slot {slot}: {classId}");
+                GD.Print($"[CampaignContext] Updated profile slot {slot}: {classId} variant={p.PortraitVariant}");
                 return;
             }
 
@@ -464,7 +482,8 @@ public static class CampaignContext
                 CreatedAt = DateTime.UtcNow.ToString("O"),
                 ActiveDeckId = "",
                 MapProgress = "",
-                StoryFlags = ""
+                StoryFlags = "",
+                PortraitVariant = portraitVariant ?? "m"
             };
 
             // Switch SaveManager to this slot before adding to list
@@ -473,8 +492,9 @@ public static class CampaignContext
             ActiveProfileSlot = Profiles.Count - 1;
             ChosenClass = classId;
             ChosenTown = townName;
+            PortraitVariant = profile.PortraitVariant;
             SaveCampaignProfile();
-            GD.Print($"[CampaignContext] New profile slot {newSlot}: {classId}");
+            GD.Print($"[CampaignContext] New profile slot {newSlot}: {classId} variant={profile.PortraitVariant}");
         }
 
         /// <summary>Delete a profile by slot.</summary>
@@ -519,6 +539,7 @@ public static class CampaignContext
                         var p = Profiles[0];
                         ChosenClass = p.ClassId;
                         ChosenTown = p.TownName ?? "";
+                        PortraitVariant = p.PortraitVariant;
                         SaveManager.SwitchSlot(0);
                         GD.Print($"[CampaignContext] Switched to remaining profile slot 0: {p.ClassId}");
                     }
@@ -566,6 +587,7 @@ public static class CampaignContext
             public string StoryFlags { get; set; } = "";
             public string ActiveDeckId { get; set; } = "";
             public string CreatedAt { get; set; } = "";
+            public string PortraitVariant { get; set; } = "m";
         }
 
         // ════════════════════════════════════════════════════════════════

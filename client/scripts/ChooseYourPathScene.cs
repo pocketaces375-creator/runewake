@@ -21,6 +21,7 @@ public partial class ChooseYourPathScene : Control
     // ── Data ──
     private readonly List<ClassDef> _classes = new();
     private int _selectedIdx = 0; // centre = selected
+    private string[] _classVariants = System.Array.Empty<string>(); // per-class portrait variant ("m" or "f")
     private PanelContainer _beginButton;
     private Label _beginLabel;
     private ColorRect _dotsArea;
@@ -31,6 +32,7 @@ public partial class ChooseYourPathScene : Control
     private Control _carouselClipContainer;
     private Control _carouselSection;
     private readonly List<Control> _panelNodes = new();
+    private readonly List<TextureRect> _panelPortraits = new(); // art TextureRect per panel for runtime swap
 
     // Carousel drag state
     private bool _dragging;
@@ -74,6 +76,7 @@ public partial class ChooseYourPathScene : Control
         public string description { get; set; } = "";
         public string blurb { get; set; } = "";
         public List<string> core_cards { get; set; } = new();
+        public Dictionary<string, string>? portraits { get; set; }
     }
 
     public class ClassDef
@@ -819,7 +822,11 @@ public partial class ChooseYourPathScene : Control
             SizeFlagsVertical = (SizeFlags)3,
             SizeFlagsHorizontal = (SizeFlags)3
         };
-        string artPath = $"res://content/art/classes/{cls.Id}.png";
+        // Use variant portrait path if available, with fallback
+        string variant = index < _classVariants.Length ? _classVariants[index] : "m";
+        string artPath = $"res://content/art/classes/{cls.Id}_{variant}.png";
+        if (!ResourceLoader.Exists(artPath))
+            artPath = $"res://content/art/classes/{cls.Id}.png";
         if (ResourceLoader.Exists(artPath))
         {
             var tex = ResourceLoader.Load<Texture2D>(artPath);
@@ -833,6 +840,75 @@ public partial class ChooseYourPathScene : Control
             SetFallbackPortrait(artRect, cls);
         }
         mainLayout.AddChild(artRect);
+        _panelPortraits.Add(artRect); // store for runtime texture swap
+
+        // ── Gender toggle — overlaid on the bottom of the portrait area ──
+        // This is a sibling of mainLayout (not inside it), so it causes no layout shift.
+        var toggleRow = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Stop,
+            SizeFlagsHorizontal = (SizeFlags)4, // Shrink center
+            SizeFlagsVertical = (SizeFlags)0,
+            AnchorLeft = 0.25f,
+            AnchorRight = 0.75f,
+            AnchorTop = 1.0f,
+            AnchorBottom = 1.0f,
+            OffsetTop = -52f, // sit above bottom edge
+            OffsetBottom = 0f,
+            OffsetLeft = 0f,
+            OffsetRight = 0f
+        };
+        toggleRow.AddThemeConstantOverride("separation", 4);
+        panel.AddChild(toggleRow);
+
+        // Male button
+        var maleBtn = new Button
+        {
+            Flat = true,
+            Text = "♂",
+            TooltipText = "Male",
+            CustomMinimumSize = new Vector2(44, 44),
+            SizeFlagsHorizontal = (SizeFlags)3, // Fill
+            SizeFlagsVertical = (SizeFlags)0
+        };
+        maleBtn.AddThemeFontSizeOverride("font_size", 18);
+        maleBtn.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        maleBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.10f, 0.08f, 0.85f),
+            BorderColor = new Color(0.5f, 0.4f, 0.3f, 0.6f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusBottomLeft = 4,
+            ContentMarginLeft = 6, ContentMarginRight = 6
+        });
+        int capturedIdx = index;
+        maleBtn.Pressed += () => ToggleToVariant(capturedIdx, "m");
+        toggleRow.AddChild(maleBtn);
+
+        // Female button
+        var femaleBtn = new Button
+        {
+            Flat = true,
+            Text = "♀",
+            TooltipText = "Female",
+            CustomMinimumSize = new Vector2(44, 44),
+            SizeFlagsHorizontal = (SizeFlags)3, // Fill
+            SizeFlagsVertical = (SizeFlags)0
+        };
+        femaleBtn.AddThemeFontSizeOverride("font_size", 18);
+        femaleBtn.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        femaleBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.10f, 0.08f, 0.85f),
+            BorderColor = new Color(0.5f, 0.4f, 0.3f, 0.6f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopRight = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 6, ContentMarginRight = 6
+        });
+        femaleBtn.Pressed += () => ToggleToVariant(capturedIdx, "f");
+        toggleRow.AddChild(femaleBtn);
 
         // ── Text block — sits below the portrait, sized to its content ──
         float margin = Mathf.Max(6f, _panelFullW * TextMarginRatio);
@@ -884,7 +960,7 @@ public partial class ChooseYourPathScene : Control
         // Origin
         var originLabel = new Label
         {
-            Text = $"Origin \u00b7 {cls.Town}",
+            Text = $"Origin · {cls.Town}",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
@@ -946,6 +1022,19 @@ public partial class ChooseYourPathScene : Control
             });
         }
 
+        // Initialize per-class portrait variants from saved profile if available
+        _classVariants = new string[_classes.Count];
+        string savedVariant = CampaignContext.PortraitVariant;
+        string savedClassId = CampaignContext.ChosenClass;
+        for (int i = 0; i < _classes.Count; i++)
+        {
+            // If this class matches the saved profile's class, use that variant
+            if (_classes[i].Id == savedClassId && !string.IsNullOrEmpty(savedVariant))
+                _classVariants[i] = savedVariant;
+            else
+                _classVariants[i] = "m";
+        }
+
         // Build dot indicators
         for (int i = 0; i < _classes.Count; i++)
         {
@@ -961,6 +1050,40 @@ public partial class ChooseYourPathScene : Control
     }
 
     // ════════════════════════════════════════════════
+    // Toggle
+    // ════════════════════════════════════════════════
+
+    private void ToggleToVariant(int classIdx, string variant)
+    {
+        if (classIdx < 0 || classIdx >= _classVariants.Length) return;
+        if (_classVariants[classIdx] == variant) return; // already that variant
+
+        _classVariants[classIdx] = variant;
+
+        // Update the portrait texture in place if the panel exists
+        if (classIdx < _panelPortraits.Count && _panelPortraits[classIdx] != null)
+        {
+            var artRect = _panelPortraits[classIdx];
+            var cls = _classes[classIdx];
+            string artPath = $"res://content/art/classes/{cls.Id}_{variant}.png";
+            if (!ResourceLoader.Exists(artPath))
+                artPath = $"res://content/art/classes/{cls.Id}.png";
+            if (ResourceLoader.Exists(artPath))
+            {
+                var tex = ResourceLoader.Load<Texture2D>(artPath);
+                if (tex != null)
+                    artRect.Texture = tex;
+            }
+        }
+
+        // If this is the selected class, update the active variant in CampaignContext
+        if (classIdx == _selectedIdx)
+            CampaignContext.PortraitVariant = variant;
+
+        GD.Print($"[ChooseYourPath] Toggled {_classes[classIdx].Id} portrait to {variant}");
+    }
+
+    // ════════════════════════════════════════════════
     // Begin
     // ════════════════════════════════════════════════
 
@@ -969,11 +1092,13 @@ public partial class ChooseYourPathScene : Control
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         if (_selectedIdx < 0 || _selectedIdx >= _classes.Count) return;
         var cls = _classes[_selectedIdx];
+        string variant = _selectedIdx < _classVariants.Length ? _classVariants[_selectedIdx] : "m";
 
         CampaignContext.ChosenClass = cls.Id;
         CampaignContext.ChosenTown = cls.Town;
         CampaignContext.CoreCardIds = new List<string>(cls.CoreCardIds);
-        CampaignContext.AddOrUpdateProfile(cls.Id, cls.Town);
+        CampaignContext.PortraitVariant = variant;
+        CampaignContext.AddOrUpdateProfile(cls.Id, cls.Town, portraitVariant: variant);
 
         CampaignContext.EnsureStarterDeck(cls.Id);
         GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");

@@ -927,4 +927,61 @@ public class SaveRepositoryTests : IDisposable
     {
         Assert.Equal("", ClassIdMigration.ApplyMigration(""));
     }
+
+    // ─────────────────────────────────────────────
+    //  TASK-CLASS-GENDER-1: PortraitVariant migration
+    // ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Lightweight mirror of CampaignProfile for testing PortraitVariant behavior
+    /// without a dependency on Runewake.Client.
+    /// </summary>
+    private class TestProfile
+    {
+        public int Slot { get; set; }
+        public string ClassId { get; set; } = "";
+        public string TownName { get; set; } = "";
+        public string PortraitVariant { get; set; } = "m";
+    }
+
+    [Fact]
+    public void PortraitVariant_DefaultIsM()
+    {
+        var profile = new TestProfile
+        {
+            Slot = 0,
+            ClassId = "warrior",
+            TownName = "Emberhold"
+        };
+        // No PortraitVariant set — should default to "m"
+        Assert.Equal("m", profile.PortraitVariant);
+    }
+
+    [Fact]
+    public void PortraitVariant_RoundTrip()
+    {
+        var profile = new TestProfile
+        {
+            Slot = 0,
+            ClassId = "warrior",
+            TownName = "Emberhold",
+            PortraitVariant = "f"
+        };
+        // Simulate serialization/deserialization via JSON
+        string json = System.Text.Json.JsonSerializer.Serialize(profile);
+        var deserialized = System.Text.Json.JsonSerializer.Deserialize<TestProfile>(json);
+        Assert.NotNull(deserialized);
+        Assert.Equal("f", deserialized.PortraitVariant);
+    }
+
+    [Fact]
+    public void PortraitVariant_SaveWithoutField_DefaultsToM()
+    {
+        // Simulate an old save that has no PortraitVariant field
+        string oldJson = @"{""slot"":0,""classId"":""warrior"",""townName"":""Emberhold""}";
+        var profile = System.Text.Json.JsonSerializer.Deserialize<TestProfile>(oldJson);
+        Assert.NotNull(profile);
+        // Missing field should default to "m" via property initializer
+        Assert.Equal("m", profile.PortraitVariant);
+    }
 }

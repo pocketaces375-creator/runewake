@@ -1062,8 +1062,8 @@ public partial class Main : Control
                 string classId = profile.ClassId;
                 string className = char.ToUpper(classId[0]) + classId.Substring(1);
 
-                // Class portrait
-                string portraitPath = CampaignContext.GetClassPortraitPath(classId);
+                // Class portrait — use profile's portrait variant
+                string portraitPath = CampaignContext.GetClassPortraitPath(classId, profile.PortraitVariant);
                 if (ResourceLoader.Exists(portraitPath))
                 {
                     var portrait = new TextureRect
