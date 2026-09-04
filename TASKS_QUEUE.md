@@ -520,7 +520,7 @@
   equip and play through the 5-duel soak; loop_smoke and input_smoke pass; post a plain "item → what it
   does" list for all 14 to the group.
 
-- [ ] TASK-TUNE-5050-1 — Balance all 7 classes to a 45-55% win rate against each other (Trikzos: "closer
+- [x] TASK-TUNE-5050-1 — Balance all 7 classes to a 45-55% win rate against each other (Trikzos: "closer
   to 50/50"). Run the 49-pairing class matrix (200 seeded games per pairing, tactician AI on both
   sides, mirrors excluded from each class's average). Report per class: win%, best and worst matchup.
   If any class is outside 45-55%: adjust ONLY numbers named in the TASK-CLASS-IDENTITY-1A/1B/1C bounds and, if
