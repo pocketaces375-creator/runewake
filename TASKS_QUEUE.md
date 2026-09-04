@@ -69,7 +69,7 @@
   signed release export. Tag alpha-playable-1. Post URL, size, sha256 and a plain sentence
   for Trikzos: what he can do end to end in this build, and the one thing to look at first.
   Acceptance: DONE line contains release URL, size, sha256 and the four gate results.
-- [ ] TASK-JUICE-1 — Make it feel like a dark fae ritual, client only. No layout changes
+- [x] TASK-JUICE-1 — Make it feel like a dark fae ritual, client only. No layout changes
   (ui_lint must stay green); every effect under 400 ms and skippable; hook the existing
   audio manifest events. Card play: a puff of stone dust and a low thud as it seats in the
   lane. Hit: a rune-flare in the attacker's stratum colour; the damage number in the serif
