@@ -1,26 +1,3 @@
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-MAP-POLISH-1 complete. Commits 7a8a605 + f649bc9 pushed.
-
-**What a player sees:** The region map shows the name "THE FALLOW REACH" in a serif banner at the top, with a branching network of path lines connecting stone medallion nodes — cleared nodes are green-tinted gold with a checkmark badge, locked nodes are near-invisible dark stone with a padlock, available nodes glow warm bronze with bright gold borders, and the currently selected Shrine node pulses with a gold ring animation.
-
-Summary of changes:
-- **MapScene.cs** — added region name banner (Cinzel 16px, gold, overlay text), seeded partial clear in capture mode (r1_n01, r1_n02 pre-cleared to show all three states)
-- **MapNodeIcon.cs** — better state colors (locked=dark stone, available=warm bronze with bright gold border, cleared=green-tinted gold with checkmark), selected node pulse tween animation on the ring
-- **finish_task.sh** — added map_test / map_test_wide to the capture regeneration list
-- **map_test.png/map_test_wide.png** — fresh captures showing the seeded partial clear state at 2316x1080 and 2999x1080
-========================================
-=== foreman: 2026-09-04T05:58:41Z TASK-TUNE-5050-1 retry ===
-Session: 2/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Status: work is 80% done but NOT finished — I ran out of tool calls before committing. Here's the honest state.
-
-WHAT HAPPENED
-1. Built sim/balance_tune.py — the 49-pairing class matrix runner (200 seeded games per pairing, mirrors excluded per class, 45-55% band gate, rush floor Rogue/Warrior >= 45%).
-2. Found and fixed two real engine crashes in GameState.cs that blocked the matrix outright (NullReferenceException on artifacts whose DSL has a null Trigger, e.g. wand/aura/orb/banner — code always accessed artDef.Trigger.Trigger unconditionally). That fix is still in the working tree and is a legitimate bug fix, shipping or not.
-3. Ran the full matrix 4 times: baseline + 3 tuning iterations.
-4. Tuned ONLY numbers named in the CLASS-IDENTITY-1A/1B/1C bounds and existing items' numbers, +/-1 per number per iteration. Never touched card values, keywords, or added effects.
 
 RESULTS AFTER 3 ITERATIONS (final, per-class, mirrors excluded)
 Warrior     58.1%  HIGH (worst vs Druid 47.0%)
@@ -47,4 +24,27 @@ WHAT REMAINS (next session, ~5-10 min):
 Note: 4 tutorial capture PNGs had a pre-existing unmerged state in the index before I started; I resolved that by removing them from the index (git rm --cached). They need a quick verification/cleanup in the finishing pass.
 
 I did not fabricate a pass — the honest verdict is NOT ADOPTED after 3 iterations, per the task's own stop rule.
+========================================
+=== foreman: 2026-09-04T06:12:09Z TASK-CARD-WAVE-1 retry ===
+Session: 2/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-CARD-WAVE-1 done. What shipped:
+
+**40 cards added** across 5 strata (8 per stratum):
+- **EMBER**: 4C (Scorch Imp, Blaze Scout, Ember Impaler, Firecrown Raider) + 3U (Flame-Tongue Knight, Burnout Mage, Lava Caller) + 1R (Ember Warleader) — Swift/Pierce aggro
+- **HOLLOW**: 5C (Bone Tick, Dust Spinner, Ghoul Scavenger, Barrow Caller, Wraith Bonebreaker) + 2U (Soul Picker, Putrid Knight) + 1R (Death Drummer) — Venom/Echo/graveyard
+- **VERDANT**: 4C (Moss Shield, Root Tender, Bark Sentinel, Vine Weaver) + 3U (Forest Poultice, Bramble Heart, Greatwood Guardian) + 1R (Deeproot Ancient) — Guard/Rooted/heal
+- **TIDE**: 5C (Brine Scout, Echoing Depth, Tide Oracle, Sea Raider, Coral Diviner) + 2U (Tidal Seer, Abyss Watcher) + 1R (Deep Tides Diviner) — Echo/Ward/draw
+- **DAWN**: 4C (Templar Initiate, Light Bearer, Oath-Sworn Guard, Warden of the Light) + 2U (Blessing of Dawn, Vigil Guardian) + 1R (Gilded Seraph) + 1M (Radiant Shard relic) — Ward/Guard/Sealed
+
+**Gates passed:**
+- JSON schema + C# engine bridge: 40/40 valid (100 total pass, 2 pre-existing rejects: hol_u_soul_harvest EXHAUSTED filter, tid_c_star_reader SCY op)
+- Score stage: 40/40 within rarity band
+- Build: 0 errors
+- Tests: 822/822 pass (1 flaky retry)
+- No existing card values changed
+- Commit: `0c488b0` + `c1178b8` pushed to main
+- DONE entry written at top of HERMES_STATUS.md
 ========================================
