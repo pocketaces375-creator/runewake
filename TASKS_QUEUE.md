@@ -702,7 +702,7 @@
   against the hand-built files.
   Acceptance: tool and tests committed; docs/REGION_GEN.md documents the spec format.
 
-- [ ] TASK-REGION-2-BUILD-1 — Generate and wire Region 2, "Cinderfall Steps" (EMBER stratum, tiered volcanic
+- [x] TASK-REGION-2-BUILD-1 — Generate and wire Region 2, "Cinderfall Steps" (EMBER stratum, tiered volcanic
   terraces, Warden "the Kilnwarden"). It unlocks when the Region 1 Warden falls. Map skin: reuse the default
   board/map skin with an Ember palette tint through the BoardSkin registry — no new painted art in this
   task. All decks must pass the sim gate.
