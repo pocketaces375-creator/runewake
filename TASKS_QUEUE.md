@@ -12,6 +12,104 @@
 
 # ---- PHASE A FINISH — VERIFY, THEN SHIP ----
 
+# ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
+
+- [ ] TASK-ENGINE-FIRST-PLAYER-1 — Mirror matchups must be a coin flip. Today the first player wins
+  the mirror diagonal 46-98% (CARD-BALANCE-REPORT-1). The "first player skips its first draw" check in
+  engine/Engine/DuelEngine.cs (~line 101, `firstPlayerSkipsDraw = CurrentPlayerIndex == 0 && TurnNumber == 1`)
+  is DEAD CODE: TurnNumber is already incremented in the same block when the index wraps to 0, so it is
+  never 1 at the check. Read docs/01_GAME_RULES.md for the intended first-turn compensation, then
+  MEASURE FIRST: run `dotnet run --project sim -- run` style 200-game seeded mirrors (seed 42) for all 7
+  classes and record P0 win rates before touching anything. Fix the dead check so the intended rule really
+  fires exactly once, for P0 only. If that overshoots (P1 now favoured), tune the opening-hand gap in
+  GameState.Initialize instead — the target is the number, not a particular mechanism. Add a unit test in
+  tests/ that proves the first-turn rule fires once and only for P0.
+  Acceptance: the DONE line lists the 7 mirror P0 win rates before and after; after the fix at least 5
+  of 7 are within [40,60] and none is outside [30,70]; dotnet test green; no card or artifact values change.
+
+- [ ] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
+  P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
+  is a bug, not tuning. Suspects: Book of Familiar's ON_TURN_START SUMMON of the ROOTED tok_familiar
+  (lane choice, full board, or summoning onto the wrong side when the Druid is Players[1]) and Elemental
+  Bond's MOST_WOUNDED anchor. Write the failing test first (Druid vs Druid, seed 42, 200 games, expect P0
+  within [40,60]), find the real cause with a debug trace of the first 3 turns from each seat, fix it in
+  the engine, keep the test as a regression named for the bug.
+  Acceptance: Druid mirror within [40,60]; Druid-as-P1 vs Warrior above 15%; dotnet test green; no card
+  or artifact values change; the DONE line names the file and line that was wrong.
+
+- [ ] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. The three overpowered classes share one item.
+  In content/artifacts/launch_artifacts.json the Warrior Sword, Paladin Hammer and Battlemage Wand all
+  carry the identical passive "+1 attack to EVERY attacking creature" (BUFF, filter ATTACKING, count ALL).
+  Make them three different, weaker items: SWORD (Warrior) — +1 attack to the FIRST attacker each turn
+  only (count 1, filter FIRST_ATTACKER, which Duskfang already uses). HAMMER (Paladin) — +1 attack to all
+  attackers only on a turn when 3 or more creatures attack (reuse the ATTACKERS_THIS_TURN_GTE 3 condition
+  its own trigger already has; if a passive cannot take a condition, express it as an ON_CREATURE_ATTACKS
+  trigger granting +1 for that attack). WAND (Battlemage) — +1 attack to attacking creatures whose base
+  attack is 2 or less (add an ATTACK_LTE filter if the DSL lacks one; small creatures get help, big ones
+  don't). Rules text must re-render correctly for all three. Then re-run the 49-pairing class matrix
+  exactly as CARD-BALANCE-REPORT-1 did (200 games per pairing, seed 42, GreedyBot).
+  Acceptance: the matrix in HERMES_STATUS.md; Warrior, Paladin and Battlemage each drop by at least 8
+  points and no class that was inside [40,60] leaves it; dotnet test green; no non-artifact card changes;
+  one plain paragraph to the group with the 7 numbers.
+
+- [ ] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. Whisperfang (artf_rogue_dagger_whisper) has no
+  passive and no trigger in launch_artifacts.json — it is a blank item unless the engine implements the
+  TWIN rule from CLASS-IDENTITY-1C somewhere. Find out: grep the engine for the twin/second-dagger rule.
+  If it exists, document in the artifact's flavor/rules text what it does and add a test proving it fires.
+  If it does not, give Whisperfang a real passive: the SECOND attacker each turn gets +1 attack and
+  Stealth Strike (mirror of Duskfang's FIRST_ATTACKER) and add the test. Re-run the Rogue row of the
+  matrix (7 pairings, 200 games, seed 42).
+  Acceptance: Whisperfang's rendered rules text is non-empty in the Reliquary capture; the Rogue row
+  numbers in the DONE line; dotnet test green.
+
+- [ ] TASK-ENGINE-GHOST-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Seat-agnostic opening rules, so a Warden
+  can sit in either chair. engine/Engine/OpeningRuleHandler.cs hardcodes the challenger as Players[0] and
+  buries Lanes[0]; that breaks any arena or ghost duel that seats the Warden second. Make the handler
+  read the rule owner from the encounter/seat and resolve lanes relative to that owner. Add a test that
+  runs the same Warden rule from seat 0 and seat 1 and asserts the mirrored outcome.
+  Acceptance: dotnet test green including the new seat test; the 5-duel soak and loop_smoke still pass;
+  no content changes.
+
+- [ ] TASK-DUEL-ARENA-2 — AFTER: TASK-ENGINE-GHOST-1. Duel Arena, small and real this time (DUEL-ARENA-1
+  failed 7 sessions by trying to do everything at once). Scope: ONE "Duel Arena" node on the Region 1
+  map, unlocked from the start. Tapping it opens a picker listing the player's saved decks; Play starts a
+  seeded duel against an AI opponent drawn at random from a fixed pool of 6 decks (the 7 class starters
+  minus the player's class). Win = 10 Runes through the existing reward screen; the save keeps a
+  wins/losses pair shown on the picker. No Warden rules, no encounter decks, no title-menu entry — those
+  are DUEL-ARENA-3 later. Reuse the existing duel scene and reward flow; write no new game logic.
+  Acceptance: capture of the Arena picker showing the ledger and capture of one Arena victory reward;
+  a headless soak of 3 Arena duels; loop_smoke and ui_lint green; posted with one sentence.
+
+- [ ] TASK-COLLECTION-VERIFY-1 — Prove the three screens that were once claimed done without proof.
+  Run the capture scripts for Collection, Settings and the Reward screen on the current build
+  (tools/capture_*.sh), LOOK at each capture as an image, and write one sentence per screen on what a
+  player sees. Fix anything a player would call broken (overlap, clipped text, empty panels, wrong
+  fonts, dead buttons) and re-capture. Do not touch anything that looks right.
+  Acceptance: three fresh captures under artifacts/captures dated today, each described in the DONE
+  line; ui_lint green; if nothing needed fixing, say so plainly with the three sentences.
+
+- [ ] TASK-REGION-3-BUILD-1 — Generate and wire Region 3 from content/map/region_03.json and its
+  encounters and dig site (content/encounters/region_03_*.json, content/dig_sites/region_03_dig.json),
+  the same way TASK-REGION-2-BUILD-1 wired Region 2: it unlocks when the Region 2 Warden falls; map skin =
+  the default skin with that region's stratum palette tint through the BoardSkin registry — no new painted
+  art. Every deck must pass the sim gate; fix any deck that fails by swapping cards within its stratum,
+  never by editing card values.
+  Acceptance: map capture showing Region 3 reachable after a seeded Region 2 clear; a clean soak of 3
+  encounters plus the boss; loop_smoke green; posted.
+
+- [ ] TASK-REGION-4-BUILD-1 — AFTER: TASK-REGION-3-BUILD-1. Same as TASK-REGION-3-BUILD-1 for Region 4
+  (content/map/region_04.json, region_04_*.json), unlocking when the Region 3 Warden falls.
+  Acceptance: map capture showing Region 4 reachable after a seeded Region 3 clear; a clean soak of 3
+  encounters plus the boss; loop_smoke green; posted.
+
+- [ ] TASK-CARD-ART-VERIFY-1 — Every shipped card must show its own art. Cross-check every card id in
+  content/cards/*.json against client/content/art/<id>.webp (+ .import): list missing files, files whose
+  art_check.py score fails, and any card whose image is visibly not its subject (look at the 20 lowest
+  scorers). Regenerate only what fails, with docs/ART_PROMPT_PLAYBOOK.md prompts (subject first, stratum
+  palette, 832x1216). Also make sure client/content/cards mirrors content/cards byte for byte.
+  Acceptance: a table in docs/ART_AUDIT.md (id, status, score); zero missing files; art_check.py passes
+  on every replacement; a Reliquary capture showing 8 of the fixed cards; posted.
+
 # ---- PHASE B — THE PLAY LOOP (rewards, drops, collection, economy) ----
 
 # ---- PHASE C — CONTENT AT SCALE (offline alpha) ----
