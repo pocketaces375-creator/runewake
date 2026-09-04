@@ -440,6 +440,61 @@
   sentence what was broken and what a player can now do start to finish. Do NOT mark done on a
   green gate alone — the DONE line must quote the PLAYABLE.json playable=true and the reached
   steps.
+
+- [ ] TASK-ROSTER-LOCK-1 — Lock the permanent 7 classes and their 2 starting items everywhere (Trikzos,
+  final): Battlemage (wand, aura) · Necromancer (skull, ritual piece) · Paladin (hammer, banner) ·
+  Druid (book of familiar, elemental bond) · Rogue (dagger, dagger) · Astrologist (orb, constellation
+  starlight) · Warrior (sword, shield). Changes: rename Thief -> Rogue everywhere; replace Ranger with
+  Astrologist (Astrologist INHERITS Ranger's stratum, class mechanics, class-core cards and starter
+  deck unchanged — retheme only, no balance change); item pairs are now fixed.
+  (1) content/classes.json: exactly these 7 ids (battlemage, necromancer, paladin, druid, rogue,
+      astrologist, warrior) with exactly these 2 starting_items each, in this order.
+  (2) Launch artifacts = 7 classes x 2 items, names matching the list. Keep as-is: warrior sword +
+      shield; battlemage wand + aura; necromancer skull; paladin hammer; rogue dagger_dusk +
+      dagger_whisper (renamed from thief). Retheme (NEW name, but the DSL effect and every number
+      copied verbatim from the retired item so balance is untouched): necromancer "ritual piece" <-
+      the retired necromancer item with the strongest existing tests (scythe or phylactery — say
+      which); paladin "banner" <- anvil; druid "book of familiar" <- staff; druid "elemental bond"
+      <- totem; astrologist "orb" <- ranger bow; astrologist "constellation starlight" <- ranger
+      quiver. Retire every other artifact (grimoire, the unused necro item, mage/cleric/runesmith/
+      tidecaller/dawnward/occultist leftovers) — remove from launch_artifacts, keep files under
+      docs/retired/ for history. Do NOT change any effect text or number on any surviving item.
+  (3) Art references (files may not exist yet — TASK-ART-ROSTER-1 creates them; the Reliquary
+      silhouette fallback covers a missing file): portraits client/content/art/classes/<id>.png
+      for all 7; items client/content/art/artifacts/artf_<class>_<item>.webp using these exact
+      names: artf_battlemage_wand, artf_battlemage_aura, artf_necromancer_skull,
+      artf_necromancer_ritual_piece, artf_paladin_hammer, artf_paladin_banner,
+      artf_druid_book_of_familiar, artf_druid_elemental_bond, artf_rogue_dagger_dusk,
+      artf_rogue_dagger_whisper, artf_astrologist_orb, artf_astrologist_constellation_starlight,
+      artf_warrior_sword, artf_warrior_shield. Rename existing thief/ranger art files to the new
+      names where the art is being kept.
+  (4) Propagate: class-core card sets, hard-30 starter decks, Choose Your Path, Reliquary, deck
+      builder, tutorial text, UI strings, docs/export bricks 00/02/04, tests. Save migration: an
+      existing save with class "thief" loads as "rogue", "ranger" as "astrologist" (add a headless
+      test for both).
+  Acceptance: `grep -rniE 'thief|ranger' content/ client/ pipeline/` returns only docs/retired and
+  changelog lines; classes.json has exactly the 7 with the exact item pairs; exactly 14 launch
+  artifacts, names matching; all tests green; loop_smoke and input_smoke pass; Choose Your Path
+  capture shows the 7 classes in the listed order; migration test green; post the capture and
+  one sentence.
+- [ ] TASK-ART-ROSTER-1 — Generate the art for the permanent roster (art FILES ONLY — do not edit any
+  json or code; TASK-ROSTER-LOCK-1 wires the references). FLUX.2 Pro via OpenRouter, style v3.0,
+  matching the existing four portraits' framing and palette and the existing artifact tiles' look.
+  Portraits needed (client/content/art/classes/<id>.png): astrologist (NEW class — a star-reader with
+  an orb, celestial motif, no text), rogue (re-theme of thief, keep the same silhouette language),
+  battlemage, paladin. Keep the existing necromancer, druid, warrior portraits as they are.
+  Item tiles needed (client/content/art/artifacts/<name>.webp + .import), exact names:
+  artf_necromancer_ritual_piece, artf_paladin_banner, artf_druid_book_of_familiar,
+  artf_druid_elemental_bond, artf_astrologist_orb, artf_astrologist_constellation_starlight; and
+  re-export the kept tiles under their new names: artf_rogue_dagger_dusk, artf_rogue_dagger_whisper
+  (from the thief daggers). Wand, aura, skull, hammer, sword, shield already exist — leave them.
+  Veto gate: for the astrologist portrait and each of the 6 new item tiles, generate 6 candidates and
+  post them to the group as separate images before committing the pick; wire the best if Trikzos
+  has not answered within a day (he can swap later). If FLUX credits or the API are unavailable,
+  write BLOCKED with the exact error and do NOT substitute any other generator or hand-made art.
+  Acceptance: every file above exists at the exact path as a real generated .webp/.png with
+  .import; the 6-sample sets posted; a Reliquary capture and a Choose Your Path capture showing
+  the new art; no placeholder plates left for any of the 7 classes.
 - [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
