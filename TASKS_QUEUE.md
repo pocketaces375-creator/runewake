@@ -266,7 +266,7 @@
   Acceptance: tests green; loop_smoke and input_smoke pass; a fixture variant shows in a Reliquary capture;
   posted with one sentence.
 
-- [ ] TASK-ITEMS-WARRIOR-1 — Four more Warrior artifacts (two per slot, Sword/Shield) in content/artifacts/variants/warrior.json,
+- [!] TASK-ITEMS-WARRIOR-1 — Four more Warrior artifacts (two per slot, Sword/Shield) in content/artifacts/variants/warrior.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SWORD: "Executioner's Blade" — passive: your attacking creatures with attack 3+ have Pierce; +1 charge whenever a friendly creature kills an enemy creature; full (3): one friendly creature gets +2/+0 permanently.
   SWORD: "Duelist's Edge" — passive: if exactly one friendly creature attacks this turn it gets +2/+0 for that attack; trigger: that lone attacker prevents 1 damage this combat.

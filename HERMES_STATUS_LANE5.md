@@ -1,0 +1,1 @@
+- 2026-09-04: PARKED TASK-ITEMS-WARRIOR-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
