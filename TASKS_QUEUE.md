@@ -802,7 +802,7 @@
   Acceptance: a debug-only trigger throws on purpose; capture of the recovery screen; the log file
   contains the stack; loop_smoke green.
 
-- [ ] TASK-INPUT-FEEL-1 — Touch feels right on a phone: every tappable control is at least 44px on a
+- [x] TASK-INPUT-FEEL-1 — Touch feels right on a phone: every tappable control is at least 44px on a
   side; dragging a card to a lane snaps when over a valid lane and cancels cleanly when released
   elsewhere; a ui_lint rule MIN_TOUCH fails any button or card under 44px.
   Acceptance: MIN_TOUCH green on all captures; input_smoke passes; a short description of the
