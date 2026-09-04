@@ -779,7 +779,7 @@
   Acceptance: headless tutorial run log with every step passing; captures of three highlighted
   steps; loop_smoke still green.
 
-- [ ] TASK-MAP-POLISH-1 — The region map reads at a glance: locked / available / cleared nodes are
+- [x] TASK-MAP-POLISH-1 — The region map reads at a glance: locked / available / cleared nodes are
   visually distinct, the current node pulses, the region name sits in a banner, the path lines are
   drawn between nodes. No new painted art; use the existing board skin and rune motifs.
   Acceptance: map capture after a seeded partial clear; ui_lint green; one sentence on what a
