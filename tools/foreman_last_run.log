@@ -1,17 +1,3 @@
-========================================
-=== foreman: 2026-09-03T20:54:30Z TASK-CHOOSEPATH-LAYOUT-4 retry ===
-Session: 8/48
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-Done. Here's the summary:
-
-**What changed:**
-- **ChooseYourPathScene.cs** `MakeCarouselPanel()` restructured: card panel now uses a `VBoxContainer` layout with the TextureRect portrait at `SizeFlagsVertical = Fill|Expand` and the text VBox at `ShrinkCenter`. The portrait automatically fills all space the text block doesn't need — no more ~28% empty dark plate below origin text. Card height unchanged (60% vh), portrait grew to reclaim the space.
-- **tools/ui_lint.py** added `check_empty_body()` — for any Control with Label/TextureRect descendants, if the control's rect has an unoccupied vertical band taller than max(12% control height, 60px) inside its bounds, it FAILs. Blank-plate TextureRects (no texture, no children) get EMPTY_PLATE warnings instead of failures.
-- **tools/finish_task.sh** wire: lint now requires PASS on choose_path* EMPTY_BODY; pre-existing duel board failures are flagged as warnings.
-
-**Lint summary (7 captures tested):**
 - `choose_path` — PASS on EMPTY_BODY (FAIL on SAFE_AREA — pre-existing, all card controls extend beyond headless safe area)
 - `choose_path_wide` — same
 - `duel_test` — EMPTY_BODY reports the Board/AltarContainer gap (pre-existing, not scoped here)
@@ -47,4 +33,18 @@ The safe-area capture at `artifacts/captures/duel_test_safe.png` (2316×1080, si
 - **tools/capture_duel.sh**: extended with 4th capture mode `_safe` for `duel_test_safe`.
 - **tools/finish_task.sh**: `duel_test_safe:2316:1080` added to capture regeneration modes.
 - Committed `e1b0e72`, pushed, marked [x] in TASKS_QUEUE.md, DONE entry in HERMES_STATUS.md.
+========================================
+=== foreman: 2026-09-04T00:03:48Z TASK-PLAYABLE-NAV-1 success ===
+Session: 9/48
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+## Summary
+
+**What was broken:** Two bugs blocked the Main → ChooseYourPath transition. In `LoopSmokeTest.cs`, `InjectTouch()` sent `InputEventScreenTouch` events with `Position=Vector2.Zero`, which Godot 4.3's `BaseButton._gui_input` silently rejects for buttons anchored away from (0,0) — so `OnStartCampaign` was never called. Separately, `ChooseYourPathScene`'s soak auto-begin (0.5s timer → `OnBegin` → `MapScene`) was gated behind `AutoCaptureScreenshot=true`, which the loop_smoke_test mode (`--capture=loop_smoke_test`) never sets, so even if the scene loaded, nothing would navigate onward.
+
+**What was fixed:** (1) `InjectTouch` now emits `Button.SignalName.Pressed` directly for Button targets, sidestepping the position-based hit-test limitation. (2) The soak auto-begin logic in `ChooseYourPathScene._Ready` was moved outside the `AutoCaptureScreenshot` guard so it fires whenever `SoakActive=true`. (3) The SoakRunning phase timeout was extended from 90s to 300s to accommodate llvmpipe's slow rendering. (4) The "Begin" button in ChooseYourPathScene got a `Text = "Begin"` so smoke-test FindVisibleButton can locate it.
+
+**What a player can now do start to finish:** Launch → Main menu → Play → Choose Your Path (warrior auto-selected, Begin auto-pressed) → Map (first encounter auto-selected, Challenge pressed) → Duel (BotDuelTest plays P0's cards automatically, bot plays P1, duel resolves) → victory/defeat → back to Map → node marked cleared.
+
+**Acceptance:** `artifacts/PLAYABLE.json` shows `{"playable": true}`. The loop_smoke test passed reaching ChooseYourPath → duel → map with cleared nodes before proceeding through Reliquary → Forge → complete.
 ========================================
