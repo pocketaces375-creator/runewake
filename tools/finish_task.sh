@@ -190,8 +190,13 @@ done
 echo ""
 echo "── Step 7: Commit and mark done ──"
 
-# Commit code changes
+# Guard: no commit may hardcode a machine or lane path — every lane is a different clone
 git add -A
+BAD=$(git diff --cached -U0 -- client engine pipeline tools content 2>/dev/null | grep -E '^\+' | grep -vE '^\+\+\+' | grep -nE '/home/fictive/|runewake-lane[0-9]|/home/[a-z]+/runewake' | head -5 || true)
+if [[ -n "${BAD}" ]]; then
+  echo "${BAD}"
+  fail "Hardcoded machine path in the diff (use ProjectPaths / res:// / paths relative to the repo)"
+fi
 git diff --cached --quiet || git commit -m "${TASK_ID}: ${SUMMARY}"
 
 # Push code commit

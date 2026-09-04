@@ -55,6 +55,10 @@ except Exception: pass
 open(st,"w").write(str(done))
 delta=f" (+{done-prev} since the last update)" if prev is not None and done>prev else (" (no change since the last update)" if prev is not None else "")
 lines=[f"Built: {done} pieces{delta}. About {pct}% of the {total} planned."]
+try:
+    bl=open("/tmp/runewake_burn_line.txt").read().strip()
+    if bl: lines.append(bl)
+except Exception: pass
 if lastdesc: lines.append(f"Last finished: {lastdesc} ({mins} min ago).")
 if nextup: lines.append(f"Next up: {nextup}")
 tail=f"Finished today: {fin}."

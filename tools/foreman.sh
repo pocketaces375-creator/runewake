@@ -43,6 +43,9 @@ set -euo pipefail
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
 FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
+FOREMAN_MODEL_FALLBACK="${FOREMAN_MODEL_FALLBACK:-}"
+FOREMAN_PROFILE="${FOREMAN_PROFILE:-runewake}"
+FOREMAN_MAX_TURNS="${FOREMAN_MAX_TURNS:-120}"
 DAILY_BUDGET="${FOREMAN_DAILY_BUDGET:-96}"
 TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
 GODOT_BIN="${FOREMAN_GODOT_BIN:-$HOME/.local/bin/godot}"
@@ -266,15 +269,26 @@ run_session_with_retry() {
 
     head_before=$(git rev-parse HEAD 2>/dev/null || echo "")
     cd "${PROJECT_DIR}"
-    output=$(timeout "${session_timeout}" "${HERMES_BIN}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?")
+    local model_now="${SESSION_MODEL:-${FOREMAN_MODEL}}" t_start t_end
+    mkdir -p /tmp/runewake_claims && echo "$(date +%s) ${model_now}" > "/tmp/runewake_claims/${label}.session"
+    t_start=$(date +%s)
+    output=$(timeout "${session_timeout}" "${HERMES_BIN}" -p "${FOREMAN_PROFILE}" -m "${model_now}" -z "${prompt}" 2>&1 || echo "HERMES_EXIT_CODE=$?")
+    t_end=$(date +%s)
     head_after=$(git rev-parse HEAD 2>/dev/null || echo "")
+    info "session ${label} on ${model_now}: $(( t_end - t_start ))s"
 
     # Retryable only when: no new commit AND (non-zero exit OR transient
     # signature in the output tail). A commit means real work happened.
     retryable=0
-    if [[ "${head_after}" == "${head_before}" ]]; then
-      if echo "${output}" | grep -q "HERMES_EXIT_CODE=" || is_transient_output "${output}"; then
-        retryable=1
+    # Re-run for free ONLY when the provider failed us fast (outage / rate limit / 5xx) — under 5 minutes
+    # and no commit. A session that ran long and produced nothing is a FAILED ATTEMPT, not a transient:
+    # re-running it silently was how one task could burn six paid sessions before parking.
+    if [[ "${head_after}" == "${head_before}" ]] && (( t_end - t_start < 300 )) && is_transient_output "${output}"; then
+      retryable=1
+      # a free-tier model that rate-limits us gets swapped for the paid fallback on the re-run
+      if [[ -n "${FOREMAN_MODEL_FALLBACK}" && "${model_now}" != "${FOREMAN_MODEL_FALLBACK}" ]] && echo "${output}" | grep -Eiq "rate limit|429|quota|free"; then
+        warn "${label}: ${model_now} rate-limited — switching to ${FOREMAN_MODEL_FALLBACK}"
+        SESSION_MODEL="${FOREMAN_MODEL_FALLBACK}"
       fi
     fi
 
@@ -603,8 +617,12 @@ fi
 
 # ── 4. Execute model session ─────────────────────────────────────────────────
 header "Running: ${TASK_ID}"
+SESSION_MODEL="${FOREMAN_MODEL}"
+if [[ -n "${FOREMAN_MODEL_FALLBACK}" && "${TASK_ID}" == "${RETRY_TASK_ID}" && "${RETRY_COUNT}" -ge 1 ]]; then
+  SESSION_MODEL="${FOREMAN_MODEL_FALLBACK}"; info "retry attempt — using fallback model ${SESSION_MODEL}"
+fi
 mkdir -p /tmp/runewake_claims && echo "$$" > "/tmp/runewake_claims/${TASK_ID}"
-info "Model: ${FOREMAN_MODEL}  Timeout: ${FOREMAN_TIMEOUT}s"
+info "Model: ${SESSION_MODEL}  Profile: ${FOREMAN_PROFILE}  Timeout: ${FOREMAN_TIMEOUT}s"
 
 # Capture HEAD before the session so we can detect new commits
 CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")
