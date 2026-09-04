@@ -39,6 +39,9 @@ tools/foreman_last_run.log
 client/.import/
 client/export_presets.cfg
 
+# Release keystore (must never be committed — lives outside repo at ~/.runewake/)
+client/exports/release.keystore
+
 # OS files
 *.o
 *.so
