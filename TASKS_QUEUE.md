@@ -569,6 +569,22 @@
   Acceptance: all 14 tiles pass tools/art_check.py; a Reliquary capture shows the set; post the 14 tiles
   as one contact sheet to the group with a one-line note.
 
+- [ ] TASK-CLASS-GENDER-1 — Every class can be played as a man or a woman, chosen on Choose Your Path (Trikzos:
+  "make a male and female version for each class option, that way it's very inclusive"). The art already exists:
+  client/content/art/classes/<id>_m.png and <id>_f.png for all 7 (the plain <id>.png stays as the fallback).
+  (1) content/classes.json: each class gains "portraits": {"m": "<id>_m.png", "f": "<id>_f.png"}. No other class
+      field changes; no mechanical difference whatsoever between the two — this is appearance only.
+  (2) Choose Your Path: a small, clearly-labelled two-way toggle on the class card itself, defaulting to whichever
+      portrait the class currently ships, that swaps the portrait in place with no layout shift and no reflow of
+      the carousel. It must be reachable by touch at 44px minimum and readable at arm's length.
+  (3) The chosen gender is saved in the profile/save (field "portrait_variant": "m" | "f") and used EVERYWHERE the
+      class portrait appears — Choose Your Path, the Reliquary, the profile screen, the duel HUD, save slots.
+      An existing save with no field loads as the class default, and a headless test covers that migration.
+  (4) Wording stays neutral in all UI strings: no gendered class names, no "male/female warrior" copy — the class
+      is WARRIOR either way.
+  Acceptance: a Choose Your Path capture of the same class in both variants; the toggle survives a save/load
+  round-trip (test); ui_lint, loop_smoke and input_smoke pass; post the two captures side by side.
+
 - [ ] TASK-AI-TACTICIAN-1 — The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
