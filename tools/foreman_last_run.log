@@ -1,8 +1,3 @@
-- content/map/region_02.json: board_skin "ember"
-- client/scripts/CampaignContext.cs: CurrentRegionSkinId (defaults "default")
-- client/scripts/ThemeTokens.cs: GetPlatePath/GetBackdropPath now accept skinId with fallback; GetSkinTint already maps ember->warm orange
-- client/scripts/MapScene.cs: loads region, reads its board_skin, applies tint to plate (tint moved after region load so it's correct)
-- client/scripts/DuelScene.cs: BoardBg loads plate_<skin> and applies GetSkinTint
 - client/scripts/DebugCapture.cs: duel_test_r2 now sets ember skin; added map_test_r2 / map_test_r2_wide capture modes
 - tools/finish_task.sh: MODES array includes map_test_r2 + map_test_r2_wide
 
@@ -47,4 +42,9 @@ The core infrastructure is complete. The remaining work is the capture/soak auto
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake-lane4/content/map/region_01.json — [patch] Could not find a match for old_string in the file Did you mean one of these sections? 1| { 2| "id": "region_01", 3| "name": "The Fallow Reach", 4| "strata": "VERDANT", 5| "strata2…
+========================================
+=== foreman: 2026-09-04T17:31:08Z TASK-REGION-GEN-BATCH-1 success ===
+Session: 10/96
+--- session tail ---
+  session TASK-REGION-GEN-BATCH-1 on deepseek/deepseek-v4-flash: 1760s
 ========================================
