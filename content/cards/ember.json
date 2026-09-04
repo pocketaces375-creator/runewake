@@ -9,7 +9,9 @@
     "cost": 2,
     "attack": 3,
     "vigor": 1,
-    "keywords": ["SWIFT"],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "Forge-children learned to run before they learned to breathe.",
     "power_score": 4.85,
@@ -25,7 +27,9 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": ["SWIFT"],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "Pack-forged and flame-tempered.",
     "power_score": 3.2,
@@ -39,17 +43,27 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 2 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "A spear of fire, thrown from the heart of the forge.",
-    "power_score": 3.0,
+    "power_score": 3.6,
     "content_version": 1
   },
   {
@@ -62,9 +76,11 @@
     "cost": 3,
     "attack": 4,
     "vigor": 3,
-    "keywords": ["PIERCE"],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [],
-    "flavor": "He fights like the fire — without mercy, without memory.",
+    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
     "power_score": 5.5,
     "content_version": 1
   },
@@ -78,17 +94,27 @@
     "cost": 2,
     "attack": 2,
     "vigor": 2,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "ON_CAST_RITUAL",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "Every spell she casts fans the flames higher.",
-    "power_score": 5.0,
+    "power_score": 5.6,
     "content_version": 1
   },
   {
@@ -101,7 +127,10 @@
     "cost": 5,
     "attack": 5,
     "vigor": 3,
-    "keywords": ["PIERCE", "FRAGILE"],
+    "keywords": [
+      "PIERCE",
+      "FRAGILE"
+    ],
     "abilities": [],
     "flavor": "Molten blood and a temper to match.",
     "power_score": 7.2,
@@ -115,17 +144,25 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 3,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 4 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 4
+          }
         ]
       }
     ],
     "flavor": "The heat of a dying star, focused to a point.",
-    "power_score": 5.5,
+    "power_score": 6.1,
     "content_version": 1
   },
   {
@@ -138,17 +175,27 @@
     "cost": 4,
     "attack": 4,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 2 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Even in dying, it burns.",
-    "power_score": 7.8,
+    "power_score": 8.4,
     "content_version": 1
   },
   {
@@ -161,17 +208,27 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "attack": 1 }
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
         ]
       }
     ],
     "flavor": "He hammers strength into every ally's blade.",
-    "power_score": 7.5,
+    "power_score": 8.4,
     "content_version": 1
   },
   {
@@ -182,18 +239,34 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 5,
-    "keywords": [],
+    "keywords": [
+      "PIERCE"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 5 },
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 5
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "The forge-gods demand sacrifice.",
-    "power_score": 8.5,
+    "power_score": 9.1,
     "content_version": 1
   },
   {
@@ -206,7 +279,10 @@
     "cost": 6,
     "attack": 4,
     "vigor": 4,
-    "keywords": ["UNEARTH", "ECHO"],
+    "keywords": [
+      "UNEARTH",
+      "ECHO"
+    ],
     "abilities": [],
     "flavor": "From ash, she rises. From ash, she burns again.",
     "power_score": 9.5,
@@ -220,13 +296,24 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 3,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "DAMAGED_THIS_TURN", "value": true },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "DAMAGED_THIS_TURN",
+      "value": true
+    },
     "abilities": [
       {
         "trigger": "ON_TURN_START",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
         ]
       }
     ],

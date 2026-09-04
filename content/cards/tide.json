@@ -9,24 +9,41 @@
     "cost": 4,
     "attack": 2,
     "vigor": 5,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 3 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
         ]
       },
       {
         "trigger": "ON_TURN_START",
-        "condition": { "op": "BARROW_COUNT_GTE", "value": 4 },
+        "condition": {
+          "op": "BARROW_COUNT_GTE",
+          "value": 4
+        },
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "She read the riverbed the way her mother read faces.",
-    "power_score": 10.4,
+    "power_score": 11.4,
     "content_version": 1
   },
   {
@@ -39,17 +56,25 @@
     "cost": 2,
     "attack": 1,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
-    "flavor": "Knowledge flows like water — endlessly, unstoppably.",
-    "power_score": 4.5,
+    "flavor": "Knowledge flows like water \u2014 endlessly, unstoppably.",
+    "power_score": 5.5,
     "content_version": 1
   },
   {
@@ -62,17 +87,25 @@
     "cost": 3,
     "attack": 3,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "From the abyss it rises, silent and patient.",
-    "power_score": 4.5,
+    "power_score": 5.5,
     "content_version": 1
   },
   {
@@ -83,17 +116,25 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "The depths see you as clearly as you see them.",
-    "power_score": 2.0,
+    "power_score": 3.0,
     "content_version": 1
   },
   {
@@ -106,17 +147,25 @@
     "cost": 4,
     "attack": 3,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "BURY", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Salt and spell, wrought together.",
-    "power_score": 5.5,
+    "power_score": 6.5,
     "content_version": 1
   },
   {
@@ -129,7 +178,9 @@
     "cost": 5,
     "attack": 3,
     "vigor": 6,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "A living reef that remembers every ship that passed.",
     "power_score": 7.5,
@@ -143,18 +194,32 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
-          { "op": "DISCARD", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          },
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "The tide brings, and the tide takes away.",
-    "power_score": 4.0,
+    "power_score": 5.0,
     "content_version": 1
   },
   {
@@ -167,17 +232,27 @@
     "cost": 3,
     "attack": 2,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "BOUNCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 1 }
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "It unravels into foam, dragging you down with it.",
-    "power_score": 5.0,
+    "power_score": 6.0,
     "content_version": 1
   },
   {
@@ -190,17 +265,25 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "ON_ALLY_DEATH",
         "effects": [
-          { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "Every drop that falls tells her a story.",
-    "power_score": 7.0,
+    "power_score": 8.0,
     "content_version": 1
   },
   {
@@ -211,17 +294,25 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 4,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DISCARD", "target": { "scope": "PLAYER_ENEMY" }, "amount": 2 }
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "The tide washes away all hidden things.",
-    "power_score": 6.5,
+    "power_score": 7.5,
     "content_version": 1
   },
   {
@@ -234,7 +325,9 @@
     "cost": 7,
     "attack": 7,
     "vigor": 7,
-    "keywords": ["WARD"],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [],
     "flavor": "It sleeps in the deep, dreaming of cities it swallowed.",
     "power_score": 10.5,
@@ -248,13 +341,26 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 5,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "HAND_COUNT_GTE", "value": 8 },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "HAND_COUNT_GTE",
+      "value": 8
+    },
     "abilities": [
       {
         "trigger": "PASSIVE",
         "effects": [
-          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "vigor": 2 }
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "vigor": 2
+          }
         ]
       }
     ],

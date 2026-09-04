@@ -7,18 +7,36 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "keyword": "WARD" },
-          { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "filter": "CHOSEN", "count": 1 }, "amount": 2 }
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "keyword": "WARD"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "CHOSEN",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "The wardens did not build doors. They built reasons not to open them.",
-    "power_score": 5.6,
+    "power_score": 6.6,
     "content_version": 1
   },
   {
@@ -31,7 +49,9 @@
     "cost": 2,
     "attack": 1,
     "vigor": 3,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "The first light holds the line.",
     "power_score": 3.5,
@@ -47,7 +67,9 @@
     "cost": 3,
     "attack": 3,
     "vigor": 3,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "Steel and sunlight, sworn to the covenant.",
     "power_score": 4.5,
@@ -63,17 +85,28 @@
     "cost": 4,
     "attack": 3,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ADJACENT", "count": "ALL" }, "attack": 1, "vigor": 1 }
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
         ]
       }
     ],
     "flavor": "Gold and duty, inseparable in service.",
-    "power_score": 7.0,
+    "power_score": 8.0,
     "content_version": 1
   },
   {
@@ -84,17 +117,26 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "SILENCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 } }
+          {
+            "op": "SILENCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            }
+          }
         ]
       }
     ],
     "flavor": "Light purges corruption.",
-    "power_score": 3.0,
+    "power_score": 4.0,
     "content_version": 1
   },
   {
@@ -107,17 +149,27 @@
     "cost": 3,
     "attack": 2,
     "vigor": 4,
-    "keywords": [],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_TURN_START",
         "effects": [
-          { "op": "HEAL", "target": { "scope": "ALLY_CREATURE", "filter": "DAMAGED", "count": 1 }, "amount": 2 }
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "DAMAGED",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Each dawn brings the promise of renewal.",
-    "power_score": 5.5,
+    "power_score": 6.4,
     "content_version": 1
   },
   {
@@ -130,7 +182,9 @@
     "cost": 5,
     "attack": 3,
     "vigor": 8,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "It stands. It always stands.",
     "power_score": 8.5,
@@ -146,7 +200,9 @@
     "cost": 4,
     "attack": 4,
     "vigor": 3,
-    "keywords": ["SWIFT"],
+    "keywords": [
+      "SWIFT"
+    ],
     "abilities": [],
     "flavor": "Light strikes first.",
     "power_score": 6.0,
@@ -162,18 +218,32 @@
     "cost": 4,
     "attack": 3,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
-          { "op": "GAIN_VIGOR", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          },
+          {
+            "op": "GAIN_VIGOR",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "She sees what lies buried and strengthens those who seek it.",
-    "power_score": 8.5,
+    "power_score": 9.5,
     "content_version": 1
   },
   {
@@ -184,17 +254,26 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 4,
-    "keywords": [],
+    "keywords": [
+      "WARD"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DESTROY", "target": { "scope": "ENEMY_CREATURE", "filter": "DAMAGED", "count": 1 } }
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": 1
+            }
+          }
         ]
       }
     ],
     "flavor": "Judgment is passed. Sentence is executed.",
-    "power_score": 6.0,
+    "power_score": 7.0,
     "content_version": 1
   },
   {
@@ -207,9 +286,12 @@
     "cost": 7,
     "attack": 6,
     "vigor": 6,
-    "keywords": ["WARD", "GUARD"],
+    "keywords": [
+      "WARD",
+      "GUARD"
+    ],
     "abilities": [],
-    "flavor": "She does not fight — she enforces.",
+    "flavor": "She does not fight \u2014 she enforces.",
     "power_score": 11.5,
     "content_version": 1
   },
@@ -221,13 +303,26 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 6,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "TURN_GTE", "value": 8 },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "TURN_GTE",
+      "value": 8
+    },
     "abilities": [
       {
         "trigger": "PASSIVE",
         "effects": [
-          { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "ANY", "count": "ALL" }, "keyword": "WARD" }
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "keyword": "WARD"
+          }
         ]
       }
     ],

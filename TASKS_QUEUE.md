@@ -452,7 +452,7 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [ ] TASK-CARD-FILL-1 — No more blank cards. 28 of 65 cards have no keyword and no ability.
+- [x] TASK-CARD-FILL-1 — No more blank cards. 28 of 65 cards have no keyword and no ability.
   Give every one of them exactly one keyword or one one-line trigger from the CLOSED keyword
   set (Guard, Swift, Pierce, Ward, Venom, Reach, Rooted, Unearth N, Echo, Fragile, Sealed) or
   the existing DSL ops, flavoured by stratum: Ember leans Swift/Pierce and burn-on-hit,

@@ -9,13 +9,27 @@
     "cost": 3,
     "attack": 4,
     "vigor": 2,
-    "keywords": ["UNEARTH"],
+    "keywords": [
+      "UNEARTH"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 },
-          { "op": "BURY", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
@@ -33,7 +47,9 @@
     "cost": 1,
     "attack": 2,
     "vigor": 1,
-    "keywords": ["VENOM"],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [],
     "flavor": "Bones that remember the sword.",
     "power_score": 2.2,
@@ -49,17 +65,27 @@
     "cost": 3,
     "attack": 2,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_TURN_END",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "DAMAGED", "count": "ALL" }, "amount": 1 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
         ]
       }
     ],
     "flavor": "He whispers to the wounded, promising the quiet.",
-    "power_score": 5.0,
+    "power_score": 6.4,
     "content_version": 1
   },
   {
@@ -70,17 +96,27 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 2,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 3 }
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 3
+          }
         ]
       }
     ],
     "flavor": "The dead do not miss.",
-    "power_score": 3.5,
+    "power_score": 4.5,
     "content_version": 1
   },
   {
@@ -93,17 +129,25 @@
     "cost": 4,
     "attack": 4,
     "vigor": 3,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_DEATH",
         "effects": [
-          { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "It drags itself from the dark, clutching forgotten things.",
-    "power_score": 6.5,
+    "power_score": 7.9,
     "content_version": 1
   },
   {
@@ -114,18 +158,33 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 1,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "DESTROY", "target": { "scope": "ALLY_CREATURE", "filter": "EXHAUSTED", "count": 1 } },
-          { "op": "ATTUNE", "target": { "scope": "PLAYER_SELF" }, "amount": 3 }
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EXHAUSTED",
+              "count": 1
+            }
+          },
+          {
+            "op": "ATTUNE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
         ]
       }
     ],
     "flavor": "The barrow gives. And takes.",
-    "power_score": 4.5,
+    "power_score": 5.5,
     "content_version": 1
   },
   {
@@ -138,7 +197,9 @@
     "cost": 5,
     "attack": 5,
     "vigor": 5,
-    "keywords": ["UNEARTH"],
+    "keywords": [
+      "UNEARTH"
+    ],
     "abilities": [],
     "flavor": "It rose when the barrow was unsealed. It will not go back.",
     "power_score": 8.5,
@@ -154,7 +215,9 @@
     "cost": 2,
     "attack": 1,
     "vigor": 4,
-    "keywords": ["GUARD"],
+    "keywords": [
+      "GUARD"
+    ],
     "abilities": [],
     "flavor": "Bone-walls remember every siege.",
     "power_score": 4.0,
@@ -170,7 +233,10 @@
     "cost": 4,
     "attack": 3,
     "vigor": 2,
-    "keywords": ["VENOM", "UNEARTH"],
+    "keywords": [
+      "VENOM",
+      "UNEARTH"
+    ],
     "abilities": [],
     "flavor": "One touch is all it needs.",
     "power_score": 7.5,
@@ -184,18 +250,35 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 3,
-    "keywords": [],
+    "keywords": [
+      "ECHO"
+    ],
     "abilities": [
       {
         "trigger": "RESOLVE",
         "effects": [
-          { "op": "SILENCE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 } },
-          { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": 1 }, "amount": 2 }
+          {
+            "op": "SILENCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            }
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": 1
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Words that bind the soul and break the will.",
-    "power_score": 6.5,
+    "power_score": 7.5,
     "content_version": 1
   },
   {
@@ -208,17 +291,25 @@
     "cost": 6,
     "attack": 5,
     "vigor": 6,
-    "keywords": [],
+    "keywords": [
+      "VENOM"
+    ],
     "abilities": [
       {
         "trigger": "ON_SUMMON",
         "effects": [
-          { "op": "UNBURY", "target": { "scope": "PLAYER_SELF" }, "amount": 2 }
+          {
+            "op": "UNBURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
         ]
       }
     ],
     "flavor": "Her voice echoes from the barrow, calling the buried home.",
-    "power_score": 10.0,
+    "power_score": 11.4,
     "content_version": 1
   },
   {
@@ -229,13 +320,26 @@
     "type": "RELIC",
     "rarity": "RELIC",
     "cost": 4,
-    "keywords": ["SEALED"],
-    "identify_condition": { "op": "BARROW_COUNT_GTE", "value": 3 },
+    "keywords": [
+      "SEALED"
+    ],
+    "identify_condition": {
+      "op": "BARROW_COUNT_GTE",
+      "value": 3
+    },
     "abilities": [
       {
         "trigger": "PASSIVE",
         "effects": [
-          { "op": "DEBUFF", "target": { "scope": "ENEMY_CREATURE", "filter": "ANY", "count": "ALL" }, "attack": -1 }
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ANY",
+              "count": "ALL"
+            },
+            "attack": -1
+          }
         ]
       }
     ],

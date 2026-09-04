@@ -58,7 +58,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_u_grove_healer");
         Assert.Equal(
-            "1/3\n" +
+            "1/3 — Guard\n" +
             "When this enters play: Heal 3 from ally creature\n" +
             "\"The touch of living bark closes wounds in moments.\"",
             RulesTextRenderer.Render(card));
@@ -99,7 +99,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_r_bloomweaver");
         Assert.Equal(
-            "1/4\n" +
+            "1/4 — Guard\n" +
             "At the start of your turn: Summon a Verdant Bud\n" +
             "\"Each morning, a new bloom unfolds in her footsteps.\"",
             RulesTextRenderer.Render(card));
@@ -110,6 +110,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_r_undergrowth_eruption");
         Assert.Equal(
+            "Guard\n" + 
             "Deal 2 damage to all enemy creatures\n" +
             "\"The soil remembers the blood it has drunk.\"",
             RulesTextRenderer.Render(card));
@@ -120,6 +121,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("vrd_r_natures_renewal");
         Assert.Equal(
+            "Guard\n" + 
             "Heal 2 from all ally creatures\n" +
             "\"Spring comes even to the deepest shadows.\"",
             RulesTextRenderer.Render(card));
@@ -164,6 +166,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_c_flame_javelin");
         Assert.Equal(
+            "Pierce\n" + 
             "Deal 2 damage to enemy creature\n" +
             "\"A spear of fire, thrown from the heart of the forge.\"",
             RulesTextRenderer.Render(card));
@@ -184,7 +187,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_u_wildfire_adept");
         Assert.Equal(
-            "2/2\n" +
+            "2/2 — Pierce\n" +
             "When you play a Ritual: Deal 1 damage to enemy creature\n" +
             "\"Every spell she casts fans the flames higher.\"",
             RulesTextRenderer.Render(card));
@@ -205,6 +208,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_u_searing_blast");
         Assert.Equal(
+            "Pierce\n" + 
             "Deal 4 damage to the enemy\n" +
             "\"The heat of a dying star, focused to a point.\"",
             RulesTextRenderer.Render(card));
@@ -215,7 +219,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_u_cinderstorm_elemental");
         Assert.Equal(
-            "4/4\n" +
+            "4/4 — Pierce\n" +
             "When this dies: Deal 2 damage to all enemy creatures\n" +
             "\"Even in dying, it burns.\"",
             RulesTextRenderer.Render(card));
@@ -226,7 +230,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_r_magma_forger");
         Assert.Equal(
-            "2/3\n" +
+            "2/3 — Guard\n" +
             "When this enters play: Give all ally creatures +1 attack\n" +
             "\"He hammers strength into every ally's blade.\"",
             RulesTextRenderer.Render(card));
@@ -237,6 +241,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("emb_r_inferno_burst");
         Assert.Equal(
+            "Pierce\n" + 
             "Deal 5 damage to the enemy. Deal 1 damage to all enemy creatures\n" +
             "\"The forge-gods demand sacrifice.\"",
             RulesTextRenderer.Render(card));
@@ -271,7 +276,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_silt_reader");
         Assert.Equal(
-            "2/5\n" +
+            "2/5 — Ward\n" +
             "When this enters play: Excavate 3\n" +
             "At the start of your turn: if your barrow has 4+ cards, Draw 1 card\n" +
             "\"She read the riverbed the way her mother read faces.\"",
@@ -283,7 +288,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_tidal_scholar");
         Assert.Equal(
-            "1/3\n" +
+            "1/3 — Ward\n" +
             "When this enters play: Draw 1 card\n" +
             "\"Knowledge flows like water — endlessly, unstoppably.\"",
             RulesTextRenderer.Render(card));
@@ -294,7 +299,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_deep_one");
         Assert.Equal(
-            "3/3\n" +
+            "3/3 — Echo\n" +
             "When this enters play: Draw 1 card\n" +
             "\"From the abyss it rises, silent and patient.\"",
             RulesTextRenderer.Render(card));
@@ -305,6 +310,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_abyssal_gaze");
         Assert.Equal(
+            "Echo\n" + 
             "Excavate 2\n" +
             "\"The depths see you as clearly as you see them.\"",
             RulesTextRenderer.Render(card));
@@ -315,7 +321,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_u_brine_witch");
         Assert.Equal(
-            "3/3\n" +
+            "3/3 — Echo\n" +
             "When this enters play: Bury 2\n" +
             "\"Salt and spell, wrought together.\"",
             RulesTextRenderer.Render(card));
@@ -336,6 +342,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_u_memory_tides");
         Assert.Equal(
+            "Echo\n" + 
             "Excavate 2. Discard 1\n" +
             "\"The tide brings, and the tide takes away.\"",
             RulesTextRenderer.Render(card));
@@ -346,7 +353,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_whirlpool_elemental");
         Assert.Equal(
-            "2/4\n" +
+            "2/4 — Ward\n" +
             "When this dies: Return enemy creature to hand\n" +
             "\"It unravels into foam, dragging you down with it.\"",
             RulesTextRenderer.Render(card));
@@ -357,7 +364,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_r_hydrokinetic_adept");
         Assert.Equal(
-            "2/3\n" +
+            "2/3 — Echo\n" +
             "When an ally dies: Draw 1 card\n" +
             "\"Every drop that falls tells her a story.\"",
             RulesTextRenderer.Render(card));
@@ -368,6 +375,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_r_flood_of_secrets");
         Assert.Equal(
+            "Echo\n" + 
             "the enemy discards 2\n" +
             "\"The tide washes away all hidden things.\"",
             RulesTextRenderer.Render(card));
@@ -423,7 +431,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_c_deathspeaker");
         Assert.Equal(
-            "2/3\n" +
+            "2/3 — Venom\n" +
             "At the end of your turn: Deal 1 damage to all damaged enemy creatures\n" +
             "\"He whispers to the wounded, promising the quiet.\"",
             RulesTextRenderer.Render(card));
@@ -434,6 +442,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_c_bone_shard_volley");
         Assert.Equal(
+            "Echo\n" + 
             "Deal 3 damage to enemy creature\n" +
             "\"The dead do not miss.\"",
             RulesTextRenderer.Render(card));
@@ -444,7 +453,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_u_crypt_crawler");
         Assert.Equal(
-            "4/3\n" +
+            "4/3 — Venom\n" +
             "When this dies: Excavate 2\n" +
             "\"It drags itself from the dark, clutching forgotten things.\"",
             RulesTextRenderer.Render(card));
@@ -455,6 +464,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_u_soul_harvest");
         Assert.Equal(
+            "Echo\n" + 
             "Destroy exhausted ally creature. Gain 3 attunement\n" +
             "\"The barrow gives. And takes.\"",
             RulesTextRenderer.Render(card));
@@ -495,6 +505,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_r_curse_of_binding");
         Assert.Equal(
+            "Echo\n" + 
             "Silence enemy creature. Deal 2 damage to enemy creature\n" +
             "\"Words that bind the soul and break the will.\"",
             RulesTextRenderer.Render(card));
@@ -505,7 +516,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_r_hollow_herald");
         Assert.Equal(
-            "5/6\n" +
+            "5/6 — Venom\n" +
             "When this enters play: Unbury 2\n" +
             "\"Her voice echoes from the barrow, calling the buried home.\"",
             RulesTextRenderer.Render(card));
@@ -530,6 +541,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_r_sealing_light");
         Assert.Equal(
+            "Ward\n" + 
             "Grant chosen ally creature Ward. Heal 2 from chosen ally creature\n" +
             "\"The wardens did not build doors. They built reasons not to open them.\"",
             RulesTextRenderer.Render(card));
@@ -560,7 +572,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_c_golden_retainer");
         Assert.Equal(
-            "3/4\n" +
+            "3/4 — Ward\n" +
             "When this enters play: Give all adjacent ally creatures +1/+1\n" +
             "\"Gold and duty, inseparable in service.\"",
             RulesTextRenderer.Render(card));
@@ -571,6 +583,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_u_purifying_light");
         Assert.Equal(
+            "Ward\n" + 
             "Silence enemy creature\n" +
             "\"Light purges corruption.\"",
             RulesTextRenderer.Render(card));
@@ -581,7 +594,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_u_morning_herald");
         Assert.Equal(
-            "2/4\n" +
+            "2/4 — Guard\n" +
             "At the start of your turn: Heal 2 from damaged ally creature\n" +
             "\"Each dawn brings the promise of renewal.\"",
             RulesTextRenderer.Render(card));
@@ -612,7 +625,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_r_radiant_prophet");
         Assert.Equal(
-            "3/3\n" +
+            "3/3 — Ward\n" +
             "When this enters play: Excavate 2. Gain 2 max vigor\n" +
             "\"She sees what lies buried and strengthens those who seek it.\"",
             RulesTextRenderer.Render(card));
@@ -623,6 +636,7 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("dwn_r_holy_edict");
         Assert.Equal(
+            "Ward\n" + 
             "Destroy damaged enemy creature\n" +
             "\"Judgment is passed. Sentence is executed.\"",
             RulesTextRenderer.Render(card));
