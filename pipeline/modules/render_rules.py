@@ -30,6 +30,24 @@ KEYWORD_DESCRIPTIONS: dict[str, str] = {
     "STEALTH_STRIKE": "Stealth Strike — when this creature attacks, it deals no counter-damage to the defender.",
 }
 
+# ── Keyword reminders (short descriptions for tooltip / long-press) ──────────
+
+KEYWORD_REMINDERS: dict[str, str] = {
+    "GUARD": "May block for adjacent allies.",
+    "SWIFT": "May attack the turn it is played.",
+    "PIERCE": "Excess damage carries over to the enemy player.",
+    "WARD": "Negate the first enemy ability that targets this creature.",
+    "VENOM": "Deals 1 extra damage to the target.",
+    "REACH": "May attack any lane.",
+    "ROOTED": "Cannot be moved or returned to hand.",
+    "UNEARTH": "Return to hand when this dies.",
+    "ECHO": "Copy the last ability played.",
+    "FRAGILE": "Dies when it takes damage.",
+    "SEALED": "Starts unidentified; revealed when its condition is met.",
+    "ANCESTRAL_SHIELD": "Once per turn, clamp ally Vigor to 1 when hit by an enemy spell.",
+    "STEALTH_STRIKE": "Deals no counter-damage when attacking.",
+}
+
 # ── Trigger descriptions ──────────────────────────────────────────────────────
 
 TRIGGER_LABELS: dict[str, str] = {
@@ -58,6 +76,7 @@ OP_LABELS: dict[str, str] = {
     "DEBUFF": "Apply -{attack}/-{vigor}",
     "DESTROY": "Destroy",
     "DRAW": "Draw {value} card(s)",
+    "SCY": "Scry {value}",
     "DISCARD": "Discard {value} card(s)",
     "EXCAVATE": "Excavate {value}",
     "BURY": "Bury {value} card(s)",
@@ -124,10 +143,24 @@ FILTER_LABELS: dict[str, str] = {
     "HIGHEST_ATTACK": "with highest attack",
     "LOWEST_COST": "with lowest cost",
     "HIGHEST_COST": "with highest cost",
-    "DAMAGED": "damaged",
-    "UNDAMAGED": "undamaged",
     "CHOSEN": "chosen",
+    "DAMAGED": "damaged",
+    "EXHAUSTED": "exhausted",
+    "UNDAMAGED": "undamaged",
 }
+
+# ── Dynamic filter helpers ────────────────────────────────────────────────────
+
+
+def render_filter(filter_val: str | None) -> str:
+    """Render a filter value to human-readable text, handling KEYWORD:* filters."""
+    if not filter_val or filter_val in ("ANY", "NONE"):
+        return ""
+    if filter_val.startswith("KEYWORD:"):
+        kw = filter_val[len("KEYWORD:"):]
+        kw_lower = kw.lower().replace("_", " ")
+        return f"with {kw_lower}"
+    return FILTER_LABELS.get(filter_val, filter_val)
 
 
 # ── Renderer ──────────────────────────────────────────────────────────────────
@@ -163,7 +196,7 @@ def render_target(target: dict[str, Any] | None) -> str:
 
     # Add filter
     if filt and filt != "ANY" and filt != "NONE":
-        filter_text = FILTER_LABELS.get(filt, filt)
+        filter_text = render_filter(filt)
         if filter_text == "any":
             return f"{prefix} {scope_text}"
         return f"{prefix} {filter_text} {scope_text}"
@@ -237,7 +270,7 @@ def render_ability(ability: dict[str, Any]) -> str:
     else:
         lines.append(f"{trigger_text}{condition_text}:")
         for et in effect_texts:
-            lines.append(f"  • {et}.")
+            lines.append(f"  \u2022 {et}.")
 
     return "\n".join(lines)
 
