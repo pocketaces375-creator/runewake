@@ -9,7 +9,9 @@
   "consecutive_transients": 0,
   "transient_notified": false,
   "no_progress_count": 0,
-  "validated_count": 0,
-  "last_heartbeat_epoch": 1788523685,
-  "last_heartbeat_reason": "empty_queue"
+  "validated_count": 1,
+  "last_heartbeat_epoch": 1788529977,
+  "last_heartbeat_reason": "running_TASK-WARDEN-RULE-1",
+  "last_task_id": "TASK-WARDEN-RULE-1",
+  "last_commit_sha": "84a00938ecb6951f63eb2eeeb71b36a854ca95eb"
 }
