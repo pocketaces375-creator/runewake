@@ -3,36 +3,36 @@
     {
       "id": "card_draw",
       "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
+      "streamNonNull": false,
+      "enteredPlaying": false,
       "callCount": 2
     },
     {
       "id": "wind_reach",
       "type": "ambient",
-      "streamNonNull": true,
-      "enteredPlaying": true,
+      "streamNonNull": false,
+      "enteredPlaying": false,
       "callCount": 1
     },
     {
       "id": "ambient_reach",
       "type": "music",
-      "streamNonNull": true,
-      "enteredPlaying": true,
+      "streamNonNull": false,
+      "enteredPlaying": false,
       "callCount": 1
     },
     {
       "id": "card_shuffle",
       "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
+      "streamNonNull": false,
+      "enteredPlaying": false,
       "callCount": 1
     },
     {
       "id": "metal_clink",
       "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
+      "streamNonNull": false,
+      "enteredPlaying": false,
       "callCount": 1
     }
   ],
@@ -69,8 +69,8 @@
     "sfx:unlock",
     "sfx:victory"
   ],
-  "musicExercised": true,
-  "sfxExercised": true,
+  "musicExercised": false,
+  "sfxExercised": false,
   "totalMusicCalls": 1,
   "totalSfxCalls": 4,
   "totalAmbientCalls": 1

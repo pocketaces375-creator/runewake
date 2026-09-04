@@ -93,7 +93,7 @@
     {
       "side": "player",
       "slot": 1,
-      "artifact_id": "artf_thief_dagger_dusk",
+      "artifact_id": "artf_rogue_dagger_dusk",
       "name": "Duskfang",
       "visual_state": "CHARGED",
       "charges": 3,
@@ -116,7 +116,7 @@
       "side": "enemy",
       "slot": 1,
       "artifact_id": "artf_mage_wand",
-      "name": "Wand",
+      "name": "?",
       "visual_state": "SPENT",
       "charges": 0,
       "is_suppressed": false,

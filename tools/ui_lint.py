@@ -106,6 +106,25 @@ def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> l
                     f"MIN_TEXT: {c['path']} has font_size={fs} — minimum is 8px"
                 )
 
+    # TASK-INPUT-FEEL-1: MIN_TOUCH — every tappable control is at least 44px on a side
+    touch_classes = {"Button", "TextureButton", "LinkButton",
+                     "HandCard", "LaneSlot", "ArtifactCardPlate"}
+    for c in controls:
+        if c["class"] in touch_classes:
+            r = c["rect"]
+            # Skip zero-area controls (invisible/bug — not a real touch target)
+            if r["w"] <= 0 or r["h"] <= 0:
+                continue
+            min_dim = min(r["w"], r["h"])
+            if min_dim < 44:
+                # Skip RootBoundBorder children which are decorative frames with Ignore mouse filter
+                if c.get("mouse_filter") == "Ignore" and c["class"] in ("Button", "TextureButton"):
+                    continue
+                failures.append(
+                    f"MIN_TOUCH: {c['path']} ({c['class']}) is {r['w']:.0f}x{r['h']:.0f}px — "
+                    f"minimum dimension {min_dim:.0f}px is below 44px touch target"
+                )
+
     # Rule: no visible interactive siblings overlap
     # Interactive = Buttons, or controls whose path contains Card/Slot/Interactive
     interactives = [c for c in controls if (

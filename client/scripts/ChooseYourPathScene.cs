@@ -380,7 +380,7 @@ public partial class ChooseYourPathScene : Control
         beginWrap.AddChild(spacer);
 
         _beginButton = new PanelContainer();
-        _beginButton.CustomMinimumSize = new Vector2(280, 46);
+        _beginButton.CustomMinimumSize = new Vector2(280, 50);
         _beginButton.MouseDefaultCursorShape = CursorShape.PointingHand;
         _beginButton.SizeFlagsHorizontal = (SizeFlags)4; // Center
         _beginButton.AddThemeStyleboxOverride("panel", new StyleBoxFlat
