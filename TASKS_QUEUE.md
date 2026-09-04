@@ -141,7 +141,7 @@
   most responsible in each case. Change no values.
   Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
 
-- [ ] TASK-ART-BOARD-SKINS-1 — An Ember-tinted variant of the board and map skin through the
+- [x] TASK-ART-BOARD-SKINS-1 — An Ember-tinted variant of the board and map skin through the
   BoardSkin registry for Region 2 (palette tint only, no new painted art), selectable per region
   in the region json.
   Acceptance: a duel capture and a map capture with the Ember skin active; ui_lint green.
