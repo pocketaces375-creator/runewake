@@ -136,7 +136,7 @@
   over 200 seeded clears.
   Acceptance: drops json committed; test green; the rate table in HERMES_STATUS.md.
 
-- [ ] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
+- [x] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
   TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards
   most responsible in each case. Change no values.
   Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
