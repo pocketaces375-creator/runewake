@@ -1,32 +1,3 @@
-========================================
-=== foreman: 2026-09-04T07:08:42Z TASK-CARD-WAVE-2 retry ===
-Session: 2/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-CARD-WAVE-2 complete. Here's a summary:
-
-**40 new deck cards** added across 5 strata, different families from WAVE-1:
-
-| Stratum | W1 family | W2 family | Cards |
-|---------|-----------|-----------|-------|
-| EMBER | SWIFT | PIERCE/REACH/VENOM | 4C/3U/1R |
-| HOLLOW | diverse | VENOM/UNEARTH/ECHO | 5C/2U/1R |
-| VERDANT | SWIFT | GUARD/ROOTED/WARD | 4C/3U/1R |
-| TIDE | WARD | ECHO/REACH/PIERCE | 5C/2U/1R |
-| DAWN | SWIFT/GUARD | WARD/PIERCE/FRAGILE | 4C/2U/1R/1M |
-
-**Validation:**
-- All 40 cards scored by the pipeline formula (ps range -0.50 to +0.40 within rarity bands ✓)
-- C# engine bridge loads all cards — `AllCards_LoadFromRealFiles_Have146Definitions` passes
-- Build: 0 errors, 822/822 tests pass
-========================================
-=== foreman: 2026-09-04T07:12:17Z TASK-TUNE-5050-1 blocked ===
-Session: 3/96
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-TUNE-5050-1 is complete. Here's the summary:
 
 **Result: REPORT ONLY — NOT ADOPTED**
 
@@ -47,4 +18,33 @@ The full 49-pairing class matrix ran for 3 iterations (200 games/pairing, Greedy
 **Adjustment applied:** only Constellation Starlight damage 5→6 (bound 3-6) — most numbers were already at their bounds and couldn't move further.
 
 **Squash commit (1d2cb85)** pushed: tune_5050.py script, balance_matrix.md, per-iteration reports, and engine null-guard fix (prevented NRE when artifacts have null trigger). **Numbers NOT adopted.** Input smoke passes. Loop smoke is a pre-existing failure (PLAYABLE.json was already false before this task).
+========================================
+=== foreman: 2026-09-04T07:28:21Z TASK-CRASH-GUARD-1 blocked ===
+Session: 2/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-CRASH-GUARD-1 complete. Here's what was done:
+
+**Implementation**
+1. **`client/scripts/CrashReporter.cs`** — Enhanced from JSON-only reporting to full crash recovery:
+   - `AppDomain.CurrentDomain.UnhandledException` + `TaskScheduler.UnobservedTaskException` hooks installed on startup
+   - Public `TriggerCrashRecovery(Exception)` static method — can be called from anywhere to show recovery
+   - On crash: writes `user://crash_reports/<timestamp>_crash.json` (JSON report, existing behavior preserved for Supabase upload), appends full stack to `user://crash.log` (plain text), shows full-screen overlay with "Something went wrong — returning to the title" message + stack trace in the serif face, then navigates to title scene after 2.5s
+   - Debug trigger: `--test-crash` CLI flag fires the recovery handler after 0.5s delay
+
+2. **`client/scripts/Main.cs`** — Two additions:
+   - Diagnostics panel shows a red "Test Crash" button (debug builds only, `OS.IsDebugBuild()` gated) that calls `CrashReporter.TriggerCrashRecovery`
+   - `--capture=crash_test` capture mode added under `CampaignContext.CrashTestMode`: waits 1s for title to render, triggers crash via `TriggerCrashRecovery`, captures the recovery overlay after 1.5s
+
+3. **`client/scripts/DebugCapture.cs`** — Added `--capture=crash_test` handler
+
+4. **`client/scripts/CampaignContext.cs`** — Added `CrashTestMode` flag
+
+**Verification**
+- `dotnet build Runewake.sln` + `client/Runewake.Client.csproj`: 0 errors
+- `dotnet test`: 822/822 pass
+- `crash_test.png` captured: shows "Something went wrong — returning to the title" in gold serif + full stack trace
+- `user://crash.log` verified: contains both stack traces from test runs
+- Commit `ecdad1e` (`986c680` for status) pushed
 ========================================
