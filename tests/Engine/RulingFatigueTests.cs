@@ -62,6 +62,9 @@ public class RulingFatigueTests
             CurrentPlayerIndex = playerIndex,
             TurnNumber = 1,
         };
+        // First draw skip is already handled for P0 by the engine fix;
+        // these tests exercise fatigue after the skip, so mark it done.
+        state.HasSkippedFirstDraw = true;
         // Set vigor to 25 (default)
         state.Players[0].MaxVigor = 25;
         state.Players[0].Vigor = 25;

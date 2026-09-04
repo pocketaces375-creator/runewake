@@ -311,6 +311,7 @@ public class CadencePassiveTests
         });
 
         // P1 ends turn → P0's turn starts.
+        state.HasSkippedFirstDraw = true; // P0's first draw already skipped; this tests cadence ordering
         state = EndTurn(state, 1);
 
         // Cadence drew 1 + normal draw = 2 cards by the time the ON_TURN_START

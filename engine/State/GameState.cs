@@ -88,6 +88,12 @@ public sealed class GameState
     /// </summary>
     public bool[] OpeningRuleLifted { get; set; } = new bool[2];
 
+    /// <summary>
+    /// True once the first player (P0) has had their turn-one draw skipped.
+    /// Ensures the skip fires exactly once, for P0 only.
+    /// </summary>
+    public bool HasSkippedFirstDraw { get; set; }
+
     public GameState(ulong seed, int contentVersion = 1)
     {
         Players = new PlayerState[2];
@@ -316,6 +322,7 @@ public sealed class GameState
         TotalCreatureDiedCount = (int[])other.TotalCreatureDiedCount.Clone();
         OpeningRule = other.OpeningRule;
         OpeningRuleLifted = (bool[])other.OpeningRuleLifted.Clone();
+        HasSkippedFirstDraw = other.HasSkippedFirstDraw;
     }
 
     /// <summary>
@@ -435,6 +442,7 @@ public sealed class GameState
         h = HashInt(h, TotalCreatureDiedCount[1]);
         h = HashBool(h, OpeningRuleLifted[0]);
         h = HashBool(h, OpeningRuleLifted[1]);
+        h = HashBool(h, HasSkippedFirstDraw);
 
         // Players
         for (int p = 0; p < 2; p++)

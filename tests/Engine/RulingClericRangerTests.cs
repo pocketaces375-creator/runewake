@@ -299,6 +299,7 @@ public class RulingClericRangerTests
         int handBefore = state.Players[0].Hand.Count;
 
         // P1 ends turn → P0's turn starts → cadence phase (heal) then draw
+        state.HasSkippedFirstDraw = true; // P0's first draw already skipped; this tests cadence ordering
         state = EndTurn(state, 1);
 
         // Creature healed (cadence ran before draw)

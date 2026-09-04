@@ -98,12 +98,16 @@ public static partial class DuelEngine
         AutoGainCharges(nextPlayer, state, "on_turn_start");
 
         // 4. Draw phase
+        // First player (P0) skips their very first draw phase.
+        // Tracked with HasSkippedFirstDraw to fire exactly once.
         bool firstPlayerSkipsDraw =
             state.CurrentPlayerIndex == 0
-            && state.TurnNumber == 1;
+            && !state.HasSkippedFirstDraw;
 
         if (!firstPlayerSkipsDraw)
             ExecuteDraw(nextPlayer, state);
+        else
+            state.HasSkippedFirstDraw = true;
 
         // 5. Start triggers — Unearth processing + ON_TURN_START triggers + relic identification
         KeywordHandlers.ProcessUnearth(nextPlayer);

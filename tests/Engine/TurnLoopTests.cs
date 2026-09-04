@@ -148,6 +148,47 @@ public class TurnLoopTests
         Assert.Equal(23, state.Players[1].Deck.Count); // 24 - 1 drawn
     }
 
+    [Fact]
+    public void FirstPlayerDrawSkip_FiresOnce_OnlyForP0()
+    {
+        // Proves the HasSkippedFirstDraw flag ensures the first-turn draw skip
+        // fires exactly once for P0 and never for P1.
+        var state = CreateGameState(30);
+
+        Assert.False(state.HasSkippedFirstDraw);
+
+        // P0 ends turn → P1's turn starts. P1 draws (no skip for P1).
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+        Assert.False(state.HasSkippedFirstDraw); // skip flag only changes when P0 draws
+        Assert.Equal(7, state.Players[1].Hand.Count); // P1 drawn
+
+        // P1 ends turn → P0's turn starts. P0's FIRST draw phase → SKIPPED.
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
+        Assert.True(state.HasSkippedFirstDraw); // flag set after the skip
+        Assert.Equal(4, state.Players[0].Hand.Count); // P0 did NOT draw (stays at 4)
+        Assert.Equal(26, state.Players[0].Deck.Count); // deck unchanged
+
+        // P0 ends turn → P1's turn. P1 draws.
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+        Assert.True(state.HasSkippedFirstDraw);
+        Assert.Equal(8, state.Players[1].Hand.Count); // P1 drew again
+
+        // P1 ends turn → P0's turn starts. P0's SECOND draw phase → NORMAL draw.
+        state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
+        Assert.True(state.HasSkippedFirstDraw); // still true (no second skip)
+        Assert.Equal(5, state.Players[0].Hand.Count); // P0 drew 1 (was 4)
+        Assert.Equal(25, state.Players[0].Deck.Count); // deck -1
+
+        // Prove P1 never skips: P1 draws every cycle.
+        for (int i = 0; i < 3; i++)
+        {
+            state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
+            state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
+        }
+        Assert.Equal(8, state.Players[0].Hand.Count); // P0: 5 + 3 draws
+        Assert.Equal(10, state.Players[1].Hand.Count); // P1: 8 + 3 draws, capped at MaxHandSize=10
+    }
+
     // ——— Fatigue ———
 
     [Fact]
@@ -173,8 +214,10 @@ public class TurnLoopTests
 
         // Empty P0's deck
         state.Players[0].Deck.Clear();
-        // P0 has 30 - 4 = 26 left... no, it starts with 30, draws 4, deck is 26. Then we cleared it.
-        // So P0's deck is 0.
+        // P0 starts with 30, draws 4, deck is 26. Then we cleared it.
+        // So P0's deck is 0. Mark first draw as already skipped so the
+        // fatigue sequence is correct (this test is about fatigue, not the draw skip).
+        state.HasSkippedFirstDraw = true;
 
         // P1 still has 25 in deck.
 
@@ -204,6 +247,7 @@ public class TurnLoopTests
         var state = CreateGameState(deckSizePerPlayer: 30);
         state.Players[0].Deck.Clear();
         state.Players[0].Vigor = 4;
+        state.HasSkippedFirstDraw = true;
 
         // EndTurn(P0) → P1 draws (no P0 fatigue)
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });

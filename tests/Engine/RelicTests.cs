@@ -211,6 +211,7 @@ public class RelicTests
         state = PlayCard(state, relic, 0);
 
         // Two full turns to get back to P0's turn
+        state.HasSkippedFirstDraw = true; // P0's first draw already skipped; this tests relic identification
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 1 });
 
