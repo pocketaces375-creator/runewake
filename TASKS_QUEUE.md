@@ -14,7 +14,7 @@
 
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
 
-- [ ] TASK-ENGINE-FIRST-PLAYER-1 — Mirror matchups must be a coin flip. Today the first player wins
+- [x] TASK-ENGINE-FIRST-PLAYER-1 — Mirror matchups must be a coin flip. Today the first player wins
   the mirror diagonal 46-98% (CARD-BALANCE-REPORT-1). The "first player skips its first draw" check in
   engine/Engine/DuelEngine.cs (~line 101, `firstPlayerSkipsDraw = CurrentPlayerIndex == 0 && TurnNumber == 1`)
   is DEAD CODE: TurnNumber is already incremented in the same block when the index wraps to 0, so it is
