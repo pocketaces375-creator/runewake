@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://wh7fg07vp7v2"
-valid=false
+path="res://.godot/imported/artf_battlemage_wand.webp-25d2678a649b83e4c6367bf9bba3a58d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_battlemage_wand.webp"
+dest_files=["res://.godot/imported/artf_battlemage_wand.webp-25d2678a649b83e4c6367bf9bba3a58d.ctex"]
 
 [params]
 

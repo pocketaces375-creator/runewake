@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1cd4a7c1cae4"
-path="res://.godot/imported/artf_thief_dagger_dusk.webp-84f1783aafca4e1f689ace2feae264d0.ctex"
+path="res://.godot/imported/artf_thief_dagger_dusk.webp-95e4d9d4c369c0c9189c4bb22d0a49b6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://content/art/artifacts/artf_thief_dagger_dusk.webp"
-dest_files=["res://.godot/imported/artf_thief_dagger_dusk.webp-84f1783aafca4e1f689ace2feae264d0.ctex"]
+source_file="res://content/art/pocketed/artf_thief_dagger_dusk.webp"
+dest_files=["res://.godot/imported/artf_thief_dagger_dusk.webp-95e4d9d4c369c0c9189c4bb22d0a49b6.ctex"]
 
 [params]
 

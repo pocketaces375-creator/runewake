@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://roguedusk1a2b3c"
-path="res://.godot/imported/artf_rogue_dagger_dusk.webp-rogueduskimport.ctex"
+uid="uid://ced03rluep8ry"
+path="res://.godot/imported/artf_rogue_dagger_dusk.webp-050d42218cfbe77a35a8d7a30a097430.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_rogue_dagger_dusk.webp"
-dest_files=["res://.godot/imported/artf_rogue_dagger_dusk.webp-rogueduskimport.ctex"]
+dest_files=["res://.godot/imported/artf_rogue_dagger_dusk.webp-050d42218cfbe77a35a8d7a30a097430.ctex"]
 
 [params]
 

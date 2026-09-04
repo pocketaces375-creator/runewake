@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://tidcwhirlpoolelement"
-path="res://.godot/imported/tid_c_whirlpool_elemental.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
+uid="uid://f78r5h5u03g0"
+path="res://.godot/imported/tid_c_whirlpool_elemental.webp-7a381497a0cf6f56b341fe1f8cda8587.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/tid_c_whirlpool_elemental.webp"
-dest_files=["res://.godot/imported/tid_c_whirlpool_elemental.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
+dest_files=["res://.godot/imported/tid_c_whirlpool_elemental.webp-7a381497a0cf6f56b341fe1f8cda8587.ctex"]
 
 [params]
 
@@ -29,5 +29,6 @@ process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=0

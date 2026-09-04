@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://roguewhisper4d5e6f"
-path="res://.godot/imported/artf_rogue_dagger_whisper.webp-roguewhisperimport.ctex"
+uid="uid://dr1pr4pag3hf"
+path="res://.godot/imported/artf_rogue_dagger_whisper.webp-dfef43f85ac9829b2836287bed87f7c0.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_rogue_dagger_whisper.webp"
-dest_files=["res://.godot/imported/artf_rogue_dagger_whisper.webp-roguewhisperimport.ctex"]
+dest_files=["res://.godot/imported/artf_rogue_dagger_whisper.webp-dfef43f85ac9829b2836287bed87f7c0.ctex"]
 
 [params]
 

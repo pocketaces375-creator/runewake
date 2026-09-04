@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://astro001"
-path="res://.godot/imported/astrologist.png-astrologistimport.ctex-cd725e764944edc0143ca89399fdd97f.ctex"
+uid="uid://stro001"
+path="res://.godot/imported/astrologist.png-d2f6af94fc732586264e8bdd840c8fc8.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/classes/astrologist.png"
-dest_files=["res://.godot/imported/astrologist.png-astrologistimport.ctex-cd725e764944edc0143ca89399fdd97f.ctex"]
+dest_files=["res://.godot/imported/astrologist.png-d2f6af94fc732586264e8bdd840c8fc8.ctex"]
 
 [params]
 

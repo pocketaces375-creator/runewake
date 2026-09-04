@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://palad001"
-path="res://.godot/imported/paladin.png-paladinimport.ctex-cd725e764944edc0143ca89399fdd97f.ctex"
+path="res://.godot/imported/paladin.png-7f8e72f52d6f34b12a666efd29ba5c03.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/classes/paladin.png"
-dest_files=["res://.godot/imported/paladin.png-paladinimport.ctex-cd725e764944edc0143ca89399fdd97f.ctex"]
+dest_files=["res://.godot/imported/paladin.png-7f8e72f52d6f34b12a666efd29ba5c03.ctex"]
 
 [params]
 

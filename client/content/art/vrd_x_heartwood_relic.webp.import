@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vrdxheartwoodrelic"
-path="res://.godot/imported/vrd_x_heartwood_relic.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
+uid="uid://be1m2y22umcw1"
+path="res://.godot/imported/vrd_x_heartwood_relic.webp-63ce2dbe0eb468c30122c2c6794ed237.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/vrd_x_heartwood_relic.webp"
-dest_files=["res://.godot/imported/vrd_x_heartwood_relic.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
+dest_files=["res://.godot/imported/vrd_x_heartwood_relic.webp-63ce2dbe0eb468c30122c2c6794ed237.ctex"]
 
 [params]
 
@@ -29,5 +29,6 @@ process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=0

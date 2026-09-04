@@ -80,7 +80,7 @@
   Acceptance: capture of the Arena picker showing the ledger and capture of one Arena victory reward;
   a headless soak of 3 Arena duels; loop_smoke and ui_lint green; posted with one sentence.
 
-- [ ] TASK-COLLECTION-VERIFY-1 — Prove the three screens that were once claimed done without proof.
+- [x] TASK-COLLECTION-VERIFY-1 — Prove the three screens that were once claimed done without proof.
   Run the capture scripts for Collection, Settings and the Reward screen on the current build
   (tools/capture_*.sh), LOOK at each capture as an image, and write one sentence per screen on what a
   player sees. Fix anything a player would call broken (overlap, clipped text, empty panels, wrong

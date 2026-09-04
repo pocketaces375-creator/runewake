@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://26607b51df43"
-path="res://.godot/imported/artf_paladin_banner.webp-ef9761149f88f7c93538ba36fe42e63d.ctex"
+path="res://.godot/imported/artf_paladin_banner.webp-bcd88ad3bb7cbc032f7c1b6a9bf855fa.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_paladin_banner.webp"
-dest_files=["res://.godot/imported/artf_paladin_banner.webp-ef9761149f88f7c93538ba36fe42e63d.ctex"]
+dest_files=["res://.godot/imported/artf_paladin_banner.webp-bcd88ad3bb7cbc032f7c1b6a9bf855fa.ctex"]
 
 [params]
 
