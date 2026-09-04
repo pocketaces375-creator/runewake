@@ -10,8 +10,8 @@ namespace Runewake.Client;
 /// <summary>
 /// Rune page editor — view and edit a rune page before a duel.
 /// Shows 9/9/9/3 slot layout with a budget bar.
-/// Slots beyond the unlocked count require RuneDust to unlock.
-/// Equipped runes can be upgraded with RuneDust for higher tiers.
+/// Tap an empty slot to browse available runes, tap an equipped rune to unequip.
+/// Displays RuneDust balance for informational purposes (not spent here).
 /// </summary>
 public partial class RunePageScene : Control
 {
@@ -21,8 +21,8 @@ public partial class RunePageScene : Control
 
     // UI
     private Label _titleLabel = default!;
-    private Label _budgetLabel = default!;
     private Label _runeDustLabel = default!;
+    private Label _budgetLabel = default!;
     private ColorRect _budgetFill = default!;
     private ColorRect _budgetBack = default!;
     private GridContainer _offensiveGrid = default!;
@@ -31,9 +31,6 @@ public partial class RunePageScene : Control
     private GridContainer _mythicGrid = default!;
     private Button _backButton = default!;
     private Control _runePicker = default!;
-    private VBoxContainer _runeListBox = default!;
-    private Label _shortfallLabel = default!;
-    private Godot.Timer _shortfallTimer = default!;
     private List<RuneDef> _pickerRunes = new();
     private RuneSlotType _pickerSlotType;
 
@@ -41,12 +38,11 @@ public partial class RunePageScene : Control
     private static readonly Color SlotFillColor = new(0.08f, 0.08f, 0.18f);
     private static readonly Color SlotEmptyColor = new(0.12f, 0.12f, 0.25f);
     private static readonly Color SlotBorderColor = new(0.3f, 0.3f, 0.5f);
-    private static readonly Color LockedSlotColor = new(0.05f, 0.05f, 0.10f);
     private static readonly Color BudgetGreen = new(0.2f, 0.8f, 0.2f);
     private static readonly Color BudgetYellow = new(0.9f, 0.8f, 0.2f);
     private static readonly Color BudgetRed = new(0.9f, 0.3f, 0.2f);
-    private static readonly Color UpgradeColor = new(0.5f, 0.4f, 0.9f);
-    private static readonly Color InsufficientColor = new(0.9f, 0.3f, 0.2f);
+
+    private ProgressionState? Progression => CampaignContext.Progression;
 
     public override void _Ready()
     {
@@ -69,11 +65,8 @@ public partial class RunePageScene : Control
         RefreshUI();
     }
 
-    private ProgressionState? Progression => CampaignContext.Progression;
-
     private void LoadAvailableRunes()
     {
-        // Load from the starter runes file (via CampaignContext or direct load)
         try
         {
             string json = Godot.FileAccess.GetFileAsString("res://content/runes/starter_runes.json");
@@ -112,11 +105,11 @@ public partial class RunePageScene : Control
         _titleLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.75f, 0.3f));
         AddChild(_titleLabel);
 
-        // ── RuneDust balance ──
+        // ── RuneDust balance (informational only) ──
         _runeDustLabel = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Right,
-            AnchorLeft = 0.7f, AnchorRight = 0.95f,
+            AnchorLeft = 0.75f, AnchorRight = 0.95f,
             AnchorTop = 0.02f, AnchorBottom = 0.08f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
@@ -126,35 +119,13 @@ public partial class RunePageScene : Control
         _runeDustLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.9f));
         AddChild(_runeDustLabel);
 
-        // ── Shortfall feedback label (hidden initially) ──
-        _shortfallLabel = new Label
-        {
-            Text = "",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AnchorLeft = 0.05f, AnchorRight = 0.95f,
-            AnchorTop = 0.08f, AnchorBottom = 0.12f,
-            Visible = false,
-            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-        };
-        _shortfallLabel.AddThemeFontSizeOverride("font_size", 13);
-        _shortfallLabel.AddThemeColorOverride("font_color", InsufficientColor);
-        AddChild(_shortfallLabel);
-
-        _shortfallTimer = new Godot.Timer
-        {
-            OneShot = true,
-            WaitTime = 2.5f
-        };
-        _shortfallTimer.Timeout += () => _shortfallLabel.Visible = false;
-        AddChild(_shortfallTimer);
-
         // ── Budget bar ──
         var budgetLabel = new Label
         {
             Text = "RP Budget",
             HorizontalAlignment = HorizontalAlignment.Left,
             AnchorLeft = 0.05f, AnchorRight = 0.45f,
-            AnchorTop = 0.13f, AnchorBottom = 0.17f
+            AnchorTop = 0.09f, AnchorBottom = 0.13f
         };
         budgetLabel.AddThemeFontSizeOverride("font_size", 14);
         budgetLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.8f));
@@ -164,15 +135,15 @@ public partial class RunePageScene : Control
         {
             Color = new Color(0.15f, 0.15f, 0.25f),
             AnchorLeft = 0.05f, AnchorRight = 0.75f,
-            AnchorTop = 0.18f, AnchorBottom = 0.22f
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
         AddChild(_budgetBack);
 
         _budgetFill = new ColorRect
         {
             Color = BudgetGreen,
-            AnchorLeft = 0.05f, AnchorRight = 0.05f,
-            AnchorTop = 0.18f, AnchorBottom = 0.22f
+            AnchorLeft = 0.05f, AnchorRight = 0.05f, // starts at zero — updated in RefreshUI
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
         AddChild(_budgetFill);
 
@@ -181,15 +152,15 @@ public partial class RunePageScene : Control
             Text = "0 / 12",
             HorizontalAlignment = HorizontalAlignment.Right,
             AnchorLeft = 0.75f, AnchorRight = 0.95f,
-            AnchorTop = 0.18f, AnchorBottom = 0.22f
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
         _budgetLabel.AddThemeFontSizeOverride("font_size", 12);
         _budgetLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.9f, 0.9f));
         AddChild(_budgetLabel);
 
         // ── Section headers and grids ──
-        float sectionTop = 0.26f;
-        float sectionHeight = 0.17f;
+        float sectionTop = 0.2f;
+        float sectionHeight = 0.18f;
         float gap = 0.02f;
 
         AddSection("OFFENSIVE (Marks)", 0, sectionTop, ref _offensiveGrid);
@@ -228,7 +199,7 @@ public partial class RunePageScene : Control
         {
             Text = "Save & Close",
             AnchorLeft = 0.8f, AnchorRight = 0.98f,
-            AnchorTop = 0.18f, AnchorBottom = 0.22f
+            AnchorTop = 0.14f, AnchorBottom = 0.18f
         };
         saveButton.Pressed += () =>
         {
@@ -241,19 +212,6 @@ public partial class RunePageScene : Control
 
         // ── Rune picker overlay (hidden initially) ──
         BuildRunePicker();
-    }
-
-    private void ShowShortfall(string message)
-    {
-        _shortfallLabel.Text = message;
-        _shortfallLabel.Visible = true;
-        _shortfallTimer.Start();
-    }
-
-    private void RefreshRuneDustLabel()
-    {
-        int runeDust = Progression?.RuneDust ?? 0;
-        _runeDustLabel.Text = $"Runes: {runeDust}";
     }
 
     private void AddSection(string name, int index, float top, ref GridContainer grid)
@@ -269,7 +227,7 @@ public partial class RunePageScene : Control
         header.AddThemeColorOverride("font_color", new Color(0.6f, 0.6f, 0.8f));
         AddChild(header);
 
-        int cols = index == 3 ? 3 : 9;
+        int cols = index == 3 ? 3 : 9; // Mythic has 3 slots per row, others 9
         grid = new GridContainer
         {
             Columns = cols,
@@ -296,18 +254,15 @@ public partial class RunePageScene : Control
             _ => BudgetGreen
         };
 
-        RefreshRuneDustLabel();
+        // Update RuneDust label
+        int runeDust = Progression?.RuneDust ?? 0;
+        _runeDustLabel.Text = $"Runes: {runeDust}";
 
-        // Rebuild slot grids with unlock awareness
+        // Rebuild slot grids
         RebuildGrid(_offensiveGrid, _page.OffensiveSlots, RuneSlotType.OFFENSIVE);
         RebuildGrid(_defensiveGrid, _page.DefensiveSlots, RuneSlotType.DEFENSIVE);
         RebuildGrid(_utilityGrid, _page.UtilitySlots, RuneSlotType.UTILITY);
         RebuildGrid(_mythicGrid, _page.MythicSlots, RuneSlotType.MYTHIC);
-    }
-
-    private int GetUnlockedSlotCount(RuneSlotType type)
-    {
-        return Progression?.GetUnlockedSlotCount(type) ?? 1;
     }
 
     private void RebuildGrid(GridContainer grid, RuneDef?[] slots, RuneSlotType slotType)
@@ -316,166 +271,42 @@ public partial class RunePageScene : Control
         foreach (var child in grid.GetChildren())
             child.QueueFree();
 
-        int unlockedCount = GetUnlockedSlotCount(slotType);
-        int maxSlots = RunePage.GetSlotCount(slotType);
-
         for (int i = 0; i < slots.Length; i++)
         {
             int idx = i;
             var slot = slots[i];
-
-            if (i < unlockedCount)
+            var btn = new Button
             {
-                // ── Available slot ──
-                if (slot != null)
-                {
-                    // Equipped rune — show name, tier, and upgrade button
-                    var container = new HBoxContainer
-                    {
-                        CustomMinimumSize = new Vector2(40, 36),
-                        SizeFlagsHorizontal = (Control.SizeFlags)3
-                    };
+                CustomMinimumSize = new Vector2(40, 36),
+                SizeFlagsHorizontal = (Control.SizeFlags)3 // expand
+            };
 
-                    int runeTier = Progression?.GetRuneTier(slot.Id) ?? 1;
-
-                    var runeBtn = new Button
-                    {
-                        Text = $"{slot.Name}\n[{slot.RpCost} RP] T{runeTier}",
-                        SizeFlagsHorizontal = (Control.SizeFlags)3,
-                        CustomMinimumSize = new Vector2(0, 36)
-                    };
-                    runeBtn.AddThemeFontSizeOverride("font_size", 8);
-                    // Tapping an equipped rune unequips it
-                    var capturedSlot = slot;
-                    runeBtn.Pressed += () =>
-                    {
-                        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                        _page.Unequip(slotType, idx);
-                        RefreshUI();
-                    };
-                    container.AddChild(runeBtn);
-
-                    // Upgrade button (only if not max tier)
-                    if (runeTier < 3)
-                    {
-                        int upgradeCost = RunePage.GetUpgradeCost(runeTier);
-                        var upgradeBtn = new Button
-                        {
-                            Text = $"↑{upgradeCost}",
-                            CustomMinimumSize = new Vector2(24, 36),
-                            SizeFlagsHorizontal = (Control.SizeFlags)3
-                        };
-                        upgradeBtn.AddThemeFontSizeOverride("font_size", 7);
-                        upgradeBtn.Modulate = UpgradeColor;
-
-                        var capturedRuneId = slot.Id;
-                        upgradeBtn.Pressed += () =>
-                        {
-                            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                            if (Progression == null) return;
-
-                            var (success, cost, error) = Progression.UpgradeRune(capturedRuneId);
-                            if (success)
-                            {
-                                RefreshRuneDustLabel();
-                                // Refresh the whole page so the button updates
-                                RefreshUI();
-                            }
-                            else
-                            {
-                                ShowShortfall(error ?? "Cannot upgrade.");
-                            }
-                        };
-                        container.AddChild(upgradeBtn);
-                    }
-
-                    grid.AddChild(container);
-                }
-                else
-                {
-                    // Empty available slot — show "+" to open picker
-                    var btn = new Button
-                    {
-                        Text = "+",
-                        CustomMinimumSize = new Vector2(40, 36),
-                        SizeFlagsHorizontal = (Control.SizeFlags)3
-                    };
-                    btn.AddThemeFontSizeOverride("font_size", 14);
-                    btn.Modulate = new Color(0.4f, 0.4f, 0.6f);
-                    btn.Pressed += () =>
-                    {
-                        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                        ShowRunePicker(slotType);
-                    };
-                    grid.AddChild(btn);
-                }
-            }
-            else if (i == unlockedCount && unlockedCount < maxSlots)
+            if (slot != null)
             {
-                // ── Next purchasable slot ──
-                int slotIndex = idx;
-                int cost = RunePage.GetSlotUnlockCost(slotIndex);
-                int currentRuneDust = Progression?.RuneDust ?? 0;
-                bool canAfford = currentRuneDust >= cost && cost > 0;
-
-                int displaySlot = slotIndex + 1; // 1-based for display
-                string costText = cost > 0 ? $"{cost} R" : "FREE";
-                var unlockBtn = new Button
-                {
-                    Text = cost > 0 ? $"Slot {displaySlot}\n🔓 {cost} R" : $"Slot {displaySlot}\n🔓 FREE",
-                    CustomMinimumSize = new Vector2(40, 36),
-                    SizeFlagsHorizontal = (Control.SizeFlags)3
-                };
-                unlockBtn.AddThemeFontSizeOverride("font_size", 8);
-
-                if (cost > 0 && !canAfford)
-                {
-                    unlockBtn.Modulate = new Color(0.3f, 0.3f, 0.3f);
-                }
-
-                unlockBtn.Pressed += () =>
+                btn.Text = $"{slot.Name}\n[{slot.RpCost} RP]";
+                btn.AddThemeFontSizeOverride("font_size", 9);
+                // Tapping an equipped rune unequips it
+                btn.Pressed += () =>
                 {
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    if (Progression == null) return;
-
-                    var (success, spent, error) = Progression.UnlockNextSlot(slotType);
-                    if (success)
-                    {
-                        RefreshRuneDustLabel();
-                        RefreshUI();
-                    }
-                    else
-                    {
-                        if (spent > 0)
-                        {
-                            int shortfall = spent - (Progression?.RuneDust ?? 0);
-                            if (shortfall > 0)
-                                ShowShortfall($"Need {shortfall} more Rune{(shortfall == 1 ? "" : "s")} for slot {displaySlot}.");
-                        }
-                        else
-                        {
-                            ShowShortfall(error ?? "Cannot unlock.");
-                        }
-                    }
+                    _page.Unequip(slotType, idx);
+                    RefreshUI();
                 };
-
-                grid.AddChild(unlockBtn);
             }
             else
             {
-                // ── Future locked slot (beyond the next purchasable one) ──
-                int displaySlot = idx + 1;
-                var lockedBtn = new Button
+                btn.Text = "+";
+                btn.AddThemeFontSizeOverride("font_size", 14);
+                btn.Modulate = new Color(0.4f, 0.4f, 0.6f);
+                // Tapping an empty slot opens the rune picker
+                btn.Pressed += () =>
                 {
-                    Text = $"Slot {displaySlot}\n🔒",
-                    CustomMinimumSize = new Vector2(40, 36),
-                    SizeFlagsHorizontal = (Control.SizeFlags)3,
-                    Disabled = true
+                    GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+                    ShowRunePicker(slotType);
                 };
-                lockedBtn.AddThemeFontSizeOverride("font_size", 8);
-                lockedBtn.Modulate = new Color(0.25f, 0.25f, 0.35f);
-                grid.AddChild(lockedBtn);
             }
+
+            grid.AddChild(btn);
         }
     }
 
@@ -546,9 +377,12 @@ public partial class RunePageScene : Control
         };
         container.AddChild(scroll);
 
-        _runeListBox = new VBoxContainer();
-        _runeListBox.SizeFlagsHorizontal = (Control.SizeFlags)3;
-        scroll.AddChild(_runeListBox);
+        var vbox = new VBoxContainer();
+        vbox.SizeFlagsHorizontal = (Control.SizeFlags)3; // expand
+        scroll.AddChild(vbox);
+
+        // Store reference to vbox for dynamic population
+        _runePicker.SetMeta("rune_list", vbox);
 
         AddChild(_runePicker);
     }
@@ -557,8 +391,24 @@ public partial class RunePageScene : Control
     {
         _pickerSlotType = slotType;
 
+        // Find the vbox manually from the picker's scroll container
+        var scrollContainer = _runePicker.GetNodeOrNull<ScrollContainer>(".");
+        VBoxContainer? listBox = null;
+        if (scrollContainer != null)
+        {
+            foreach (var child in scrollContainer.GetChildren())
+            {
+                if (child is VBoxContainer vb)
+                {
+                    listBox = vb;
+                    break;
+                }
+            }
+        }
+        if (listBox == null) return;
+
         // Clear existing items
-        foreach (var child in _runeListBox.GetChildren())
+        foreach (var child in listBox.GetChildren())
             child.QueueFree();
 
         // Filter runes by slot type
@@ -583,7 +433,7 @@ public partial class RunePageScene : Control
                 _runePicker.Visible = false;
                 RefreshUI();
             };
-            _runeListBox.AddChild(btn);
+            listBox.AddChild(btn);
         }
 
         _runePicker.Visible = true;

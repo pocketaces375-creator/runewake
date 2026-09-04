@@ -94,16 +94,9 @@ public sealed class SaveRepository
             }
             else if (from == 4 && to == 5)
             {
-                // v4→v5: add RuneSlotUnlockCounts (defaults already set in constructor)
-                // and RuneUpgradeTiers (empty — no migration needed)
-                if (state.RuneSlotUnlockCounts.Count == 0)
-                {
-                    state.RuneSlotUnlockCounts[nameof(RuneSlotType.OFFENSIVE)] = 1;
-                    state.RuneSlotUnlockCounts[nameof(RuneSlotType.DEFENSIVE)] = 1;
-                    state.RuneSlotUnlockCounts[nameof(RuneSlotType.UTILITY)] = 1;
-                    state.RuneSlotUnlockCounts[nameof(RuneSlotType.MYTHIC)] = 1;
-                }
-                repairLog.Add("Initialized RuneSlotUnlockCounts to defaults (v4→v5 migration)");
+                // v4→v5 was previously used for RuneSlotUnlockCounts/RuneUpgradeTiers
+                // Those fields are removed — migration is a no-op
+                repairLog.Add("No-op v4→v5 migration (RuneSlotUnlockCounts/RuneUpgradeTiers removed)");
             }
             state.Version = to;
             repairLog.Add($"Migrated save from v{from} to v{to}");
@@ -445,24 +438,7 @@ public sealed class SaveRepository
                     case "global_discovery_index": state.GlobalDiscoveryIndex = int.Parse(value); break;
                     case "rune_page": state.SavedRunePageJson = value; break;
                     case "rune_dust": state.RuneDust = int.Parse(value); break;
-                    case "rune_slot_unlock_counts":
-                        var slotCounts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(value, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                        if (slotCounts != null)
-                        {
-                            state.RuneSlotUnlockCounts.Clear();
-                            foreach (var kv in slotCounts)
-                                state.RuneSlotUnlockCounts[kv.Key] = kv.Value;
-                        }
-                        break;
-                    case "rune_upgrade_tiers":
-                        var tiers = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(value, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                        if (tiers != null)
-                        {
-                            state.RuneUpgradeTiers.Clear();
-                            foreach (var kv in tiers)
-                                state.RuneUpgradeTiers[kv.Key] = kv.Value;
-                        }
-                        break;
+                    case "shop_rotation_day": state.ShopRotationDay = int.Parse(value); break;
                 }
             }
         }
@@ -604,8 +580,7 @@ public sealed class SaveRepository
             InsertMeta(conn, "global_discovery_index", state.GlobalDiscoveryIndex.ToString());
             InsertMeta(conn, "rune_page", state.SavedRunePageJson ?? "");
             InsertMeta(conn, "rune_dust", state.RuneDust.ToString());
-            InsertMeta(conn, "rune_slot_unlock_counts", System.Text.Json.JsonSerializer.Serialize(state.RuneSlotUnlockCounts));
-            InsertMeta(conn, "rune_upgrade_tiers", System.Text.Json.JsonSerializer.Serialize(state.RuneUpgradeTiers));
+            InsertMeta(conn, "shop_rotation_day", state.ShopRotationDay.ToString());
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)

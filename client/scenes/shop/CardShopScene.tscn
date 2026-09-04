@@ -1,0 +1,11 @@
+[gd_scene load_steps=1 format=3 uid="uid://d2p1f3o4g5h6i"]
+
+[ext_resource type="Script" path="res://scripts/CardShopScene.cs" id="1_rq"]
+
+[node name="CardShopScene" type="Control"]
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_rq")

@@ -325,6 +325,21 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Reliquary wide capture mode enabled: --capture=reliquary_test_wide");
             }
+            if (arg == "--capture=shop_test")
+            {
+                CampaignContext.CaptureShopScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Shop capture mode enabled: --capture=shop_test");
+            }
+            if (arg == "--capture=shop_test_wide")
+            {
+                CampaignContext.CaptureShopScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Shop wide capture mode enabled: --capture=shop_test_wide");
+            }
             if (arg == "--capture=map_loop_soak")
             {
                 _active = true;

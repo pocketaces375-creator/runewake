@@ -119,13 +119,30 @@ public partial class ReliquaryScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.7f, AnchorRight = 0.98f,
+            AnchorLeft = 0.72f, AnchorRight = 0.98f,
             AnchorTop = 0.005f, AnchorBottom = 0.075f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
         _collectionCount.AddThemeFontSizeOverride("font_size", 13);
         _collectionCount.AddThemeColorOverride("font_color", new Color(0.85f, 0.72f, 0.35f, 0.8f));
         AddChild(_collectionCount);
+
+        // ——— Shop button (top bar, right of title) ———
+        var shopButton = new Button
+        {
+            Text = "Shop ⟶",
+            AnchorLeft = 0.58f, AnchorRight = 0.70f,
+            AnchorTop = 0.005f, AnchorBottom = 0.075f,
+        };
+        shopButton.AddThemeFontSizeOverride("font_size", 12);
+        shopButton.AddThemeColorOverride("font_color", Color.FromHtml("#CFC4AE"));
+        shopButton.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+        shopButton.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn");
+        };
+        AddChild(shopButton);
 
         // ——— RuneDust balance (top-right, below collection count) ———
         _runeDustLabel = new Label

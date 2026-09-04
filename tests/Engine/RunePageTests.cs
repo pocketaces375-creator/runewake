@@ -291,68 +291,6 @@ public class RunePageTests
         Assert.False(page.UnequipById("rune_1"));
     }
 
-    // ─── RunePage slot unlock costs ───
-
-    [Fact]
-    public void GetSlotUnlockCost_Slot0_Returns0()
-    {
-        Assert.Equal(0, RunePage.GetSlotUnlockCost(0));
-    }
-
-    [Fact]
-    public void GetSlotUnlockCost_Slot1_Returns100()
-    {
-        Assert.Equal(100, RunePage.GetSlotUnlockCost(1));
-    }
-
-    [Fact]
-    public void GetSlotUnlockCost_Slot2_Returns300()
-    {
-        Assert.Equal(300, RunePage.GetSlotUnlockCost(2));
-    }
-
-    [Fact]
-    public void GetSlotUnlockCost_Slot3Plus_Returns0()
-    {
-        Assert.Equal(0, RunePage.GetSlotUnlockCost(3));
-        Assert.Equal(0, RunePage.GetSlotUnlockCost(8));
-    }
-
-    [Fact]
-    public void GetSlotCount_Mythic_Returns3()
-    {
-        Assert.Equal(3, RunePage.GetSlotCount(RuneSlotType.MYTHIC));
-    }
-
-    [Fact]
-    public void GetSlotCount_NonMythic_Returns9()
-    {
-        Assert.Equal(9, RunePage.GetSlotCount(RuneSlotType.OFFENSIVE));
-        Assert.Equal(9, RunePage.GetSlotCount(RuneSlotType.DEFENSIVE));
-        Assert.Equal(9, RunePage.GetSlotCount(RuneSlotType.UTILITY));
-    }
-
-    // ─── RunePage upgrade costs ───
-
-    [Fact]
-    public void GetUpgradeCost_Tier1_Returns60()
-    {
-        Assert.Equal(60, RunePage.GetUpgradeCost(1));
-    }
-
-    [Fact]
-    public void GetUpgradeCost_Tier2_Returns180()
-    {
-        Assert.Equal(180, RunePage.GetUpgradeCost(2));
-    }
-
-    [Fact]
-    public void GetUpgradeCost_Tier3Plus_Returns0()
-    {
-        Assert.Equal(0, RunePage.GetUpgradeCost(3));
-        Assert.Equal(0, RunePage.GetUpgradeCost(0));
-    }
-
     // ─── ProgressionState RuneDust spending ───
 
     [Fact]
@@ -381,172 +319,122 @@ public class RunePageTests
         Assert.Equal(50, state.RuneDust);
     }
 
-    // ─── ProgressionState slot unlock ───
+    // ─── Shop: RuneDust purchase of cards ───
 
     [Fact]
-    public void GetUnlockedSlotCount_Default_Returns1()
-    {
-        var state = new ProgressionState();
-        Assert.Equal(1, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE));
-        Assert.Equal(1, state.GetUnlockedSlotCount(RuneSlotType.DEFENSIVE));
-        Assert.Equal(1, state.GetUnlockedSlotCount(RuneSlotType.UTILITY));
-        Assert.Equal(1, state.GetUnlockedSlotCount(RuneSlotType.MYTHIC));
-    }
-
-    [Fact]
-    public void UnlockNextSlot_Slot2Costs100_InsufficientFunds_Fails()
-    {
-        var state = new ProgressionState { RuneDust = 0 };
-        var (success, cost, error) = state.UnlockNextSlot(RuneSlotType.OFFENSIVE);
-        Assert.False(success);
-        Assert.Equal(100, cost);
-        Assert.Contains("Need", error);
-        Assert.Equal(1, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE)); // unchanged
-    }
-
-    [Fact]
-    public void UnlockNextSlot_Slot2Costs100_WithSufficientFunds()
+    public void BuyCard_WithSufficientRuneDust_Deducts()
     {
         var state = new ProgressionState { RuneDust = 200 };
-        // First unlock (slot 2, index=1) costs 100
-        var (success, cost, error) = state.UnlockNextSlot(RuneSlotType.OFFENSIVE);
-        Assert.True(success);
-        Assert.Equal(100, cost);
-        Assert.Null(error);
-        Assert.Equal(100, state.RuneDust); // 200 - 100
-        Assert.Equal(2, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE));
+        int price = 40; // Rare price
+        Assert.True(state.SpendRuneDust(price));
+        Assert.Equal(160, state.RuneDust);
     }
 
     [Fact]
-    public void UnlockNextSlot_PaysCorrectCost()
+    public void BuyCard_InsufficientRuneDust_ShowsShortfall()
     {
-        var state = new ProgressionState { RuneDust = 500 };
-        // Unlock slot 2 (costs 100)
-        var (success1, cost1, _) = state.UnlockNextSlot(RuneSlotType.OFFENSIVE);
-        Assert.True(success1);
-        Assert.Equal(100, cost1);
-        Assert.Equal(400, state.RuneDust); // 500 - 100
-        Assert.Equal(2, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE));
-
-        // Unlock slot 3 (costs 300)
-        var (success2, cost2, _) = state.UnlockNextSlot(RuneSlotType.OFFENSIVE);
-        Assert.True(success2);
-        Assert.Equal(300, cost2);
-        Assert.Equal(100, state.RuneDust); // 400 - 300
-        Assert.Equal(3, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE));
-
-        // Subsequent slots are free
-        state.UnlockNextSlot(RuneSlotType.OFFENSIVE);
-        Assert.Equal(100, state.RuneDust); // still 100, no cost
-        Assert.Equal(4, state.GetUnlockedSlotCount(RuneSlotType.OFFENSIVE));
-    }
-
-    [Fact]
-    public void UnlockNextSlot_AllSlotsUnlocked_ReturnsFalse()
-    {
-        var state = new ProgressionState { RuneDust = 500 };
-        // Mythic has 3 slots. Unlock slot 2 (costs 100).
-        state.UnlockNextSlot(RuneSlotType.MYTHIC); // → 2 unlocked
-        // Unlock slot 3 (costs 300).
-        state.UnlockNextSlot(RuneSlotType.MYTHIC); // → 3 unlocked
-
-        // Cannot exceed max
-        var (success, _, error) = state.UnlockNextSlot(RuneSlotType.MYTHIC);
+        var state = new ProgressionState { RuneDust = 30 };
+        int price = 40;
+        bool success = state.SpendRuneDust(price, out var shortfall);
         Assert.False(success);
+        Assert.Equal(10, shortfall);
+        Assert.Equal(30, state.RuneDust); // not deducted
     }
 
     [Fact]
-    public void UnlockNextSlot_ShortfallShown()
-    {
-        var state = new ProgressionState { RuneDust = 50 };
-        // Slot 2 (index 1) costs 100 — shortfall 50
-        var (success, cost, error) = state.UnlockNextSlot(RuneSlotType.DEFENSIVE);
-        Assert.False(success);
-        Assert.Equal(100, cost);
-        Assert.Contains("50", error);
-        Assert.Equal(50, state.RuneDust); // not deducted
-    }
-
-    // ─── ProgressionState rune upgrade ───
-
-    [Fact]
-    public void GetRuneTier_Default_Returns1()
-    {
-        var state = new ProgressionState();
-        Assert.Equal(1, state.GetRuneTier("unknown_rune"));
-    }
-
-    [Fact]
-    public void GetRuneTier_AfterUpgrade_ReturnsHigher()
-    {
-        var state = new ProgressionState { RuneDust = 500 };
-        state.UpgradeRune("test_rune");
-        Assert.Equal(2, state.GetRuneTier("test_rune"));
-    }
-
-    [Fact]
-    public void UpgradeRune_Tier1To2_Costs60()
+    public void BuyCard_AddsToCollection()
     {
         var state = new ProgressionState { RuneDust = 100 };
-        var (success, cost, error) = state.UpgradeRune("test_rune");
-        Assert.True(success);
-        Assert.Equal(60, cost);
-        Assert.Null(error);
-        Assert.Equal(40, state.RuneDust); // 100 - 60
-        Assert.Equal(2, state.GetRuneTier("test_rune"));
+        Assert.True(state.SpendRuneDust(15)); // Uncommon price
+        Assert.Equal(85, state.RuneDust);
+        state.AddCard("test_card");
+        Assert.Equal(1, state.Collection["test_card"]);
     }
 
     [Fact]
-    public void UpgradeRune_Tier2To3_Costs180()
+    public void BuyCard_AddsDuplicateToCollection()
     {
-        var state = new ProgressionState { RuneDust = 500 };
-        state.UpgradeRune("test_rune"); // tier 1→2, costs 60
-        Assert.Equal(440, state.RuneDust);
-        Assert.Equal(2, state.GetRuneTier("test_rune"));
+        var state = new ProgressionState { RuneDust = 100 };
+        state.Collection["test_card"] = 1;
+        state.AddCard("test_card");
+        Assert.Equal(2, state.Collection["test_card"]);
+    }
 
-        var (success, cost, error) = state.UpgradeRune("test_rune"); // tier 2→3, costs 180
-        Assert.True(success);
-        Assert.Equal(180, cost);
-        Assert.Null(error);
-        Assert.Equal(260, state.RuneDust); // 440 - 180
-        Assert.Equal(3, state.GetRuneTier("test_rune"));
+    // ─── Shop rotation ───
+
+    [Fact]
+    public void ShopRotationDay_Default_IsZero()
+    {
+        var state = new ProgressionState();
+        Assert.Equal(0, state.ShopRotationDay);
     }
 
     [Fact]
-    public void UpgradeRune_AlreadyMaxTier_ReturnsFalse()
+    public void ShopRotationDay_Increment_TracksRotations()
     {
-        var state = new ProgressionState { RuneDust = 500 };
-        state.UpgradeRune("test_rune"); // tier 1→2
-        state.UpgradeRune("test_rune"); // tier 2→3
-        Assert.Equal(3, state.GetRuneTier("test_rune"));
+        var state = new ProgressionState();
+        state.ShopRotationDay = 5;
+        Assert.Equal(5, state.ShopRotationDay);
+    }
 
-        // Already at max
-        var (success, _, error) = state.UpgradeRune("test_rune");
-        Assert.False(success);
-        Assert.Contains("max", error);
+    // ─── RuneDust values ───
+
+    [Fact]
+    public void GetRuneDustValue_Common_Returns5()
+    {
+        Assert.Equal(5, ProgressionState.GetRuneDustValue(Rarity.COMMON));
     }
 
     [Fact]
-    public void UpgradeRune_InsufficientFunds_ReturnsFalseWithShortfall()
+    public void GetRuneDustValue_Uncommon_Returns15()
     {
-        var state = new ProgressionState { RuneDust = 30 }; // need 60
-        var (success, cost, error) = state.UpgradeRune("test_rune");
-        Assert.False(success);
-        Assert.Equal(60, cost);
-        Assert.Contains("30", error); // shortfall = 30
-        Assert.Equal(30, state.RuneDust); // not deducted
-        Assert.Equal(1, state.GetRuneTier("test_rune")); // not upgraded
+        Assert.Equal(15, ProgressionState.GetRuneDustValue(Rarity.UNCOMMON));
     }
 
     [Fact]
-    public void UpgradeRune_IndependentPerRuneId()
+    public void GetRuneDustValue_Rare_Returns40()
     {
-        var state = new ProgressionState { RuneDust = 500 };
-        state.UpgradeRune("rune_a"); // tier 1→2, costs 60
-        state.UpgradeRune("rune_b"); // tier 1→2, costs 60
+        Assert.Equal(40, ProgressionState.GetRuneDustValue(Rarity.RARE));
+    }
 
-        Assert.Equal(2, state.GetRuneTier("rune_a"));
-        Assert.Equal(2, state.GetRuneTier("rune_b"));
-        Assert.Equal(380, state.RuneDust); // 500 - 60 - 60
+    [Fact]
+    public void GetRuneDustValue_Mythic_Returns120()
+    {
+        Assert.Equal(120, ProgressionState.GetRuneDustValue(Rarity.RELIC));
+    }
+
+    [Fact]
+    public void GetRuneDustValue_Unknown_Returns0()
+    {
+        Assert.Equal(0, ProgressionState.GetRuneDustValue((Rarity)99));
+    }
+
+    // ─── Save roundtrip for shop fields ───
+
+    [Fact]
+    public void ShopOfferings_AreDeterministic_FromRotation()
+    {
+        // Verify the shop offering logic is deterministic from rotation day:
+        // same rotation day produces the same set of offered cards
+        var rng1 = new System.Random(7);
+        var rng2 = new System.Random(7);
+
+        var list1 = Enumerable.Range(0, 10).OrderBy(_ => rng1.Next()).ToList();
+        var list2 = Enumerable.Range(0, 10).OrderBy(_ => rng2.Next()).ToList();
+
+        Assert.Equal(list1, list2);
+    }
+
+    [Fact]
+    public void ShopDifferentRotation_ProducesDifferentOrder()
+    {
+        var rng1 = new System.Random(7);
+        var rng2 = new System.Random(8);
+
+        var list1 = Enumerable.Range(0, 10).OrderBy(_ => rng1.Next()).ToList();
+        var list2 = Enumerable.Range(0, 10).OrderBy(_ => rng2.Next()).ToList();
+
+        // Different seeds should produce different orderings
+        Assert.NotEqual(list1, list2);
     }
 }

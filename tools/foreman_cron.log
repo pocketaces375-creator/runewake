@@ -10596,3 +10596,21 @@ Already up to date.
   Model: deepseek/deepseek-v4-flash  Timeout: 2700s
 foreman already running (PID 48642) — exiting
 foreman already running (PID 48642) — exiting
+
+=== Foreman — chain mode ===
+
+
+=== Iteration 1 — chain mode ===
+
+Already up to date.
+  Budget: 0/96 (0 full + 0 bus, 0/192 halves)
+
+=== Fable inbox ===
+
+  Top task: TASK-RUNE-SHOP-1
+
+=== Running: TASK-RUNE-SHOP-1 ===
+
+  Model: deepseek/deepseek-v4-flash  Timeout: 2700s
+foreman already running (PID 221796) — exiting
+foreman already running (PID 221796) — exiting

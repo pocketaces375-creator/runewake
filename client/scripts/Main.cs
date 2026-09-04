@@ -692,6 +692,13 @@ public partial class Main : Control
                 GD.Print("[Main] Navigating to Reliquary for capture");
                 GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
             }
+            else if (CampaignContext.CaptureShopScreenshot)
+            {
+                // Navigate to card shop for rotating shop capture
+                GD.Print("[Main] Navigating to Card Shop for capture");
+                CardShopScene.SetUpShopTest();
+                GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn");
+            }
             else if (CampaignContext.SoakActive)
             {
                 // Soak loop mode — route through normal campaign flow

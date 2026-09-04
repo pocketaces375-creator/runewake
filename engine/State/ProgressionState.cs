@@ -156,22 +156,10 @@ public class ProgressionState
     public int RuneDust { get; set; }
 
     /// <summary>
-    /// How many slots are unlocked per rune category. Key = RuneSlotType name, value = count.
-    /// Each category starts with 1 unlocked slot.
+    /// Shop rotation counter. Incremented each time the card shop refreshes.
+    /// Used with a fixed seed to deterministically select which ~6 cards are offered.
     /// </summary>
-    public Dictionary<string, int> RuneSlotUnlockCounts { get; } = new()
-    {
-        { nameof(RuneSlotType.OFFENSIVE), 1 },
-        { nameof(RuneSlotType.DEFENSIVE), 1 },
-        { nameof(RuneSlotType.UTILITY), 1 },
-        { nameof(RuneSlotType.MYTHIC), 1 },
-    };
-
-    /// <summary>
-    /// Upgrade tier per rune ID. A rune not in this dictionary is tier 1.
-    /// Max tier is 3.
-    /// </summary>
-    public Dictionary<string, int> RuneUpgradeTiers { get; } = new();
+    public int ShopRotationDay { get; set; }
 
     /// <summary>RuneDust value per card rarity (C/U/R/M).</summary>
     private static readonly Dictionary<Rarity, int> RuneDustValues = new()
@@ -287,68 +275,6 @@ public class ProgressionState
     public bool SpendRuneDust(int amount)
     {
         return SpendRuneDust(amount, out _);
-    }
-
-    /// <summary>
-    /// Get the number of unlocked slots for a given rune slot type.
-    /// Returns 1 if no unlock count has been recorded (default).
-    /// </summary>
-    public int GetUnlockedSlotCount(RuneSlotType type)
-    {
-        string key = type.ToString();
-        return RuneSlotUnlockCounts.TryGetValue(key, out var count) ? count : 1;
-    }
-
-    /// <summary>
-    /// Attempt to unlock the next slot in a category. Returns (success, cost, error).
-    /// </summary>
-    public (bool success, int cost, string? error) UnlockNextSlot(RuneSlotType type)
-    {
-        int current = GetUnlockedSlotCount(type);
-        int maxSlots = RunePage.GetSlotCount(type);
-
-        if (current >= maxSlots)
-            return (false, 0, "All slots already unlocked.");
-
-        int cost = RunePage.GetSlotUnlockCost(current); // current is the next slot index to unlock
-        if (cost <= 0)
-        {
-            // Slot is free — unlock it
-            RuneSlotUnlockCounts[type.ToString()] = current + 1;
-            return (true, 0, null);
-        }
-
-        if (!SpendRuneDust(cost, out var shortfall))
-            return (false, cost, $"Need {shortfall} more Rune{(shortfall == 1 ? "" : "s")}.");
-
-        RuneSlotUnlockCounts[type.ToString()] = current + 1;
-        return (true, cost, null);
-    }
-
-    /// <summary>
-    /// Get the current upgrade tier of a rune (default 1).
-    /// </summary>
-    public int GetRuneTier(string runeId)
-    {
-        return RuneUpgradeTiers.TryGetValue(runeId, out var tier) ? tier : 1;
-    }
-
-    /// <summary>
-    /// Attempt to upgrade a rune to the next tier. Returns (success, cost, error).
-    /// </summary>
-    public (bool success, int cost, string? error) UpgradeRune(string runeId)
-    {
-        int currentTier = GetRuneTier(runeId);
-        int cost = RunePage.GetUpgradeCost(currentTier);
-
-        if (cost <= 0)
-            return (false, 0, $"Rune is already at max tier ({(currentTier > 0 ? currentTier : 1)}).");
-
-        if (!SpendRuneDust(cost, out var shortfall))
-            return (false, cost, $"Need {shortfall} more Rune{(shortfall == 1 ? "" : "s")}.");
-
-        RuneUpgradeTiers[runeId] = currentTier + 1;
-        return (true, cost, null);
     }
 
     /// <summary>Card IDs that have been seen (viewed) in the Reliquary. Cleared on first view.</summary>

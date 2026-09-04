@@ -864,4 +864,29 @@ public class SaveRepositoryTests : IDisposable
         Assert.Empty(loaded.SavedDecks);
         Assert.NotEmpty(repo.RepairLog);
     }
+
+    // ─── Shop fields ───
+
+    [Fact]
+    public void ShopRotationDay_SaveRoundtrip()
+    {
+        var state = new ProgressionState { ShopRotationDay = 12, RuneDust = 200 };
+        var repo = NewRepo();
+        Assert.True(repo.Save(state));
+
+        var loaded = repo.Load();
+        Assert.Equal(12, loaded.ShopRotationDay);
+        Assert.Equal(200, loaded.RuneDust);
+    }
+
+    [Fact]
+    public void ShopRotationDay_DefaultInLoad_IsZero()
+    {
+        var state = new ProgressionState { ShopRotationDay = 0 };
+        var repo = NewRepo();
+        Assert.True(repo.Save(state));
+
+        var loaded = repo.Load();
+        Assert.Equal(0, loaded.ShopRotationDay);
+    }
 }

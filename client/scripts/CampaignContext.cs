@@ -130,6 +130,9 @@ public static class CampaignContext
     /// <summary>Test hook: capture reliquary screenshot.</summary>
     public static bool CaptureReliquaryScreenshot { get; set; }
 
+    /// <summary>Test hook: capture card shop screenshot.</summary>
+    public static bool CaptureShopScreenshot { get; set; }
+
     /// <summary>Test hook: capture duel DEFEAT overlay with encounter name. Auto-ends duel as loss.</summary>
     public static bool CaptureDefeatOverlay { get; set; }
 
