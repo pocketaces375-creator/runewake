@@ -569,7 +569,7 @@
   Acceptance: all 14 tiles pass tools/art_check.py; a Reliquary capture shows the set; post the 14 tiles
   as one contact sheet to the group with a one-line note.
 
-- [ ] TASK-CLASS-GENDER-1 — Every class can be played as a man or a woman, chosen on Choose Your Path (Trikzos:
+- [x] TASK-CLASS-GENDER-1 — Every class can be played as a man or a woman, chosen on Choose Your Path (Trikzos:
   "make a male and female version for each class option, that way it's very inclusive"). The art already exists:
   client/content/art/classes/<id>_m.png and <id>_f.png for all 7 (the plain <id>.png stays as the fallback).
   (1) content/classes.json: each class gains "portraits": {"m": "<id>_m.png", "f": "<id>_f.png"}. No other class
