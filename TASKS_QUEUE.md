@@ -772,7 +772,7 @@
   build tag string bottom-right. Layout fills the frame, no empty plates.
   Acceptance: capture; slider values survive a save/load round trip in a headless test.
 
-- [ ] TASK-TUTORIAL-VERIFY-1 — The walkthrough tutorial runs start to finish on the CURRENT layouts.
+- [x] TASK-TUTORIAL-VERIFY-1 — The walkthrough tutorial runs start to finish on the CURRENT layouts.
   Known bug: Main.cs does not navigate to the duel when TutorialScriptId is set — fix it. Every
   highlight rect must land on the control it names. Steps that reference old positions are
   re-targeted.
