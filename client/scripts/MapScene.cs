@@ -38,6 +38,9 @@ public partial class MapScene : Control
     private Button _forgeBtn;
     private Button _reliquaryBtn;
 
+    // Region name banner
+    private Label _regionBanner;
+
     // Line drawing
     private LineDrawer _lineDrawer;
 
@@ -86,6 +89,13 @@ public partial class MapScene : Control
             CampaignContext.AddOrUpdateProfile("warrior", "The Fallow Reach");
             CampaignContext.EnsureStarterDeck("warrior");
             UpdateDeckChipText(); // refresh now that we have a starter deck
+
+            // Seeded partial clear: pre-mark two early nodes as cleared so the capture
+            // shows locked / available / cleared states simultaneously.
+            string[] preClearedIds = { "r1_n01", "r1_n02" };
+            foreach (var cid in preClearedIds)
+                CampaignContext.Progression.MarkNodeCleared(cid);
+            UpdateAllLockStates();
 
             var capTimer = new Godot.Timer();
             capTimer.OneShot = true;
@@ -408,6 +418,21 @@ public partial class MapScene : Control
         // Line drawer (edges between nodes) — sits directly on map art
         _lineDrawer = new LineDrawer();
         _mapContainer.AddChild(_lineDrawer);
+
+        // Region name banner — always visible overlay, outside the pannable container
+        _regionBanner = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AnchorLeft = 0.3f, AnchorRight = 0.7f,
+            AnchorTop = 0.002f, AnchorBottom = 0.042f,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        ThemeTokens.ApplyHeaderFont(_regionBanner, 16);
+        _regionBanner.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 0.9f));
+        _regionBanner.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
+        _regionBanner.AddThemeConstantOverride("outline_size", 8);
+        AddChild(_regionBanner);
     }
 
     // ── Top bar ──────────────────────────────────────────────────────────
@@ -627,6 +652,10 @@ public partial class MapScene : Control
         }
 
         _lineDrawer.SetNodes(_region.Nodes, centerX, centerY);
+
+        // Set region name in banner
+        if (_region != null && _regionBanner != null)
+            _regionBanner.Text = _region.Name.ToUpper();
 
         // Auto-frame: fill the screen with the plate (cover), like the old
         // full-bleed background — but now the nodes are welded to the art.

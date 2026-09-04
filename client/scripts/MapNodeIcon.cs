@@ -25,6 +25,7 @@ public partial class MapNodeIcon : Button
     public bool IsLocked { get; private set; } = true;
     private bool _isCleared;
     private bool _isSelected;
+    private Tween? _pulseTween;
 
     [Signal]
     public delegate void NodeSelectedEventHandler(string nodeId);
@@ -366,9 +367,33 @@ public partial class MapNodeIcon : Button
     {
         _isSelected = selected;
         if (_isCleared) return;
+
+        // Kill any existing pulse tween
+        if (_pulseTween != null && _pulseTween.IsValid())
+        {
+            _pulseTween.Kill();
+            _pulseTween = null;
+        }
+
         _selectedRing.Visible = selected;
+
         if (selected)
+        {
             UpdateMedallionAppearance();
+
+            // Pulse animation: border color oscillates between gold and bright gold
+            _pulseTween = CreateTween().SetLoops();
+            _pulseTween.TweenProperty(
+                _selectedRing,
+                "modulate",
+                new Color(1f, 0.95f, 0.6f, 1f),
+                0.8f);
+            _pulseTween.TweenProperty(
+                _selectedRing,
+                "modulate",
+                new Color(1f, 0.75f, 0.15f, 0.5f),
+                0.8f);
+        }
     }
 
     private void ApplyLockState(bool locked)
@@ -403,18 +428,20 @@ public partial class MapNodeIcon : Button
 
         if (_isCleared)
         {
-            s.BgColor = new Color(0.5f, 0.45f, 0.3f, 0.9f); // muted gold
-            s.BorderColor = new Color(0.8f, 0.7f, 0.3f, 1);
+            // Green-tinted muted gold — distinct from available bronze
+            s.BgColor = new Color(0.3f, 0.35f, 0.22f, 0.85f);
+            s.BorderColor = new Color(0.55f, 0.7f, 0.35f, 1);
         }
-        else if (IsLocked)
+        else if (IsLocked && !_isCleared)
         {
-            s.BgColor = new Color(0.2f, 0.18f, 0.12f, 0.9f); // dark
-            s.BorderColor = new Color(0.3f, 0.25f, 0.15f, 1);
+            // Very dark stone — almost invisible on painted terrain
+            s.BgColor = new Color(0.15f, 0.12f, 0.08f, 0.8f);
+            s.BorderColor = new Color(0.25f, 0.2f, 0.12f, 0.7f);
         }
-        else // available — lit bronze
+        else // available — warm bronze with bright gold border
         {
-            s.BgColor = new Color(0.45f, 0.35f, 0.2f, 1);
-            s.BorderColor = new Color(0.7f, 0.6f, 0.3f, 1);
+            s.BgColor = new Color(0.5f, 0.38f, 0.18f, 1);
+            s.BorderColor = new Color(0.85f, 0.7f, 0.3f, 1);
         }
         medPanel.AddThemeStyleboxOverride("panel", s);
     }
