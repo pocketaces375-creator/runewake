@@ -796,7 +796,7 @@
   save system; a corrupt slot repairs to "empty", never a blank screen.
   Acceptance: capture of the slot picker; headless test that creates, loads and deletes a slot.
 
-- [ ] TASK-CRASH-GUARD-1 — The game never hard-freezes on an error. A global unhandled-exception
+- [x] TASK-CRASH-GUARD-1 — The game never hard-freezes on an error. A global unhandled-exception
   handler shows a plain "Something went wrong — returning to the title" screen, writes the stack
   to user://crash.log, and returns to the title with the save intact.
   Acceptance: a debug-only trigger throws on purpose; capture of the recovery screen; the log file
