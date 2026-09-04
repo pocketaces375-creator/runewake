@@ -88,7 +88,7 @@
   Acceptance: three fresh captures under artifacts/captures dated today, each described in the DONE
   line; ui_lint green; if nothing needed fixing, say so plainly with the three sentences.
 
-- [ ] TASK-REGION-3-BUILD-1 — Generate and wire Region 3 from content/map/region_03.json and its
+- [x] TASK-REGION-3-BUILD-1 — Generate and wire Region 3 from content/map/region_03.json and its
   encounters and dig site (content/encounters/region_03_*.json, content/dig_sites/region_03_dig.json),
   the same way TASK-REGION-2-BUILD-1 wired Region 2: it unlocks when the Region 2 Warden falls; map skin =
   the default skin with that region's stratum palette tint through the BoardSkin registry — no new painted
