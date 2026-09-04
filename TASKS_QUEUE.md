@@ -791,7 +791,7 @@
   Label under 8px on every capture.
   Acceptance: MIN_TEXT green on all captures; fresh duel_test captures; loop_smoke green.
 
-- [ ] TASK-SAVE-SLOTS-1 — Three campaign slots on the title screen: New / Continue / Delete with a
+- [x] TASK-SAVE-SLOTS-1 — Three campaign slots on the title screen: New / Continue / Delete with a
   confirm dialog, each slot showing class portrait, region and pieces collected. Built on the v2
   save system; a corrupt slot repairs to "empty", never a blank screen.
   Acceptance: capture of the slot picker; headless test that creates, loads and deletes a slot.
