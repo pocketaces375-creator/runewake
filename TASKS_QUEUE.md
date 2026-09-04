@@ -480,44 +480,50 @@
   artifacts, names matching; all tests green; loop_smoke and input_smoke pass; Choose Your Path
   capture shows the 7 classes in the listed order; migration test green; post the capture and
   one sentence.
-- [ ] TASK-CLASS-IDENTITY-1 — Give Astrologist and the six new items their own feel (Fable's design; Trikzos:
-  "reimagine and rebalance"). Implement in the DSL/engine with tests. Baseline numbers below are Fable's
-  starting values; TASK-TUNE-5050-1 may move them within the stated bounds, nothing else may.
-  ASTROLOGIST (stratum Tide, origin "Starfall Reach"; a seer — weak early, inevitable late):
-    class-core: 4 sworn cards rebuilt from the Tide pool with an Echo / draw / Ward bias, one of them
-    "Star-Reader" (on play: scry 2). Starter deck: hard-30 from Tide + neutrals, singleton, valid.
-    ORB ("Seer's Orb"): start of your turn: look at the top 2 cards of your deck, put one on top and one
-      on the bottom. +1 charge at the start of each of your turns. Full (3): draw 2. Bounds: scry 1-3;
-      draw 1-2.
-    CONSTELLATION STARLIGHT ("the stars align"): +1 charge at the END of each of your turns (turn
-      counter). Full (3): Starfall — deal 4 damage to the enemy creature in EVERY lane, ignoring Guard,
-      then reset. Bounds: damage 3-6. (This is the wide-board answer and the control archetype.)
-  NECROMANCER RITUAL PIECE ("Ritual Fetish"): +1 charge whenever a friendly creature dies. Full (3):
-    Unearth the highest-attack creature from your graveyard into an empty lane. Bounds: it may return
-    with -1 vigor or with Venom (pick one during tuning, never both).
-  PALADIN BANNER ("Banner of Sunspire"): passive: while you control 2+ creatures, your creatures have
-    +0/+1. +1 charge whenever a friendly creature SURVIVES combat damage. Full (3): restore 2 vigor to
-    each friendly creature and give them Ward until your next turn. Bounds: aura +0/+1 or Guard; heal 1-3.
+- [ ] TASK-CLASS-IDENTITY-1A — Astrologist becomes a real class: the seer of the Tide (weak early, inevitable
+  late). AFTER: TASK-ROSTER-LOCK-1. Fable's design; numbers are starting values, TASK-TUNE-5050-1 may move
+  them within the bounds, nothing else may.
+  class-core: 4 sworn cards rebuilt from the Tide pool with an Echo / draw / Ward bias, one of them
+  "Star-Reader" (on play: scry 2). Starter deck: hard-30 from Tide + neutrals, singleton, valid.
+  ORB ("Seer's Orb"): start of your turn: look at the top 2 cards of your deck, put one on top and one
+  on the bottom. +1 charge at the start of each of your turns. Full (3): draw 2. Bounds: scry 1-3; draw 1-2.
+  CONSTELLATION STARLIGHT: +1 charge at the END of each of your turns. Full (3): Starfall — deal 4 damage
+  to the enemy creature in EVERY lane, ignoring Guard, then reset. Bounds: damage 3-6.
+  Acceptance: both effects exist as DSL/engine with a unit test that fires each; the Astrologist starter
+  deck plays a 5-duel headless soak; loop_smoke and input_smoke pass; no other card or item value changed.
+
+- [ ] TASK-CLASS-IDENTITY-1B — Four items get their own feel: Ritual Fetish, Banner of Sunspire, Book of
+  Familiar, Elemental Bond. AFTER: TASK-CLASS-IDENTITY-1A. Fable's design; starting values, bounds for tuning.
+  NECROMANCER RITUAL PIECE ("Ritual Fetish"): +1 charge whenever a friendly creature dies. Full (3): Unearth
+  the highest-attack creature from your graveyard into an empty lane. Bounds: it may return with -1 vigor
+  or with Venom (pick one during tuning, never both).
+  PALADIN BANNER ("Banner of Sunspire"): passive: while you control 2+ creatures, your creatures have +0/+1.
+  +1 charge whenever a friendly creature SURVIVES combat damage. Full (3): restore 2 vigor to each friendly
+  creature and give them Ward until your next turn. Bounds: aura +0/+1 or Guard; heal 1-3.
   DRUID BOOK OF FAMILIAR: start of your turn: if you have an empty lane, summon a 1/1 Familiar token with
-    Rooted there. +1 charge per Familiar summoned. Full (3): all your Familiars become 2/2 and gain
-    Guard. Bounds: token 1/1 to 2/2; cadence every turn or every other turn.
+  Rooted there. +1 charge per Familiar summoned. Full (3): all your Familiars become 2/2 and gain Guard.
+  Bounds: token 1/1 to 2/2; cadence every turn or every other turn.
   DRUID ELEMENTAL BOND: on play, bond one friendly creature: it gains Rooted and +0/+2 and prevents 1
-    damage from each source (PREVENT_DAMAGE). +1 charge each turn the bonded creature survives. Full
-    (3): it gains +2/+2 permanently and Reach. Bounds: +0/+2 to +1/+3; prevent 1 (fixed).
-  ROGUE TWIN DAGGERS: DUSK: your first attack each turn by a Swift creature deals +1 and is not stopped
-    by Guard (STEALTH_STRIKE). WHISPER: +1 charge whenever a friendly creature deals damage to the enemy
-    face. Full (3): 3 damage to the enemy face, and the creature it last hit gains Venom. TWIN rule:
-    when either dagger's full-charge effect fires, the other gains +1 charge. Bounds: Dusk +1 to +2;
-    Whisper 2-4 face damage. Rush must stay viable.
-  Existing items (wand, aura, skull, hammer, sword, shield) keep their current effects.
+  damage from each source (PREVENT_DAMAGE). +1 charge each turn the bonded creature survives. Full (3): it
+  gains +2/+2 permanently and Reach. Bounds: +0/+2 to +1/+3; prevent 1 (fixed).
   Acceptance: every effect above exists as DSL/engine with a unit test that fires it; the 5-duel soak,
-  loop_smoke and input_smoke pass; a plain "item → what it does" list posted to the group; no other
-  card or item value changed in this task.
+  loop_smoke and input_smoke pass; no other card or item value changed in this task.
+
+- [ ] TASK-CLASS-IDENTITY-1C — Rogue's twin daggers get their own feel, and the whole item set is soaked
+  and explained. AFTER: TASK-CLASS-IDENTITY-1B.
+  DUSK: your first attack each turn by a Swift creature deals +1 and is not stopped by Guard (STEALTH_STRIKE).
+  WHISPER: +1 charge whenever a friendly creature deals damage to the enemy face. Full (3): 3 damage to the
+  enemy face, and the creature it last hit gains Venom. TWIN rule: when either dagger's full-charge effect
+  fires, the other gains +1 charge. Bounds: Dusk +1 to +2; Whisper 2-4 face damage. Rush must stay viable.
+  Existing items (wand, aura, skull, hammer, sword, shield) keep their current effects.
+  Acceptance: both daggers and the TWIN rule exist as DSL/engine with unit tests; ALL 14 launch artifacts
+  equip and play through the 5-duel soak; loop_smoke and input_smoke pass; post a plain "item → what it
+  does" list for all 14 to the group.
 
 - [ ] TASK-TUNE-5050-1 — Balance all 7 classes to a 45-55% win rate against each other (Trikzos: "closer
   to 50/50"). Run the 49-pairing class matrix (200 seeded games per pairing, tactician AI on both
   sides, mirrors excluded from each class's average). Report per class: win%, best and worst matchup.
-  If any class is outside 45-55%: adjust ONLY numbers named in TASK-CLASS-IDENTITY-1's bounds and, if
+  If any class is outside 45-55%: adjust ONLY numbers named in the TASK-CLASS-IDENTITY-1A/1B/1C bounds and, if
   still needed, the six existing items' numbers by at most +/-1 per number per iteration — never card
   values, never keywords, never new effects — re-run, up to 3 iterations. Rush classes (Rogue, Warrior)
   must not drop below 45%. If every class lands in band: ADOPT the numbers, commit, and post the final
@@ -526,7 +532,7 @@
   Acceptance: the full matrix and the per-class table in HERMES_STATUS.md; the numbers actually shipped
   (or "not adopted") stated explicitly; soak + smokes green.
 
-- [ ] TASK-ART-ROSTER-1 — PREREQUISITE: before doing anything else, open TASKS_QUEUE.md and confirm TASK-ROSTER-LOCK-1 and TASK-CLASS-IDENTITY-1 are both marked [x]. If either is still [ ], STOP: do not generate any art, do not guess names or mechanics, take no other action, and end the session so this task is retried later. Only once both are [x], proceed with: Generate the art for the permanent roster (art FILES ONLY — do not edit any Generate the art for the permanent roster (art FILES ONLY — do not edit any
+- [ ] TASK-ART-ROSTER-1 — AFTER: TASK-ROSTER-LOCK-1 (if it is not [x] yet, stop without changes). Generate the art for the permanent roster (art FILES ONLY — do not edit any Generate the art for the permanent roster (art FILES ONLY — do not edit any
   json or code; TASK-ROSTER-LOCK-1 wires the references). FLUX.2 Pro via OpenRouter, style v3.0,
   matching the existing four portraits' framing and palette and the existing artifact tiles' look.
   Portraits needed (client/content/art/classes/<id>.png): astrologist (NEW class — a star-reader with
@@ -636,7 +642,7 @@
   Acceptance: capture of the banner in the boss fight; loop_smoke still passes; the boss
   deck's sim win% before/after reported.
 
-- [ ] TASK-CLASS-PORTRAITS-1 — Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
+- [!] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
   OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
   class, generate 6 candidates and post them to the group as separate images as a veto gate,
   then wire the one Trikzos picks (or the best if he hasn't answered within a day — he can
@@ -645,7 +651,7 @@
   portrait_placeholder flags when done.
   Acceptance: three .webp portraits wired into classes.json; Choose Your Path capture; posted.
 
-- [ ] TASK-ARTIFACT-VARIANTS-HOLD — Checkpoint, no build work. 14 of 42 launch artifacts exist;
+- [x] TASK-ARTIFACT-VARIANTS-HOLD — RESOLVED by Fable 2026-09-04: the 28 variants are queued as TASK-ITEMS-*; the wave tasks proceed. Checkpoint, no build work. 14 of 42 launch artifacts exist;
   the remaining 28 variants are a Fable design decision (rule: no strictly-better variants,
   ever). Post one line to the group: "artifact variants: waiting on Fable's list" and mark
   this [x]. If you reach TASK-CARD-WAVE-1 below and Fable has not yet queued the variants
@@ -682,7 +688,7 @@
   Acceptance: 40 cards committed to content/cards/*.json; pipeline tests green; sim gate report in
   HERMES_STATUS.md; no shipped values changed on existing cards.
 
-- [ ] TASK-ART-WAVE-1 — Art for TASK-CARD-WAVE-1 per docs/ART_WAVES.md: FLUX.2 Pro via OpenRouter, style
+- [ ] TASK-ART-WAVE-1 — AFTER: TASK-CARD-WAVE-1. Art for TASK-CARD-WAVE-1 per docs/ART_WAVES.md: FLUX.2 Pro via OpenRouter, style
   v3.0, the 6-sample veto gate first (post those 6 as separate messages), then the batch. If FLUX credits or
   the API are unavailable, write BLOCKED with the exact error and do NOT substitute any other generator or
   any hand-made placeholder.
@@ -693,7 +699,7 @@
   that WAVE-1's sim report showed as weak).
   Acceptance: as TASK-CARD-WAVE-1.
 
-- [ ] TASK-ART-WAVE-2 — As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
+- [ ] TASK-ART-WAVE-2 — AFTER: TASK-CARD-WAVE-2. As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
   Acceptance: as TASK-ART-WAVE-1.
 
 - [ ] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
@@ -782,6 +788,106 @@
   BoardSkin registry for Region 2 (palette tint only, no new painted art), selectable per region
   in the region json.
   Acceptance: a duel capture and a map capture with the Ember skin active; ui_lint green.
+
+- [ ] TASK-ITEMS-0 — Artifact variant files: the engine and client load every content/artifacts/variants/*.json
+  in addition to launch_artifacts.json (same schema, same validation), so each class's extra artifacts live
+  in their own file and lanes never edit the same file. Reliquary and deck builder list variants under their
+  class and slot_pool exactly like launch artifacts; the Reliquary silhouette fallback covers missing art.
+  Add content/artifacts/variants/README.md (schema + the rule "no strictly-better variants, ever") and a
+  unit test that loads a fixture variant file and equips it in a headless duel.
+  Acceptance: tests green; loop_smoke and input_smoke pass; a fixture variant shows in a Reliquary capture;
+  posted with one sentence.
+
+- [ ] TASK-ITEMS-WARRIOR-1 — Four more Warrior artifacts (two per slot, Sword/Shield) in content/artifacts/variants/warrior.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0.
+  SWORD: "Executioner's Blade" — passive: your attacking creatures with attack 3+ have Pierce; +1 charge whenever a friendly creature kills an enemy creature; full (3): one friendly creature gets +2/+0 permanently.
+  SWORD: "Duelist's Edge" — passive: if exactly one friendly creature attacks this turn it gets +2/+0 for that attack; trigger: that lone attacker prevents 1 damage this combat.
+  SHIELD: "Tower Shield" — passive: your creatures in the two outer lanes have Guard; +1 charge when a friendly creature survives combat damage; full (3): restore 3 vigor to one friendly creature.
+  SHIELD: "Spiked Buckler" — passive: the creature in your centre lane has +0/+1; trigger: whenever a friendly creature is attacked, deal 1 damage to the attacker.
+  Each: id artf_warrior_<snake_name>, class "warrior", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_warrior_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0.
+  WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
+  WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
+  AURA: "Ward Mantle" — passive: creatures you play gain Ward until your next turn; +1 charge whenever Ward on a friendly creature absorbs damage; full (3): draw 2.
+  AURA: "Tidal Veil" — passive: at the end of your turn, if you cast a spell, your highest-attack creature gets +0/+1 permanently; +1 charge per spell cast; full (3): return an enemy creature to its owner's hand.
+  Each: id artf_battlemage_<snake_name>, class "battlemage", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_battlemage_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0.
+  SKULL: "Grinning Skull" — passive: whenever a friendly creature dies, 1 damage to the enemy face; +1 charge per friendly death; full (3): a 1/1 Skeleton token in each empty friendly lane.
+  SKULL: "Whispering Skull" — passive: start of your turn, excavate 1; +1 charge per card excavated; full (3): draw 2.
+  RITUAL_PIECE: "Blood Chalice" — activated once per turn: sacrifice a friendly creature to draw 2; +1 charge per sacrifice; full (3): Unearth up to two creatures with cost 3 or less into empty lanes.
+  RITUAL_PIECE: "Plague Idol" — passive: your creatures with Venom have +1/+0; +1 charge whenever Venom kills; full (3): all friendly creatures gain Venom.
+  Each: id artf_necromancer_<snake_name>, class "necromancer", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_necromancer_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-PALADIN-1 — Four more Paladin artifacts (two per slot, Hammer/Banner) in content/artifacts/variants/paladin.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0.
+  HAMMER: "Judgement Maul" — passive: your highest-vigor creature has Pierce; +1 charge whenever you heal; full (3): 3 damage to an enemy creature.
+  HAMMER: "Warden's Hammer" — passive: your Guard creatures have +1/+0; +1 charge whenever a friendly Guard creature is attacked; full (3): a friendly creature gains Guard and is healed to full.
+  BANNER: "Rallying Standard" — passive: when you play a creature, its adjacent friendly creatures get +1/+0 until end of turn; +1 charge per creature played; full (3): all friendly creatures +1/+1 until your next turn.
+  BANNER: "Sunspire Sigil" — passive: at the end of your turn, restore 1 vigor to each damaged friendly creature; +1 charge whenever a creature returns to full vigor; full (3): all friendly creatures gain Ward until your next turn.
+  Each: id artf_paladin_<snake_name>, class "paladin", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_paladin_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0.
+  BOOK_OF_FAMILIAR: "Grimoire of Thorns" — passive: your Rooted creatures deal 1 damage to any creature that attacks them; +1 charge whenever a Rooted creature is attacked; full (3): all friendly Rooted creatures +1/+1 permanently.
+  BOOK_OF_FAMILIAR: "Seedbook" — passive: end of your turn, if you played no creature, put a 0/2 Rooted Seed token in an empty friendly lane; +1 charge per Seed; full (3): your Seeds become 2/3 with Reach.
+  ELEMENTAL_BOND: "Wild Pact" — on play, bond one friendly creature: +2/+0 and Swift; +1 charge whenever it deals damage; full (3): draw 1 per damage it dealt this turn (max 3).
+  ELEMENTAL_BOND: "Grove Link" — on play, bond two friendly creatures: both +0/+1, and whenever one is healed the other heals the same; +1 charge whenever either survives combat; full (3): both +1/+1 and Guard permanently.
+  Each: id artf_druid_<snake_name>, class "druid", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_druid_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0, TASK-ROSTER-LOCK-1.
+  DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
+  DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
+  DAGGER: "Lockpick" — passive: your first creature each turn costs 1 less; +1 charge per discounted play; full (3): draw 2.
+  DAGGER: "Gloomblade" — passive: your creatures in the two outer lanes have +1/+0; +1 charge whenever an outer-lane creature hits the enemy face; full (3): 3 damage to the enemy creature with the lowest vigor.
+  Each: id artf_rogue_<snake_name>, class "rogue", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_rogue_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
+
+- [ ] TASK-ITEMS-ASTROLOGIST-1 — Four more Astrologist artifacts (two per slot, Orb/Constellation starlight) in content/artifacts/variants/astrologist.json,
+  Fable's designs; sidegrades only, never strictly better than the base items. AFTER: TASK-ITEMS-0, TASK-ROSTER-LOCK-1.
+  ORB: "Lunar Lens" — passive: start of your turn, look at the top card of your deck; if it is a spell, draw it; +1 charge per card drawn this way; full (3): your next spell costs 2 less.
+  ORB: "Eclipse Sphere" — passive: your maximum hand size +1; +1 charge whenever you draw outside your draw step; full (3): draw 2, then put one card from your hand on top of your deck.
+  CONSTELLATION_STARLIGHT: "Meteor Shower" — +1 charge at the end of each of your turns; full (4): 2 damage to every enemy creature.
+  CONSTELLATION_STARLIGHT: "Twin Stars" — +1 charge at the end of each of your turns; full (2): 3 damage to one enemy creature, ignoring Guard.
+  Each: id artf_astrologist_<snake_name>, class "astrologist", slot_pool, name, one-line dark-fae flavor, DSL passive/trigger/
+  charges using only existing ops (add an op ONLY if truly missing, with its own test), a unit test that fires
+  each effect, and tile art via pipeline/gen_image_openrouter.py (docs/ART_STYLE_SPEC.md style, 832x832, no
+  text, no border) saved as client/content/art/artifacts/artf_astrologist_<snake_name>.webp with its .import.
+  Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
+  tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
 - [ ] TASK-REGION-GEN-BATCH-1 — Use tools/region_gen.py to produce Regions 3 and 4 specs and files
   (Tide and Dawn strata, one Warden each), every deck through the sim gate, wired to unlock in

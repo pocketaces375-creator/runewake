@@ -158,7 +158,7 @@ write_parked_heartbeat() {
 # Find the top unchecked task in TASKS_QUEUE.md
 find_top_task() {
   python3 -c "
-import re, sys
+import re, sys, os, time
 with open('${QUEUE_FILE}') as f:
     content = f.read()
 lines = content.split('\n')
@@ -190,6 +190,30 @@ for i, line in enumerate(lines):
                 j += 1
             # Single-space the full description
             desc = re.sub(r'\s+', ' ', desc).strip()
+            # AFTER: gate — skip this task until every listed task is [x]
+            _aft = re.search(r'AFTER:\s*((?:TASK-[A-Z0-9-]+[,\s]*)+)', desc)
+            if _aft:
+                _blocked = False
+                for _d in re.findall(r'TASK-[A-Z0-9-]+', _aft.group(1)):
+                    if not re.search(r'^\s*-\s*\[\s*x\s*\]\s*' + re.escape(_d) + r'(?![A-Z0-9-])', content, re.M):
+                        _blocked = True
+                if _blocked: continue
+            # claim gate — skip a task another LIVE lane is working on
+            _cf = '/tmp/runewake_claims/' + task_id
+            if os.path.exists(_cf):
+                try:
+                    _pid = int(open(_cf).read().strip() or '0')
+                    _age = time.time() - os.path.getmtime(_cf)
+                    _alive = False
+                    if _pid > 0:
+                        try:
+                            os.kill(_pid, 0); _alive = True
+                        except OSError:
+                            _alive = False
+                    if _alive and _age < 4*3600 and _pid != int('$$'):
+                        continue
+                except Exception:
+                    pass
             print(f'{task_id}|{desc}')
             sys.exit(0)
 sys.exit(1)
@@ -560,6 +584,7 @@ fi
 
 # ── 4. Execute model session ─────────────────────────────────────────────────
 header "Running: ${TASK_ID}"
+mkdir -p /tmp/runewake_claims && echo "$$" > "/tmp/runewake_claims/${TASK_ID}"
 info "Model: ${FOREMAN_MODEL}  Timeout: ${FOREMAN_TIMEOUT}s"
 
 # Capture HEAD before the session so we can detect new commits
