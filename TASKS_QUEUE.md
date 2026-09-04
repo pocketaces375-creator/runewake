@@ -445,20 +445,23 @@
   final): Battlemage (wand, aura) · Necromancer (skull, ritual piece) · Paladin (hammer, banner) ·
   Druid (book of familiar, elemental bond) · Rogue (dagger, dagger) · Astrologist (orb, constellation
   starlight) · Warrior (sword, shield). Changes: rename Thief -> Rogue everywhere; replace Ranger with
-  Astrologist (Astrologist INHERITS Ranger's stratum, class mechanics, class-core cards and starter
-  deck unchanged — retheme only, no balance change); item pairs are now fixed.
+  Astrologist — a NEW class (stratum Tide, origin town "Starfall Reach"); this task only creates its
+  id/slot/portrait hook/migration — its real mechanics, class-core cards, starter deck and items come
+  from TASK-CLASS-IDENTITY-1, which runs right after this. Item pairs are now fixed.
   (1) content/classes.json: exactly these 7 ids (battlemage, necromancer, paladin, druid, rogue,
       astrologist, warrior) with exactly these 2 starting_items each, in this order.
   (2) Launch artifacts = 7 classes x 2 items, names matching the list. Keep as-is: warrior sword +
       shield; battlemage wand + aura; necromancer skull; paladin hammer; rogue dagger_dusk +
-      dagger_whisper (renamed from thief). Retheme (NEW name, but the DSL effect and every number
-      copied verbatim from the retired item so balance is untouched): necromancer "ritual piece" <-
+      dagger_whisper (renamed from thief). New item ids (give each a TEMPORARY effect copied from the retired item purely as a placeholder so the
+      game runs — the real effects are defined in TASK-CLASS-IDENTITY-1): necromancer "ritual piece" <-
       the retired necromancer item with the strongest existing tests (scythe or phylactery — say
       which); paladin "banner" <- anvil; druid "book of familiar" <- staff; druid "elemental bond"
       <- totem; astrologist "orb" <- ranger bow; astrologist "constellation starlight" <- ranger
-      quiver. Retire every other artifact (grimoire, the unused necro item, mage/cleric/runesmith/
-      tidecaller/dawnward/occultist leftovers) — remove from launch_artifacts, keep files under
-      docs/retired/ for history. Do NOT change any effect text or number on any surviving item.
+      quiver. POCKET (never delete) every other class and artifact for a future release — mage, cleric,
+      runesmith, tidecaller, dawnward, occultist, thief, ranger, grimoire/scythe/phylactery/anvil/
+      staff/totem/bow/quiver: move their data to content/pocketed/ and art to
+      client/content/art/pocketed/, out of classes.json and launch_artifacts, and list them in
+      docs/POCKETED_CLASSES.md as "future release". Leave surviving items' effects untouched here.
   (3) Art references (files may not exist yet — TASK-ART-ROSTER-1 creates them; the Reliquary
       silhouette fallback covers a missing file): portraits client/content/art/classes/<id>.png
       for all 7; items client/content/art/artifacts/artf_<class>_<item>.webp using these exact
@@ -472,7 +475,7 @@
       builder, tutorial text, UI strings, docs/export bricks 00/02/04, tests. Save migration: an
       existing save with class "thief" loads as "rogue", "ranger" as "astrologist" (add a headless
       test for both).
-  Acceptance: `grep -rniE 'thief|ranger' content/ client/ pipeline/` returns only docs/retired and
+  Acceptance: `grep -rniE 'thief|ranger' content/ client/ pipeline/` returns only content/pocketed, client/content/art/pocketed, docs/POCKETED_CLASSES.md and
   changelog lines; classes.json has exactly the 7 with the exact item pairs; exactly 14 launch
   artifacts, names matching; all tests green; loop_smoke and input_smoke pass; Choose Your Path
   capture shows the 7 classes in the listed order; migration test green; post the capture and
