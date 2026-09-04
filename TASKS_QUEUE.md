@@ -736,7 +736,7 @@
 
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
-- [ ] TASK-REWARD-SCREEN-1 — Victory and defeat screens become the reward moment. After a win: the
+- [x] TASK-REWARD-SCREEN-1 — Victory and defeat screens become the reward moment. After a win: the
   card(s) dropped by that encounter flip face-up one at a time with a "NEW" ribbon on any card the
   player did not own, shard and dig-charge counters count up, then one clear Continue button.
   After a loss: what was lost (if anything), one Try Again and one Return to Map. No dead space;
