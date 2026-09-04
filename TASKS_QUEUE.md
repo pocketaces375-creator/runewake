@@ -526,7 +526,7 @@
   Acceptance: the full matrix and the per-class table in HERMES_STATUS.md; the numbers actually shipped
   (or "not adopted") stated explicitly; soak + smokes green.
 
-- [ ] TASK-ART-ROSTER-1 — Generate the art for the permanent roster (art FILES ONLY — do not edit any
+- [ ] TASK-ART-ROSTER-1 — PREREQUISITE: before doing anything else, open TASKS_QUEUE.md and confirm TASK-ROSTER-LOCK-1 and TASK-CLASS-IDENTITY-1 are both marked [x]. If either is still [ ], STOP: do not generate any art, do not guess names or mechanics, take no other action, and end the session so this task is retried later. Only once both are [x], proceed with: Generate the art for the permanent roster (art FILES ONLY — do not edit any Generate the art for the permanent roster (art FILES ONLY — do not edit any
   json or code; TASK-ROSTER-LOCK-1 wires the references). FLUX.2 Pro via OpenRouter, style v3.0,
   matching the existing four portraits' framing and palette and the existing artifact tiles' look.
   Portraits needed (client/content/art/classes/<id>.png): astrologist (NEW class — a star-reader with
