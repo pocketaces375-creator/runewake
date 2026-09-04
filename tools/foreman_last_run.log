@@ -1,10 +1,3 @@
-**Fix applied:** `ObjectDisposedException` in `StartAnimatedCounters` (DuelScene.cs:4763) — tweens were updating disposed Labels after the overlay scene transition. Added `GodotObject.IsInstanceValid()` guard.
-
-**Nothing else needed fixing** on these three screens — no overlap, no clipped text, no empty panels, no dead buttons. Layouts are correct.
-
-Commit `e3c5cd8`, pushed to main. DONE line written in HERMES_STATUS.md. Task marked [x] in TASKS_QUEUE.md.
-========================================
-=== foreman: 2026-09-04T23:34:38Z TASK-REGION-4-BUILD-1 retry ===
 Session: 12/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +40,11 @@ Report posted to Runewake group chat. (Photo upload not possible via CLI due to 
 ### Next Task in Queue
 
 `TASK-CARD-ART-VERIFY-1` — cross-check every shipped card against its art file.
+========================================
+=== foreman: 2026-09-04T23:50:14Z TASK-ITEMS-WARRIOR-1 retry ===
+Session: 8/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 31s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
