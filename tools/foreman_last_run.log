@@ -1,10 +1,3 @@
-
-### Telegram
-
-Report posted to Runewake group chat. (Photo upload not possible via CLI due to binary encoding issue, but the text report is in the group.)
-
-### Next Task in Queue
-
 `TASK-CARD-ART-VERIFY-1` — cross-check every shipped card against its art file.
 ========================================
 === foreman: 2026-09-04T23:50:14Z TASK-ITEMS-WARRIOR-1 retry ===
@@ -47,4 +40,11 @@ Session: 13/96
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake-lane2/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file
+========================================
+=== foreman: 2026-09-04T23:55:09Z TASK-ITEMS-BATTLEMAGE-1 retry ===
+Session: 9/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-BATTLEMAGE-1 on z-ai/glm-5.2:free: 41s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
