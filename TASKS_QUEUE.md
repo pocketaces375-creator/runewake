@@ -146,7 +146,7 @@
   in the region json.
   Acceptance: a duel capture and a map capture with the Ember skin active; ui_lint green.
 
-- [ ] TASK-ITEMS-0 — Artifact variant files: the engine and client load every content/artifacts/variants/*.json
+- [x] TASK-ITEMS-0 — Artifact variant files: the engine and client load every content/artifacts/variants/*.json
   in addition to launch_artifacts.json (same schema, same validation), so each class's extra artifacts live
   in their own file and lanes never edit the same file. Reliquary and deck builder list variants under their
   class and slot_pool exactly like launch artifacts; the Reliquary silhouette fallback covers missing art.
