@@ -8,6 +8,6 @@
   "blocked_notified": false,
   "consecutive_transients": 0,
   "transient_notified": false,
-  "no_progress_count": 0,
+  "no_progress_count": 1,
   "validated_count": 0
 }

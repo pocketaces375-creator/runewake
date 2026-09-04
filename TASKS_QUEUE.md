@@ -760,7 +760,7 @@
   Acceptance: victory capture showing a NEW-card reveal, defeat capture, both resolutions; ui_lint
   incl. EMPTY_BODY green; loop_smoke passes; one sentence on what a player feels at the win.
 
-- [ ] TASK-COLLECTION-1 — A Collection browser a player can reach from the Reliquary and the title.
+- [x] TASK-COLLECTION-1 — A Collection browser a player can reach from the Reliquary and the title.
   Grid of every card the player owns, NEW badge on cards never opened in the browser (badge clears
   on view), stratum filter chips (44px real buttons, selected state), tap a card for the full
   face. Owned-count and total in the header. Uses the same card frame as everywhere else.
