@@ -1,10 +1,3 @@
-3. **CampaignContext.cs** — Added:
-   - `ArenaMode`, `ArenaCurrentOpponent`, `ArenaCaptureTest`, `ArenaSoakActive/Remaining/Seed` flags
-   - `ArenaOpponentDef` class with `DisplayName`, `Id`, `Deck`, `IsWarden`
-   - `ArenaOpponentPool` — built from all 7 class starter decks + every encounter deck
-   - `BuildArenaOpponentPool()` and `PickArenaOpponent(ulong seed)` methods
-
-4. **Main.cs** — Added "Arena" button between Decks and Reliquary, shifted Reliquary/Settings down
 
 5. **ArenaScene.cs** — Full scene with:
    - Deck list (saved decks + campaign deck fallback)
@@ -47,4 +40,11 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-0 on deepseek/deepseek-v4-flash: 622s
 TASK-ITEMS-0: `content/artifacts/variants/*.json` now load alongside `launch_artifacts.json` across engine, client, and sim; the Reliquary shows all 15 artifacts (14 launch + 1 fixture) under an ARTIFACTS section with class/slot_pool tags and silhouette fallback for missing art; 828/828 tests green, loop_smoke and input_smoke both PASS, and the fixture variant (`Fixture Blade`, `res://content/artifacts/artf_warrior_fixture_blade.webp`) renders in the Reliquary capture with its dark-silhouette fallback — committed at `f82da25`.
+========================================
+=== foreman: 2026-09-04T22:20:07Z TASK-ITEMS-WARRIOR-1 retry ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-WARRIOR-1 on z-ai/glm-5.2:free: 32s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
