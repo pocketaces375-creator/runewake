@@ -743,7 +743,7 @@
   that WAVE-1's sim report showed as weak).
   Acceptance: as TASK-CARD-WAVE-1.
 
-- [ ] TASK-ART-WAVE-2 — AFTER: TASK-CARD-WAVE-2. Same playbook rules as TASK-ART-WAVE-1. As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
+- [x] TASK-ART-WAVE-2 — AFTER: TASK-CARD-WAVE-2. Same playbook rules as TASK-ART-WAVE-1. As TASK-ART-WAVE-1, for TASK-CARD-WAVE-2.
   Acceptance: as TASK-ART-WAVE-1.
 
 - [ ] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
