@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnjtemqe6hr3p"
-path="res://.godot/imported/emb_r_phoenix_ash.webp-060d3961c192097f3b5ef05bc9b2c65a.ctex"
+uid="uid://embrphoenixash"
+path="res://.godot/imported/emb_r_phoenix_ash.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/emb_r_phoenix_ash.webp"
-dest_files=["res://.godot/imported/emb_r_phoenix_ash.webp-060d3961c192097f3b5ef05bc9b2c65a.ctex"]
+dest_files=["res://.godot/imported/emb_r_phoenix_ash.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
 
 [params]
 
@@ -29,6 +29,5 @@ process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
-process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b72jgdtjnep0u"
-path="res://.godot/imported/emb_r_inferno_burst.webp-4e3aff98e5d1d5871bec135d20383ec0.ctex"
+uid="uid://embrinfernoburst"
+path="res://.godot/imported/emb_r_inferno_burst.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/emb_r_inferno_burst.webp"
-dest_files=["res://.godot/imported/emb_r_inferno_burst.webp-4e3aff98e5d1d5871bec135d20383ec0.ctex"]
+dest_files=["res://.godot/imported/emb_r_inferno_burst.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
 
 [params]
 
@@ -29,6 +29,5 @@ process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
-process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

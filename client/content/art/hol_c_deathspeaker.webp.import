@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://holxaelinsseal"
-path="res://.godot/imported/hol_x_aelins_seal.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
+uid="uid://holcdeathspeaker"
+path="res://.godot/imported/hol_c_deathspeaker.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://content/art/hol_x_aelins_seal.webp"
-dest_files=["res://.godot/imported/hol_x_aelins_seal.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
+source_file="res://content/art/hol_c_deathspeaker.webp"
+dest_files=["res://.godot/imported/hol_c_deathspeaker.webp-f4c67c68ba238300a1e1f1f13cbbbae9.ctex"]
 
 [params]
 
