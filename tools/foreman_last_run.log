@@ -1,40 +1,3 @@
-- `content/pocketed/artifacts_pocketed.json` — all 16 retired artifacts
-- `client/content/art/pocketed/classes/` — 8 retired class portraits
-- `client/content/art/pocketed/artifacts/` — all retired artifact art files
-- `docs/POCKETED_CLASSES.md` — full listing for future release
-
-**3. Starter decks rewritten:**
-- `client/content/decks/starter_decks.json` — `thief` → `rogue`, `ranger` → `astrologist`, `astrologist` starter deck added
-
-**4. Engine code updated:**
-- `engine/Cards/ArtifactDef.cs` — comment updated
-- `engine/State/PlayerState.cs` — comment updated
-- `sim/BatchRunner.cs` — ClassArtifactMap has new 7 classes with correct IDs
-
-**5. Client code updated:**
-- `client/scripts/DuelScene.cs` — `artf_thief_dagger_dusk` → `artf_rogue_dagger_dusk` (2 references)
-- `client/scripts/DeckBuilderScene.cs` — ranger → astrologist strata filter, class colors updated
-- `client/scripts/CampaignContext.cs` — `MigrateLegacyClassIds()` added, called on profile load; changes thief → rogue, ranger → astrologist in both profiles and deck library
-
-**6. Pipeline updated:**
-- `pipeline/gen_class_portraits.py` — updated with new 7-class roster
-
-**7. Test files updated:**
-- All 35 `artf_thief_*` / `artf_ranger_*` / `artf_necromancer_grimoire` / `artf_necromancer_phylactery` references in test files updated to new IDs
-- `CadencePassiveTests.cs` — fixed to test `artf_astrologist_orb` and `artf_druid_elemental_bond`
-- `CostModTests.cs` — fixed to test `artf_battlemage_wand`/`artf_battlemage_aura` (placeholder BUFFs)
-
-**8. Build + tests:**
-- Build: 0 errors
-- Tests: 789/789 passed
-
-**9. Art files:**
-- All renamed: thief dagger art → rogue dagger art, ranger bow/quiver → astrologist orb/starlight, etc.
-- New item art copies created (book_of_familiar from staff, elemental_bond from totem, ritual_piece from phylactery, banner from anvil)
-- Old art moved to pocketed
-
-### ❌ NOT DONE (ran out of iterations)
-- `tools/finish_task.sh` not run (needs Godot/headless setup I can't fully verify)
 - Smoke scripts not run (input_smoke, loop_smoke — need Godot headless)
 - `docs/export/02carddatabase.md` — partially updated via script but needs verification
 - Save migration headless test not yet written (needs Godot test infrastructure)
@@ -47,4 +10,41 @@
 Session: 11/96
 --- session tail ---
   Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+========================================
+=== foreman: 2026-09-04T03:11:33Z TASK-CLASS-IDENTITY-1A success ===
+Session: 12/96
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+I've implemented the core changes but hit the tool call limit before the final verification steps.
+
+## What's been done:
+
+**Engine (5 files modified):**
+- `engine/Cards/CardEnums.cs` — Added `SCY` op
+- `engine/Engine/EffectExecutor.cs` — Added `ApplyScry()` method and SCY dispatch
+- `engine/Engine/TargetResolver.cs` — Added `SELF_ARTIFACT` scope resolution
+- `engine/Engine/DuelEngine.cs` — Added `AutoGainCharges()` for `on_turn_start`/`on_turn_end`, wired both into turn lifecycle
+- `engine/State/ArtifactSlot.cs` — Added `AutoChargeGainOn` field with clone support
+- `engine/State/GameState.cs` — Stores `chargeCfg.GainOn` during artifact init
+- `engine/Cards/RulesTextRenderer.cs` — Added SCY rendering ("Scry N")
+
+**Data (5 files modified):**
+- `content/cards/tide.json` — Added `tid_c_star_reader` (on play: scry 2)
+- `content/classes.json` — Astrologist core_cards set to 4 Tide cards
+- `content/artifacts/launch_artifacts.json` — Seer's Orb (auto-charge turn start, Full→draw 2 + reset) and Constellation Starlight (auto-charge turn end, Full→4 damage all enemy creatures + reset)
+- `client/content/artifacts/launch_artifacts.json` — Mirror of content artifacts
+- `client/content/decks/starter_decks.json` — Astrologist deck rebuilt with 12 Tide cards + neutrals, hard-30 singleton
+
+**Tests (1 file modified, 2 failures fixed):**
+- `tests/Engine/AstrologistIdentityTests.cs` — 7 tests: Orb charge gain, Orb max→Full(reset), Starlight charge gain, Starlight Starfall damage, Starlight empty lanes, Starlight ignores Guard, Star-Reader scry
+- Fixed `CadencePassiveTests.cs` (removed `SET_PREY` reference for old Orb)
+- Fixed `RegionOneIntegrationTests.cs` card count (65→66)
+
+**Build status:** All 7 Astrologist tests pass. The full suite showed 792/794 green before I fixed the two expected failures, so should be 794/794 now.
+
+## What's left (one session):
+1. `dotnet build tests/ && dotnet test tests/` — verify 794/794 green
+2. `tools/finish_task.sh TASK-CLASS-IDENTITY-1A "Astrologist becomes a real class..."` — runs the full gate (build, tests, captures, input_smoke, loop_smoke, commit, push, DONE in HERMES_STATUS.md, [x] in TASKS_QUEUE.md)
+
+The auto-charge system (`on_turn_start`, `on_turn_end` via `AutoGainCharges()`) handles the timing requirement naturally — Seer's Orb gets 1 charge at turn start (before draw, so the draw-2 on full happens immediately), and Constellation Starlight gets 1 charge at turn end (so 3 turns to charge, then Starfall triggers and resets).
 ========================================
