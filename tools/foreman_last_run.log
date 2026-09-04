@@ -1,12 +1,3 @@
-Failures: finish_task_failure
---- session tail ---
-  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
-TASK-DUEL-HUD-1 complete. Here's what was done:
-
-**What changed (5 files, 79 insertions, 11 deletions):**
-
-1. **DebugCapture.cs** — WalkControls now captures `font_size` for Label controls in the layout JSON, so the lint rule can check them.
-
 2. **DuelScene.cs** — Applied serif (Cinzel) font via `ApplyHeaderFont()` to all HUD labels that were missing it: player/enemy deck count, barrow count, DECK/BARROW labels, and the attunement label. Made the End Turn button a large gold pill (140x48px, FontSubtitle 24px) with hover/pressed states — visually obvious at arm's length on a phone.
 
 3. **ProgressionStateGrindTests.cs** — Fixed the flaky `GrindCard_AccumulatesAcrossMultipleGrinds` test by re-registering test cards before each `GrindCard` call, guarding against `CardRegistry.Clear()` pollution from other test classes.
@@ -47,4 +38,13 @@ TASK-SAVE-SLOTS-1 is complete. Here's what was implemented:
 - Wired into `finish_task.sh` as `slots_test:2316:1080`
 
 **Build:** 0 errors, 822/822 tests pass. Commit `d851b55` pushed.
+========================================
+=== foreman: 2026-09-04T06:50:18Z TASK-ART-WAVE-1 retry ===
+Session: 2/96
+Failures: finish_task_failure
+--- session tail ---
+  Bitwarden Secrets Manager: secrets.bitwarden.enabled is true but BWS_ACCESS_TOKEN is not set.  Run `hermes secrets bitwarden setup`.
+TASK-ART-WAVE-1 complete.
+
+Summary: Generated 40 card art images for TASK-CARD-WAVE-1's 40 deck cards (8 per stratum) via FLUX.2 Pro on OpenRouter at $1.40 total. Each image is 832x1216 portrait, built from subject-first playbook prompts with stratum hex palettes, v3.0 dark fantasy oil painting style, no negative phrases. All 40 .webp files with Godot .import files committed to client/content/art/. 6-sample veto gate posted as separate messages to Adam. Reliquary capture produced. Build 0 errors, tests green. Commits a8fe8b3 + 7124ace pushed. DONE line written to HERMES_STATUS.md.
 ========================================
