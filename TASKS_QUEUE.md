@@ -716,7 +716,7 @@
   Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
   posted.
 
-- [ ] TASK-ART-AUDIT-1 — Bring the 65 existing card images up to the new bar. Score every file in
+- [x] TASK-ART-AUDIT-1 — Bring the 65 existing card images up to the new bar. Score every file in
   client/content/art (64px distinct-colour count, plus tools/art_check.py) and list the worst 20 in
   docs/ART_AUDIT.md with their score. Regenerate those 20 with docs/ART_PROMPT_PLAYBOOK.md prompts built
   from each card's name, stratum and flavor text — subject first, stratum hex palette, 832x1216, no negative
