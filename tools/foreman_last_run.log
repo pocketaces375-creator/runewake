@@ -1,24 +1,3 @@
-| (d) Combined | 52.5% | 8.3 | 15.6pp |
-
-- **829/829 tests pass** (no regression)
-- **Commit `ec0ca00`** pushed
-- **Report sent to Runewake Telegram group**
-- **Fable decides what ships** — all flags default to false/off
-========================================
-=== foreman: 2026-09-05T00:31:38Z TASK-TITLE-SLOTS-1 retry ===
-Session: 15/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-TITLE-SLOTS-1 on deepseek/deepseek-v4-flash: 607s
-TASK-TITLE-SLOTS-1 is complete. Here's the summary:
-
-**Changes made (11 files, +1192/-444):**
-
-- **Main.cs** — Replaced `BuildSlotPicker()` (3-slot HBoxContainer) with a single centered campaign panel showing the current account. When a save exists: class portrait, name, progress, "Continue" + "Delete" buttons. When empty: "No Campaign" with "New Campaign" button. Added "Create New Account" button below → opens accounts carousel.
-
-- **AccountsCarouselScene.cs** (new) — Rotating carousel in ChooseYourPath style. One card per account (portrait, name, progress) + "New Account" card with "+" icon at end. Tap to switch accounts (back to title), tap New to create (→ ChooseYourPath), delete with confirmation dialog.
-
-- **AccountsCarouselScene.tscn** (new) — Minimal scene.
 
 - **CampaignContext.cs** — Added `CaptureAccountsCarouselScreenshot` flag.
 
@@ -47,4 +26,25 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 24s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T00:55:18Z TASK-ENGINE-GHOST-1 success ===
+Session: 12/96
+--- session tail ---
+  session TASK-ENGINE-GHOST-1 on deepseek/deepseek-v4-flash: 537s
+All done. Here's the summary:
+
+**TASK-ENGINE-GHOST-1** — Seat-agnostic opening rules:
+
+1. **GameConfig** — added `OpeningRuleOwner` (int, default=1 for campaign backward compat)
+2. **GameState** — added `OpeningRuleOwner` field, included in clone + hash + Initialize
+3. **OpeningRuleHandler** — `ApplyRootChoked` now buries `Players[1-owner].Lanes[0]` (opponent's leftmost lane); `CheckRootChokedLift` lifts when `deadCreaturePlayerIndex == owner` instead of hardcoded `== 1`
+4. **BatchConfig/BatchRunner** — carries and passes `OpeningRuleOwner` through to GameConfig
+5. **Client** — banner "LIFTED" check reads `st.OpeningRuleLifted[st.OpeningRuleOwner]` instead of `[1]`
+6. **Seat test** — `OpeningRule_SeatAgnostic_Symmetry` runs root_choked from seat 0 and seat 1 with swapped decks, asserts boss win rate differs < 15% between seats (P0/P1 first-turn asymmetry is the only remaining variance)
+
+**Results:**
+- `dotnet test`: 830/830 passed (both opening rule tests)
+- Commit: `b09e8e7` (pushed to main)
+- No content changes (no card/artifact values touched)
+- TASKS_QUEUE.md marked `[x]`, DONE line written in HERMES_STATUS.md
 ========================================
