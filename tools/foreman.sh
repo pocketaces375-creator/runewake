@@ -42,7 +42,7 @@ set -euo pipefail
 # ── Config ───────────────────────────────────────────────────────────────────
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
-FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-2700}"
+FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-1800}"
 FOREMAN_MODEL_FALLBACK="${FOREMAN_MODEL_FALLBACK:-}"
 FOREMAN_PROFILE="${FOREMAN_PROFILE:-runewake}"
 FOREMAN_MAX_TURNS="${FOREMAN_MAX_TURNS:-120}"
@@ -615,6 +615,62 @@ fi
 TASK_ID=$(echo "${TOP_TASK}" | cut -d'|' -f1)
 TASK_DESC=$(echo "${TOP_TASK}" | cut -d'|' -f2-)
 info "Top task: ${TASK_ID}"
+
+# ── 3a. DEAD-DEP GATE — park tasks whose AFTER: dependencies are parked or missing ──
+# find_top_task already skips AFTER-blocked tasks. But if the only open tasks are
+# ALL blocked by parked or missing dependencies, the queue is effectively deadlocked.
+# Check: does this task have AFTER: deps that will never resolve? If so, park it
+# immediately instead of burning a session on it.
+_DEAD_DEP=$(python3 - "queue" "${QUEUE_FILE}" "${PROJECT_DIR}/docs/archive/TASKS_DONE.md" "${TASK_ID}" <<'PYDEAD'
+import sys, re
+q = open(sys.argv[2]).read()
+done = ""
+try: done = open(sys.argv[3]).read()
+except: pass
+task_id = sys.argv[4]
+# Read the task's description to find AFTER: deps
+m = re.search(r'^- \[ \] ' + re.escape(task_id) + r'\s*[—–-]\s*(.*)', q, re.M)
+if not m:
+    sys.exit(0)
+desc = m.group(1)
+# Check for AFTER: dependencies
+aft_m = re.search(r'AFTER:\s*((?:TASK-[A-Z0-9-]+[,\s]*)+)', desc)
+if not aft_m:
+    sys.exit(0)
+deps = re.findall(r'TASK-[A-Z0-9-]+', aft_m.group(1))
+for d in deps:
+    # Is the dep [x]? That's fine — not dead.
+    if re.search(r'\[\s*x\s*\]\s*' + re.escape(d) + r'(?![A-Z0-9-])', q + '\n' + done, re.M):
+        continue
+    # Is the dep parked [!]? That's dead — this task can never proceed.
+    if re.search(r'\[\s*!\s*\]\s*' + re.escape(d), q, re.M):
+        print(d + "(parked)")
+        sys.exit(0)
+    # Is the dep not found at all? Also dead.
+    if not re.search(r'TASK-', q, re.M) or not re.search(re.escape(d), q, re.M):
+        print(d + "(missing)")
+        sys.exit(0)
+    # Dep is still [ ] — not dead yet, find_top_task should handle it.
+sys.exit(0)
+PYDEAD
+)
+if [[ -n "${_DEAD_DEP}" ]]; then
+  fail "Parking ${TASK_ID} — blocked by dead AFTER: dependency ${_DEAD_DEP}"
+  python3 - "${TASK_ID}" "${PROJECT_DIR}/TASKS_QUEUE.md" <<'PYDEADPARK'
+import sys,re
+tid,p=sys.argv[1],sys.argv[2]
+s=open(p).read()
+open(p,'w').write(re.sub(r'^- \[ \] '+re.escape(tid)+r'\b','- [!] '+tid,s,count=1,flags=re.M))
+PYDEADPARK
+  echo "- $(today): PARKED ${TASK_ID} — blocked by AFTER: dependency ${_DEAD_DEP} that is parked or missing; awaiting Fable." >> "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
+  git -C "${PROJECT_DIR}" add TASKS_QUEUE.md HERMES_STATUS.md 2>/dev/null || true
+  git -C "${PROJECT_DIR}" -c user.name="Claude" -c user.email="claude@runewake.game" commit -q -m "foreman: park ${TASK_ID} — dead AFTER: ${_DEAD_DEP}" 2>/dev/null || true
+  bash tools/git_push_locked.sh 2>/dev/null || true
+  telegram_text "Parked ${TASK_ID} — blocked by dead AFTER: ${_DEAD_DEP}"
+  set_state "retry_count" 0
+  set_state "retry_task_id" '""'
+  continue
+fi
 
 # ── 3b. PARK check — two failed attempts => park this task, advance, never freeze ──
 if [[ "${TASK_ID}" == "${RETRY_TASK_ID}" ]] && [[ "${RETRY_COUNT}" -ge 2 ]]; then

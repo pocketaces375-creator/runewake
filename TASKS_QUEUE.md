@@ -16,7 +16,7 @@
 
 # ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
 
-- [ ] TASK-TITLE-ANIM-1 — AFTER: TASK-ART-RUNEWHEEL-1. Make the title screen alive. Trikzos wants the
+- [ ] TASK-TITLE-ANIM-1 — Make the title screen alive. Trikzos wants the
   great rune wheel behind the waterfall turning forever. Fable delivers the wheel as its own transparent
   PNG at client/content/art/title/rune_wheel.png; layer it over the existing hero art, centred on the
   wheel already painted there, and rotate it continuously — one revolution in about 90 seconds, linear,
@@ -38,7 +38,7 @@
   Acceptance: Druid mirror within [40,60]; Druid-as-P1 vs Warrior above 15%; dotnet test green; no card
   or artifact values change; the DONE line names the file and line that was wrong.
 
-- [ ] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. The three overpowered classes share one item.
+- [!] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
   In content/artifacts/launch_artifacts.json the Warrior Sword, Paladin Hammer and Battlemage Wand all
   carry the identical passive "+1 attack to EVERY attacking creature" (BUFF, filter ATTACKING, count ALL).
   Make them three different, weaker items: SWORD (Warrior) — +1 attack to the FIRST attacker each turn
@@ -53,7 +53,7 @@
   points and no class that was inside [40,60] leaves it; dotnet test green; no non-artifact card changes;
   one plain paragraph to the group with the 7 numbers.
 
-- [ ] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. Whisperfang (artf_rogue_dagger_whisper) has no
+- [!] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. PARKED by dead dependency chain — tuner task is parked. Whisperfang (artf_rogue_dagger_whisper) has no
   passive and no trigger in launch_artifacts.json — it is a blank item unless the engine implements the
   TWIN rule from CLASS-IDENTITY-1C somewhere. Find out: grep the engine for the twin/second-dagger rule.
   If it exists, document in the artifact's flavor/rules text what it does and add a test proving it fires.
@@ -216,7 +216,7 @@
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
 - [!] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
-  Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0, TASK-ROSTER-LOCK-1.
+  Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
   DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
   DAGGER: "Lockpick" — passive: your first creature each turn costs 1 less; +1 charge per discounted play; full (3): draw 2.
