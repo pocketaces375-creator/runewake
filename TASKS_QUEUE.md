@@ -156,7 +156,7 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [ ] TASK-PERF-1 — Get the APK under 150MB. It is 308MB today and that is very likely why it will
+- [x] TASK-PERF-1 — Get the APK under 150MB. It is 308MB today and that is very likely why it will
   not install on Trikzos' phone (Android needs roughly 2-3x the APK size free to install, and it fails
   silently when it cannot get it). Fable measured the current contents, so do not re-measure, fix these:
   (1) 207MB is 206 imported textures (assets/.godot/imported/*.ctex) — the card and portrait art is
