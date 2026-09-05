@@ -365,8 +365,11 @@ public class CadencePassiveTests
         var trigger = byId["artf_druid_elemental_bond"].GetProperty("trigger");
         Assert.Equal("ON_TURN_START", trigger.GetProperty("trigger").GetString());
         var effects = trigger.GetProperty("effects");
-        Assert.Equal(2, effects.GetArrayLength());
+        // One effect: tend the most wounded ally (+2 vigor). It used to ALSO grant ROOTED here, which
+        // re-rooted a different ally every turn until no Druid creature could attack. Rooting belongs
+        // to the full-charge effect, which anchors ONE creature deliberately.
+        Assert.Equal(1, effects.GetArrayLength());
         Assert.Equal("BUFF", effects[0].GetProperty("op").GetString());
-        Assert.Equal("GRANT_KEY", effects[1].GetProperty("op").GetString());
+        Assert.DoesNotContain("ROOTED", trigger.ToString());
     }
 }

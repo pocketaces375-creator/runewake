@@ -93,8 +93,7 @@
     "name": "Elemental Bond",
     "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
     "trigger": { "trigger": "ON_TURN_START", "effects": [
-      { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1 }, "attack": 0, "vigor": 2, "duration": "PERMANENT" },
-      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1 }, "keyword": "ROOTED" }
+      { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "MOST_WOUNDED", "count": 1 }, "attack": 0, "vigor": 2, "duration": "PERMANENT" }
     ] },
     "full_charge": [
       { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "KEYWORD:ROOTED", "count": 1, "tiebreak": "OLDEST_IN_PLAY" }, "attack": 2, "vigor": 2, "duration": "PERMANENT" },
