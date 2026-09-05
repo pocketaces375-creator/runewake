@@ -3,13 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://852c4c50e2a5"
-path="res://.godot/imported/artf_astrologist_twin_stars.webp-266a5fe9f8771390ff169a36fdfae2cc.ctex"
-metadata={"vram_texture": false}
+path="res://.godot/imported/artf_astrologist_twin_stars.webp-770172d82699b6fa078c8c094e67419d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_astrologist_twin_stars.webp"
-dest_files=["res://.godot/imported/artf_astrologist_twin_stars.webp-266a5fe9f8771390ff169a36fdfae2cc.ctex"]
+dest_files=["res://.godot/imported/artf_astrologist_twin_stars.webp-770172d82699b6fa078c8c094e67419d.ctex"]
 
 [params]
 

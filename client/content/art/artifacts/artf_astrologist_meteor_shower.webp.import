@@ -2,14 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://61e939d4b2a9"
-path="res://.godot/imported/artf_astrologist_meteor_shower.webp-bb896d7ad98aab169ec0c598bd646c3e.ctex"
-metadata={"vram_texture": false}
+uid="uid://61fa4ad4b2ba"
+path="res://.godot/imported/artf_astrologist_meteor_shower.webp-874fd2fbd350b76637fa96634446777c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_astrologist_meteor_shower.webp"
-dest_files=["res://.godot/imported/artf_astrologist_meteor_shower.webp-bb896d7ad98aab169ec0c598bd646c3e.ctex"]
+dest_files=["res://.godot/imported/artf_astrologist_meteor_shower.webp-874fd2fbd350b76637fa96634446777c.ctex"]
 
 [params]
 

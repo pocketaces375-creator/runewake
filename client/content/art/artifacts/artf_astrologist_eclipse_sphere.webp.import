@@ -2,14 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://97d9ba0ad6d2"
-path="res://.godot/imported/artf_astrologist_eclipse_sphere.webp-44afaa8bbab03ababd661cfc3f501941.ctex"
-metadata={"vram_texture": false}
+uid="uid://ba7eaba0ad6d2"
+path="res://.godot/imported/artf_astrologist_eclipse_sphere.webp-d0617016d8fe66dcdc87463fbec66776.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_astrologist_eclipse_sphere.webp"
-dest_files=["res://.godot/imported/artf_astrologist_eclipse_sphere.webp-44afaa8bbab03ababd661cfc3f501941.ctex"]
+dest_files=["res://.godot/imported/artf_astrologist_eclipse_sphere.webp-d0617016d8fe66dcdc87463fbec66776.ctex"]
 
 [params]
 

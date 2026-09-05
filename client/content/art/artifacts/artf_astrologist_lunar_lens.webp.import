@@ -2,14 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://559c3740b67c"
-path="res://.godot/imported/artf_astrologist_lunar_lens.webp-0630de72f8f0bab8e94244d9d269c4bb.ctex"
-metadata={"vram_texture": false}
+uid="uid://56ac3740b67c"
+path="res://.godot/imported/artf_astrologist_lunar_lens.webp-1668d328a08f288d2df707c21f77137f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_astrologist_lunar_lens.webp"
-dest_files=["res://.godot/imported/artf_astrologist_lunar_lens.webp-0630de72f8f0bab8e94244d9d269c4bb.ctex"]
+dest_files=["res://.godot/imported/artf_astrologist_lunar_lens.webp-1668d328a08f288d2df707c21f77137f.ctex"]
 
 [params]
 
