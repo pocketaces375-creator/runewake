@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/ambient_reach.ogg-6dfa278f21337c0641f7ae54a31
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0
