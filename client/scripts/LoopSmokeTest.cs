@@ -176,6 +176,20 @@ public partial class LoopSmokeTest : Node
     // ════════════════════════════════════════════════════
     private void TickChoosePath(Node scene, string name)
     {
+        // Soak mode auto-begins half a second after this scene loads, so on a fast machine the
+        // screen can be gone before this phase's settle window opens. Landing on the Map is exactly
+        // what Choose Your Path is supposed to produce, so treat it as the step succeeding — not as
+        // a missing screen. (Before this, a faster Choose Your Path screen read as a broken game and
+        // stopped every lane.)
+        if (name.Contains("Map"))
+        {
+            GD.Print("[LoopSmokeTest] ChoosePath already auto-began — on the Map, continuing");
+            _noProgressCounter = 0;
+            _settleFrames = 0;
+            SetPhase(Phase.SoakRunning);
+            return;
+        }
+
         if (!name.Contains("Choose"))
         {
             _noProgressCounter++;
