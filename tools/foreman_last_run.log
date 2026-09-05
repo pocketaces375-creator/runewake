@@ -1,10 +1,3 @@
-**TASK-ENGINE-FIRST-PLAYER-1** — Mirror matchups must be a coin flip.
-
-### What was wrong
-`engine/Engine/DuelEngine.cs` line 103: `firstPlayerSkipsDraw = CurrentPlayerIndex == 0 && TurnNumber == 1`. Dead code — `TurnNumber` is incremented to 2 when `CurrentPlayerIndex` wraps back to 0, so the condition never evaluates true. P0 never skipped their turn-1 draw.
-
-### Fix
-Changed to `!state.HasSkippedFirstDraw` with an `else state.HasSkippedFirstDraw = true` branch. Added `HasSkippedFirstDraw` flag to `GameState` with clone + hash support. The draw skip now fires exactly once, for P0 only.
 
 ### Before/After mirror P0 win rates (200 games, seed 42, GreedyBot)
 
@@ -46,5 +39,12 @@ Session: 11/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-BATTLEMAGE-1 on z-ai/glm-5.2:free: 43s
+API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T00:15:00Z TASK-ITEMS-NECROMANCER-1 retry ===
+Session: 12/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-NECROMANCER-1 on z-ai/glm-5.2:free: 24s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
