@@ -1,10 +1,3 @@
-**Results (14,000 games, seed 42):**
-
-| Variant | Overall P0 | Avg Turns | Fast→Slow Gap |
-|---------|-----------|-----------|---------------|
-| (a) Vigor 20 | 52.7% | 8.4 | 15.2pp |
-| (b) INVOKE | 48.7% | 9.3 | 20.8pp |
-| (c) ALTAR | 48.5% | 9.2 | 19.8pp |
 | (d) Combined | 52.5% | 8.3 | 15.6pp |
 
 - **829/829 tests pass** (no regression)
@@ -46,5 +39,12 @@ Session: 14/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-PALADIN-1 on z-ai/glm-5.2:free: 25s
+API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T00:39:56Z TASK-ITEMS-DRUID-1 retry ===
+Session: 15/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 24s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
