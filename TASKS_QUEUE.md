@@ -371,7 +371,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+- [!] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
   WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
