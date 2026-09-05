@@ -1,21 +1,3 @@
---- session tail ---
-  session TASK-ITEMS-PALADIN-1 on z-ai/glm-5.2:free: 25s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T00:39:56Z TASK-ITEMS-DRUID-1 retry ===
-Session: 15/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 24s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T00:55:18Z TASK-ENGINE-GHOST-1 success ===
-Session: 12/96
---- session tail ---
-  session TASK-ENGINE-GHOST-1 on deepseek/deepseek-v4-flash: 537s
-All done. Here's the summary:
-
-**TASK-ENGINE-GHOST-1** — Seat-agnostic opening rules:
 
 1. **GameConfig** — added `OpeningRuleOwner` (int, default=1 for campaign backward compat)
 2. **GameState** — added `OpeningRuleOwner` field, included in clone + hash + Initialize
@@ -47,4 +29,22 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T05:00:08Z TASK-APK-SHIP-6 success ===
+Session: 1/96
+--- session tail ---
+  session TASK-APK-SHIP-6 on deepseek/deepseek-v4-flash: 923s
+**TASK-APK-SHIP-6 — Content build shipped (Phase C checkpoint)**
+
+Release URL: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-09-05-content/Runewake-release.apk
+Size: 309.8MB (324,900,552 bytes)
+SHA-256: 85ad0880a43190c78feb4528d9b977d97f75a13818dc4fa5fbb034b410be4eab
+Tag: alpha-2026-09-05-content (versionCode=16)
+PLAYABLE.json: playable=true
+Preflight: 9/9 PASS (signed, zip integrity, manifest, orientation landscape, versionCode 16 > 15)
+Round-trip SHA: ✅ verified from GitHub CDN
+Region 2 map capture: artifacts/captures/map_test_r2.png committed
+Tests: 830/830 dotnet tests pass
+
+Stopping — task complete.
 ========================================
