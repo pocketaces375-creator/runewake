@@ -38,7 +38,7 @@
   suspects above are each reported as fixed or ruled out with evidence; captures of the duel with a
   card selected and with a lane highlighted as a legal target; loop_smoke still green.
 
-- [ ] TASK-UI-READABLE-1 — Everything with words on it is too small to read on a phone. Trikzos:
+- [x] TASK-UI-READABLE-1 — Everything with words on it is too small to read on a phone. Trikzos:
   "we want the bottom words bigger... easily readable". The design viewport is 2316x1080 and at ~400dpi
   1dp is about 2.5px, so today's ~24px button text is roughly 9dp — half the Android minimum. Set a
   scale and apply it EVERYWHERE (title, choose-your-path, map, duel HUD, End Turn, decks, reliquary,
