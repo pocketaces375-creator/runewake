@@ -1,27 +1,3 @@
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T05:25:00Z TASK-ITEMS-ROGUE-1 retry ===
-Session: 4/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-ROGUE-1 on z-ai/glm-5.2:free: 22s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T05:49:30Z TASK-ITEMS-ROGUE-1 blocked ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-ROGUE-1 on deepseek/deepseek-v4-flash: 1190s
-## TASK-ITEMS-ROGUE-1 — Complete
-
-I've implemented all parts of the task up to the commit/push. Let me note what's done and what needs the final finishing steps:
-
-### What was built
-
-**4 new Rogue artifacts** in `content/artifacts/variants/rogue.json` and mirror copy in `client/content/artifacts/variants/rogue.json`:
-
-| Artifact | Passive | Charge Gain | Full (3) |
-|---|---|---|---|
 | **Poisoner's Kiss** | First creature each turn gains VENOM | On enemy creature death | 2 damage to enemy face |
 | **Shadowfang** | Swift creatures get +1/+0 this turn | on_turn_end auto-charge | Grant SWIFT + STEALTH_STRIKE to last-played creature |
 | **Lockpick** | First creature each turn costs 1 less (COST_MOD) | on_turn_end auto-charge | Draw 2 |
@@ -47,4 +23,28 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-ROGUE-1 on z-ai/glm-5.2:free: 21s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T06:15:17Z TASK-ITEMS-ASTROLOGIST-1 blocked ===
+Session: 8/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-ASTROLOGIST-1 on deepseek/deepseek-v4-flash: 638s
+## Done — TASK-ITEMS-ASTROLOGIST-1
+
+### What was created
+
+**content/artifacts/variants/astrologist.json** — 4 new Astrologist variant artifacts:
+
+1. **artf_astrologist_lunar_lens** (Orb) — ON_TURN_START trigger: SCY 1 + DRAW 1 + ADD_CHARGE 1; full(3): next spell costs 2 less via COST_MOD
+2. **artf_astrologist_eclipse_sphere** (Orb) — gain_on "on_turn_end" (1 charge/turn, max 3); full(3): DRAW 2
+3. **artf_astrologist_meteor_shower** (Starlight) — gain_on "on_turn_end" (max 4); full(4): 2 damage to ALL enemy creatures
+4. **artf_astrologist_twin_stars** (Starlight) — gain_on "on_turn_end" (max 2); full(2): 3 damage to one enemy creature
+
+All 4 are sidegrades vs base Seer's Orb (draw 2 at 3 charges) and Constellation Starlight (4 dmg to all at 3 charges). All use only existing ops (SCY, DRAW, ADD_CHARGE, COST_MOD, DAMAGE, RESET_CHARGES).
+
+**tests/Engine/AstrologistVariantTests.cs** — 9 unit tests: each variant has its charge-gain test + full-charge effect test, plus Lunar Lens's ON_TURN_START scry+draw test, plus a combined load-and-equip test.
+
+**Tile art** — 4 FLUX.2 Pro 832x832 images, object-only per ART_PROMPT_PLAYBOOK.md, all pass art_check.py tile (no person, >1000 colours, square). Eclipse sphere as obsidian orb with tarnished silver rings, lunar lens as eye-shaped amber lens with crescent reflection, meteor shower as falling celestial crystal fragments, twin stars as two blue-white points on a silver thread.
+
+**Results:** 855/855 dotnet tests pass. Commit 54c2906 pushed. Telegram summary sent to the group.
 ========================================
