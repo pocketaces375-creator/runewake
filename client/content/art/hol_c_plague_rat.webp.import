@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds6g4jc7a6vi2"
-valid=false
+path="res://.godot/imported/hol_c_plague_rat.webp-31ca3d74d7ef315fd5b661a6ee92eccd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_c_plague_rat.webp"
+dest_files=["res://.godot/imported/hol_c_plague_rat.webp-31ca3d74d7ef315fd5b661a6ee92eccd.ctex"]
 
 [params]
 

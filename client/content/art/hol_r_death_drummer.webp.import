@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vrw18nictlbd"
-valid=false
+path="res://.godot/imported/hol_r_death_drummer.webp-fea3a15946bd934583bd7adedae33667.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_r_death_drummer.webp"
+dest_files=["res://.godot/imported/hol_r_death_drummer.webp-fea3a15946bd934583bd7adedae33667.ctex"]
 
 [params]
 

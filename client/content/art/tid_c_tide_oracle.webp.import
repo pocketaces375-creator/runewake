@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6eqss14b3fi5"
-valid=false
+path="res://.godot/imported/tid_c_tide_oracle.webp-8baa86b734da9cc023318e05ceaa5786.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_c_tide_oracle.webp"
+dest_files=["res://.godot/imported/tid_c_tide_oracle.webp-8baa86b734da9cc023318e05ceaa5786.ctex"]
 
 [params]
 

@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cbeuxcb2uhxp6"
-valid=false
+path="res://.godot/imported/tid_u_tidal_barrier.webp-ebf5676e46662b9be19e4ef5bcc515df.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_u_tidal_barrier.webp"
+dest_files=["res://.godot/imported/tid_u_tidal_barrier.webp-ebf5676e46662b9be19e4ef5bcc515df.ctex"]
 
 [params]
 

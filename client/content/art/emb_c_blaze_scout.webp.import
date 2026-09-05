@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfs7542tcnf2r"
-valid=false
+path="res://.godot/imported/emb_c_blaze_scout.webp-541ab03dc4359c84521442a0a1643cc2.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/emb_c_blaze_scout.webp"
+dest_files=["res://.godot/imported/emb_c_blaze_scout.webp-541ab03dc4359c84521442a0a1643cc2.ctex"]
 
 [params]
 

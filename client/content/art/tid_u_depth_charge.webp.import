@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://y0qg1jurqo5a"
-valid=false
+path="res://.godot/imported/tid_u_depth_charge.webp-73e32ad8f10294b82be6458001295a8d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_u_depth_charge.webp"
+dest_files=["res://.godot/imported/tid_u_depth_charge.webp-73e32ad8f10294b82be6458001295a8d.ctex"]
 
 [params]
 

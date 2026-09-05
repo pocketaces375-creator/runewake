@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dg6naqw3ky23b"
-valid=false
+path="res://.godot/imported/emb_r_ember_warleader.webp-313bfa45a0856308dc84075d066c290c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/emb_r_ember_warleader.webp"
+dest_files=["res://.godot/imported/emb_r_ember_warleader.webp-313bfa45a0856308dc84075d066c290c.ctex"]
 
 [params]
 

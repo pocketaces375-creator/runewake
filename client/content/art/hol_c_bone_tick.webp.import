@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://holcbonetick"
-valid=false
+path="res://.godot/imported/hol_c_bone_tick.webp-34d27a8bbb8e6ebd8fa9e383c5ed0871.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_c_bone_tick.webp"
+dest_files=["res://.godot/imported/hol_c_bone_tick.webp-34d27a8bbb8e6ebd8fa9e383c5ed0871.ctex"]
 
 [params]
 

@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cf6pn0aml6rur"
-valid=false
+path="res://.godot/imported/dwn_c_sunpearl_healer.webp-c3ac50c0c5f2e72e205ff693e90b3c23.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_c_sunpearl_healer.webp"
+dest_files=["res://.godot/imported/dwn_c_sunpearl_healer.webp-c3ac50c0c5f2e72e205ff693e90b3c23.ctex"]
 
 [params]
 

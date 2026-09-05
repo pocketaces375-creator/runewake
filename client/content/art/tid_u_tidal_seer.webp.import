@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1qehaoacyvdp"
-valid=false
+path="res://.godot/imported/tid_u_tidal_seer.webp-bbb85a39add35d7863d3a3386d30e716.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_u_tidal_seer.webp"
+dest_files=["res://.godot/imported/tid_u_tidal_seer.webp-bbb85a39add35d7863d3a3386d30e716.ctex"]
 
 [params]
 

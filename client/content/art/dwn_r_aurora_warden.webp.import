@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://haugklat1pg8"
-valid=false
+path="res://.godot/imported/dwn_r_aurora_warden.webp-60b936c1676430eacc1648fceb65aa13.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_r_aurora_warden.webp"
+dest_files=["res://.godot/imported/dwn_r_aurora_warden.webp-60b936c1676430eacc1648fceb65aa13.ctex"]
 
 [params]
 

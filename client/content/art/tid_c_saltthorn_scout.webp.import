@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cldncow8snteh"
-valid=false
+path="res://.godot/imported/tid_c_saltthorn_scout.webp-407c88027e942c934ce26923cae123c6.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_c_saltthorn_scout.webp"
+dest_files=["res://.godot/imported/tid_c_saltthorn_scout.webp-407c88027e942c934ce26923cae123c6.ctex"]
 
 [params]
 

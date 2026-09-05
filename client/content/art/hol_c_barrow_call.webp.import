@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdspw31b66ecv"
-valid=false
+path="res://.godot/imported/hol_c_barrow_call.webp-f6c92038a0ff52c8f674f5987ef1fbdd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_c_barrow_call.webp"
+dest_files=["res://.godot/imported/hol_c_barrow_call.webp-f6c92038a0ff52c8f674f5987ef1fbdd.ctex"]
 
 [params]
 

@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdsqcyng14g42"
-valid=false
+path="res://.godot/imported/hol_c_bone_trader.webp-0db0c66397c8bb51f5dc595502183d35.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_c_bone_trader.webp"
+dest_files=["res://.godot/imported/hol_c_bone_trader.webp-0db0c66397c8bb51f5dc595502183d35.ctex"]
 
 [params]
 

@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://tbk32b5i41yj"
-valid=false
+path="res://.godot/imported/emb_c_volcanic_boon.webp-a4903a356fc9e7fb9d9641ba02b8437d.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/emb_c_volcanic_boon.webp"
+dest_files=["res://.godot/imported/emb_c_volcanic_boon.webp-a4903a356fc9e7fb9d9641ba02b8437d.ctex"]
 
 [params]
 

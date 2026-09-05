@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://u73vlo0nfw58"
-valid=false
+path="res://.godot/imported/vrd_c_leaf_mender.webp-7d97c585a2b834801fd39a30c8e9218b.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/vrd_c_leaf_mender.webp"
+dest_files=["res://.godot/imported/vrd_c_leaf_mender.webp-7d97c585a2b834801fd39a30c8e9218b.ctex"]
 
 [params]
 

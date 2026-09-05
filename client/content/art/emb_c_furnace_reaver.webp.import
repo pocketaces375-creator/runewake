@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhrf1y1x7m6ar"
-valid=false
+path="res://.godot/imported/emb_c_furnace_reaver.webp-39570170ccc68d1751fb3f5c92af0e31.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/emb_c_furnace_reaver.webp"
+dest_files=["res://.godot/imported/emb_c_furnace_reaver.webp-39570170ccc68d1751fb3f5c92af0e31.ctex"]
 
 [params]
 

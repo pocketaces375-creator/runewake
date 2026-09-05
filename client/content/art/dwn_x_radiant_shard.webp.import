@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3akn01xsjq26"
-valid=false
+path="res://.godot/imported/dwn_x_radiant_shard.webp-142db1a9e326e241199d3fa305c9cc07.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_x_radiant_shard.webp"
+dest_files=["res://.godot/imported/dwn_x_radiant_shard.webp-142db1a9e326e241199d3fa305c9cc07.ctex"]
 
 [params]
 

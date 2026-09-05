@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://becpw31b7mmko"
-valid=false
+path="res://.godot/imported/hol_u_barrow_rite.webp-9d20bfc0411d5a22ab9951137e3a99c5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_u_barrow_rite.webp"
+dest_files=["res://.godot/imported/hol_u_barrow_rite.webp-9d20bfc0411d5a22ab9951137e3a99c5.ctex"]
 
 [params]
 

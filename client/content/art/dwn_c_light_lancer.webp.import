@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://3be3p80fftd6"
-valid=false
+path="res://.godot/imported/dwn_c_light_lancer.webp-a16f97acefc6c3a163c3581e9ee4cb57.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_c_light_lancer.webp"
+dest_files=["res://.godot/imported/dwn_c_light_lancer.webp-a16f97acefc6c3a163c3581e9ee4cb57.ctex"]
 
 [params]
 

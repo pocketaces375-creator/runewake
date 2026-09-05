@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd2jwvvje1ouf"
-valid=false
+path="res://.godot/imported/dwn_u_vigil_guardian.webp-aa11333d47c94633e0b0a94b99e932bc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_u_vigil_guardian.webp"
+dest_files=["res://.godot/imported/dwn_u_vigil_guardian.webp-aa11333d47c94633e0b0a94b99e932bc.ctex"]
 
 [params]
 

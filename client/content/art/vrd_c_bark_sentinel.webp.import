@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bnpybsi3h22xv"
-valid=false
+path="res://.godot/imported/vrd_c_bark_sentinel.webp-14b27912782a36b95f59425d4f0837e3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/vrd_c_bark_sentinel.webp"
+dest_files=["res://.godot/imported/vrd_c_bark_sentinel.webp-14b27912782a36b95f59425d4f0837e3.ctex"]
 
 [params]
 

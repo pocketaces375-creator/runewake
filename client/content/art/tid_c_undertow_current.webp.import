@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://disd2uwytay4l"
-valid=false
+path="res://.godot/imported/tid_c_undertow_current.webp-ac97ac97614c2cfd2bae3f88d7c5b31f.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_c_undertow_current.webp"
+dest_files=["res://.godot/imported/tid_c_undertow_current.webp-ac97ac97614c2cfd2bae3f88d7c5b31f.ctex"]
 
 [params]
 

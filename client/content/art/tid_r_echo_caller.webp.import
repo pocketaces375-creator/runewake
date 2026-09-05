@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6tbmxcqtfocj"
-valid=false
+path="res://.godot/imported/tid_r_echo_caller.webp-15b42b469e8b7d1dce49edffe493cd3c.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_r_echo_caller.webp"
+dest_files=["res://.godot/imported/tid_r_echo_caller.webp-15b42b469e8b7d1dce49edffe493cd3c.ctex"]
 
 [params]
 

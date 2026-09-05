@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dq0md23nvbhbt"
-valid=false
+path="res://.godot/imported/dwn_c_warden_of_the_light.webp-4f454f6f7bb90010bc07eb8b5ac900bd.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/dwn_c_warden_of_the_light.webp"
+dest_files=["res://.godot/imported/dwn_c_warden_of_the_light.webp-4f454f6f7bb90010bc07eb8b5ac900bd.ctex"]
 
 [params]
 

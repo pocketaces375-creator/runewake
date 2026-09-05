@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://u746426qaydt"
-valid=false
+path="res://.godot/imported/vrd_c_moss_shield.webp-2f6ffd9ef04ed99ec8773f456b2864d0.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/vrd_c_moss_shield.webp"
+dest_files=["res://.godot/imported/vrd_c_moss_shield.webp-2f6ffd9ef04ed99ec8773f456b2864d0.ctex"]
 
 [params]
 

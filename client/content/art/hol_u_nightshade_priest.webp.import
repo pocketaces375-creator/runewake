@@ -3,11 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8415txcf1b5x"
-valid=false
+path="res://.godot/imported/hol_u_nightshade_priest.webp-abd6adf5e9d98d96bc8237acab29ed27.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/hol_u_nightshade_priest.webp"
+dest_files=["res://.godot/imported/hol_u_nightshade_priest.webp-abd6adf5e9d98d96bc8237acab29ed27.ctex"]
 
 [params]
 
