@@ -157,6 +157,9 @@ public static class CampaignContext
     /// <summary>Test hook: capture slot picker, then create a slot, load it, delete it, capture again.</summary>
     public static bool SlotPickerTestMode { get; set; }
 
+    /// <summary>Test hook: capture accounts carousel screenshot.</summary>
+    public static bool CaptureAccountsCarouselScreenshot { get; set; }
+
     /// <summary>Test hook: capture card shop screenshot.</summary>
     public static bool CaptureShopScreenshot { get; set; }
 

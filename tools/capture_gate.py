@@ -1193,6 +1193,8 @@ def validate_settings_capture(png_path, meta):
 VALIDATORS = {
     "title_test": validate_screen_live,
     "title_test_wide": validate_screen_live,
+    "accounts_carousel": validate_screen_live,
+    "accounts_carousel_wide": validate_screen_live,
     "map_test": validate_screen_live,
     "map_test_wide": validate_screen_live,
     "duel_test": validate_duel_test,

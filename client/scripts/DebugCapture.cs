@@ -423,6 +423,21 @@ public partial class DebugCapture : Node
                 CampaignContext.DebugSeed = 42;
                 GD.Print("[DebugCapture] Slot picker wide capture mode enabled: --capture=slots_test_wide");
             }
+            if (arg == "--capture=accounts_carousel")
+            {
+                CampaignContext.CaptureAccountsCarouselScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Accounts carousel capture mode enabled: --capture=accounts_carousel");
+            }
+            if (arg == "--capture=accounts_carousel_wide")
+            {
+                CampaignContext.CaptureAccountsCarouselScreenshot = true;
+                CampaignContext.AutoCaptureScreenshot = true;
+                CampaignContext.WideCaptureMode = true;
+                CampaignContext.DebugSeed = 42;
+                GD.Print("[DebugCapture] Accounts carousel wide capture mode enabled: --capture=accounts_carousel_wide");
+            }
             if (arg == "--capture=map_loop_soak")
             {
                 _active = true;

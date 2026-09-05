@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://accounts_carousel_scene"]
+
+[ext_resource type="Script" path="res://scripts/AccountsCarouselScene.cs" id="1_ac"]
+
+[node name="AccountsCarouselScene" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_ac")
