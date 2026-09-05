@@ -9,11 +9,11 @@ namespace Runewake.Client;
 
 /// <summary>
 /// "CHOOSE YOUR PATH" screen — campaign entry point with looping class carousel.
-/// Layout: title block (fixed, ~6% vh) → carousel (fills) → class-core row (~12% vh, fixed) → Begin button (fixed, padded).
+/// Layout: title block (fixed, ~6% vh) → carousel (fills) → Begin button (fixed, padded).
 /// Centre carousel card >= 55% viewport height; carousel spans >= 70% viewport width.
 /// Neighbour cards are dimmed but art is always visible — never blank.
 /// No card text overlaps any other card's text rect.
-/// CLASS CORE strip small, centred, clearly subordinate, beneath the carousel.
+/// Relic flavour line under the class name on each panel.
 /// BEGIN on its own row at the bottom with >= 24px clearance.
 /// </summary>
 public partial class ChooseYourPathScene : Control
@@ -26,13 +26,22 @@ public partial class ChooseYourPathScene : Control
     private Label _beginLabel;
     private ColorRect _dotsArea;
     private readonly List<ColorRect> _dotIndicators = new();
-    private Control _coreCardsArea;
-    private Label _coreLabel;
-    private HBoxContainer _coreCardRow;
     private Control _carouselClipContainer;
     private Control _carouselSection;
     private readonly List<Control> _panelNodes = new();
     private readonly List<TextureRect> _panelPortraits = new(); // art TextureRect per panel for runtime swap
+
+    // Relic flavour lines — one per class, shown on each carousel panel
+    private static readonly Dictionary<string, string> RelicFlavors = new()
+    {
+        { "warrior", "A blade quenched in the forge-fires of Emberhold, and a shield that has never once been set down." },
+        { "battlemage", "A wand cut from drowned coral, and an aura that answers the tide before the storm breaks." },
+        { "necromancer", "A skull that still remembers its name, and a fetish that drinks the last breath of the fallen." },
+        { "paladin", "A hammer that rings like an oath kept, and a banner the light follows into every shadow." },
+        { "druid", "A book that whispers back, and a bond older than the deep roots." },
+        { "rogue", "Two fangs of dusk — one to open the silence, and one to close it." },
+        { "astrologist", "An orb that holds tomorrow's tide, and a constellation that falls when it is called." },
+    };
 
     // Carousel drag state
     private bool _dragging;
@@ -150,10 +159,7 @@ public partial class ChooseYourPathScene : Control
         // ── 2. Carousel section (fills remaining space via size_flags_vertical=3) ──
         BuildCarouselSection();
 
-        // ── 3. Core cards row (fixed <= 12% viewport height) ──
-        BuildCoreSection();
-
-        // ── 4. Begin button (fixed height, centered, with margin) ──
+        // ── 3. Begin button (fixed height, centered, with margin) ──
         BuildBeginButton();
 
         // Load classes
@@ -343,19 +349,6 @@ public partial class ChooseYourPathScene : Control
                     SnapToIndex(idx);
             };
         }
-    }
-
-    private void BuildCoreSection()
-    {
-        // Core section — <= 12% viewport height, explicitly subordinate
-        float coreSectionH = Mathf.Min(_viewportH * 0.12f, 140f);
-
-        _coreCardsArea = new CenterContainer
-        {
-            CustomMinimumSize = new Vector2(0, coreSectionH),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _mainVBox.AddChild(_coreCardsArea);
     }
 
     private void BuildBeginButton()
@@ -647,127 +640,10 @@ public partial class ChooseYourPathScene : Control
     private void UpdateUI()
     {
         if (_selectedIdx < 0 || _selectedIdx >= _classes.Count) return;
-        var cls = _classes[_selectedIdx];
 
         // Update dots
         for (int i = 0; i < _dotIndicators.Count; i++)
             _dotIndicators[i].Color = i == _selectedIdx ? Gold : TextInactive;
-
-        // Update core cards
-        foreach (var child in _coreCardsArea.GetChildren())
-            child.QueueFree();
-
-        float coreSectionH = _coreCardsArea.Size.Y;
-        float coreAvailH = coreSectionH > 0 ? coreSectionH : Mathf.Min(_viewportH * 0.12f, 140f);
-
-        var strataColor = StrataColor(cls.Strata);
-
-        _coreLabel = new Label
-        {
-            Text = $"CLASS CORE \u2014 four sworn cards every {cls.Name} carries",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            SizeFlagsHorizontal = (SizeFlags)3
-        };
-        ApplyBodyFont(_coreLabel, FontSmall);
-        _coreLabel.AddThemeColorOverride("font_color", TextSecondary);
-
-        // Core cards as a vertical section
-        var coreVBox = new VBoxContainer();
-        coreVBox.SizeFlagsHorizontal = (SizeFlags)3; // Fill width
-        coreVBox.SizeFlagsVertical = (SizeFlags)3; // Fill height
-        coreVBox.AddThemeConstantOverride("separation", 2);
-        coreVBox.MouseFilter = MouseFilterEnum.Ignore;
-        _coreCardsArea.AddChild(coreVBox);
-
-        // Label row
-        coreVBox.AddChild(_coreLabel);
-
-        // Core card row — centred HBox
-        _coreCardRow = new HBoxContainer();
-        _coreCardRow.Alignment = BoxContainer.AlignmentMode.Center;
-        _coreCardRow.AddThemeConstantOverride("separation", 8);
-        _coreCardRow.SizeFlagsHorizontal = (SizeFlags)3;
-        _coreCardRow.SizeFlagsVertical = (SizeFlags)3;
-        coreVBox.AddChild(_coreCardRow);
-
-        // Calculate mini card size — smaller than before, <= 12% vh for the whole section
-        float labelH = 20f;
-        float separationH = 2f;
-        float availForCards = coreAvailH - labelH - separationH - 4f;
-        float miniCardRatio = 152f / 104f;
-        float miniW = _viewportW * 0.055f; // ~127px at 2316
-        if (miniW * miniCardRatio > availForCards)
-            miniW = availForCards / miniCardRatio;
-        if (miniW > 130f) miniW = 130f;
-        if (miniW < 80f) miniW = 80f;
-        float miniH = miniW * miniCardRatio;
-
-        if (miniH < availForCards * 0.80f)
-        {
-            miniH = availForCards * 0.80f;
-            miniW = miniH / miniCardRatio;
-        }
-
-        foreach (var cardId in cls.CoreCardIds)
-        {
-            var def = CardRegistry.Get(cardId);
-            if (def == null) continue;
-
-            var miniCard = BuildCoreMiniCard(def, miniW, miniH, strataColor);
-            _coreCardRow.AddChild(miniCard);
-        }
-    }
-
-    private Control BuildCoreMiniCard(CardDef def, float miniW, float miniH, Color strataColor)
-    {
-        var miniCard = new PanelContainer();
-        miniCard.CustomMinimumSize = new Vector2(miniW, miniH);
-        miniCard.Size = new Vector2(miniW, miniH);
-        miniCard.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#332E28"),
-            BorderColor = strataColor.Darkened(0.4f),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 0, ContentMarginTop = 0,
-            ContentMarginRight = 0, ContentMarginBottom = 0
-        });
-
-        var content = new Control();
-        content.SetAnchorsPreset(LayoutPreset.FullRect);
-        content.MouseFilter = MouseFilterEnum.Pass;
-        miniCard.AddChild(content);
-
-        // Mini card art
-        var miniArt = new TextureRect
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
-        };
-        miniArt.SetAnchorsPreset(LayoutPreset.FullRect);
-        string miniArtPath = $"res://content/art/{def.Id}.webp";
-        if (ResourceLoader.Exists(miniArtPath))
-        {
-            var tex = ResourceLoader.Load<Texture2D>(miniArtPath);
-            if (tex != null)
-                miniArt.Texture = tex;
-        }
-        else
-        {
-            miniArt.Modulate = CardArtColors.Parchment;
-            GD.Print($"[ART-MISSING] {def.Id} (core mini)");
-        }
-        content.AddChild(miniArt);
-
-        // CardPlate overlay — name band, stat chips
-        var plate = new CardPlate();
-        content.AddChild(plate);
-        plate.Setup(def.Name, def.Attack, def.Vigor, def.Strata, miniW, miniH);
-
-        return miniCard;
     }
 
     // ════════════════════════════════════════════════
@@ -943,6 +819,24 @@ public partial class ChooseYourPathScene : Control
         nameLabel.AddThemeConstantOverride("outline_size", 1);
         nameLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
         vbox.AddChild(nameLabel);
+
+        // Relic flavour — one line about the class's two relics
+        string relicText = RelicFlavors.TryGetValue(cls.Id, out var flavor) ? flavor : "";
+        if (!string.IsNullOrEmpty(relicText))
+        {
+            var relicLabel = new Label
+            {
+                Text = relicText,
+                AutowrapMode = TextServer.AutowrapMode.Word,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            ApplyBodyFont(relicLabel, FontTiny);
+            relicLabel.AddThemeColorOverride("font_color", Color.FromHtml("#B8A88A"));
+            relicLabel.AddThemeConstantOverride("outline_size", 1);
+            relicLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
+            vbox.AddChild(relicLabel);
+        }
 
         // Blurb
         var blurbLabel = new Label
