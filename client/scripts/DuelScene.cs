@@ -3172,6 +3172,15 @@ public partial class DuelScene : Control
                     touchUp.Index = 0;
                     touchTargetCard._GuiInput(touchUp);
 
+                    // ...and the emulated mouse click that a real device sends for the same tap.
+                    // Without TapGuard this second event deselects the card and the test fails —
+                    // which is exactly what happened on the phone while this test was passing.
+                    var emulatedDown = new InputEventMouseButton();
+                    emulatedDown.ButtonIndex = MouseButton.Left;
+                    emulatedDown.Pressed = true;
+                    emulatedDown.Position = Vector2.Zero;
+                    touchTargetCard._GuiInput(emulatedDown);
+
                     step = 2; // Wait a tick for state update
                     return;
                 }
@@ -3219,6 +3228,13 @@ public partial class DuelScene : Control
                         laneUp.Pressed = false;
                         laneUp.Index = 0;
                         slot._GuiInput(laneUp);
+
+                        // ...and the emulated mouse click that a real device sends for the same tap.
+                        var laneEmulated = new InputEventMouseButton();
+                        laneEmulated.ButtonIndex = MouseButton.Left;
+                        laneEmulated.Pressed = true;
+                        laneEmulated.Position = Vector2.Zero;
+                        slot._GuiInput(laneEmulated);
 
                         step = 3;
                         return;

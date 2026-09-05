@@ -47,6 +47,7 @@ public partial class MapScene : Control
     // State
     private MapRegion? _region;
     private readonly Dictionary<string, MapNodeIcon> _nodeIcons = new();
+    private readonly TapGuard _tap = new();
     private string? _selectedNodeId;
     private Vector2 _dragStart;
     private Vector2 _containerStartPos;
@@ -1072,6 +1073,9 @@ public partial class MapScene : Control
         }
 
         if (!isTap) return;
+
+        // One finger press is one press: a tap also arrives as an emulated mouse click.
+        if (!_tap.Accept(@event)) return;
 
         // Don't handle taps on the info panel
         if (_infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(screenPos))

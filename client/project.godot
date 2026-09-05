@@ -34,6 +34,8 @@ endpoint=""
 window/size/viewport_width=2316
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation="sensor_landscape"
 
 [dotnet]
 

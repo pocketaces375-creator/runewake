@@ -239,16 +239,14 @@ public partial class HandCard : PanelContainer
         tween.TweenCallback(Callable.From(() => ZIndex = 0));
     }
 
+    private readonly TapGuard _tap = new();
+
     // ——— Click/touch handling via GuiInput ———
     public override void _GuiInput(InputEvent @event)
     {
-        bool pressed = false;
-        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
-            pressed = true;
-        else if (@event is InputEventScreenTouch touch && touch.Pressed)
-            pressed = true;
-
-        if (pressed)
+        // A tap on glass arrives twice — as a touch event and again as the mouse event Godot
+        // emulates from it. TapGuard collapses the pair so one finger press is one press.
+        if (_tap.Accept(@event))
         {
             EmitSignal(SignalName.Pressed);
             GetViewport().SetInputAsHandled();
