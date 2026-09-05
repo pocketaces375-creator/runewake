@@ -12,6 +12,53 @@
 
 # ---- PHASE A FINISH — VERIFY, THEN SHIP ----
 
+# ---- PACKET H (2026-09-05, from the shipped build's own captures) ----
+
+- [ ] TASK-UI-FIT-1 — The readable-text pass overshot and now text is clipping off the screen. In the
+  duel capture from the shipped build: card names are so large they fill the card, every board card's
+  attack and vigor numerals are cut off by the bottom edge, and the End Turn button reads "End Tur"
+  because it runs off the right edge. Trikzos asked for readable, not broken. Keep the PACKET G sizes
+  as a TARGET, then add the rule that was missing: NOTHING may clip, overflow or overlap at either
+  2316x1080 or 2400x1080. Where a label cannot fit at the target size, it shrinks to fit its box (down
+  to a floor of 24px) rather than the box being overrun; where a control runs off screen, its anchor or
+  margin is wrong and must be fixed, never its text truncated. Card names get the existing name-autofit
+  treatment. Check every screen: title, choose-your-path, map, duel, reward, collection, settings, deck
+  forge, reliquary.
+  Acceptance: fresh captures of all nine screens at BOTH resolutions with nothing clipped — say in the
+  DONE line, screen by screen, what the largest text on it is and that it fits; ui_lint green; the End
+  Turn button fully on screen with its whole label.
+
+- [ ] TASK-DUEL-HAND-1 — AFTER: TASK-UI-FIT-1. The hand fan in the shipped capture shows ten cards
+  spilling past the bottom edge of the screen and overlapping each other so heavily that only the name
+  band of each is visible. Whatever the hand size, the fan must stay fully on screen with each card's
+  art readable — that is the part Trikzos cares about most ("we want the art to be the focus of the
+  hand"). Cap the fan width to the safe area, overlap only as much as needed, and scale the cards down
+  before you let them leave the screen. Do not change how many cards a player draws — this is layout.
+  Acceptance: captures at both resolutions with hands of 5, 8 and 10 cards, all fully on screen, art
+  visible on every card; ui_lint green.
+
+- [ ] TASK-ART-FORMAT-GATE-1 — Make the mistake that cost us a day impossible to repeat. 83 art files
+  were PNG bytes saved under a .webp name; Godot picks its importer by extension, so none of them ever
+  loaded in the game, and every import setting written to them was silently reverted. Add to
+  tools/art_check.py (and call it from finish_task.sh) a check that every file under
+  client/content/art has contents matching its extension — read the magic bytes, do not trust the name
+  — and that its .import file does not say valid=false. Any mismatch fails the gate with the file list.
+  Also fix the source: pipeline/gen_image_any.py writes whatever bytes come back under the requested
+  name, so make it re-encode to the requested format before saving.
+  Acceptance: the check catches a deliberately mislabelled test file and passes on the current tree;
+  finish_task.sh runs it; the DONE line states how many files were checked.
+
+- [ ] TASK-PERF-2 — AFTER: TASK-UI-FIT-1. Get the APK from 224MB to under 160MB. Fable already took it
+  from 310MB by repairing the art and capping imported sizes; what remains, measured from the package:
+  122.4MB of textures, 71.8MB of engine .so (untouchable), 11.6MB of static build libraries and 10.3MB
+  of .dll. Two levers left: (1) the card art cap is 640px —try 512 and compare a duel capture side by
+  side with the 640 one; ship 512 only if the difference is invisible at phone size. (2) the *.a static
+  libraries are still in the package despite an exclude_filter, because they are added by the export
+  step rather than being project files — find where they come from (assets/.godot/mono/publish/arm64)
+  and stop them being packaged.
+  Acceptance: before/after size, the two duel captures for the texture comparison, apk_preflight 9/9,
+  loop_smoke green.
+
 # ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
 
 - [x] TASK-INPUT-TOUCH-1 — THE GAME IS UNPLAYABLE ON A PHONE AND THIS IS THE TOP PRIORITY. Trikzos
