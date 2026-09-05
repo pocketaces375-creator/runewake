@@ -17,7 +17,7 @@ CH=$(bash tools/code_hash.sh "$B"); [ -z "$CH" ] && exit 0
 SHA=$(git rev-parse --short HEAD)
 echo "gate: judging code state $CH at $SHA $(date -Is)"
 VERDICT=bad; REASON=""
-if ! nice -n 10 dotnet build "$B/Runewake.sln" -c Debug --nologo >/tmp/runewake_gate_build.log 2>&1; then
+if ! { nice -n 10 dotnet build "$B/Runewake.sln" -c Debug --nologo && nice -n 10 dotnet build "$B/client/Runewake.Client.csproj" -c Debug --nologo; } >/tmp/runewake_gate_build.log 2>&1; then
   REASON="build failed: $(grep -m2 -E 'error [A-Z]+[0-9]+' /tmp/runewake_gate_build.log | head -2 | tr '\n' ' ')"
 elif nice -n 10 bash tools/loop_smoke.sh >/tmp/runewake_gate_smoke.log 2>&1 && \
      python3 -c "import json,sys; sys.exit(0 if json.load(open('$B/artifacts/PLAYABLE.json')).get('playable') else 1)" 2>/dev/null; then
