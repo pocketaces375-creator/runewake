@@ -162,7 +162,7 @@
   Acceptance: dotnet test green including the new seat test; the 5-duel soak and loop_smoke still pass;
   no content changes.
 
-- [ ] TASK-DUEL-ARENA-2 — AFTER: TASK-ENGINE-GHOST-1. Duel Arena, small and real this time (DUEL-ARENA-1
+- [x] TASK-DUEL-ARENA-2 — AFTER: TASK-ENGINE-GHOST-1. Duel Arena, small and real this time (DUEL-ARENA-1
   failed 7 sessions by trying to do everything at once). Scope: ONE "Duel Arena" node on the Region 1
   map, unlocked from the start. Tapping it opens a picker listing the player's saved decks; Play starts a
   seeded duel against an AI opponent drawn at random from a fixed pool of 6 decks (the 7 class starters
