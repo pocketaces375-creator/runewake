@@ -38,17 +38,52 @@ def _post(path, payload, timeout=300):
         return None
 
 
-def _save_b64(b64, out):
-    raw = base64.b64decode(b64)
-    with open(out, "wb") as f:
-        f.write(raw)
-    # FLUX sometimes returns JPEG bytes under a .png name; normalise
-    if raw[:3] == b"\xff\xd8\xff" and out.lower().endswith(".png"):
+EXT_FORMATS = {
+    ".png":  "PNG",
+    ".webp": "WEBP",
+    ".jpg":  "JPEG",
+    ".jpeg": "JPEG",
+    ".gif":  "GIF",
+}
+
+
+def _detect_format(raw, ext):
+    """Return PIL format string if raw bytes don't match ext, else None."""
+    if raw[:8] == b"\x89PNG\r\n\x1a\n":
+        actual = ".png"
+    elif raw[:3] == b"\xff\xd8\xff":
+        actual = ".jpg"
+    elif raw[:4] == b"RIFF" and raw[8:12] == b"WEBP":
+        actual = ".webp"
+    elif raw[:5] == b"GIF8":
+        actual = ".gif"
+    else:
+        return None  # unknown: trust the extension
+    return EXT_FORMATS.get(ext) if actual != ext else None
+
+
+def _ensure_format(raw, out):
+    """Re-encode raw bytes to match the output file extension, if needed."""
+    ext = os.path.splitext(out)[1].lower()
+    target_format = _detect_format(raw, ext)
+    if target_format:
         try:
             from PIL import Image
-            Image.open(out).save(out, "PNG")
-        except Exception:
-            pass
+            import io
+            buf = io.BytesIO(raw)
+            im = Image.open(buf)
+            im.save(out, target_format)
+            return True
+        except Exception as e:
+            print(f"WARN: re-encode failed ({e}) — saving raw bytes", file=sys.stderr)
+    with open(out, "wb") as f:
+        f.write(raw)
+    return False
+
+
+def _save_b64(b64, out):
+    raw = base64.b64decode(b64)
+    _ensure_format(raw, out)
     return len(raw)
 
 
@@ -61,8 +96,9 @@ def via_images(prompt, out, model, width, height):
         if item.get("b64_json"):
             return _save_b64(item["b64_json"], out)
         if item.get("url"):
-            with urllib.request.urlopen(item["url"], timeout=180) as r, open(out, "wb") as f:
-                f.write(r.read())
+            with urllib.request.urlopen(item["url"], timeout=180) as r:
+                raw = r.read()
+            _ensure_format(raw, out)
             return os.path.getsize(out)
     print(f"no image in response: {json.dumps(d)[:300]}", file=sys.stderr)
     return 0
@@ -89,8 +125,9 @@ def via_chat(prompt, out, model, aspect):
         if url.startswith("data:"):
             return _save_b64(url.split(",", 1)[1], out)
         if url.startswith("http"):
-            with urllib.request.urlopen(url, timeout=180) as r, open(out, "wb") as f:
-                f.write(r.read())
+            with urllib.request.urlopen(url, timeout=180) as r:
+                raw = r.read()
+            _ensure_format(raw, out)
             return os.path.getsize(out)
     content = msg.get("content")
     if isinstance(content, list):

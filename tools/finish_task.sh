@@ -28,9 +28,18 @@ else
   fail "Build failed"
 fi
 
-# ── Step 2: Engine + pipeline tests ──
+# ── Step 2: art_check gate (magic bytes × extension + .import valid) ──
 echo ""
-echo "── Step 2: Unit tests ──"
+echo "── Step 2: art_check gate ──"
+if python3 "${PROJECT_DIR}/tools/art_check.py" gate "${PROJECT_DIR}/client/content/art"; then
+  ok "art_check gate passed"
+else
+  fail "art_check gate failed — fix mismatched files before committing"
+fi
+
+# ── Step 3: Engine + pipeline tests ──
+echo ""
+echo "── Step 3: Unit tests ──"
 TEST_OUTPUT=$(cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --no-restore -c Debug 2>&1 || true)
 if echo "${TEST_OUTPUT}" | grep -q "^Passed!.*Failed:\s*0"; then
   ok "All tests passed"
@@ -49,9 +58,9 @@ else
   fail "Tests failed"
 fi
 
-# ── Step 3: Check diff against origin/main ──
+# ── Step 4: Check diff against origin/main ──
 echo ""
-echo "── Step 3: Diff check for client/engine changes ──"
+echo "── Step 4: Diff check for client/engine changes ──"
 CURRENT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
 ORIGIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
 
@@ -114,7 +123,7 @@ fi
 
 # ── Step 4: Blob check ──
 echo ""
-echo "── Step 4: Blob check ──"
+echo "── Step 5: Blob check ──"
 if [[ "${CAPTURES_REGENERATED}" -eq 1 ]]; then
   BLOB_DIFFERED=0
   ORIGIN_FILES=$(git ls-tree -r "${ORIGIN_SHA}" -- artifacts/captures/ 2>/dev/null | awk '{print $4 "|" $3}' || echo "")
@@ -140,7 +149,7 @@ fi
 
 # ── Step 5: ui_lint — report findings (EMPTY_BODY rule active) ──
 echo ""
-echo "── Step 5: ui_lint ──"
+echo "── Step 6: ui_lint ──"
 if [[ -x "${PROJECT_DIR}/tools/ui_lint.py" ]]; then
   echo "  Running ui_lint..."
   LINT_OUTPUT=$(python3 "${PROJECT_DIR}/tools/ui_lint.py" 2>&1) && rc=0 || rc=$?
@@ -162,9 +171,9 @@ else
   echo "  Skipping (tools/ui_lint.py not yet created)"
 fi
 
-# ── Step 6: input_smoke / loop_smoke — skip until they exist ──
+# ── Step 7: input_smoke / loop_smoke — skip until they exist ──
 echo ""
-echo "── Step 6: Input/loop smoke tests ──"
+echo "── Step 7: Input/loop smoke tests ──"
 for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/loop_smoke.sh"; do
   if [[ -x "${smoke_script}" ]]; then
     # Skip loop_smoke.sh until TASK-LOOP-GATE-1 is done
@@ -186,9 +195,9 @@ for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/
   fi
 done
 
-# ── Step 7: Commit, push, mark done ──
+# ── Step 8: Commit, push, mark done ──
 echo ""
-echo "── Step 7: Commit and mark done ──"
+echo "── Step 8: Commit and mark done ──"
 
 # Guard: no commit may hardcode a machine or lane path — every lane is a different clone
 git add -A

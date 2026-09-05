@@ -126,10 +126,86 @@ def check_variety(folder):
     return ok
 
 
+# ── Gate mode: magic-byte × extension + .import valid check ──
+
+MAGIC = {
+    ".webp": (b"RIFF", 0, 8, b"WEBP"),   # RIFF + 4-byte size + WEBP
+    ".png":  (b"\x89PNG\r\n\x1a\n", 0,),
+    ".jpg":  (b"\xff\xd8\xff", 0,),
+    ".jpeg": (b"\xff\xd8\xff", 0,),
+    ".gif":  (b"GIF8", 0,),
+}
+
+
+def _check_magic(path):
+    """Return (ext, ok, detected) where detected is the format we think it is."""
+    ext = os.path.splitext(path)[1].lower()
+    with open(path, "rb") as f:
+        head = f.read(16)
+
+    # Detect actual format from magic bytes
+    if head[:8] == b"\x89PNG\r\n\x1a\n":
+        detected = ".png"
+    elif head[:3] == b"\xff\xd8\xff":
+        detected = ".jpg"
+    elif head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        detected = ".webp"
+    elif head[:5] == b"GIF8":
+        detected = ".gif"
+    else:
+        detected = ext  # unknown: trust the extension
+
+    ok = detected == ext
+    return ext, ok, detected
+
+
+def _check_import(path):
+    """Check that the .import file does not say valid=false (if it exists)."""
+    imp = path + ".import"
+    if not os.path.exists(imp):
+        return None  # missing .import is not a gate failure
+    with open(imp, "rb") as f:
+        content = f.read()
+    if b"valid=false" in content or b"valid = false" in content:
+        return "valid=false in .import"
+    return None
+
+
+def run_gate(root):
+    """Walk root, check every image file.  Return a list of (path, reason)."""
+    failures = []
+    total = 0
+    for dirpath, _, filenames in os.walk(root):
+        for fn in sorted(filenames):
+            full = os.path.join(dirpath, fn)
+            ext = os.path.splitext(fn)[1].lower()
+            if ext in MAGIC:
+                total += 1
+                ext, ok, detected = _check_magic(full)
+                if not ok:
+                    failures.append((full, f"content is {detected} but extension is {ext}"))
+                err = _check_import(full)
+                if err:
+                    failures.append((full, err))
+    return failures, total
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(__doc__)
         sys.exit(2)
     mode, target = sys.argv[1], sys.argv[2]
+
+    if mode == "gate":
+        failures, total = run_gate(target)
+        for path, reason in failures:
+            print(f"FAIL: {path}: {reason}")
+        if failures:
+            print(f"GATE FAILED: {len(failures)} of {total} files failed")
+            sys.exit(1)
+        else:
+            print(f"GATE PASSED: {total} files checked, 0 failures")
+            sys.exit(0)
+
     good = check_variety(target) if mode == "variety" else check_image(target, mode)
     sys.exit(0 if good else 1)
