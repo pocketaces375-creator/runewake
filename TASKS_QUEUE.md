@@ -323,7 +323,7 @@
   Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
   posted.
 
-- [ ] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
+- [x] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
   Post URL, size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
   Acceptance: DONE line contains release URL, APK size and sha256, PLAYABLE.json playable=true.
 
