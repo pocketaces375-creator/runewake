@@ -384,7 +384,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
+- [!] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SKULL: "Grinning Skull" — passive: whenever a friendly creature dies, 1 damage to the enemy face; +1 charge per friendly death; full (3): a 1/1 Skeleton token in each empty friendly lane.
   SKULL: "Whispering Skull" — passive: start of your turn, excavate 1; +1 charge per card excavated; full (3): draw 2.
