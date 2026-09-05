@@ -54,7 +54,7 @@
   Acceptance: fresh captures of title, choose-your-path, map, duel and settings at 2316x1080 posted;
   ui_lint green; the DONE line states the new sizes actually shipped.
 
-- [ ] TASK-TITLE-SLOTS-1 — One campaign, not three empty boxes. Trikzos: "let's just have the one
+- [x] TASK-TITLE-SLOTS-1 — One campaign, not three empty boxes. Trikzos: "let's just have the one
   square that says new campaign — the 3 didn't look good. we can have a create new account button which
   will create a rotational screen for your new account(s)". So: the title screen shows ONE panel — the
   current account's campaign (Continue if a save exists, New Campaign if not) — plus a "Create New

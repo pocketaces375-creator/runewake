@@ -1,4 +1,5 @@
-|| TASK-FUN-SIM-1 | 2026-09-05 | REPORT ONLY — behind MatchConfig flags, implemented and simulated 4 variants × 7 classes × 500 mirrors (seed 42). Variants: (a) StartingVigor 20, (b) INVOKE (charges held until tapped), (c) ALTAR (lane 2 War Altar, lanes 0/4 hedge), (d) a+b+c combined.
+| TASK-TITLE-SLOTS-1 | 2026-09-05 | Replaced 3-slot picker with single campaign panel showing current account (Continue if save exists, New Campaign if not) + "Create New Account" button. Created accounts carousel screen (AccountsCarouselScene.cs) with rotating card carousel: account cards show class portrait, name, progress; "New Account" card at end; tap to switch; delete with confirmation. Three save slots became accounts — existing saves survive and appear as accounts, proven by map_test capture navigating from title → map (Continue flow). 828/829 tests pass. loop_smoke GREEN. Captures: title_test.png (single panel, no save → New Campaign + Create New Account), accounts_carousel.png (carousel with warrior account). Commit b9fcd69. | DONE |
+||| TASK-FUN-SIM-1 | 2026-09-05 | REPORT ONLY — behind MatchConfig flags, implemented and simulated 4 variants × 7 classes × 500 mirrors (seed 42). Variants: (a) StartingVigor 20, (b) INVOKE (charges held until tapped), (c) ALTAR (lane 2 War Altar, lanes 0/4 hedge), (d) a+b+c combined.
 
 **Full results table:**
 
