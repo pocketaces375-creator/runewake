@@ -65,7 +65,7 @@
   Acceptance: captures of the new title screen and the accounts carousel; an existing save still loads
   after the change (say so in the DONE line); loop_smoke green.
 
-- [ ] TASK-CHOOSEPATH-SURPRISE-1 — The class's cards must be a surprise. Remove the "CLASS CORE — four
+- [x] TASK-CHOOSEPATH-SURPRISE-1 — The class's cards must be a surprise. Remove the "CLASS CORE — four
   sworn cards every BATTLEMAGE carries" row and its four card thumbnails from Choose Your Path
   entirely — Trikzos wants how a class plays to be discovered, not previewed. Give the reclaimed space
   to the carousel so the class art is bigger, and in the space under the class name put ONE line of
