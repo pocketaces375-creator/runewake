@@ -91,7 +91,7 @@
   Acceptance: three captures a few seconds apart showing the wheel at different angles, plus the frame
   time before and after in the DONE line.
 
-- [ ] TASK-AUDIO-ARABIAN-1 — Trikzos: "change all music to Arabian style moreso". Rework the generated
+|- [x] TASK-AUDIO-ARABIAN-1 — Trikzos: "change all music to Arabian style moreso". Rework the generated
   music in pipeline/build_ambient.py (and any other music generator) to a Middle-Eastern idiom, using
   the mode as the main lever: Hijaz on D (D, E-flat, F-sharp, G, A, B-flat, C) for the dark and ritual
   cues, Bayati on D (D, E-half-flat, F, G, A, B-flat, C) for the wandering map themes. Instrumentation:
