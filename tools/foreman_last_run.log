@@ -1,42 +1,3 @@
-
-### Before/After mirror P0 win rates (200 games, seed 42, GreedyBot)
-
-| Class | Before (dead code) | After (fixed) | Delta |
-|-------|-------------------|---------------|-------|
-| warrior | 64.0% | **58.5%** | -5.5% |
-| battlemage | 64.0% | **58.5%** | -5.5% |
-| necromancer | 50.0% | **40.5%** | -9.5% |
-| paladin | 64.0% | **58.5%** | -5.5% |
-| druid | 99.0% | **99.0%** | — (separate bug, next task) |
-| rogue | 50.0% | **40.0%** | -10.0% |
-| astrologist | 41.0% | **32.5%** | -8.5% |
-
-### Acceptance check
-- **5/7 within [40,60]** ✓ (warrior, battlemage, necromancer, paladin, rogue)
-- **Druid outside [30,70]** — known bug (CARD-BALANCE-REPORT-1: Druid P0 beats P1 98%), tracked as TASK-ENGINE-DRUID-P1-1. The first-player fix doesn't touch class-specific issues.
-- **dotnet test green** — 829/829 pass
-- **No card or artifact values changed** ✓
-- **Unit test added** — `FirstPlayerDrawSkip_FiresOnce_OnlyForP0` proves skip fires exactly once for P0 only
-
-### Commits
-- `80ca566` — engine fix + tests
-- `498051b` — mark [x] + DONE entry
-========================================
-=== foreman: 2026-09-05T00:00:54Z TASK-PERF-1 success ===
-Session: 4/96
---- session tail ---
-  session TASK-PERF-1 on deepseek/deepseek-v4-flash: 186s
-========================================
-=== foreman: 2026-09-05T00:08:55Z TASK-INPUT-TOUCH-1 retry ===
-Session: 15/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-INPUT-TOUCH-1 on z-ai/glm-5.2:free: 26s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T00:10:25Z TASK-ITEMS-BATTLEMAGE-1 retry ===
-Session: 11/96
-Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-BATTLEMAGE-1 on z-ai/glm-5.2:free: 43s
 API call failed after 3 retries: HTTP 429: Provider returned error
@@ -47,4 +8,43 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-1 on z-ai/glm-5.2:free: 24s
 API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T00:16:48Z TASK-UI-READABLE-1 retry ===
+Session: 14/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-UI-READABLE-1 on deepseek/deepseek-v4-flash: 621s
+**TASK-UI-READABLE-1: Complete.**
+
+All changes implemented through ThemeTokens constants, no per-scene hand-editing of sizes. Here's what shipped:
+
+**Font swap:** Inter → **Cormorant Garamond** (Regular + Bold) for body/button text. Cinzel kept for titles/headers. Cormorant Garamond downloaded from Google Fonts (SIL OFL), added to `client/assets/fonts/` with `.import` files.
+
+**New ThemeTokens constants:**
+| Token | Value |
+|---|---|
+| `FontButtonPrimary` | 44px |
+| `MinButtonHeight` | 120px |
+| `MinTapTarget` | 120px |
+| `FontSecondary` | 32px |
+| `FontCardName` | 30px |
+| `FontStat` | 34px |
+| `FontTitleScreen` | 96px |
+| `FontSectionHeader` | 56px |
+
+**Files changed:**
+- `ThemeTokens.cs` — new constants, Cormorant Garamond font loading, `GetButtonFont()` + `ApplyButtonFont()` helpers
+- `Main.cs` — title 54→96px, subtitle Cinzel→Cormorant Garamond 32px, buttons 15→44px + MinButtonHeight
+- `ChooseYourPathScene.cs` — title FontSmall+4→96px, subtitle 13→32px, Begin 15→44px / 50→120px, arrows 44→120px
+- `DuelScene.cs` — HUD stat values 18→34px, End Turn 24→44px + taller hit area, Victory/Defeat 38→96px, headline 24→56px, flavour 15→32px, game over buttons 18→44px / 52→120px
+- `SettingsScene.cs` — title 30→96px, section headers 18→56px, buttons 15→44px / 44→120px
+- `DeckBuilderScene.cs` — Forge button 15→44px with Bold font
+- `CardPlate.cs` — name auto-fit base size increased from 24→42f reference, hardMin 12→14, heightFloor 8→12
+
+**Captures produced:** `title_test`, `choose_path`, `map_test`, `duel_test`, `settings_test` at 2316x1080.
+
+**Tests:** 829/829 pass. **Commit:** `be9a243`. **Pushed.** ✅
+
+⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
+  • /home/fictive/runewake-lane2/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file
 ========================================
