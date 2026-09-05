@@ -1,10 +1,3 @@
-- 835/835 `dotnet test` green, no card or artifact values changed
-========================================
-=== foreman: 2026-09-05T05:20:02Z TASK-ITEMS-DRUID-1 retry ===
-Session: 3/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
 === foreman: 2026-09-05T05:25:00Z TASK-ITEMS-ROGUE-1 retry ===
@@ -47,4 +40,11 @@ I've implemented all parts of the task up to the commit/push. Let me note what's
 3. **Stop** per protocol
 
 The push is at `faa3ea0` on main. The tools/inbox.log has unstaged changes that got stashed/popped back during rebase — just needs a `git checkout -- tools/inbox.log` before final commit of the status update.
+========================================
+=== foreman: 2026-09-05T05:55:19Z TASK-ITEMS-ROGUE-1 retry ===
+Session: 6/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-ROGUE-1 on z-ai/glm-5.2:free: 21s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
