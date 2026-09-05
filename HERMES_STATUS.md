@@ -147,4 +147,4 @@
    112|
    113|| 2026-09-04 | TASK-REGION-GEN-BATCH-1 | Use tools/region_gen.py to produce Regions 3 and 4 specs and files (Tide and Dawn strata, one Warden each), every deck through the sim gate, wired to unlock in sequence after Region 2. No painted art. Acceptance: map capture showing the unlock chain; a clean soak of two encounters plus each boss; posted. | DONE (5e18ced) |
    114|- 2026-09-04: PARKED TASK-DUEL-ARENA-1 by Fable — 7 sessions, none passed finish_task; will be re-scoped.
-   115|
+   115|- 2026-09-04: PARKED TASK-ENGINE-DRUID-P1-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
