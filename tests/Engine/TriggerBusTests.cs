@@ -299,11 +299,16 @@ public class TriggerBusTests
 
     // ——— ON_TURN_START ———
 
+    /// <summary>
+    /// When P0 ends their turn, P1's turn starts. ON_TURN_START fires only
+    /// for the player whose turn it is (P1). P0's creature should NOT fire
+    /// its ON_TURN_START during P1's turn — turn-start triggers are per-player.
+    /// </summary>
     [Fact]
-    public void OnTurnStart_FiresForNextPlayer()
+    public void OnTurnStart_FiresOnlyForCurrentPlayer()
     {
         var state = CreateTestState();
-        // Place a creature with ON_TURN_START that draws a card
+        // Place a creature with ON_TURN_START that draws a card for P0
         PlaceCreature(state, 0, 4, 1, 1, new List<AbilityDef>
         {
             new AbilityDef
@@ -321,16 +326,12 @@ public class TriggerBusTests
             }
         });
 
-        // End P0's turn → P1's turn starts. P0's creature (controlled by P0)
-        // fires ON_TURN_START for... wait, the event player is P1 (the next player).
-        // The ordering: P1's creatures first, then P0's.
-        // P0's creature should still fire its ON_TURN_START.
+        // End P0's turn → P1's turn starts. Only P1's ON_TURN_START should fire.
+        // P0's creature should NOT fire because it's not P1's creature.
         state = DuelEngine.Apply(state, new EndTurnAction { PlayerIndex = 0 });
 
-        // P0's creature should have drawn a card for P0
-        // (it fires because it's P0's creature and P0 is the "opponent" in this ordering,
-        // but the effect targets PLAYER_SELF which is the creature's controller = P0)
-        Assert.Single(state.Players[0].Hand);
+        // P0's creature should NOT have drawn — it's P1's turn start, not P0's.
+        Assert.Empty(state.Players[0].Hand);
     }
 
     // ——— ON_TURN_END ———

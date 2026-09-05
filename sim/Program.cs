@@ -137,6 +137,33 @@ static void RunCommand(string[] args)
     var deckAIds = BatchRunner.LoadDeckFromPack(deckA);
     var deckBIds = BatchRunner.LoadDeckFromPack(deckB);
 
+    // Load the full stratum card packs so CardRegistry has real definitions
+    // (starter decks are ID-only references, not full CardDefs).
+    // Stratum packs must load AFTER starter decks so they overwrite partial defs.
+    var contentDir = Path.GetDirectoryName(Path.GetFullPath(deckA ?? "."));
+    string contentCardsDir;
+    if (contentDir is not null && Directory.Exists(Path.Combine(contentDir, "..", "content", "cards")))
+        contentCardsDir = Path.GetFullPath(Path.Combine(contentDir, "..", "content", "cards"));
+    else if (Directory.Exists("content/cards"))
+        contentCardsDir = Path.GetFullPath("content/cards");
+    else
+        contentCardsDir = "/home/fictive/runewake/content/cards";
+
+    if (Directory.Exists(contentCardsDir))
+    {
+        foreach (var packFile in Directory.GetFiles(contentCardsDir, "*.json"))
+        {
+            // LoadPack registers full CardDefs, overwriting the partial ID-only defs
+            var pack = CardLoader.LoadPack(packFile);
+            CardRegistry.RegisterRange(pack);
+            Console.Error.WriteLine($"Loaded card definitions from {packFile}");
+        }
+    }
+    else
+    {
+        Console.Error.WriteLine($"Warning: content/cards directory not found at {contentCardsDir}");
+    }
+
     Console.Error.WriteLine($"Loaded deck A: {deckA} ({deckAIds.Count} cards)");
     Console.Error.WriteLine($"Loaded deck B: {deckB} ({deckBIds.Count} cards)");
     Console.Error.WriteLine($"Running {games} games with seed {seed}...");

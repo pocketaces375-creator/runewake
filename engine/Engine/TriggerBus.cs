@@ -156,8 +156,10 @@ public static class TriggerBus
 
         // Event player's creatures first
         CollectFromPlayer(state.Player(eventPlayerIndex), trigger, result);
-        // Then the other player's
-        CollectFromPlayer(state.Player(otherPlayer), trigger, result);
+        // Then the other player's (but not for ON_TURN_START — that's per-player,
+        // only the player whose turn it is should have their turn-start abilities fire)
+        if (trigger != Trigger.ON_TURN_START)
+            CollectFromPlayer(state.Player(otherPlayer), trigger, result);
 
         return result;
     }
