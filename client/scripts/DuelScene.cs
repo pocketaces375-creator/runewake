@@ -307,7 +307,7 @@ public partial class DuelScene : Control
             });
             _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
             _endTurnButton.OffsetRight = -16;
-            _endTurnButton.OffsetLeft = -156;
+            _endTurnButton.OffsetLeft = -276;
             _endTurnButton.OffsetBottom = -16;
             _endTurnButton.OffsetTop = -136;
             AddChild(_endTurnButton);

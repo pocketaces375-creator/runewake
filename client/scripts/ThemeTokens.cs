@@ -187,7 +187,7 @@ public static class ThemeTokens
     /// <summary>Name band height as fraction of card height</summary>
     public const float FrameNameBandFraction = 0.18f;
     /// <summary>Stat rail height as fraction of card height</summary>
-    public const float FrameStatRailFraction = 0.12f;
+    public const float FrameStatRailFraction = 0.16f;
     /// <summary>Card gold border width in px</summary>
     public const float FrameBorderWidth = 2.0f;
     /// <summary>Inner highlight line width in px</summary>

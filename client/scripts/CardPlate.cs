@@ -216,7 +216,7 @@ public partial class CardPlate : Control
         {
             _attackBadge.Text = attack!.Value.ToString();
             _attackBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
+            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.75f), 24, FontStat);
             _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
             // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
             float chipBandInset = bandPx + 2f;
@@ -241,7 +241,7 @@ public partial class CardPlate : Control
         {
             _vigorBadge.Text = vigor!.Value.ToString();
             _vigorBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Max(12, Mathf.RoundToInt(statChipH * 0.6f));
+            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.75f), 24, FontStat);
             _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
             // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
             float vigorX = cardWidth - statChipW - bandPx - 2f;

@@ -228,8 +228,8 @@ public partial class ChooseYourPathScene : Control
     private void BuildTitleBlock()
     {
         // Compact title — proportional to viewport
-        float titleH = Mathf.Max(24f, _viewportH * 0.040f);
-        float subH = Mathf.Max(18f, _viewportH * 0.022f);
+        float titleH = Mathf.Max(96f, _viewportH * 0.100f);
+        float subH = Mathf.Max(32f, _viewportH * 0.040f);
 
         var titleBlock = new VBoxContainer();
         titleBlock.CustomMinimumSize = new Vector2(0, titleH + subH + 8f);

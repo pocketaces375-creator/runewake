@@ -81,7 +81,7 @@ public partial class SettingsScene : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0.1f, AnchorRight = 0.9f,
-            AnchorTop = 0.02f, AnchorBottom = 0.09f
+            AnchorTop = 0.02f, AnchorBottom = 0.12f
         };
         ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitleScreen);
         title.Modulate = Color.FromHtml("#C9A84C"); // gold
