@@ -1,0 +1,59 @@
+[
+  {
+    "id": "artf_rogue_poisoners_kiss",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Poisoner's Kiss",
+    "passive": { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_SUMMONED_THIS_TURN", "count": 1 }, "keyword": "VENOM" },
+    "trigger": { "trigger": "ON_CREATURE_DIES", "condition": { "op": "ENEMY" }, "effects": [{ "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }] },
+    "full_charge": [
+      { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "A single droplet follows the blade home."
+  },
+  {
+    "id": "artf_rogue_shadowfang",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Shadowfang",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "KEYWORD:SWIFT", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "THIS_TURN" },
+    "trigger": null,
+    "full_charge": [
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_SUMMONED_THIS_TURN", "count": 1 }, "keyword": "SWIFT" },
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "filter": "FIRST_SUMMONED_THIS_TURN", "count": 1 }, "keyword": "STEALTH_STRIKE" },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3, "gain_on": "on_turn_end" },
+    "flavor": "A blade cut from the edge of a falling star."
+  },
+  {
+    "id": "artf_rogue_lockpick",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Lockpick",
+    "passive": { "op": "COST_MOD", "applies_to": "CREATURE", "filter": "FIRST_CREATURE_EACH_TURN", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+    "trigger": null,
+    "full_charge": [
+      { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3, "gain_on": "on_turn_end" },
+    "flavor": "Every lock has a key. Every door has a cost."
+  },
+  {
+    "id": "artf_rogue_gloomblade",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Gloomblade",
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "EDGE_LANE", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_PRESENT" },
+    "trigger": null,
+    "full_charge": [
+      { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "filter": "LOWEST_VIGOR", "count": 1 }, "amount": 3 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3, "gain_on": "on_turn_end" },
+    "flavor": "In shadow is a blade you never see coming."
+  }
+]

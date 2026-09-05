@@ -302,12 +302,14 @@ public static class RulesTextRenderer
         {
             "ATTACK_LTE" => $" with attack ≤ {effect.Value ?? 0}",
             "FIRST_SPELL_EACH_TURN" => "", // handled by frequency phrase below
+            "FIRST_CREATURE_EACH_TURN" => "", // handled by frequency phrase below
             _ => ""
         };
 
         string freq = effect.Filter?.ToUpperInvariant() switch
         {
             "FIRST_SPELL_EACH_TURN" => "Your first spell each turn",
+            "FIRST_CREATURE_EACH_TURN" => "Your first creature each turn",
             _ => applies
         };
 

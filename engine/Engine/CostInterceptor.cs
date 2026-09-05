@@ -19,6 +19,12 @@ public static class CostInterceptor
     public const string FirstSpellEachTurn = "FIRST_SPELL_EACH_TURN";
 
     /// <summary>
+    /// Per-turn consumption filter: the discount applies to the first creature
+    /// played each turn, then is spent (Lockpick passive).
+    /// </summary>
+    public const string FirstCreatureEachTurn = "FIRST_CREATURE_EACH_TURN";
+
+    /// <summary>
     /// Card filter: creature with CurrentAttack ≤ value (Duskfang passive).
     /// </summary>
     public const string AttackLte = "ATTACK_LTE";
@@ -96,6 +102,10 @@ public static class CostInterceptor
                 // Per-turn gate — spend check handled by caller; the gate itself
                 // never excludes by card beyond applies_to (SPELL).
                 return true;
+            case FirstCreatureEachTurn:
+                // Per-turn gate — spend check handled by caller; the gate itself
+                // never excludes by card beyond applies_to (CREATURE).
+                return true;
             default:
                 // Unknown filter: don't block (lenient forward-compat).
                 return true;
@@ -118,7 +128,7 @@ public static class CostInterceptor
     }
 
     private static bool IsPerTurnFilter(string? filter)
-        => filter is not null && filter.Equals(FirstSpellEachTurn, StringComparison.OrdinalIgnoreCase);
+        => filter is not null && (filter.Equals(FirstSpellEachTurn, StringComparison.OrdinalIgnoreCase) || filter.Equals(FirstCreatureEachTurn, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// True when the mod currently applies: its condition (evaluated at
