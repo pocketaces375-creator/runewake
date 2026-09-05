@@ -5,6 +5,8 @@ export PATH="$HOME/.local/bin:$HOME/.dotnet:$PATH"
 B=/home/fictive/runewake-build; G=/tmp/runewake_gate
 mkdir -p "$G"
 exec 9>"$G/.lock"; flock -n 9 || { echo "gate already running"; exit 0; }
+# the build clone is shared with Fable's own jobs — never reset it under them
+exec 8>/tmp/runewake_build.lock; flock -n 8 || { echo "build tree is busy — skipping"; exit 0; }
 pgrep -f 'apk_(ship2|alt)_run.sh' >/dev/null && { echo "an apk build is using this tree — skipping"; exit 0; }
 cd "$B" || exit 0
 git fetch -q origin main 2>/dev/null || exit 0
