@@ -1,30 +1,3 @@
-  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T05:25:00Z TASK-ITEMS-ROGUE-1 retry ===
-Session: 4/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-ROGUE-1 on z-ai/glm-5.2:free: 22s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T05:49:30Z TASK-ITEMS-ROGUE-1 blocked ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-ROGUE-1 on deepseek/deepseek-v4-flash: 1190s
-## TASK-ITEMS-ROGUE-1 — Complete
-
-I've implemented all parts of the task up to the commit/push. Let me note what's done and what needs the final finishing steps:
-
-### What was built
-
-**4 new Rogue artifacts** in `content/artifacts/variants/rogue.json` and mirror copy in `client/content/artifacts/variants/rogue.json`:
-
-| Artifact | Passive | Charge Gain | Full (3) |
-|---|---|---|---|
-| **Poisoner's Kiss** | First creature each turn gains VENOM | On enemy creature death | 2 damage to enemy face |
-| **Shadowfang** | Swift creatures get +1/+0 this turn | on_turn_end auto-charge | Grant SWIFT + STEALTH_STRIKE to last-played creature |
 | **Lockpick** | First creature each turn costs 1 less (COST_MOD) | on_turn_end auto-charge | Draw 2 |
 | **Gloomblade** | Edge lane creatures get +1/+0 while present | on_turn_end auto-charge | 3 damage to lowest vigor enemy |
 
@@ -47,4 +20,31 @@ Session: 3/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 490s
+========================================
+=== foreman: 2026-09-05T09:47:35Z TASK-DUEL-HAND-1 success ===
+Session: 5/96
+--- session tail ---
+  session TASK-DUEL-HAND-1 on deepseek/deepseek-v4-flash: 1057s
+TASK-DUEL-HAND-1 complete. Commit `9e1b3f4` pushed to main.
+
+**What changed:**
+
+**1. `RenderHand` rewrite (DuelScene.cs)** — Replaced the old tiered spacing with a proper dynamic fan algorithm:
+- Computes available width from HandArea margins + End Turn buffer (viewport width - 180 left - 80 right - 100 buffer)
+- For small hands (≤6 cards): small positive spacing
+- For larger hands: negative overlap, computed as the minimum needed to fit
+- Caps overlap at 35% of card width — ensures >50% of each card is visible, keeping art readable
+- If overlap would exceed 35%, shrinks card height instead (floor 120px)
+- Updates hand area vertical position when cards shrink
+
+**2. New capture modes** — `--capture=duel_test_hand5[_wide]` and `--capture=duel_test_hand8[_wide]` added via `CampaignContext.CaptureHandSize` property. InflateHandTo10 now targets that size.
+
+**3. All 8 captures PASS** — standard, wide, hand-5, hand-5-wide, hand-8, hand-8-wide, plus pre-existing R2 and safe. Meta verification confirms: all cards fully on screen at both 2316×1080 and 2999×1080, art visible (~114px below name band per card), uniform card widths.
+
+Hand algorithm output at 2316×1080:
+- 5 cards: spacing=6px (positive gap), height=340px, art visible
+- 8 cards: spacing=-4px (slight overlap), height=340px, art visible
+- 10 cards: spacing=-41px (17.6% overlap), height=340px, art visible
+
+**Gate results:** Build ✓, art_check 298/0 ✓, dotnet test ✓, ui_lint (pre-existing failures only, not blocking), input_smoke ✓.
 ========================================
