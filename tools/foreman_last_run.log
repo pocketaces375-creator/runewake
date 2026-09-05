@@ -1,8 +1,3 @@
-
-**Report posted** to Runewake Telegram. Commit `649496d`.
-
-⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
-  • /home/fictive/runewake-lane2/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file
 ========================================
 === foreman: 2026-09-04T23:55:09Z TASK-ITEMS-BATTLEMAGE-1 retry ===
 Session: 9/96
@@ -47,4 +42,9 @@ Changed to `!state.HasSkippedFirstDraw` with an `else state.HasSkippedFirstDraw 
 ### Commits
 - `80ca566` — engine fix + tests
 - `498051b` — mark [x] + DONE entry
+========================================
+=== foreman: 2026-09-05T00:00:54Z TASK-PERF-1 success ===
+Session: 4/96
+--- session tail ---
+  session TASK-PERF-1 on deepseek/deepseek-v4-flash: 186s
 ========================================
