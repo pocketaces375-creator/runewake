@@ -397,7 +397,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-PALADIN-1 — Four more Paladin artifacts (two per slot, Hammer/Banner) in content/artifacts/variants/paladin.json,
+- [!] TASK-ITEMS-PALADIN-1 — Four more Paladin artifacts (two per slot, Hammer/Banner) in content/artifacts/variants/paladin.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   HAMMER: "Judgement Maul" — passive: your highest-vigor creature has Pierce; +1 charge whenever you heal; full (3): 3 damage to an enemy creature.
   HAMMER: "Warden's Hammer" — passive: your Guard creatures have +1/+0; +1 charge whenever a friendly Guard creature is attacked; full (3): a friendly creature gains Guard and is healed to full.

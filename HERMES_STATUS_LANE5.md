@@ -1,3 +1,4 @@
 - 2026-09-04: PARKED TASK-ITEMS-WARRIOR-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
 - 2026-09-04: PARKED TASK-ITEMS-BATTLEMAGE-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
 - 2026-09-04: PARKED TASK-ITEMS-NECROMANCER-1 — spend ceiling reached ($2.286); awaiting Fable.
+- 2026-09-04: PARKED TASK-ITEMS-PALADIN-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
