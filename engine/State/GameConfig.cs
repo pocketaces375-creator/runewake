@@ -48,4 +48,11 @@ public sealed class GameConfig
     /// Applied at game init. Shown as a banner card in the UI.
     /// </summary>
     public string? OpeningRule { get; init; }
+
+    /// <summary>
+    /// Player index (0 or 1) that owns the opening rule (the Warden/enemy).
+    /// Defaults to 1 for backward compatibility (encounter is always P1 in campaign).
+    /// The rule is resolved relative to this owner: the opponent is the challenger.
+    /// </summary>
+    public int OpeningRuleOwner { get; init; } = 1;
 }

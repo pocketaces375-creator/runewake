@@ -83,6 +83,13 @@ public sealed class GameState
     public string? OpeningRule { get; set; }
 
     /// <summary>
+    /// Player index (0 or 1) that owns the opening rule (the Warden).
+    /// Set at Initialize from GameConfig.OpeningRuleOwner.
+    /// Rules are resolved relative to this owner.
+    /// </summary>
+    public int OpeningRuleOwner { get; set; }
+
+    /// <summary>
     /// Tracks whether each player's opening rule has been lifted.
     /// [0] = P0's rule lifted, [1] = P1's rule lifted.
     /// </summary>
@@ -311,6 +318,7 @@ public sealed class GameState
         if (!string.IsNullOrEmpty(config.OpeningRule))
         {
             state.OpeningRule = config.OpeningRule;
+            state.OpeningRuleOwner = config.OpeningRuleOwner;
             Engine.OpeningRuleHandler.ApplyRule(state, config.OpeningRule);
         }
 
@@ -347,6 +355,7 @@ public sealed class GameState
         LastDeathPlayerIndex = other.LastDeathPlayerIndex;
         TotalCreatureDiedCount = (int[])other.TotalCreatureDiedCount.Clone();
         OpeningRule = other.OpeningRule;
+        OpeningRuleOwner = other.OpeningRuleOwner;
         OpeningRuleLifted = (bool[])other.OpeningRuleLifted.Clone();
         HasSkippedFirstDraw = other.HasSkippedFirstDraw;
         StartingVigor20 = other.StartingVigor20;
@@ -472,6 +481,7 @@ public sealed class GameState
         h = HashBool(h, OpeningRuleLifted[0]);
         h = HashBool(h, OpeningRuleLifted[1]);
         h = HashBool(h, HasSkippedFirstDraw);
+        h = HashInt(h, OpeningRuleOwner);
 
         // Players
         for (int p = 0; p < 2; p++)

@@ -174,6 +174,13 @@ public sealed class BatchConfig
     [JsonPropertyName("opening_rule")]
     public string? OpeningRule { get; init; }
 
+    /// <summary>
+    /// Player index (0 or 1) that owns the opening rule (the Warden).
+    /// Defaults to 1 for backward compatibility.
+    /// </summary>
+    [JsonPropertyName("opening_rule_owner")]
+    public int OpeningRuleOwner { get; init; } = 1;
+
     // ——— TASK-FUN-SIM-1 variant flags ———
 
     /// <summary>Variant (a): Starting Vigor 20.</summary>
@@ -245,6 +252,7 @@ public static class BatchRunner
                 Player0Class = config.Player0Class,
                 Player1Class = config.Player1Class,
                 OpeningRule = config.OpeningRule,
+                OpeningRuleOwner = config.OpeningRuleOwner,
                 MatchConfig = new MatchConfig
                 {
                     StartingVigor20 = config.StartingVigor20,

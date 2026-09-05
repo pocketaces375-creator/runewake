@@ -6,6 +6,10 @@ namespace Runewake.Engine.Engine;
 /// Handles opening rules — scripted effects active from turn 1 for boss encounters.
 /// An encounter JSON may declare one "opening_rule" identifier. This class
 /// applies the rule at game init and checks lift conditions as the game progresses.
+///
+/// Seat-agnostic: the rule owner is read from GameState.OpeningRuleOwner (set from
+/// GameConfig.OpeningRuleOwner). All lane and player references are resolved relative
+/// to that owner, so a Warden can sit in either seat (P0 or P1).
 /// </summary>
 public static partial class OpeningRuleHandler
 {
@@ -46,26 +50,33 @@ public static partial class OpeningRuleHandler
     }
 
     /// <summary>
-    /// Root-choked: the challenger's (P0) leftmost lane (0) is buried
-    /// until the Warden's (P1) first creature dies.
-    /// 
-    /// P1 = the enemy/Warden. When any creature controlled by P1 dies for
-    /// the first time, the rule lifts — un-bury P0's lane 0.
+    /// Root-choked: the challenger's leftmost lane is buried
+    /// until the Warden's first creature dies.
+    ///
+    /// Seat-agnostic: the rule owner (Warden) is read from state.OpeningRuleOwner.
+    /// The challenger is the opponent (1 - owner).
+    /// The lift checks whether a creature belonging to the owner has died.
     /// </summary>
     private static void ApplyRootChoked(GameState state)
     {
-        // Bury the challenger's (P0) leftmost lane
-        state.Players[0].Lanes[0].IsBuried = true;
+        int owner = state.OpeningRuleOwner;
+        int challenger = 1 - owner;
+
+        // Bury the challenger's leftmost lane (lane 0)
+        state.Players[challenger].Lanes[0].IsBuried = true;
     }
 
     private static void CheckRootChokedLift(GameState state, int deadCreaturePlayerIndex)
     {
-        // Rule lifts when the Warden (P1) loses their first creature
-        if (deadCreaturePlayerIndex == 1 && !state.OpeningRuleLifted[1])
+        int owner = state.OpeningRuleOwner;
+        int challenger = 1 - owner;
+
+        // Rule lifts when the Warden (rule owner) loses their first creature
+        if (deadCreaturePlayerIndex == owner && !state.OpeningRuleLifted[owner])
         {
-            state.OpeningRuleLifted[1] = true;
-            // Un-bury P0's lane 0
-            state.Players[0].Lanes[0].IsBuried = false;
+            state.OpeningRuleLifted[owner] = true;
+            // Un-bury the challenger's lane 0
+            state.Players[challenger].Lanes[0].IsBuried = false;
         }
     }
 }

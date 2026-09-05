@@ -2073,7 +2073,7 @@ public partial class DuelScene : Control
             if (st != null && !string.IsNullOrEmpty(st.OpeningRule))
             {
                 string ruleText = GetOpeningRuleDisplayText(st.OpeningRule);
-                bool isLifted = st.OpeningRuleLifted[1];
+                bool isLifted = st.OpeningRuleLifted[st.OpeningRuleOwner];
                 if (!string.IsNullOrEmpty(ruleText))
                 {
                     _openingRuleLabel.Text = isLifted
