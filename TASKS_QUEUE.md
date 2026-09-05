@@ -37,7 +37,7 @@
   Acceptance: captures at both resolutions with hands of 5, 8 and 10 cards, all fully on screen, art
   visible on every card; ui_lint green.
 
-- [ ] TASK-ART-FORMAT-GATE-1 — Make the mistake that cost us a day impossible to repeat. 83 art files
+- [x] TASK-ART-FORMAT-GATE-1 — Make the mistake that cost us a day impossible to repeat. 83 art files
   were PNG bytes saved under a .webp name; Godot picks its importer by extension, so none of them ever
   loaded in the game, and every import setting written to them was silently reverted. Add to
   tools/art_check.py (and call it from finish_task.sh) a check that every file under
