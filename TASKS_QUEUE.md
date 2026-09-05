@@ -14,7 +14,7 @@
 
 # ---- PACKET H (2026-09-05, from the shipped build's own captures) ----
 
-- [ ] TASK-UI-FIT-1 — The readable-text pass overshot and now text is clipping off the screen. In the
+- [x] TASK-UI-FIT-1 — The readable-text pass overshot and now text is clipping off the screen. In the
   duel capture from the shipped build: card names are so large they fill the card, every board card's
   attack and vigor numerals are cut off by the bottom edge, and the End Turn button reads "End Tur"
   because it runs off the right edge. Trikzos asked for readable, not broken. Keep the PACKET G sizes
