@@ -15,6 +15,7 @@ public class GreedyBot
     /// Chooses the best action for the current player by scoring the resulting
     /// state after each legal action. Returns null if no actions are available
     /// (should not happen — EndTurn is always legal).
+    /// TASK-FUN-SIM-1: Also evaluates TapArtifactAction for INVOKE mode.
     /// </summary>
     public GameAction? ChooseAction(GameState state, int playerIndex)
     {
@@ -28,7 +29,7 @@ public class GreedyBot
         int bestPlayScore = baseline;
         foreach (var action in actions)
         {
-            if (action is not PlayCardAction) continue;
+            if (action is not PlayCardAction && action is not TapArtifactAction) continue;
             GameState next;
             try { next = DuelEngine.Apply(state, action); }
             catch { continue; }
@@ -273,6 +274,23 @@ public class GreedyBot
             {
                 PlayerIndex = playerIndex,
             });
+        }
+
+        // 4. TASK-FUN-SIM-1: Tap artifact actions (INVOKE mode)
+        if (state.InvokeMode)
+        {
+            var curPlayer = state.Player(playerIndex);
+            for (int s = 0; s < curPlayer.ArtifactSlots.Length; s++)
+            {
+                if (curPlayer.ArtifactSlots[s].HasHeldChargeFull)
+                {
+                    actions.Add(new TapArtifactAction
+                    {
+                        PlayerIndex = playerIndex,
+                        SlotIndex = s,
+                    });
+                }
+            }
         }
 
         return actions;

@@ -552,9 +552,10 @@ public static class EffectExecutor
     /// Target can be PLAYER_SELF (adds to all slots) or ALLY_CREATURE + filter for a specific slot.
     /// Enforces per-turn caps (max_per_turn, max_per_creature_per_turn) from the artifact's
     /// ChargeConfig via ArtifactSlot.AddCharges().
-    /// If the artifact's ON_CHARGE_FULL ability has timing "END_OF_TURN", sets PendingChargeFull
-    /// instead of firing immediately. Immediate ON_CHARGE_FULL fires as before when no timing
-    /// modifier is set.
+    /// If InvokeMode is active, sets HasHeldChargeFull instead of auto-firing.
+    /// Otherwise, if the artifact's ON_CHARGE_FULL ability has timing "END_OF_TURN",
+    /// sets PendingChargeFull instead of firing immediately.
+    /// Immediate ON_CHARGE_FULL fires as before when no timing modifier is set.
     /// Suppressed artifacts are skipped (G3 — charge freeze under suppression).
     /// </summary>
     private static void ApplyAddCharge(ResolvedTarget target, int amount, CardInstance source, GameState state)
@@ -590,7 +591,12 @@ public static class EffectExecutor
             bool justFilled = before < slot.MaxCharges && slot.Charges >= slot.MaxCharges;
             if (justFilled)
             {
-                if (slot.HasDeferredChargeFull)
+                if (state.InvokeMode)
+                {
+                    // TASK-FUN-SIM-1(b): INVOKE — hold charge-full until tapped
+                    slot.HasHeldChargeFull = true;
+                }
+                else if (slot.HasDeferredChargeFull)
                 {
                     // Defer — will fire at end of turn (Censer, Grimoire)
                     slot.PendingChargeFull = true;

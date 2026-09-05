@@ -43,6 +43,18 @@ public sealed class GameResult
 
     [JsonPropertyName("p1_cards_in_hand")]
     public int P1CardsInHand { get; init; }
+
+    /// <summary>TASK-FUN-SIM-1: Turn of first creature death in the game.</summary>
+    [JsonPropertyName("first_creature_death_turn")]
+    public int FirstCreatureDeathTurn { get; init; }
+
+    /// <summary>TASK-FUN-SIM-1: Final state vigor of player 0.</summary>
+    [JsonPropertyName("final_p0_vigor")]
+    public int FinalP0Vigor { get; init; }
+
+    /// <summary>TASK-FUN-SIM-1: Final state vigor of player 1.</summary>
+    [JsonPropertyName("final_p1_vigor")]
+    public int FinalP1Vigor { get; init; }
 }
 
 /// <summary>
@@ -85,6 +97,19 @@ public sealed class BatchReport
 
     [JsonPropertyName("avg_cards_in_hand_p1")]
     public double AvgCardsInHandP1 => Results.Count > 0 ? Results.Average(r => r.P1CardsInHand) : 0;
+
+    // ——— TASK-FUN-SIM-1 metrics ———
+
+    [JsonPropertyName("avg_turns_first_creature_death")]
+    public double AvgTurnsFirstCreatureDeath => Results.Count > 0
+        ? Results.Where(r => r.FirstCreatureDeathTurn > 0).Select(r => (double)r.FirstCreatureDeathTurn).DefaultIfEmpty(0).Average()
+        : 0;
+
+    [JsonPropertyName("avg_final_p0_vigor")]
+    public double AvgFinalP0Vigor => Results.Count > 0 ? Results.Average(r => r.FinalP0Vigor) : 0;
+
+    [JsonPropertyName("avg_final_p1_vigor")]
+    public double AvgFinalP1Vigor => Results.Count > 0 ? Results.Average(r => r.FinalP1Vigor) : 0;
 
     /// <summary>
     /// Serializes this report to a compact JSON string.
@@ -148,6 +173,20 @@ public sealed class BatchConfig
     /// </summary>
     [JsonPropertyName("opening_rule")]
     public string? OpeningRule { get; init; }
+
+    // ——— TASK-FUN-SIM-1 variant flags ———
+
+    /// <summary>Variant (a): Starting Vigor 20.</summary>
+    [JsonPropertyName("starting_vigor_20")]
+    public bool StartingVigor20 { get; init; }
+
+    /// <summary>Variant (b): INVOKE mode — artifact charges held until tapped.</summary>
+    [JsonPropertyName("invoke_mode")]
+    public bool InvokeMode { get; init; }
+
+    /// <summary>Variant (c): ALTAR mode — lane 2 altar, edge lane hedge.</summary>
+    [JsonPropertyName("altar_mode")]
+    public bool AltarMode { get; init; }
 }
 
 /// <summary>
@@ -206,9 +245,18 @@ public static class BatchRunner
                 Player0Class = config.Player0Class,
                 Player1Class = config.Player1Class,
                 OpeningRule = config.OpeningRule,
+                MatchConfig = new MatchConfig
+                {
+                    StartingVigor20 = config.StartingVigor20,
+                    InvokeMode = config.InvokeMode,
+                    AltarMode = config.AltarMode,
+                },
             };
 
             var state = GameState.Initialize(gameConfig);
+
+            // Track first creature death turn
+            int firstCreatureDeathTurn = 0;
 
             // Apply compensation variant after initialization (test harness only, not shipped code)
             ApplyCompensation(state, config.CompensationVariant);
@@ -274,6 +322,10 @@ public static class BatchRunner
                 state = DuelEngine.Apply(state, action);
                 turns++;
 
+                // Track first creature death turn
+                if (firstCreatureDeathTurn == 0 && (state.TotalCreatureDiedCount[0] > 0 || state.TotalCreatureDiedCount[1] > 0))
+                    firstCreatureDeathTurn = state.TurnNumber;
+
                 // A turn is complete when both players have acted (back to P0)
                 // TurnNumber in GameState increments after P1's EndTurn
             }
@@ -305,6 +357,9 @@ public static class BatchRunner
                 DeviationTurns = deviationTurns,
                 P0CardsInHand = state.Players[0].Hand.Count,
                 P1CardsInHand = state.Players[1].Hand.Count,
+                FirstCreatureDeathTurn = firstCreatureDeathTurn,
+                FinalP0Vigor = state.Players[0].Vigor,
+                FinalP1Vigor = state.Players[1].Vigor,
             });
         }
 

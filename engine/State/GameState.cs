@@ -94,6 +94,18 @@ public sealed class GameState
     /// </summary>
     public bool HasSkippedFirstDraw { get; set; }
 
+    // ——— TASK-FUN-SIM-1: Sim variant mode flags ———
+    // TEST HARNESS ONLY — never shipped. Default false = existing behavior.
+
+    /// <summary>TASK-FUN-SIM-1(a): Override starting vigor to 20.</summary>
+    public bool StartingVigor20 { get; set; }
+
+    /// <summary>TASK-FUN-SIM-1(b): Artifact charges held until tapped.</summary>
+    public bool InvokeMode { get; set; }
+
+    /// <summary>TASK-FUN-SIM-1(c): Altar/heedge lane rules active.</summary>
+    public bool AltarMode { get; set; }
+
     public GameState(ulong seed, int contentVersion = 1)
     {
         Players = new PlayerState[2];
@@ -116,6 +128,20 @@ public sealed class GameState
         int startingVigor = 25;
 
         var state = new GameState(config.Seed, config.ContentVersion);
+
+        // Apply sim variant flags from MatchConfig
+        if (config.MatchConfig is not null)
+        {
+            if (config.MatchConfig.StartingVigor20)
+            {
+                startingVigor = 20;
+                state.StartingVigor20 = true;
+            }
+            if (config.MatchConfig.InvokeMode)
+                state.InvokeMode = true;
+            if (config.MatchConfig.AltarMode)
+                state.AltarMode = true;
+        }
 
         // Apply starting vigor from MatchConfig before any deck processing
         for (int p = 0; p < 2; p++)
@@ -323,6 +349,9 @@ public sealed class GameState
         OpeningRule = other.OpeningRule;
         OpeningRuleLifted = (bool[])other.OpeningRuleLifted.Clone();
         HasSkippedFirstDraw = other.HasSkippedFirstDraw;
+        StartingVigor20 = other.StartingVigor20;
+        InvokeMode = other.InvokeMode;
+        AltarMode = other.AltarMode;
     }
 
     /// <summary>

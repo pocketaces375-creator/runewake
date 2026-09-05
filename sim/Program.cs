@@ -30,6 +30,7 @@ static void PrintUsage()
     Console.WriteLine("  Runewake.Sim run --deck-a <path> --deck-b <path> [--games <N>] [--seed <N>]");
     Console.WriteLine("                    [--artifacts-path <path>] [--class-a <name>] [--class-b <name>]");
     Console.WriteLine("                    [--compensation <0|1|2|3|4>]");
+    Console.WriteLine("                    [--starting-vigor-20] [--invoke-mode] [--altar-mode]");
     Console.WriteLine("  Runewake.Sim validate-card <card-file>");
     Console.WriteLine();
     Console.WriteLine("Commands:");
@@ -46,6 +47,9 @@ static void RunCommand(string[] args)
     string? classA = null;
     string? classB = null;
     int compensationVariant = 0;
+    bool startingVigor20 = false;
+    bool invokeMode = false;
+    bool altarMode = false;
 
     for (int i = 1; i < args.Length; i++)
     {
@@ -74,6 +78,15 @@ static void RunCommand(string[] args)
                 break;
             case "--compensation" when i + 1 < args.Length && int.TryParse(args[++i], out var cv):
                 compensationVariant = cv;
+                break;
+            case "--starting-vigor-20":
+                startingVigor20 = true;
+                break;
+            case "--invoke-mode":
+                invokeMode = true;
+                break;
+            case "--altar-mode":
+                altarMode = true;
                 break;
         }
     }
@@ -139,11 +152,24 @@ static void RunCommand(string[] args)
         Player0Class = classA ?? "",
         Player1Class = classB ?? "",
         CompensationVariant = compensationVariant,
+        StartingVigor20 = startingVigor20,
+        InvokeMode = invokeMode,
+        AltarMode = altarMode,
     };
 
     var report = BatchRunner.Run(config);
+    string variantTags = GetVariantTags();
     Console.WriteLine(report.ToJson());
-    Console.Error.WriteLine($"Done. P0 wins: {report.P0Wins}/{report.TotalGames} ({report.WinRateP0:P1}), avg turns: {report.AvgTurns:F1}, combat turns deviating: {report.TotalDeviationTurns}/{report.TotalCombatTurns} ({report.AttackDeviationRate:P1})");
+    Console.Error.WriteLine($"{variantTags}Done. P0 wins: {report.P0Wins}/{report.TotalGames} ({report.WinRateP0:P1}), avg turns: {report.AvgTurns:F1}, avg first death: {report.AvgTurnsFirstCreatureDeath:F1}t, combat turns deviating: {report.TotalDeviationTurns}/{report.TotalCombatTurns} ({report.AttackDeviationRate:P1})");
+
+    string GetVariantTags()
+        {
+            var tags = new List<string>();
+            if (startingVigor20) tags.Add("Vigor20");
+            if (invokeMode) tags.Add("INVOKE");
+            if (altarMode) tags.Add("ALTAR");
+            return tags.Count > 0 ? $"[{string.Join("+", tags)}] " : "";
+        }
 }
 
 static void ValidateCardCommand(string[] args)

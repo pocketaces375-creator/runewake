@@ -1,0 +1,310 @@
+{
+  "variants": [],
+  "classes": [
+    "warrior",
+    "mage",
+    "thief",
+    "cleric",
+    "ranger",
+    "necromancer",
+    "runesmith"
+  ],
+  "results": {
+    "warrior": {
+      "a": {
+        "win_rate_p0": 0.612,
+        "p0_wins": 306,
+        "p1_wins": 194,
+        "total_games": 500,
+        "avg_turns": 6.622,
+        "avg_turns_first_creature_death": 2.704684317718941,
+        "avg_final_p0_vigor": 10.186,
+        "avg_final_p1_vigor": 5.532
+      },
+      "b": {
+        "win_rate_p0": 0.608,
+        "p0_wins": 304,
+        "p1_wins": 196,
+        "total_games": 500,
+        "avg_turns": 7.19,
+        "avg_turns_first_creature_death": 2.7125506072874495,
+        "avg_final_p0_vigor": 12.858,
+        "avg_final_p1_vigor": 7.046
+      },
+      "c": {
+        "win_rate_p0": 0.596,
+        "p0_wins": 298,
+        "p1_wins": 202,
+        "total_games": 500,
+        "avg_turns": 7.184,
+        "avg_turns_first_creature_death": 2.7125506072874495,
+        "avg_final_p0_vigor": 12.524,
+        "avg_final_p1_vigor": 7.008
+      },
+      "d": {
+        "win_rate_p0": 0.602,
+        "p0_wins": 301,
+        "p1_wins": 199,
+        "total_games": 500,
+        "avg_turns": 6.586,
+        "avg_turns_first_creature_death": 2.704684317718941,
+        "avg_final_p0_vigor": 9.93,
+        "avg_final_p1_vigor": 5.48
+      }
+    },
+    "mage": {
+      "a": {
+        "win_rate_p0": 0.524,
+        "p0_wins": 262,
+        "p1_wins": 238,
+        "total_games": 500,
+        "avg_turns": 8.608,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.936,
+        "avg_final_p1_vigor": 5.992
+      },
+      "b": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.558,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.14,
+        "avg_final_p1_vigor": 8.504
+      },
+      "c": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.498,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.146,
+        "avg_final_p1_vigor": 8.464
+      },
+      "d": {
+        "win_rate_p0": 0.526,
+        "p0_wins": 263,
+        "p1_wins": 237,
+        "total_games": 500,
+        "avg_turns": 8.532,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 8.18,
+        "avg_final_p1_vigor": 6.012
+      }
+    },
+    "thief": {
+      "a": {
+        "win_rate_p0": 0.524,
+        "p0_wins": 262,
+        "p1_wins": 238,
+        "total_games": 500,
+        "avg_turns": 8.608,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.936,
+        "avg_final_p1_vigor": 5.992
+      },
+      "b": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.558,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.14,
+        "avg_final_p1_vigor": 8.504
+      },
+      "c": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.498,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.146,
+        "avg_final_p1_vigor": 8.464
+      },
+      "d": {
+        "win_rate_p0": 0.526,
+        "p0_wins": 263,
+        "p1_wins": 237,
+        "total_games": 500,
+        "avg_turns": 8.532,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 8.18,
+        "avg_final_p1_vigor": 6.012
+      }
+    },
+    "cleric": {
+      "a": {
+        "win_rate_p0": 0.524,
+        "p0_wins": 262,
+        "p1_wins": 238,
+        "total_games": 500,
+        "avg_turns": 8.608,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.936,
+        "avg_final_p1_vigor": 5.992
+      },
+      "b": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.558,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.14,
+        "avg_final_p1_vigor": 8.504
+      },
+      "c": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.498,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.146,
+        "avg_final_p1_vigor": 8.464
+      },
+      "d": {
+        "win_rate_p0": 0.526,
+        "p0_wins": 263,
+        "p1_wins": 237,
+        "total_games": 500,
+        "avg_turns": 8.532,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 8.18,
+        "avg_final_p1_vigor": 6.012
+      }
+    },
+    "ranger": {
+      "a": {
+        "win_rate_p0": 0.524,
+        "p0_wins": 262,
+        "p1_wins": 238,
+        "total_games": 500,
+        "avg_turns": 8.608,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.936,
+        "avg_final_p1_vigor": 5.992
+      },
+      "b": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.558,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.14,
+        "avg_final_p1_vigor": 8.504
+      },
+      "c": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.498,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.146,
+        "avg_final_p1_vigor": 8.464
+      },
+      "d": {
+        "win_rate_p0": 0.526,
+        "p0_wins": 263,
+        "p1_wins": 237,
+        "total_games": 500,
+        "avg_turns": 8.532,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 8.18,
+        "avg_final_p1_vigor": 6.012
+      }
+    },
+    "necromancer": {
+      "a": {
+        "win_rate_p0": 0.46,
+        "p0_wins": 230,
+        "p1_wins": 270,
+        "total_games": 500,
+        "avg_turns": 9.018,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.096,
+        "avg_final_p1_vigor": 6.904
+      },
+      "b": {
+        "win_rate_p0": 0.4,
+        "p0_wins": 200,
+        "p1_wins": 300,
+        "total_games": 500,
+        "avg_turns": 10.3,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 7.486,
+        "avg_final_p1_vigor": 9.764
+      },
+      "c": {
+        "win_rate_p0": 0.398,
+        "p0_wins": 199,
+        "p1_wins": 301,
+        "total_games": 500,
+        "avg_turns": 9.974,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 7.532,
+        "avg_final_p1_vigor": 9.892
+      },
+      "d": {
+        "win_rate_p0": 0.446,
+        "p0_wins": 223,
+        "p1_wins": 277,
+        "total_games": 500,
+        "avg_turns": 8.966,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 6.808,
+        "avg_final_p1_vigor": 7.208
+      }
+    },
+    "runesmith": {
+      "a": {
+        "win_rate_p0": 0.524,
+        "p0_wins": 262,
+        "p1_wins": 238,
+        "total_games": 500,
+        "avg_turns": 8.608,
+        "avg_turns_first_creature_death": 2.903420523138833,
+        "avg_final_p0_vigor": 7.936,
+        "avg_final_p1_vigor": 5.992
+      },
+      "b": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.558,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.14,
+        "avg_final_p1_vigor": 8.504
+      },
+      "c": {
+        "win_rate_p0": 0.48,
+        "p0_wins": 240,
+        "p1_wins": 260,
+        "total_games": 500,
+        "avg_turns": 9.498,
+        "avg_turns_first_creature_death": 2.907815631262525,
+        "avg_final_p0_vigor": 9.146,
+        "avg_final_p1_vigor": 8.464
+      },
+      "d": {
+        "win_rate_p0": 0.526,
+        "p0_wins": 263,
+        "p1_wins": 237,
+        "total_games": 500,
+        "avg_turns": 8.532,
+        "avg_turns_first_creature_death": 2.901209677419355,
+        "avg_final_p0_vigor": 8.18,
+        "avg_final_p1_vigor": 6.012
+      }
+    }
+  },
+  "games": 500,
+  "seed": 42
+}

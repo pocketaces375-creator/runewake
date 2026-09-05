@@ -105,6 +105,15 @@ public sealed class ArtifactSlot
     public bool PendingChargeFull { get; set; }
 
     /// <summary>
+    /// TASK-FUN-SIM-1(b): INVOKE mode — when charge-full is held for manual tap.
+    /// Set when InvokeMode is active and charges reach max.
+    /// Cleared when the owner taps the artifact to fire the effect, or when
+    /// the artifact's charges drop below max due to spending.
+    /// TEST HARNESS ONLY — never shipped.
+    /// </summary>
+    public bool HasHeldChargeFull { get; set; }
+
+    /// <summary>
     /// Per-turn charge gain cap from the artifact's ChargeConfig (max_per_turn).
     /// 0 = unlimited.
     /// Set when the artifact is assigned to this slot.
@@ -152,6 +161,7 @@ public sealed class ArtifactSlot
         ChargesGainedThisTurn = other.ChargesGainedThisTurn;
         ChargesGainedThisTurnByCreature = new Dictionary<int, int>(other.ChargesGainedThisTurnByCreature);
         PendingChargeFull = other.PendingChargeFull;
+        HasHeldChargeFull = other.HasHeldChargeFull;
         ChargeConfigMaxPerTurn = other.ChargeConfigMaxPerTurn;
         ChargeConfigMaxPerCreaturePerTurn = other.ChargeConfigMaxPerCreaturePerTurn;
         HasDeferredChargeFull = other.HasDeferredChargeFull;

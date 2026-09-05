@@ -285,7 +285,7 @@
   Acceptance: a six-frame strip (play → hit → death) plus the victory frame posted; ui_lint
   green on every capture; frame-time budget unchanged.
 
-- [ ] TASK-FUN-SIM-1 — REPORT ONLY, adopt nothing, change no shipped rule. Behind MatchConfig
+- [x] TASK-FUN-SIM-1 — REPORT ONLY, adopt nothing, change no shipped rule. Behind MatchConfig
   flags, implement and simulate on the same seed set, 500 mirrors per variant, all 7 classes:
   (a) StartingVigor 20 instead of 25.
   (b) INVOKE — when an artifact reaches 3 charges, the charge-full effect is HELD until the

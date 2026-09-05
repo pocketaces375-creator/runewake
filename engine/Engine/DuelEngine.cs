@@ -28,6 +28,8 @@ public static partial class DuelEngine
                 return ApplyPlayCard(state, p);
             case AttackAction a:
                 return ApplyAttack(state, a);
+            case TapArtifactAction t:
+                return ApplyTapArtifact(state, t);
             default:
                 throw new ArgumentException($"Unknown action type: {action.GetType()}");
         }
@@ -277,6 +279,10 @@ public static partial class DuelEngine
 
         int attackPower = attacker.CurrentAttack;
 
+        // TASK-FUN-SIM-1(c): ALTAR mode — lane 2 is War Altar (+1 atk)
+        if (state.AltarMode && action.SourceLane == 2)
+            attackPower += 1;
+
         if (actualTargetLaneIdx is int tgtIdx)
         {
             var actualLane = opponent.Lanes[tgtIdx];
@@ -295,6 +301,11 @@ public static partial class DuelEngine
 
             // Simultaneous damage (defender hits back with full power unless attacker has STEALTH_STRIKE — R8)
             int atkDamage = defender.CurrentAttack;
+
+            // TASK-FUN-SIM-1(c): ALTAR mode — lane 2 attacker takes double combat damage
+            if (state.AltarMode && action.SourceLane == 2)
+                atkDamage *= 2;
+
             // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
             defender.Damage += DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack);
             if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
@@ -304,8 +315,10 @@ public static partial class DuelEngine
             KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);
 
             // Pierce: excess damage to defender carries to face
+            // TASK-FUN-SIM-1(c): ALTAR mode — edge lanes 0 and 4 block Pierce
+            bool hedgeBlockPierce = state.AltarMode && action.SourceLane is 0 or 4;
             bool defenderKilled = defender.CurrentVigor <= 0;
-            if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE"))
+            if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE") && !hedgeBlockPierce)
             {
                 int neededToKill = defender.BaseVigor + defender.VigorModifier;
                 int excessDamage = System.Math.Max(0, attackPower - neededToKill);
@@ -426,6 +439,45 @@ public static partial class DuelEngine
                 TriggerBus.Fire(state, Trigger.ON_RELIC_IDENTIFY, player.Index);
             }
         }
+    }
+
+    /// <summary>
+    /// TASK-FUN-SIM-1(b): Tap an artifact to fire its held charge-full effect.
+    /// Only fires when InvokeMode is active and the slot has HasHeldChargeFull.
+    /// TEST HARNESS ONLY — never shipped.
+    /// </summary>
+    private static GameState ApplyTapArtifact(GameState state, TapArtifactAction action)
+    {
+        var player = state.Player(action.PlayerIndex);
+        if (action.SlotIndex < 0 || action.SlotIndex >= player.ArtifactSlots.Length)
+            return state;
+
+        var slot = player.ArtifactSlots[action.SlotIndex];
+        if (!slot.HasHeldChargeFull || slot.Occupant is null || slot.IsSuppressed)
+            return state;
+
+        // Fire the held charge-full effect
+        slot.HasHeldChargeFull = false;
+        slot.PendingChargeFull = false;
+        TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, player.Index, slot.Index);
+
+        // Spend all charges after firing (same as auto-fire behavior)
+        slot.SpendAllCharges();
+
+        return state;
+    }
+
+    /// <summary>
+    /// Check if any of the player's artifacts have a held charge-full (InvokeMode).
+    /// </summary>
+    private static bool HasHeldCharges(PlayerState player)
+    {
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.HasHeldChargeFull)
+                return true;
+        }
+        return false;
     }
 
     // ——— Phase helpers ———
@@ -608,6 +660,7 @@ public static partial class DuelEngine
     /// Auto-gain 1 charge for all of the player's artifact slots whose
     /// AutoChargeGainOn matches the given trigger string (e.g. "on_turn_end").
     /// Skips suppressed artifacts. Triggers ON_CHARGE_FULL when charges fill.
+    /// In InvokeMode, sets HasHeldChargeFull instead of auto-firing.
     /// </summary>
     private static void AutoGainCharges(PlayerState player, GameState state, string trigger)
     {
@@ -633,10 +686,19 @@ public static partial class DuelEngine
             bool justFilled = before < slot.MaxCharges && slot.Charges >= slot.MaxCharges;
             if (justFilled)
             {
-                if (slot.HasDeferredChargeFull)
+                if (state.InvokeMode)
+                {
+                    // TASK-FUN-SIM-1(b): INVOKE — hold charge-full until tapped
+                    slot.HasHeldChargeFull = true;
+                }
+                else if (slot.HasDeferredChargeFull)
+                {
                     slot.PendingChargeFull = true;
+                }
                 else
+                {
                     TriggerBus.FireArtifactSlot(state, Trigger.ON_CHARGE_FULL, player.Index, slot.Index);
+                }
             }
         }
     }

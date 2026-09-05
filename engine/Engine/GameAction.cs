@@ -45,3 +45,14 @@ public sealed record AttackAction : GameAction
     /// </summary>
     public int? TargetLane { get; init; }
 }
+
+/// <summary>
+/// TASK-FUN-SIM-1(b): INVOKE mode — tap an artifact to fire its held
+/// charge-full effect. Only valid when the artifact has HasHeldChargeFull.
+/// TEST HARNESS ONLY — never shipped.
+/// </summary>
+public sealed record TapArtifactAction : GameAction
+{
+    /// <summary>The slot index of the artifact to tap (0 or 1).</summary>
+    public int SlotIndex { get; init; }
+}
