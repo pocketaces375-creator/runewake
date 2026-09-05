@@ -1,10 +1,3 @@
-  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T05:00:08Z TASK-APK-SHIP-6 success ===
-Session: 1/96
---- session tail ---
-  session TASK-APK-SHIP-6 on deepseek/deepseek-v4-flash: 923s
 **TASK-APK-SHIP-6 — Content build shipped (Phase C checkpoint)**
 
 Release URL: https://github.com/pocketaces375-creator/runewake/releases/download/alpha-2026-09-05-content/Runewake-release.apk
@@ -46,5 +39,12 @@ Session: 3/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
+API call failed after 3 retries: HTTP 429: Provider returned error
+========================================
+=== foreman: 2026-09-05T05:25:00Z TASK-ITEMS-ROGUE-1 retry ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-ROGUE-1 on z-ai/glm-5.2:free: 22s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
