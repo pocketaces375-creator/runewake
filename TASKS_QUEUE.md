@@ -154,7 +154,7 @@
   Acceptance: Whisperfang's rendered rules text is non-empty in the Reliquary capture; the Rogue row
   numbers in the DONE line; dotnet test green.
 
-- [ ] TASK-ENGINE-GHOST-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Seat-agnostic opening rules, so a Warden
+- [x] TASK-ENGINE-GHOST-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Seat-agnostic opening rules, so a Warden
   can sit in either chair. engine/Engine/OpeningRuleHandler.cs hardcodes the challenger as Players[0] and
   buries Lanes[0]; that breaks any arena or ghost duel that seats the Warden second. Make the handler
   read the rule owner from the encounter/seat and resolve lanes relative to that owner. Add a test that
