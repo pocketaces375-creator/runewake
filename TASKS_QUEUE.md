@@ -119,7 +119,7 @@
   Acceptance: the DONE line lists the 7 mirror P0 win rates before and after; after the fix at least 5
   of 7 are within [40,60] and none is outside [30,70]; dotnet test green; no card or artifact values change.
 
-- [ ] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
+- [!] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
   P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
   is a bug, not tuning. Suspects: Book of Familiar's ON_TURN_START SUMMON of the ROOTED tok_familiar
   (lane choice, full board, or summoning onto the wrong side when the Druid is Players[1]) and Elemental
