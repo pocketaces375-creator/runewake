@@ -45,6 +45,16 @@ ANDROID_SOURCE_ZIP="/home/fictive/.local/share/godot/export_templates/4.3.stable
 mkdir -p "$CLIENT_DIR/android/build"
 if unzip -q -o "$ANDROID_SOURCE_ZIP" -d "$CLIENT_DIR/android/build" 2>/dev/null; then
     echo "  ✅ Android build template extracted"
+    # Patch aaptOptions to exclude *.a (static libs) and *.pdb (debug symbols) — these are
+    # placed by Godot's mono publish step into assets/.godot/mono/publish/arm64/ and the
+    # export_presets exclude_filter does not apply to Gradle's asset packaging.
+    BUILD_GRADLE="$CLIENT_DIR/android/build/build.gradle"
+    if grep -q 'ignoreAssetsPattern' "$BUILD_GRADLE"; then
+        sed -i 's|ignoreAssetsPattern "|ignoreAssetsPattern "!\*.a:!\*.pdb:|' "$BUILD_GRADLE"
+        echo "  ✅ Patched ignoreAssetsPattern to exclude *.a and *.pdb"
+    else
+        echo "  ⚠️ Could not find ignoreAssetsPattern in build.gradle"
+    fi
 else
     echo "  ❌ Failed to extract Android build template from $ANDROID_SOURCE_ZIP"
     exit 1
