@@ -14,119 +14,7 @@
 
 # ---- PACKET H (2026-09-05, from the shipped build's own captures) ----
 
-- [x] TASK-UI-FIT-1 — The readable-text pass overshot and now text is clipping off the screen. In the
-  duel capture from the shipped build: card names are so large they fill the card, every board card's
-  attack and vigor numerals are cut off by the bottom edge, and the End Turn button reads "End Tur"
-  because it runs off the right edge. Trikzos asked for readable, not broken. Keep the PACKET G sizes
-  as a TARGET, then add the rule that was missing: NOTHING may clip, overflow or overlap at either
-  2316x1080 or 2400x1080. Where a label cannot fit at the target size, it shrinks to fit its box (down
-  to a floor of 24px) rather than the box being overrun; where a control runs off screen, its anchor or
-  margin is wrong and must be fixed, never its text truncated. Card names get the existing name-autofit
-  treatment. Check every screen: title, choose-your-path, map, duel, reward, collection, settings, deck
-  forge, reliquary.
-  Acceptance: fresh captures of all nine screens at BOTH resolutions with nothing clipped — say in the
-  DONE line, screen by screen, what the largest text on it is and that it fits; ui_lint green; the End
-  Turn button fully on screen with its whole label.
-
-- [x] TASK-DUEL-HAND-1 — AFTER: TASK-UI-FIT-1. The hand fan in the shipped capture shows ten cards
-  spilling past the bottom edge of the screen and overlapping each other so heavily that only the name
-  band of each is visible. Whatever the hand size, the fan must stay fully on screen with each card's
-  art readable — that is the part Trikzos cares about most ("we want the art to be the focus of the
-  hand"). Cap the fan width to the safe area, overlap only as much as needed, and scale the cards down
-  before you let them leave the screen. Do not change how many cards a player draws — this is layout.
-  Acceptance: captures at both resolutions with hands of 5, 8 and 10 cards, all fully on screen, art
-  visible on every card; ui_lint green.
-
-- [x] TASK-ART-FORMAT-GATE-1 — Make the mistake that cost us a day impossible to repeat. 83 art files
-  were PNG bytes saved under a .webp name; Godot picks its importer by extension, so none of them ever
-  loaded in the game, and every import setting written to them was silently reverted. Add to
-  tools/art_check.py (and call it from finish_task.sh) a check that every file under
-  client/content/art has contents matching its extension — read the magic bytes, do not trust the name
-  — and that its .import file does not say valid=false. Any mismatch fails the gate with the file list.
-  Also fix the source: pipeline/gen_image_any.py writes whatever bytes come back under the requested
-  name, so make it re-encode to the requested format before saving.
-  Acceptance: the check catches a deliberately mislabelled test file and passes on the current tree;
-  finish_task.sh runs it; the DONE line states how many files were checked.
-
-- [x] TASK-PERF-2 — AFTER: TASK-UI-FIT-1. Get the APK from 224MB to under 160MB. Fable already took it
-  from 310MB by repairing the art and capping imported sizes; what remains, measured from the package:
-  122.4MB of textures, 71.8MB of engine .so (untouchable), 11.6MB of static build libraries and 10.3MB
-  of .dll. Two levers left: (1) the card art cap is 640px —try 512 and compare a duel capture side by
-  side with the 640 one; ship 512 only if the difference is invisible at phone size. (2) the *.a static
-  libraries are still in the package despite an exclude_filter, because they are added by the export
-  step rather than being project files — find where they come from (assets/.godot/mono/publish/arm64)
-  and stop them being packaged.
-  Acceptance: before/after size, the two duel captures for the texture comparison, apk_preflight 9/9,
-  loop_smoke green.
-
 # ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
-
-- [x] TASK-INPUT-TOUCH-1 — THE GAME IS UNPLAYABLE ON A PHONE AND THIS IS THE TOP PRIORITY. Trikzos
-  installed the alpha and could not tap anything: he could not start a fight from the map, could not
-  play a card, could not attack. Only the End Turn button in the corner responded. The headless loop
-  test passes because it injects events directly, so it proves nothing about a real finger on glass.
-  Three concrete suspects, in order:
-  (1) client/project.godot has NO display/window/handheld/orientation and no window/stretch/aspect.
-      The app is a 2316x1080 LANDSCAPE design; on a phone it can come up portrait with the layout
-      squeezed and hit areas landing where nothing is drawn. Set orientation to landscape (sensor
-      landscape) and an explicit stretch aspect, and check the export preset agrees.
-  (2) client/scripts/HandCard.cs plays a card through Godot's drag-and-drop (_GetDragData /
-      _CanDropData). Drag-and-drop is a mouse idiom; on touch it is unreliable. Add a first-class
-      TAP path that does not depend on dragging: tap a card to select it (visibly raised/highlighted),
-      then tap a lane to play it there; tap the same card again to deselect. Same idiom for combat:
-      tap your creature, then tap the target lane or the enemy face. Keep drag working for desktop.
-  (3) Anything between a finger and a control: MouseFilter.Ignore on a parent that should pass through,
-      a full-rect overlay swallowing input, or lane slots with no input handling at all.
-  Then PROVE it the way it actually failed: extend tools/input_smoke.sh (or add tools/touch_smoke.sh)
-  to drive the WHOLE loop with InputEventScreenTouch ONLY — no mouse events anywhere — map node tap,
-  Challenge, play a card into a lane, attack, End Turn, victory. A mouse event in that test is a bug
-  in the test.
-  Acceptance: the touch-only test passes end to end and its log is quoted in the DONE line; the three
-  suspects above are each reported as fixed or ruled out with evidence; captures of the duel with a
-  card selected and with a lane highlighted as a legal target; loop_smoke still green.
-
-- [x] TASK-UI-READABLE-1 — Everything with words on it is too small to read on a phone. Trikzos:
-  "we want the bottom words bigger... easily readable". The design viewport is 2316x1080 and at ~400dpi
-  1dp is about 2.5px, so today's ~24px button text is roughly 9dp — half the Android minimum. Set a
-  scale and apply it EVERYWHERE (title, choose-your-path, map, duel HUD, End Turn, decks, reliquary,
-  settings, reward, collection, shop):
-    primary button label 44px, minimum button height 120px, minimum tap target 120x120px
-    secondary/flavour text 32px, card name on a hand card 30px, stat numerals 34px
-    screen titles 96px, section headers 56px
-  Do it in ThemeTokens/the theme resource, not by hand-editing each scene, so it stays consistent.
-  Also swap the UI font: keep client/assets/fonts/Cinzel.ttf for titles and headers, and use Cormorant
-  Garamond (add client/assets/fonts/CormorantGaramond.ttf, SIL Open Font License, download from Google
-  Fonts) for body and button text — Inter is a modern web font and reads wrong in a high-fae game.
-  Nothing may overflow, clip or overlap at 2316x1080 or at 2400x1080.
-  Acceptance: fresh captures of title, choose-your-path, map, duel and settings at 2316x1080 posted;
-  ui_lint green; the DONE line states the new sizes actually shipped.
-
-- [x] TASK-TITLE-SLOTS-1 — One campaign, not three empty boxes. Trikzos: "let's just have the one
-  square that says new campaign — the 3 didn't look good. we can have a create new account button which
-  will create a rotational screen for your new account(s)". So: the title screen shows ONE panel — the
-  current account's campaign (Continue if a save exists, New Campaign if not) — plus a "Create New
-  Account" button. Accounts open a rotating carousel screen in the same style as Choose Your Path: one
-  card per account showing its name, class portrait and progress, a "New Account" card at the end, and
-  a tap to switch. The three save slots we have become accounts; existing saves must survive and appear
-  as accounts, no data loss. Deleting an account asks for confirmation.
-  Acceptance: captures of the new title screen and the accounts carousel; an existing save still loads
-  after the change (say so in the DONE line); loop_smoke green.
-
-- [x] TASK-CHOOSEPATH-SURPRISE-1 — The class's cards must be a surprise. Remove the "CLASS CORE — four
-  sworn cards every BATTLEMAGE carries" row and its four card thumbnails from Choose Your Path
-  entirely — Trikzos wants how a class plays to be discovered, not previewed. Give the reclaimed space
-  to the carousel so the class art is bigger, and in the space under the class name put ONE line of
-  high-fae flavour about that class's two relics, exactly these strings:
-    warrior: "A blade quenched in the forge-fires of Emberhold, and a shield that has never once been set down."
-    battlemage: "A wand cut from drowned coral, and an aura that answers the tide before the storm breaks."
-    necromancer: "A skull that still remembers its name, and a fetish that drinks the last breath of the fallen."
-    paladin: "A hammer that rings like an oath kept, and a banner the light follows into every shadow."
-    druid: "A book that whispers back, and a bond older than the deep roots."
-    rogue: "Two fangs of dusk — one to open the silence, and one to close it."
-    astrologist: "An orb that holds tomorrow's tide, and a constellation that falls when it is called."
-  Keep the existing origin line ("Origin · Saltmere"). The Begin button gets the PACKET G button sizes.
-  Acceptance: a capture of Choose Your Path with the row gone, the art larger and the relic line under
-  each of three different classes; ui_lint green.
 
 - [ ] TASK-TITLE-ANIM-1 — AFTER: TASK-ART-RUNEWHEEL-1. Make the title screen alive. Trikzos wants the
   great rune wheel behind the waterfall turning forever. Fable delivers the wheel as its own transparent
@@ -138,33 +26,7 @@
   Acceptance: three captures a few seconds apart showing the wheel at different angles, plus the frame
   time before and after in the DONE line.
 
-|- [x] TASK-AUDIO-ARABIAN-1 — Trikzos: "change all music to Arabian style moreso". Rework the generated
-  music in pipeline/build_ambient.py (and any other music generator) to a Middle-Eastern idiom, using
-  the mode as the main lever: Hijaz on D (D, E-flat, F-sharp, G, A, B-flat, C) for the dark and ritual
-  cues, Bayati on D (D, E-half-flat, F, G, A, B-flat, C) for the wandering map themes. Instrumentation:
-  a plucked oud-like lead (short attack, quick decay, slight detune between two voices), a bowed drone
-  on the tonic and fifth, a ney-like breathy flute for the long notes, and a frame-drum pulse using the
-  Maqsum pattern (DUM - tek - DUM tek) at about 90 BPM, mixed low. No drum kit, no fifths-based
-  Western pads, no major-key resolutions. Keep every existing cue name, length and loop point so
-  nothing else breaks, and keep the loops seamless.
-  Acceptance: every existing music file regenerated, same names and durations, loop points still
-  seamless (say how you verified); the DONE line names the mode used per cue; post the two you think
-  are the best so Trikzos can listen.
-
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
-
-- [x] TASK-ENGINE-FIRST-PLAYER-1 — Mirror matchups must be a coin flip. Today the first player wins
-  the mirror diagonal 46-98% (CARD-BALANCE-REPORT-1). The "first player skips its first draw" check in
-  engine/Engine/DuelEngine.cs (~line 101, `firstPlayerSkipsDraw = CurrentPlayerIndex == 0 && TurnNumber == 1`)
-  is DEAD CODE: TurnNumber is already incremented in the same block when the index wraps to 0, so it is
-  never 1 at the check. Read docs/01_GAME_RULES.md for the intended first-turn compensation, then
-  MEASURE FIRST: run `dotnet run --project sim -- run` style 200-game seeded mirrors (seed 42) for all 7
-  classes and record P0 win rates before touching anything. Fix the dead check so the intended rule really
-  fires exactly once, for P0 only. If that overshoots (P1 now favoured), tune the opening-hand gap in
-  GameState.Initialize instead — the target is the number, not a particular mechanism. Add a unit test in
-  tests/ that proves the first-turn rule fires once and only for P0.
-  Acceptance: the DONE line lists the 7 mirror P0 win rates before and after; after the fix at least 5
-  of 7 are within [40,60] and none is outside [30,70]; dotnet test green; no card or artifact values change.
 
 - [!] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
   P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
@@ -200,54 +62,6 @@
   matrix (7 pairings, 200 games, seed 42).
   Acceptance: Whisperfang's rendered rules text is non-empty in the Reliquary capture; the Rogue row
   numbers in the DONE line; dotnet test green.
-
-- [x] TASK-ENGINE-GHOST-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Seat-agnostic opening rules, so a Warden
-  can sit in either chair. engine/Engine/OpeningRuleHandler.cs hardcodes the challenger as Players[0] and
-  buries Lanes[0]; that breaks any arena or ghost duel that seats the Warden second. Make the handler
-  read the rule owner from the encounter/seat and resolve lanes relative to that owner. Add a test that
-  runs the same Warden rule from seat 0 and seat 1 and asserts the mirrored outcome.
-  Acceptance: dotnet test green including the new seat test; the 5-duel soak and loop_smoke still pass;
-  no content changes.
-
-- [x] TASK-DUEL-ARENA-2 — AFTER: TASK-ENGINE-GHOST-1. Duel Arena, small and real this time (DUEL-ARENA-1
-  failed 7 sessions by trying to do everything at once). Scope: ONE "Duel Arena" node on the Region 1
-  map, unlocked from the start. Tapping it opens a picker listing the player's saved decks; Play starts a
-  seeded duel against an AI opponent drawn at random from a fixed pool of 6 decks (the 7 class starters
-  minus the player's class). Win = 10 Runes through the existing reward screen; the save keeps a
-  wins/losses pair shown on the picker. No Warden rules, no encounter decks, no title-menu entry — those
-  are DUEL-ARENA-3 later. Reuse the existing duel scene and reward flow; write no new game logic.
-  Acceptance: capture of the Arena picker showing the ledger and capture of one Arena victory reward;
-  a headless soak of 3 Arena duels; loop_smoke and ui_lint green; posted with one sentence.
-
-- [x] TASK-COLLECTION-VERIFY-1 — Prove the three screens that were once claimed done without proof.
-  Run the capture scripts for Collection, Settings and the Reward screen on the current build
-  (tools/capture_*.sh), LOOK at each capture as an image, and write one sentence per screen on what a
-  player sees. Fix anything a player would call broken (overlap, clipped text, empty panels, wrong
-  fonts, dead buttons) and re-capture. Do not touch anything that looks right.
-  Acceptance: three fresh captures under artifacts/captures dated today, each described in the DONE
-  line; ui_lint green; if nothing needed fixing, say so plainly with the three sentences.
-
-- [x] TASK-REGION-3-BUILD-1 — Generate and wire Region 3 from content/map/region_03.json and its
-  encounters and dig site (content/encounters/region_03_*.json, content/dig_sites/region_03_dig.json),
-  the same way TASK-REGION-2-BUILD-1 wired Region 2: it unlocks when the Region 2 Warden falls; map skin =
-  the default skin with that region's stratum palette tint through the BoardSkin registry — no new painted
-  art. Every deck must pass the sim gate; fix any deck that fails by swapping cards within its stratum,
-  never by editing card values.
-  Acceptance: map capture showing Region 3 reachable after a seeded Region 2 clear; a clean soak of 3
-  encounters plus the boss; loop_smoke green; posted.
-
-- [x] TASK-REGION-4-BUILD-1 — AFTER: TASK-REGION-3-BUILD-1. Same as TASK-REGION-3-BUILD-1 for Region 4
-  (content/map/region_04.json, region_04_*.json), unlocking when the Region 3 Warden falls.
-  Acceptance: map capture showing Region 4 reachable after a seeded Region 3 clear; a clean soak of 3
-  encounters plus the boss; loop_smoke green; posted.
-
-- [x] TASK-CARD-ART-VERIFY-1 — Every shipped card must show its own art. Cross-check every card id in
-  content/cards/*.json against client/content/art/<id>.webp (+ .import): list missing files, files whose
-  art_check.py score fails, and any card whose image is visibly not its subject (look at the 20 lowest
-  scorers). Regenerate only what fails, with docs/ART_PROMPT_PLAYBOOK.md prompts (subject first, stratum
-  palette, 832x1216). Also make sure client/content/cards mirrors content/cards byte for byte.
-  Acceptance: a table in docs/ART_AUDIT.md (id, status, score); zero missing files; art_check.py passes
-  on every replacement; a Reliquary capture showing 8 of the fixed cards; posted.
 
 # ---- PHASE B — THE PLAY LOOP (rewards, drops, collection, economy) ----
 
@@ -295,65 +109,6 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [x] TASK-PERF-1 — Get the APK under 150MB. It is 308MB today and that is very likely why it will
-  not install on Trikzos' phone (Android needs roughly 2-3x the APK size free to install, and it fails
-  silently when it cannot get it). Fable measured the current contents, so do not re-measure, fix these:
-  (1) 207MB is 206 imported textures (assets/.godot/imported/*.ctex) — the card and portrait art is
-      imported uncompressed at full size. Set VRAM-compressed import (ETC2/ASTC) for card and portrait
-      textures, and cap the imported size at what a phone actually shows (portraits ~832x1216 source is
-      fine on disk; the imported texture does not need to be). Re-import, then LOOK at a duel capture and
-      a Choose Your Path capture to confirm no visible quality loss.
-  (2) 48MB is static build libraries shipped inside the app: assets/.godot/mono/publish/arm64/*.a
-      (libmonosgen-2.0.a, libmono-component-*.a). Those are link-time artifacts, not runtime files —
-      exclude them from the export (export preset exclude filter, or stop the publish step emitting
-      them). Also exclude the 4 *.pdb debug-symbol files.
-  (3) assets/extension_api.json is 5.6MB and is only needed by GDExtension tooling — exclude it if
-      nothing at runtime reads it (prove it by launching the build after removal).
-  Do not touch lib/arm64-v8a/libgodot_android.so (57MB) — that is the engine itself.
-  Acceptance: before/after size (308MB -> target under 150MB) in HERMES_STATUS.md, the signed release
-  APK still passes tools/apk_preflight.sh, loop_smoke green, and a duel capture plus a Choose Your Path
-  capture posted so the art quality can be judged by eye.
-
-- [x] TASK-APK-SHIP-5 — PLAYABLE ALPHA. Ships only if, on the same commit: PLAYABLE.json says
-  playable=true, ui_lint passes on every capture, input_smoke passes, and the build is the
-  signed release export. Tag alpha-playable-1. Post URL, size, sha256 and a plain sentence
-  for Trikzos: what he can do end to end in this build, and the one thing to look at first.
-  Acceptance: DONE line contains release URL, size, sha256 and the four gate results.
-- [x] TASK-JUICE-1 — Make it feel like a dark fae ritual, client only. No layout changes
-  (ui_lint must stay green); every effect under 400 ms and skippable; hook the existing
-  audio manifest events. Card play: a puff of stone dust and a low thud as it seats in the
-  lane. Hit: a rune-flare in the attacker's stratum colour; the damage number in the serif
-  face drifting upward like an ember (Ember), a spore (Verdant), a mote of light (Dawn), a
-  bead of brine (Tide), bone-dust (Hollow). Face damage: the whole altar ring trembles and
-  the screen edge pulses in the enemy's colour. Creature death: the card crumbles — ash,
-  roots, brine, bone-dust or light by stratum. Artifact charge: its rune sigil brightens
-  with a soft chime; the third charge gets a halo. End Turn: the altar ring turns one notch.
-  Victory: light floods up from the altar; defeat: it drains down into the stone.
-  Acceptance: a six-frame strip (play → hit → death) plus the victory frame posted; ui_lint
-  green on every capture; frame-time budget unchanged.
-
-- [x] TASK-FUN-SIM-1 — REPORT ONLY, adopt nothing, change no shipped rule. Behind MatchConfig
-  flags, implement and simulate on the same seed set, 500 mirrors per variant, all 7 classes:
-  (a) StartingVigor 20 instead of 25.
-  (b) INVOKE — when an artifact reaches 3 charges, the charge-full effect is HELD until the
-      owner taps the artifact (the tactician AI fires it when its evaluation says so), instead
-      of auto-firing.
-  (c) ALTAR — lane 2 is the War Altar: a creature attacking from it deals +1, but takes double
-      combat damage; edge lanes 0 and 4 are the hedge: Pierce does not carry through them.
-  (d) a + b + c together.
-  Report per variant: P0 win%, average game length in turns, average turn of the first
-  creature death, and — Trikzos cares about this — the win% gap between the fastest class
-  and the slowest, so we can see whether rush decks stay viable. Plain words in the group,
-  full table in HERMES_STATUS.md. Fable decides what ships.
-
-- [x] TASK-WARDEN-RULE-1 — Bosses get a signature; everyday encounters never do. Engine
-  primitive: an encounter json may declare one "opening rule" — a scripted effect active from
-  turn 1, shown as a banner card at the top of the board. Implement the primitive and ONE
-  rule, for the Region 1 Warden only: "Root-choked — the challenger's leftmost lane is buried
-  until the Warden's first creature dies." No other encounter gets a rule in this task.
-  Acceptance: capture of the banner in the boss fight; loop_smoke still passes; the boss
-  deck's sim win% before/after reported.
-
 - [!] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
   OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
   class, generate 6 candidates and post them to the group as separate images as a veto gate,
@@ -370,21 +125,11 @@
   Acceptance: capture of the Arena picker and of one Arena victory; a headless soak of 5 Arena duels;
   posted.
 
-- [x] TASK-APK-SHIP-6 — Ship the content build (signed release export), tagged alpha-2026-09-XX-content.
-  Post URL, size, sha256 and the Region 2 map capture. Phase C checkpoint for Trikzos.
-  Acceptance: DONE line contains release URL, APK size and sha256, PLAYABLE.json playable=true.
-
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
 - [!] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
-
-- [x] TASK-REGION-1-DROPS-1 — Every Region 1 encounter has its drop table per the drops design:
-  foes drop their own cards at a per-card rate, the Warden drops a rare, the dig site drops a
-  fragment. Data only, validated by a pipeline test; a headless soak reports observed drop rates
-  over 200 seeded clears.
-  Acceptance: drops json committed; test green; the rate table in HERMES_STATUS.md.
 
 - [x] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
   TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards

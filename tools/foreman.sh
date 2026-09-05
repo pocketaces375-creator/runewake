@@ -320,7 +320,16 @@ run_session_with_retry() {
 
 run_hermes_session() {
   local task_id="$1" task_desc="$2"
-  local prompt="Implement the top unchecked task from ${QUEUE_FILE}: ${task_id} — ${task_desc}. Standard protocol in one session: implement the task, run the harness + gate, commit with message '${task_id}: ${task_desc}', push, write DONE line in HERMES_STATUS.md, then stop. Work from ${PROJECT_DIR}."
+  # The task is stated in full right here. The queue (48KB) and status (30KB) files are NOT to be
+  # opened — every byte a session reads is re-billed on every later turn, and nothing in those files
+  # is needed to do the work. On a retry, the previous attempt's tail is included so the session does
+  # not repeat the same failure blind.
+  local prev=""
+  if [[ "${task_id}" == "${RETRY_TASK_ID:-}" && -f "${LAST_RUN_LOG}" ]]; then
+    prev=$(grep -A40 "${task_id}" "${LAST_RUN_LOG}" 2>/dev/null | grep -vE '^\s*$' | tail -25 | cut -c1-200)
+    [[ -n "${prev}" ]] && prev=" YOUR PREVIOUS ATTEMPT AT THIS TASK FAILED. Its last lines were: <<< ${prev} >>> Do not repeat it — fix that first."
+  fi
+  local prompt="You are working in ${PROJECT_DIR}. Your ONE task is ${task_id}: ${task_desc} — Do NOT open TASKS_QUEUE.md, HERMES_STATUS*.md or docs/archive; everything you need is in this message and in the code. Implement it, run bash tools/finish_task.sh ${task_id} (it builds, tests, captures, commits with message '${task_id}: <first sentence>', pushes and marks the task done), then stop. If finish_task.sh fails, read its output, fix the cause, and run it again; do not mark anything done by hand. Be economical: read only the files you need, and do not re-read files you have already seen.${prev}"
 
   run_session_with_retry "${FOREMAN_TIMEOUT}" "${prompt}" "${task_id}"
 }
