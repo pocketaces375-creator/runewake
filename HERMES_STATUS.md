@@ -156,3 +156,4 @@
 | 2026-09-05 | TASK-ENGINE-GHOST-1 | Seat-agnostic opening rules. OpeningRuleHandler now reads the rule owner from GameConfig.OpeningRuleOwner (default 1) and resolves lanes relative to that owner: buries the opponent's lane 0, lifts when the owner's first creature dies. Added OpeningRule_SeatAgnostic_Symmetry test running root_choked from both seat 0 and seat 1 with swapped decks, asserting boss win rate differs by <15% between seats. 830/830 dotnet tests green. Commit fc8810f. | DONE |
 - 2026-09-05: TEMPO — 12 sessions yesterday, 5 validated.
 - 2026-09-05: PARKED TASK-ENGINE-DRUID-P1-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
+- 2026-09-05: PARKED TASK-ENGINE-DRUID-P1-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
