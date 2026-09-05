@@ -28,7 +28,7 @@
   DONE line, screen by screen, what the largest text on it is and that it fits; ui_lint green; the End
   Turn button fully on screen with its whole label.
 
-- [ ] TASK-DUEL-HAND-1 — AFTER: TASK-UI-FIT-1. The hand fan in the shipped capture shows ten cards
+- [x] TASK-DUEL-HAND-1 — AFTER: TASK-UI-FIT-1. The hand fan in the shipped capture shows ten cards
   spilling past the bottom edge of the screen and overlapping each other so heavily that only the name
   band of each is visible. Whatever the hand size, the fan must stay fully on screen with each card's
   art readable — that is the part Trikzos cares about most ("we want the art to be the focus of the
