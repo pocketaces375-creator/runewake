@@ -12,6 +12,98 @@
 
 # ---- PHASE A FINISH — VERIFY, THEN SHIP ----
 
+# ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
+
+- [ ] TASK-INPUT-TOUCH-1 — THE GAME IS UNPLAYABLE ON A PHONE AND THIS IS THE TOP PRIORITY. Trikzos
+  installed the alpha and could not tap anything: he could not start a fight from the map, could not
+  play a card, could not attack. Only the End Turn button in the corner responded. The headless loop
+  test passes because it injects events directly, so it proves nothing about a real finger on glass.
+  Three concrete suspects, in order:
+  (1) client/project.godot has NO display/window/handheld/orientation and no window/stretch/aspect.
+      The app is a 2316x1080 LANDSCAPE design; on a phone it can come up portrait with the layout
+      squeezed and hit areas landing where nothing is drawn. Set orientation to landscape (sensor
+      landscape) and an explicit stretch aspect, and check the export preset agrees.
+  (2) client/scripts/HandCard.cs plays a card through Godot's drag-and-drop (_GetDragData /
+      _CanDropData). Drag-and-drop is a mouse idiom; on touch it is unreliable. Add a first-class
+      TAP path that does not depend on dragging: tap a card to select it (visibly raised/highlighted),
+      then tap a lane to play it there; tap the same card again to deselect. Same idiom for combat:
+      tap your creature, then tap the target lane or the enemy face. Keep drag working for desktop.
+  (3) Anything between a finger and a control: MouseFilter.Ignore on a parent that should pass through,
+      a full-rect overlay swallowing input, or lane slots with no input handling at all.
+  Then PROVE it the way it actually failed: extend tools/input_smoke.sh (or add tools/touch_smoke.sh)
+  to drive the WHOLE loop with InputEventScreenTouch ONLY — no mouse events anywhere — map node tap,
+  Challenge, play a card into a lane, attack, End Turn, victory. A mouse event in that test is a bug
+  in the test.
+  Acceptance: the touch-only test passes end to end and its log is quoted in the DONE line; the three
+  suspects above are each reported as fixed or ruled out with evidence; captures of the duel with a
+  card selected and with a lane highlighted as a legal target; loop_smoke still green.
+
+- [ ] TASK-UI-READABLE-1 — Everything with words on it is too small to read on a phone. Trikzos:
+  "we want the bottom words bigger... easily readable". The design viewport is 2316x1080 and at ~400dpi
+  1dp is about 2.5px, so today's ~24px button text is roughly 9dp — half the Android minimum. Set a
+  scale and apply it EVERYWHERE (title, choose-your-path, map, duel HUD, End Turn, decks, reliquary,
+  settings, reward, collection, shop):
+    primary button label 44px, minimum button height 120px, minimum tap target 120x120px
+    secondary/flavour text 32px, card name on a hand card 30px, stat numerals 34px
+    screen titles 96px, section headers 56px
+  Do it in ThemeTokens/the theme resource, not by hand-editing each scene, so it stays consistent.
+  Also swap the UI font: keep client/assets/fonts/Cinzel.ttf for titles and headers, and use Cormorant
+  Garamond (add client/assets/fonts/CormorantGaramond.ttf, SIL Open Font License, download from Google
+  Fonts) for body and button text — Inter is a modern web font and reads wrong in a high-fae game.
+  Nothing may overflow, clip or overlap at 2316x1080 or at 2400x1080.
+  Acceptance: fresh captures of title, choose-your-path, map, duel and settings at 2316x1080 posted;
+  ui_lint green; the DONE line states the new sizes actually shipped.
+
+- [ ] TASK-TITLE-SLOTS-1 — One campaign, not three empty boxes. Trikzos: "let's just have the one
+  square that says new campaign — the 3 didn't look good. we can have a create new account button which
+  will create a rotational screen for your new account(s)". So: the title screen shows ONE panel — the
+  current account's campaign (Continue if a save exists, New Campaign if not) — plus a "Create New
+  Account" button. Accounts open a rotating carousel screen in the same style as Choose Your Path: one
+  card per account showing its name, class portrait and progress, a "New Account" card at the end, and
+  a tap to switch. The three save slots we have become accounts; existing saves must survive and appear
+  as accounts, no data loss. Deleting an account asks for confirmation.
+  Acceptance: captures of the new title screen and the accounts carousel; an existing save still loads
+  after the change (say so in the DONE line); loop_smoke green.
+
+- [ ] TASK-CHOOSEPATH-SURPRISE-1 — The class's cards must be a surprise. Remove the "CLASS CORE — four
+  sworn cards every BATTLEMAGE carries" row and its four card thumbnails from Choose Your Path
+  entirely — Trikzos wants how a class plays to be discovered, not previewed. Give the reclaimed space
+  to the carousel so the class art is bigger, and in the space under the class name put ONE line of
+  high-fae flavour about that class's two relics, exactly these strings:
+    warrior: "A blade quenched in the forge-fires of Emberhold, and a shield that has never once been set down."
+    battlemage: "A wand cut from drowned coral, and an aura that answers the tide before the storm breaks."
+    necromancer: "A skull that still remembers its name, and a fetish that drinks the last breath of the fallen."
+    paladin: "A hammer that rings like an oath kept, and a banner the light follows into every shadow."
+    druid: "A book that whispers back, and a bond older than the deep roots."
+    rogue: "Two fangs of dusk — one to open the silence, and one to close it."
+    astrologist: "An orb that holds tomorrow's tide, and a constellation that falls when it is called."
+  Keep the existing origin line ("Origin · Saltmere"). The Begin button gets the PACKET G button sizes.
+  Acceptance: a capture of Choose Your Path with the row gone, the art larger and the relic line under
+  each of three different classes; ui_lint green.
+
+- [ ] TASK-TITLE-ANIM-1 — AFTER: TASK-ART-RUNEWHEEL-1. Make the title screen alive. Trikzos wants the
+  great rune wheel behind the waterfall turning forever. Fable delivers the wheel as its own transparent
+  PNG at client/content/art/title/rune_wheel.png; layer it over the existing hero art, centred on the
+  wheel already painted there, and rotate it continuously — one revolution in about 90 seconds, linear,
+  never stopping, no easing, no pop when it wraps. Add a second, much fainter copy rotating the other
+  way at half speed for depth if it reads well; drop it if it looks busy. It must cost nothing
+  noticeable: no per-frame allocations, and the title screen must still open in under a second.
+  Acceptance: three captures a few seconds apart showing the wheel at different angles, plus the frame
+  time before and after in the DONE line.
+
+- [ ] TASK-AUDIO-ARABIAN-1 — Trikzos: "change all music to Arabian style moreso". Rework the generated
+  music in pipeline/build_ambient.py (and any other music generator) to a Middle-Eastern idiom, using
+  the mode as the main lever: Hijaz on D (D, E-flat, F-sharp, G, A, B-flat, C) for the dark and ritual
+  cues, Bayati on D (D, E-half-flat, F, G, A, B-flat, C) for the wandering map themes. Instrumentation:
+  a plucked oud-like lead (short attack, quick decay, slight detune between two voices), a bowed drone
+  on the tonic and fifth, a ney-like breathy flute for the long notes, and a frame-drum pulse using the
+  Maqsum pattern (DUM - tek - DUM tek) at about 90 BPM, mixed low. No drum kit, no fifths-based
+  Western pads, no major-key resolutions. Keep every existing cue name, length and loop point so
+  nothing else breaks, and keep the loops seamless.
+  Acceptance: every existing music file regenerated, same names and durations, loop points still
+  seamless (say how you verified); the DONE line names the mode used per cue; post the two you think
+  are the best so Trikzos can listen.
+
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
 
 - [x] TASK-ENGINE-FIRST-PLAYER-1 — Mirror matchups must be a coin flip. Today the first player wins
