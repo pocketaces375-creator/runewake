@@ -41,7 +41,7 @@ echo ""
 echo "── Cleaning build directory ──"
 rm -rf "$EXPORT_DIR" "$CLIENT_DIR/android/build"
 # Extract a fresh Android build template (the source zip is the canonical copy)
-ANDROID_SOURCE_ZIP="$HOME/.local/share/godot/export_templates/4.3.stable.mono/android_source.zip"
+ANDROID_SOURCE_ZIP="/home/fictive/.local/share/godot/export_templates/4.3.stable.mono/android_source.zip"
 mkdir -p "$CLIENT_DIR/android/build"
 if unzip -q -o "$ANDROID_SOURCE_ZIP" -d "$CLIENT_DIR/android/build" 2>/dev/null; then
     echo "  ✅ Android build template extracted"

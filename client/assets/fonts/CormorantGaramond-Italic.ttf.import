@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://xa3c8beh4dek"
-path="res://.godot/imported/CormorantGaramond.ttf-ef187c01d4e95759c1f8e784f7be8ef3.fontdata"
+uid="uid://cr5fg5k8fij43"
+path="res://.godot/imported/CormorantGaramond-Italic.ttf-f5f630f8db0681d3e04e3d0cb57f1790.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/CormorantGaramond.ttf"
-dest_files=["res://.godot/imported/CormorantGaramond.ttf-ef187c01d4e95759c1f8e784f7be8ef3.fontdata"]
+source_file="res://assets/fonts/CormorantGaramond-Italic.ttf"
+dest_files=["res://.godot/imported/CormorantGaramond-Italic.ttf-f5f630f8db0681d3e04e3d0cb57f1790.fontdata"]
 
 [params]
 

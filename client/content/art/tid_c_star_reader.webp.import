@@ -2,14 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2259dd7af36c"
-path="res://.godot/imported/tid_c_star_reader.webp-ae18c816938e09854d429c7e487449a2.ctex"
-metadata={"vram_texture":false}
+uid="uid://226add7af36c"
+path="res://.godot/imported/tid_c_star_reader.webp-da5a234bc9ecd7e6122f2be551994992.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
 source_file="res://content/art/tid_c_star_reader.webp"
-dest_files=["res://.godot/imported/tid_c_star_reader.webp-ae18c816938e09854d429c7e487449a2.ctex"]
+dest_files=["res://.godot/imported/tid_c_star_reader.webp-da5a234bc9ecd7e6122f2be551994992.ctex"]
 
 [params]
 
