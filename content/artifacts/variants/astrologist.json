@@ -1,0 +1,66 @@
+[
+  {
+    "id": "artf_astrologist_lunar_lens",
+    "class": "astrologist",
+    "slot_pool": "orb",
+    "name": "Lunar Lens",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "condition": null,
+      "effects": [
+        { "op": "SCY", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+        { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+        { "op": "ADD_CHARGE", "target": { "scope": "SELF_ARTIFACT" }, "amount": 1 }
+      ]
+    },
+    "full_charge": [
+      { "op": "COST_MOD", "applies_to": "SPELL", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "Through a lens of frozen moonlight, tomorrow's secrets come into focus."
+  },
+  {
+    "id": "artf_astrologist_eclipse_sphere",
+    "class": "astrologist",
+    "slot_pool": "orb",
+    "name": "Eclipse Sphere",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": null,
+    "full_charge": [
+      { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3, "gain_on": "on_turn_end" },
+    "flavor": "A sphere of pure absence that drinks all light cast upon it."
+  },
+  {
+    "id": "artf_astrologist_meteor_shower",
+    "class": "astrologist",
+    "slot_pool": "starlight",
+    "name": "Meteor Shower",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": null,
+    "full_charge": [
+      { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE", "count": "ALL" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 4, "gain_on": "on_turn_end" },
+    "flavor": "A cascade of celestial fire that answers the astrologist's call."
+  },
+  {
+    "id": "artf_astrologist_twin_stars",
+    "class": "astrologist",
+    "slot_pool": "starlight",
+    "name": "Twin Stars",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": null,
+    "full_charge": [
+      { "op": "DAMAGE", "target": { "scope": "ENEMY_CREATURE" }, "amount": 3 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 2, "gain_on": "on_turn_end" },
+    "flavor": "Two points of cold fire that pierce what lies between."
+  }
+]

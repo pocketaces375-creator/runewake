@@ -436,7 +436,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-ASTROLOGIST-1 — Four more Astrologist artifacts (two per slot, Orb/Constellation starlight) in content/artifacts/variants/astrologist.json,
+- [x] TASK-ITEMS-ASTROLOGIST-1 — Four more Astrologist artifacts (two per slot, Orb/Constellation starlight) in content/artifacts/variants/astrologist.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0, TASK-ROSTER-LOCK-1.
   ORB: "Lunar Lens" — passive: start of your turn, look at the top card of your deck; if it is a spell, draw it; +1 charge per card drawn this way; full (3): your next spell costs 2 less.
   ORB: "Eclipse Sphere" — passive: your maximum hand size +1; +1 charge whenever you draw outside your draw step; full (3): draw 2, then put one card from your hand on top of your deck.
