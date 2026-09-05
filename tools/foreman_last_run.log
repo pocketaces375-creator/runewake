@@ -1,8 +1,3 @@
-Session: 8/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-ASTROLOGIST-1 on deepseek/deepseek-v4-flash: 638s
-## Done — TASK-ITEMS-ASTROLOGIST-1
 
 ### What was created
 
@@ -47,4 +42,9 @@ Session: 8/96
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake-lane2/HERMES_STATUS.md — [patch] Could not find a match for old_string in the file
+========================================
+=== foreman: 2026-09-05T09:28:02Z TASK-PERF-2 success ===
+Session: 2/96
+--- session tail ---
+  session TASK-PERF-2 on deepseek/deepseek-v4-flash: 1800s
 ========================================
