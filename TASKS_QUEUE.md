@@ -423,7 +423,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
+- [!] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0, TASK-ROSTER-LOCK-1.
   DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
   DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
