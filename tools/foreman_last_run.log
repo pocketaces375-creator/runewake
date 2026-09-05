@@ -1,10 +1,3 @@
-  session TASK-DUEL-ARENA-2 on z-ai/glm-5.2:free: 17s
-API call failed after 3 retries: HTTP 429: Provider returned error
-========================================
-=== foreman: 2026-09-05T04:49:56Z TASK-ITEMS-DRUID-1 retry ===
-Session: 1/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
 API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
@@ -47,4 +40,11 @@ Secondary root cause in **`sim/Program.cs`**: the sim loaded starter decks (`tmp
 - Druid mirror: 200/200 (100%) P0 with 0 combat turns → **129/200 (64.5%)** with real combat (avg first death turn 2.8)
 - Druid-as-P1 vs Warrior: ~0% → **~14.5%** (up from virtual 0%)
 - 835/835 `dotnet test` green, no card or artifact values changed
+========================================
+=== foreman: 2026-09-05T05:20:02Z TASK-ITEMS-DRUID-1 retry ===
+Session: 3/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-DRUID-1 on z-ai/glm-5.2:free: 22s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
