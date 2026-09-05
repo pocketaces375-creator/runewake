@@ -1,10 +1,3 @@
-| `engine/Engine/DuelEngine.cs` | Added `ApplyTapArtifact()`, `HasHeldCharges()`; modified `ApplyAttack()` for War Altar (+1 atk lane 2, double combat damage) and hedge (no Pierce through lanes 0/4); modified `AutoGainCharges()` for INVOKE (hold instead of fire) |
-| `engine/Engine/EffectExecutor.cs` | Modified `ApplyAddCharge()` for INVOKE (hold instead of fire) |
-| `sim/Bot.cs` | Added TapArtifactAction to enumeration and one-ply evaluation |
-| `sim/BatchRunner.cs` | Added variant flags, first-creature-death-turn tracking, new GameResult fields |
-| `sim/Program.cs` | Added `--starting-vigor-20`, `--invoke-mode`, `--altar-mode` CLI flags |
-| `sim/fun_sim.py` | New Python runner — 4 variants × 7 classes × 500 mirrors |
-
 **Results (14,000 games, seed 42):**
 
 | Variant | Overall P0 | Avg Turns | Fast→Slow Gap |
@@ -47,4 +40,11 @@ TASK-TITLE-SLOTS-1 is complete. Here's the summary:
 - Existing save loads from title → map (map_test capture confirms Continue flow) ✓
 - 828/829 tests pass ✓
 - Commit: b9fcd69 (code), 191d9c7 (status files)
+========================================
+=== foreman: 2026-09-05T00:35:07Z TASK-ITEMS-PALADIN-1 retry ===
+Session: 14/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-PALADIN-1 on z-ai/glm-5.2:free: 25s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
