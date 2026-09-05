@@ -1,9 +1,3 @@
-- **capture_gate.py** — Added accounts_carousel to known captures.
-
-**Acceptance verified:**
-- `title_test.png` — new title screen with single panel + "Create New Account" button ✓
-- `accounts_carousel.png` — carousel showing warrior account card ✓
-- `loop_smoke` — PASS (playable=true) ✓
 - Existing save loads from title → map (map_test capture confirms Continue flow) ✓
 - 828/829 tests pass ✓
 - Commit: b9fcd69 (code), 191d9c7 (status files)
@@ -47,4 +41,10 @@ All done. Here's the summary:
 Session: 17/96
 --- session tail ---
   session TASK-INPUT-TOUCH-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-05T04:45:00Z TASK-DUEL-ARENA-2 success ===
+Session: 1/96
+--- session tail ---
+  session TASK-DUEL-ARENA-2 on z-ai/glm-5.2:free: 17s
+API call failed after 3 retries: HTTP 429: Provider returned error
 ========================================
