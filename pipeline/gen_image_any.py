@@ -104,11 +104,26 @@ def via_images(prompt, out, model, width, height):
     return 0
 
 
-def via_chat(prompt, out, model, aspect):
+def _data_url(path):
+    import mimetypes
+    mime = mimetypes.guess_type(path)[0] or "image/png"
+    with open(path, "rb") as f:
+        return f"data:{mime};base64," + base64.b64encode(f.read()).decode()
+
+
+def via_chat(prompt, out, model, aspect, refs=None):
+    """refs: reference image paths sent with the prompt, so the model VARIES a locked asset
+    instead of inventing one. This is how new pieces match an existing style."""
+    if refs:
+        content = [{"type": "text", "text": prompt}]
+        for r in refs:
+            content.append({"type": "image_url", "image_url": {"url": _data_url(r)}})
+    else:
+        content = prompt
     payload = {
         "model": model,
         "modalities": ["image", "text"],
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [{"role": "user", "content": content}],
     }
     if aspect:
         payload["image_config"] = {"aspect_ratio": aspect}
@@ -147,12 +162,13 @@ def main():
     ap.add_argument("--width", type=int, default=832)
     ap.add_argument("--height", type=int, default=1216)
     ap.add_argument("--aspect", default="2:3")
+    ap.add_argument("--ref", action="append", default=[], help="reference image; repeatable (chat-path models only)")
     a = ap.parse_args()
     if not KEY:
         print("FATAL: OPENROUTER_API_KEY not set", file=sys.stderr)
         sys.exit(1)
     if a.model.startswith(CHAT_PATH):
-        n = via_chat(a.prompt, a.out, a.model, a.aspect)
+        n = via_chat(a.prompt, a.out, a.model, a.aspect, a.ref)
     else:
         n = via_images(a.prompt, a.out, a.model, a.width, a.height)
     if n:
