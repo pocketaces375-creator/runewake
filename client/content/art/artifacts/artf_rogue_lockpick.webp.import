@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1d8af363c0f84"
-path="res://.godot/imported/artf_rogue_lockpick.webp-b6e8829124deb21c132c52713f74a375.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://c6r1vrokxr6pj"
+valid=false
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_rogue_lockpick.webp"
-dest_files=["res://.godot/imported/artf_rogue_lockpick.webp-b6e8829124deb21c132c52713f74a375.ctex"]
 
 [params]
 

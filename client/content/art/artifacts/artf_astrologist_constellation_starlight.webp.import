@@ -3,25 +3,27 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://26607b51df43"
-path="res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.ctex"
+path.bptc="res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.bptc.ctex"
+path.astc="res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.astc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_astrologist_constellation_starlight.webp"
-dest_files=["res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.ctex"]
+dest_files=["res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.bptc.ctex", "res://.godot/imported/artf_astrologist_constellation_starlight.webp-774652e1a08be7dcb21f2a31cd6b356e.astc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

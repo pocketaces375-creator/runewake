@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2965b84063ba4"
-path="res://.godot/imported/artf_rogue_gloomblade.webp-537d6d72e54640a0ba4719cc48dd05f7.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://8c16uo88n5yr"
+valid=false
 
 [deps]
 
 source_file="res://content/art/artifacts/artf_rogue_gloomblade.webp"
-dest_files=["res://.godot/imported/artf_rogue_gloomblade.webp-537d6d72e54640a0ba4719cc48dd05f7.ctex"]
 
 [params]
 
