@@ -1,8 +1,3 @@
-
-- **CampaignContext.cs** — Added `CaptureAccountsCarouselScreenshot` flag.
-
-- **DebugCapture.cs** — Added `--capture=accounts_carousel[,_wide]` modes.
-
 - **capture_gate.py** — Added accounts_carousel to known captures.
 
 **Acceptance verified:**
@@ -47,4 +42,9 @@ All done. Here's the summary:
 - Commit: `b09e8e7` (pushed to main)
 - No content changes (no card/artifact values touched)
 - TASKS_QUEUE.md marked `[x]`, DONE line written in HERMES_STATUS.md
+========================================
+=== foreman: 2026-09-05T00:59:07Z TASK-INPUT-TOUCH-1 success ===
+Session: 17/96
+--- session tail ---
+  session TASK-INPUT-TOUCH-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
