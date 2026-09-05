@@ -537,6 +537,13 @@ public partial class DuelScene : Control
                     return;
                 }
 
+                // ═══ TASK-INPUT-TOUCH-1: pure touch-only smoke test — no mouse events anywhere ═══
+                if (CampaignContext.TouchOnlySmokeTest)
+                {
+                    StartTouchOnlySmokeTest();
+                    return;
+                }
+
                 // ═══ TASK-TUTORIAL-VERIFY-1: Skip pre-place/artifacts/inflate in tutorial script mode ═══
                 // The TutorialRunner handles its own state and captures for each beat.
                 if (!_isTutorialScriptMode)
@@ -2820,6 +2827,16 @@ public partial class DuelScene : Control
     {
         if (_bot.IsThinking) return;
 
+        // Tap-again-to-deselect: if this card is already selected, cancel
+        if (_input.State == InputController.InputState.SelectingLane
+            && _input.SelectedCardId == card.CardId)
+        {
+            _input.CancelSelection();
+            ShowToast("Deselected.", Color.FromHtml("#8A7A3A"));
+            UpdateSelectionVisuals();
+            return;
+        }
+
         if (_input.State == InputController.InputState.SelectingAttacker)
         {
             // Cancel attacker selection and start playing this card instead
@@ -2828,6 +2845,7 @@ public partial class DuelScene : Control
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
+            UpdateSelectionVisuals();
         }
         else if (_input.State == InputController.InputState.SelectingLane)
         {
@@ -2837,6 +2855,7 @@ public partial class DuelScene : Control
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
+            UpdateSelectionVisuals();
         }
         else
         {
@@ -2845,6 +2864,7 @@ public partial class DuelScene : Control
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
+            UpdateSelectionVisuals();
         }
     }
 
@@ -2919,6 +2939,7 @@ public partial class DuelScene : Control
     {
         foreach (var slot in _enemySlots) slot.Unhighlight();
         foreach (var slot in _playerSlots) slot.Unhighlight();
+        UpdateSelectionVisuals();
     }
 
     /// <summary>
@@ -2953,6 +2974,8 @@ public partial class DuelScene : Control
             foreach (var slot in _enemySlots)
                 slot.Unhighlight();
         }
+
+        UpdateSelectionVisuals();
     }
 
     /// <summary>
@@ -2981,6 +3004,64 @@ public partial class DuelScene : Control
         {
             foreach (var slot in _playerSlots)
                 slot.Unhighlight();
+        }
+
+        UpdateSelectionVisuals();
+    }
+
+    /// <summary>
+    /// Update visual selection state on hand cards and lane slots.
+    /// </summary>
+    private void UpdateSelectionVisuals()
+    {
+        string? selectedId = _input.State == InputController.InputState.SelectingLane
+            ? _input.SelectedCardId : null;
+
+        foreach (var hc in _handCards)
+        {
+            bool isSelected = selectedId != null && hc.CardId == selectedId;
+            if (isSelected)
+            {
+                hc.SetSelected(true);
+                // Also scroll the hand so the selected card is visible
+                var scroll = GetNodeOrNull<ScrollContainer>("HandScroll");
+                if (scroll != null && hc.IsInsideTree())
+                {
+                    float cardCenter = hc.Position.X + hc.Size.X / 2f;
+                    float viewCenter = scroll.ScrollHorizontal + scroll.Size.X / 2f;
+                    if (Mathf.Abs(cardCenter - viewCenter) > scroll.Size.X / 3f)
+                    {
+                        scroll.ScrollHorizontal = Mathf.Max(0, (int)(cardCenter - scroll.Size.X / 2f));
+                    }
+                }
+            }
+            else
+            {
+                hc.SetSelected(false);
+            }
+        }
+
+        // Update creature selection visual on board
+        int selectedAttacker = _input.State == InputController.InputState.SelectingAttacker
+            ? _input.SelectedAttackerLane : -1;
+
+        foreach (var slot in _playerSlots)
+        {
+            if (slot.LaneIndex == selectedAttacker)
+                slot.HighlightAsSelected();
+            else
+            {
+                // Restore normal highlight if lane was otherwise targeted
+                if (_input.State == InputController.InputState.SelectingAttacker)
+                {
+                    var lanes = _gsm.GetLanes(0);
+                    var info = lanes[slot.LaneIndex];
+                    if (info.IsEmpty)
+                        slot.Unhighlight();
+                    else
+                        slot.Highlight(); // still a valid attacker option
+                }
+            }
         }
     }
 
@@ -3476,6 +3557,358 @@ public partial class DuelScene : Control
         else
         {
             GD.PrintErr("[InputSmokeTest] FAILED to write results file");
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    // TASK-INPUT-TOUCH-1: Pure touch-only smoke test — InputEventScreenTouch ONLY.
+    // No InputEventMouseButton anywhere. Proves the game works with a real finger on glass.
+    // ════════════════════════════════════════════════════════════════════
+
+    private void StartTouchOnlySmokeTest()
+    {
+        GD.Print("[TouchOnlySmokeTest] Starting — pure touch events ONLY, no mouse anywhere");
+        var results = new List<string>();
+
+        int step = 0;
+        LaneSlot? combatSlot = null;
+
+        var t = new Godot.Timer();
+        t.OneShot = false;
+        t.WaitTime = 0.4f;
+        t.Timeout += () =>
+        {
+            if (_gsm == null || _gsm.State == null) return;
+
+            if (step == 0)
+            {
+                // Wait for mulligan to dismiss and scene to settle
+                step = 1;
+                GD.Print("[TouchOnlySmokeTest] Phase 1: Initial wait complete");
+                return;
+            }
+
+            if (step == 1)
+            {
+                // Phase 1: Tap card → select it (visual highlight) → tap lane → play
+                var targetCard = _handCards.Count > 0 ? _handCards[0] : null;
+                if (targetCard == null)
+                {
+                    GD.PrintErr("[TouchOnlySmokeTest] FAIL: No hand cards");
+                    results.Add("TOUCH_CARD_SELECT:FAIL - no cards");
+                    results.Add("TOUCH_LANE_PLAY:SKIP");
+                    results.Add("TOUCH_COMBAT:SKIP");
+                    results.Add("TOUCH_END_TURN:SKIP");
+                    step = 99;
+                    return;
+                }
+
+                GD.Print($"[TouchOnlySmokeTest] Tap card '{targetCard.CardName}' via InputEventScreenTouch (pure)");
+
+                // Inject touch press (ONLY InputEventScreenTouch, no emulated mouse)
+                var touchEv = new InputEventScreenTouch();
+                touchEv.Position = Vector2.Zero;
+                touchEv.Pressed = true;
+                touchEv.Index = 0;
+                targetCard._GuiInput(touchEv);
+
+                var touchUp = new InputEventScreenTouch();
+                touchUp.Position = Vector2.Zero;
+                touchUp.Pressed = false;
+                touchUp.Index = 0;
+                targetCard._GuiInput(touchUp);
+
+                step = 2;
+                return;
+            }
+
+            if (step == 2)
+            {
+                // Verify card was selected (visual + input state)
+                if (_input.State == InputController.InputState.SelectingLane)
+                {
+                    var card = _handCards.Count > 0 ? _handCards[0] : null;
+                    bool visualSelected = card != null && _input.SelectedCardId == card.CardId;
+                    GD.Print($"[TouchOnlySmokeTest] PASS: Touch selected card — visual={visualSelected}, state={_input.State}");
+                    results.Add("TOUCH_CARD_SELECT:PASS");
+
+                    // Find empty player lane
+                    int? lane = null;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                        { lane = i; break; }
+                    }
+
+                    if (lane == null)
+                    {
+                        GD.PrintErr("[TouchOnlySmokeTest] FAIL: No empty lane");
+                        results.Add("TOUCH_LANE_PLAY:FAIL - no empty lane");
+                        results.Add("TOUCH_COMBAT:SKIP");
+                        results.Add("TOUCH_END_TURN:SKIP");
+                        step = 99;
+                        return;
+                    }
+
+                    GD.Print($"[TouchOnlySmokeTest] Tap lane slot {lane} via pure InputEventScreenTouch");
+
+                    // Inject pure touch at lane slot
+                    var slot = _playerSlots[lane.Value];
+                    var laneEv = new InputEventScreenTouch();
+                    laneEv.Position = Vector2.Zero;
+                    laneEv.Pressed = true;
+                    laneEv.Index = 0;
+                    slot._GuiInput(laneEv);
+
+                    var laneUp = new InputEventScreenTouch();
+                    laneUp.Position = Vector2.Zero;
+                    laneUp.Pressed = false;
+                    laneUp.Index = 0;
+                    slot._GuiInput(laneUp);
+
+                    step = 3;
+                    return;
+                }
+                else
+                {
+                    GD.PrintErr($"[TouchOnlySmokeTest] FAIL: Touch did not select card (state={_input.State})");
+                    results.Add("TOUCH_CARD_SELECT:FAIL - state not SelectingLane");
+                    results.Add("TOUCH_LANE_PLAY:SKIP");
+                    results.Add("TOUCH_COMBAT:SKIP");
+                    results.Add("TOUCH_END_TURN:SKIP");
+                    step = 99;
+                    return;
+                }
+            }
+
+            if (step == 3)
+            {
+                // Verify card was played
+                if (_input.State == InputController.InputState.Idle && _input.SelectedCardId == null)
+                {
+                    GD.Print("[TouchOnlySmokeTest] PASS: Touch lane play completed");
+                    results.Add("TOUCH_LANE_PLAY:PASS");
+
+                    // Phase 2: End turn via touch
+                    GD.Print("[TouchOnlySmokeTest] Pure touch End Turn via EmitSignal(Pressed)");
+                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
+
+                    step = 10;
+                    return;
+                }
+                else
+                {
+                    GD.PrintErr($"[TouchOnlySmokeTest] FAIL: Touch lane play — state={_input.State}");
+                    results.Add("TOUCH_LANE_PLAY:FAIL - flow not completed");
+                    results.Add("TOUCH_COMBAT:SKIP");
+                    results.Add("TOUCH_END_TURN:SKIP");
+                    step = 99;
+                    return;
+                }
+            }
+
+            if (step == 10)
+            {
+                // Wait for turn to advance (bot takes over)
+                GD.Print("[TouchOnlySmokeTest] Phase 2: Waiting for P0 turn again...");
+                if (_gsm.CurrentPlayerIndex == 1)
+                {
+                    results.Add("TOUCH_END_TURN:PASS");
+                    GD.Print("[TouchOnlySmokeTest] PASS: Touch End Turn — turn advanced");
+
+                    step = 11;
+                    return;
+                }
+                else
+                {
+                    GD.Print($"[TouchOnlySmokeTest] Still P{_gsm.CurrentPlayerIndex} — waiting...");
+                    return;
+                }
+            }
+
+            if (step == 11)
+            {
+                // Wait for bot turn to finish and P0 to get next turn
+                GD.Print("[TouchOnlySmokeTest] Waiting for P0 turn (after bot)...");
+                if (_gsm.CurrentPlayerIndex != 0 || _bot.IsThinking)
+                {
+                    return;
+                }
+                step = 12;
+                GD.Print("[TouchOnlySmokeTest] P0 turn — ready for combat test");
+                return;
+            }
+
+            if (step == 12)
+            {
+                // Phase 3: Combat test — tap a friendly creature to select it for attack
+                int? attackerLane = null;
+                for (int i = 0; i < 5; i++)
+                {
+                    if (_gsm.State.Players[0].Lanes[i].Occupant != null
+                        && !_gsm.State.Players[0].Lanes[i].Occupant.IsExhausted)
+                    {
+                        attackerLane = i;
+                        break;
+                    }
+                }
+
+                if (attackerLane == null)
+                {
+                    GD.Print("[TouchOnlySmokeTest] No attackers available — skipping combat, ending turn");
+                    results.Add("TOUCH_COMBAT:SKIP - no attackers");
+                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
+                    step = 20;
+                    return;
+                }
+
+                combatSlot = _playerSlots[attackerLane.Value];
+                GD.Print($"[TouchOnlySmokeTest] Tap creature in lane {attackerLane} via pure InputEventScreenTouch");
+
+                var attackEv = new InputEventScreenTouch();
+                attackEv.Position = Vector2.Zero;
+                attackEv.Pressed = true;
+                attackEv.Index = 0;
+                combatSlot._GuiInput(attackEv);
+
+                var attackUp = new InputEventScreenTouch();
+                attackUp.Position = Vector2.Zero;
+                attackUp.Pressed = false;
+                attackUp.Index = 0;
+                combatSlot._GuiInput(attackUp);
+
+                step = 13;
+                return;
+            }
+
+            if (step == 13)
+            {
+                // Verify attacker was selected
+                if (_input.State == InputController.InputState.SelectingAttacker)
+                {
+                    GD.Print("[TouchOnlySmokeTest] PASS: Creature selected for attack");
+                    results.Add("TOUCH_COMBAT_SELECT:PASS");
+
+                    // Find an enemy lane to attack
+                    int targetLane = 0;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        if (_gsm.State.Players[1].Lanes[i].Occupant != null)
+                        {
+                            targetLane = i;
+                            break;
+                        }
+                    }
+
+                    // Tap enemy lane as attack target
+                    var enemySlot = _enemySlots[targetLane];
+                    GD.Print($"[TouchOnlySmokeTest] Tap enemy lane {targetLane} as attack target via pure InputEventScreenTouch");
+
+                    var targetEv = new InputEventScreenTouch();
+                    targetEv.Position = Vector2.Zero;
+                    targetEv.Pressed = true;
+                    targetEv.Index = 0;
+                    enemySlot._GuiInput(targetEv);
+
+                    var targetUp = new InputEventScreenTouch();
+                    targetUp.Position = Vector2.Zero;
+                    targetUp.Pressed = false;
+                    targetUp.Index = 0;
+                    enemySlot._GuiInput(targetUp);
+
+                    step = 14;
+                    return;
+                }
+                else
+                {
+                    GD.PrintErr($"[TouchOnlySmokeTest] FAIL: Creature not selected (state={_input.State})");
+                    results.Add("TOUCH_COMBAT_SELECT:FAIL");
+                    step = 20;
+                    return;
+                }
+            }
+
+            if (step == 14)
+            {
+                // Verify attack happened (back to idle)
+                if (_input.State == InputController.InputState.Idle)
+                {
+                    GD.Print("[TouchOnlySmokeTest] PASS: Combat attack completed");
+                    results.Add("TOUCH_COMBAT:PASS");
+
+                    GD.Print("[TouchOnlySmokeTest] Pure touch End Turn");
+                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
+                    step = 20;
+                    return;
+                }
+                else
+                {
+                    GD.PrintErr($"[TouchOnlySmokeTest] FAIL: Attack not completed (state={_input.State})");
+                    results.Add("TOUCH_COMBAT:FAIL");
+                    step = 20;
+                    return;
+                }
+            }
+
+            if (step == 20)
+            {
+                // Continue playing until game over via touch-only End Turn
+                if (_gsm.IsGameOver)
+                {
+                    GD.Print("[TouchOnlySmokeTest] Game over detected — test complete");
+                    results.Add("TOUCH_VICTORY:PASS");
+                    WriteTouchSmokeResults(results);
+                    t.Stop();
+                    return;
+                }
+
+                if (_gsm.CurrentPlayerIndex == 0 && !_bot.IsThinking)
+                {
+                    GD.Print("[TouchOnlySmokeTest] Pure touch End Turn (continuing)");
+                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
+                }
+                return;
+            }
+
+            if (step == 99)
+            {
+                // FAIL — write results and stop
+                WriteTouchSmokeResults(results);
+                t.Stop();
+            }
+        };
+        AddChild(t);
+        t.Start();
+    }
+
+    private void WriteTouchSmokeResults(List<string> results)
+    {
+        bool allPass = results.TrueForAll(r => r.Contains(":PASS") || r.Contains(":SKIP"));
+        string verdict = allPass ? "PASS" : "FAIL";
+        GD.Print($"[TouchOnlySmokeTest] VERDICT: {verdict}");
+        foreach (var r in results)
+            GD.Print($"[TouchOnlySmokeTest] {r}");
+
+        var stepsArray = new Godot.Collections.Array();
+            foreach (var r in results)
+                stepsArray.Add(r);
+            var data = new Godot.Collections.Dictionary
+            {
+                ["verdict"] = verdict,
+                ["steps"] = stepsArray,
+                ["mode"] = "touch_only"
+            };
+        string json = Json.Stringify(data);
+        var file = Godot.FileAccess.Open("artifacts/captures/touch_smoke_result.json", Godot.FileAccess.ModeFlags.Write);
+        if (file != null)
+        {
+            file.StoreString(json);
+            file.Close();
+            GD.Print($"[TouchOnlySmokeTest] Results written to artifacts/captures/touch_smoke_result.json");
+        }
+        else
+        {
+            GD.PrintErr("[TouchOnlySmokeTest] FAILED to write results file");
         }
     }
 

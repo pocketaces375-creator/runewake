@@ -61,6 +61,12 @@ public partial class DebugCapture : Node
                 CampaignContext.InputSmokeTest = true;
                 GD.Print("[DebugCapture] Input smoke test enabled: --capture=input_smoke_test");
             }
+            if (arg == "--capture=touch_smoke_test")
+            {
+                _active = true;
+                CampaignContext.TouchOnlySmokeTest = true;
+                GD.Print("[DebugCapture] Touch-only smoke test enabled: --capture=touch_smoke_test");
+            }
             if (arg == "--capture=loop_smoke_test")
             {
                 // Don't set _active = true — loop smoke test handles everything via

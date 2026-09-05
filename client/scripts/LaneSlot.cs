@@ -272,6 +272,28 @@ public partial class LaneSlot : PanelContainer
         _rootBound.Setup(_cardWidth, _cardHeight);
     }
 
+    public void HighlightAsSelected()
+    {
+        // Brighter, more saturated highlight for the actively selected attacker
+        _faceLabel.Visible = false;
+        Modulate = new Color(1.3f, 1.15f, 0.7f, 1);
+        // Gold border tint
+        if (_state == NodeState.Occupied)
+        {
+            AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = FrameFill,
+                BorderColor = new Color(1, 0.85f, 0.2f, 1),
+                BorderWidthLeft = 3, BorderWidthTop = 3,
+                BorderWidthRight = 3, BorderWidthBottom = 3,
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                ContentMarginLeft = 0, ContentMarginTop = 0,
+                ContentMarginRight = 0, ContentMarginBottom = 0
+            });
+        }
+    }
+
     /// <summary>
     /// Show visual feedback for being a valid attack target (highlight border).
     /// </summary>
@@ -297,6 +319,24 @@ public partial class LaneSlot : PanelContainer
     {
         _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 1, 1);
+        // Restore occupied style if applicable
+        if (_state == NodeState.Occupied)
+        {
+            AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = FrameFill,
+                BorderWidthLeft = 0, BorderWidthTop = 0,
+                BorderWidthRight = 0, BorderWidthBottom = 0,
+                ContentMarginLeft = 0, ContentMarginTop = 0,
+                ContentMarginRight = 0, ContentMarginBottom = 0
+            });
+        }
+        else
+        {
+            RemoveThemeStyleboxOverride("panel");
+            if (_emptySlotStyle != null)
+                AddThemeStyleboxOverride("panel", _emptySlotStyle);
+        }
     }
 
     /// <summary>

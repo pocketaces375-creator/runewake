@@ -20,6 +20,9 @@ public partial class HandCard : PanelContainer
     private Label _costLabel;
     private RootBoundBorder _rootBound;
     private bool _isHovered;
+    private bool _selected;
+
+    private StyleBoxFlat? _selectedStyle;
 
     private float _cardWidth;
     private float _cardHeight;
@@ -180,6 +183,55 @@ public partial class HandCard : PanelContainer
     {
         _desatOverlay.Visible = !playable;
         Modulate = Colors.White;
+    }
+
+    public void SetSelected(bool selected)
+    {
+        _selected = selected;
+        if (selected)
+        {
+            // Gold border glow for selection
+            if (_selectedStyle == null)
+            {
+                _selectedStyle = new StyleBoxFlat
+                {
+                    BgColor = ThemeTokens.FrameFill,
+                    BorderColor = ThemeTokens.Gold,
+                    BorderWidthLeft = 3, BorderWidthTop = 3,
+                    BorderWidthRight = 3, BorderWidthBottom = 3,
+                    CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                    CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                    ContentMarginLeft = 0, ContentMarginTop = 0,
+                    ContentMarginRight = 0, ContentMarginBottom = 0
+                };
+            }
+            AddThemeStyleboxOverride("panel", _selectedStyle);
+            ZIndex = 10;
+            var tween = CreateTween();
+            tween.TweenProperty(this, "position:y", -20f, 0.12f)
+                .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+            tween.Parallel();
+            tween.TweenProperty(this, "modulate", new Color(1.15f, 1.1f, 1.0f, 1), 0.12f);
+        }
+        else
+        {
+            // Restore normal card style
+            var cardStyle = new StyleBoxFlat
+            {
+                BgColor = ThemeTokens.FrameFill,
+                BorderWidthLeft = 0, BorderWidthTop = 0,
+                BorderWidthRight = 0, BorderWidthBottom = 0,
+                ContentMarginLeft = 0, ContentMarginTop = 0,
+                ContentMarginRight = 0, ContentMarginBottom = 0
+            };
+            AddThemeStyleboxOverride("panel", cardStyle);
+            var tween = CreateTween();
+            tween.TweenProperty(this, "position:y", 0f, 0.1f)
+                .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+            tween.Parallel();
+            tween.TweenProperty(this, "modulate", Colors.White, 0.1f);
+            tween.TweenCallback(Callable.From(() => ZIndex = 1));
+        }
     }
 
     /// <summary>

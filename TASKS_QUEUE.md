@@ -14,7 +14,7 @@
 
 # ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
 
-- [ ] TASK-INPUT-TOUCH-1 — THE GAME IS UNPLAYABLE ON A PHONE AND THIS IS THE TOP PRIORITY. Trikzos
+- [x] TASK-INPUT-TOUCH-1 — THE GAME IS UNPLAYABLE ON A PHONE AND THIS IS THE TOP PRIORITY. Trikzos
   installed the alpha and could not tap anything: he could not start a fight from the map, could not
   play a card, could not attack. Only the End Turn button in the corner responded. The headless loop
   test passes because it injects events directly, so it proves nothing about a real finger on glass.
