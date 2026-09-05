@@ -410,7 +410,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [ ] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
+- [!] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   BOOK_OF_FAMILIAR: "Grimoire of Thorns" — passive: your Rooted creatures deal 1 damage to any creature that attacks them; +1 charge whenever a Rooted creature is attacked; full (3): all friendly Rooted creatures +1/+1 permanently.
   BOOK_OF_FAMILIAR: "Seedbook" — passive: end of your turn, if you played no creature, put a 0/2 Rooted Seed token in an empty friendly lane; +1 charge per Seed; full (3): your Seeds become 2/3 with Reach.
