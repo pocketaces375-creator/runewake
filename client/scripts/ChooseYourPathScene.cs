@@ -239,7 +239,7 @@ public partial class ChooseYourPathScene : Control
             SizeFlagsHorizontal = (SizeFlags)3,
             SizeFlagsVertical = (SizeFlags)3
         };
-        ApplyHeaderFont(title, (int)(FontSmall + 4));
+        ApplyHeaderFont(title, FontTitleScreen);
         title.AddThemeColorOverride("font_color", Gold);
         title.AddThemeConstantOverride("outline_size", 2);
         title.AddThemeColorOverride("font_outline_color", Colors.Black);
@@ -254,7 +254,7 @@ public partial class ChooseYourPathScene : Control
             SizeFlagsHorizontal = (SizeFlags)3,
             SizeFlagsVertical = (SizeFlags)3
         };
-        ApplyBodyFont(subtitle, FontSmall);
+        ApplyBodyFont(subtitle, FontSecondary);
         subtitle.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         subtitle.AddThemeColorOverride("font_outline_color", Colors.Black);
         subtitle.AddThemeConstantOverride("outline_size", 1);
@@ -286,10 +286,10 @@ public partial class ChooseYourPathScene : Control
         {
             Text = "\u25C0",
             Flat = true,
-            CustomMinimumSize = new Vector2(44, 44),
+            CustomMinimumSize = new Vector2(MinTapTarget, MinTapTarget),
             MouseFilter = MouseFilterEnum.Stop
         };
-        _leftArrow.AddThemeFontSizeOverride("font_size", 20);
+        _leftArrow.AddThemeFontSizeOverride("font_size", 44);
         _leftArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         _leftArrow.Pressed += () =>
         {
@@ -305,10 +305,10 @@ public partial class ChooseYourPathScene : Control
         {
             Text = "\u25B6",
             Flat = true,
-            CustomMinimumSize = new Vector2(44, 44),
+            CustomMinimumSize = new Vector2(MinTapTarget, MinTapTarget),
             MouseFilter = MouseFilterEnum.Stop
         };
-        _rightArrow.AddThemeFontSizeOverride("font_size", 20);
+        _rightArrow.AddThemeFontSizeOverride("font_size", 44);
         _rightArrow.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         _rightArrow.Pressed += () =>
         {
@@ -367,7 +367,7 @@ public partial class ChooseYourPathScene : Control
         beginWrap.AddThemeConstantOverride("separation", 0);
         beginWrap.SizeFlagsVertical = (SizeFlags)0; // Shrink
         // Minimum height: button (46) + margin above (24) + margin below (12)
-        beginWrap.CustomMinimumSize = new Vector2(0, 82f);
+        beginWrap.CustomMinimumSize = new Vector2(0, MinButtonHeight + 36f);
         _mainVBox.AddChild(beginWrap);
 
         // Spacer above the button for clearance
@@ -380,7 +380,7 @@ public partial class ChooseYourPathScene : Control
         beginWrap.AddChild(spacer);
 
         _beginButton = new PanelContainer();
-        _beginButton.CustomMinimumSize = new Vector2(280, 50);
+        _beginButton.CustomMinimumSize = new Vector2(280, MinButtonHeight);
         _beginButton.MouseDefaultCursorShape = CursorShape.PointingHand;
         _beginButton.SizeFlagsHorizontal = (SizeFlags)4; // Center
         _beginButton.AddThemeStyleboxOverride("panel", new StyleBoxFlat
@@ -400,7 +400,7 @@ public partial class ChooseYourPathScene : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        ApplyHeaderFont(_beginLabel, FontBody);
+        ApplyBodyFont(_beginLabel, FontButtonPrimary);
         _beginLabel.AddThemeColorOverride("font_color", Gold);
         _beginLabel.SetAnchorsPreset(LayoutPreset.FullRect);
         _beginButton.AddChild(_beginLabel);

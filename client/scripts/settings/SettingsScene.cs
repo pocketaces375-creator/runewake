@@ -83,7 +83,7 @@ public partial class SettingsScene : Control
             AnchorLeft = 0.1f, AnchorRight = 0.9f,
             AnchorTop = 0.02f, AnchorBottom = 0.09f
         };
-        ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitle);
+        ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitleScreen);
         title.Modulate = Color.FromHtml("#C9A84C"); // gold
         AddChild(title);
 
@@ -264,7 +264,7 @@ public partial class SettingsScene : Control
             Text = text,
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        ThemeTokens.ApplyHeaderFont(label, ThemeTokens.FontLargeBody);
+        ThemeTokens.ApplyHeaderFont(label, ThemeTokens.FontSectionHeader);
         label.Modulate = Color.FromHtml("#C9A84C"); // gold
         parent.AddChild(label);
     }
@@ -351,9 +351,12 @@ public partial class SettingsScene : Control
         var btn = new Button
         {
             Text = text,
-            CustomMinimumSize = new Vector2(0, 44)
+            CustomMinimumSize = new Vector2(0, ThemeTokens.MinButtonHeight)
         };
-        btn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontBody);
+        btn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
+        var cormFont = ThemeTokens.GetBodyFont(ThemeTokens.FontButtonPrimary);
+        if (cormFont != null)
+            btn.AddThemeFontOverride("font", cormFont);
         btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
         btn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
         btn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));

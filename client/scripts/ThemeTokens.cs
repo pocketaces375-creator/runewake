@@ -198,9 +198,26 @@ public static class ThemeTokens
     public const float FrameStatChipFraction = 0.25f;
 
     // ════════════════════════════════════════════
+    // Font paths
+    // ════════════════════════════════════════════
+
+    /// <summary>Cinzel is OFL-licensed, fits high-fantasy archaeological theme. Used for titles and headers only.</summary>
+    public const string FontCinzel = "res://assets/fonts/Cinzel.ttf";
+
+    /// <summary>Cormorant Garamond — SIL Open Font License. Serif with high readability at body sizes. Used for body text and buttons. Replaces Inter.</summary>
+    public const string FontCormorantGaramond = "res://assets/fonts/CormorantGaramond.ttf";
+
+    /// <summary>Cormorant Garamond Bold — used for button labels.</summary>
+    public const string FontCormorantGaramondBold = "res://assets/fonts/CormorantGaramond-Bold.ttf";
+
+    /// <summary>Inter is SIL-licensed, clean readable sans-serif. No longer default body font — kept for reference.</summary>
+    public const string FontInter = "res://assets/fonts/Inter-Variable.ttf";
+
+    // ════════════════════════════════════════════
     // Type Scale
     // ════════════════════════════════════════════
 
+    // ── Card/UI internal sizes (unchanged) ──
     public const int FontTiny = 9;
     public const int FontSmall = 13;
     public const int FontBody = 15;
@@ -208,6 +225,24 @@ public static class ThemeTokens
     public const int FontSubtitle = 24;
     public const int FontTitle = 30;
     public const int FontLarge = 38;
+
+    // ── TASK-UI-READABLE-1: New readable sizes for phone ──
+    /// <summary>Primary button labels — 44px (was ~15-24px)</summary>
+    public const int FontButtonPrimary = 44;
+    /// <summary>Secondary / flavour text — 32px (was 13-18px)</summary>
+    public const int FontSecondary = 32;
+    /// <summary>Card name on a hand card — 30px (was ~14px auto-fit)</summary>
+    public const int FontCardName = 30;
+    /// <summary>Stat numerals (vigor/attunement on HUD) — 34px (was 18px)</summary>
+    public const int FontStat = 34;
+    /// <summary>Screen titles — 96px (was 30-54px)</summary>
+    public const int FontTitleScreen = 96;
+    /// <summary>Section headers — 56px (was 38px)</summary>
+    public const int FontSectionHeader = 56;
+    /// <summary>Minimum button height in px</summary>
+    public const int MinButtonHeight = 120;
+    /// <summary>Minimum tap target in px</summary>
+    public const int MinTapTarget = 120;
 
     // ════════════════════════════════════════════
     // Spacing (4px grid)
@@ -239,21 +274,12 @@ public static class ThemeTokens
     public const int CardNameHeight = 28;
 
     // ════════════════════════════════════════════
-    // Font path (Cinzel — fantasy serif)
-    // ════════════════════════════════════════════
-
-    /// <summary>Cinzel is OFL-licensed, fits high-fantasy archaeological theme.</summary>
-    public const string FontCinzel = "res://assets/fonts/Cinzel.ttf";
-
-    /// <summary>Inter is SIL-licensed, clean readable sans-serif for body text.</summary>
-    public const string FontInter = "res://assets/fonts/Inter-Variable.ttf";
-
-    // ════════════════════════════════════════════
     // Font loading helpers (cache by size)
     // ════════════════════════════════════════════
 
     private static readonly Dictionary<int, Font> _headerFontCache = new();
     private static readonly Dictionary<int, Font> _bodyFontCache = new();
+    private static readonly Dictionary<int, Font> _buttonFontCache = new();
 
     /// <summary>Get a header font (Cinzel serif) at the given pixel size.</summary>
     public static Font GetHeaderFont(int size)
@@ -270,13 +296,13 @@ public static class ThemeTokens
         return variation;
     }
 
-    /// <summary>Get a body font (Inter sans-serif) at the given pixel size.</summary>
+    /// <summary>Get a body font (Cormorant Garamond serif) at the given pixel size.</summary>
     public static Font GetBodyFont(int size)
     {
         if (_bodyFontCache.TryGetValue(size, out var cached))
             return cached;
 
-        var fontFile = ResourceLoader.Load<FontFile>(FontInter);
+        var fontFile = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
         if (fontFile == null) return null!;
 
         var variation = new FontVariation();
@@ -285,7 +311,22 @@ public static class ThemeTokens
         return variation;
     }
 
-    /// <summary>Apply header font to a Control node (label) at the given size.</summary>
+    /// <summary>Get a button font (Cormorant Garamond Bold) at the given pixel size.</summary>
+    public static Font GetButtonFont(int size)
+    {
+        if (_buttonFontCache.TryGetValue(size, out var cached))
+            return cached;
+
+        var fontFile = ResourceLoader.Load<FontFile>(FontCormorantGaramondBold);
+        if (fontFile == null) return null!;
+
+        var variation = new FontVariation();
+        variation.BaseFont = fontFile;
+        _buttonFontCache[size] = variation;
+        return variation;
+    }
+
+    /// <summary>Apply header font (Cinzel) to a Control node (label) at the given size.</summary>
     public static void ApplyHeaderFont(Control label, int size)
     {
         var font = GetHeaderFont(size);
@@ -296,7 +337,7 @@ public static class ThemeTokens
         }
     }
 
-    /// <summary>Apply body font to a Control node (label) at the given size.</summary>
+    /// <summary>Apply body font (Cormorant Garamond) to a Control node (label) at the given size.</summary>
     public static void ApplyBodyFont(Control label, int size)
     {
         var font = GetBodyFont(size);
@@ -304,6 +345,17 @@ public static class ThemeTokens
         {
             label.AddThemeFontOverride("font", font);
             label.AddThemeFontSizeOverride("font_size", size);
+        }
+    }
+
+    /// <summary>Apply button font (Cormorant Garamond Bold) to a Button node.</summary>
+    public static void ApplyButtonFont(Button btn, int size)
+    {
+        var font = GetButtonFont(size);
+        if (font != null)
+        {
+            btn.AddThemeFontOverride("font", font);
+            btn.AddThemeFontSizeOverride("font_size", size);
         }
     }
 

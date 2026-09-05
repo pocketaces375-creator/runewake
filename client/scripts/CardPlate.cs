@@ -173,7 +173,7 @@ public partial class CardPlate : Control
         _cardName.Position = Vector2.Zero;
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
-        ApplyHeaderFont(_cardName, 14);
+        ApplyHeaderFont(_cardName, FontCardName);
         var fit = FitCardNameAuto(safeWidth, maxBandH);
 
         // Actual band height = text height + small padding, never below baseline, never
@@ -371,13 +371,13 @@ public partial class CardPlate : Control
         var measureFont = _cardName.GetThemeFont("font");
         if (measureFont == null) measureFont = font;
 
-        int hardMin = _isArtifact ? 8 : 12;
+        int hardMin = _isArtifact ? 8 : 14;
         // Compute base size: 24px at 236px card width, scaled linearly
-        int baseSize = Mathf.Max(6, Mathf.RoundToInt(24f * _designCardWidth / 236f));
+        int baseSize = Mathf.Max(6, Mathf.RoundToInt(42f * _designCardWidth / 236f));
         // Single-line floor = 62% of base, min 8px — NOT clamped to hardMin
         int singleLineFloor = Mathf.Max(8, Mathf.RoundToInt(baseSize * 0.62f));
         // Absolute height minimum: 8px per spec "no glyph below 8px"
-        const int heightFloor = 8;
+        const int heightFloor = 12;
 
         float Measure(string text, int sz)
         {

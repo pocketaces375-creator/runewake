@@ -153,8 +153,8 @@ public partial class DuelScene : Control
 
         // Step 1: Typography — apply display font (Cinzel) to headers, body font (Inter) to data
         ApplyHeaderFont(_turnLabel, FontSmall);
-        ApplyBodyFont(_playerVigorValue, FontLargeBody);
-        ApplyBodyFont(_playerAttuneValue, FontLargeBody);
+        ApplyBodyFont(_playerVigorValue, FontStat);
+        ApplyBodyFont(_playerAttuneValue, FontStat);
 
         var board = GetNode("Board");
 
@@ -268,7 +268,7 @@ public partial class DuelScene : Control
             _endTurnButton = new Button();
             _endTurnButton.Text = "End Turn";
             _endTurnButton.ActionMode = Button.ActionModeEnum.Press;
-            _endTurnButton.AddThemeFontSizeOverride("font_size", FontSubtitle);
+            _endTurnButton.AddThemeFontSizeOverride("font_size", FontButtonPrimary);
             _endTurnButton.AddThemeColorOverride("font_color", Colors.Black);
             _endTurnButton.AddThemeColorOverride("font_hover_color", Colors.Black);
             _endTurnButton.AddThemeColorOverride("font_pressed_color", Colors.Black);
@@ -308,8 +308,8 @@ public partial class DuelScene : Control
             _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
             _endTurnButton.OffsetRight = -16;
             _endTurnButton.OffsetLeft = -156;
-            _endTurnButton.OffsetBottom = -80;
-            _endTurnButton.OffsetTop = -128;
+            _endTurnButton.OffsetBottom = -16;
+            _endTurnButton.OffsetTop = -136;
             AddChild(_endTurnButton);
         }
         _endTurnButton.Pressed += OnEndTurnPressed;
@@ -4312,7 +4312,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             MouseFilter = Control.MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
         };
-        ApplyHeaderFont(statusLabelNode, FontLarge);
+        ApplyHeaderFont(statusLabelNode, FontTitleScreen);
         statusLabelNode.Modulate = accentColor;
         panelVBox.AddChild(statusLabelNode);
 
@@ -4360,7 +4360,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             MouseFilter = Control.MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
         };
-        ApplyHeaderFont(headlineLabel, FontSubtitle);
+        ApplyHeaderFont(headlineLabel, FontSectionHeader);
         headlineLabel.Modulate = TextPrimary;
         panelVBox.AddChild(headlineLabel);
 
@@ -4380,7 +4380,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
                 CustomMinimumSize = new Vector2(0, 48),
             };
-            ApplyBodyFont(flavorLabel, FontBody);
+            ApplyBodyFont(flavorLabel, FontSecondary);
             flavorLabel.Modulate = TextSecondary;
             panelVBox.AddChild(flavorLabel);
         }
@@ -4428,7 +4428,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 MouseFilter = Control.MouseFilterEnum.Ignore,
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
             };
-            ApplyBodyFont(rewardHeader, FontSmall);
+            ApplyBodyFont(rewardHeader, FontSecondary);
             rewardHeader.Modulate = Gold;
             rewardGrid.AddChild(rewardHeader);
 
@@ -4481,7 +4481,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                     MouseFilter = Control.MouseFilterEnum.Ignore,
                     SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
                 };
-                ApplyBodyFont(dropHeader, FontSmall);
+                ApplyBodyFont(dropHeader, FontSecondary);
                 dropHeader.Modulate = Moss;
                 dropHeader.Visible = false; // hidden until reveal starts
                 panelVBox.AddChild(dropHeader);
@@ -4517,7 +4517,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                     MouseFilter = Control.MouseFilterEnum.Ignore,
                     SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
                 };
-                ApplyBodyFont(forfeitLabel, FontSmall);
+                ApplyBodyFont(forfeitLabel, FontSecondary);
                 forfeitLabel.Modulate = Ember;
                 panelVBox.AddChild(forfeitLabel);
 
@@ -4790,10 +4790,10 @@ private void ShowGameOverOverlay(int winnerIndex)
         {
             Text = text,
             MouseFilter = Control.MouseFilterEnum.Stop,
-            CustomMinimumSize = new Vector2(180, 52),
+            CustomMinimumSize = new Vector2(180, MinButtonHeight),
             SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
         };
-        ApplyHeaderFont(btn, FontLargeBody);
+        ApplyBodyFont(btn, FontButtonPrimary);
         var normal = new StyleBoxFlat
         {
             BgColor = SurfaceMetal,

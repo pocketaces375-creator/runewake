@@ -535,9 +535,9 @@ public partial class DeckBuilderScene : Control
             Disabled = true,
             CustomMinimumSize = new Vector2(0, 40)
         };
-        ApplyHeaderFont(_forgeButton, FontBody);
-        _forgeButton.AddThemeFontOverride("font", GetHeaderFont(FontBody));
-        _forgeButton.AddThemeFontSizeOverride("font_size", FontBody);
+        ApplyBodyFont(_forgeButton, FontButtonPrimary);
+        _forgeButton.AddThemeFontOverride("font", GetButtonFont(FontButtonPrimary));
+        _forgeButton.AddThemeFontSizeOverride("font_size", FontButtonPrimary);
         _forgeButton.AddThemeColorOverride("font_color", Gold);
         _forgeButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
         {

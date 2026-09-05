@@ -86,7 +86,7 @@ public partial class Main : Control
             AnchorTop = 0.08f, AnchorBottom = 0.22f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
-        ThemeTokens.ApplyHeaderFont(title, 54);
+        ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitleScreen);
         title.Modulate = Color.FromHtml("#D4B84C"); // gold
         AddChild(title);
 
@@ -100,7 +100,7 @@ public partial class Main : Control
             AnchorTop = 0.22f, AnchorBottom = 0.28f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
-        ThemeTokens.ApplyHeaderFont(subtitle, ThemeTokens.FontSubtitle);
+        ThemeTokens.ApplyBodyFont(subtitle, ThemeTokens.FontSecondary);
         subtitle.Modulate = Color.FromHtml("#C8B88A"); // warm beige
         AddChild(subtitle);
 
@@ -158,8 +158,9 @@ public partial class Main : Control
             {
                 Text = text,
                 AnchorLeft = 0.40f, AnchorRight = 0.60f,
-            };
-            btn.AddThemeFontSizeOverride("font_size", 15);
+ CustomMinimumSize = new Vector2(0, ThemeTokens.MinButtonHeight),
+ };
+            btn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
             btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
             btn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
             btn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
@@ -167,7 +168,7 @@ public partial class Main : Control
             btn.AddThemeStyleboxOverride("hover", stoneHover);
             btn.AddThemeStyleboxOverride("pressed", stonePressed);
             btn.AddThemeStyleboxOverride("disabled", stoneNormal);
-            var labelFont = ThemeTokens.GetHeaderFont(15);
+            var labelFont = ThemeTokens.GetButtonFont(ThemeTokens.FontButtonPrimary);
             if (labelFont != null)
                 btn.AddThemeFontOverride("font", labelFont);
             return btn;
