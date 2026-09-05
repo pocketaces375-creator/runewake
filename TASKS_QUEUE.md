@@ -48,7 +48,7 @@
   Acceptance: the check catches a deliberately mislabelled test file and passes on the current tree;
   finish_task.sh runs it; the DONE line states how many files were checked.
 
-- [ ] TASK-PERF-2 — AFTER: TASK-UI-FIT-1. Get the APK from 224MB to under 160MB. Fable already took it
+- [x] TASK-PERF-2 — AFTER: TASK-UI-FIT-1. Get the APK from 224MB to under 160MB. Fable already took it
   from 310MB by repairing the art and capping imported sizes; what remains, measured from the package:
   122.4MB of textures, 71.8MB of engine .so (untouchable), 11.6MB of static build libraries and 10.3MB
   of .dll. Two levers left: (1) the card art cap is 640px —try 512 and compare a duel capture side by
