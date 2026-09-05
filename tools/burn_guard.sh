@@ -54,6 +54,47 @@ o=old[-1]; dt=(s[-1][0]-o[0])/3600.0
 print(f"{(s[-1][1]-o[1])/dt:.2f}" if dt>0 else "0")
 PY
 )
+
+# ── AUTO-LIFT ────────────────────────────────────────────────────────────────
+# A halt is a pause with a reason, and a pause that nobody lifts is just an outage. Rate halts clear
+# themselves the moment the rate is back under the cap; daily halts clear at the day rollover. Anything
+# still holding says so in the group once an hour, so a halt can never sit for hours unnoticed again.
+prev_halt=$(python3 -c "
+import json
+try: print(json.load(open('/tmp/runewake_burn.json')).get('halted_by') or '')
+except Exception: print('')" 2>/dev/null)
+if [[ -n "$prev_halt" ]]; then
+  lift=""
+  case "$prev_halt" in
+    *rate*)  awk_ok=$(python3 -c "print(1 if float('${rate:-0}') < float('${HOURLY_CAP}') else 0)" 2>/dev/null || echo 0)
+             [[ "$awk_ok" == "1" ]] && lift="the burn rate is back to \$${rate}/h, under the \$${HOURLY_CAP} cap" ;;
+    *daily*) last_day=$(python3 -c "
+import json
+try: print(json.load(open('/tmp/runewake_burn.json')).get('halt_day') or '')
+except Exception: print('')" 2>/dev/null)
+             [[ "$last_day" != "$today" ]] && lift="a new day started and the daily budget reset" ;;
+    *canary*) : ;;   # handled by the canary block itself
+  esac
+  if [[ -n "$lift" ]]; then
+    for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HALT_REASON"; done
+    set_state halted_by "None"
+    set_state halt_notified "\"\""
+    $TG "Production is running again — ${lift}. It was paused by the spend guard; nothing was broken." >/dev/null 2>&1 || true
+    echo "auto-lifted: $prev_halt ($lift)"
+  else
+    notified=$(python3 -c "
+import json
+try: print(json.load(open('/tmp/runewake_burn.json')).get('halt_notified') or '')
+except Exception: print('')" 2>/dev/null)
+    hour=$(date +%Y-%m-%dT%H)
+    if [[ "$notified" != "$hour" ]]; then
+      set_state halt_notified "\"$hour\""
+      $TG "Still paused by the spend guard (${prev_halt#burn_guard:}). Spend today \$${watched}, rate \$${rate}/h. It will resume by itself when the reason clears." >/dev/null 2>&1 || true
+    fi
+    echo "still halted: $prev_halt"
+  fi
+fi
+
 halted_by=$(python3 -c "import json;print(json.load(open('$STATE')).get('halted_by') or '')")
 set_state(){ python3 -c "import json;d=json.load(open('$STATE'));d['$1']=$2;json.dump(d,open('$STATE','w'))"; }
 
@@ -61,7 +102,7 @@ halt_all(){ # $1 = reason tag, $2 = message
   for d in "${LANES[@]}"; do touch "$d/FOREMAN_HALT"; echo "burn_guard: $1 $(date -Is)" > "$d/FOREMAN_HALT_REASON"; done
   for f in /tmp/runewake_foreman.pid /tmp/runewake_foreman_lane{2,3,4,5}.pid; do p=$(cat $f 2>/dev/null); [[ -n "$p" ]] && kill "$p" 2>/dev/null; done
   pkill -f 'hermes -p runewake' 2>/dev/null; pkill -f 'hermes -z Implement the top unchecked task' 2>/dev/null
-  set_state halted_by "\"burn_guard:$1\""
+  set_state halted_by "\"burn_guard:$1\""; set_state halt_day "\"$(date +%F)\""
   $TG "⛔ BURN GUARD halted all lanes — $2. Spend today \$${usage}. Fable/Trikzos: fix, then rm FOREMAN_HALT in each lane to resume." >/dev/null 2>&1 || true
   logger -t burn-guard "HALT $1: $2"
 }
