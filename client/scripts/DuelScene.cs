@@ -650,6 +650,10 @@ public partial class DuelScene : Control
                         captureSuffix = "_align";
                     else if (CampaignContext.DebugSafeAreaMode)
                         captureSuffix = "_safe";
+                    else if (CampaignContext.CaptureHandSize == 5)
+                        captureSuffix = CampaignContext.WideCaptureMode ? "_hand5_wide" : "_hand5";
+                    else if (CampaignContext.CaptureHandSize == 8)
+                        captureSuffix = CampaignContext.WideCaptureMode ? "_hand8_wide" : "_hand8";
                     else if (CampaignContext.WideCaptureMode)
                         captureSuffix = "_wide";
                     else if (CampaignContext.R2CardScale)
@@ -684,7 +688,7 @@ public partial class DuelScene : Control
                     meta.Append("{\n");
 
                     // Capture hand card info from _handCards
-                    meta.Append("  \"expected_hand_card_count\": 10,\n");
+                    meta.Append($"  \"expected_hand_card_count\": {_handCards.Count},\n");
                     meta.Append("  \"expected_board_card_count\": 10,\n");
                     // FULL-DECK-2: Include viewport dims for capture_gate.py Check 8
                     var vpSize = GetViewportRect().Size;
@@ -2677,59 +2681,90 @@ public partial class DuelScene : Control
         var handScene = GD.Load<PackedScene>("res://scenes/components/HandCard.tscn");
         var hand = _gsm.GetHand(0);
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
-
-        // Compute dynamic card sizing so all cards fit with consistent spacing
-        // Center-aligned with slight overlap
         int n = hand.Count;
         float aspect = 104f / 152f;
-        // Available width: viewport minus player panel (~220px left) minus End Turn button area (~100px right)
-        float availWidth = GetViewportRect().Size.X - 320f;
+
+        // TASK-DUEL-HAND-1: Dynamic hand fan — always fits on screen with art readable.
+        // Available width: viewport minus HandArea margins minus End Turn button buffer.
+        float lMargin = _handArea.GetThemeConstant("margin_left");
+        float rMargin = _handArea.GetThemeConstant("margin_right");
+        if (lMargin <= 0) lMargin = 180f;
+        if (rMargin <= 0) rMargin = 80f;
+        float endTurnBuffer = 100f;
+        float availWidth = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
         // Always center alignment
         _handFlow.Alignment = BoxContainer.AlignmentMode.Center;
 
-        // TASK-G: Hand fan compression — dynamic spacing based on card count
-        float handSep;
-        if (n <= 3) { handSep = 10f; }
-        else if (n <= 5) { handSep = 6f; }
-        else if (n <= 7) { handSep = 4f; }
+        // Max overlap: 35% of card width — keeps >50% of each card visible so art is readable
+        const float maxOverlapFraction = 0.35f;
+
+        // Start with base card height from ScaleCardSizes
+        float cardHeight = _handCardHeight;
+        float cardWidth = cardHeight * aspect;
+
+        // Compute spacing/overlap
+        float spacing;
+        if (n <= 1)
+        {
+            spacing = 0f;
+        }
         else
         {
-            // 8-10 cards: minimal spacing for overlap effect
-            handSep = -8f; // BOARD-MATCH-1: Negative separation creates overlap
-            float cardW_else = _handCardHeight * aspect;
-            float endTurnLeft = GetViewportRect().Size.X - 100f;
-            float marginLeft = 40f;
-            float available = endTurnLeft - 8f - marginLeft;
-            float totalCardsWidth = n * cardW_else;
-            if (totalCardsWidth > available)
+            // Ideal spacing: small positive gap for few cards, slight overlap for many
+            float idealSpacing = n <= 3 ? 6f : (n <= 6 ? 2f : -4f);
+            float totalWidth = n * cardWidth + (n - 1) * idealSpacing;
+
+            if (totalWidth <= availWidth)
             {
-                float newCardW = available / n;
-                _handCardHeight = newCardW / aspect;
-                _handCardHeight = Mathf.Max(130f, _handCardHeight);
+                // Fits with ideal spacing
+                spacing = idealSpacing;
+            }
+            else
+            {
+                // Need more overlap. Compute minimum overlap to fit.
+                float requiredOverlap = (availWidth - n * cardWidth) / (n - 1);
+                float overlapFraction = -requiredOverlap / cardWidth;
+
+                if (overlapFraction <= maxOverlapFraction)
+                {
+                    spacing = requiredOverlap; // negative = overlap
+                }
+                else
+                {
+                    // Overlap would hide too much art — shrink cards instead.
+                    // Solve: newCardWidth * (n - (n-1) * maxOverlapFraction) = availWidth
+                    float newCardWidth = availWidth / (n - (n - 1) * maxOverlapFraction);
+                    cardHeight = newCardWidth / aspect;
+                    cardHeight = Mathf.Max(120f, cardHeight); // floor: keep art and text readable
+                    cardWidth = cardHeight * aspect;
+                    spacing = -maxOverlapFraction * cardWidth;
+
+                    // Update hand area vertical position for new height
+                    float safeBottom = DisplayServer.GetDisplaySafeArea().Position.Y
+                        + DisplayServer.GetDisplaySafeArea().Size.Y;
+                    float vh = GetViewportRect().Size.Y;
+                    float safeMargin = vh - safeBottom;
+                    float bottomGap = Mathf.Max(6f, (CampaignContext.DebugSafeAreaMode ? safeMargin : 0f) + 8f);
+                    _handArea.OffsetTop = -(cardHeight + bottomGap);
+                }
             }
         }
-        handSep = Mathf.Clamp(handSep, -12f, 12f); // Allow negative for overlap
-        _handFlow.AddThemeConstantOverride("separation", (int)handSep);
 
-        float cardW = _handCardHeight * aspect;
-        float required = n * cardW + (n - 1) * handSep;
-        float fitHeight = _handCardHeight;
-        if (required > availWidth && n > 1)
-        {
-            float shrink = (availWidth - (n - 1) * handSep) / (n * aspect);
-            fitHeight = Mathf.Max(110f, shrink); // floor at 110px for readability
-        }
+        // Clamp spacing to reasonable range
+        spacing = Mathf.Clamp(spacing, -60f, 20f);
+        _handFlow.AddThemeConstantOverride("separation", Mathf.RoundToInt(spacing));
+
+        GD.Print($"[HAND] {n} cards, height={cardHeight:F0}, cardW={cardWidth:F0}, spacing={spacing:F1}, avail={availWidth:F0}, viewport={GetViewportRect().Size.X:F0}");
 
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
             _handFlow.AddChild(card);
-            card.ScaleTo(fitHeight);
+            card.ScaleTo(cardHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
 
-            // Playability: full brightness + gold badge when affordable;
-            // ≤30% desaturation + red badge when not. NEVER dim to black.
+            // Playability: full brightness when affordable; desaturated when not
             card.SetPlayable(info.Cost <= currentAttune);
 
             var capturedCard = card;
@@ -5847,8 +5882,9 @@ private void ShowGameOverOverlay(int winnerIndex)
     }
 
     /// <summary>
-    /// TASK-G: Inflate player hand to 10 cards for worst-case compression test in captures.
-    /// Copies cards already in hand until we have 10, using card defs from the registry.
+    /// TASK-G + TASK-DUEL-HAND-1: Inflate player hand to the target size (CaptureHandSize) for
+    /// worst-case compression test in captures.
+    /// Copies cards already in hand until we have targetCount, using card defs from the registry.
     /// </summary>
     private void InflateHandTo10()
     {
@@ -5860,7 +5896,7 @@ private void ShowGameOverOverlay(int winnerIndex)
         }
 
         var hand = state.Players[0].Hand;
-        int targetCount = 10;
+        int targetCount = CampaignContext.CaptureHandSize;
         if (hand.Count >= targetCount)
         {
             // If the long-name test card is registered but not in hand, force it in

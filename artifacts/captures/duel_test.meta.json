@@ -10,62 +10,62 @@
     {
       "card_id": "vrd_r_bloomweaver",
       "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 214.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 240.0, "y": 875.5, "w": 154.8, "h": 52.4 }
+      "rect": { "x": 232.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 262.0, "y": 900.4, "w": 172.6, "h": 59.2 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 412.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 438.0, "y": 827.9, "w": 154.8, "h": 101.0 }
+      "rect": { "x": 423.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 453.0, "y": 849.6, "w": 172.6, "h": 111.0 }
     },
     {
       "card_id": "emb_u_wildfire_adept",
       "name": "Wildfire Adept",
-      "rect": { "x": 610.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 636.0, "y": 833.9, "w": 154.8, "h": 95.0 }
+      "rect": { "x": 614.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 644.0, "y": 855.6, "w": 172.6, "h": 105.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
-      "rect": { "x": 808.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 834.0, "y": 827.9, "w": 154.8, "h": 101.0 }
+      "rect": { "x": 805.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 835.0, "y": 849.6, "w": 172.6, "h": 111.0 }
     },
     {
       "card_id": "vrd_r_bloomweaver",
       "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 1006.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 1032.0, "y": 875.5, "w": 154.8, "h": 52.4 }
+      "rect": { "x": 996.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1026.0, "y": 900.4, "w": 172.6, "h": 59.2 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 1204.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 1230.0, "y": 827.9, "w": 154.8, "h": 101.0 }
+      "rect": { "x": 1187.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1217.0, "y": 849.6, "w": 172.6, "h": 111.0 }
     },
     {
       "card_id": "emb_u_wildfire_adept",
       "name": "Wildfire Adept",
-      "rect": { "x": 1402.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 1428.0, "y": 833.9, "w": 154.8, "h": 95.0 }
+      "rect": { "x": 1378.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1408.0, "y": 855.6, "w": 172.6, "h": 105.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
-      "rect": { "x": 1600.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 1626.0, "y": 827.9, "w": 154.8, "h": 101.0 }
+      "rect": { "x": 1569.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1599.0, "y": 849.6, "w": 172.6, "h": 111.0 }
     },
     {
       "card_id": "vrd_r_bloomweaver",
       "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 1798.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 1824.0, "y": 875.5, "w": 154.8, "h": 52.4 }
+      "rect": { "x": 1760.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1790.0, "y": 900.4, "w": 172.6, "h": 59.2 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 1996.0, "y": 676.0, "w": 206.8, "h": 398.0 },
-      "name_rect": { "x": 2022.0, "y": 827.9, "w": 154.8, "h": 101.0 }
+      "rect": { "x": 1951.0, "y": 676.0, "w": 232.6, "h": 398.0 },
+      "name_rect": { "x": 1981.0, "y": 849.6, "w": 172.6, "h": 111.0 }
     }
   ],
   "groups": [

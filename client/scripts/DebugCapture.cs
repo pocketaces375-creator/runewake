@@ -133,6 +133,32 @@ public partial class DebugCapture : Node
                 CampaignContext.CurrentRegionSkinId = "ember";
                 GD.Print("[DebugCapture] R2 card scale variant enabled: --capture=duel_test_r2 — ember skin active");
             }
+            if (arg == "--capture=duel_test_hand5")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 5;
+                GD.Print("[DebugCapture] Hand-5 capture mode enabled: --capture=duel_test_hand5");
+            }
+            if (arg == "--capture=duel_test_hand5_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 5;
+                CampaignContext.WideCaptureMode = true;
+                GD.Print("[DebugCapture] Hand-5 wide capture mode enabled: --capture=duel_test_hand5_wide");
+            }
+            if (arg == "--capture=duel_test_hand8")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 8;
+                GD.Print("[DebugCapture] Hand-8 capture mode enabled: --capture=duel_test_hand8");
+            }
+            if (arg == "--capture=duel_test_hand8_wide")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 8;
+                CampaignContext.WideCaptureMode = true;
+                GD.Print("[DebugCapture] Hand-8 wide capture mode enabled: --capture=duel_test_hand8_wide");
+            }
             if (arg == "--capture=deck_test")
             {
                 deckBuilderMode = true;
