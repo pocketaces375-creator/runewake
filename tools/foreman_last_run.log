@@ -1,8 +1,3 @@
-5. **`client/scripts/BotController.cs`** — Uses `IGameBot` interface instead of hardcoded `GreedyBot`.
-
-6. **`client/scripts/DuelScene.cs`** — Configures bot type from encounter's `AiType`.
-
-7. **`sim/Program.cs`** — `--ai-a` and `--ai-b` CLI args.
 
 ### The critical problem
 
@@ -47,4 +42,9 @@ Summary of what was implemented:
 **Acceptance gates passed:**
 - Build, art_check, all unit tests, capture regen, blob check, label_fit, input_smoke, loop_smoke
 - Committed with message, pushed, DONE entry in HERMES_STATUS.md
+========================================
+=== foreman: 2026-09-06T21:56:26Z TASK-TOUCH-PLAY-1 success ===
+Session: 3/96
+--- session tail ---
+  session TASK-TOUCH-PLAY-1 on deepseek/deepseek-v4-flash: 575s
 ========================================
