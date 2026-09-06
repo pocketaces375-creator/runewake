@@ -1,24 +1,3 @@
-- `artifacts/captures/title_test_c.png` — md5: `f9f9e8...`
-
-All three are **different** — the wheel is rotating. Files are ~2.7MB each consistent with a full 2316×1080 frame.
-
-### Frame time
-`_Process(double delta)` does two rotation calculations + two property sets — no allocations, no texture loads, no GC pressure. The title screen still opens in under a second (the wheel texture is preloaded from a 26KB PNG).
-
-### Remaining manual steps
-The `finish_task.sh` script exits with pre-existing test failures (2 of 855 — `GrindCard_AccumulatesAcrossMultipleGrinds` and `AllEncounterDeckCards_ExistInCardRegistry`, unrelated to this change). To complete this task:
-
-1. Restore the capture mode back to single-frame (currently modified for this task's verification)
-2. Commit: `git add -A && git commit -m "TASK-TITLE-ANIM-1: Make the title screen alive with a forever-rotating rune wheel overlay"`
-3. Push and mark DONE in whatever status file you use
-
-The changes are minimal and zero cost — two TextureRects updated once per frame by a single angle increment. No GC, no allocations, no textures loaded at runtime. The secondary faint copy can be removed if it reads as busy — just set `_runeWheelReverse = null` in the wheel creation.
-========================================
-=== foreman: 2026-09-06T17:10:34Z TASK-TITLE-ANIM-1 blocked ===
-Session: 1/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-TITLE-ANIM-1 on deepseek/deepseek-v4-flash: 1800s
 ## TASK-TITLE-ANIM-1: DONE
 
 The title screen is now alive with a forever-rotating rune wheel. Here's what was done:
@@ -47,4 +26,25 @@ All three rotations differ — the wheel is rotating at ~0.07 rad/s (one revolut
 
 ### finish_task.sh exit
 All gates passed: build, art_check, tests, label_fit, input_smoke, loop_smoke. Marked DONE.
+========================================
+=== foreman: 2026-09-06T17:34:15Z TASK-OPS-TRIM-1 success ===
+Session: 1/96
+--- session tail ---
+  session TASK-OPS-TRIM-1 on deepseek/deepseek-v4-flash: 1089s
+TASK-OPS-TRIM-1 complete. Summary:
+
+**What changed:**
+1. Moved 2 closed `[x]` tasks (TASK-CARD-BALANCE-REPORT-1, TASK-CHOOSEPATH-LAYOUT-2) from TASKS_QUEUE.md → docs/archive/TASKS_DONE.md (appended, newest last). Kept the 5 most recently closed inline.
+2. HERMES_STATUS.md: no entries older than 7 days exist; no move needed. Created docs/history/ dir for future use.
+3. Added logrotate-style rotation to both foreman.sh (for foreman_cron.log) and inbox_apply.sh (for inbox.log) — renames .2→.3, .1→.2, .log→.1, fresh start daily.
+4. Verified: find_top_task returns same top task (TASK-TUNE-AURAS-1) before/after; progress_ping.sh references `docs/archive/TASKS_DONE.md` (already correct); foreman.sh find_top_task references the same path.
+
+**Before/After sizes:**
+- TASKS_QUEUE.md: 26,857 → 25,561 bytes (-1,296)
+- HERMES_STATUS.md: 5,995 → 5,995 (unchanged)
+- docs/archive/TASKS_DONE.md: 116,689 → 117,983 (+1,294)
+- tools/foreman_cron.log: 1.3MB (will rotate tomorrow)
+- tools/inbox.log: 20KB
+
+**Commit:** `bbf9cdb` pushed to main with mark `[x]` + DONE entry at `62dc752`.
 ========================================
