@@ -171,6 +171,29 @@ else
   echo "  Skipping (tools/ui_lint.py not yet created)"
 fi
 
+# ── Step 6b: label_fit — no text may render outside its own card ──
+echo ""
+echo "── Step 6b: label_fit (text inside its card) ──"
+if [[ -f "${PROJECT_DIR}/tools/label_fit.py" ]]; then
+  LF_FAIL=0
+  shopt -s nullglob
+  for lay in "${PROJECT_DIR}"/artifacts/captures/*.layout.json; do
+    LF_OUT=$(python3 "${PROJECT_DIR}/tools/label_fit.py" "$lay" 2>&1) || LF_FAIL=1
+    if [[ "$LF_OUT" == *SPILL* || "$LF_OUT" == *"CANNOT MEASURE"* ]]; then
+      echo "  $(basename "$lay"):"
+      echo "${LF_OUT}" | sed 's/^/    /'
+    fi
+  done
+  shopt -u nullglob
+  if [[ "$LF_FAIL" -ne 0 ]]; then
+    fail "label_fit: text renders outside its card (or the capture carries no rotation data). Fix the screen; do not mark the task done."
+  else
+    ok "label_fit passed — every label is inside its card"
+  fi
+else
+  echo "  Skipping (tools/label_fit.py not present)"
+fi
+
 # ── Step 7: input_smoke / loop_smoke — skip until they exist ──
 echo ""
 echo "── Step 7: Input/loop smoke tests ──"
@@ -178,7 +201,7 @@ for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/
   if [[ -x "${smoke_script}" ]]; then
     # Skip loop_smoke.sh until TASK-LOOP-GATE-1 is done
     if [[ "$(basename "${smoke_script}")" == "loop_smoke.sh" ]] && \
-       ! grep -q '\[x\] TASK-LOOP-GATE-1' "${PROJECT_DIR}/TASKS_QUEUE.md"; then
+       false; then   # loop_smoke always runs now: a task is not done if the game does not play
       echo "  Skipping (TASK-LOOP-GATE-1 not yet [x])"
       continue
     fi
