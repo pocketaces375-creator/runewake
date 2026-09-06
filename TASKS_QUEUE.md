@@ -67,18 +67,6 @@
 
 # ---- PHASE C — CONTENT AT SCALE (offline alpha) ----
 
-||- [x] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
-  current scene positions things in the top ~55% of the viewport and leaves the bottom black;
-  the class-core chips are siblings of the Begin button instead of children of the cards.
-  Rebuild the scene's layout with containers: a full-rect root; a VBoxContainer with the
-  title block (fixed), the carousel (expands to fill), the CLASS CORE row (fixed, ~22% of
-  viewport height, cards large enough that names are readable at arm's length), and the
-  Begin button (fixed, with margin), all inside the safe area. Each core card owns its own
-  attack/vigor chips anchored to its bottom corners. Keep the orbital carousel feel Trikzos
-  liked in alpha-2026-08-23-carousel — check that tag for reference. Portrait art unchanged.
-  Acceptance: ui_lint choose_path rules pass at 2316x1080 and wide; fresh captures; post both
-  and one sentence on what a player sees now.
-
 - [ ] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
   87 closed tasks still inline) and often HERMES_STATUS.md (101KB). That is paid for on every
   single task, forever.
@@ -130,11 +118,6 @@
 - [ ] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
-
-- [x] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
-  TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards
-  most responsible in each case. Change no values.
-  Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
 
 - [x] TASK-ART-BOARD-SKINS-1 — An Ember-tinted variant of the board and map skin through the
   BoardSkin registry for Region 2 (palette tint only, no new painted art), selectable per region

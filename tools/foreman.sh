@@ -39,6 +39,21 @@
 #
 set -euo pipefail
 
+# ── Log rotation for foreman_cron.log ────────────────────────────────────────
+FOREMAN_LOG="${PROJECT_DIR}/tools/foreman_cron.log"
+if [[ -f "${FOREMAN_LOG}" ]]; then
+  LAST_DAY=$(date -r "${FOREMAN_LOG}" '+%Y-%m-%d' 2>/dev/null || echo "")
+  TODAY=$(date '+%Y-%m-%d')
+  if [[ -n "${LAST_DAY}" && "${LAST_DAY}" != "${TODAY}" ]]; then
+    # Staggered rename: .2 → .3, .1 → .2, .log → .1 (keep at most 3 old copies)
+    [[ -f "${FOREMAN_LOG}.2" ]] && mv -f "${FOREMAN_LOG}.2" "${FOREMAN_LOG}.3" 2>/dev/null || true
+    [[ -f "${FOREMAN_LOG}.1" ]] && mv -f "${FOREMAN_LOG}.1" "${FOREMAN_LOG}.2" 2>/dev/null || true
+    # The cron redirect still points at the old inode; rename, then reopen fresh
+    mv -f "${FOREMAN_LOG}" "${FOREMAN_LOG}.1" 2>/dev/null || true
+    exec >> "${FOREMAN_LOG}" 2>&1
+  fi
+fi
+
 # ── Config ───────────────────────────────────────────────────────────────────
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"

@@ -20,6 +20,17 @@ LOG_FILE="${PROJECT_DIR}/tools/inbox.log"
 STATE_FILE="${PROJECT_DIR}/tools/foreman_state.json"
 DAILY_BUDGET=48
 
+# ── Log rotation for inbox.log ───────────────────────────────────────────────
+if [[ -f "${LOG_FILE}" ]]; then
+  LAST_DAY=$(date -r "${LOG_FILE}" '+%Y-%m-%d' 2>/dev/null || echo "")
+  TODAY=$(date '+%Y-%m-%d')
+  if [[ -n "${LAST_DAY}" && "${LAST_DAY}" != "${TODAY}" ]]; then
+    [[ -f "${LOG_FILE}.2" ]] && mv -f "${LOG_FILE}.2" "${LOG_FILE}.3" 2>/dev/null || true
+    [[ -f "${LOG_FILE}.1" ]] && mv -f "${LOG_FILE}.1" "${LOG_FILE}.2" 2>/dev/null || true
+    mv -f "${LOG_FILE}" "${LOG_FILE}.1" 2>/dev/null || true
+  fi
+fi
+
 # Lock — atomic mkdir with staleness check
 # Lock — atomic mkdir, broken ONLY when the holding process is actually gone.
 # A one-shot hermes session legitimately holds this for 20-45 minutes. The old

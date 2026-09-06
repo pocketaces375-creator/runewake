@@ -1212,3 +1212,18 @@ Write results to sim/balance_matrix.md. NO balance changes to cards — numbers 
   fragment. Data only, validated by a pipeline test; a headless soak reports observed drop rates
   over 200 seeded clears.
   Acceptance: drops json committed; test green; the rate table in HERMES_STATUS.md.
+||- [x] TASK-CHOOSEPATH-LAYOUT-2 — Choose Your Path, done with real layout this time. The
+  current scene positions things in the top ~55% of the viewport and leaves the bottom black;
+  the class-core chips are siblings of the Begin button instead of children of the cards.
+  Rebuild the scene's layout with containers: a full-rect root; a VBoxContainer with the
+  title block (fixed), the carousel (expands to fill), the CLASS CORE row (fixed, ~22% of
+  viewport height, cards large enough that names are readable at arm's length), and the
+  Begin button (fixed, with margin), all inside the safe area. Each core card owns its own
+  attack/vigor chips anchored to its bottom corners. Keep the orbital carousel feel Trikzos
+  liked in alpha-2026-08-23-carousel — check that tag for reference. Portrait art unchanged.
+  Acceptance: ui_lint choose_path rules pass at 2316x1080 and wide; fresh captures; post both
+  and one sentence on what a player sees now.
+- [x] TASK-CARD-BALANCE-REPORT-1 — REPORT ONLY. Re-run the 49-pairing class matrix after
+  TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards
+  most responsible in each case. Change no values.
+  Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
