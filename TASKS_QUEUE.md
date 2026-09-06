@@ -38,6 +38,12 @@
   Acceptance: Druid mirror within [40,60]; Druid-as-P1 vs Warrior above 15%; dotnet test green; no card
   or artifact values change; the DONE line names the file and line that was wrong.
 
+- [ ] TASK-CARD-TEXT-1 — Cards must SAY what they do. Press-and-hold (≥250ms, via TapGuard) on any card in the hand or on a lane shows a RULES SLAB; release or tap elsewhere hides it. Trikzos wants a "chat bubble" in a designated part of the screen, not a card flip.
+  WHERE: a fixed panel in the top-centre band of the duel screen (between the enemy nameplate and the player HUD), ~40% of viewport width x ~14% of height, anchored, never covering the hand, the lanes, or End Turn. It is the same panel every time — not a bubble that floats next to the finger.
+  LOOK (card law): a slab of the same pale carved stone as the card name plaque, Root-Bound edge, name engraved in Cinzel small caps on one line, then cost / attack / vigor as small keyline chips, then the rules text in Cormorant Garamond body size readable on a 720p phone, then one line per keyword reminder (GUARD, WARD, SWIFT, PIERCE, VENOM, ECHO...) in a dimmer engraved tone. No glow. No flat rectangle of colour.
+  DATA: use RulesTextRenderer for the effect text — do not hand-write rules strings; keyword reminders come from the keyword table so they stay correct.
+  DONE: finish_task green (label_fit + loop_smoke); a fresh duel_test capture with the slab OPEN on a hand card AND one with it open on a lane creature; every label inside the slab; the slab must also open for artifact plates. Add the slab to input_smoke: press-and-hold opens it, release closes it, End Turn still works with it open.
+  NOT: no card flip; no per-card floating bubble; no text drawn on the card face itself.
 - [ ] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
   In content/artifacts/launch_artifacts.json the Warrior Sword, Paladin Hammer and Battlemage Wand all
   carry the identical passive "+1 attack to EVERY attacking creature" (BUFF, filter ATTACKING, count ALL).
