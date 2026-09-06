@@ -288,6 +288,16 @@ public partial class Main : Control
         };
         AddChild(settingsButton);
 
+        // Duel Arena button
+        var arenaButton = MakeStoneButton("Duel Arena");
+        arenaButton.AnchorTop = 0.94f;
+        arenaButton.AnchorBottom = 1.00f;
+        arenaButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
+        };
+        AddChild(arenaButton);
+
         // Rune Page button (hidden — accessible from Decks/Settings screens)
         _runeButton = new Button { Visible = false, Disabled = false };
         _runeButton.Pressed += OnOpenRunePage;

@@ -161,6 +161,12 @@ public class ProgressionState
     /// </summary>
     public int ShopRotationDay { get; set; }
 
+    /// <summary>Arena duel win count.</summary>
+    public int ArenaWins { get; set; }
+
+    /// <summary>Arena duel loss count.</summary>
+    public int ArenaLosses { get; set; }
+
     /// <summary>RuneDust value per card rarity (C/U/R/M).</summary>
     private static readonly Dictionary<Rarity, int> RuneDustValues = new()
     {

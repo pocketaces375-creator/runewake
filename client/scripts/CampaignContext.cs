@@ -12,6 +12,21 @@ namespace Runewake.Client;
 /// </summary>
 public static class CampaignContext
 {
+    /// <summary>Encounter for the arena duel (built from the opponent pool). Null when not in arena mode.</summary>
+    public static EncounterDef? ArenaEncounter { get; set; }
+
+    /// <summary>True during an arena duel — signals DuelScene to award RuneDust and track stats.</summary>
+    public static bool IsArenaDuel { get; set; }
+
+    /// <summary>Seed for deterministic arena opponent selection.</summary>
+    public static ulong ArenaSeed { get; set; }
+
+    /// <summary>Display name of the current arena opponent.</summary>
+    public static string ArenaOpponentName { get; set; } = string.Empty;
+
+    /// <summary>True when the current arena opponent is a warden-tier (25 rune reward).</summary>
+    public static bool IsWardenOpponent { get; set; }
+
     /// <summary>The encounter the player is about to face (set by MapScene before transition).</summary>
     public static EncounterDef? CurrentEncounter { get; set; }
 

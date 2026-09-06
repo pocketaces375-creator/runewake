@@ -4460,6 +4460,60 @@ public partial class DuelScene : Control
         var audio = GetNode<AudioManager>("/root/AudioManager");
         audio.PlaySfx(winnerIndex == 0 ? "victory" : "defeat");
 
+        // ═══ TASK-DUEL-ARENA-1: Arena duel reward handling ═══
+        if (CampaignContext.IsArenaDuel && !_isGameOverHandled)
+        {
+            _isGameOverHandled = true;
+            var prog = CampaignContext.Progression;
+
+            if (winnerIndex == 0)
+            {
+                // Player won — award RuneDust
+                int reward = CampaignContext.IsWardenOpponent ? 25 : 10;
+                prog.RuneDust += reward;
+                prog.ArenaWins++;
+                GD.Print($"[DuelScene] Arena victory! +{reward} RuneDust (warden={CampaignContext.IsWardenOpponent})");
+
+                // Grant one random card from the opponent's deck as a bonus reward
+                if (CampaignContext.ArenaEncounter?.Deck is { Count: > 0 } oppDeck)
+                {
+                    ulong rewardSeed = CampaignContext.DebugSeed ?? (ulong)(ulong.MaxValue & GD.Randi());
+                    var rng = new SeededRng(rewardSeed);
+                    int cardIdx = (int)(rng.NextU64() % (ulong)oppDeck.Count);
+                    string rewardCardId = oppDeck[cardIdx];
+                    var rewardDef = CardRegistry.Get(rewardCardId);
+                    if (rewardDef != null)
+                    {
+                        bool firstTime = !prog.Collection.ContainsKey(rewardCardId);
+                        prog.AddCard(rewardCardId);
+                        _grantedCardName = rewardDef.Name;
+                        GD.Print($"[DuelScene] Arena bonus card: {rewardCardId} (first={firstTime})");
+                    }
+                }
+            }
+            else
+            {
+                prog.ArenaLosses++;
+                GD.Print($"[DuelScene] Arena defeat — total losses: {prog.ArenaLosses}");
+            }
+
+            CampaignContext.SaveManager.Save();
+            CampaignContext.IsArenaDuel = false;
+
+            // Navigate back to ArenaScene after a brief delay
+            var arenaNavTimer = new Godot.Timer();
+            arenaNavTimer.OneShot = true;
+            arenaNavTimer.WaitTime = 1.5f;
+            arenaNavTimer.Timeout += () =>
+            {
+                ArenaScene.ReturnFromDuel();
+                GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
+            };
+            AddChild(arenaNavTimer);
+            arenaNavTimer.Start();
+            return;
+        }
+
         if (_isCampaignEncounter && !_isGameOverHandled)
         {
             _isGameOverHandled = true;
