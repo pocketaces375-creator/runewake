@@ -112,7 +112,7 @@
   portrait_placeholder flags when done.
   Acceptance: three .webp portraits wired into classes.json; Choose Your Path capture; posted.
 
-- [ ] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
+- [x] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
   saved deck and fight an AI-piloted opponent drawn from the pool (all class starters, every encounter deck,
   and the Region 2 decks), seeded, with a win/loss ledger in the save and a Runes reward per win — 10
   normally, 25 against a Warden deck.
