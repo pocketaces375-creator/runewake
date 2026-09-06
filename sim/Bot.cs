@@ -5,11 +5,20 @@ using Runewake.Engine.Cards;
 namespace Runewake.Sim;
 
 /// <summary>
+/// Minimal interface for a bot that chooses the next action in a duel.
+/// </summary>
+public interface IGameBot
+{
+    /// <summary>Choose the best action for the current player, or null if none.</summary>
+    GameAction? ChooseAction(GameState state, int playerIndex);
+}
+
+/// <summary>
 /// A greedy heuristic bot that evaluates each legal action one ply deep.
 /// Score = own board stats + vigor − enemy board stats − enemy vigor.
 /// Picks the action with the highest score.
 /// </summary>
-public class GreedyBot
+public class GreedyBot : IGameBot
 {
     /// <summary>
     /// Chooses the best action for the current player by scoring the resulting
@@ -145,7 +154,7 @@ public class GreedyBot
     }
 
     /// <summary>Legal attack target lanes for an attacker under lane-locked rules.</summary>
-    private static IEnumerable<int> LegalTargets(CardInstance attacker, int sourceLane)
+    internal static IEnumerable<int> LegalTargets(CardInstance attacker, int sourceLane)
     {
         if (attacker.EffectiveKeywords.Contains("REACH"))
         {
