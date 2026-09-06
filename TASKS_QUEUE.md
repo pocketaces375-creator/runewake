@@ -28,7 +28,7 @@
 
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
 
-- [!] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
+- [ ] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
   P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
   is a bug, not tuning. Suspects: Book of Familiar's ON_TURN_START SUMMON of the ROOTED tok_familiar
   (lane choice, full board, or summoning onto the wrong side when the Druid is Players[1]) and Elemental
@@ -38,7 +38,7 @@
   Acceptance: Druid mirror within [40,60]; Druid-as-P1 vs Warrior above 15%; dotnet test green; no card
   or artifact values change; the DONE line names the file and line that was wrong.
 
-- [!] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
+- [ ] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
   In content/artifacts/launch_artifacts.json the Warrior Sword, Paladin Hammer and Battlemage Wand all
   carry the identical passive "+1 attack to EVERY attacking creature" (BUFF, filter ATTACKING, count ALL).
   Make them three different, weaker items: SWORD (Warrior) — +1 attack to the FIRST attacker each turn
@@ -53,7 +53,7 @@
   points and no class that was inside [40,60] leaves it; dotnet test green; no non-artifact card changes;
   one plain paragraph to the group with the 7 numbers.
 
-- [!] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. PARKED by dead dependency chain — tuner task is parked. Whisperfang (artf_rogue_dagger_whisper) has no
+- [ ] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. PARKED by dead dependency chain — tuner task is parked. Whisperfang (artf_rogue_dagger_whisper) has no
   passive and no trigger in launch_artifacts.json — it is a blank item unless the engine implements the
   TWIN rule from CLASS-IDENTITY-1C somewhere. Find out: grep the engine for the twin/second-dagger rule.
   If it exists, document in the artifact's flavor/rules text what it does and add a test proving it fires.
@@ -79,7 +79,7 @@
   Acceptance: ui_lint choose_path rules pass at 2316x1080 and wide; fresh captures; post both
   and one sentence on what a player sees now.
 
-- [!] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
+- [ ] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
   87 closed tasks still inline) and often HERMES_STATUS.md (101KB). That is paid for on every
   single task, forever.
   (1) Move every "- [x]" task block out of TASKS_QUEUE.md into docs/TASKS_DONE.md (append, keep
@@ -97,7 +97,7 @@
   Acceptance: before/after byte sizes of both files in the report; find_top_task returns the
   same top task before and after; one full foreman iteration completes green after the trim.
 
-- [!] TASK-AI-TACTICIAN-1 — PARKED by Fable 2026-09-04: 4 failed sessions on a 65% bar; re-queue with a 55% bar once the gate is green. The opponent must stop feeding trades. Replace the greedy bot with
+- [ ] TASK-AI-TACTICIAN-1 — PARKED by Fable 2026-09-04: 4 failed sessions on a 65% bar; re-queue with a 55% bar once the gate is green. The opponent must stop feeding trades. Replace the greedy bot with
   a tactician: each turn enumerate candidate plays (card × lane, ritual targets) and attack
   sets, look one ply ahead, and score the result: face vigor for both sides weighted by how
   close either is to lethal; creature value = attack + vigor + keyword worth; favorable
@@ -109,7 +109,7 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [!] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
+- [ ] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
   OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
   class, generate 6 candidates and post them to the group as separate images as a veto gate,
   then wire the one Trikzos picks (or the best if he hasn't answered within a day — he can
@@ -118,7 +118,7 @@
   portrait_placeholder flags when done.
   Acceptance: three .webp portraits wired into classes.json; Choose Your Path capture; posted.
 
-- [!] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
+- [ ] TASK-DUEL-ARENA-1 — Ghost duels. Add a "Duel Arena" node on the map and a title-menu entry: pick any
   saved deck and fight an AI-piloted opponent drawn from the pool (all class starters, every encounter deck,
   and the Region 2 decks), seeded, with a win/loss ledger in the save and a Runes reward per win — 10
   normally, 25 against a Warden deck.
@@ -127,7 +127,7 @@
 
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
-- [!] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
+- [ ] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
 
@@ -150,7 +150,7 @@
   Acceptance: tests green; loop_smoke and input_smoke pass; a fixture variant shows in a Reliquary capture;
   posted with one sentence.
 
-- [!] TASK-ITEMS-WARRIOR-1 — Four more Warrior artifacts (two per slot, Sword/Shield) in content/artifacts/variants/warrior.json,
+- [ ] TASK-ITEMS-WARRIOR-1 — Four more Warrior artifacts (two per slot, Sword/Shield) in content/artifacts/variants/warrior.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SWORD: "Executioner's Blade" — passive: your attacking creatures with attack 3+ have Pierce; +1 charge whenever a friendly creature kills an enemy creature; full (3): one friendly creature gets +2/+0 permanently.
   SWORD: "Duelist's Edge" — passive: if exactly one friendly creature attacks this turn it gets +2/+0 for that attack; trigger: that lone attacker prevents 1 damage this combat.
@@ -163,7 +163,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
   WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
@@ -176,7 +176,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
+- [ ] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SKULL: "Grinning Skull" — passive: whenever a friendly creature dies, 1 damage to the enemy face; +1 charge per friendly death; full (3): a 1/1 Skeleton token in each empty friendly lane.
   SKULL: "Whispering Skull" — passive: start of your turn, excavate 1; +1 charge per card excavated; full (3): draw 2.
@@ -189,7 +189,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-PALADIN-1 — Four more Paladin artifacts (two per slot, Hammer/Banner) in content/artifacts/variants/paladin.json,
+- [ ] TASK-ITEMS-PALADIN-1 — Four more Paladin artifacts (two per slot, Hammer/Banner) in content/artifacts/variants/paladin.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   HAMMER: "Judgement Maul" — passive: your highest-vigor creature has Pierce; +1 charge whenever you heal; full (3): 3 damage to an enemy creature.
   HAMMER: "Warden's Hammer" — passive: your Guard creatures have +1/+0; +1 charge whenever a friendly Guard creature is attacked; full (3): a friendly creature gains Guard and is healed to full.
@@ -202,7 +202,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
+- [ ] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   BOOK_OF_FAMILIAR: "Grimoire of Thorns" — passive: your Rooted creatures deal 1 damage to any creature that attacks them; +1 charge whenever a Rooted creature is attacked; full (3): all friendly Rooted creatures +1/+1 permanently.
   BOOK_OF_FAMILIAR: "Seedbook" — passive: end of your turn, if you played no creature, put a 0/2 Rooted Seed token in an empty friendly lane; +1 charge per Seed; full (3): your Seeds become 2/3 with Reach.
@@ -215,7 +215,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
+- [ ] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
   DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
