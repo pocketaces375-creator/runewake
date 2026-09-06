@@ -71,5 +71,8 @@ print("\n".join(lines))
 PY
 )
 [[ -z "$MSG" ]] && exit 0
+H=$(printf "%s" "$MSG" | md5sum | cut -c1-32); LAST=/home/fictive/runewake_state/last_ping.md5
+if [ -f "$LAST" ] && [ "$(cat "$LAST")" = "$H" ]; then exit 0; fi
+mkdir -p /home/fictive/runewake_state; echo "$H" > "$LAST"
 "$HERMES_BIN" -p tcgbot send --to telegram:-5481648844 "$MSG" >/dev/null 2>&1 || "$HERMES_BIN" -p tcgbot send --to telegram:7007731907 "$MSG" >/dev/null 2>&1 || true
 echo "$MSG"
