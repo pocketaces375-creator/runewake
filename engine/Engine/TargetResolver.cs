@@ -141,6 +141,18 @@ public static class TargetResolver
             "HIGHEST_COST" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.Cost : 0)
                 .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
                 .ToList(),
+            var s when s.StartsWith("ATTACK_GTE:") => pool.Where(t =>
+            {
+                if (t is not CreatureTarget ct) return false;
+                int threshold = int.TryParse(s[11..], out int v) ? v : 0;
+                return ct.Card.CurrentAttack >= threshold;
+            }).ToList(),
+            var s when s.StartsWith("VIGOR_GTE:") => pool.Where(t =>
+            {
+                if (t is not CreatureTarget ct) return false;
+                int threshold = int.TryParse(s[10..], out int v) ? v : 0;
+                return ct.Card.CurrentVigor >= threshold;
+            }).ToList(),
             "CHOSEN" => pool, // Player would choose; engine selects first valid
             "FIRST_SUMMONED_THIS_TURN" => pool
                 .Where(t => t is CreatureTarget ct && ct.Card.SummonedThisTurn)
