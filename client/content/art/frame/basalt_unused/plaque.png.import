@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1g3qwgxwx2se"
-path="res://.godot/imported/plaque.png-28ac5d275a9914f604bd7e7c1081a0a5.ctex"
+uid="uid://di2frgufky7jf"
+path="res://.godot/imported/plaque.png-729be267858c81b5857326aab76a62fb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://content/art/frame/plaque.png"
-dest_files=["res://.godot/imported/plaque.png-28ac5d275a9914f604bd7e7c1081a0a5.ctex"]
+source_file="res://content/art/frame/basalt_unused/plaque.png"
+dest_files=["res://.godot/imported/plaque.png-729be267858c81b5857326aab76a62fb.ctex"]
 
 [params]
 

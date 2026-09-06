@@ -32,7 +32,7 @@ public partial class CardPlate : Control
     }
 
     // ── Persistent child nodes ──
-    private TextureRect? _nameBandBg;
+    private ColorRect? _nameBandBg;
     private ColorRect? _statRailBg;
     private Label? _cardName;
     private Label? _attackBadge;
@@ -78,7 +78,14 @@ public partial class CardPlate : Control
         badge.AddThemeColorOverride("font_outline_color", Colors.Black);
         badge.AddThemeConstantOverride("outline_size", 1);
 
-        var style = PlateStyle(bgColor == FrameStatAttack ? "medal_attack" : "medal_vigor");
+        var style = new StyleBoxFlat
+        {
+            BgColor = bgColor, BorderColor = FrameHexBorder,
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius), CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius), CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
+            ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+        };
         badge.AddThemeStyleboxOverride("normal", style);
         return badge;
     }
@@ -101,12 +108,10 @@ public partial class CardPlate : Control
         if (_nameBandBg == null)
         {
             // ── Name band background ──
-            _nameBandBg = new TextureRect
+            _nameBandBg = new ColorRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
-                Texture = GD.Load<Texture2D>("res://content/art/frame/plaque.png"),
-                StretchMode = TextureRect.StretchModeEnum.Scale,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
+                Color = FrameNameBand
             };
             AddChild(_nameBandBg);
 
@@ -114,7 +119,7 @@ public partial class CardPlate : Control
             _statRailBg = new ColorRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
-                Color = new Color(0, 0, 0, 0)
+                Color = FrameStatRail
             };
             AddChild(_statRailBg);
 
@@ -221,7 +226,14 @@ public partial class CardPlate : Control
             float chipBandInset = bandPx + 2f;
             _attackBadge.Position = new Vector2(chipBandInset, statChipY);
             // Recreate stylebox with correct pill radius for current size
-            var attStyle = PlateStyle("medal_attack");
+            var attStyle = new StyleBoxFlat
+            {
+                BgColor = FrameStatAttack, BorderColor = FrameHexBorder,
+                BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius), CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius), CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
+                ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+            };
             _attackBadge.AddThemeStyleboxOverride("normal", attStyle);
         }
 
@@ -235,7 +247,14 @@ public partial class CardPlate : Control
             // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
             float vigorX = cardWidth - statChipW - bandPx - 2f;
             _vigorBadge.Position = new Vector2(vigorX, statChipY);
-            var vigStyle = PlateStyle("medal_vigor");
+            var vigStyle = new StyleBoxFlat
+            {
+                BgColor = FrameStatVigor, BorderColor = FrameHexBorder,
+                BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+                CornerRadiusTopLeft = Mathf.RoundToInt(pillRadius), CornerRadiusTopRight = Mathf.RoundToInt(pillRadius),
+                CornerRadiusBottomLeft = Mathf.RoundToInt(pillRadius), CornerRadiusBottomRight = Mathf.RoundToInt(pillRadius),
+                ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+            };
             _vigorBadge.AddThemeStyleboxOverride("normal", vigStyle);
         }
     }
@@ -270,7 +289,13 @@ public partial class CardPlate : Control
         label.AddThemeFontSizeOverride("font_size", costFontSize);
 
         // Hex border via stylebox — circular dark badge with gold ring
-        var hexStyle = PlateStyle("coin");
+        var hexStyle = new StyleBoxFlat
+        {
+            BgColor = FrameHexFill, BorderColor = FrameHexBorder,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusTopRight = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
+        };
         label.AddThemeStyleboxOverride("normal", hexStyle);
 
         return label;
@@ -282,7 +307,13 @@ public partial class CardPlate : Control
     /// </summary>
     public static void UpdateCostRuneStyle(Label label, float hexSize)
     {
-        var hexStyle = PlateStyle("coin");
+        var hexStyle = new StyleBoxFlat
+        {
+            BgColor = FrameHexFill, BorderColor = FrameHexBorder,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusTopRight = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
+        };
         label.AddThemeStyleboxOverride("normal", hexStyle);
     }
 

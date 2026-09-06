@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bcho6tcr1tsgv"
-path="res://.godot/imported/medal_attack.png-8fe3ec31d12ff3042e682f11bc0ea173.ctex"
+uid="uid://bbugmdk80rdax"
+path="res://.godot/imported/medal_vigor.png-bcc609c088aae3f7f54de6c78defd8c1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://content/art/frame/medal_attack.png"
-dest_files=["res://.godot/imported/medal_attack.png-8fe3ec31d12ff3042e682f11bc0ea173.ctex"]
+source_file="res://content/art/frame/basalt_unused/medal_vigor.png"
+dest_files=["res://.godot/imported/medal_vigor.png-bcc609c088aae3f7f54de6c78defd8c1.ctex"]
 
 [params]
 
