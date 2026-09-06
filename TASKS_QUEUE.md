@@ -38,6 +38,24 @@
   Acceptance: Druid mirror within [40,60]; Druid-as-P1 vs Warrior above 15%; dotnet test green; no card
   or artifact values change; the DONE line names the file and line that was wrong.
 
+- [ ] TASK-TOUCH-PLAY-1 — THE GAME IS UNPLAYABLE ON A PHONE: cards cannot be tapped. The tap wiring exists (HandCard._GuiInput -> Pressed -> DuelScene.OnHandCardPressed; LaneSlot._GuiInput -> LaneTapped) and the mouse path passes the smoke test, so the failure is in the TOUCH path only.
+  DO THIS: extend tools/input_smoke.sh (or the harness it drives) to play a card using ONLY InputEventScreenTouch — never InputEventMouseButton: touch-press+release on a hand card, then touch-press+release on an empty lane in row 1, then assert a creature is on the board. Print which handlers fired (HandCard._GuiInput, LaneSlot._GuiInput, OnHandCardPressed, TryPlayCard) so a failure names the step that did not run.
+  THEN fix whatever that test exposes. Suspects, in order: (1) a child Control with MouseFilter=Stop over the card intercepting the touch before HandCard sees it — decorative children (CardPlate, its ColorRects and Labels, the art TextureRect) must be MouseFilterEnum.Ignore, only HandCard/LaneSlot themselves are Stop; (2) TapGuard's 250ms window swallowing the real press when touch and emulated mouse arrive in an order it does not expect; (3) play requiring a drag (_GetDragData/_DropData) which is unreliable under touch — tap-to-select then tap-to-lane must work with no drag at all.
+  DONE: the touch-only test plays a card and passes in finish_task, and it stays in the gate so this can never regress.
+
+- [ ] TASK-UI-READABLE-1 — Text must be readable by someone with bad eyes, at 720p on a phone. Trikzos: "I understand what the buttons are but can't enjoyably read those words."
+  MAP SCREEN (worst): the lower-left button column (Forge, Rune Page, Reliquary, Settings), the lower-right encounter panel (name, type, "Rewards: N Shards", Close, Challenge), the top bar ("< Title", the deck name, "Shards: N") and every map node label are all far too small.
+  RULE: no UI label below 2.2% of viewport HEIGHT (at 1080p that is ~24px; at 720p ~16px). Button labels at least 2.8% of height. Encounter-panel body text at least 2.4%. Map node names at least 2.2%. Set these from a single scale helper driven by viewport height so they hold at every resolution — do not hardcode pixel sizes per label.
+  ALSO: give buttons real padding — at least 0.9% of height above and below the text — so the words are not jammed against the border.
+  DONE: finish_task green, plus fresh map_test and map_test_720 captures, and a check that no Label in either capture has a font size under the rule.
+
+- [ ] TASK-TITLE-ALIGN-1 — Title screen: the "No Campaign / New Campaign" panel floats at a random spot on the left, unaligned with anything. It must sit in ONE column with Decks / Reliquary / Settings: same left edge, same width, same gap between panels, the whole stack centred horizontally as a group and vertically balanced under the title. New Campaign is the primary action and sits at the top of that stack.
+  ALSO: delete the rune-wheel overlay entirely — client/content/art/title/rune_wheel.png and the block in Main.cs that loads and rotates it. It is a programmatically drawn hoop, not generated art, and the title painting already contains a rune wheel. Fable is animating the real one.
+  DONE: finish_task green plus a NEW title_test capture (there is currently no title capture at all — add one to the capture script and to loop_smoke, which is why this shipped unseen).
+
+- [ ] TASK-BEGIN-DUPE-1 — Choose Your Path: the Begin button renders TWO labels stacked on each other — a large "BEGIN" and a small "Begin" on top of it. Keep the large one only; remove the duplicate label node or the redundant Button text, whichever is the extra.
+  DONE: finish_task green plus a fresh choose_path capture showing exactly one Begin label.
+
 - [ ] TASK-CARD-TEXT-1 — Cards must SAY what they do. Press-and-hold (≥250ms, via TapGuard) on any card in the hand or on a lane shows a RULES SLAB; release or tap elsewhere hides it. Trikzos wants a "chat bubble" in a designated part of the screen, not a card flip.
   WHERE: a fixed panel in the top-centre band of the duel screen (between the enemy nameplate and the player HUD), ~40% of viewport width x ~14% of height, anchored, never covering the hand, the lanes, or End Turn. It is the same panel every time — not a bubble that floats next to the finger.
   LOOK (card law): a slab of the same pale carved stone as the card name plaque, Root-Bound edge, name engraved in Cinzel small caps on one line, then cost / attack / vigor as small keyline chips, then the rules text in Cormorant Garamond body size readable on a 720p phone, then one line per keyword reminder (GUARD, WARD, SWIFT, PIERCE, VENOM, ECHO...) in a dimmer engraved tone. No glow. No flat rectangle of colour.
