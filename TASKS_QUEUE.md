@@ -67,7 +67,7 @@
 
 # ---- PHASE C — CONTENT AT SCALE (offline alpha) ----
 
-- [ ] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
+- [x] TASK-OPS-TRIM-1 — Token efficiency. Every session reads TASKS_QUEUE.md (79KB, 765 lines,
   87 closed tasks still inline) and often HERMES_STATUS.md (101KB). That is paid for on every
   single task, forever.
   (1) Move every "- [x]" task block out of TASKS_QUEUE.md into docs/TASKS_DONE.md (append, keep

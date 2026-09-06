@@ -1,3 +1,4 @@
+| TASK-OPS-TRIM-1 | 2026-09-06 | Trim TASKS_QUEUE.md (2 [x] moved to archive, 5 kept), add log rotation to foreman.sh and inbox_apply.sh, update archive | DONE |
 | TASK-TITLE-ANIM-1 | 2026-09-06 | Make the title screen alive with a forever-rotating rune wheel overlay | DONE |
     61|  All observed rates within 5σ expected variance. ✅
     62|- 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
