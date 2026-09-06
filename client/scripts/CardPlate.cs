@@ -18,6 +18,10 @@ namespace Runewake.Client;
 /// </summary>
 public partial class CardPlate : Control
 {
+    public CardPlate()
+    {
+        MouseFilter = MouseFilterEnum.Ignore;
+    }
     /// <summary>
     /// A painted plate for a label: the texture is stretched to the label's rect (zero 9-slice
     /// margins), so the art pieces are generated at the aspect they are drawn at. Material comes from

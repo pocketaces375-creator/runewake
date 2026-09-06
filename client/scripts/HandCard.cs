@@ -296,9 +296,11 @@ public partial class HandCard : PanelContainer
     // ——— Click/touch handling via GuiInput ———
     public override void _GuiInput(InputEvent @event)
     {
-        // A tap on glass arrives twice — as a touch event and again as the mouse event Godot
-        // emulates from it. TapGuard collapses the pair so one finger press is one press.
-        if (_tap.Accept(@event))
+        bool accepted = _tap.Accept(@event);
+        GD.Print($"[HANDCARD_TOUCH] _GuiInput: event={@event.GetType().Name}, " +
+            $"pressed={(@event is InputEventScreenTouch t ? t.Pressed : @event is InputEventMouseButton m ? m.Pressed : false)}, " +
+            $"card={CardName}, accepted={accepted}");
+        if (accepted)
         {
             EmitSignal(SignalName.Pressed);
             GetViewport().SetInputAsHandled();

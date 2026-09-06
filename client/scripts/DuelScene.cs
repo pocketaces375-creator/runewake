@@ -2791,7 +2791,13 @@ public partial class DuelScene : Control
 
     private void OnLaneTapped(int laneIndex, bool isEmpty)
     {
-        if (_bot.IsThinking) return;
+        if (_bot.IsThinking)
+        {
+            GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (bot thinking) lane={laneIndex} isEmpty={isEmpty}");
+            return;
+        }
+
+        GD.Print($"[DUEL_TRACE] OnLaneTapped: lane={laneIndex} isEmpty={isEmpty} inputState={_input.State}");
 
         // Dismiss card detail popup on any lane interaction
         if (_cardDetailVisible)
@@ -2860,7 +2866,13 @@ public partial class DuelScene : Control
 
     private void OnHandCardPressed(HandCard card)
     {
-        if (_bot.IsThinking) return;
+        if (_bot.IsThinking)
+        {
+            GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (bot thinking) card={card.CardName}");
+            return;
+        }
+
+        GD.Print($"[DUEL_TRACE] OnHandCardPressed: card={card.CardName} state={_input.State} selectedId={_input.SelectedCardId}");
 
         // Tap-again-to-deselect: if this card is already selected, cancel
         if (_input.State == InputController.InputState.SelectingLane
@@ -2932,14 +2944,17 @@ public partial class DuelScene : Control
 
     private void OnPlayCardRequested(string cardId, int laneIndex)
     {
+        GD.Print($"[DUEL_TRACE] OnPlayCardRequested: cardId={cardId} lane={laneIndex}");
         var result = _gsm.TryPlayCard(0, cardId, laneIndex);
         if (!result.Success)
         {
+            GD.Print($"[DUEL_TRACE] OnPlayCardRequested FAILED: {result.ErrorMessage}");
             ShowToast(result.ErrorMessage ?? "Cannot play that card.",
                 Gold);
         }
         else
         {
+            GD.Print($"[DUEL_TRACE] OnPlayCardRequested SUCCESS: card={cardId} placed in lane {laneIndex}");
             // TASK-AUDIO-HOOK-1: Play sfx for card played / spell resolved
             var audio = GetNode<AudioManager>("/root/AudioManager");
             var def = Runewake.Engine.Cards.CardRegistry.Get(cardId);
@@ -3607,6 +3622,7 @@ public partial class DuelScene : Control
 
         int step = 0;
         LaneSlot? combatSlot = null;
+        int? playLane = null;
 
         var t = new Godot.Timer();
         t.OneShot = false;
@@ -3625,20 +3641,26 @@ public partial class DuelScene : Control
 
             if (step == 1)
             {
-                // Phase 1: Tap card → select it (visual highlight) → tap lane → play
-                var targetCard = _handCards.Count > 0 ? _handCards[0] : null;
+                // Phase 1: Find a PLAYABLE card (cost <= attunement)
+                int attune = _gsm.State.Players[0].Attunement;
+                HandCard? targetCard = null;
+                foreach (var c in _handCards)
+                {
+                    if (c.CardCost <= attune)
+                    { targetCard = c; break; }
+                }
+
                 if (targetCard == null)
                 {
-                    GD.PrintErr("[TouchOnlySmokeTest] FAIL: No hand cards");
-                    results.Add("TOUCH_CARD_SELECT:FAIL - no cards");
-                    results.Add("TOUCH_LANE_PLAY:SKIP");
-                    results.Add("TOUCH_COMBAT:SKIP");
-                    results.Add("TOUCH_END_TURN:SKIP");
-                    step = 99;
+                    GD.Print($"[TouchOnlySmokeTest] No affordable card (max attune={attune}) — ending turn early");
+                    results.Add("TOUCH_CARD_SELECT:SKIP - no affordable card");
+                    results.Add("TOUCH_LANE_PLAY:SKIP - no card");
+                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
+                    step = 10;
                     return;
                 }
 
-                GD.Print($"[TouchOnlySmokeTest] Tap card '{targetCard.CardName}' via InputEventScreenTouch (pure)");
+                GD.Print($"[TouchOnlySmokeTest] Tap card '{targetCard.CardName}' (cost {targetCard.CardCost}) via InputEventScreenTouch (pure)");
 
                 // Inject touch press (ONLY InputEventScreenTouch, no emulated mouse)
                 var touchEv = new InputEventScreenTouch();
@@ -3684,6 +3706,7 @@ public partial class DuelScene : Control
                         step = 99;
                         return;
                     }
+                    playLane = lane.Value;
 
                     GD.Print($"[TouchOnlySmokeTest] Tap lane slot {lane} via pure InputEventScreenTouch");
 
@@ -3721,7 +3744,41 @@ public partial class DuelScene : Control
                 // Verify card was played
                 if (_input.State == InputController.InputState.Idle && _input.SelectedCardId == null)
                 {
-                    GD.Print("[TouchOnlySmokeTest] PASS: Touch lane play completed");
+                    GD.Print("[TouchOnlySmokeTest] PASS: Touch lane play completed — input state idle");
+
+                    // Verify creature is actually on the board
+                    bool creatureOnBoard = false;
+                    if (playLane.HasValue)
+                    {
+                        var occupant = _gsm.State.Players[0].Lanes[playLane.Value].Occupant;
+                        creatureOnBoard = occupant != null;
+                        if (creatureOnBoard)
+                            GD.Print($"[TouchOnlySmokeTest] Board: creature '{occupant!.CardDefId}' in lane {playLane.Value}");
+                    }
+                    else
+                    {
+                        // Fallback: check all player lanes
+                        for (int i = 0; i < 5; i++)
+                        {
+                            if (_gsm.State.Players[0].Lanes[i].Occupant != null)
+                            { creatureOnBoard = true; break; }
+                        }
+                    }
+                    if (creatureOnBoard)
+                    {
+                        GD.Print("[TouchOnlySmokeTest] PASS: Creature appeared on board");
+                        results.Add("TOUCH_BOARD_APPEAR:PASS");
+                    }
+                    else
+                    {
+                        GD.PrintErr("[TouchOnlySmokeTest] FAIL: No creature appeared on board after play");
+                        results.Add("TOUCH_BOARD_APPEAR:FAIL");
+                        results.Add("TOUCH_COMBAT:SKIP");
+                        results.Add("TOUCH_END_TURN:SKIP");
+                        step = 99;
+                        return;
+                    }
+
                     results.Add("TOUCH_LANE_PLAY:PASS");
 
                     // Phase 2: End turn via touch

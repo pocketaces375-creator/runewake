@@ -19,6 +19,11 @@ namespace Runewake.Client;
 /// </summary>
 public partial class RootBoundBorder : Control
 {
+    public RootBoundBorder()
+    {
+        MouseFilter = MouseFilterEnum.Ignore;
+    }
+
     private TextureRect? _cornerTL;
     private TextureRect? _cornerTR;
     private TextureRect? _cornerBL;

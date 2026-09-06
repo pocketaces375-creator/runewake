@@ -134,12 +134,17 @@ public partial class LaneSlot : PanelContainer
         }
     }
 
+    // ——— Touch area handler (extends tap zone -10px beyond bounds) ———
+
+    private readonly TapGuard _touchAreaTap = new();
+
     /// <summary>
     /// Handle taps from the expanded touch area overlay.
+    /// Uses TapGuard to collapse touch + emulated mouse from the same tap.
     /// </summary>
     private void OnTouchAreaInput(InputEvent @event)
     {
-        if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+        if (_touchAreaTap.Accept(@event))
         {
             EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
             GetViewport().SetInputAsHandled();
@@ -467,8 +472,10 @@ public partial class LaneSlot : PanelContainer
     {
         // A tap on glass arrives twice — as a touch event and again as the mouse event Godot
         // emulates from it. TapGuard collapses the pair so one finger press is one press.
-        if (_tap.Accept(@event))
+        bool accepted = _tap.Accept(@event);
+        if (accepted)
         {
+            GD.Print($"[LANESLOT_TOUCH] _GuiInput accepted: event={@event.GetType().Name}, lane={LaneIndex}, empty={_state == NodeState.Empty}");
             EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
             GetViewport().SetInputAsHandled();
         }

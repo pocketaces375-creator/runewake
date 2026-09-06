@@ -50,10 +50,14 @@ public partial class InputController : Node
     public bool TryPlayCard(string cardId, int laneIndex)
     {
         if (string.IsNullOrEmpty(cardId) || laneIndex < 0 || laneIndex > 4)
+        {
+            GD.Print($"[INPUT_TRACE] TryPlayCard: REJECTED cardId='{cardId ?? "null"}' lane={laneIndex}");
             return false;
+        }
 
         State = InputState.Idle;
         SelectedCardId = null;
+        GD.Print($"[INPUT_TRACE] TryPlayCard: ACCEPTED cardId='{cardId}' lane={laneIndex}");
         PlayCardRequested?.Invoke(cardId, laneIndex);
         SelectionCancelled?.Invoke();
         return true;
@@ -66,10 +70,14 @@ public partial class InputController : Node
     public bool SelectCardForPlay(string cardId)
     {
         if (string.IsNullOrEmpty(cardId))
+        {
+            GD.Print($"[INPUT_TRACE] SelectCardForPlay: REJECTED cardId='{cardId ?? "null"}'");
             return false;
+        }
 
         State = InputState.SelectingLane;
         SelectedCardId = cardId;
+        GD.Print($"[INPUT_TRACE] SelectCardForPlay: state=SelectingLane cardId='{cardId}'");
         return true;
     }
 
@@ -80,11 +88,15 @@ public partial class InputController : Node
     public bool SelectTargetLane(int laneIndex)
     {
         if (State != InputState.SelectingLane || SelectedCardId == null)
+        {
+            GD.Print($"[INPUT_TRACE] SelectTargetLane: REJECTED state={State} cardId='{SelectedCardId ?? "null"}' lane={laneIndex}");
             return false;
+        }
 
         string cardId = SelectedCardId;
         State = InputState.Idle;
         SelectedCardId = null;
+        GD.Print($"[INPUT_TRACE] SelectTargetLane: ACCEPTED cardId='{cardId}' lane={laneIndex}");
         PlayCardRequested?.Invoke(cardId, laneIndex);
         SelectionCancelled?.Invoke();
         return true;
