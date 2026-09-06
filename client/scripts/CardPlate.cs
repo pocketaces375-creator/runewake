@@ -111,7 +111,9 @@ public partial class CardPlate : Control
             _nameBandBg = new ColorRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
-                Color = FrameNameBand
+                // Card law: pale carved stone sampled from the Root-Bound frame,
+                // with the name cut into it — never a flat dark rectangle.
+                Color = new Color(0.776f, 0.741f, 0.667f)
             };
             AddChild(_nameBandBg);
 
@@ -178,6 +180,9 @@ public partial class CardPlate : Control
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
         ApplyHeaderFont(_cardName, FontCardName);
+        // Engraved: the cut is darker than the stone it sits in.
+        _cardName.AddThemeColorOverride("font_color", new Color(0.157f, 0.125f, 0.086f));
+        _cardName.AddThemeConstantOverride("outline_size", 0);
         var fit = FitCardNameAuto(safeWidth, maxBandH);
 
         // Actual band height = text height + small padding, never below baseline, never
@@ -198,9 +203,9 @@ public partial class CardPlate : Control
         _statRailBg.Size = new Vector2(cardWidth, railH);
 
         // ── Name label clip container — exact band height ──
-        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 0);
-        _nameClipContainer.Size = new Vector2(safeWidth, nameBandH - 2f);
-        _cardName.Size = new Vector2(safeWidth, nameBandH - 2f);
+        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 2f);
+        _nameClipContainer.Size = new Vector2(safeWidth, Mathf.Max(1f, nameBandH - 6f));
+        _cardName.Size = new Vector2(safeWidth, Mathf.Max(1f, nameBandH - 6f));
 
         // Re-apply the fitted label properties (font size, text, lines) — the auto-fit
         // already applied them against the max band; sizes are unchanged, this just
@@ -209,10 +214,11 @@ public partial class CardPlate : Control
         _cardName.MaxLinesVisible = fit.LineCount;
 
         // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) — pill-shaped gold-ring medallions ──
-        float chipSize = cardWidth * FrameStatChipFraction;
-        float statChipW = chipSize;
-        float statChipH = railH * 0.8f;
-        float pillRadius = statChipH / 2f;
+        // Card law: a stat sits in a keyline box on the soil band — 19% of card
+        // width, 70% of the rail height, square corners, not a floating pill.
+        float statChipW = cardWidth * 0.190f;
+        float statChipH = railH * 0.70f;
+        float pillRadius = Mathf.Max(1f, cardWidth * 0.010f);
         float statChipY = nameBandH + (railH - statChipH) / 2f;
 
         _attackBadge.Visible = _hasAttack;
@@ -220,7 +226,7 @@ public partial class CardPlate : Control
         {
             _attackBadge.Text = attack!.Value.ToString();
             _attackBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.75f), 24, FontStat);
+            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.56f), 8, FontStat);
             _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
             // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
             float chipBandInset = bandPx + 2f;
@@ -242,7 +248,7 @@ public partial class CardPlate : Control
         {
             _vigorBadge.Text = vigor!.Value.ToString();
             _vigorBadge.Size = new Vector2(statChipW, statChipH);
-            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.75f), 24, FontStat);
+            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statChipH * 0.56f), 8, FontStat);
             _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
             // BOARD-MATCH-2: sit flush at frame's bottom corners — inside Root-Bound border
             float vigorX = cardWidth - statChipW - bandPx - 2f;
@@ -359,9 +365,11 @@ public partial class CardPlate : Control
 
         int hardMin = _isArtifact ? 8 : 14;
         // Compute base size: 24px at 236px card width, scaled linearly
-        int baseSize = Mathf.Max(6, Mathf.RoundToInt(42f * _designCardWidth / 236f));
+        // Card law: cap height ~5.4% of card width. 18px at a 236px card.
+        int baseSize = Mathf.Max(6, Mathf.RoundToInt(18f * _designCardWidth / 236f));
         // Single-line floor = 62% of base, min 8px — NOT clamped to hardMin
-        int singleLineFloor = Mathf.Max(8, Mathf.RoundToInt(baseSize * 0.62f));
+        // The card law: a name is one line, always.
+        int singleLineFloor = Mathf.Max(10, Mathf.RoundToInt(_designCardWidth * 0.045f));
         // Absolute height minimum: 8px per spec "no glyph below 8px"
         const int heightFloor = 12;
 
@@ -418,6 +426,17 @@ public partial class CardPlate : Control
             // Even at absolute floor, height overflows — use ellipsis
             Apply(sz, _cardNameText, 1, TextServer.OverrunBehavior.TrimEllipsis);
             return Result(sz, 1);
+        }
+
+        // One line, always — ellipsis before a second line.
+        {
+            int floorSz = singleLineFloor;
+            while (floorSz > 10 && Measure(_cardNameText, floorSz) > safeWidth) floorSz--;
+            var overrun = Measure(_cardNameText, floorSz) <= safeWidth
+                ? TextServer.OverrunBehavior.NoTrimming
+                : TextServer.OverrunBehavior.TrimEllipsis;
+            Apply(floorSz, _cardNameText, 1, overrun);
+            return Result(floorSz, 1);
         }
 
         // ─── Two-line balanced split ───

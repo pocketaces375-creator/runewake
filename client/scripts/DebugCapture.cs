@@ -1083,13 +1083,17 @@ public partial class DebugCapture : Node
             var path = string.IsNullOrEmpty(parentPath) ? node.Name.ToString() : parentPath + "/" + node.Name.ToString();
             var cls = node.GetType().Name;
             var mf = control.MouseFilter.ToString();
+            // Board slots are deliberately rotated (DuelScene tilts them up to 4 deg).
+            // Origin below is the ROTATED screen origin while Size is unrotated, so a
+            // containment check needs this angle to undo the rotation.
+            var rotRad = control.GetScreenTransform().Rotation;
 
             var entry = new System.Text.StringBuilder();
             entry.Append("    {");
             entry.Append($"\"path\": \"{EscapeJson(path)}\", ");
             entry.Append($"\"class\": \"{EscapeJson(cls)}\", ");
             entry.Append($"\"rect\": {{\"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {sz.X:F1}, \"h\": {sz.Y:F1}}}, ");
-            entry.Append($"\"mouse_filter\": \"{mf}\"");
+            entry.Append($"\"mouse_filter\": \"{mf}\", \"rot\": {rotRad:F5}");
 
             var tr = node as TextureRect;
             if (tr != null)
