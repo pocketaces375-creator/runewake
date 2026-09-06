@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <!-- The Roslyn compiler server and MSBuild worker nodes outlive the build
+         that spawned them and inherit its open file descriptors, including the
+         /tmp/runewake_build.lock flock fd. That orphan then holds the build
+         lock forever and every later build blocks behind it. Turning both off
+         costs a few seconds per build and removes the whole class of stall. -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <DisableMSBuildNodeReuse>true</DisableMSBuildNodeReuse>
+  </PropertyGroup>
+</Project>
