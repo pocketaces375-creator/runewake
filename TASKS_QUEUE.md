@@ -28,7 +28,7 @@
 
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
 
-- [ ] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
+- [!] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
   P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
   is a bug, not tuning. Suspects: Book of Familiar's ON_TURN_START SUMMON of the ROOTED tok_familiar
   (lane choice, full board, or summoning onto the wrong side when the Druid is Players[1]) and Elemental
