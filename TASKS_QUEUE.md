@@ -16,7 +16,7 @@
 
 # ---- PACKET G (2026-09-05, Trikzos' notes on the alpha) — READ THE FIRST LINE OF EACH: these are his words turned into work ----
 
-- [ ] TASK-TITLE-ANIM-1 — Make the title screen alive. Trikzos wants the
+- [x] TASK-TITLE-ANIM-1 — Make the title screen alive. Trikzos wants the
   great rune wheel behind the waterfall turning forever. Fable delivers the wheel as its own transparent
   PNG at client/content/art/title/rune_wheel.png; layer it over the existing hero art, centred on the
   wheel already painted there, and rotate it continuously — one revolution in about 90 seconds, linear,

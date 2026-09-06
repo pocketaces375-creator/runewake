@@ -1,3 +1,4 @@
+| TASK-TITLE-ANIM-1 | 2026-09-06 | Make the title screen alive with a forever-rotating rune wheel overlay | DONE |
     61|  All observed rates within 5σ expected variance. ✅
     62|- 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
     63|- 2026-09-04: PARKED TASK-AI-TACTICIAN-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
