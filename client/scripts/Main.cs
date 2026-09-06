@@ -25,6 +25,11 @@ public partial class Main : Control
     private Control? _diagPanel;
     private bool _loading;
 
+    // ——— Rune wheel animation fields ———
+    private TextureRect? _runeWheel;
+    private TextureRect? _runeWheelReverse;
+    private double _runeWheelAngle;
+
     public override void _Ready()
     {
         // ——— Force landscape orientation at runtime (mobile fallback) ———
@@ -65,6 +70,77 @@ public partial class Main : Control
             GD.PrintErr("[ART-MISSING] hero_art.png: resource does not exist at res://content/art/title/hero_art.png");
         }
         AddChild(heroArt);
+
+        // ——— Rune wheel overlay (transparent PNG, rotates forever) ———
+        // Positioned over the painted wheel in hero_art.png. The wheel is at
+        // roughly (722, 350) in the 1536×864 source image. With KeepAspectCovered
+        // on a target viewport (Vw×Vh), scale = max(Vw/1536, Vh/864) and the
+        // image is centred within the viewport. We compute the viewport position
+        // from the source coords so it stays on the painted wheel at any size.
+        const float WHEEL_SRC_CX = 722f;
+        const float WHEEL_SRC_CY = 350f;
+        const float WHEEL_SRC_RADIUS = 180f;     // painted wheel radius in source pixels
+
+        float vw = GetViewportRect().Size.X;
+        float vh = GetViewportRect().Size.Y;
+        float scale = Mathf.Max(vw / 1536f, vh / 864f);
+        float imgW = 1536f * scale;
+        float imgH = 864f * scale;
+        float offsetX = (imgW - vw) / 2f;
+        float offsetY = (imgH - vh) / 2f;
+
+        float wheelViewportCx = WHEEL_SRC_CX * scale - offsetX;
+        float wheelViewportCy = WHEEL_SRC_CY * scale - offsetY;
+        float wheelViewportRadius = WHEEL_SRC_RADIUS * scale;
+        float wheelSize = wheelViewportRadius * 2f;
+
+        if (ResourceLoader.Exists("res://content/art/title/rune_wheel.png"))
+        {
+            var wheelTex = ResourceLoader.Load<Texture2D>("res://content/art/title/rune_wheel.png");
+            if (wheelTex != null)
+            {
+                // Primary wheel — CW rotation
+                var wheel = new TextureRect
+                {
+                    Texture = wheelTex,
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                    Position = new Vector2(
+                        wheelViewportCx - wheelSize / 2f,
+                        wheelViewportCy - wheelSize / 2f),
+                    Size = new Vector2(wheelSize, wheelSize)
+                };
+                AddChild(wheel);
+                _runeWheel = wheel;
+
+                // Secondary wheel — CCW, faint, half speed for depth
+                var wheelRev = new TextureRect
+                {
+                    Texture = wheelTex,
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                    Modulate = new Color(1f, 1f, 1f, 0.18f),
+                    Position = new Vector2(
+                        wheelViewportCx - wheelSize / 2f,
+                        wheelViewportCy - wheelSize / 2f),
+                    Size = new Vector2(wheelSize, wheelSize)
+                };
+                AddChild(wheelRev);
+                _runeWheelReverse = wheelRev;
+
+                GD.Print($"[RUNE-WHEEL] Wheel at ({wheelViewportCx:F0},{wheelViewportCy:F0}), size {wheelSize:F0}px @ scale {scale:F2}");
+            }
+            else
+            {
+                GD.PrintErr("[ART-MISSING] rune_wheel.png: ResourceLoader.Load returned null");
+            }
+        }
+        else
+        {
+            GD.Print("[RUNE-WHEEL] rune_wheel.png not found — wheel disabled");
+        }
 
         // ——— Dark scrim behind title text for readability ———
         var scrim = new ColorRect
@@ -297,6 +373,23 @@ public partial class Main : Control
             }
         }
         Callable.From(LoadGameData).CallDeferred();
+    }
+
+    public override void _Process(double delta)
+    {
+        // Rotate the primary rune wheel CW, one revolution per 90 seconds
+        const double radiansPerSec = Mathf.Tau / 90.0;  // 2π / 90
+        _runeWheelAngle += delta * radiansPerSec;
+        // Wrap to prevent float creep on very long sessions
+        if (_runeWheelAngle > Mathf.Tau)
+            _runeWheelAngle -= Mathf.Tau;
+
+        if (_runeWheel != null)
+            _runeWheel.Rotation = (float)_runeWheelAngle;
+
+        // Secondary wheel: CCW at half speed, faint (18% opacity set in _Ready)
+        if (_runeWheelReverse != null)
+            _runeWheelReverse.Rotation = (float)(-_runeWheelAngle * 0.5);
     }
 
     /// <summary>
