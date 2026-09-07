@@ -324,11 +324,32 @@ public partial class DuelScene : Control
         };
         _turnIndicatorLabel.AddThemeFontSizeOverride("font_size", FontSmall);
         _turnIndicatorLabel.AddThemeColorOverride("font_color", Gold);
+        // It floats above the fanned hand, so without a backing it lands on a
+        // card name. Give it a small stone chip of its own: legible over
+        // anything behind it, and it reads as a deliberate element.
+        var turnChip = new StyleBoxFlat
+        {
+            BgColor = new Color(SurfaceStone.R, SurfaceStone.G, SurfaceStone.B, 0.94f),
+            BorderColor = new Color(Gold.R, Gold.G, Gold.B, 0.55f),
+            CornerRadiusTopLeft = RadiusMedium,
+            CornerRadiusTopRight = RadiusMedium,
+            CornerRadiusBottomLeft = RadiusMedium,
+            CornerRadiusBottomRight = RadiusMedium,
+            ContentMarginTop = 3,
+            ContentMarginBottom = 3,
+            ContentMarginLeft = 8,
+            ContentMarginRight = 8,
+        };
+        turnChip.SetBorderWidthAll(1);
+        _turnIndicatorLabel.AddThemeStyleboxOverride("normal", turnChip);
         _turnIndicatorLabel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
-        _turnIndicatorLabel.OffsetRight = -10;
-        _turnIndicatorLabel.OffsetLeft = -100;
-        _turnIndicatorLabel.OffsetBottom = -110;
-        _turnIndicatorLabel.OffsetTop = -126;
+        // Was -100..-10 x, -126..-110 y — 90px wide and INSIDE the End Turn
+        // button's rect (-276..-16, -136..-16), so "YOUR TURN" clipped to
+        // "YOUR TI" and drew on top of the button. Sit above it, same width.
+        _turnIndicatorLabel.OffsetRight = -16;
+        _turnIndicatorLabel.OffsetLeft = -276;
+        _turnIndicatorLabel.OffsetBottom = -140;
+        _turnIndicatorLabel.OffsetTop = -164;
         AddChild(_turnIndicatorLabel);
 
         // ═══ TASK-WARDEN-RULE-1: Opening rule banner (created hidden, shown in OnStateChanged) ═══
@@ -2191,6 +2212,10 @@ public partial class DuelScene : Control
                 _gameOverOverlay.QueueFree();
                 _gameOverOverlay = null;
             }
+            // The overlay only dims the board; the HUD is a sibling and kept
+            // drawing over it, which is how a clipped turn banner showed through.
+            _turnIndicatorLabel.Visible = false;
+            _endTurnButton.Visible = false;
             BuildGameOverOverlay();
             _gameOverOverlay!.Show();
             // Bring to top so it captures all input
@@ -4860,14 +4885,20 @@ private void ShowGameOverOverlay(int winnerIndex)
 
         Color accentColor = playerWon ? Gold : Ember;
         string statusLabel = playerWon ? "VICTORY" : "DEFEATED";
+        // The status title above already reads DEFEATED; "Defeated by X" repeated
+        // the word directly beneath it. Parallel to the victory line instead.
         string headline = playerWon
             ? $"You defeated {encName}"
-            : $"Defeated by {encName}";
+            : $"{encName} prevails";
 
         // ── Central stone panel ──
-        var panel = new Panel();
+        // A plain Panel is not a container: it neither lays out nor measures its
+        // children, so panelVBox's height never propagated and the CenterContainer
+        // centred a 640x0 rect — the stone frame drew around nothing and the
+        // content spilled down over the board. PanelContainer measures its child.
+        // (The Center anchors preset was dead code: CenterContainer overwrites it.)
+        var panel = new PanelContainer();
         panel.CustomMinimumSize = new Vector2(640, 0);
-        panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         var panelStyle = StyleWornBorder(
             borderColor: accentColor,
             width: 3,
@@ -4942,7 +4973,10 @@ private void ShowGameOverOverlay(int winnerIndex)
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
             MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            // Fill, not ShrinkCenter: with Word autowrap, ShrinkCenter gives the
+            // label its longest-word minimum width and it wraps one word per line.
+            // HorizontalAlignment.Center still centres the text inside the width.
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
         };
         ApplyHeaderFont(headlineLabel, FontSectionHeader);
         headlineLabel.Modulate = TextPrimary;
@@ -4961,7 +4995,8 @@ private void ShowGameOverOverlay(int winnerIndex)
                 VerticalAlignment = VerticalAlignment.Center,
                 AutowrapMode = TextServer.AutowrapMode.Word,
                 MouseFilter = Control.MouseFilterEnum.Ignore,
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                // Fill for the same reason as the headline above.
+                SizeFlagsHorizontal = Control.SizeFlags.Fill,
                 CustomMinimumSize = new Vector2(0, 48),
             };
             ApplyBodyFont(flavorLabel, FontSecondary);
