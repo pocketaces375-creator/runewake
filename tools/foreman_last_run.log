@@ -1,38 +1,3 @@
-
-**MapNodeIcon.cs** — Node name labels font_size=2.2% vh
-
-**DebugCapture.cs** — Added `--capture=map_test_720` handler and Button font_size recording in layout JSON
-
-**CampaignContext.cs** — Added `CaptureMap720Screenshot` flag
-
-**finish_task.sh** — Added `map_test_720:1280:720` to capture modes and Step 6c `font_size_check.py` validation
-
-**font_size_check.py** — New tool that verifies no Label or Button in map_test/map_test_720 captures is below the 2.2% / 2.8% / 2.4% thresholds
-
-The last build succeeded and both captures generated correctly. Now run `bash tools/finish_task.sh TASK-UI-READABLE-1 "Viewport-height font scaling for map screen—ThemeTokens.FontSizeFromVh helper, MapScene buttons/labels scaled by 2.2-2.8% vh, MapNodeIcon labels at 2.2% vh, button padding at 0.9% vh"` to complete the task.
-========================================
-=== foreman: 2026-09-07T00:50:38Z TASK-TITLE-ALIGN-1 retry ===
-Session: 7/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-TITLE-ALIGN-1 on deepseek/deepseek-v4-flash: 1793s
-No rune wheel messages — clean. Now let me run finish_task
-========================================
-=== foreman: 2026-09-07T01:36:03Z TASK-SKIP-IS-FAIL-1 retry ===
-Session: 8/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T02:21:04Z TASK-SKIP-IS-FAIL-1 blocked ===
-Session: 9/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T02:55:56Z TASK-CAPTURE-COVERAGE-1 retry ===
-Session: 10/96
-Failures: finish_task_failure
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
@@ -47,4 +12,39 @@ Session: 12/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T05:04:22Z TASK-SKIP-IS-FAIL-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1398s
+All changes verified. Here's the summary:
+
+## TASK-SKIP-IS-FAIL-1 — Complete
+
+**Changes to `client/scripts/DuelScene.cs`:**
+
+1. **TouchOnlySmokeTest (step 1)** — Replaced cost-filtered card search with `Attunement = 99` + first-hand-card pick. Empty hand now fails with `TOUCH_CARD_SELECT:FAIL` and step 99 (fail exit) instead of skipping to end turn.
+
+2. **InputSmokeTest (touch phase step 1)** — Force `Attunement = 99` so card actually plays
+
+3. **InputSmokeTest (mouse phase step 4)** — Force `Attunement = 99` so mouse card play succeeds
+
+4. **WriteInputSmokeResult** — Treat `:SKIP` entries as FAIL in verdict
+
+5. **WriteTouchSmokeResults** — Removed `|| r.Contains(":SKIP")` from pass check. SKIP is now FAIL.
+
+**Evidence — touch_smoke_result.json:**
+```
+TOUCH_CARD_SELECT:PASS
+TOUCH_BOARD_APPEAR:PASS    ← creature actually appeared on board
+TOUCH_LANE_PLAY:PASS       ← card played by touch
+TOUCH_END_TURN:PASS
+TOUCH_COMBAT_SELECT:PASS
+TOUCH_COMBAT:PASS          ← combat worked via touch
+TOUCH_VICTORY:PASS
+verdict: PASS
+```
+
+**Evidence — attunement forced to 99:** The game log shows `P0 (Vigor=25, Attune=95/1)` on the first turn (99 minus 4 spent on bloomweaver), confirming the attunement was forced. No more "no affordable card" skips.
 ========================================
