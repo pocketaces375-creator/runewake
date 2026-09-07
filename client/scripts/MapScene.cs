@@ -514,14 +514,18 @@ public partial class MapScene : Control
         chipPanel.AddThemeStyleboxOverride("panel", chipStyle);
 
         var chipInner = new HBoxContainer();
-        chipInner.AddThemeConstantOverride("separation", 4);
+        chipInner.AddThemeConstantOverride("separation", 7);
 
         // Colored class dot
         var dot = new ColorRect
         {
             CustomMinimumSize = new Vector2(8, 8),
             Color = GetClassColor(),
-            MouseFilter = MouseFilterEnum.Ignore
+            MouseFilter = MouseFilterEnum.Ignore,
+            // Without ShrinkCenter the rect fills the chip's full height and
+            // reads as a gold bar leaning on the first letter.
+            SizeFlagsVertical = SizeFlags.ShrinkCenter,
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter
         };
         chipInner.AddChild(dot);
 
