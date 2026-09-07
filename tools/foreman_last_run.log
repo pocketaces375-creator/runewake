@@ -1,10 +1,3 @@
-  - 720p: labels ≥16px, buttons ≥20px, body ≥17px
-
-## Rule compliance
-| Label type | Fraction | 720p min px | 1080p min px | Status |
-|---|---|---|---|---|
-| Button labels | 2.8% vh | 20px | 30px | ✅ All buttons meet threshold |
-| Body text | 2.4% vh | 17px | 26px | ✅ Info panel body text meets threshold |
 | Node names | 2.2% vh | 16px | 24px | ✅ Map node labels meet threshold |
 | Any label | 2.2% vh | 16px | 24px | ✅ All labels meet floor |
 | Button padding | 0.9% vh | 10px | 10px | ✅ (capped at minimum of 10) |
@@ -47,4 +40,11 @@ I've finished the implementation. Let me summarize what's been done for TASK-UI-
 **font_size_check.py** — New tool that verifies no Label or Button in map_test/map_test_720 captures is below the 2.2% / 2.8% / 2.4% thresholds
 
 The last build succeeded and both captures generated correctly. Now run `bash tools/finish_task.sh TASK-UI-READABLE-1 "Viewport-height font scaling for map screen—ThemeTokens.FontSizeFromVh helper, MapScene buttons/labels scaled by 2.2-2.8% vh, MapNodeIcon labels at 2.2% vh, button padding at 0.9% vh"` to complete the task.
+========================================
+=== foreman: 2026-09-07T00:50:38Z TASK-TITLE-ALIGN-1 retry ===
+Session: 7/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-TITLE-ALIGN-1 on deepseek/deepseek-v4-flash: 1793s
+No rune wheel messages — clean. Now let me run finish_task
 ========================================
