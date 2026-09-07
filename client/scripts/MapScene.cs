@@ -19,7 +19,6 @@ public partial class MapScene : Control
     // Node info panel
     private Panel _infoPanel;
     private Label _infoName;
-    private Label _infoType;
     private Label _infoRewards;
     private Button _infoGoButton;
     private Button _infoCloseButton;
@@ -586,7 +585,7 @@ public partial class MapScene : Control
         {
             Text = "Rune Page",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.84f, AnchorBottom = 0.89f
+            AnchorTop = 0.86f, AnchorBottom = 0.92f
         };
         StyleButton(_runePageBtn, 11, goldText: false);
         _runePageBtn.Pressed += () => {
@@ -755,12 +754,6 @@ public partial class MapScene : Control
         _infoName.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 1f));
         infoVbox.AddChild(_infoName);
 
-        // Encounter type — small warm gray
-        _infoType = new Label();
-        _infoType.AddThemeFontSizeOverride("font_size", 12);
-        _infoType.AddThemeColorOverride("font_color", new Color(0.72f, 0.66f, 0.52f, 0.9f));
-        infoVbox.AddChild(_infoType);
-
         infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
 
         // Divider
@@ -801,6 +794,20 @@ public partial class MapScene : Control
 
         _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(126, 44) };
         StyleButton(_infoGoButton, 14);
+        // Go button: bright, clearly enabled styling so it doesn't read as disabled
+        // against the dark info panel background
+        _infoGoButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.35f, 0.25f, 0.12f, 1f),
+            BorderColor = new Color(0.95f, 0.85f, 0.45f, 1f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 10, ContentMarginTop = 4,
+            ContentMarginRight = 10, ContentMarginBottom = 4
+        });
+        _infoGoButton.AddThemeColorOverride("font_color", new Color(1f, 0.92f, 0.65f, 1f));
         _infoGoButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -899,19 +906,6 @@ public partial class MapScene : Control
         var mapNode = _region.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (mapNode == null) return;
 
-        string typeStr = mapNode.Type switch
-        {
-            MapNodeType.Duel => "Duel",
-            MapNodeType.Elite => "Elite Encounter",
-            MapNodeType.Warden => "Zone Warden",
-            MapNodeType.WardenBoss => "Warden Boss",
-            MapNodeType.Dig => "Dig Site",
-            MapNodeType.Shrine => "Shrine",
-            MapNodeType.Cache => "Hidden Cache",
-            MapNodeType.Merchant => "Merchant",
-            _ => mapNode.Type.ToString()
-        };
-
         string displayName;
         if (mapNode.Type == MapNodeType.Dig)
         {
@@ -926,12 +920,17 @@ public partial class MapScene : Control
             displayName = (mapNode.Encounter ?? mapNode.Type.ToString()).Replace("_", " ");
 
         _infoName.Text = displayName;
-        _infoType.Text = typeStr;
 
-        string rewardsStr = mapNode.Rewards is { Count: > 0 }
-            ? "Rewards:  " + string.Join("  ·  ", mapNode.Rewards.Select(PrettifyReward))
-            : "Rewards:  —";
-        _infoRewards.Text = rewardsStr;
+        // Rewards — hide when none, show pretty list when present
+        if (mapNode.Rewards is { Count: > 0 })
+        {
+            _infoRewards.Text = "Rewards:  " + string.Join("  ·  ", mapNode.Rewards.Select(PrettifyReward));
+            _infoRewards.Show();
+        }
+        else
+        {
+            _infoRewards.Hide();
+        }
 
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
         bool isLocked = !IsNodeUnlocked(mapNode);
