@@ -93,3 +93,4 @@
 - 2026-09-07: PARKED TASK-ITEMS-PALADIN-2 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-07: PARKED TASK-ENDGAME-OVERLAY-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-07: PARKED TASK-ITEMS-PALADIN-2 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
+- 2026-09-07: PARKED TASK-ENDGAME-OVERLAY-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
