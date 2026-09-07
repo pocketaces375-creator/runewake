@@ -1217,7 +1217,7 @@ public partial class DuelScene : Control
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
-        artifactRow.Position = new Vector2(vw - panelW - 12f * scale, 40f * scale + panelH + 4f * scale);
+        artifactRow.Position = new Vector2(vw - panelW - 12f * scale, 40f * scale + panelH + 18f * scale);
         AddChild(artifactRow);
 
         for (int i = 0; i < 2; i++)

@@ -772,7 +772,7 @@ public partial class ReliquaryScene : Control
                 MouseFilter = MouseFilterEnum.Ignore
             };
             nameLabel.AddThemeFontSizeOverride("font_size", 11);
-            nameLabel.AddThemeColorOverride("font_color", new Color(0.35f, 0.32f, 0.25f, 0.7f)); // dim
+            nameLabel.AddThemeColorOverride("font_color", new Color(0.62f, 0.58f, 0.48f, 0.95f)); // dim, but still readable
             ApplyHeaderFont(nameLabel, 11);
             content.AddChild(nameLabel);
         }

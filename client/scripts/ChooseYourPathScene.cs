@@ -743,7 +743,9 @@ public partial class ChooseYourPathScene : Control
             OffsetRight = 0f
         };
         toggleRow.AddThemeConstantOverride("separation", 4);
-        panel.AddChild(toggleRow);
+        // Parent to the portrait, not the panel: anchored to the panel's bottom
+        // it sat on top of the blurb and the Origin line on every card.
+        artRect.AddChild(toggleRow);
 
         // Male button
         var maleBtn = new Button
@@ -854,7 +856,7 @@ public partial class ChooseYourPathScene : Control
             HorizontalAlignment = HorizontalAlignment.Center
         };
         ApplyBodyFont(blurbLabel, FontTiny);
-        blurbLabel.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
+        blurbLabel.AddThemeColorOverride("font_color", Color.FromHtml("#DCCFAF"));
         blurbLabel.AddThemeConstantOverride("outline_size", 1);
         blurbLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
         vbox.AddChild(blurbLabel);
@@ -867,7 +869,7 @@ public partial class ChooseYourPathScene : Control
             VerticalAlignment = VerticalAlignment.Center
         };
         ApplyBodyFont(originLabel, FontTiny);
-        originLabel.AddThemeColorOverride("font_color", TextMuted);
+        originLabel.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
         originLabel.AddThemeConstantOverride("outline_size", 1);
         originLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
         vbox.AddChild(originLabel);

@@ -92,7 +92,7 @@ public static class ThemeTokens
     /// <summary>Secondary / supporting text — warm tan</summary>
     public static readonly Color TextSecondary = Color.FromHtml("#B8A88A");
     /// <summary>Muted / meta text — dusty stone</summary>
-    public static readonly Color TextMuted = Color.FromHtml("#8A7D6B");
+    public static readonly Color TextMuted = Color.FromHtml("#B5A88F");
     /// <summary>Disabled / greyed out — deep shadow</summary>
     public static readonly Color TextInactive = Color.FromHtml("#5A5048");
 
