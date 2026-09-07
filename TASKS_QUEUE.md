@@ -10,6 +10,45 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
+  do not touch other scenes, another lane may be in them). Four defects the
+  visual gate found on a real capture of the current build:
+  (a) the node name prints TWICE — once as the panel title and again directly
+      below it as body text. Show it once, as the title.
+  (b) "Rewards: —" shows a bare em-dash placeholder. When a node has no
+      rewards to show, hide the Rewards row entirely rather than printing a
+      dash; when it has them, list them.
+  (c) the "Go" button reads as disabled — very low contrast against the dark
+      panel. If it IS disabled in this state, make that legible and obvious;
+      if it is enabled, it must clearly look enabled. Do not leave it
+      ambiguous.
+  (d) the "Rune Page" button in the left-hand menu clips its label at the
+      bottom. Give the button enough height for its own text.
+  Acceptance: build green; dotnet test shows no NEW failures vs a baseline run
+  on the same tree (the suite is flaky — a failure must reproduce twice to
+  count); regenerate the map capture and run
+  `python3 tools/visual_gate.py --only map_test` — it must report 0 blocking
+  and must no longer list any of (a)-(d) even as notes. Put the before/after
+  gate output in the DONE line.
+
+- [ ] TASK-RELIQUARY-LAYOUT-1 — Reliquary screen (client/scripts/ReliquaryScene.cs
+  only — do not touch other scenes, another lane may be in them). Three
+  defects the visual gate found on a real capture:
+  (a) the strata filter chips overlap each other — "EMBER" is partly hidden
+      behind "TIDE", and "HOLLOW" is clipped to "HOLLO" by "DAWN". Lay the
+      chips out so every label is fully visible at any window width, wrapping
+      to a second row if that is what it takes.
+  (b) the scrollbar draws ON TOP of the "Owned 13/146" and "Runes: 0" text.
+      Reserve the scrollbar's width so it never overlaps content.
+  (c) the card grid is crammed into the left third while the right two-thirds
+      of the screen sits empty. Let the grid use the full width — more columns
+      at wide sizes rather than a narrow column with dead space beside it.
+  Acceptance: build green; dotnet test shows no NEW failures vs a baseline run
+  on the same tree (the suite is flaky — a failure must reproduce twice to
+  count); regenerate the reliquary capture and run
+  `python3 tools/visual_gate.py --only reliquary_test` — 0 blocking, and none
+  of (a)-(c) still listed. Put the before/after gate output in the DONE line.
+
 - [!] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
   MODES, tools/regen_captures.sh) never captures the Title screen or the
   Settings screen — DebugCapture.cs has no "title_test" or "settings_test"
