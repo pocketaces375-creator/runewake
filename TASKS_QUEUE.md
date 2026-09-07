@@ -63,7 +63,7 @@
   ALSO: give buttons real padding — at least 0.9% of height above and below the text — so the words are not jammed against the border.
   DONE: finish_task green, plus fresh map_test and map_test_720 captures, and a check that no Label in either capture has a font size under the rule.
 
-- [ ] TASK-SKIP-IS-FAIL-1 — A SKIPPED CRITICAL CHECK IS A FAILURE, NOT A PASS. TouchOnlySmokeTest just reported TOUCH_LANE_PLAY:SKIP - no card, TOUCH_COMBAT:SKIP - no attackers, and the suite still went green. The one thing that had to be proven — that a card can be PLAYED with a finger — was never tested, and the gate said yes anyway.
+- [x] TASK-SKIP-IS-FAIL-1 — A SKIPPED CRITICAL CHECK IS A FAILURE, NOT A PASS. TouchOnlySmokeTest just reported TOUCH_LANE_PLAY:SKIP - no card, TOUCH_COMBAT:SKIP - no attackers, and the suite still went green. The one thing that had to be proven — that a card can be PLAYED with a finger — was never tested, and the gate said yes anyway.
   DO: (1) seed the touch smoke test with a deterministic hand and enough attunement that TOUCH_LANE_PLAY and TOUCH_COMBAT can always run — no card in hand is a broken fixture, not a reason to skip; (2) make SKIP on TOUCH_LANE_PLAY or TOUCH_COMBAT exit non-zero with "SKIPPED A CRITICAL CHECK — this is a failure"; (3) apply the same rule anywhere else a smoke test can skip its main assertion.
   DONE: touch_smoke_result.json shows TOUCH_LANE_PLAY:PASS with a creature actually on the board afterwards, and deliberately emptying the seeded hand makes the run FAIL rather than skip.
 
