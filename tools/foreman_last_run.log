@@ -1,9 +1,3 @@
-TOUCH_BOARD_APPEAR:PASS    ← creature actually appeared on board
-TOUCH_LANE_PLAY:PASS       ← card played by touch
-TOUCH_END_TURN:PASS
-TOUCH_COMBAT_SELECT:PASS
-TOUCH_COMBAT:PASS          ← combat worked via touch
-TOUCH_VICTORY:PASS
 verdict: PASS
 ```
 
@@ -47,4 +41,10 @@ TASK-ITEMS-PALADIN-1 is complete.
 
 ⚠️ File-mutation verifier: 1 file(s) were NOT modified this turn despite any wording above that may suggest otherwise. Run `git status` or `read_file` to confirm.
   • /home/fictive/runewake-lane3/engine/Engine/TargetResolver.cs — [patch] Found 7 matches for old_string. Provide more context to make it unique, or use replace_all=True.
+========================================
+=== foreman: 2026-09-07T06:19:17Z TASK-MAP-PANEL-1 retry ===
+Session: 1/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
