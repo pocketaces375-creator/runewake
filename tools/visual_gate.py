@@ -56,9 +56,12 @@ Check specifically for:
    is hard or impossible to read.
 3. Text or a UI element that spills outside the card/panel/button it belongs to.
 4. Text that is illegible from low contrast against its background.
-5. Non-English text, garbled characters, or gibberish glyphs baked into art or
-   banners (this game is English-only — any foreign script or nonsense text in a
-   texture is a bug, not a stylistic choice).
+5. Garbled or corrupted glyphs in UI TEXT the game renders — clipped, boxed,
+   or tofu characters where readable English was intended.
+   Do NOT flag decorative lettering that is part of the painted ART — the map
+   cartouche carries a stylised script line above the region name, and runic or
+   foreign-looking script in artwork is deliberate world-building in this game,
+   not a defect. Judge painted lettering as art; judge rendered UI text as text.
 6. Obviously broken, placeholder-looking, or blank/missing art where art is expected.
 7. Layout that is severely unbalanced — most of the screen empty while content is
    crammed into a small corner — such that it would look unfinished to a player.

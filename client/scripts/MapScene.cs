@@ -417,7 +417,8 @@ public partial class MapScene : Control
         _mapContainer.AddChild(_lineDrawer);
 
         // Region name banner — always visible overlay, outside the pannable container
-        // The region name is painted INTO the plate's cartouche, which is what
+        // The region name is painted into the lower half of the cartouche, under
+        // the script line that belongs to the art. This is what
         // that ornate empty scroll was always drawn for. It lives inside the
         // pannable container so it stays welded to the banner under pan and
         // zoom, exactly like the map nodes.
@@ -427,11 +428,11 @@ public partial class MapScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Off,
             MouseFilter = Control.MouseFilterEnum.Ignore,
-            Size = new Vector2(332, 96),
-            Position = new Vector2(510 - 166, -224 - 48)
+            Size = new Vector2(332, 34),
+            Position = new Vector2(510 - 166, -189 - 17)
         };
         _regionBanner.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-        ThemeTokens.ApplyHeaderFont(_regionBanner, 34);
+        ThemeTokens.ApplyHeaderFont(_regionBanner, 22);
         // Ink on parchment, not gold on black — it is sitting on the scroll now.
         _regionBanner.AddThemeColorOverride("font_color", new Color(0.24f, 0.16f, 0.09f, 0.96f));
         _regionBanner.AddThemeConstantOverride("outline_size", 0);
