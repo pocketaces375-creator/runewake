@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [!] TASK-ENDGAME-OVERLAY-1 — Victory and defeat overlays (client/scripts/DuelScene.cs
+- [ ] TASK-ENDGAME-OVERLAY-1 — Victory and defeat overlays (client/scripts/DuelScene.cs
   ONLY — do not touch other files, other lanes are in them). Every defect below is
   one a vision model saw on a real capture (artifacts/captures/victory_overlay.png
   and defeat_overlay.png):
@@ -33,7 +33,7 @@
   0 blocking and no longer lists (a)-(d) even as notes. Paste the before/after gate
   output into the DONE line.
 
-- [!] TASK-HAND-CARDNAME-1 — Card names are clipped in hand (client/scripts/HandCard.cs
+- [ ] TASK-HAND-CARDNAME-1 — Card names are clipped in hand (client/scripts/HandCard.cs
   ONLY). The gate found this on duel_test.png and duel_test_safe.png: the name
   "THE UNDYING ROOT OF THE FALL" is cut off at the bottom on several hand cards, and
   cut off on the LEFT edge on others in the safe-area capture. With a full hand the
@@ -141,7 +141,7 @@
     your opponent's next attack this round is redirected to a creature of your choice.
   Each: id artf_necromancer_<snake_name>, class "necromancer".
 
-- [!] TASK-ITEMS-PALADIN-2 — Four more Paladin artifacts (two per slot) in
+- [ ] TASK-ITEMS-PALADIN-2 — Four more Paladin artifacts (two per slot) in
   content/artifacts/variants/paladin.json, alongside the four already there from
   TASK-ITEMS-PALADIN-1. Same rules, format and art bar. Use the existing slot_pool
   values in that file.
@@ -214,7 +214,7 @@
   `python3 tools/visual_gate.py --only reliquary_test` — 0 blocking, and none
   of (a)-(c) still listed. Put the before/after gate output in the DONE line.
 
-- [!] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
+- [ ] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
   MODES, tools/regen_captures.sh) never captures the Title screen or the
   Settings screen — DebugCapture.cs has no "title_test" or "settings_test"
   mode. That is a real gap: the duplicate-Begin and title-alignment bugs kept
@@ -246,7 +246,7 @@
 
 # ---- PACKET F (2026-09-04 night, Fable) — engine truth, balance, arena, regions 3-4 ----
 
-- [!] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
+- [ ] TASK-ENGINE-DRUID-P1-1 — AFTER: TASK-ENGINE-FIRST-PLAYER-1. Druid must work as the second player.
   P0-Druid beats P1-Druid 98%, and Druid as P1 loses about 100-0 to Battlemage, Paladin and Warrior; that
   is a bug, not tuning. Suspects: Book of Familiar's ON_TURN_START SUMMON of the ROOTED tok_familiar
   (lane choice, full board, or summoning onto the wrong side when the Druid is Players[1]) and Elemental
@@ -261,7 +261,7 @@
   THEN fix whatever that test exposes. Suspects, in order: (1) a child Control with MouseFilter=Stop over the card intercepting the touch before HandCard sees it — decorative children (CardPlate, its ColorRects and Labels, the art TextureRect) must be MouseFilterEnum.Ignore, only HandCard/LaneSlot themselves are Stop; (2) TapGuard's 250ms window swallowing the real press when touch and emulated mouse arrive in an order it does not expect; (3) play requiring a drag (_GetDragData/_DropData) which is unreliable under touch — tap-to-select then tap-to-lane must work with no drag at all.
   DONE: the touch-only test plays a card and passes in finish_task, and it stays in the gate so this can never regress.
 
-- [!] TASK-UI-READABLE-1 — Text must be readable by someone with bad eyes, at 720p on a phone. Trikzos: "I understand what the buttons are but can't enjoyably read those words."
+- [ ] TASK-UI-READABLE-1 — Text must be readable by someone with bad eyes, at 720p on a phone. Trikzos: "I understand what the buttons are but can't enjoyably read those words."
   MAP SCREEN (worst): the lower-left button column (Forge, Rune Page, Reliquary, Settings), the lower-right encounter panel (name, type, "Rewards: N Shards", Close, Challenge), the top bar ("< Title", the deck name, "Shards: N") and every map node label are all far too small.
   RULE: no UI label below 2.2% of viewport HEIGHT (at 1080p that is ~24px; at 720p ~16px). Button labels at least 2.8% of height. Encounter-panel body text at least 2.4%. Map node names at least 2.2%. Set these from a single scale helper driven by viewport height so they hold at every resolution — do not hardcode pixel sizes per label.
   ALSO: give buttons real padding — at least 0.9% of height above and below the text — so the words are not jammed against the border.
