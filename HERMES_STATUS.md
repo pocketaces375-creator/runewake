@@ -85,3 +85,4 @@
 - 2026-09-07: PARKED TASK-ITEMS-NECROMANCER-1 — spend ceiling reached ($1.837); awaiting Fable.
 - 2026-09-07: PARKED TASK-ITEMS-ROGUE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-07: PARKED TASK-ITEMS-ROGUE-1 — spend ceiling reached ($1.536); awaiting Fable.
+- 2026-09-07: PARKED TASK-MAP-PANEL-1 — spend ceiling reached ($1.855); awaiting Fable.
