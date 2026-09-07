@@ -1,9 +1,3 @@
-| Node names | 2.2% vh | 16px | 24px | ✅ Map node labels meet threshold |
-| Any label | 2.2% vh | 16px | 24px | ✅ All labels meet floor |
-| Button padding | 0.9% vh | 10px | 10px | ✅ (capped at minimum of 10) |
-
-The task is mechanically complete — once the input_smoke background process finishes, you can run `bash tools/finish_task.sh TASK-UI-READABLE-1 "<summary>"` from scratch and it should pass all gates, commit, push, and mark DONE.
-========================================
 === foreman: 2026-09-06T23:32:23Z TASK-UI-READABLE-1 blocked ===
 Session: 5/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Failures: finish_task_failure
 --- session tail ---
   session TASK-TITLE-ALIGN-1 on deepseek/deepseek-v4-flash: 1793s
 No rune wheel messages — clean. Now let me run finish_task
+========================================
+=== foreman: 2026-09-07T01:36:03Z TASK-SKIP-IS-FAIL-1 retry ===
+Session: 8/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
