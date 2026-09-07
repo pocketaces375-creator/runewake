@@ -1,10 +1,4 @@
 
-## Changes Made
-
-**ThemeTokens.cs** — Added two viewport-height-based scaling helpers:
-- `FontSizeFromVh(float viewportHeight, float fraction)` — ceil-based, clamped to 8px minimum
-- `PaddingFromVh(float viewportHeight, float fraction)` — ceil-based, clamped to 1px minimum
-
 **MapScene.cs** — All UI elements now driven by viewport height:
 - `StyleButton()` takes viewport height and computes: font_size=2.8% vh, padding=0.9% vh
 - Back button (`< Title`), all 4 side buttons (Forge, Rune Page, Reliquary, Settings), and info panel buttons all use StyleButton(vh)
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-07T02:55:56Z TASK-CAPTURE-COVERAGE-1 retry ===
 Session: 10/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T03:41:36Z TASK-CAPTURE-COVERAGE-1 blocked ===
+Session: 11/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
