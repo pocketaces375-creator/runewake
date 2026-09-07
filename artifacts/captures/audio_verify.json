@@ -29,7 +29,7 @@
       "callCount": 1
     },
     {
-      "id": "victory",
+      "id": "defeat",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
@@ -75,11 +75,11 @@
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
-    "sfx:defeat",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
-    "sfx:unlock"
+    "sfx:unlock",
+    "sfx:victory"
   ],
   "musicExercised": true,
   "sfxExercised": true,

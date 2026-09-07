@@ -1,0 +1,117 @@
+{
+  "overall": "FAIL",
+  "checked_at": "2026-09-07T05:58:08Z",
+  "model": "google/gemini-2.5-flash",
+  "screens": [
+    {
+      "screen": "choose_path",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/choose_path.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "map_test",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/map_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "duel_test",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/duel_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "duel_test_safe",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/duel_test_safe.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "victory_overlay",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/victory_overlay.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "defeat_overlay",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/defeat_overlay.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "reliquary_test",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/reliquary_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "reliquary_test_all",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/reliquary_test_all.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "title_test",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/title_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "settings_test",
+      "path": "/home/fictive/runewake-lane4/artifacts/captures/settings_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    }
+  ]
+}

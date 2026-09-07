@@ -1,0 +1,1 @@
+{"verdict": "PASS","steps": [{"name":"TOUCH_CARD_SELECT","result":"PASS"},{"name":"TOUCH_LANE_PLAY","result":"PASS"},{"name":"TOUCH_END_TURN","result":"PASS"},{"name":"MOUSE_CARD_SELECT","result":"PASS"},{"name":"MOUSE_LANE_PLAY","result":"PASS"},{"name":"MOUSE_END_TURN","result":"PASS"}]}
