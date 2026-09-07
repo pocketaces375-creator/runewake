@@ -209,15 +209,14 @@ fi
 echo ""
 echo "── Step 6c: visual_gate (pixel-level check) ──"
 if [[ "${CAPTURES_REGENERATED}" -eq 1 ]] && [[ -f "${PROJECT_DIR}/tools/visual_gate.py" ]]; then
-  if [[ -n "${OPENROUTER_API_KEY:-}" ]] || [[ -f "${HOME}/.hermes/.env" ]]; then
-    if python3 "${PROJECT_DIR}/tools/visual_gate.py"; then
-      ok "visual_gate passed — a vision model reviewed every checked screen"
-    else
-      fail "visual_gate failed — see artifacts/VISUAL_GATE.json for what a vision model actually saw wrong. A task is not done because its tests pass; it is done when it looks right."
-    fi
+  # No missing-key bypass here on purpose: visual_gate.py already fails
+  # closed if it cannot find a key or cannot parse a verdict. A wrapper that
+  # skips the call instead of letting it fail is how "mandatory" quietly
+  # becomes "best effort" — do not reintroduce that branch.
+  if python3 "${PROJECT_DIR}/tools/visual_gate.py"; then
+    ok "visual_gate passed — a vision model reviewed every checked screen"
   else
-    echo "  Skipping visual_gate (OPENROUTER_API_KEY not available — no vision model access in this environment)"
-    echo "  The map capture was regenerated at artifacts/captures/map_test.png"
+    fail "visual_gate failed — see artifacts/VISUAL_GATE.json for what a vision model actually saw wrong. A task is not done because its tests pass; it is done when it looks right."
   fi
 else
   echo "  Skipping (no client/engine changes this run, or tools/visual_gate.py not yet installed)"
