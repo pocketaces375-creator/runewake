@@ -1,9 +1,3 @@
-| Rallying Standard (banner) | Passive: when you play a creature, it gets +1/+0 until end of turn. +1 charge per creature played. Full (3): all friendly creatures +1/+1 until your next turn. |
-| Sunspire Sigil (banner) | Passive: at end of your turn, restore 1 vigor to each damaged friendly creature. +1 charge at turn end. Full (3): all friendly creatures gain Ward. |
-
-**tests/Engine/PaladinVariantTests.cs** — 11 unit tests covering each artifact's passive, charge trigger, and full-charge effect, plus a variant load/equip integration test.
-
-**Results:** Build passes, art_check gate passes, 883/883 dotnet tests pass (0 failures).
 
 ---
 
@@ -47,4 +41,10 @@ Session: 7/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T09:57:29Z TASK-ITEMS-ROGUE-1 retry ===
+Session: 7/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-ROGUE-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
