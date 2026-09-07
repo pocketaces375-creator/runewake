@@ -216,6 +216,19 @@ fi
 echo ""
 echo "── Step 6c: visual_gate (pixel-level check) ──"
 if [[ "${CAPTURES_REGENERATED}" -eq 1 ]] && [[ -f "${PROJECT_DIR}/tools/visual_gate.py" ]]; then
+  # The gate runs from cron/foreman, where the environment is sanitized and
+  # OPENROUTER_API_KEY is not inherited. Resolve it from the env file by
+  # ABSOLUTE path before calling the gate. This makes the key findable; it
+  # does NOT let the gate be skipped — visual_gate.py still fails closed if
+  # the key is genuinely absent, and that failure still blocks the task.
+  if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+    for _envf in "${HOME:-/home/fictive}/.hermes/.env" /home/fictive/.hermes/.env; do
+      if [[ -f "${_envf}" ]]; then
+        _k=$(grep -m1 '^OPENROUTER_API_KEY=' "${_envf}" 2>/dev/null | cut -d= -f2- | tr -d '"'"'"'' )
+        if [[ -n "${_k}" ]]; then export OPENROUTER_API_KEY="${_k}"; break; fi
+      fi
+    done
+  fi
   # No missing-key bypass here on purpose: visual_gate.py already fails
   # closed if it cannot find a key or cannot parse a verdict. A wrapper that
   # skips the call instead of letting it fail is how "mandatory" quietly

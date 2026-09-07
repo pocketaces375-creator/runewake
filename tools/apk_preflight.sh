@@ -176,6 +176,14 @@ fi
 echo ""
 echo "[8/8] Visual gate"
 TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+  for _envf in "${HOME:-/home/fictive}/.hermes/.env" /home/fictive/.hermes/.env; do
+    if [[ -f "${_envf}" ]]; then
+      _k=$(grep -m1 '^OPENROUTER_API_KEY=' "${_envf}" 2>/dev/null | cut -d= -f2- | tr -d '"' | tr -d "'")
+      if [[ -n "${_k}" ]]; then export OPENROUTER_API_KEY="${_k}"; break; fi
+    fi
+  done
+fi
 if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
     if bash "$TOOLS_DIR/regen_captures.sh" && python3 "$TOOLS_DIR/visual_gate.py"; then
         report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
