@@ -88,3 +88,4 @@
 - 2026-09-07: PARKED TASK-MAP-PANEL-1 — spend ceiling reached ($1.855); awaiting Fable.
 - 2026-09-07: PARKED TASK-ITEMS-DRUID-1 — spend ceiling reached ($1.957); awaiting Fable.
 - 2026-09-07: PARKED TASK-ITEMS-BATTLEMAGE-1 — spend ceiling reached ($1.897); awaiting Fable.
+- 2026-09-07: PARKED TASK-ITEMS-NECROMANCER-1 — spend ceiling reached ($1.837); awaiting Fable.
