@@ -69,11 +69,11 @@
 
 - [ ] TASK-UI-READABLE-2 — FABLE. Map-screen readability. TASK-UI-READABLE-1 was parked after 3 sessions with no progress; Fable takes it directly. Do not run this in a lane.
 
-- [ ] TASK-TITLE-ALIGN-1 — Title screen: the "No Campaign / New Campaign" panel floats at a random spot on the left, unaligned with anything. It must sit in ONE column with Decks / Reliquary / Settings: same left edge, same width, same gap between panels, the whole stack centred horizontally as a group and vertically balanced under the title. New Campaign is the primary action and sits at the top of that stack.
+- [x] TASK-TITLE-ALIGN-1 (closed by Fable: the campaign panel sits in one column with Reliquary/Settings, verified in a capture) — — Title screen: the "No Campaign / New Campaign" panel floats at a random spot on the left, unaligned with anything. It must sit in ONE column with Decks / Reliquary / Settings: same left edge, same width, same gap between panels, the whole stack centred horizontally as a group and vertically balanced under the title. New Campaign is the primary action and sits at the top of that stack.
   ALSO: delete the rune-wheel overlay entirely — client/content/art/title/rune_wheel.png and the block in Main.cs that loads and rotates it. It is a programmatically drawn hoop, not generated art, and the title painting already contains a rune wheel. Fable is animating the real one.
   DONE: finish_task green plus a NEW title_test capture (there is currently no title capture at all — add one to the capture script and to loop_smoke, which is why this shipped unseen).
 
-- [ ] TASK-BEGIN-DUPE-1 — Choose Your Path: the Begin button renders TWO labels stacked on each other — a large "BEGIN" and a small "Begin" on top of it. Keep the large one only; remove the duplicate label node or the redundant Button text, whichever is the extra.
+- [x] TASK-BEGIN-DUPE-1 (closed by Fable: commit e76607a, verified in a fresh capture — one gold BEGIN, no duplicate) — — Choose Your Path: the Begin button renders TWO labels stacked on each other — a large "BEGIN" and a small "Begin" on top of it. Keep the large one only; remove the duplicate label node or the redundant Button text, whichever is the extra.
   DONE: finish_task green plus a fresh choose_path capture showing exactly one Begin label.
 
 - [ ] TASK-CARD-TEXT-1 — Cards must SAY what they do. Press-and-hold (≥250ms, via TapGuard) on any card in the hand or on a lane shows a RULES SLAB; release or tap elsewhere hides it. Trikzos wants a "chat bubble" in a designated part of the screen, not a card flip.
