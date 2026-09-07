@@ -10,6 +10,20 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
+- [ ] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
+  MODES, tools/regen_captures.sh) never captures the Title screen or the
+  Settings screen — DebugCapture.cs has no "title_test" or "settings_test"
+  mode. That is a real gap: the duplicate-Begin and title-alignment bugs kept
+  shipping even after "tests passed" partly because nothing automated was
+  ever looking at those two screens. Add "title_test" and "settings_test" as
+  real DebugCapture modes (same pattern as the existing modes — write PNG +
+  .meta.json to artifacts/captures/), then add both to the MODES array in
+  tools/finish_task.sh and tools/regen_captures.sh, and to
+  tools/visual_gate.py's DEFAULT_SCREENS list.
+  Acceptance: a fresh finish_task.sh run on any client change produces
+  artifacts/captures/title_test.png and settings_test.png; visual_gate.py
+  checks both; dotnet test green.
+
 # ---- PHASE A FINISH — VERIFY, THEN SHIP ----
 
 # ---- PACKET H (2026-09-05, from the shipped build's own captures) ----

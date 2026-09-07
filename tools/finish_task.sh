@@ -195,6 +195,19 @@ else
 fi
 
 # ── Step 7: input_smoke / loop_smoke — skip until they exist ──
+# ── Step 6c: visual_gate — a vision model must actually look at the pixels ──
+echo ""
+echo "── Step 6c: visual_gate (pixel-level check) ──"
+if [[ "${CAPTURES_REGENERATED}" -eq 1 ]] && [[ -f "${PROJECT_DIR}/tools/visual_gate.py" ]]; then
+  if python3 "${PROJECT_DIR}/tools/visual_gate.py"; then
+    ok "visual_gate passed — a vision model reviewed every checked screen"
+  else
+    fail "visual_gate failed — see artifacts/VISUAL_GATE.json for what a vision model actually saw wrong. A task is not done because its tests pass; it is done when it looks right."
+  fi
+else
+  echo "  Skipping (no client/engine changes this run, or tools/visual_gate.py not yet installed)"
+fi
+
 echo ""
 echo "── Step 7: Input/loop smoke tests ──"
 for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/loop_smoke.sh"; do

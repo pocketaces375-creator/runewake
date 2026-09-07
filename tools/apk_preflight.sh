@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # tools/apk_preflight.sh — Run after EVERY APK export before posting links.
-# All 5 checks must pass or the APK is not announced.
+# All 8 checks must pass, including a real vision-model look at every
+# screen, or the APK is not announced.
 set -euo pipefail
 
 # ─── Config ───────────────────────────────────────────────────────────────
@@ -37,7 +38,7 @@ echo "════════════════════════�
 
 # ─── CHECK 1: Zip integrity ────────────────────────────────────────────────
 echo ""
-echo "[1/5] Zip integrity"
+echo "[1/8] Zip integrity"
 if unzip -t "$APK" > /dev/null 2>&1; then
     report PASS "unzip -t: no errors"
 else
@@ -46,7 +47,7 @@ fi
 
 # ─── CHECK 2: Valid signed APK ─────────────────────────────────────────────
 echo ""
-echo "[2/5] Signature verification"
+echo "[2/8] Signature verification"
 if [ -x "$APKSIGNER" ]; then
     if "$APKSIGNER" verify "$APK" > /dev/null 2>&1; then
         report PASS "apksigner verify: valid signature"
@@ -65,7 +66,7 @@ fi
 
 # ─── CHECK 3: Manifest sanity ──────────────────────────────────────────────
 echo ""
-echo "[3/5] Manifest sanity"
+echo "[3/8] Manifest sanity"
 if [ ! -x "$AAPT" ]; then
     report FAIL "aapt not found at $AAPT"
 else
@@ -112,7 +113,7 @@ fi
 
 # ─── CHECK 4: Size sanity (±10% of previous) ───────────────────────────────
 echo ""
-echo "[4/5] Size sanity"
+echo "[4/8] Size sanity"
 CUR_SIZE=$(stat --format=%s "$APK")
 if [ -f "$PREVIOUS_APK" ]; then
     PREV_SIZE=$(stat --format=%s "$PREVIOUS_APK")
@@ -132,7 +133,7 @@ fi
 
 # ─── CHECK 5: .import file completeness ────────────────────────────────────
 echo ""
-echo "[5/7] Asset .import completeness"
+echo "[5/8] Asset .import completeness"
 ORPHANS=0
 while IFS= read -r -d '' asset; do
     import_file="${asset}.import"
@@ -149,14 +150,14 @@ fi
 
 # ─── CHECK 6: SHA-256 ──────────────────────────────────────────────────────
 echo ""
-echo "[6/7] SHA-256 hash"
+echo "[6/8] SHA-256 hash"
 SHA=$(sha256sum "$APK" | cut -d' ' -f1)
 echo "  SHA-256: $SHA"
 report PASS "SHA-256 recorded"
 
 # ─── CHECK 7: Fallback-size warning for class portraits ─────────────────────
 echo ""
-echo "[7/7] Portrait fallback-size check"
+echo "[7/8] Portrait fallback-size check"
 FALLBACK_COUNT=0
 while IFS= read -r -d '' png; do
     size=$(stat --format=%s "$png" 2>/dev/null || echo "0")
@@ -169,6 +170,20 @@ if [ "$FALLBACK_COUNT" -gt 0 ]; then
     report PASS "$FALLBACK_COUNT portrait(s) flagged as small/fallback (WARN only)"
 else
     report PASS "All class portraits exceed 100KB — genuine art"
+fi
+
+# ─── CHECK 8: Visual gate (vision model reviews every screen) ─────────────
+echo ""
+echo "[8/8] Visual gate"
+TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
+    if bash "$TOOLS_DIR/regen_captures.sh" && python3 "$TOOLS_DIR/visual_gate.py"; then
+        report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
+    else
+        report FAIL "visual_gate: a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
+    fi
+else
+    report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
 fi
 
 # ─── Summary ───────────────────────────────────────────────────────────────
