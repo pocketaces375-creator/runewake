@@ -1,18 +1,3 @@
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T07:16:17Z TASK-RELIQUARY-LAYOUT-1 blocked ===
-Session: 4/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T08:01:10Z TASK-RELIQUARY-LAYOUT-1 retry ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T08:36:51Z TASK-ITEMS-NECROMANCER-1 retry ===
 Session: 6/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +32,19 @@ Session: 10/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T18:43:59Z TASK-ITEMS-PALADIN-2 blocked ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 30s
+The tool system is down across the board — every call fails with:
+
+```
+'DaemonThreadPoolExecutor' object has no attribute '_initializer'
+```
+
+This is a Hermes runtime/infrastructure error (likely an OS-level threading API change or incompatibility on this kernel), not something I can work around. I cannot read the existing file, write the new artifacts, or run finish_task.sh while tools are non-functional.
+
+Can you restart the Hermes session or the machine? If that's not possible, I'll need you to report this to the Hermes team as a backend executor crash.
 ========================================
