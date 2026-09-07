@@ -449,7 +449,7 @@ public partial class MapScene : Control
         // Top bar background
         var topBar = new ColorRect
         {
-            Color = new Color(0.1f, 0.08f, 0.06f, 0.85f),
+            Color = new Color(0.09f, 0.07f, 0.05f, 0.97f),
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 0.055f,
             MouseFilter = MouseFilterEnum.Ignore
@@ -459,7 +459,7 @@ public partial class MapScene : Control
         // Bottom edge line for top bar
         var barLine = new ColorRect
         {
-            Color = new Color(0.6f, 0.5f, 0.25f, 0.25f),
+            Color = new Color(0.62f, 0.52f, 0.28f, 0.55f),
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0.055f, AnchorBottom = 0.057f,
             MouseFilter = MouseFilterEnum.Ignore
@@ -485,18 +485,18 @@ public partial class MapScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.7f, AnchorRight = 0.98f,
-            AnchorTop = 0.002f, AnchorBottom = 0.053f
+            AnchorLeft = 0.87f, AnchorRight = 0.985f,
+            AnchorTop = 0.006f, AnchorBottom = 0.049f
         };
-        _shardLabel.AddThemeFontSizeOverride("font_size", 14);
-        _shardLabel.Modulate = new Color(0.85f, 0.72f, 0.35f, 0.8f); // gold
+        _shardLabel.AddThemeFontSizeOverride("font_size", 15);
+        _shardLabel.Modulate = new Color(0.92f, 0.80f, 0.42f, 1f); // gold, full strength
         AddChild(_shardLabel);
 
         // Deck chip (top bar, right side — shows active deck name)
         _deckChip = new HBoxContainer
         {
-            AnchorLeft = 0.85f, AnchorRight = 0.97f,
-            AnchorTop = 0.008f, AnchorBottom = 0.047f
+            AnchorLeft = 0.66f, AnchorRight = 0.855f,
+            AnchorTop = 0.006f, AnchorBottom = 0.049f
         };
 
         var chipPanel = new PanelContainer();
@@ -527,8 +527,8 @@ public partial class MapScene : Control
 
         // Deck name label (Cinzel 10px)
         _deckChipLabel = new Label();
-        _deckChipLabel.AddThemeFontSizeOverride("font_size", 10);
-        ThemeTokens.ApplyHeaderFont(_deckChipLabel, 10);
+        _deckChipLabel.AddThemeFontSizeOverride("font_size", 12);
+        ThemeTokens.ApplyHeaderFont(_deckChipLabel, 12);
         _deckChipLabel.MouseFilter = MouseFilterEnum.Ignore;
         chipInner.AddChild(_deckChipLabel);
 
