@@ -3274,6 +3274,10 @@ public partial class DuelScene : Control
 
                 if (step == 1)
                 {
+                    // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so every card is playable ═══
+                    if (_gsm.State != null)
+                        _gsm.State.Players[0].Attunement = 99;
+
                     // Pick first hand card
                     touchTargetCard = _handCards.Count > 0 ? _handCards[0] : null;
 
@@ -3435,6 +3439,10 @@ public partial class DuelScene : Control
 
                     _input.CancelSelection();
 
+                    // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so mouse card play succeeds ═══
+                    if (_gsm.State != null)
+                        _gsm.State.Players[0].Attunement = 99;
+
                     HandCard? mouseCard = _handCards.Count > 0 ? _handCards[0] : null;
                     if (mouseCard == null)
                     {
@@ -3573,7 +3581,7 @@ public partial class DuelScene : Control
         bool allPassed = true;
         foreach (var r in results)
         {
-            if (r.Contains("FAIL"))
+            if (r.Contains("FAIL") || r.Contains(":SKIP"))
                 allPassed = false;
             GD.Print($"[InputSmokeTest] {r}");
         }
@@ -3641,24 +3649,20 @@ public partial class DuelScene : Control
 
             if (step == 1)
             {
-                // Phase 1: Find a PLAYABLE card (cost <= attunement)
-                int attune = _gsm.State.Players[0].Attunement;
-                HandCard? targetCard = null;
-                foreach (var c in _handCards)
-                {
-                    if (c.CardCost <= attune)
-                    { targetCard = c; break; }
-                }
+                // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so every card is playable ═══
+                _gsm.State.Players[0].Attunement = 99;
 
-                if (targetCard == null)
+                // Phase 1: Pick first hand card (deterministic — no cost gate)
+                if (_handCards.Count == 0)
                 {
-                    GD.Print($"[TouchOnlySmokeTest] No affordable card (max attune={attune}) — ending turn early");
-                    results.Add("TOUCH_CARD_SELECT:SKIP - no affordable card");
+                    GD.PrintErr("[TouchOnlySmokeTest] FAIL: No cards in hand — broken test fixture");
+                    results.Add("TOUCH_CARD_SELECT:FAIL - no cards in hand");
                     results.Add("TOUCH_LANE_PLAY:SKIP - no card");
-                    _endTurnButton.EmitSignal(Button.SignalName.Pressed);
-                    step = 10;
+                    step = 99;
                     return;
                 }
+
+                HandCard? targetCard = _handCards[0];
 
                 GD.Print($"[TouchOnlySmokeTest] Tap card '{targetCard.CardName}' (cost {targetCard.CardCost}) via InputEventScreenTouch (pure)");
 
@@ -3975,7 +3979,8 @@ public partial class DuelScene : Control
 
     private void WriteTouchSmokeResults(List<string> results)
     {
-        bool allPass = results.TrueForAll(r => r.Contains(":PASS") || r.Contains(":SKIP"));
+        bool allPass = results.TrueForAll(r => r.Contains(":PASS"));
+        // TASK-SKIP-IS-FAIL-1: SKIP is a failure — a skipped critical check breaks the gate
         string verdict = allPass ? "PASS" : "FAIL";
         GD.Print($"[TouchOnlySmokeTest] VERDICT: {verdict}");
         foreach (var r in results)
