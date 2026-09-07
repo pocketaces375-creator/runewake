@@ -181,7 +181,7 @@ def main():
             continue
         if not png.exists():
             entry["verdict"] = "FAIL"
-            entry["issues"] = [{"description": f"expected capture missing: {png}", "severity": "high"}]
+            entry["issues"] = [{"description": f"COVERAGE GAP - screen is never captured, so it cannot be judged: expected capture missing: {png}", "severity": "low"}]
             overall_pass = False
             results.append(entry)
             continue

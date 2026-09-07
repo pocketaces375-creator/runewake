@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [!] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
+- [ ] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
   do not touch other scenes, another lane may be in them). Four defects the
   visual gate found on a real capture of the current build:
   (a) the node name prints TWICE — once as the panel title and again directly
@@ -31,7 +31,7 @@
   and must no longer list any of (a)-(d) even as notes. Put the before/after
   gate output in the DONE line.
 
-- [!] TASK-RELIQUARY-LAYOUT-1 — Reliquary screen (client/scripts/ReliquaryScene.cs
+- [ ] TASK-RELIQUARY-LAYOUT-1 — Reliquary screen (client/scripts/ReliquaryScene.cs
   only — do not touch other scenes, another lane may be in them). Three
   defects the visual gate found on a real capture:
   (a) the strata filter chips overlap each other — "EMBER" is partly hidden
@@ -229,7 +229,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
   WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
@@ -242,7 +242,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
+- [ ] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SKULL: "Grinning Skull" — passive: whenever a friendly creature dies, 1 damage to the enemy face; +1 charge per friendly death; full (3): a 1/1 Skeleton token in each empty friendly lane.
   SKULL: "Whispering Skull" — passive: start of your turn, excavate 1; +1 charge per card excavated; full (3): draw 2.
@@ -268,7 +268,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
+- [ ] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   BOOK_OF_FAMILIAR: "Grimoire of Thorns" — passive: your Rooted creatures deal 1 damage to any creature that attacks them; +1 charge whenever a Rooted creature is attacked; full (3): all friendly Rooted creatures +1/+1 permanently.
   BOOK_OF_FAMILIAR: "Seedbook" — passive: end of your turn, if you played no creature, put a 0/2 Rooted Seed token in an empty friendly lane; +1 charge per Seed; full (3): your Seeds become 2/3 with Reach.
@@ -281,7 +281,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
+- [ ] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
   DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
