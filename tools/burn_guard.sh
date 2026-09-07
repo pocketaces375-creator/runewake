@@ -59,6 +59,10 @@ PY
 # A halt is a pause with a reason, and a pause that nobody lifts is just an outage. Rate halts clear
 # themselves the moment the rate is back under the cap; daily halts clear at the day rollover. Anything
 # still holding says so in the group once an hour, so a halt can never sit for hours unnoticed again.
+# Defined here, above the auto-lift block that calls it. It used to sit ~35
+# lines further down, so every call in that block died with
+# "set_state: command not found" and a lifted halt never got recorded.
+set_state(){ python3 -c "import json;d=json.load(open('$STATE'));d['$1']=$2;json.dump(d,open('$STATE','w'))"; }
 prev_halt=$(python3 -c "
 import json
 try: print(json.load(open('/tmp/runewake_burn.json')).get('halted_by') or '')
@@ -96,7 +100,6 @@ except Exception: print('')" 2>/dev/null)
 fi
 
 halted_by=$(python3 -c "import json;print(json.load(open('$STATE')).get('halted_by') or '')")
-set_state(){ python3 -c "import json;d=json.load(open('$STATE'));d['$1']=$2;json.dump(d,open('$STATE','w'))"; }
 
 halt_all(){ # $1 = reason tag, $2 = message
   for d in "${LANES[@]}"; do touch "$d/FOREMAN_HALT"; echo "burn_guard: $1 $(date -Is)" > "$d/FOREMAN_HALT_REASON"; done
@@ -106,7 +109,7 @@ halt_all(){ # $1 = reason tag, $2 = message
   $TG "⛔ BURN GUARD halted all lanes — $2. Spend today \$${usage}. Fable/Trikzos: fix, then rm FOREMAN_HALT in each lane to resume." >/dev/null 2>&1 || true
   logger -t burn-guard "HALT $1: $2"
 }
-unhalt_all(){ for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HALT_REASON"; done; set_state halted_by null; $TG "✅ Burn guard: $1 — lanes resumed." >/dev/null 2>&1 || true; }
+unhalt_all(){ for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HALT_REASON"; done; set_state halted_by "None"; $TG "✅ Burn guard: $1 — lanes resumed." >/dev/null 2>&1 || true; }
 
 # ── 1 + 2: budget tripwires ──
 if [[ "$usage" != "nan" ]]; then
