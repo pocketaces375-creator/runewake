@@ -1,9 +1,3 @@
-=== foreman: 2026-09-06T23:32:23Z TASK-UI-READABLE-1 blocked ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-UI-READABLE-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
 === foreman: 2026-09-07T00:07:37Z TASK-UI-READABLE-1 retry ===
 Session: 6/96
 Failures: finish_task_failure
@@ -44,6 +38,12 @@ No rune wheel messages — clean. Now let me run finish_task
 ========================================
 === foreman: 2026-09-07T01:36:03Z TASK-SKIP-IS-FAIL-1 retry ===
 Session: 8/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T02:21:04Z TASK-SKIP-IS-FAIL-1 blocked ===
+Session: 9/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-SKIP-IS-FAIL-1 on deepseek/deepseek-v4-flash: 1800s
