@@ -402,6 +402,14 @@ public partial class ChooseYourPathScene : Control
         beginClick.SetAnchorsPreset(LayoutPreset.FullRect);
         beginClick.MouseDefaultCursorShape = CursorShape.PointingHand;
         beginClick.Text = "Begin"; // needed by LoopSmokeTest.FindVisibleButton
+        // The gold "BEGIN" beside this is the visible label. This Button keeps its
+        // Text so LoopSmokeTest.FindVisibleButton can still find it, but draws it
+        // fully transparent so the word is not printed twice on top of itself.
+        beginClick.AddThemeColorOverride("font_color", new Color(0, 0, 0, 0));
+        beginClick.AddThemeColorOverride("font_hover_color", new Color(0, 0, 0, 0));
+        beginClick.AddThemeColorOverride("font_pressed_color", new Color(0, 0, 0, 0));
+        beginClick.AddThemeColorOverride("font_focus_color", new Color(0, 0, 0, 0));
+        beginClick.AddThemeConstantOverride("outline_size", 0);
         var btnTransparent = new StyleBoxFlat { BgColor = Colors.Transparent };
         beginClick.AddThemeStyleboxOverride("normal", btnTransparent);
         beginClick.AddThemeStyleboxOverride("hover", btnTransparent);
