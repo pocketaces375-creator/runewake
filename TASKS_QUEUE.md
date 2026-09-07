@@ -10,7 +10,172 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [!] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
+- [ ] TASK-ENDGAME-OVERLAY-1 — Victory and defeat overlays (client/scripts/DuelScene.cs
+  ONLY — do not touch other files, other lanes are in them). Every defect below is
+  one a vision model saw on a real capture (artifacts/captures/victory_overlay.png
+  and defeat_overlay.png):
+  (a) BLOCKING: on victory, the winner name "ROOT WARDEN" is drawn on top of the
+      word "WAYFARER" — two labels occupying the same rect. Lay them out so
+      neither overlaps the other at any window size.
+  (b) on defeat, the word "DEFEATED" is rendered twice — once as the large centre
+      title and again inside the smaller "DEFEATED BY THE WAYFARER" line. Show it
+      once. Decide which reads better and delete the other.
+  (c) on both overlays the fragment "YOUR TI" (a clipped "YOUR TURN") shows from
+      behind the End Turn button. The turn banner must be hidden while an endgame
+      overlay is up, not merely covered by it.
+  (d) on victory the summary line "A worthy..." is cut off at the bottom edge of
+      its panel. Give the panel enough height, or wrap the text, so the whole
+      sentence is visible.
+  Acceptance: build green; dotnet test shows no NEW failures against a baseline run
+  on the same tree (the suite is flaky — a failure only counts if it reproduces on
+  two consecutive runs); regenerate captures, then
+  `python3 tools/visual_gate.py --only victory_overlay,defeat_overlay` reports
+  0 blocking and no longer lists (a)-(d) even as notes. Paste the before/after gate
+  output into the DONE line.
+
+- [ ] TASK-HAND-CARDNAME-1 — Card names are clipped in hand (client/scripts/HandCard.cs
+  ONLY). The gate found this on duel_test.png and duel_test_safe.png: the name
+  "THE UNDYING ROOT OF THE FALL" is cut off at the bottom on several hand cards, and
+  cut off on the LEFT edge on others in the safe-area capture. With a full hand the
+  cards overlap enough that long names lose characters at both ends.
+  Fix so that at a full ten-card hand, at both the normal and the safe-area window
+  size, every card name is fully readable — shrink the font to fit, wrap to a second
+  line, or ellipsise deliberately, but never silently clip mid-word.
+  Acceptance: build green; no NEW test failures (two-run rule as above); regenerate
+  captures; `python3 tools/visual_gate.py --only duel_test,duel_test_safe` no longer
+  reports any card-name clipping. Before/after gate output in the DONE line.
+
+- [ ] TASK-ARTIFACT-TRAY-1 — Artifact slots show placeholders (client/scripts/ArtifactCardPlate.cs
+  ONLY). On duel_test.png the three artifact slots under "THE WAYFARER | 25" render
+  the literal word "ARTIFACT" over a blank art area, and one slot shows a bare "?".
+  An empty slot should read as a deliberately empty slot — an outline or an etched
+  rune, no placeholder words. A filled slot must show its own art and name. Never
+  print "ARTIFACT" or "?" as visible player-facing text.
+  Acceptance: build green; no NEW test failures (two-run rule); regenerate captures;
+  `python3 tools/visual_gate.py --only duel_test` no longer reports placeholder text
+  or blank artifact art. Before/after gate output in the DONE line.
+
+- [ ] TASK-CHOOSE-PATH-2 — Class select polish (client/scripts/ChooseYourPathScene.cs
+  ONLY). From the gate on choose_path.png:
+  (a) the class blurb is cut off at the bottom of its panel — the Battlemage text
+      ends mid-sentence on "Saltmere,". Size the panel to its text, or scroll it;
+      no class may lose the end of its description.
+  (b) the carousel position dots below the class cards are partly hidden behind the
+      BEGIN button. Move the dots or the button so neither covers the other.
+  Acceptance: build green; no NEW test failures (two-run rule); regenerate captures;
+  `python3 tools/visual_gate.py --only choose_path` reports 0 blocking and no longer
+  lists (a) or (b). Before/after gate output in the DONE line.
+
+- [ ] TASK-DUEL-HUD-1 — AFTER: TASK-ENDGAME-OVERLAY-1 (same file — do not start this
+  until that one is closed). Duel HUD readability (client/scripts/DuelScene.cs ONLY).
+  From the gate on duel_test.png and duel_test_safe.png: the deck/barrow counter
+  "34 DECK 0 BARROW" is very small and very low contrast, and at the safe-area size
+  the reviewer read its "0" as the letter "O". Make the counter legible: larger, more
+  contrast, and unambiguous between zero and O (a different numeral face, or a label
+  layout that cannot be misread). It is also partly overlapped by the
+  "THE WAYFARER | 0" element on the overlay captures — fix that overlap too.
+  Acceptance: build green; no NEW test failures (two-run rule); regenerate captures;
+  `python3 tools/visual_gate.py --only duel_test,duel_test_safe` no longer reports the
+  counter as low-contrast, overlapped, or garbled. Before/after gate output in DONE.
+
+- [ ] TASK-CAPTURE-COVERAGE-2 — Three screens are never captured, so the gate cannot
+  judge them (client/scripts/DebugCapture.cs and tools/regen_captures.sh ONLY).
+  tools/visual_gate.py lists title_test, settings_test and reliquary_test_all in
+  DEFAULT_SCREENS, but no capture file is ever produced for them, so they show up
+  every run as coverage gaps. This is the narrow, concrete version of the task that
+  was parked earlier — do only this:
+  (a) add a capture mode for each of the three names to the --capture dispatch in
+      DebugCapture.cs, following exactly the pattern the existing modes use
+      (map_test / reliquary_test are the closest models to copy);
+  (b) add the three modes to the MODES array in tools/regen_captures.sh so they are
+      produced on every regen;
+  (c) run tools/regen_captures.sh and confirm artifacts/captures/title_test.png,
+      settings_test.png and reliquary_test_all.png all exist and are not solid black
+      (a black capture means the scene never rendered — that is a failure, not a pass;
+      slots_test.png is the existing example of this bug, do not copy it).
+  Do NOT change visual_gate.py, do NOT change the screen list, and do NOT fix any
+  rendering defects the new captures reveal — just make the screens capturable and
+  report what the gate then says about them in the DONE line.
+  Acceptance: build green; no NEW test failures (two-run rule); the three PNGs exist,
+  are over 100 KB each, and `python3 tools/visual_gate.py` no longer reports a
+  COVERAGE GAP for any of them.
+
+- [ ] TASK-ITEMS-BATTLEMAGE-2 — Four more Battlemage artifacts (two per slot) in
+  content/artifacts/variants/battlemage.json, Fable's designs; sidegrades only, never
+  strictly better than the base items. Use the two slot_pool values the existing
+  battlemage entries already use — read the file, do not invent slot names. Follow
+  the format of the closed TASK-ITEMS-PALADIN-1 entry exactly.
+  ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC
+  ALONE (no people, faces or hands, ever), a visibly different object of that slot per
+  item, no negative phrases; every tile must pass tools/art_check.py tile and the
+  folder must pass art_check.py variety.
+  SLOT A: "Cinderbrand Focus" — passive: the first spell you cast each turn costs 1
+    less; +1 charge whenever you cast a spell; full (3): deal 2 damage split as you
+    choose among enemy creatures.
+  SLOT A: "Stormglass Rod" — passive: your spells that damage a creature also slow it
+    until end of turn; +1 charge whenever a spell damages a creature; full (3): a
+    creature cannot act on its next turn.
+  SLOT B: "Emberweft Mantle" — passive: when you take damage, your next spell this
+    turn deals +1; +1 charge whenever you take damage; full (3): gain a shield equal
+    to the damage you took last turn.
+  SLOT B: "Tidecaller's Sash" — passive: at the start of your turn, if you cast no
+    spell last turn, draw a card; +1 charge per turn you cast no spell; full (3):
+    return a spell from your barrow to your hand.
+  Each: id artf_battlemage_<snake_name>, class "battlemage", slot_pool, name, one-line
+  dark-fae flavor, DSL passive/trigger/full.
+
+- [ ] TASK-ITEMS-NECROMANCER-2 — Four more Necromancer artifacts (two per slot) in
+  content/artifacts/variants/necromancer.json, same rules, format and art bar as
+  TASK-ITEMS-BATTLEMAGE-2 above. Use the slot_pool values already present in that file.
+  SLOT A: "Gravebind Censer" — passive: the first creature that dies each turn returns
+    a rune to you; +1 charge whenever a creature dies; full (3): return a creature
+    from your barrow to your hand.
+  SLOT A: "Hollow Reliquary" — passive: your summoned creatures enter with +0/+1;
+    +1 charge whenever you summon; full (3): summon a 2/2 husk that cannot attack
+    the turn it arrives.
+  SLOT B: "Pallid Wake Lantern" — passive: when a friendly creature dies, an adjacent
+    friendly creature gains +1/+0 until end of turn; +1 charge per friendly death;
+    full (3): all friendly creatures gain Pierce until your next turn.
+  SLOT B: "Shroudspindle" — passive: at the end of your turn, if you control no
+    creatures, draw a card; +1 charge per turn you end with an empty board; full (3):
+    your opponent's next attack this round is redirected to a creature of your choice.
+  Each: id artf_necromancer_<snake_name>, class "necromancer".
+
+- [ ] TASK-ITEMS-PALADIN-2 — Four more Paladin artifacts (two per slot) in
+  content/artifacts/variants/paladin.json, alongside the four already there from
+  TASK-ITEMS-PALADIN-1. Same rules, format and art bar. Use the existing slot_pool
+  values in that file.
+  HAMMER: "Oathkeeper's Weight" — passive: your Guard creatures cannot be reduced
+    below 1 vigor by a single attack; +1 charge whenever a Guard creature survives an
+    attack; full (3): a friendly creature gains Guard and +0/+2 permanently.
+  HAMMER: "Dawnbreaker Maul" — passive: your first attack each turn deals +1 to a
+    damaged creature; +1 charge whenever you attack a damaged creature; full (3): deal
+    4 damage to a creature that is already damaged.
+  BANNER: "Vigil Standard" — passive: at the start of your turn, a damaged friendly
+    creature restores 1 vigor; +1 charge per turn a friendly creature is damaged;
+    full (3): restore all friendly creatures to full vigor.
+  BANNER: "Sanctum Pennant" — passive: friendly creatures adjacent to your Guard
+    creatures take 1 less damage; +1 charge whenever damage is prevented this way;
+    full (3): friendly creatures take no damage until your next turn.
+  Each: id artf_paladin_<snake_name>, class "paladin".
+
+- [ ] TASK-ITEMS-DRUID-2 — Four more Druid artifacts (two per slot) in
+  content/artifacts/variants/druid.json, same rules, format and art bar. Use the
+  slot_pool values already present in that file.
+  SLOT A: "Thornwake Stave" — passive: when an enemy creature attacks one of yours,
+    it takes 1 damage; +1 charge whenever your creature is attacked; full (3): deal 1
+    damage to every enemy creature.
+  SLOT A: "Rootbound Crook" — passive: your creatures with full vigor have +1/+0;
+    +1 charge whenever a creature returns to full vigor; full (3): a friendly creature
+    grows +2/+2 permanently.
+  SLOT B: "Mossheart Totem" — passive: at the end of your turn, a random damaged
+    friendly creature restores 1 vigor; +1 charge per end of turn with a damaged
+    creature; full (3): summon a 1/4 Guard sapling.
+  SLOT B: "Sunhollow Idol" — passive: the first creature you play each turn costs 1
+    less; +1 charge whenever you play a creature; full (3): draw two creature cards.
+  Each: id artf_druid_<snake_name>, class "druid".
+
+- [ ] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
   do not touch other scenes, another lane may be in them). Four defects the
   visual gate found on a real capture of the current build:
   (a) the node name prints TWICE — once as the panel title and again directly
@@ -229,7 +394,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
   WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
@@ -242,7 +407,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
+- [ ] TASK-ITEMS-NECROMANCER-1 — Four more Necromancer artifacts (two per slot, Skull/Ritual piece) in content/artifacts/variants/necromancer.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   SKULL: "Grinning Skull" — passive: whenever a friendly creature dies, 1 damage to the enemy face; +1 charge per friendly death; full (3): a 1/1 Skeleton token in each empty friendly lane.
   SKULL: "Whispering Skull" — passive: start of your turn, excavate 1; +1 charge per card excavated; full (3): draw 2.
@@ -268,7 +433,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
+- [ ] TASK-ITEMS-DRUID-1 — Four more Druid artifacts (Trikzos: druid is about DIFFERENT ELEMENTS and DIFFERENT CREATURES — rotate both across the four so each reads as its own idea, e.g. storm+stag, fen-water+toad, frost+moth, spore+boar) (two per slot, Book of familiar/Elemental bond) in content/artifacts/variants/druid.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   BOOK_OF_FAMILIAR: "Grimoire of Thorns" — passive: your Rooted creatures deal 1 damage to any creature that attacks them; +1 charge whenever a Rooted creature is attacked; full (3): all friendly Rooted creatures +1/+1 permanently.
   BOOK_OF_FAMILIAR: "Seedbook" — passive: end of your turn, if you played no creature, put a 0/2 Rooted Seed token in an empty friendly lane; +1 charge per Seed; full (3): your Seeds become 2/3 with Reach.
@@ -281,7 +446,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
+- [ ] TASK-ITEMS-ROGUE-1 — Four more Rogue artifacts (two per slot, Dagger/Dagger (any dagger fits either slot)) in content/artifacts/variants/rogue.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   DAGGER: "Poisoner's Kiss" — passive: the first creature you play each turn gains Venom; +1 charge whenever Venom kills; full (3): 2 damage to the enemy face.
   DAGGER: "Shadowfang" — passive: Swift creatures have +1/+0 the turn they are played; +1 charge whenever a Swift creature hits the enemy face; full (3): the creature you last played gains Swift and STEALTH_STRIKE this turn.
