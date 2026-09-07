@@ -1,9 +1,3 @@
-  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
-=== foreman: 2026-09-07T06:31:15Z TASK-RELIQUARY-LAYOUT-1 retry ===
-Session: 3/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
 === foreman: 2026-09-07T07:16:17Z TASK-RELIQUARY-LAYOUT-1 blocked ===
@@ -47,4 +41,10 @@ Session: 9/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-ROGUE-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T18:16:50Z TASK-RELIQUARY-LAYOUT-1 retry ===
+Session: 10/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
