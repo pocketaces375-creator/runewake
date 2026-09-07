@@ -79,3 +79,4 @@
 - 2026-09-07: PARKED TASK-ITEMS-DRUID-1 — spend ceiling reached ($1.957); awaiting Fable.
 - 2026-09-07: PARKED TASK-MAP-PANEL-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-07: PARKED TASK-RELIQUARY-LAYOUT-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
+- 2026-09-07: PARKED TASK-RELIQUARY-LAYOUT-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
