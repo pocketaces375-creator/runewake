@@ -102,3 +102,4 @@
 - 2026-09-07: PARKED TASK-HAND-CARDNAME-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
 
 - 2026-09-07: DONE TASK-ENDGAME-OVERLAY-1 (Fable, direct). Root cause of three of the four defects was one line: the overlay's stone panel was `new Panel()`, which is not a container and does not measure its children, so it laid out 640x0 and its content spilled over a board the overlay only dims. PanelContainer + SizeFlags.Fill on the two autowrapping labels. Defeat headline no longer repeats DEFEATED. Turn banner widened and the HUD hidden at game over. Verified: build green, 883/883 tests, visual_gate 0 blocking on victory_overlay, defeat_overlay, duel_test.
+- 2026-09-07: PARKED TASK-CHOOSE-PATH-2 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
