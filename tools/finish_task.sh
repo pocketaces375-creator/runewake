@@ -17,6 +17,12 @@ fail()  { echo "  ❌ $*"; exit 1; }
 echo "═══ finish_task.sh: ${TASK_ID} ═══"
 echo "  Summary: ${SUMMARY}"
 
+# ── Step 0: Force-clean the Godot DLL so incremental build never serves stale ──
+echo ""
+echo "── Step 0: Force-clean Godot DLL ──"
+rm -f "${PROJECT_DIR}/client/.godot/mono/temp/bin/Debug/Runewake.Client.dll"
+ok "Stale DLL removed — fresh rebuild guaranteed"
+
 # ── Step 1: dotnet build (Debug) ──
 echo ""
 echo "── Step 1: dotnet build (Debug) ──"
@@ -78,7 +84,8 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
     echo "  Client/engine changed — regenerating all captures"
     rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
 
-    # Build fresh DLLs first
+    # Build fresh DLLs first — force-clean so Godot loads the new one
+    rm -f "${PROJECT_DIR}/client/.godot/mono/temp/bin/Debug/Runewake.Client.dll"
     dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null
 
     # Define capture modes
