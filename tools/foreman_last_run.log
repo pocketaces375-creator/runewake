@@ -1,9 +1,3 @@
-verdict: PASS
-```
-
-**Evidence — attunement forced to 99:** The game log shows `P0 (Vigor=25, Attune=95/1)` on the first turn (99 minus 4 spent on bloomweaver), confirming the attunement was forced. No more "no affordable card" skips.
-========================================
-=== foreman: 2026-09-07T05:48:01Z TASK-UI-READABLE-2 retry ===
 Session: 2/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +41,10 @@ Session: 1/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T06:31:15Z TASK-RELIQUARY-LAYOUT-1 retry ===
+Session: 3/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
