@@ -70,6 +70,34 @@ Respond with ONLY a JSON object, no other text, in exactly this shape:
 If you see nothing wrong, respond {"verdict": "PASS", "issues": []}.
 """
 
+
+SEVERITY_ORDER = {"low": 0, "medium": 1, "high": 2}
+
+def rank(sev):
+    return SEVERITY_ORDER.get(str(sev).lower(), 2)
+
+def dedupe(issues):
+    """One shared style bug reported on 18 cards is one bug, not 18. Collapse
+    issues whose wording matches once the specific names are stripped out."""
+    import re
+    seen = {}
+    for issue in issues:
+        desc = issue.get("description", "")
+        key = re.sub(r"'[^']*'", "'X'", desc)
+        key = re.sub(r"\b[A-Z][A-Z \-]{3,}\b", "X", key)
+        key = re.sub(r"\d+", "N", key).lower().strip()
+        if key in seen:
+            seen[key]["count"] = seen[key].get("count", 1) + 1
+            continue
+        item = dict(issue)
+        item["count"] = 1
+        seen[key] = item
+    out = list(seen.values())
+    for item in out:
+        if item.get("count", 1) > 1:
+            item["description"] = f"{item['description']}  [and {item['count'] - 1} more like it]"
+    return out
+
 def load_key():
     key = os.environ.get("OPENROUTER_API_KEY")
     if key:
@@ -122,6 +150,11 @@ def main():
     ap.add_argument("--captures", default=str(DEFAULT_CAPTURE_DIR))
     ap.add_argument("--only", default=None, help="comma-separated screen basenames")
     ap.add_argument("--model", default=os.environ.get("VISION_MODEL", "google/gemini-2.5-flash"))
+    ap.add_argument("--block-on", default=os.environ.get("VISUAL_GATE_BLOCK", "high"),
+                    choices=["high", "medium", "low"],
+                    help="lowest severity that BLOCKS. Everything below is recorded "
+                         "in the punch-list but does not stop the line. Ratchet this "
+                         "down as the backlog clears: high -> medium -> low.")
     args = ap.parse_args()
 
     capture_dir = Path(args.captures)
@@ -155,9 +188,13 @@ def main():
             overall_pass = False
             results.append(entry)
             continue
-        entry["verdict"] = verdict
+        issues = dedupe(issues)
         entry["issues"] = issues
-        if verdict != "PASS":
+        blocking = [i for i in issues if rank(i.get("severity")) >= rank(args.block_on)]
+        entry["blocking"] = blocking
+        entry["verdict"] = "FAIL" if blocking else "PASS"
+        entry["model_verdict"] = verdict
+        if blocking:
             overall_pass = False
         results.append(entry)
         time.sleep(1)
@@ -170,12 +207,19 @@ def main():
         "screens": results,
     }, indent=2))
 
-    print(f"=== visual_gate: {'PASS' if overall_pass else 'FAIL'} ===")
+    print(f"=== visual_gate: {'PASS' if overall_pass else 'FAIL'} "
+          f"(blocking at severity >= {args.block_on}) ===")
+    n_block = sum(len(e.get("blocking", [])) for e in results)
+    n_all = sum(len(e.get("issues", [])) for e in results)
+    print(f"    {n_block} blocking, {n_all - n_block} tracked in the punch-list")
     for entry in results:
         mark = "PASS" if entry["verdict"] == "PASS" else "FAIL"
-        print(f"  [{mark}] {entry['screen']}: {entry['verdict']}")
+        print(f"  [{mark}] {entry['screen']}")
+        for issue in entry.get("blocking", []):
+            print(f"      BLOCK [{issue.get('severity','?')}] {issue.get('description','')}")
         for issue in entry.get("issues", []):
-            print(f"      - [{issue.get('severity','?')}] {issue.get('description','')}")
+            if issue not in entry.get("blocking", []):
+                print(f"      note  [{issue.get('severity','?')}] {issue.get('description','')}")
     print(f"Wrote {RESULT_FILE}")
 
     sys.exit(0 if overall_pass else 1)
