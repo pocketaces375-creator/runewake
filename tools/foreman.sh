@@ -57,7 +57,7 @@ fi
 # ── Config ───────────────────────────────────────────────────────────────────
 PROJECT_DIR="${FOREMAN_PROJECT_DIR:-$HOME/runewake}"
 FOREMAN_MODEL="${FOREMAN_MODEL:-deepseek/deepseek-v4-flash}"
-FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-1800}"
+FOREMAN_TIMEOUT="${FOREMAN_TIMEOUT:-900}"
 FOREMAN_MODEL_FALLBACK="${FOREMAN_MODEL_FALLBACK:-}"
 FOREMAN_PROFILE="${FOREMAN_PROFILE:-runewake}"
 FOREMAN_MAX_TURNS="${FOREMAN_MAX_TURNS:-120}"
@@ -716,7 +716,7 @@ if [[ -n "${_CH}" && -f "/tmp/runewake_gate/${_CH}" ]]; then
     exit 0
   fi
 fi
-MAX_TASK_SPEND="${MAX_TASK_SPEND:-1.50}"
+MAX_TASK_SPEND="${MAX_TASK_SPEND:-0.75}"
 _SPENT=$(python3 -c "
 import json,os
 p='/home/fictive/runewake_state/task_spend.json'

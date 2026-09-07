@@ -50,9 +50,10 @@ TEST_OUTPUT=$(cd "${PROJECT_DIR}" && dotnet test tests/Runewake.Tests.csproj --n
 if echo "${TEST_OUTPUT}" | grep -q "^Passed!.*Failed:\\s*0"; then
   ok "All tests passed"
 elif echo "${TEST_OUTPUT}" | grep -q "^Failed!.*Failed:\\s*1"; then
-  # One failure: retry up to 2 more times (the suite is flaky — a failure
+  # One failure: retry ONCE (the suite is flaky, but a third full run of a
+  # 26k-line suite cost more than it ever caught — a failure
   # must reproduce twice to count; 3 total attempts catches one-off flakes)
-  RETRIES=2
+  RETRIES=1
   while [[ "${RETRIES}" -gt 0 ]]; do
     RETRIES=$((RETRIES - 1))
     echo "  One failure — retrying (${RETRIES} retries left)..."
@@ -233,7 +234,21 @@ if [[ "${CAPTURES_REGENERATED}" -eq 1 ]] && [[ -f "${PROJECT_DIR}/tools/visual_g
   # closed if it cannot find a key or cannot parse a verdict. A wrapper that
   # skips the call instead of letting it fail is how "mandatory" quietly
   # becomes "best effort" — do not reintroduce that branch.
-  if python3 "${PROJECT_DIR}/tools/visual_gate.py"; then
+  # Only judge what this run actually changed. Gating all ten screens on
+  # every iteration was most of the vision cost, and a screen this task never
+  # touched cannot have been broken by it. The full sweep still runs at APK
+  # preflight, which is where "is the whole build shippable" belongs.
+  GATE_SCREENS=$(cd "${PROJECT_DIR}" && git status --porcelain artifacts/captures/ 2>/dev/null \
+    | awk '{print $NF}' | grep '\.png$' | xargs -r -n1 basename \
+    | sed 's/\.png$//' | sort -u | paste -sd, -)
+  if [[ -n "${GATE_SCREENS}" ]]; then
+    echo "  gating changed screens only: ${GATE_SCREENS}"
+    GATE_ARGS=(--only "${GATE_SCREENS}")
+  else
+    echo "  no capture changed — gating the core screens"
+    GATE_ARGS=(--only choose_path,map_test,duel_test)
+  fi
+  if python3 "${PROJECT_DIR}/tools/visual_gate.py" "${GATE_ARGS[@]}"; then
     ok "visual_gate passed — a vision model reviewed every checked screen"
   else
     fail "visual_gate failed — see artifacts/VISUAL_GATE.json for what a vision model actually saw wrong. A task is not done because its tests pass; it is done when it looks right."
