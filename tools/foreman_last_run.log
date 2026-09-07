@@ -1,9 +1,3 @@
-Session: 1/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-PALADIN-1 on deepseek/deepseek-v4-flash: 1262s
-TASK-ITEMS-PALADIN-1 is complete.
-
 **Commit:** `b37b11c` (code) + `1929e90` (status) pushed to origin/main.
 
 **What was done:**
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-07T07:16:17Z TASK-RELIQUARY-LAYOUT-1 blocked ===
 Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T08:01:10Z TASK-RELIQUARY-LAYOUT-1 retry ===
+Session: 5/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 1800s
