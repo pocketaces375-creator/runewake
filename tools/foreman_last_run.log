@@ -1,10 +1,4 @@
 
-**MapScene.cs** — All UI elements now driven by viewport height:
-- `StyleButton()` takes viewport height and computes: font_size=2.8% vh, padding=0.9% vh
-- Back button (`< Title`), all 4 side buttons (Forge, Rune Page, Reliquary, Settings), and info panel buttons all use StyleButton(vh)
-- Shard label font_size=2.2% vh, deck chip font_size=2.2% vh, region banner font_size=2.2% vh
-- Info panel: name=2.6% vh (Cinzel), type=2.4% vh, rewards=2.4% vh
-
 **MapNodeIcon.cs** — Node name labels font_size=2.2% vh
 
 **DebugCapture.cs** — Added `--capture=map_test_720` handler and Button font_size recording in layout JSON
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-07T03:41:36Z TASK-CAPTURE-COVERAGE-1 blocked ===
 Session: 11/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
+========================================
+=== foreman: 2026-09-07T04:26:00Z TASK-CAPTURE-COVERAGE-1 retry ===
+Session: 12/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
