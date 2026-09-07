@@ -72,3 +72,4 @@
 - 2026-09-06: PARKED TASK-UI-READABLE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-06: PARKED TASK-UI-READABLE-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
 - 2026-09-06: PARKED TASK-CAPTURE-COVERAGE-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
+- 2026-09-07: PARKED TASK-CAPTURE-COVERAGE-1 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.

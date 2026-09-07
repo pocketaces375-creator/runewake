@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
+- [!] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
   MODES, tools/regen_captures.sh) never captures the Title screen or the
   Settings screen — DebugCapture.cs has no "title_test" or "settings_test"
   mode. That is a real gap: the duplicate-Begin and title-alignment bugs kept
