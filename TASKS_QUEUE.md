@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
+- [!] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
   do not touch other scenes, another lane may be in them). Four defects the
   visual gate found on a real capture of the current build:
   (a) the node name prints TWICE — once as the panel title and again directly
