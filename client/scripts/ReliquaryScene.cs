@@ -127,7 +127,7 @@ public partial class ReliquaryScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.72f, AnchorRight = 0.98f,
+            AnchorLeft = 0.72f, AnchorRight = 0.96f,
             AnchorTop = 0.005f, AnchorBottom = 0.075f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
@@ -157,7 +157,7 @@ public partial class ReliquaryScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.70f, AnchorRight = 0.98f,
+            AnchorLeft = 0.70f, AnchorRight = 0.96f,
             AnchorTop = 0.035f, AnchorBottom = 0.075f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
@@ -166,12 +166,14 @@ public partial class ReliquaryScene : Control
         AddChild(_runeDustLabel);
 
         // ——— Filter chip row (below top bar) ———
+        // TASK-RELIQUARY-LAYOUT-1: chip strip grew to 2 rows; grid starts below it
         BuildFilterChips();
 
         // ——— Scrollable card grid ———
+        // TASK-RELIQUARY-LAYOUT-1: right edge at 0.96 reserves scrollbar width
         _gridScroll = new ScrollContainer();
-        _gridScroll.AnchorLeft = 0.02f; _gridScroll.AnchorRight = 0.98f;
-        _gridScroll.AnchorTop = 0.13f; _gridScroll.AnchorBottom = 1f;
+        _gridScroll.AnchorLeft = 0.02f; _gridScroll.AnchorRight = 0.96f;
+        _gridScroll.AnchorTop = 0.18f; _gridScroll.AnchorBottom = 1f;
         _gridScroll.SizeFlagsHorizontal = SizeFlags.Fill;
         _gridScroll.SizeFlagsVertical = SizeFlags.Fill;
         _gridScroll.ScrollDeadzone = 24;
@@ -179,7 +181,7 @@ public partial class ReliquaryScene : Control
 
         _cardGrid = new GridContainer();
         _cardGrid.AddThemeConstantOverride("separation", 8);
-        _cardGrid.Columns = 5;
+        // Columns set dynamically in RefreshGrid based on viewport width (TASK-RELIQUARY-LAYOUT-1)
         _cardGrid.SizeFlagsHorizontal = SizeFlags.Fill;
         _cardGrid.SizeFlagsVertical = SizeFlags.Fill;
         _cardGrid.CustomMinimumSize = new Vector2(0, 0);
@@ -224,7 +226,7 @@ public partial class ReliquaryScene : Control
             meta.Append($"  \"view_height\": {(int)GetViewportRect().Size.Y},\n");
             meta.Append($"  \"strata_filter_idx\": {_selectedStrataIdx},\n");
             meta.Append($"  \"grid_cards_shown\": {_filteredCards.Count},\n");
-            meta.Append($"  \"grid_columns\": 5\n");
+            meta.Append($"  \"grid_columns\": {_cardGrid.Columns}\n");
             meta.Append("}\n");
 
             string metaPath = System.IO.Path.Combine(captureDir, $"{basename}.meta.json");
@@ -242,28 +244,27 @@ public partial class ReliquaryScene : Control
     private void BuildFilterChips()
     {
         // Container for the chip row with background strip
+        // TASK-RELIQUARY-LAYOUT-1: increased height to 0.18f for 2-row wrap
         var chipStrip = new ColorRect
         {
             Color = new Color(0.08f, 0.065f, 0.04f, 0.5f),
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.083f, AnchorBottom = 0.13f,
+            AnchorTop = 0.083f, AnchorBottom = 0.18f,
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(chipStrip);
 
-        var chipScroll = new ScrollContainer();
-        chipScroll.AnchorLeft = 0.05f; chipScroll.AnchorRight = 0.95f;
-        chipScroll.AnchorTop = 0.083f; chipScroll.AnchorBottom = 0.13f;
-        chipScroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Auto;
-        chipScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
-        chipScroll.CustomMinimumSize = new Vector2(200, 44);
-        AddChild(chipScroll);
-
-        _filterChipRow = new HBoxContainer();
-        _filterChipRow.AddThemeConstantOverride("separation", 8);
-        _filterChipRow.CustomMinimumSize = new Vector2(0, 44);
-        _filterChipRow.SizeFlagsVertical = (SizeFlags)0;
-        chipScroll.AddChild(_filterChipRow);
+        // TASK-RELIQUARY-LAYOUT-1: HFlowContainer wraps chips; no horizontal scroll
+        _filterChipRow = new HFlowContainer();
+        _filterChipRow.AddThemeConstantOverride("h_separation", 8);
+        _filterChipRow.AddThemeConstantOverride("v_separation", 6);
+        _filterChipRow.CustomMinimumSize = new Vector2(0, 0);
+        _filterChipRow.SizeFlagsHorizontal = SizeFlags.Fill;
+        _filterChipRow.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+        // Position via anchors so it sits inside the chip strip area
+        _filterChipRow.AnchorLeft = 0.05f; _filterChipRow.AnchorRight = 0.95f;
+        _filterChipRow.AnchorTop = 0.083f; _filterChipRow.AnchorBottom = 0.18f;
+        AddChild(_filterChipRow);
 
         // Default strata filter
         if (CampaignContext.CaptureOverrideStrataIdx >= 0)
@@ -456,7 +457,7 @@ public partial class ReliquaryScene : Control
     /// with its name, class, slot_pool, and art (or silhouette fallback when missing).
     /// Artifacts are grouped by class, then by slot_pool.
     /// </summary>
-    private void BuildArtifactTiles()
+    private void BuildArtifactTiles(int cols)
     {
         var allArtifacts = ArtifactRegistry.GetAll()
             .OrderBy(a => a.Class)
@@ -495,8 +496,8 @@ public partial class ReliquaryScene : Control
         sectionHeader.AddChild(headerLabel);
         _cardGrid.AddChild(sectionHeader);
 
-        // Add a full-width spacer row (5 columns)
-        for (int i = 0; i < 5; i++)
+        // Add a full-width spacer row (cols columns)
+        for (int i = 0; i < cols; i++)
         {
             _cardGrid.AddChild(new Control
             {
@@ -654,6 +655,13 @@ public partial class ReliquaryScene : Control
         float cardW = 180f;
         float cardH = 260f;
 
+        // TASK-RELIQUARY-LAYOUT-1: dynamic columns based on available width
+        float sep = 8f;
+        float scrollbarW = 16f;
+        float availW = _gridScroll.GetRect().Size.X - scrollbarW;
+        int cols = Mathf.Max(1, (int)((availW + sep) / (cardW + sep)));
+        _cardGrid.Columns = cols;
+
         foreach (var card in _filteredCards)
         {
             int count = progression.Collection.GetValueOrDefault(card.Id, 0);
@@ -665,11 +673,11 @@ public partial class ReliquaryScene : Control
         }
 
         // Spacer to fill grid if not full
-        int remaining = _filteredCards.Count % 5;
+        int remaining = _filteredCards.Count % cols;
         if (remaining > 0)
         {
-            int spacerCount = 5 - remaining;
-            for (int i = 0; i < spacerCount && i < 5; i++)
+            int spacerCount = cols - remaining;
+            for (int i = 0; i < spacerCount && i < cols; i++)
             {
                 var spacer = new Control
                 {
@@ -689,7 +697,7 @@ public partial class ReliquaryScene : Control
         }
 
         // Append artifact tiles below the card grid
-        BuildArtifactTiles();
+        BuildArtifactTiles(cols);
     }
 
     private Control BuildCardTile(CardDef card, float cardW, float cardH, int ownedCount, bool isOwned, bool isNew)
@@ -1423,7 +1431,7 @@ public partial class ReliquaryScene : Control
                 meta.Append($"  \"view_height\": {(int)GetViewportRect().Size.Y},\n");
                 meta.Append($"  \"strata_filter_idx\": {_selectedStrataIdx},\n");
                 meta.Append($"  \"grid_cards_shown\": {_filteredCards.Count},\n");
-                meta.Append($"  \"grid_columns\": 5\n");
+                meta.Append($"  \"grid_columns\": {_cardGrid.Columns}\n");
                 meta.Append("}\n");
 
                 string metaPath = System.IO.Path.Combine(captureDir, $"{basename}.meta.json");
