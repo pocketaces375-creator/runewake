@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-ENDGAME-OVERLAY-1 — Victory and defeat overlays (client/scripts/DuelScene.cs
+- [!] TASK-ENDGAME-OVERLAY-1 — Victory and defeat overlays (client/scripts/DuelScene.cs
   ONLY — do not touch other files, other lanes are in them). Every defect below is
   one a vision model saw on a real capture (artifacts/captures/victory_overlay.png
   and defeat_overlay.png):
