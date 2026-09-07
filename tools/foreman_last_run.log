@@ -1,20 +1,3 @@
-   kill $(pgrep -f "hermes.*runewake")
-   ```
-   Or more surgically:
-   ```bash
-   ps aux | grep hermes | grep runewake
-   # then kill the PID
-   ```
-
-2. **Start a fresh session** — the error is a corrupted `DaemonThreadPoolExecutor` that only resolves on process restart.
-
-When it comes back clean, I have the full task spec memorized and can implement all four defects (a-d) in DuelScene.cs directly. The work is:
-
-- (a) Victory: fix the winner name / "WAYFARER" label overlap — lay them out as separate non-overlapping rects
-- (b) Defeat: remove the duplicate "DEFEATED" from the subtitle line, keep only the large centre title
-- (c) Both overlays: hide the turn banner (`yourTurnBanner` / `YourTurnPanel`) when overlay is visible
-- (d) Victory: increase summary panel height or enable autowrap so "A worthy..." is fully visible
-
 Then run `bash tools/finish_task.sh TASK-ENDGAME-OVERLAY-1` which builds, tests, captures, gates, commits, pushes, and marks done.
 
 Go ahead — kill and restart, then I'll execute it.
@@ -47,4 +30,21 @@ This is not a code or task issue — it's a system-level bug in the Hermes agent
 3. As a workaround, check if there's a different entry point (e.g. a different shell or TUI session) that uses a fresh worker pool.
 
 Once the runtime is healthy, I'll proceed directly with the fix.
+========================================
+=== foreman: 2026-09-07T20:01:14Z TASK-HAND-CARDNAME-1 blocked ===
+Session: 16/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 25s
+The same runtime error persists across all tools — the Hermes agent's `DaemonThreadPoolExecutor` has a corrupted thread pool (missing `_initializer` attribute). This is not a code issue, it's the daemon process itself.
+
+From my memory I know: `foreman.sh` runs at cron 17,47 — but that triggers task processing, not a daemon restart.
+
+**You need to restart the Hermes agent daemon process.** Steps:
+
+1. Exit this session (Ctrl+D or `exit`).
+2. Kill the Hermes daemon: `pkill -f hermes-agent` or find the pid and kill it.
+3. Restart: re-run whatever command starts the CLI (e.g. `hermes-agent` or a launcher script).
+
+The reset re-initializes the worker thread pool from a clean state, which clears the `_initializer` issue. Once restarted, the task code and fix are straightforward — I already know the target file is `client/scripts/HandCard.cs` and the fix is sizing the card-name label so long names like "THE UNDYING ROOT OF THE FALL" render fully at a 10-card hand in both normal and safe-area layouts.
 ========================================
