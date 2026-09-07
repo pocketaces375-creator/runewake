@@ -1,12 +1,6 @@
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
 ========================================
-=== foreman: 2026-09-07T03:41:36Z TASK-CAPTURE-COVERAGE-1 blocked ===
-Session: 11/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 1800s
-========================================
 === foreman: 2026-09-07T04:26:00Z TASK-CAPTURE-COVERAGE-1 retry ===
 Session: 12/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ verdict: PASS
 ```
 
 **Evidence — attunement forced to 99:** The game log shows `P0 (Vigor=25, Attune=95/1)` on the first turn (99 minus 4 spent on bloomweaver), confirming the attunement was forced. No more "no affordable card" skips.
+========================================
+=== foreman: 2026-09-07T05:48:01Z TASK-UI-READABLE-2 retry ===
+Session: 2/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-UI-READABLE-2 on deepseek/deepseek-v4-flash: 1801s
 ========================================
