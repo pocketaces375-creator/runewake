@@ -429,6 +429,20 @@ public partial class MapScene : Control
         _regionBanner.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 0.9f));
         _regionBanner.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
         _regionBanner.AddThemeConstantOverride("outline_size", 8);
+        // The name sits over painted terrain; an outline alone was not enough
+        // to carry it. A dark plate behind it does the work.
+        var bannerBack = new StyleBoxFlat
+        {
+            BgColor = new Color(0.05f, 0.04f, 0.03f, 0.72f),
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginLeft = 18, ContentMarginRight = 18,
+            ContentMarginTop = 6, ContentMarginBottom = 6,
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            BorderColor = new Color(0.55f, 0.45f, 0.28f, 0.55f)
+        };
+        _regionBanner.AddThemeStyleboxOverride("normal", bannerBack);
         AddChild(_regionBanner);
     }
 
@@ -459,7 +473,7 @@ public partial class MapScene : Control
         // Back button
         _backButton = new Button
         {
-            Text = "< Title",
+            Text = "\u2190  Main Menu",
             AnchorLeft = 0.01f, AnchorRight = 0.12f,
             AnchorTop = 0.002f, AnchorBottom = 0.053f
         };
