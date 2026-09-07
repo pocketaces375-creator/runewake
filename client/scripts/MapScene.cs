@@ -417,33 +417,28 @@ public partial class MapScene : Control
         _mapContainer.AddChild(_lineDrawer);
 
         // Region name banner — always visible overlay, outside the pannable container
+        // The region name is painted INTO the plate's cartouche, which is what
+        // that ornate empty scroll was always drawn for. It lives inside the
+        // pannable container so it stays welded to the banner under pan and
+        // zoom, exactly like the map nodes.
         _regionBanner = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.3f, AnchorRight = 0.7f,
-            AnchorTop = 0.002f, AnchorBottom = 0.042f,
-            MouseFilter = MouseFilterEnum.Ignore
+            AutowrapMode = TextServer.AutowrapMode.Off,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Size = new Vector2(332, 96),
+            Position = new Vector2(510 - 166, -224 - 48)
         };
-        ThemeTokens.ApplyHeaderFont(_regionBanner, 16);
-        _regionBanner.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 0.9f));
-        _regionBanner.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
-        _regionBanner.AddThemeConstantOverride("outline_size", 8);
-        // The name sits over painted terrain; an outline alone was not enough
-        // to carry it. A dark plate behind it does the work.
-        var bannerBack = new StyleBoxFlat
-        {
-            BgColor = new Color(0.05f, 0.04f, 0.03f, 0.72f),
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 18, ContentMarginRight = 18,
-            ContentMarginTop = 6, ContentMarginBottom = 6,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            BorderColor = new Color(0.55f, 0.45f, 0.28f, 0.55f)
-        };
-        _regionBanner.AddThemeStyleboxOverride("normal", bannerBack);
-        AddChild(_regionBanner);
+        _regionBanner.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+        ThemeTokens.ApplyHeaderFont(_regionBanner, 34);
+        // Ink on parchment, not gold on black — it is sitting on the scroll now.
+        _regionBanner.AddThemeColorOverride("font_color", new Color(0.24f, 0.16f, 0.09f, 0.96f));
+        _regionBanner.AddThemeConstantOverride("outline_size", 0);
+        if (_mapContainer != null)
+            _mapContainer.AddChild(_regionBanner);
+        else
+            AddChild(_regionBanner);
     }
 
     // ── Top bar ──────────────────────────────────────────────────────────
