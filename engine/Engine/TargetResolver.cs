@@ -122,6 +122,9 @@ public static class TargetResolver
                 return t is CreatureTarget ct && ct.Card.CardType.ToString() == typeStr;
             }).ToList(),
             "RANDOM" => pool, // Ordering done later, select top N
+            "HIGHEST_VIGOR" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.CurrentVigor : 0)
+                .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
+                .ToList(),
             "LOWEST_VIGOR" => pool.OrderBy(t => t is CreatureTarget ct ? ct.Card.CurrentVigor : 0)
                 .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
                 .ToList(),
