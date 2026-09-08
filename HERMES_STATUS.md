@@ -107,3 +107,4 @@
 - 2026-09-07: PARKED TASK-DUEL-HUD-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-08: PARKED TASK-DUEL-HUD-1 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-08: PARKED TASK-DUEL-HUD-1 — spend ceiling reached ($0.857); awaiting Fable.
+- 2026-09-08: PARKED TASK-CAPTURE-COVERAGE-2 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.

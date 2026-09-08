@@ -78,7 +78,7 @@
   `python3 tools/visual_gate.py --only duel_test,duel_test_safe` no longer reports the
   counter as low-contrast, overlapped, or garbled. Before/after gate output in DONE.
 
-- [ ] TASK-CAPTURE-COVERAGE-2 — Three screens are never captured, so the gate cannot
+- [!] TASK-CAPTURE-COVERAGE-2 — Three screens are never captured, so the gate cannot
   judge them (client/scripts/DebugCapture.cs and tools/regen_captures.sh ONLY).
   tools/visual_gate.py lists title_test, settings_test and reliquary_test_all in
   DEFAULT_SCREENS, but no capture file is ever produced for them, so they show up
