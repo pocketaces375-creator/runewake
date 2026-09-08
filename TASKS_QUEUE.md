@@ -214,7 +214,7 @@
   `python3 tools/visual_gate.py --only reliquary_test` — 0 blocking, and none
   of (a)-(c) still listed. Put the before/after gate output in the DONE line.
 
-- [ ] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
+- [x] TASK-CAPTURE-COVERAGE-1 — The automated capture set (tools/finish_task.sh
   MODES, tools/regen_captures.sh) never captures the Title screen or the
   Settings screen — DebugCapture.cs has no "title_test" or "settings_test"
   mode. That is a real gap: the duplicate-Begin and title-alignment bugs kept
