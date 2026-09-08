@@ -1,29 +1,3 @@
-  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T14:05:33Z TASK-ENGINE-DRUID-P1-1 blocked ===
-Session: 22/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T14:25:40Z TASK-ENGINE-DRUID-P1-1 retry ===
-Session: 23/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T14:45:32Z TASK-ITEMS-BATTLEMAGE-1 retry ===
-Session: 24/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-BATTLEMAGE-1 on deepseek/deepseek-v4-flash: 901s
-========================================
-=== foreman: 2026-09-08T15:05:30Z TASK-ITEMS-BATTLEMAGE-1 blocked ===
-Session: 25/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-BATTLEMAGE-1 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-08T15:26:24Z TASK-ITEMS-BATTLEMAGE-1 retry ===
 Session: 26/96
 Failures: finish_task_failure
@@ -47,4 +21,30 @@ Session: 29/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T17:04:41Z TASK-ITEMS-DRUID-1 success ===
+Session: 30/96
+--- session tail ---
+  session TASK-ITEMS-DRUID-1 on deepseek/deepseek-v4-flash: 819s
+TASK-ITEMS-DRUID-1 complete. Commit `3d174f8` pushed.
+
+## Delivered
+
+**4 Druid artifacts** in `content/artifacts/variants/druid.json`, 2 per slot:
+
+**BOOK of FAMILIAR slot:**
+- **Grimoire of Thorns** — when ally attacked, deals 1 damage to lowest-vigor enemy + gains charge. Full: all Rooted creatures +1/+1 permanently.
+- **Seedbook** — at end of turn, summons a 0/2 Rooted Seed token + gains charge. Full: all tokens become 2/3 with Reach.
+
+**ELEMENTAL BOND (totem) slot:**
+- **Wild Pact** — grants Swift to the first creature summoned each turn. Gains charge on creature attacks. Full: draw 2.
+- **Grove Link** — +0/+1 while present to the 2 lowest-vigor creatures. Gains charge when ally attacked. Full: lowest 2 get +1/+1 and Guard permanently.
+
+**Tile art** (832x832 webp, no people, each a visibly different object):
+- Grimoire → storm-lit bark tome bound in thorned iron
+- Seedbook → fen-log seedbed with toad-shaped bog-stone
+- Wild Pact → frost-shattered branch with moth-wing membrane
+- Grove Link → boar-tusk pillar with sporing shelf fungi
+
+**11 unit tests** in `tests/Engine/DruidVariantTests.cs` covering passive, charge gain, full-charge, and load+equip for all 4 artifacts.
 ========================================
