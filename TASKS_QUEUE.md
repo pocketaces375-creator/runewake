@@ -301,7 +301,7 @@
   points and no class that was inside [40,60] leaves it; dotnet test green; no non-artifact card changes;
   one plain paragraph to the group with the 7 numbers.
 
-- [ ] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. PARKED by dead dependency chain — tuner task is parked. Whisperfang (artf_rogue_dagger_whisper) has no
+- [x] TASK-TUNE-WHISPER-1 — AFTER: TASK-TUNE-AURAS-1. PARKED by dead dependency chain — tuner task is parked. Whisperfang (artf_rogue_dagger_whisper) has no
   passive and no trigger in launch_artifacts.json — it is a blank item unless the engine implements the
   TWIN rule from CLASS-IDENTITY-1C somewhere. Find out: grep the engine for the twin/second-dagger rule.
   If it exists, document in the artifact's flavor/rules text what it does and add a test proving it fires.
