@@ -1,43 +1,3 @@
-- ui_lint: pre-existing failures only (non-blocking)
-- label_fit: passed
-- Commit: `2d95c5f` (artifact content) + `4b9bc5f` (mark done)
-- Exit code: 0
-========================================
-=== foreman: 2026-09-08T18:19:23Z TASK-ITEMS-DRUID-2 success ===
-Session: 37/96
---- session tail ---
-  session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 231s
-TASK-ITEMS-DRUID-2 complete.
-
-**Built:** 4 new Druid artifacts appended to `content/artifacts/variants/druid.json`
-
-| Artifact | Slot | id | Passive | Trigger | Full (3 charges) |
-|---|---|---|---|---|---|
-| Thornwake Stave | book | `artf_druid_thornwake_stave` | — (trigger-based thorn) | ON_ALLY_ATTACKED: damage attacker 1 + charge | Deal 1 damage to all enemy creatures |
-| Rootbound Crook | book | `artf_druid_rootbound_crook` | BUFF +1/+0 to FULL_VIGOR allies | ON_HEAL: +1 charge | +2/+2 permanent to a friendly creature |
-| Mossheart Totem | totem | `artf_druid_mossheart_totem` | — (trigger-based heal) | ON_TURN_END: heal damaged ally 1 + charge | Summon 1/4 Guard sapling |
-| Sunhollow Idol | totem | `artf_druid_sunhollow_idol` | COST_MOD -1 to first creature each turn | ON_SUMMON (your turn): +1 charge | Draw 2 cards |
-
-**Pipeline:** dotnet build passed, art_check gate passed, all unit tests passed, label_fit passed. Pre-existing ui_lint failures (not blocking) — content-only task, no captures regenerated.
-
-**Commit:** `ccbce50 TASK-ITEMS-DRUID-2: Thornwake Stave, Rootbound Crook, Mossheart Totem, Sunhollow Idol in content/artifacts/variants/druid.json` — pushed and DONE entry written.
-========================================
-=== foreman: 2026-09-08T18:31:02Z TASK-MAP-PANEL-1 success ===
-Session: 38/96
---- session tail ---
-  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 622s
-**TASK-MAP-PANEL-1 complete.**
-
-All four defects in `client/scripts/MapScene.cs` fixed:
-
-- **(a)** Node name prints only once as the panel title (`_infoName`). No second label or body text duplicates it.
-- **(b)** Rewards row is hidden entirely (`_infoRewards.Text = ""; _infoRewards.Hide();`) when `mapNode.Rewards` is null or empty. No bare "Rewards: —" placeholder.
-- **(c)** Go button disabled state has an explicit `disabled` StyleBoxFlat (dimmed background + muted border) and `font_disabled_color` override (0.5, 0.43, 0.25, 0.9) — legible against the dark panel, but clearly disabled.
-- **(d)** Rune Page button anchors moved to 0.845→0.897, Reliquary to 0.897→0.949, Settings to 0.949→1.0 — zero overlap between side buttons.
-
-**Gates:**
-- dotnet build: ✅
-- dotnet test: ✅ (all passed)
 - art_check: ✅
 - ui_lint: pre-existing failures only (not blocking)
 - label_fit: ✅
@@ -47,4 +7,44 @@ All four defects in `client/scripts/MapScene.cs` fixed:
 **After gate:** PASS, 0 blocking, no (a)-(d) even as notes
 
 Commits pushed to origin/main.
+========================================
+=== foreman: 2026-09-08T18:43:05Z TASK-RELIQUARY-LAYOUT-1 success ===
+Session: 39/96
+--- session tail ---
+  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 662s
+**TASK-RELIQUARY-LAYOUT-1 DONE**
+
+Commit: `fdfbb34` (after font fix and finish_task.sh)
+
+**Changes made to `client/scripts/ReliquaryScene.cs`:**
+
+1. **Fix (a) — Chip overlap:**
+   - Chip strip height increased: `0.18f` → `0.20f` (room for 2-row wrap)
+   - HFlowContainer: `h_separation` 8→6, `SizeFlagsVertical` ShrinkCenter→Fill|Expand
+   - Chip button min size: `(44,44)` → `(32,36)`
+   - Content margins: 8→6 on all 6 stylebox definitions
+   - Grid scroll top anchor: `0.18f` → `0.20f` (follows chip strip)
+
+2. **Fix (b) — Scrollbar/text overlap:**
+   - `_collectionCount` right edge: `0.96` → `0.88`
+   - `_runeDustLabel` right edge: `0.96` → `0.88`
+   - Labels no longer extend to the same X as the scrollbar
+
+3. **Fix (c) — Card grid too narrow:**
+   - Column calculation: `_gridScroll.GetRect().Size.X` → `GetViewportRect().Size.X * 0.94f`
+   - Fixes the bug where `_gridScroll.GetRect().Size.X` is 0 during `_Ready()` (layout not yet processed), causing `cols = 1` and a single narrow column
+
+4. **Font readability (blocking visual gate issue):**
+   - Removed Cinzel header font override from chip labels — uses default UI font instead
+   - Vision model can now read "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" correctly
+
+**Before/After visual gate (reliquary_test):**
+- **Before:** FAIL — blocking: `"VERI ABNIB" garbled text (high)` + notes on overlap, contrast, scrollbar
+- **After:** PASS — 0 blocking, 5 notes (medium/low, pre-existing, none of (a)-(c) listed)
+
+**Gates:**
+- Build: 0 errors
+- Tests: 894 passed, 0 failed (retry confirmed flaky pass)
+- capture_gate: PASS (avg lum, center lum, grid variation)
+- visual_gate: PASS (0 blocking)
 ========================================
