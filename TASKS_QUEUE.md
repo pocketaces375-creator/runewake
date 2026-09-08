@@ -175,7 +175,7 @@
     less; +1 charge whenever you play a creature; full (3): draw two creature cards.
   Each: id artf_druid_<snake_name>, class "druid".
 
-- [ ] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
+- [!] TASK-MAP-PANEL-1 — Map node info panel (client/scripts/MapScene.cs only —
   do not touch other scenes, another lane may be in them). Four defects the
   visual gate found on a real capture of the current build:
   (a) the node name prints TWICE — once as the panel title and again directly
