@@ -339,7 +339,6 @@ public partial class ReliquaryScene : Control
         };
         inner.AddChild(swatch);
 
-        var chipFont = ThemeTokens.GetHeaderFont(11);
         var chipLabel = new Label
         {
             Text = label,
@@ -349,7 +348,6 @@ public partial class ReliquaryScene : Control
             AutowrapMode = TextServer.AutowrapMode.Off
         };
         chipLabel.AddThemeFontSizeOverride("font_size", 11);
-        chipLabel.AddThemeFontOverride("font", chipFont);
         chipLabel.AddThemeColorOverride("font_color", Color.FromHtml("#CFC4AE"));
         inner.AddChild(chipLabel);
 
