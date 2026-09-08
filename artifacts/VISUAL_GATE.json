@@ -1,11 +1,33 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-08T17:31:46Z",
+  "checked_at": "2026-09-08T17:36:49Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "choose_path",
-      "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
+      "screen": "title_test",
+      "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "settings_test",
+      "path": "/home/fictive/runewake/artifacts/captures/settings_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "reliquary_test_all",
+      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test_all.png",
       "verdict": "FAIL",
       "issues": [
         {
