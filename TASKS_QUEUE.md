@@ -100,7 +100,7 @@
   are over 100 KB each, and `python3 tools/visual_gate.py` no longer reports a
   COVERAGE GAP for any of them.
 
-- [!] TASK-ITEMS-BATTLEMAGE-2 — Four more Battlemage artifacts (two per slot) in
+- [ ] TASK-ITEMS-BATTLEMAGE-2 — Four more Battlemage artifacts (two per slot) in
   content/artifacts/variants/battlemage.json, Fable's designs; sidegrades only, never
   strictly better than the base items. Use the two slot_pool values the existing
   battlemage entries already use — read the file, do not invent slot names. Follow
@@ -363,7 +363,7 @@
 
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
-- [ ] TASK-ART-ICONS-1 — PARKED by Fable 2026-09-04: Fable generates icon art directly (not a DeepSeek job); only the wiring comes back as a task. A matching icon set for the eleven keywords and five strata in the locked
+- [ ] TASK-ART-ICONS-1 — A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
 
@@ -394,7 +394,7 @@
   Acceptance: the 4 artifacts load and equip in a headless duel; the 5-duel soak passes with each equipped;
   tests green; post the 4 tiles and a plain "item → what it does" list to the group.
 
-- [!] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
+- [ ] TASK-ITEMS-BATTLEMAGE-1 — Four more Battlemage artifacts (two per slot, Wand/Aura) in content/artifacts/variants/battlemage.json,
   Fable's designs; sidegrades only, never strictly better than the base items. ART: follow docs/ART_PROMPT_PLAYBOOK.md exactly — the tile is the WEAPON OR RELIC ALONE (no people, faces or hands, ever), a visibly different object of that slot per item from the variation bank, no negative phrases; every tile must pass tools/art_check.py tile and the folder must pass art_check.py variety. AFTER: TASK-ITEMS-0.
   WAND: "Storm Rod" — passive: your damage spells deal +1; +1 charge per spell you cast; full (3): draw 1 and your next spell this turn costs 0.
   WAND: "Focusing Wand" — passive: the second spell you cast each turn costs 1 less; +1 charge each turn you cast 2+ spells; full (3): deal 2 damage to any creature.
@@ -480,6 +480,33 @@
 
 # NOT IN THIS PACKET — these need Trikzos' keys or a decision, and will be queued later:
 # Supabase and accounts, the Tower, store signing and listing, FLUX credit refills.
+
+- [ ] TASK-BORDER-REDESIGN-SCALE-1 — The Root-Bound Stone border art is
+  painted with fine detail (flowers, thin vines, carved rune lines) that
+  cannot survive being rendered at its actual on-screen size. Board cards
+  render the border at ~14-20px thick; hand cards even less. At that size ANY
+  of the current corner/edge PNGs downscale to indistinct brown-green mush —
+  this was never a wrong-file or load-failure bug, it is a design-for-scale
+  problem.
+  Generate a NEW border asset (pipeline/gen_image_openrouter.py per
+  docs/ART_STYLE_SPEC.md) built to read clearly at 15-25px band thickness:
+  bold simplified shapes, a clear gold or pale inlay line along the inner
+  edge, a simplified (not painterly) vine/leaf silhouette with strong
+  dark/light contrast, one bold identifiable motif per corner. Test by
+  downscaling candidates to 16px and 24px BEFORE wiring them in — if the
+  motif is not recognizable at 16px, regenerate.
+  ALSO (client/scripts/CardPlate.cs, _nameBandBg): replace the flat
+  beige/cream ColorRect behind the card name with a soft gradient scrim — art
+  fading to dark toward the bottom of the art window, name text floating over
+  it — instead of a solid-color block. Keep the dark-brown, no-outline text
+  from TASK-CARDNAME-COLOR-1 untouched; only the background behind it changes
+  from a flat rectangle to a gradient blend. No plaque, no hard rectangle
+  edge. Keep the 9-slice geometry and RootBoundBorder.cs untouched otherwise.
+  Acceptance: post the new corner/edge PNGs downscaled to 16px AND a
+  name-band crop showing the gradient (not a flat rectangle) to this group
+  BEFORE wiring in, for Trikzos' taste-check. Only after approval, wire in,
+  regenerate duel_test.png, and crop both a board-card corner and the name
+  band in the DONE line at actual render size.
 
 ## After TASK-S1
 After S1: continue into UI3 — Claude reviews metrics in parallel; do not stop. If mockups/board_c7.png absent at UI3d start, BLOCKED for UI3d only, take next task.
