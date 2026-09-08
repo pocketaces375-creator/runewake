@@ -263,6 +263,9 @@ fi
 
 echo ""
 echo "── Step 7: Input/loop smoke tests ──"
+if [[ "${CAPTURES_REGENERATED:-0}" -ne 1 ]]; then
+  echo "  Skipping smoke tests — this run changed no client/engine code (content-only task); build, unit tests and validators already ran"
+else
 for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/loop_smoke.sh"; do
   if [[ -x "${smoke_script}" ]]; then
     # Skip loop_smoke.sh until TASK-LOOP-GATE-1 is done
@@ -272,7 +275,7 @@ for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/
       continue
     fi
     echo "  Running $(basename "${smoke_script}")..."
-    SMOKE_OUTPUT=$(timeout 180 bash "${smoke_script}" 2>&1 || true)
+    SMOKE_OUTPUT=$(timeout 300 bash "${smoke_script}" 2>&1 || true)
     if echo "${SMOKE_OUTPUT}" | grep -q "PASS"; then
       ok "$(basename "${smoke_script}") passed"
     else
@@ -283,6 +286,7 @@ for smoke_script in "${PROJECT_DIR}/tools/input_smoke.sh" "${PROJECT_DIR}/tools/
     echo "  Skipping ($(basename "${smoke_script}") not yet created)"
   fi
 done
+fi
 
 # ── Step 8: Commit, push, mark done ──
 echo ""

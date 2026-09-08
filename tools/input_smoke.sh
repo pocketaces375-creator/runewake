@@ -13,6 +13,31 @@ GODOT_BIN="${GODOT_BIN:-$HOME/.local/bin/godot}"
 CAPTURE_DIR="$ROOT/artifacts/captures"
 RESULT_FILE="$CAPTURE_DIR/input_smoke_result.json"
 
+
+# The smoke client writes its verdict file and then does NOT quit on its own
+# (it used to sit until the 600s timeout, which is why finish_task.sh — which
+# allows 180s — failed every task for a day). Run it in the background, wait
+# for the verdict file, then stop it ourselves.
+run_capture_phase() {
+    local mode="$1" resname="$2" cap=150 waited=0
+    local out="/tmp/smoke_${mode}_$$.log"
+    xvfb-run -a "$GODOT_BIN" --path client -- "--capture=${mode}" > "$out" 2>&1 &
+    local pid=$!
+    while [ "$waited" -lt "$cap" ]; do
+        if [ -f "$CAPTURE_DIR/$resname" ] || [ -f "$ROOT/client/artifacts/captures/$resname" ]; then
+            sleep 2; break
+        fi
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 2; waited=$((waited+2))
+    done
+    pkill -TERM -f -- "--capture=${mode}" 2>/dev/null || true
+    sleep 1
+    pkill -KILL -f -- "--capture=${mode}" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    grep -E '^\[' "$out" | tail -25 || true
+    echo "  (phase ${mode}: ${waited}s until verdict)"
+}
+
 mkdir -p "$CAPTURE_DIR"
 rm -f "$RESULT_FILE"
 rm -f "$ROOT/client/artifacts/captures/input_smoke_result.json"
@@ -25,7 +50,7 @@ sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "$PRO
 sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "$PROJECT_GODOT"
 
 # Run the client headless with input smoke test capture mode
-timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=input_smoke_test" 2>&1 || true
+run_capture_phase input_smoke_test input_smoke_result.json
 
 # Restore project.godot
 sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "$PROJECT_GODOT"
@@ -76,7 +101,7 @@ TOUCH_RESULT_FILE="$CAPTURE_DIR/touch_smoke_result.json"
 rm -f "$TOUCH_RESULT_FILE"
 rm -f "$ROOT/client/artifacts/captures/touch_smoke_result.json"
 
-timeout 600 xvfb-run -a "$GODOT_BIN" --path client -- "--capture=touch_smoke_test" 2>&1 || true
+run_capture_phase touch_smoke_test touch_smoke_result.json
 
 if [ ! -f "$TOUCH_RESULT_FILE" ]; then
     CLIENT_TOUCH_RESULT="$ROOT/client/artifacts/captures/touch_smoke_result.json"
