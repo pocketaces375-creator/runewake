@@ -159,7 +159,7 @@
     full (3): friendly creatures take no damage until your next turn.
   Each: id artf_paladin_<snake_name>, class "paladin".
 
-- [ ] TASK-ITEMS-DRUID-2 — Four more Druid artifacts (two per slot) in
+- [!] TASK-ITEMS-DRUID-2 — Four more Druid artifacts (two per slot) in
   content/artifacts/variants/druid.json, same rules, format and art bar. Use the
   slot_pool values already present in that file.
   SLOT A: "Thornwake Stave" — passive: when an enemy creature attacks one of yours,
