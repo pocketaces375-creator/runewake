@@ -286,7 +286,7 @@
   DATA: use RulesTextRenderer for the effect text — do not hand-write rules strings; keyword reminders come from the keyword table so they stay correct.
   DONE: finish_task green (label_fit + loop_smoke); a fresh duel_test capture with the slab OPEN on a hand card AND one with it open on a lane creature; every label inside the slab; the slab must also open for artifact plates. Add the slab to input_smoke: press-and-hold opens it, release closes it, End Turn still works with it open.
   NOT: no card flip; no per-card floating bubble; no text drawn on the card face itself.
-- [ ] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
+- [x] TASK-TUNE-AURAS-1 — AFTER: TASK-ENGINE-DRUID-P1-1. PARKED by dead dependency chain — druid bug task is parked. The three overpowered classes share one item.
   In content/artifacts/launch_artifacts.json the Warrior Sword, Paladin Hammer and Battlemage Wand all
   carry the identical passive "+1 attack to EVERY attacking creature" (BUFF, filter ATTACKING, count ALL).
   Make them three different, weaker items: SWORD (Warrior) — +1 attack to the FIRST attacker each turn
