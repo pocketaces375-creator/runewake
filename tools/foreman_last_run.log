@@ -1,9 +1,4 @@
 
-2. **Fix (b) — Scrollbar/text overlap:**
-   - `_collectionCount` right edge: `0.96` → `0.88`
-   - `_runeDustLabel` right edge: `0.96` → `0.88`
-   - Labels no longer extend to the same X as the scrollbar
-
 3. **Fix (c) — Card grid too narrow:**
    - Column calculation: `_gridScroll.GetRect().Size.X` → `GetViewportRect().Size.X * 0.94f`
    - Fixes the bug where `_gridScroll.GetRect().Size.X` is 0 during `_Ready()` (layout not yet processed), causing `cols = 1` and a single narrow column
@@ -47,4 +42,9 @@ Session: 41/96
 Session: 42/96
 --- session tail ---
   session TASK-TUNE-WHISPER-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T19:52:07Z TASK-ITEMS-NECROMANCER-1 success ===
+Session: 43/96
+--- session tail ---
+  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
