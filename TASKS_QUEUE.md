@@ -141,7 +141,7 @@
     your opponent's next attack this round is redirected to a creature of your choice.
   Each: id artf_necromancer_<snake_name>, class "necromancer".
 
-- [ ] TASK-ITEMS-PALADIN-2 — Four more Paladin artifacts (two per slot) in
+- [x] TASK-ITEMS-PALADIN-2 — Four more Paladin artifacts (two per slot) in
   content/artifacts/variants/paladin.json, alongside the four already there from
   TASK-ITEMS-PALADIN-1. Same rules, format and art bar. Use the existing slot_pool
   values in that file.
