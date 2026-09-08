@@ -124,6 +124,7 @@ public static partial class DuelEngine
         nextPlayer.SpellCastThisTurn = false;
         nextPlayer.PreyAttackCountThisTurn = 0;
         nextPlayer.FirstAttackerLaneIndex = null;
+        nextPlayer.SecondAttackerLaneIndex = null;
         nextPlayer.FirstAttackedLaneIndex = null;
         state.CreatureDiedThisTurnCount[0] = 0;
         state.CreatureDiedThisTurnCount[1] = 0;
@@ -249,6 +250,13 @@ public static partial class DuelEngine
         player.HasAttackedThisTurn = true;
         if (isFirstAttack)
             player.FirstAttackerLaneIndex = action.SourceLane;
+        else if (player.AttackCountThisTurn == 2)
+            player.SecondAttackerLaneIndex = action.SourceLane;
+
+        // Fire ON_CREATURE_ATTACKS — set current attacker context for trigger target resolution
+        player.CurrentAttackerLaneIndex = action.SourceLane;
+        TriggerBus.Fire(state, Trigger.ON_CREATURE_ATTACKS, action.PlayerIndex);
+        player.CurrentAttackerLaneIndex = null;
 
         int targetLaneIdx = resolvedTarget.Value;
 

@@ -585,7 +585,7 @@ public partial class MapScene : Control
         {
             Text = "Rune Page",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.86f, AnchorBottom = 0.92f
+            AnchorTop = 0.845f, AnchorBottom = 0.897f
         };
         StyleButton(_runePageBtn, 11, goldText: false);
         _runePageBtn.Pressed += () => {
@@ -598,7 +598,7 @@ public partial class MapScene : Control
         {
             Text = "Reliquary",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.89f, AnchorBottom = 0.94f
+            AnchorTop = 0.897f, AnchorBottom = 0.949f
         };
         StyleButton(_reliquaryBtn, 11, goldText: false);
         _reliquaryBtn.Pressed += () => {
@@ -611,7 +611,7 @@ public partial class MapScene : Control
         {
             Text = "Settings",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.94f, AnchorBottom = 1f
+            AnchorTop = 0.949f, AnchorBottom = 1f
         };
         StyleButton(_settingsBtn, 11, goldText: false);
         _settingsBtn.Pressed += () => {
@@ -767,7 +767,9 @@ public partial class MapScene : Control
 
         infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
 
-        // Rewards — pretty text, not raw tokens
+        // Rewards — pretty text, not raw tokens.
+        // When a node has no rewards, this row is hidden entirely
+        // (no "Rewards: —" placeholder).
         _infoRewards = new Label();
         _infoRewards.AddThemeFontSizeOverride("font_size", 12);
         _infoRewards.AddThemeColorOverride("font_color", new Color(0.65f, 0.72f, 0.5f, 0.95f));
@@ -808,6 +810,20 @@ public partial class MapScene : Control
             ContentMarginRight = 10, ContentMarginBottom = 4
         });
         _infoGoButton.AddThemeColorOverride("font_color", new Color(1f, 0.92f, 0.65f, 1f));
+        // Disabled state: clearly visible but obviously muted — legible dark
+        // text on a dimmed background, not invisible against the panel
+        _infoGoButton.AddThemeStyleboxOverride("disabled", new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.1f, 0.06f, 1f),
+            BorderColor = new Color(0.3f, 0.25f, 0.12f, 0.7f),
+            BorderWidthLeft = 1, BorderWidthTop = 1,
+            BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 10, ContentMarginTop = 4,
+            ContentMarginRight = 10, ContentMarginBottom = 4
+        });
+        _infoGoButton.AddThemeColorOverride("font_disabled_color", new Color(0.5f, 0.43f, 0.25f, 0.9f));
         _infoGoButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -929,6 +945,7 @@ public partial class MapScene : Control
         }
         else
         {
+            _infoRewards.Text = "";
             _infoRewards.Hide();
         }
 

@@ -212,6 +212,7 @@ public static class ThemeTokens
 
     /// <summary>Inter is SIL-licensed, clean readable sans-serif. No longer default body font — kept for reference.</summary>
     public const string FontInter = "res://assets/fonts/Inter-Variable.ttf";
+    public const string FontCinzelDecorative = "res://assets/fonts/CinzelDecorative-Bold.ttf";
 
     // ════════════════════════════════════════════
     // Type Scale
@@ -294,6 +295,34 @@ public static class ThemeTokens
         variation.BaseFont = fontFile;
         _headerFontCache[size] = variation;
         return variation;
+    }
+
+    private static readonly Dictionary<int, Font> _cardNameFontCache = new();
+
+    /// <summary>Get the card-name font (Cinzel Decorative) at the given pixel size.</summary>
+    public static Font GetCardNameFont(int size)
+    {
+        if (_cardNameFontCache.TryGetValue(size, out var cached))
+            return cached;
+
+        var fontFile = ResourceLoader.Load<FontFile>(FontCinzelDecorative);
+        if (fontFile == null) return null!;
+
+        var variation = new FontVariation();
+        variation.BaseFont = fontFile;
+        _cardNameFontCache[size] = variation;
+        return variation;
+    }
+
+    /// <summary>Apply the card-name font (Cinzel Decorative) to a Control node at the given size.</summary>
+    public static void ApplyCardNameFont(Control label, int size)
+    {
+        var font = GetCardNameFont(size);
+        if (font != null)
+        {
+            label.AddThemeFontOverride("font", font);
+            label.AddThemeFontSizeOverride("font_size", size);
+        }
     }
 
     /// <summary>Get a body font (Cormorant Garamond serif) at the given pixel size.</summary>

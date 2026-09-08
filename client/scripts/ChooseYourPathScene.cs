@@ -443,10 +443,11 @@ public partial class ChooseYourPathScene : Control
         _leftArrow.Position = new Vector2(8, arrowY);
         _rightArrow.Position = new Vector2(_viewportW - 52, arrowY);
 
-        // Dots at bottom of carousel section — slightly taller band blocks pale background
-        float dotsY = Mathf.Max(0, sectionH - 32f);
+        // Dots at bottom of carousel section — positioned well above the carousel's
+        // bottom edge so the BEGIN button (below the carousel) never obscures them.
+        float dotsY = Mathf.Max(0, sectionH - 52f);
         _dotsArea.Position = new Vector2(0, dotsY);
-        _dotsArea.Size = new Vector2(_viewportW, 26);
+        _dotsArea.Size = new Vector2(_viewportW, 20);
 
         // Re-position dots
         float dotSpacing = 14f;
@@ -664,7 +665,11 @@ public partial class ChooseYourPathScene : Control
         {
             MouseFilter = MouseFilterEnum.Pass,
             MouseDefaultCursorShape = CursorShape.PointingHand,
-            ClipContents = true
+            // ClipContents deliberately OFF — the text block sits at the bottom of
+            // the card, and labels with Autowrap can report a minimum height that is
+            // lower than their actual laid-out height. Without ClipContents, wrapped
+            // text that extends below the panel is still visible within the carousel
+            // clip container, rather than being silently cut off.
         };
 
         // Background — warm dark, not pure black, so neighbour art shows on it
@@ -801,9 +806,10 @@ public partial class ChooseYourPathScene : Control
         var textBlock = new MarginContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsVertical = (SizeFlags)4, // Shrink Center — minimum height
+            SizeFlagsVertical = (SizeFlags)3, // Fill | Expand — text must NOT be clipped
             SizeFlagsHorizontal = (SizeFlags)3
         };
+        textBlock.SizeFlagsStretchRatio = 0.10f; // portrait gets the overwhelming share
         textBlock.AddThemeConstantOverride("margin_left", (int)margin);
         textBlock.AddThemeConstantOverride("margin_right", (int)margin);
         textBlock.AddThemeConstantOverride("margin_top", 2);

@@ -104,6 +104,10 @@ public static class TargetResolver
             "HAS_NOT_ATTACKED" => pool.Where(t => t is CreatureTarget ct && !ct.Card.HasAttackedThisTurn).ToList(),
             "FIRST_ATTACKER" => pool.Where(t => t is CreatureTarget ct
                 && ct.LaneIndex == (sourcePlayer.FirstAttackerLaneIndex ?? -1)).ToList(),
+            "SECOND_ATTACKER" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (sourcePlayer.SecondAttackerLaneIndex ?? -1)).ToList(),
+            "CURRENT_ATTACKER" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (sourcePlayer.CurrentAttackerLaneIndex ?? -1)).ToList(),
             "FIRST_ATTACKED" => pool.Where(t => t is CreatureTarget ct
                 && ct.LaneIndex == (sourcePlayer.FirstAttackedLaneIndex ?? -1)).ToList(),
             var s when s.StartsWith("STRATA:") => pool.Where(t =>
@@ -149,6 +153,12 @@ public static class TargetResolver
                 if (t is not CreatureTarget ct) return false;
                 int threshold = int.TryParse(s[11..], out int v) ? v : 0;
                 return ct.Card.CurrentAttack >= threshold;
+            }).ToList(),
+            var s when s.StartsWith("ATTACK_LTE:") => pool.Where(t =>
+            {
+                if (t is not CreatureTarget ct) return false;
+                int threshold = int.TryParse(s[11..], out int v) ? v : 0;
+                return ct.Card.BaseAttack <= threshold;
             }).ToList(),
             var s when s.StartsWith("VIGOR_GTE:") => pool.Where(t =>
             {

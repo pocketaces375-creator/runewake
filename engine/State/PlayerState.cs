@@ -137,6 +137,18 @@ public sealed class PlayerState
     public int? FirstAttackerLaneIndex { get; set; }
 
     /// <summary>
+    /// Lane index of the second friendly creature that attacked this turn (for SECOND_ATTACKER filter).
+    /// Null if fewer than two creatures have attacked yet this turn.
+    /// </summary>
+    public int? SecondAttackerLaneIndex { get; set; }
+
+    /// <summary>
+    /// Lane index of the creature currently attacking (for CURRENT_ATTACKER filter).
+    /// Set before ON_CREATURE_ATTACKS fires; cleared after.
+    /// </summary>
+    public int? CurrentAttackerLaneIndex { get; set; }
+
+    /// <summary>
     /// Lane index of the first friendly creature that was attacked by an enemy this turn
     /// (for FIRST_ATTACKED filter). Null if no creature has been attacked yet this turn.
     /// </summary>
@@ -208,6 +220,8 @@ public sealed class PlayerState
         AttackCountLastTurn = other.AttackCountLastTurn;
         PreyAttackCountThisTurn = other.PreyAttackCountThisTurn;
         FirstAttackerLaneIndex = other.FirstAttackerLaneIndex;
+        SecondAttackerLaneIndex = other.SecondAttackerLaneIndex;
+        CurrentAttackerLaneIndex = other.CurrentAttackerLaneIndex;
         FirstAttackedLaneIndex = other.FirstAttackedLaneIndex;
         DamageShields = other.DamageShields.ConvertAll(s => s.Clone());
         CostMods = other.CostMods.ConvertAll(m => m.Clone());

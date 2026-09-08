@@ -68,6 +68,8 @@ public partial class DuelScene : Control
     private Label _playerShrineVigorLabel = default!;
     private Label _playerShrineAttuneLabel = default!;
     private readonly ArtifactCardPlate[] _playerArtifactPlates = new ArtifactCardPlate[2];
+    private PanelContainer _enemyDeckBarrowPanel = default!;
+    private PanelContainer _playerDeckBarrowPanelContainer = default!;
     private readonly ArtifactCardPlate[] _enemyArtifactPlates = new ArtifactCardPlate[2];
     private readonly Control[] _playerArsenalPanels = new Control[2];
     private readonly Control[] _enemyArsenalPanels = new Control[2];
@@ -324,11 +326,32 @@ public partial class DuelScene : Control
         };
         _turnIndicatorLabel.AddThemeFontSizeOverride("font_size", FontSmall);
         _turnIndicatorLabel.AddThemeColorOverride("font_color", Gold);
+        // It floats above the fanned hand, so without a backing it lands on a
+        // card name. Give it a small stone chip of its own: legible over
+        // anything behind it, and it reads as a deliberate element.
+        var turnChip = new StyleBoxFlat
+        {
+            BgColor = new Color(SurfaceStone.R, SurfaceStone.G, SurfaceStone.B, 0.94f),
+            BorderColor = new Color(Gold.R, Gold.G, Gold.B, 0.55f),
+            CornerRadiusTopLeft = RadiusMedium,
+            CornerRadiusTopRight = RadiusMedium,
+            CornerRadiusBottomLeft = RadiusMedium,
+            CornerRadiusBottomRight = RadiusMedium,
+            ContentMarginTop = 3,
+            ContentMarginBottom = 3,
+            ContentMarginLeft = 8,
+            ContentMarginRight = 8,
+        };
+        turnChip.SetBorderWidthAll(1);
+        _turnIndicatorLabel.AddThemeStyleboxOverride("normal", turnChip);
         _turnIndicatorLabel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
-        _turnIndicatorLabel.OffsetRight = -10;
-        _turnIndicatorLabel.OffsetLeft = -100;
-        _turnIndicatorLabel.OffsetBottom = -110;
-        _turnIndicatorLabel.OffsetTop = -126;
+        // Was -100..-10 x, -126..-110 y — 90px wide and INSIDE the End Turn
+        // button's rect (-276..-16, -136..-16), so "YOUR TURN" clipped to
+        // "YOUR TI" and drew on top of the button. Sit above it, same width.
+        _turnIndicatorLabel.OffsetRight = -16;
+        _turnIndicatorLabel.OffsetLeft = -276;
+        _turnIndicatorLabel.OffsetBottom = -140;
+        _turnIndicatorLabel.OffsetTop = -164;
         AddChild(_turnIndicatorLabel);
 
         // ═══ TASK-WARDEN-RULE-1: Opening rule banner (created hidden, shown in OnStateChanged) ═══
@@ -1127,13 +1150,14 @@ public partial class DuelScene : Control
 
         // ── DECK/BARROW panel just below the enemy nameplate ──
         float panelW = nameplateW;
-        float panelH = 28f * scale;
+        float panelH = 30f * scale; // TASK-DUEL-HUD-1: taller panel for larger fonts
         var enemyDeckBarrowPanel = new PanelContainer
         {
             Name = "EnemyDeckBarrowPanel",
             MouseFilter = MouseFilterEnum.Ignore,
             CustomMinimumSize = new Vector2(panelW, panelH)
         };
+        _enemyDeckBarrowPanel = enemyDeckBarrowPanel;
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
@@ -1165,11 +1189,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _enemyDeckValue.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(12 * scale));
+        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale)); // TASK-DUEL-HUD-1: larger for legibility
+        _enemyDeckValue.AddThemeColorOverride("font_color", Colors.White); // TASK-DUEL-HUD-1: max contrast for 0/O disambiguation
+        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_enemyDeckValue);
 
+        // DECK label
         var deckLabel = new Label
         {
             Text = "DECK",
@@ -1177,9 +1202,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
+        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(deckLabel);
 
         // Barrow count
@@ -1190,11 +1215,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _enemyBarrowValue.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(12 * scale));
+        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _enemyBarrowValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_enemyBarrowValue);
 
+        // BARROW label
         var barrowLabel = new Label
         {
             Text = "BARROW",
@@ -1202,9 +1228,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
+        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
@@ -1364,13 +1390,14 @@ public partial class DuelScene : Control
         // ── Player panel: DECK/BARROW counts + artifact frames ──
                 // MUST be ABOVE the nameplate (not overlapping) so both are visible.
                 float panelW = nameplateW;
-                float panelH = 28f * scale;
+                float panelH = 30f * scale;
                 var playerDeckBarrowPanel = new PanelContainer
                 {
                     Name = "PlayerDeckBarrowPanel",
                     MouseFilter = MouseFilterEnum.Ignore,
                     CustomMinimumSize = new Vector2(panelW, panelH)
                 };
+        _playerDeckBarrowPanelContainer = playerDeckBarrowPanel;
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
@@ -1404,11 +1431,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _playerShrineDeckLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(12 * scale));
+        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineDeckLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_playerShrineDeckLabel);
 
+        // DECK label
         var deckLabel = new Label
         {
             Text = "DECK",
@@ -1416,9 +1444,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
+        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(deckLabel);
 
         _playerShrineBarrowLabel = new Label
@@ -1428,11 +1456,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(12 * scale));
+        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_playerShrineBarrowLabel);
 
+        // BARROW label
         var barrowLabel = new Label
         {
             Text = "BARROW",
@@ -1440,9 +1469,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
+        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Player Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
@@ -2191,6 +2220,15 @@ public partial class DuelScene : Control
                 _gameOverOverlay.QueueFree();
                 _gameOverOverlay = null;
             }
+            // The overlay only dims the board; the HUD is a sibling and kept
+            // drawing over it, which is how a clipped turn banner showed through.
+            _turnIndicatorLabel.Visible = false;
+            _endTurnButton.Visible = false;
+            // TASK-DUEL-HUD-1: hide DECK/BARROW panels so they don't overlap the overlay
+            if (_enemyDeckBarrowPanel != null)
+                _enemyDeckBarrowPanel.Visible = false;
+            if (_playerDeckBarrowPanelContainer != null)
+                _playerDeckBarrowPanelContainer.Visible = false;
             BuildGameOverOverlay();
             _gameOverOverlay!.Show();
             // Bring to top so it captures all input
@@ -4860,14 +4898,20 @@ private void ShowGameOverOverlay(int winnerIndex)
 
         Color accentColor = playerWon ? Gold : Ember;
         string statusLabel = playerWon ? "VICTORY" : "DEFEATED";
+        // The status title above already reads DEFEATED; "Defeated by X" repeated
+        // the word directly beneath it. Parallel to the victory line instead.
         string headline = playerWon
             ? $"You defeated {encName}"
-            : $"Defeated by {encName}";
+            : $"{encName} prevails";
 
         // ── Central stone panel ──
-        var panel = new Panel();
+        // A plain Panel is not a container: it neither lays out nor measures its
+        // children, so panelVBox's height never propagated and the CenterContainer
+        // centred a 640x0 rect — the stone frame drew around nothing and the
+        // content spilled down over the board. PanelContainer measures its child.
+        // (The Center anchors preset was dead code: CenterContainer overwrites it.)
+        var panel = new PanelContainer();
         panel.CustomMinimumSize = new Vector2(640, 0);
-        panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         var panelStyle = StyleWornBorder(
             borderColor: accentColor,
             width: 3,
@@ -4942,7 +4986,10 @@ private void ShowGameOverOverlay(int winnerIndex)
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
             MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            // Fill, not ShrinkCenter: with Word autowrap, ShrinkCenter gives the
+            // label its longest-word minimum width and it wraps one word per line.
+            // HorizontalAlignment.Center still centres the text inside the width.
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
         };
         ApplyHeaderFont(headlineLabel, FontSectionHeader);
         headlineLabel.Modulate = TextPrimary;
@@ -4961,7 +5008,8 @@ private void ShowGameOverOverlay(int winnerIndex)
                 VerticalAlignment = VerticalAlignment.Center,
                 AutowrapMode = TextServer.AutowrapMode.Word,
                 MouseFilter = Control.MouseFilterEnum.Ignore,
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+                // Fill for the same reason as the headline above.
+                SizeFlagsHorizontal = Control.SizeFlags.Fill,
                 CustomMinimumSize = new Vector2(0, 48),
             };
             ApplyBodyFont(flavorLabel, FontSecondary);

@@ -29,6 +29,10 @@ MODES=(
   "reliquary_test_all:2316:1080"
   "reliquary_test_all_wide:2999:1080"
   "slots_test:2316:1080"
+  "title_test:2316:1080"
+  "title_test_wide:2999:1080"
+  "settings_test:2316:1080"
+  "settings_test_wide:2999:1080"
 )
 
 for mode_entry in "${MODES[@]}"; do

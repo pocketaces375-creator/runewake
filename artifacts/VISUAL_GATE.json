@@ -1,117 +1,41 @@
 {
-  "overall": "FAIL",
-  "checked_at": "2026-09-07T05:58:08Z",
+  "overall": "PASS",
+  "checked_at": "2026-09-08T18:41:12Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "choose_path",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/choose_path.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "map_test",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/map_test.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "duel_test",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/duel_test.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "duel_test_safe",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/duel_test_safe.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "victory_overlay",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/victory_overlay.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "defeat_overlay",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/defeat_overlay.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
       "screen": "reliquary_test",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/reliquary_test.png",
-      "verdict": "FAIL",
+      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test.png",
       "issues": [
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "reliquary_test_all",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/reliquary_test_all.png",
-      "verdict": "FAIL",
-      "issues": [
+          "description": "The text 'VERD' in the filter options is partially obscured by the 'ALL' filter, making it difficult to read. It appears to be 'VERDANT' or similar, but is clipped.  [and 2 more like it]",
+          "severity": "medium",
+          "count": 3
+        },
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "title_test",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/title_test.png",
-      "verdict": "FAIL",
-      "issues": [
+          "description": "The text 'DAWN' in the filter options is partially obscured by the 'HOL' filter, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "settings_test",
-      "path": "/home/fictive/runewake-lane4/artifacts/captures/settings_test.png",
-      "verdict": "FAIL",
-      "issues": [
+          "description": "The text 'Owned 13 / 146' and 'Runes: 0' in the top right corner have very low contrast against the dark background, making them hard to read.",
+          "severity": "low",
+          "count": 1
+        },
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
+          "description": "The text 'x1' on the 'CINDER RUNNER' card is partially obscured by the number '2' icon, making it hard to read.  [and 2 more like it]",
+          "severity": "low",
+          "count": 3
+        },
+        {
+          "description": "The scrollbar on the right side of the screen is very thin and difficult to see, potentially impacting usability.",
+          "severity": "low",
+          "count": 1
         }
-      ]
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
     }
   ]
 }

@@ -513,7 +513,7 @@ public class CostModTests
 
         // Battlemage wand (placeholder BUFF until TASK-CLASS-IDENTITY-1)
         Assert.Equal("BUFF", byId["artf_battlemage_wand"].GetProperty("passive").GetProperty("op").GetString());
-        Assert.Equal("ATTACKING", byId["artf_battlemage_wand"].GetProperty("passive").GetProperty("target").GetProperty("filter").GetString());
+        Assert.Equal("ATTACK_LTE:1", byId["artf_battlemage_wand"].GetProperty("passive").GetProperty("target").GetProperty("filter").GetString());
 
         // Battlemage aura (placeholder BUFF until TASK-CLASS-IDENTITY-1)
         var auraPassive = byId["artf_battlemage_aura"].GetProperty("passive");

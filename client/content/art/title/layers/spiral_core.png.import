@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://fucgmogc81ws"
-path="res://.godot/imported/rootbound_corner_tl.png-ec08994a01f58874744c32a1d3046b33.ctex"
+uid="uid://ctjjbito4j66x"
+path="res://.godot/imported/spiral_core.png-7c6607b0acabdda20f08e12edfd56e9e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://content/art/border/rootbound_corner_tl.png"
-dest_files=["res://.godot/imported/rootbound_corner_tl.png-ec08994a01f58874744c32a1d3046b33.ctex"]
+source_file="res://content/art/title/layers/spiral_core.png"
+dest_files=["res://.godot/imported/spiral_core.png-7c6607b0acabdda20f08e12edfd56e9e.ctex"]
 
 [params]
 
