@@ -127,7 +127,7 @@ public partial class ReliquaryScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.72f, AnchorRight = 0.96f,
+            AnchorLeft = 0.70f, AnchorRight = 0.88f,
             AnchorTop = 0.005f, AnchorBottom = 0.075f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
@@ -157,7 +157,7 @@ public partial class ReliquaryScene : Control
         {
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.70f, AnchorRight = 0.96f,
+            AnchorLeft = 0.68f, AnchorRight = 0.88f,
             AnchorTop = 0.035f, AnchorBottom = 0.075f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
@@ -173,7 +173,7 @@ public partial class ReliquaryScene : Control
         // TASK-RELIQUARY-LAYOUT-1: right edge at 0.96 reserves scrollbar width
         _gridScroll = new ScrollContainer();
         _gridScroll.AnchorLeft = 0.02f; _gridScroll.AnchorRight = 0.96f;
-        _gridScroll.AnchorTop = 0.18f; _gridScroll.AnchorBottom = 1f;
+        _gridScroll.AnchorTop = 0.20f; _gridScroll.AnchorBottom = 1f;
         _gridScroll.SizeFlagsHorizontal = SizeFlags.Fill;
         _gridScroll.SizeFlagsVertical = SizeFlags.Fill;
         _gridScroll.ScrollDeadzone = 24;
@@ -249,21 +249,21 @@ public partial class ReliquaryScene : Control
         {
             Color = new Color(0.08f, 0.065f, 0.04f, 0.5f),
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.083f, AnchorBottom = 0.18f,
+            AnchorTop = 0.083f, AnchorBottom = 0.20f,
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(chipStrip);
 
         // TASK-RELIQUARY-LAYOUT-1: HFlowContainer wraps chips; no horizontal scroll
         _filterChipRow = new HFlowContainer();
-        _filterChipRow.AddThemeConstantOverride("h_separation", 8);
+        _filterChipRow.AddThemeConstantOverride("h_separation", 6);
         _filterChipRow.AddThemeConstantOverride("v_separation", 6);
         _filterChipRow.CustomMinimumSize = new Vector2(0, 0);
         _filterChipRow.SizeFlagsHorizontal = SizeFlags.Fill;
-        _filterChipRow.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+        _filterChipRow.SizeFlagsVertical = (SizeFlags)3; // Fill | Expand
         // Position via anchors so it sits inside the chip strip area
         _filterChipRow.AnchorLeft = 0.05f; _filterChipRow.AnchorRight = 0.95f;
-        _filterChipRow.AnchorTop = 0.083f; _filterChipRow.AnchorBottom = 0.18f;
+        _filterChipRow.AnchorTop = 0.083f; _filterChipRow.AnchorBottom = 0.20f;
         AddChild(_filterChipRow);
 
         // Default strata filter
@@ -291,7 +291,7 @@ public partial class ReliquaryScene : Control
     private Button MakeFilterChip(string label, Color accent, int idx)
     {
         var btn = new Button { Flat = false, Text = "" };
-        btn.CustomMinimumSize = new Vector2(44, 44);
+        btn.CustomMinimumSize = new Vector2(32, 36);
 
         var normalStyle = new StyleBoxFlat
         {
@@ -301,8 +301,8 @@ public partial class ReliquaryScene : Control
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
             CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
+            ContentMarginLeft = 6, ContentMarginTop = 4,
+            ContentMarginRight = 6, ContentMarginBottom = 4
         };
         var pressedStyle = new StyleBoxFlat
         {
@@ -312,8 +312,8 @@ public partial class ReliquaryScene : Control
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
             CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
+            ContentMarginLeft = 6, ContentMarginTop = 4,
+            ContentMarginRight = 6, ContentMarginBottom = 4
         };
         btn.AddThemeStyleboxOverride("normal", normalStyle);
         btn.AddThemeStyleboxOverride("hover", normalStyle);
@@ -380,8 +380,8 @@ public partial class ReliquaryScene : Control
                     BorderWidthRight = 1, BorderWidthBottom = 1,
                     CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
                     CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
+                    ContentMarginLeft = 6, ContentMarginTop = 4,
+                    ContentMarginRight = 6, ContentMarginBottom = 4
                 };
                 btn.AddThemeStyleboxOverride("normal", selectedStyle);
                 btn.AddThemeStyleboxOverride("hover", selectedStyle);
@@ -397,8 +397,8 @@ public partial class ReliquaryScene : Control
                     BorderWidthRight = 1, BorderWidthBottom = 1,
                     CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
                     CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
+                    ContentMarginLeft = 6, ContentMarginTop = 4,
+                    ContentMarginRight = 6, ContentMarginBottom = 4
                 };
                 var normalPressedStyle = new StyleBoxFlat
                 {
@@ -408,8 +408,8 @@ public partial class ReliquaryScene : Control
                     BorderWidthRight = 1, BorderWidthBottom = 1,
                     CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
                     CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
+                    ContentMarginLeft = 6, ContentMarginTop = 4,
+                    ContentMarginRight = 6, ContentMarginBottom = 4
                 };
                 btn.AddThemeStyleboxOverride("normal", normalStyle);
                 btn.AddThemeStyleboxOverride("hover", normalStyle);
@@ -480,8 +480,8 @@ public partial class ReliquaryScene : Control
             BorderColor = new Color(0.72f, 0.6f, 0.3f, 0.3f),
             BorderWidthLeft = 0, BorderWidthTop = 1,
             BorderWidthRight = 0, BorderWidthBottom = 1,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
+            ContentMarginLeft = 6, ContentMarginTop = 4,
+            ContentMarginRight = 6, ContentMarginBottom = 4
         });
         var headerLabel = new Label
         {
@@ -655,10 +655,11 @@ public partial class ReliquaryScene : Control
         float cardW = 180f;
         float cardH = 260f;
 
-        // TASK-RELIQUARY-LAYOUT-1: dynamic columns based on available width
+        // TASK-RELIQUARY-LAYOUT-1: dynamic columns based on viewport width (not scroll rect, which is 0 before layout)
         float sep = 8f;
         float scrollbarW = 16f;
-        float availW = _gridScroll.GetRect().Size.X - scrollbarW;
+        float viewW = GetViewportRect().Size.X;
+        float availW = (viewW * 0.94f) - scrollbarW;
         int cols = Mathf.Max(1, (int)((availW + sep) / (cardW + sep)));
         _cardGrid.Columns = cols;
 

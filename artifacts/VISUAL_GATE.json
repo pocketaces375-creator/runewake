@@ -1,21 +1,105 @@
 {
   "overall": "PASS",
-  "checked_at": "2026-09-08T18:29:20Z",
+  "checked_at": "2026-09-08T18:35:20Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "map_test",
-      "path": "/home/fictive/runewake/artifacts/captures/map_test.png",
+      "screen": "duel_test",
+      "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
       "issues": [
         {
-          "description": "The text 'DECK: FORGEGUARD STANDARD' in the top right corner is partially obscured by a red rectangular element, making it difficult to read the first word.",
+          "description": "The text 'THE UNDYING ROOT OF THE FAL' on the card in the player's hand is cut off, spilling outside the card's boundary. This occurs on multiple cards with this title.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'SILT-READER MAR...' is cut off, indicating it spills outside its intended display area or is truncated prematurely.  [and 1 more like it]",
+          "description": "The text 'ROOT WARDEN' on the card in the player's hand is partially obscured by the number '4' badge above it.  [and 2 more like it]",
           "severity": "low",
-          "count": 2
+          "count": 3
+        },
+        {
+          "description": "The text 'YOUR TURN' is rendered on top of the card art for 'ROOT WARDEN' in the player's hand, making it difficult to read and obscuring the card art.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "In the top right corner, under '34 DECK 0 BARROW', there are four small card placeholders. The bottom two have 'ARTIFACT' text that is partially cut off or rendered outside the placeholder boundary. One also has a '?' symbol that is cut off.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "duel_test_safe",
+      "path": "/home/fictive/runewake/artifacts/captures/duel_test_safe.png",
+      "issues": [
+        {
+          "description": "The text 'THE UNDYING ROOT OF THE FAL' is cut off on the card at the bottom left, spilling outside its boundary.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card to the right of 'THE UNDYING ROOT OF THE FAL' is partially obscured by the card to its left, making it hard to read.  [and 2 more like it]",
+          "severity": "medium",
+          "count": 3
+        },
+        {
+          "description": "The text 'THE UNDYING ROOT OF THE FAL' on the card to the right of 'SEALING LIGHT' is cut off and partially obscured by the card to its left.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card to the right of the second 'THE UNDYING ROOT OF THE FAL' is partially obscured by the card to its left.  [and 2 more like it]",
+          "severity": "medium",
+          "count": 3
+        },
+        {
+          "description": "The text 'THE UNDYING ROOT OF THE FAL' on the card to the right of the second 'SEALING LIGHT' is cut off and partially obscured by the card to its left.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card to the right of the third 'THE UNDYING ROOT OF THE FAL' is partially obscured by the card to its left.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'YOUR TURN' is rendered on top of the card art for 'ROOT WARDEN' at the bottom right, making both the text and the card art difficult to discern.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'End Turn' button is partially overlapping the card art for 'ROOT WARDEN' at the bottom right.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'DECK 0 BARROW' in the top right corner is low contrast against its dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ARTIFACT' is repeated twice in the top right corner, and the second instance is partially cut off.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ARTIFACT' is repeated twice in the bottom left corner, and the second instance is partially cut off.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'SWORD' and 'DUSKFANG' in the bottom left corner are low contrast against their dark background, making them hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'TRIKZOS | 25' in the bottom left corner is low contrast against its dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
         }
       ],
       "blocking": [],

@@ -1390,13 +1390,14 @@ public partial class DuelScene : Control
         // ── Player panel: DECK/BARROW counts + artifact frames ──
                 // MUST be ABOVE the nameplate (not overlapping) so both are visible.
                 float panelW = nameplateW;
-                float panelH = 28f * scale;
+                float panelH = 30f * scale;
                 var playerDeckBarrowPanel = new PanelContainer
                 {
                     Name = "PlayerDeckBarrowPanel",
                     MouseFilter = MouseFilterEnum.Ignore,
                     CustomMinimumSize = new Vector2(panelW, panelH)
                 };
+        _playerDeckBarrowPanelContainer = playerDeckBarrowPanel;
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
@@ -1430,11 +1431,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _playerShrineDeckLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(12 * scale));
+        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineDeckLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_playerShrineDeckLabel);
 
+        // DECK label
         var deckLabel = new Label
         {
             Text = "DECK",
@@ -1442,9 +1444,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
+        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(deckLabel);
 
         _playerShrineBarrowLabel = new Label
@@ -1454,11 +1456,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(12 * scale));
+        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_playerShrineBarrowLabel);
 
+        // BARROW label
         var barrowLabel = new Label
         {
             Text = "BARROW",
@@ -1466,9 +1469,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
+        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Player Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
@@ -2221,6 +2224,11 @@ public partial class DuelScene : Control
             // drawing over it, which is how a clipped turn banner showed through.
             _turnIndicatorLabel.Visible = false;
             _endTurnButton.Visible = false;
+            // TASK-DUEL-HUD-1: hide DECK/BARROW panels so they don't overlap the overlay
+            if (_enemyDeckBarrowPanel != null)
+                _enemyDeckBarrowPanel.Visible = false;
+            if (_playerDeckBarrowPanelContainer != null)
+                _playerDeckBarrowPanelContainer.Visible = false;
             BuildGameOverOverlay();
             _gameOverOverlay!.Show();
             // Bring to top so it captures all input
