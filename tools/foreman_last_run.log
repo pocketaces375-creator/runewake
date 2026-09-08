@@ -1,22 +1,3 @@
-  session TASK-CAPTURE-COVERAGE-2 on deepseek/deepseek-v4-flash: 217s
-TASK-CAPTURE-COVERAGE-2 complete. `finish_task.sh` built, committed, pushed, and marked done. Fresh captures verified:
-
-| Screen | Size | Renders | Coverage Gap |
-|---|---|---|---|
-| **title_test.png** | 2.6MB | ✅ title screen with 23 controls | ❌ none |
-| **settings_test.png** | 56KB | ✅ settings with 44 controls (dark theme, compresses small) | ❌ none |
-| **reliquary_test_all.png** | 327KB | ✅ reliquary with 1,018 controls | ❌ none |
-
-Acceptance gates:
-- ✅ Build green (dotnet build succeeded)
-- ✅ No NEW test failures
-- ✅ All three PNGs exist, none are solid black (all render actual scene content)
-- ✅ `python3 tools/visual_gate.py` — no COVERAGE GAP for any of the three (gate failures are only "OPENROUTER_API_KEY not available", which is a runtime dependency, not a coverage gap)
-
-Note: `settings_test.png` is 56KB. It renders valid content (44 UI controls, gold accent elements at RGB 201-168-76, pixel range 13-246) but the dark stone background (RGB 19,17,13 covers 96% of pixels) compresses very small in PNG. Per instructions, I did not fix rendering defects revealed by the captures.
-========================================
-=== foreman: 2026-09-08T17:53:33Z TASK-ITEMS-NECROMANCER-2 retry ===
-Session: 34/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
@@ -47,4 +28,23 @@ Task TASK-ITEMS-PALADIN-2 is complete. Here's what was done:
 - label_fit: passed
 - Commit: `2d95c5f` (artifact content) + `4b9bc5f` (mark done)
 - Exit code: 0
+========================================
+=== foreman: 2026-09-08T18:19:23Z TASK-ITEMS-DRUID-2 success ===
+Session: 37/96
+--- session tail ---
+  session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 231s
+TASK-ITEMS-DRUID-2 complete.
+
+**Built:** 4 new Druid artifacts appended to `content/artifacts/variants/druid.json`
+
+| Artifact | Slot | id | Passive | Trigger | Full (3 charges) |
+|---|---|---|---|---|---|
+| Thornwake Stave | book | `artf_druid_thornwake_stave` | — (trigger-based thorn) | ON_ALLY_ATTACKED: damage attacker 1 + charge | Deal 1 damage to all enemy creatures |
+| Rootbound Crook | book | `artf_druid_rootbound_crook` | BUFF +1/+0 to FULL_VIGOR allies | ON_HEAL: +1 charge | +2/+2 permanent to a friendly creature |
+| Mossheart Totem | totem | `artf_druid_mossheart_totem` | — (trigger-based heal) | ON_TURN_END: heal damaged ally 1 + charge | Summon 1/4 Guard sapling |
+| Sunhollow Idol | totem | `artf_druid_sunhollow_idol` | COST_MOD -1 to first creature each turn | ON_SUMMON (your turn): +1 charge | Draw 2 cards |
+
+**Pipeline:** dotnet build passed, art_check gate passed, all unit tests passed, label_fit passed. Pre-existing ui_lint failures (not blocking) — content-only task, no captures regenerated.
+
+**Commit:** `ccbce50 TASK-ITEMS-DRUID-2: Thornwake Stave, Rootbound Crook, Mossheart Totem, Sunhollow Idol in content/artifacts/variants/druid.json` — pushed and DONE entry written.
 ========================================
