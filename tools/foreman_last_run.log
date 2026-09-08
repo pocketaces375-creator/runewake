@@ -1,9 +1,3 @@
-  session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-07T22:26:10Z TASK-CHOOSE-PATH-2 retry ===
-Session: 22/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-CHOOSE-PATH-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
 === foreman: 2026-09-07T22:56:29Z TASK-CHOOSE-PATH-2 blocked ===
@@ -47,4 +41,10 @@ Session: 3/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-CAPTURE-COVERAGE-2 on deepseek/deepseek-v4-flash: 901s
+========================================
+=== foreman: 2026-09-08T05:51:23Z TASK-ITEMS-NECROMANCER-2 retry ===
+Session: 4/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
