@@ -124,6 +124,10 @@ public partial class CardPlate : Control
             gradShader.Code = "shader_type canvas_item; void fragment() { vec4 c = vec4(0.776, 0.741, 0.667, 1.0); COLOR = vec4(c.rgb, c.a * UV.y); }";
             gradMat.Shader = gradShader;
             _nameBandBg.Material = gradMat;
+            // Assign a 1x1 white pixel texture so the shader has pixels to alpha-ramp
+            var whiteImg = new Image();
+            whiteImg.SetData(1, 1, false, Image.Format.Rgba8, new byte[] { 255, 255, 255, 255 });
+            _nameBandBg.Texture = ImageTexture.CreateFromImage(whiteImg);
             AddChild(_nameBandBg);
 
             // ── Stat rail background ──
