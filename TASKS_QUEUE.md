@@ -196,7 +196,7 @@
   and must no longer list any of (a)-(d) even as notes. Put the before/after
   gate output in the DONE line.
 
-- [ ] TASK-RELIQUARY-LAYOUT-1 — Reliquary screen (client/scripts/ReliquaryScene.cs
+- [x] TASK-RELIQUARY-LAYOUT-1 — Reliquary screen (client/scripts/ReliquaryScene.cs
   only — do not touch other scenes, another lane may be in them). Three
   defects the visual gate found on a real capture:
   (a) the strata filter chips overlap each other — "EMBER" is partly hidden
