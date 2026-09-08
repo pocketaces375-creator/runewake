@@ -124,7 +124,7 @@
   Each: id artf_battlemage_<snake_name>, class "battlemage", slot_pool, name, one-line
   dark-fae flavor, DSL passive/trigger/full.
 
-- [ ] TASK-ITEMS-NECROMANCER-2 — Four more Necromancer artifacts (two per slot) in
+- [!] TASK-ITEMS-NECROMANCER-2 — Four more Necromancer artifacts (two per slot) in
   content/artifacts/variants/necromancer.json, same rules, format and art bar as
   TASK-ITEMS-BATTLEMAGE-2 above. Use the slot_pool values already present in that file.
   SLOT A: "Gravebind Censer" — passive: the first creature that dies each turn returns
