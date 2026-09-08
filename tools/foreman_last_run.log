@@ -1,11 +1,5 @@
   session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
-=== foreman: 2026-09-08T09:01:03Z TASK-ITEMS-DRUID-2 blocked ===
-Session: 11/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-08T09:31:06Z TASK-ITEMS-DRUID-2 retry ===
 Session: 12/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Session: 18/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T12:50:48Z TASK-CAPTURE-COVERAGE-1 retry ===
+Session: 19/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-CAPTURE-COVERAGE-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
