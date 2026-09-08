@@ -53,12 +53,12 @@ ARTIFACTS_VARIANTS_DIR = ROOT / "content" / "artifacts" / "variants"
 
 CLASSES = [
     "warrior",
-    "mage",
-    "thief",
-    "cleric",
-    "ranger",
+    "battlemage",
+    "paladin",
+    "rogue",
+    "druid",
     "necromancer",
-    "runesmith",
+    "astrologist",
 ]
 
 

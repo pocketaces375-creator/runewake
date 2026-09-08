@@ -4,7 +4,7 @@
     "class": "battlemage",
     "slot_pool": "wand",
     "name": "Wand",
-    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ATTACK_LTE:2", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING" },
+    "passive": { "op": "BUFF", "target": { "scope": "ALLY_CREATURE", "filter": "ATTACK_LTE:1", "count": "ALL" }, "attack": 1, "vigor": 0, "duration": "WHILE_ATTACKING" },
     "trigger": null,
     "charges": null,
     "flavor": "The battlemage's arcane conduit crackles with raw power."
