@@ -363,6 +363,7 @@ public static class RulesTextRenderer
                 "EXHAUSTED" => "exhausted ",
                 "CHOSEN" => "chosen ",
                 "FIRST_ATTACKER" => "first attacker ",
+                "SECOND_ATTACKER" => "second attacker ",
                 "CURRENT_ATTACKER" => "attacking ",
                 var s when s.StartsWith("ATTACK_LTE:") => $"attack ≤ {s[11..]} ",
                 _ => target.Filter.ToLowerInvariant() + " "

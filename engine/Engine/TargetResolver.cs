@@ -104,6 +104,8 @@ public static class TargetResolver
             "HAS_NOT_ATTACKED" => pool.Where(t => t is CreatureTarget ct && !ct.Card.HasAttackedThisTurn).ToList(),
             "FIRST_ATTACKER" => pool.Where(t => t is CreatureTarget ct
                 && ct.LaneIndex == (sourcePlayer.FirstAttackerLaneIndex ?? -1)).ToList(),
+            "SECOND_ATTACKER" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (sourcePlayer.SecondAttackerLaneIndex ?? -1)).ToList(),
             "CURRENT_ATTACKER" => pool.Where(t => t is CreatureTarget ct
                 && ct.LaneIndex == (sourcePlayer.CurrentAttackerLaneIndex ?? -1)).ToList(),
             "FIRST_ATTACKED" => pool.Where(t => t is CreatureTarget ct

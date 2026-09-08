@@ -184,12 +184,9 @@ public partial class CardPlate : Control
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
         ApplyCardNameFont(_cardName, FontCardName);
-        // Trikzos' call: dark ink cut into the pale stone. No plaque, no gold.
-        // Near-black with a 1px same-colour outline so Cinzel Decorative's
-        // hairline strokes still carry weight at hand-card size.
-        _cardName.AddThemeColorOverride("font_color", new Color(0.06f, 0.05f, 0.035f));
-        _cardName.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.035f));
-        _cardName.AddThemeConstantOverride("outline_size", 1);
+        // TASK-CARDNAME-COLOR-1: dark brown, no outline (Trikzos approved)
+        _cardName.AddThemeColorOverride("font_color", new Color(0.25f, 0.18f, 0.10f));
+        _cardName.AddThemeConstantOverride("outline_size", 0);
         var fit = FitCardNameAuto(safeWidth, maxBandH);
 
         // Actual band height = text height + small padding, never below baseline, never
