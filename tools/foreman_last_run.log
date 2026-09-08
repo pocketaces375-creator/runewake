@@ -1,19 +1,3 @@
-- art_check: ✅
-- ui_lint: pre-existing failures only (not blocking)
-- label_fit: ✅
-- **visual_gate --only map_test: PASS, 0 blocking, no (a)-(d) in punch-list**
-
-**Before gate:** (a) name printed twice, (b) Rewards: -- placeholder, (c) Go button low-contrast disabled, (d) Rune Page clipped
-**After gate:** PASS, 0 blocking, no (a)-(d) even as notes
-
-Commits pushed to origin/main.
-========================================
-=== foreman: 2026-09-08T18:43:05Z TASK-RELIQUARY-LAYOUT-1 success ===
-Session: 39/96
---- session tail ---
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 662s
-**TASK-RELIQUARY-LAYOUT-1 DONE**
-
 Commit: `fdfbb34` (after font fix and finish_task.sh)
 
 **Changes made to `client/scripts/ReliquaryScene.cs`:**
@@ -47,4 +31,20 @@ Commit: `fdfbb34` (after font fix and finish_task.sh)
 - Tests: 894 passed, 0 failed (retry confirmed flaky pass)
 - capture_gate: PASS (avg lum, center lum, grid variation)
 - visual_gate: PASS (0 blocking)
+========================================
+=== foreman: 2026-09-08T18:48:53Z TASK-ENGINE-DRUID-P1-1 success ===
+Session: 40/96
+--- session tail ---
+  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 303s
+Task TASK-ENGINE-DRUID-P1-1 is complete.
+
+**Result:** Bug found and fixed at `engine/Engine/TriggerBus.cs` line 159-161. The `CollectAbilities` method was collecting `ON_TURN_START` triggers from BOTH players' artifacts for every turn start. This meant Book of Familiar summoned ROOTED tokens on EVERY turn (not just the owning player's turn), doubling the board-fill rate and creating a deadlock where all lanes filled with ROOTED tokens, preventing the Druid from playing real creatures or attacking.
+
+**Fix:** Added `if (trigger != Trigger.ON_TURN_START)` guard at line 161 so only the current player's turn-start abilities fire.
+
+**Test results (finish_task.sh):**
+- Build: passed
+- dotnet test: 3/3 passed (DruidMirror_200Games_Seed42_CombatHappens, DruidP1VsWarrior_Above15Percent, OnTurnStart_FiresOnlyForCurrentPlayerArtifacts)
+- art_check: 322 files, 0 failures
+- Committed as `8308db6` and pushed, TASKS_QUEUE.md checkbox flipped, DONE entry added to HERMES_STATUS.md
 ========================================
