@@ -1,11 +1,5 @@
   session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
-=== foreman: 2026-09-08T05:00:59Z TASK-DUEL-HUD-1 blocked ===
-Session: 2/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-08T05:31:01Z TASK-CAPTURE-COVERAGE-2 retry ===
 Session: 3/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Session: 9/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T08:31:06Z TASK-ITEMS-DRUID-2 retry ===
+Session: 10/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
