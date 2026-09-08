@@ -1,8 +1,3 @@
-=== foreman: 2026-09-08T15:26:24Z TASK-ITEMS-BATTLEMAGE-1 retry ===
-Session: 26/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-BATTLEMAGE-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
 === foreman: 2026-09-08T15:55:42Z TASK-ITEMS-NECROMANCER-1 retry ===
 Session: 27/96
@@ -47,4 +42,9 @@ TASK-ITEMS-DRUID-1 complete. Commit `3d174f8` pushed.
 - Grove Link → boar-tusk pillar with sporing shelf fungi
 
 **11 unit tests** in `tests/Engine/DruidVariantTests.cs` covering passive, charge gain, full-charge, and load+equip for all 4 artifacts.
+========================================
+=== foreman: 2026-09-08T17:20:26Z TASK-HAND-CARDNAME-1 success ===
+Session: 31/96
+--- session tail ---
+  session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
