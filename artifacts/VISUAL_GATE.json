@@ -1,22 +1,11 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-08T17:18:11Z",
+  "checked_at": "2026-09-08T17:25:16Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "duel_test",
-      "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "duel_test_safe",
-      "path": "/home/fictive/runewake/artifacts/captures/duel_test_safe.png",
+      "screen": "choose_path",
+      "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
       "verdict": "FAIL",
       "issues": [
         {
