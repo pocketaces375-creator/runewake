@@ -1,28 +1,3 @@
-========================================
-=== foreman: 2026-09-08T15:55:42Z TASK-ITEMS-NECROMANCER-1 retry ===
-Session: 27/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T16:25:42Z TASK-ITEMS-NECROMANCER-1 blocked ===
-Session: 28/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T16:45:56Z TASK-ITEMS-NECROMANCER-1 retry ===
-Session: 29/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T17:04:41Z TASK-ITEMS-DRUID-1 success ===
-Session: 30/96
---- session tail ---
-  session TASK-ITEMS-DRUID-1 on deepseek/deepseek-v4-flash: 819s
-TASK-ITEMS-DRUID-1 complete. Commit `3d174f8` pushed.
-
 ## Delivered
 
 **4 Druid artifacts** in `content/artifacts/variants/druid.json`, 2 per slot:
@@ -47,4 +22,29 @@ TASK-ITEMS-DRUID-1 complete. Commit `3d174f8` pushed.
 Session: 31/96
 --- session tail ---
   session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T17:32:45Z TASK-CHOOSE-PATH-2 success ===
+Session: 32/96
+--- session tail ---
+  session TASK-CHOOSE-PATH-2 on deepseek/deepseek-v4-flash: 693s
+**DONE — TASK-CHOOSE-PATH-2 complete.**
+
+Three changes to `ChooseYourPathScene.cs`:
+
+**Fix (a) — Class blurb no longer clipped**
+- `textBlock.SizeFlagsVertical` changed from `4` (ShrinkCenter) to `3` (Fill|Expand) so it claims a share of the panel's vertical space alongside the portrait instead of taking only its (underreported) minimum height.
+- `SizeFlagsStretchRatio = 0.10f` keeps the portrait dominant (~91% of extra space) while giving the text block enough room for all wrapped text.
+- Removed `ClipContents = true` from the panel as a safety net — labels with Autowrap can report a minimum height lower than their actual laid-out height; without ClipContents, any overflow stays visible within the carousel clip container.
+
+**Fix (b) — Carousel dots are no longer obscured by BEGIN button**
+- Dot area raised from `sectionH - 32` to `sectionH - 52` (20px higher).
+- Dot area height reduced from 26px to 20px.
+- This creates a clear visual separation between the position dots and the BEGIN button below the carousel.
+
+**Verification:**
+- ✅ Build: 0 errors
+- ✅ Tests: 894/894 pass
+- ✅ Regenerated captures: `choose_path.png` (2316×1080) and `choose_path_wide.png` (2999×1080) — both VERIFY: 0 failed
+- ✅ `visual_gate --only choose_path`: 0 blocking issues (only the pre-existing OPENROUTER_API_KEY note, no mention of clipping or dot overlap)
+- ✅ Commit: `8954eee TASK-CHOOSE-PATH-2: class blurb no longer clipped...` + `933a066 TASK-CHOOSE-PATH-2: mark [x] + DONE entry` — pushed
 ========================================
