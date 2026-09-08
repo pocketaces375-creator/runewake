@@ -36,7 +36,7 @@ public partial class CardPlate : Control
     }
 
     // ── Persistent child nodes ──
-    private ColorRect? _nameBandBg;
+    private TextureRect? _nameBandBg;
     private ColorRect? _statRailBg;
     private Label? _cardName;
     private Label? _attackBadge;
@@ -111,14 +111,19 @@ public partial class CardPlate : Control
         // Lazy init
         if (_nameBandBg == null)
         {
-            // ── Name band background ──
-            _nameBandBg = new ColorRect
+            // ── Name band background — gradient scrim ──
+            _nameBandBg = new TextureRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
-                // Card law: pale carved stone sampled from the Root-Bound frame,
-                // with the name cut into it — never a flat dark rectangle.
-                Color = new Color(0.776f, 0.741f, 0.667f)
+                StretchMode = TextureRect.StretchModeEnum.Scale,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
             };
+            // Vertical gradient: transparent at top → beige/cream at bottom (shader material)
+            var gradMat = new ShaderMaterial();
+            var gradShader = new Shader();
+            gradShader.Code = "shader_type canvas_item; void fragment() { vec4 c = vec4(0.776, 0.741, 0.667, 1.0); COLOR = vec4(c.rgb, c.a * UV.y); }";
+            gradMat.Shader = gradShader;
+            _nameBandBg.Material = gradMat;
             AddChild(_nameBandBg);
 
             // ── Stat rail background ──
