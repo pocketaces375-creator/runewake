@@ -1,8 +1,3 @@
-Commit: `fdfbb34` (after font fix and finish_task.sh)
-
-**Changes made to `client/scripts/ReliquaryScene.cs`:**
-
-1. **Fix (a) — Chip overlap:**
    - Chip strip height increased: `0.18f` → `0.20f` (room for 2-row wrap)
    - HFlowContainer: `h_separation` 8→6, `SizeFlagsVertical` ShrinkCenter→Fill|Expand
    - Chip button min size: `(44,44)` → `(32,36)`
@@ -47,4 +42,9 @@ Task TASK-ENGINE-DRUID-P1-1 is complete.
 - dotnet test: 3/3 passed (DruidMirror_200Games_Seed42_CombatHappens, DruidP1VsWarrior_Above15Percent, OnTurnStart_FiresOnlyForCurrentPlayerArtifacts)
 - art_check: 322 files, 0 failures
 - Committed as `8308db6` and pushed, TASKS_QUEUE.md checkbox flipped, DONE entry added to HERMES_STATUS.md
+========================================
+=== foreman: 2026-09-08T19:05:36Z TASK-TUNE-AURAS-1 success ===
+Session: 41/96
+--- session tail ---
+  session TASK-TUNE-AURAS-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
