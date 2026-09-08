@@ -92,11 +92,20 @@ public class RogueIdentityTests
             Zone = Zone.ArtifactSlot,
             ArtifactSlotIndex = 1
         };
-        // Passive: HEAL NONE (placeholder)
+        // Passive: BUFF +1 attack WHILE_ATTACKING to SECOND_ATTACKER
         whisper.Abilities.Add(new AbilityDef
         {
             Trigger = Trigger.PASSIVE,
-            Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } }
+            Effects = new List<EffectDef> { new() { Op = Op.BUFF,
+                Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Filter = "SECOND_ATTACKER", Count = TargetCount.Exactly(1) },
+                Attack = 1, Vigor = 0, Duration = Duration.WHILE_ATTACKING } }
+        });
+        // Trigger: ON_CREATURE_ATTACKS → GRANT_KEY STEALTH_STRIKE to SECOND_ATTACKER
+        whisper.Abilities.Add(new AbilityDef
+        {
+            Trigger = Trigger.ON_CREATURE_ATTACKS,
+            Effects = new List<EffectDef> { new() { Op = Op.GRANT_KEY, Keyword = "STEALTH_STRIKE",
+                Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Filter = "SECOND_ATTACKER", Count = TargetCount.Exactly(1) } } }
         });
         // Full-charge: DAMAGE 3 to enemy face + GRANT_KEY VENOM to highest attack enemy
         // + RESET_CHARGES + ADD_CHARGE (TWIN)
@@ -302,6 +311,79 @@ public class RogueIdentityTests
     // ================================================================
     // WHISPER
     // ================================================================
+
+    [Fact]
+    public void Whisper_PassiveGrantsStealthStrike_ToSecondAttacker()
+    {
+        // Whisperfang's passive: ON_CREATURE_ATTACKS → GRANT_KEY STEALTH_STRIKE to SECOND_ATTACKER.
+        // The second creature to attack each turn gains STEALTH_STRIKE.
+        var state = CreateState();
+        PlaceCreature(state, 0, 0, attack: 2, vigor: 4);
+        PlaceCreature(state, 0, 1, attack: 3, vigor: 5);
+        PlaceCreature(state, 1, 0, attack: 1, vigor: 5);
+
+        // Set up Whisper in slot 1
+        state.Players[0].ArtifactSlots = new ArtifactSlot[2];
+        state.Players[0].ArtifactSlots[0] = new ArtifactSlot(0);
+        state.Players[0].ArtifactSlots[1] = new ArtifactSlot(1);
+
+        var whisper = new CardInstance(state.NextInstanceId++, "artf_rogue_dagger_whisper", 0)
+        {
+            CardType = CardType.ARTIFACT,
+            Zone = Zone.ArtifactSlot,
+            ArtifactSlotIndex = 1
+        };
+        whisper.Abilities.Add(new AbilityDef
+        {
+            Trigger = Trigger.ON_CREATURE_ATTACKS,
+            Effects = new List<EffectDef> { new() { Op = Op.GRANT_KEY, Keyword = "STEALTH_STRIKE",
+                Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Filter = "SECOND_ATTACKER", Count = TargetCount.Exactly(1) } } }
+        });
+        state.Players[0].ArtifactSlots[1].Occupant = whisper;
+
+        // Slot 0 minimal placeholder
+        var min0 = new CardInstance(state.NextInstanceId++, "tst_min", 0)
+        {
+            CardType = CardType.ARTIFACT,
+            Zone = Zone.ArtifactSlot,
+            ArtifactSlotIndex = 0
+        };
+        min0.Abilities.Add(new AbilityDef
+        {
+            Trigger = Trigger.PASSIVE,
+            Effects = new List<EffectDef> { new() { Op = Op.HEAL, Target = new TargetDef { Scope = Scope.NONE } } }
+        });
+        state.Players[0].ArtifactSlots[0].Occupant = min0;
+
+        // Simulate: first attacker lane 0, second attacker lane 1
+        state.Players[0].FirstAttackerLaneIndex = 0;
+        state.Players[0].SecondAttackerLaneIndex = 1;
+
+        // Resolve the ON_CREATURE_ATTACKS effect as if it fired during the second attack
+        var grantEffect = new EffectDef
+        {
+            Op = Op.GRANT_KEY,
+            Keyword = "STEALTH_STRIKE",
+            Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Filter = "SECOND_ATTACKER", Count = TargetCount.Exactly(1) }
+        };
+        var targets = TargetResolver.Resolve(grantEffect.Target!, whisper,
+            state.Players[0], state.Players[1], state);
+        EffectExecutor.Execute(grantEffect, whisper, state, targets);
+
+        // Second attacker (lane 1) gained STEALTH_STRIKE
+        var secondAttacker = state.Players[0].Lanes[1].Occupant!;
+        Assert.Contains("STEALTH_STRIKE", secondAttacker.GrantedKeywords);
+
+        // First attacker (lane 0) did NOT gain STEALTH_STRIKE from Whisper
+        var firstAttacker = state.Players[0].Lanes[0].Occupant!;
+        Assert.DoesNotContain("STEALTH_STRIKE", firstAttacker.GrantedKeywords);
+
+        // Attack resolves with STEALTH_STRIKE on the second attacker — no counter-damage
+        state = Attack(state, 0, 1);
+        var attAfter = state.Players[0].Lanes[1].Occupant!;
+        // Should have survived (no counter-damage from STEALTH_STRIKE)
+        Assert.True(attAfter.CurrentVigor > 0);
+    }
 
     [Fact]
     public void Whisper_FullCharge_DealsFaceDamage()
