@@ -1,9 +1,3 @@
-Session: 15/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 901s
-========================================
-=== foreman: 2026-09-08T11:31:29Z TASK-RELIQUARY-LAYOUT-1 retry ===
 Session: 16/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +41,10 @@ Verified:
 - `artifacts/captures/settings_test.png` — 56KB (valid capture)
 - Pushed: commit `36c552e` (impl) + `91526fc` (status)
 - HERMES_STATUS.md and TASKS_QUEUE.md updated
+========================================
+=== foreman: 2026-09-08T13:45:38Z TASK-ENGINE-DRUID-P1-1 retry ===
+Session: 21/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
