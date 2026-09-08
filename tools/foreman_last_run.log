@@ -1,29 +1,3 @@
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T18:10:45Z TASK-ITEMS-NECROMANCER-2 success ===
-Session: 35/96
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T18:14:47Z TASK-ITEMS-PALADIN-2 success ===
-Session: 36/96
---- session tail ---
-  session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 197s
-Task TASK-ITEMS-PALADIN-2 is complete. Here's what was done:
-
-**Added 4 new Paladin artifacts to `content/artifacts/variants/paladin.json`** (now 8 total):
-
-- **Oathkeeper's Weight** (hammer) — Guards can't drop below 1 vigor per attack; charges on Guard survival; full: grant Guard +0/+2 permanently
-- **Dawnbreaker Maul** (hammer) — First attack each turn deals +1 to damaged; charges on attacking damaged; full: deal 4 to a damaged creature
-- **Vigil Standard** (banner) — Start of turn heal 1 to damaged ally; charges per turn an ally is damaged; full: restore all allies to full
-- **Sanctum Pennant** (banner) — Adjacent creatures take 1 less damage; charges on damage prevented; full: all allies take no damage until your next turn
-
-**finish_task.sh ran all gates:**
-- Build: passed
-- art_check: 322 files, 0 failures
-- Unit tests: all passed
 - ui_lint: pre-existing failures only (non-blocking)
 - label_fit: passed
 - Commit: `2d95c5f` (artifact content) + `4b9bc5f` (mark done)
@@ -47,4 +21,30 @@ TASK-ITEMS-DRUID-2 complete.
 **Pipeline:** dotnet build passed, art_check gate passed, all unit tests passed, label_fit passed. Pre-existing ui_lint failures (not blocking) — content-only task, no captures regenerated.
 
 **Commit:** `ccbce50 TASK-ITEMS-DRUID-2: Thornwake Stave, Rootbound Crook, Mossheart Totem, Sunhollow Idol in content/artifacts/variants/druid.json` — pushed and DONE entry written.
+========================================
+=== foreman: 2026-09-08T18:31:02Z TASK-MAP-PANEL-1 success ===
+Session: 38/96
+--- session tail ---
+  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 622s
+**TASK-MAP-PANEL-1 complete.**
+
+All four defects in `client/scripts/MapScene.cs` fixed:
+
+- **(a)** Node name prints only once as the panel title (`_infoName`). No second label or body text duplicates it.
+- **(b)** Rewards row is hidden entirely (`_infoRewards.Text = ""; _infoRewards.Hide();`) when `mapNode.Rewards` is null or empty. No bare "Rewards: —" placeholder.
+- **(c)** Go button disabled state has an explicit `disabled` StyleBoxFlat (dimmed background + muted border) and `font_disabled_color` override (0.5, 0.43, 0.25, 0.9) — legible against the dark panel, but clearly disabled.
+- **(d)** Rune Page button anchors moved to 0.845→0.897, Reliquary to 0.897→0.949, Settings to 0.949→1.0 — zero overlap between side buttons.
+
+**Gates:**
+- dotnet build: ✅
+- dotnet test: ✅ (all passed)
+- art_check: ✅
+- ui_lint: pre-existing failures only (not blocking)
+- label_fit: ✅
+- **visual_gate --only map_test: PASS, 0 blocking, no (a)-(d) in punch-list**
+
+**Before gate:** (a) name printed twice, (b) Rewards: -- placeholder, (c) Go button low-contrast disabled, (d) Rune Page clipped
+**After gate:** PASS, 0 blocking, no (a)-(d) even as notes
+
+Commits pushed to origin/main.
 ========================================
