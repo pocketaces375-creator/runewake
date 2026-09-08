@@ -1,9 +1,3 @@
-Could you restore or restart the session so I can execute these steps? The `DaemonThreadPoolExecutor._initializer` error appears to be a Hermes runtime / Python worker pool initialization bug.
-========================================
-=== foreman: 2026-09-07T20:46:03Z TASK-ENDGAME-OVERLAY-1 retry ===
-Session: 18/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-ENDGAME-OVERLAY-1 on deepseek/deepseek-v4-flash: 901s
 ========================================
 === foreman: 2026-09-07T21:06:13Z TASK-HAND-CARDNAME-1 retry ===
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-08T01:21:09Z TASK-DUEL-HUD-1 retry ===
 Session: 25/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T01:41:17Z TASK-DUEL-HUD-1 blocked ===
+Session: 26/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
