@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d4e5f6a7b8c9"
-path.bptc="res://.godot/imported/artf_druid_seedbook.webp-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.bptc.ctex"
-path.astc="res://.godot/imported/artf_druid_seedbook.webp-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.astc.ctex"
+uid="uid://d4e5f6a7b8da"
+path.bptc="res://.godot/imported/artf_druid_seedbook.webp-b50d887710c2125932cffc6fb1342ede.bptc.ctex"
+path.astc="res://.godot/imported/artf_druid_seedbook.webp-b50d887710c2125932cffc6fb1342ede.astc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -13,7 +13,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_druid_seedbook.webp"
-dest_files=["res://.godot/imported/artf_druid_seedbook.webp-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.bptc.ctex", "res://.godot/imported/artf_druid_seedbook.webp-1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.astc.ctex"]
+dest_files=["res://.godot/imported/artf_druid_seedbook.webp-b50d887710c2125932cffc6fb1342ede.bptc.ctex", "res://.godot/imported/artf_druid_seedbook.webp-b50d887710c2125932cffc6fb1342ede.astc.ctex"]
 
 [params]
 

@@ -250,6 +250,11 @@ public static partial class DuelEngine
         if (isFirstAttack)
             player.FirstAttackerLaneIndex = action.SourceLane;
 
+        // Fire ON_CREATURE_ATTACKS — set current attacker context for trigger target resolution
+        player.CurrentAttackerLaneIndex = action.SourceLane;
+        TriggerBus.Fire(state, Trigger.ON_CREATURE_ATTACKS, action.PlayerIndex);
+        player.CurrentAttackerLaneIndex = null;
+
         int targetLaneIdx = resolvedTarget.Value;
 
         // Determine final target: creature or face (with Guard redirect)

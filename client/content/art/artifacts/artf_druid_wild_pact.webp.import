@@ -2,9 +2,9 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://e7f8a9b0c1d2"
-path.bptc="res://.godot/imported/artf_druid_wild_pact.webp-2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e.bptc.ctex"
-path.astc="res://.godot/imported/artf_druid_wild_pact.webp-2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e.astc.ctex"
+uid="uid://e7f8bab0c1d2"
+path.bptc="res://.godot/imported/artf_druid_wild_pact.webp-673600e52b0412da08c0911be346d629.bptc.ctex"
+path.astc="res://.godot/imported/artf_druid_wild_pact.webp-673600e52b0412da08c0911be346d629.astc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -13,7 +13,7 @@ metadata={
 [deps]
 
 source_file="res://content/art/artifacts/artf_druid_wild_pact.webp"
-dest_files=["res://.godot/imported/artf_druid_wild_pact.webp-2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e.bptc.ctex", "res://.godot/imported/artf_druid_wild_pact.webp-2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e.astc.ctex"]
+dest_files=["res://.godot/imported/artf_druid_wild_pact.webp-673600e52b0412da08c0911be346d629.bptc.ctex", "res://.godot/imported/artf_druid_wild_pact.webp-673600e52b0412da08c0911be346d629.astc.ctex"]
 
 [params]
 
