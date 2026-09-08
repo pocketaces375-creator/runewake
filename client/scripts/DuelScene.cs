@@ -68,6 +68,8 @@ public partial class DuelScene : Control
     private Label _playerShrineVigorLabel = default!;
     private Label _playerShrineAttuneLabel = default!;
     private readonly ArtifactCardPlate[] _playerArtifactPlates = new ArtifactCardPlate[2];
+    private PanelContainer _enemyDeckBarrowPanel = default!;
+    private PanelContainer _playerDeckBarrowPanelContainer = default!;
     private readonly ArtifactCardPlate[] _enemyArtifactPlates = new ArtifactCardPlate[2];
     private readonly Control[] _playerArsenalPanels = new Control[2];
     private readonly Control[] _enemyArsenalPanels = new Control[2];
@@ -1148,13 +1150,14 @@ public partial class DuelScene : Control
 
         // ── DECK/BARROW panel just below the enemy nameplate ──
         float panelW = nameplateW;
-        float panelH = 28f * scale;
+        float panelH = 30f * scale; // TASK-DUEL-HUD-1: taller panel for larger fonts
         var enemyDeckBarrowPanel = new PanelContainer
         {
             Name = "EnemyDeckBarrowPanel",
             MouseFilter = MouseFilterEnum.Ignore,
             CustomMinimumSize = new Vector2(panelW, panelH)
         };
+        _enemyDeckBarrowPanel = enemyDeckBarrowPanel;
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
@@ -1186,11 +1189,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _enemyDeckValue.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(12 * scale));
+        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale)); // TASK-DUEL-HUD-1: larger for legibility
+        _enemyDeckValue.AddThemeColorOverride("font_color", Colors.White); // TASK-DUEL-HUD-1: max contrast for 0/O disambiguation
+        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_enemyDeckValue);
 
+        // DECK label
         var deckLabel = new Label
         {
             Text = "DECK",
@@ -1198,9 +1202,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(9 * scale));
+        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(deckLabel);
 
         // Barrow count
@@ -1211,11 +1215,12 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(12 * scale));
-        _enemyBarrowValue.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(12 * scale));
+        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _enemyBarrowValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(16 * scale));
         dbRow.AddChild(_enemyBarrowValue);
 
+        // BARROW label
         var barrowLabel = new Label
         {
             Text = "BARROW",
@@ -1223,9 +1228,9 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(9 * scale));
+        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
         dbRow.AddChild(barrowLabel);
 
         // ── Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──

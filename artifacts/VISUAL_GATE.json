@@ -1,40 +1,26 @@
 {
-  "overall": "FAIL",
-  "checked_at": "2026-09-08T17:36:49Z",
+  "overall": "PASS",
+  "checked_at": "2026-09-08T18:29:20Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "title_test",
-      "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
-      "verdict": "FAIL",
+      "screen": "map_test",
+      "path": "/home/fictive/runewake/artifacts/captures/map_test.png",
       "issues": [
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
-    },
-    {
-      "screen": "settings_test",
-      "path": "/home/fictive/runewake/artifacts/captures/settings_test.png",
-      "verdict": "FAIL",
-      "issues": [
+          "description": "The text 'DECK: FORGEGUARD STANDARD' in the top right corner is partially obscured by a red rectangular element, making it difficult to read the first word.",
+          "severity": "medium",
+          "count": 1
+        },
         {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
+          "description": "The text 'SILT-READER MAR...' is cut off, indicating it spills outside its intended display area or is truncated prematurely.  [and 1 more like it]",
+          "severity": "low",
+          "count": 2
         }
-      ]
-    },
-    {
-      "screen": "reliquary_test_all",
-      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test_all.png",
-      "verdict": "FAIL",
-      "issues": [
-        {
-          "description": "OPENROUTER_API_KEY not available \u2014 gate fails closed",
-          "severity": "high"
-        }
-      ]
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
     }
   ]
 }
