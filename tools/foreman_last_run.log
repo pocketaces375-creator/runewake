@@ -1,9 +1,3 @@
-Session: 18/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T12:50:48Z TASK-CAPTURE-COVERAGE-1 retry ===
 Session: 19/96
 Failures: finish_task_failure
 --- session tail ---
@@ -47,4 +41,10 @@ Session: 23/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T14:45:32Z TASK-ITEMS-BATTLEMAGE-1 retry ===
+Session: 24/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-BATTLEMAGE-1 on deepseek/deepseek-v4-flash: 901s
 ========================================
