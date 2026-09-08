@@ -1,8 +1,3 @@
-- Tests: 894 passed, 0 failed (retry confirmed flaky pass)
-- capture_gate: PASS (avg lum, center lum, grid variation)
-- visual_gate: PASS (0 blocking)
-========================================
-=== foreman: 2026-09-08T18:48:53Z TASK-ENGINE-DRUID-P1-1 success ===
 Session: 40/96
 --- session tail ---
   session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 303s
@@ -47,4 +42,9 @@ The task was already in place from a prior session. Verification run validated e
 - **Tests** — 11 tests passed (Poisoner's Kiss: 3, Shadowfang: 3, Lockpick: 3, Gloomblade: 3, load+equip: 1)
 - **finish_task.sh** — exited 0, committed + pushed (3852a2d)
 - **Telegram** — text description + 4 tiles posted to the Runewake group
+========================================
+=== foreman: 2026-09-08T21:35:54Z TASK-BORDER-REDESIGN-SCALE-1 success ===
+Session: 45/96
+--- session tail ---
+  session TASK-BORDER-REDESIGN-SCALE-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
