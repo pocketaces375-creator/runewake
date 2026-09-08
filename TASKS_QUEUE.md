@@ -33,7 +33,7 @@
   0 blocking and no longer lists (a)-(d) even as notes. Paste the before/after gate
   output into the DONE line.
 
-- [ ] TASK-HAND-CARDNAME-1 — Card names are clipped in hand (client/scripts/HandCard.cs
+- [x] TASK-HAND-CARDNAME-1 — Card names are clipped in hand (client/scripts/HandCard.cs
   ONLY). The gate found this on duel_test.png and duel_test_safe.png: the name
   "THE UNDYING ROOT OF THE FALL" is cut off at the bottom on several hand cards, and
   cut off on the LEFT edge on others in the safe-area capture. With a full hand the
