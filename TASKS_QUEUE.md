@@ -66,7 +66,7 @@
   `python3 tools/visual_gate.py --only choose_path` reports 0 blocking and no longer
   lists (a) or (b). Before/after gate output in the DONE line.
 
-- [ ] TASK-DUEL-HUD-1 — AFTER: TASK-ENDGAME-OVERLAY-1 (same file — do not start this
+- [!] TASK-DUEL-HUD-1 — AFTER: TASK-ENDGAME-OVERLAY-1 (same file — do not start this
   until that one is closed). Duel HUD readability (client/scripts/DuelScene.cs ONLY).
   From the gate on duel_test.png and duel_test_safe.png: the deck/barrow counter
   "34 DECK 0 BARROW" is very small and very low contrast, and at the safe-area size
