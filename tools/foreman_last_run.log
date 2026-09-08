@@ -1,9 +1,3 @@
-Verified:
-- `dotnet build` — 0 errors, 0 warnings
-- `dotnet test` — 883 passed (1 flake resolved on retry)
-- `artifacts/captures/title_test.png` — 2.7MB (valid capture)
-- `artifacts/captures/settings_test.png` — 56KB (valid capture)
-- Pushed: commit `36c552e` (impl) + `91526fc` (status)
 - HERMES_STATUS.md and TASKS_QUEUE.md updated
 ========================================
 === foreman: 2026-09-08T13:45:38Z TASK-ENGINE-DRUID-P1-1 retry ===
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-08T15:55:42Z TASK-ITEMS-NECROMANCER-1 retry ===
 Session: 27/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T16:25:42Z TASK-ITEMS-NECROMANCER-1 blocked ===
+Session: 28/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
