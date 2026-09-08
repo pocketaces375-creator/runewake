@@ -184,9 +184,13 @@ public partial class CardPlate : Control
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
         ApplyCardNameFont(_cardName, FontCardName);
-        // Engraved: the cut is darker than the stone it sits in.
-        _cardName.AddThemeColorOverride("font_color", new Color(0.157f, 0.125f, 0.086f));
-        _cardName.AddThemeConstantOverride("outline_size", 0);
+        // Gold-leaf carved look: warm bronze fill with a pale gold outline —
+        // Cinzel Decorative's thin strokes need the outline to read clearly
+        // against the stone plate (Adam: first pass with no outline was hard
+        // to read). Matches the frame's existing gold accents (cost rune, border).
+        _cardName.AddThemeColorOverride("font_color", new Color(0.227f, 0.165f, 0.063f));
+        _cardName.AddThemeColorOverride("font_outline_color", new Color(0.961f, 0.894f, 0.706f));
+        _cardName.AddThemeConstantOverride("outline_size", 2);
         var fit = FitCardNameAuto(safeWidth, maxBandH);
 
         // Actual band height = text height + small padding, never below baseline, never
