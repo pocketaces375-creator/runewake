@@ -123,7 +123,7 @@ public static class EffectExecutor
                     ApplyForge(target, effect, source, state);
                     break;
                 case Op.UNEARTH_FROM_GRAVEYARD:
-                    ApplyUnearthFromGraveyard(target, source, state);
+                    ApplyUnearthFromGraveyard(target, effect, source, state);
                     break;
             }
         }
@@ -693,7 +693,7 @@ public static class EffectExecutor
     /// owner's discard pile and place it in the first empty lane.
     /// If no empty lane exists or the discard has no creatures, fails silently.
     /// </summary>
-    private static void ApplyUnearthFromGraveyard(ResolvedTarget target, CardInstance source, GameState state)
+    private static void ApplyUnearthFromGraveyard(ResolvedTarget target, EffectDef effect, CardInstance source, GameState state)
     {
         PlayerState? player = target switch
         {
@@ -715,13 +715,19 @@ public static class EffectExecutor
         }
         if (emptyLane < 0) return; // no empty lane
 
-        // Find the creature with highest attack in discard pile
+        // Find the creature with highest attack in discard pile,
+        // optionally filtered by max cost when effect.Value is set
+        int? maxCost = effect.Value is > 0 ? effect.Value : null;
         CardInstance? best = null;
         int bestIdx = -1;
         for (int i = 0; i < player.Discard.Count; i++)
         {
             var card = player.Discard[i];
-            if (card.CardType == CardType.CREATURE && (best is null || card.CurrentAttack > best.CurrentAttack))
+            if (card.CardType != CardType.CREATURE)
+                continue;
+            if (maxCost.HasValue && card.Cost > maxCost.Value)
+                continue;
+            if (best is null || card.CurrentAttack > best.CurrentAttack)
             {
                 best = card;
                 bestIdx = i;

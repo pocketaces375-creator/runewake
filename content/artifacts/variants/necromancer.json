@@ -1,0 +1,95 @@
+[
+  {
+    "id": "artf_necromancer_grinning_skull",
+    "class": "necromancer",
+    "slot_pool": "skull",
+    "name": "Grinning Skull",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": {
+      "trigger": "ON_CREATURE_DIES",
+      "condition": { "op": "FRIENDLY" },
+      "effects": [
+        { "op": "DAMAGE", "target": { "scope": "PLAYER_ENEMY" }, "amount": 1 },
+        { "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+      ]
+    },
+    "full_charge": [
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_skeleton", "attack": 1, "vigor": 1 },
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_skeleton", "attack": 1, "vigor": 1 },
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_skeleton", "attack": 1, "vigor": 1 },
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_skeleton", "attack": 1, "vigor": 1 },
+      { "op": "SUMMON", "target": { "scope": "PLAYER_SELF" }, "token_id": "tok_skeleton", "attack": 1, "vigor": 1 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "The grin never fades, only the faces around it."
+  },
+  {
+    "id": "artf_necromancer_whispering_skull",
+    "class": "necromancer",
+    "slot_pool": "skull",
+    "name": "Whispering Skull",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        { "op": "EXCAVATE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 },
+        { "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+      ]
+    },
+    "full_charge": [
+      { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "It whispers secrets plucked from the silence between heartbeats."
+  },
+  {
+    "id": "artf_necromancer_blood_chalice",
+    "class": "necromancer",
+    "slot_pool": "ritual_piece",
+    "name": "Blood Chalice",
+    "passive": { "op": "HEAL", "target": { "scope": "NONE" } },
+    "trigger": {
+      "trigger": "ON_CREATURE_DIES",
+      "condition": { "op": "FRIENDLY" },
+      "effects": [
+        { "op": "DRAW", "target": { "scope": "PLAYER_SELF" }, "amount": 2 },
+        { "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+      ]
+    },
+    "full_charge": [
+      { "op": "UNEARTH_FROM_GRAVEYARD", "target": { "scope": "PLAYER_SELF" }, "value": 3 },
+      { "op": "UNEARTH_FROM_GRAVEYARD", "target": { "scope": "PLAYER_SELF" }, "value": 3 },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "A crimson toast to those who fell so others might rise."
+  },
+  {
+    "id": "artf_necromancer_plague_idol",
+    "class": "necromancer",
+    "slot_pool": "ritual_piece",
+    "name": "Plague Idol",
+    "passive": {
+      "op": "BUFF",
+      "target": { "scope": "ALLY_CREATURE", "filter": "KEYWORD:VENOM", "count": "ALL" },
+      "attack": 1,
+      "vigor": 0,
+      "duration": "WHILE_PRESENT"
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_DIES",
+      "condition": { "op": "ENEMY" },
+      "effects": [
+        { "op": "ADD_CHARGE", "target": { "scope": "PLAYER_SELF" }, "amount": 1 }
+      ]
+    },
+    "full_charge": [
+      { "op": "GRANT_KEY", "target": { "scope": "ALLY_CREATURE", "count": "ALL" }, "keyword": "VENOM" },
+      { "op": "RESET_CHARGES", "target": { "scope": "SELF_ARTIFACT" } }
+    ],
+    "charges": { "max": 3 },
+    "flavor": "From the idol's rotten heart, a gift that spreads through every vein."
+  }
+]
