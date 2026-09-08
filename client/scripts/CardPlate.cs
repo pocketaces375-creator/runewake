@@ -37,7 +37,6 @@ public partial class CardPlate : Control
 
     // ── Persistent child nodes ──
     private ColorRect? _nameBandBg;
-    private Panel? _nameTextBacking;
     private ColorRect? _statRailBg;
     private Label? _cardName;
     private Label? _attackBadge;
@@ -130,19 +129,6 @@ public partial class CardPlate : Control
             };
             AddChild(_statRailBg);
 
-            // ── Name text backing plaque — isolates the name from the mottled stone
-            // texture behind it. Sized to the fitted text width below, not the
-            // whole band (keeps the pale-stone plate law for the rest of the band).
-            _nameTextBacking = new Panel { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
-            var backingStyle = new StyleBoxFlat
-            {
-                BgColor = new Color(0.098f, 0.078f, 0.055f, 0.92f),
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            _nameTextBacking.AddThemeStyleboxOverride("panel", backingStyle);
-            AddChild(_nameTextBacking);
-
             // ── Name clipping container — prevents text from overflowing into stat rail ──
             _nameClipContainer = new Control
             {
@@ -198,13 +184,12 @@ public partial class CardPlate : Control
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
         ApplyCardNameFont(_cardName, FontCardName);
-        // Gold-leaf carved look: warm bronze fill with a pale gold outline —
-        // Cinzel Decorative's thin strokes need the outline to read clearly
-        // against the stone plate (Adam: first pass with no outline was hard
-        // to read). Matches the frame's existing gold accents (cost rune, border).
-        _cardName.AddThemeColorOverride("font_color", new Color(0.227f, 0.165f, 0.063f));
-        _cardName.AddThemeColorOverride("font_outline_color", new Color(0.961f, 0.894f, 0.706f));
-        _cardName.AddThemeConstantOverride("outline_size", 2);
+        // Trikzos' call: dark ink cut into the pale stone. No plaque, no gold.
+        // Near-black with a 1px same-colour outline so Cinzel Decorative's
+        // hairline strokes still carry weight at hand-card size.
+        _cardName.AddThemeColorOverride("font_color", new Color(0.06f, 0.05f, 0.035f));
+        _cardName.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.035f));
+        _cardName.AddThemeConstantOverride("outline_size", 1);
         var fit = FitCardNameAuto(safeWidth, maxBandH);
 
         // Actual band height = text height + small padding, never below baseline, never
@@ -235,22 +220,6 @@ public partial class CardPlate : Control
         _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
         _cardName.MaxLinesVisible = fit.LineCount;
 
-        // ── Name text backing plaque: sized to the actual rendered text width ──
-        if (_nameTextBacking != null)
-        {
-            var measureFont = _cardName.GetThemeFont("font");
-            float textW = measureFont != null
-                ? measureFont.GetStringSize(_cardName.Text, HorizontalAlignment.Left, -1, fit.FontSize).X
-                : safeWidth;
-            float chipPadX = Mathf.Max(8f, cardWidth * 0.02f);
-            float chipW = Mathf.Min(safeWidth, textW + chipPadX * 2f);
-            float chipH = Mathf.Min(nameBandH - 4f, fit.TextHeight + Mathf.Max(4f, cardHeight * 0.012f));
-            _nameTextBacking.Size = new Vector2(chipW, chipH);
-            _nameTextBacking.Position = new Vector2(
-                (cardWidth - chipW) / 2f,
-                (nameBandH - chipH) / 2f);
-            _nameTextBacking.Visible = true;
-        }
 
         // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) — pill-shaped gold-ring medallions ──
         // Card law: a stat sits in a keyline box on the soil band — 19% of card
