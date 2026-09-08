@@ -1,9 +1,3 @@
-  session TASK-CHOOSE-PATH-2 on deepseek/deepseek-v4-flash: 550s
-========================================
-=== foreman: 2026-09-08T01:21:09Z TASK-DUEL-HUD-1 retry ===
-Session: 25/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
 === foreman: 2026-09-08T01:41:17Z TASK-DUEL-HUD-1 blocked ===
@@ -47,4 +41,10 @@ Session: 6/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T07:01:18Z TASK-ITEMS-PALADIN-2 retry ===
+Session: 7/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
