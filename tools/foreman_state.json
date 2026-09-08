@@ -1,17 +1,17 @@
 {
   "date": "2026-09-08",
   "session_count": 35,
-  "last_task_id": "TASK-CAPTURE-COVERAGE-2",
-  "last_commit_sha": "115c189106f741f5c616f44068dc180bbd686058",
-  "retry_count": 1,
-  "retry_task_id": "TASK-ITEMS-NECROMANCER-2",
+  "last_task_id": "TASK-ITEMS-NECROMANCER-2",
+  "last_commit_sha": "668c3112c24ffc16cea0a442763307b72d6719a0",
+  "retry_count": 0,
+  "retry_task_id": "",
   "blocked_notified": false,
   "consecutive_transients": 0,
   "transient_notified": false,
   "bus_last_seq": 4,
   "bus_session_count": 0,
   "no_progress_count": 0,
-  "validated_count": 4,
-  "last_heartbeat_epoch": 1788887078,
-  "last_heartbeat_reason": "running_TASK-ITEMS-DRUID-1"
+  "validated_count": 5,
+  "last_heartbeat_epoch": 1788891041,
+  "last_heartbeat_reason": "running_TASK-ITEMS-NECROMANCER-2"
 }
