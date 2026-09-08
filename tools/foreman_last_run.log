@@ -1,9 +1,3 @@
-- HERMES_STATUS.md and TASKS_QUEUE.md updated
-========================================
-=== foreman: 2026-09-08T13:45:38Z TASK-ENGINE-DRUID-P1-1 retry ===
-Session: 21/96
-Failures: finish_task_failure
---- session tail ---
   session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
 === foreman: 2026-09-08T14:05:33Z TASK-ENGINE-DRUID-P1-1 blocked ===
@@ -44,6 +38,12 @@ Failures: finish_task_failure
 ========================================
 === foreman: 2026-09-08T16:25:42Z TASK-ITEMS-NECROMANCER-1 blocked ===
 Session: 28/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T16:45:56Z TASK-ITEMS-NECROMANCER-1 retry ===
+Session: 29/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
