@@ -111,3 +111,4 @@
 - 2026-09-08: PARKED TASK-ITEMS-BATTLEMAGE-2 — spend ceiling reached ($0.847); awaiting Fable.
 - 2026-09-08: PARKED TASK-ITEMS-NECROMANCER-2 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
 - 2026-09-08: PARKED TASK-ITEMS-NECROMANCER-2 — 3 sessions without queue progress, auto-parked by foreman; awaiting Fable.
+- 2026-09-08: PARKED TASK-ITEMS-PALADIN-2 — failed 2 attempts, auto-parked by foreman; awaiting Fable.
