@@ -100,7 +100,7 @@
   are over 100 KB each, and `python3 tools/visual_gate.py` no longer reports a
   COVERAGE GAP for any of them.
 
-- [ ] TASK-ITEMS-BATTLEMAGE-2 — Four more Battlemage artifacts (two per slot) in
+- [!] TASK-ITEMS-BATTLEMAGE-2 — Four more Battlemage artifacts (two per slot) in
   content/artifacts/variants/battlemage.json, Fable's designs; sidegrades only, never
   strictly better than the base items. Use the two slot_pool values the existing
   battlemage entries already use — read the file, do not invent slot names. Follow
