@@ -467,25 +467,13 @@ public partial class CardPlate : Control
             return Result(sz, 1);
         }
 
-        // One line, always — ellipsis before a second line.
-        {
-            int floorSz = singleLineFloor;
-            while (floorSz > 10 && Measure(_cardNameText, floorSz) > safeWidth) floorSz--;
-            var overrun = Measure(_cardNameText, floorSz) <= safeWidth
-                ? TextServer.OverrunBehavior.NoTrimming
-                : TextServer.OverrunBehavior.TrimEllipsis;
-            Apply(floorSz, _cardNameText, 1, overrun);
-            return Result(floorSz, 1);
-        }
-
-        // ─── Two-line balanced split ───
+        // ─── Single line didn't fit width — try two-line balanced split ───
         string[] words = _cardNameText.Split(' ');
         if (words.Length > 1)
         {
             string[] bestLines = BalancedSplit(words);
             sz = Mathf.Max(heightFloor, baseSize - 2);
-            // Width shrink: continue to heightFloor (autowrap is Off after fix,
-            // so any remaining overflow is clipped; shrinking further reduces it).
+            // Width shrink: continue to heightFloor
             float widest = Mathf.Max(Measure(bestLines[0], sz), Measure(bestLines[1], sz));
             while (sz > heightFloor && widest > safeWidth)
             {
@@ -494,7 +482,6 @@ public partial class CardPlate : Control
             }
             
             // Height check: 2 lines * lineHeight must fit in maxBandH
-            // Shrink until height fits — use absolute 8px floor
             float twoLineH = 2 * LineHeight(sz);
             while (twoLineH > maxBandH && sz > heightFloor)
             {
@@ -519,7 +506,6 @@ public partial class CardPlate : Control
             // If still overflows height at absolute floor, single-line ellipsis
             if (twoLineH > maxBandH)
             {
-                // Two-line doesn't fit at floor — single line with ellipsis
                 sz = hardMin;
                 while (sz > heightFloor && Measure(_cardNameText, sz) > safeWidth)
                     sz--;
@@ -531,7 +517,7 @@ public partial class CardPlate : Control
             return Result(sz, 2);
         }
 
-        // Single unbreakable word — shrink to hardMin, ellipsis at absolute floor
+        // ─── Single unbreakable word — shrink to hardMin, ellipsis at absolute floor ───
         while (sz > hardMin && Measure(_cardNameText, sz) > safeWidth)
             sz--;
         if (Measure(_cardNameText, sz) > safeWidth)
