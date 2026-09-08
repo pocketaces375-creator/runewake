@@ -1,11 +1,5 @@
   session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
-=== foreman: 2026-09-08T07:31:02Z TASK-ITEMS-PALADIN-2 blocked ===
-Session: 8/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-08T08:01:10Z TASK-ITEMS-PALADIN-2 retry ===
 Session: 9/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Session: 15/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 901s
+========================================
+=== foreman: 2026-09-08T11:31:29Z TASK-RELIQUARY-LAYOUT-1 retry ===
+Session: 16/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
