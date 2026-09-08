@@ -1,9 +1,3 @@
-Session: 16/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-RELIQUARY-LAYOUT-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T12:01:00Z TASK-RELIQUARY-LAYOUT-1 blocked ===
 Session: 17/96
 Failures: finish_task_failure
 --- session tail ---
@@ -44,6 +38,12 @@ Verified:
 ========================================
 === foreman: 2026-09-08T13:45:38Z TASK-ENGINE-DRUID-P1-1 retry ===
 Session: 21/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T14:05:33Z TASK-ENGINE-DRUID-P1-1 blocked ===
+Session: 22/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 900s
