@@ -1,25 +1,3 @@
-Three changes to `ChooseYourPathScene.cs`:
-
-**Fix (a) — Class blurb no longer clipped**
-- `textBlock.SizeFlagsVertical` changed from `4` (ShrinkCenter) to `3` (Fill|Expand) so it claims a share of the panel's vertical space alongside the portrait instead of taking only its (underreported) minimum height.
-- `SizeFlagsStretchRatio = 0.10f` keeps the portrait dominant (~91% of extra space) while giving the text block enough room for all wrapped text.
-- Removed `ClipContents = true` from the panel as a safety net — labels with Autowrap can report a minimum height lower than their actual laid-out height; without ClipContents, any overflow stays visible within the carousel clip container.
-
-**Fix (b) — Carousel dots are no longer obscured by BEGIN button**
-- Dot area raised from `sectionH - 32` to `sectionH - 52` (20px higher).
-- Dot area height reduced from 26px to 20px.
-- This creates a clear visual separation between the position dots and the BEGIN button below the carousel.
-
-**Verification:**
-- ✅ Build: 0 errors
-- ✅ Tests: 894/894 pass
-- ✅ Regenerated captures: `choose_path.png` (2316×1080) and `choose_path_wide.png` (2999×1080) — both VERIFY: 0 failed
-- ✅ `visual_gate --only choose_path`: 0 blocking issues (only the pre-existing OPENROUTER_API_KEY note, no mention of clipping or dot overlap)
-- ✅ Commit: `8954eee TASK-CHOOSE-PATH-2: class blurb no longer clipped...` + `933a066 TASK-CHOOSE-PATH-2: mark [x] + DONE entry` — pushed
-========================================
-=== foreman: 2026-09-08T17:38:03Z TASK-CAPTURE-COVERAGE-2 success ===
-Session: 33/96
---- session tail ---
   session TASK-CAPTURE-COVERAGE-2 on deepseek/deepseek-v4-flash: 217s
 TASK-CAPTURE-COVERAGE-2 complete. `finish_task.sh` built, committed, pushed, and marked done. Fresh captures verified:
 
@@ -47,4 +25,26 @@ Failures: finish_task_failure
 Session: 35/96
 --- session tail ---
   session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T18:14:47Z TASK-ITEMS-PALADIN-2 success ===
+Session: 36/96
+--- session tail ---
+  session TASK-ITEMS-PALADIN-2 on deepseek/deepseek-v4-flash: 197s
+Task TASK-ITEMS-PALADIN-2 is complete. Here's what was done:
+
+**Added 4 new Paladin artifacts to `content/artifacts/variants/paladin.json`** (now 8 total):
+
+- **Oathkeeper's Weight** (hammer) — Guards can't drop below 1 vigor per attack; charges on Guard survival; full: grant Guard +0/+2 permanently
+- **Dawnbreaker Maul** (hammer) — First attack each turn deals +1 to damaged; charges on attacking damaged; full: deal 4 to a damaged creature
+- **Vigil Standard** (banner) — Start of turn heal 1 to damaged ally; charges per turn an ally is damaged; full: restore all allies to full
+- **Sanctum Pennant** (banner) — Adjacent creatures take 1 less damage; charges on damage prevented; full: all allies take no damage until your next turn
+
+**finish_task.sh ran all gates:**
+- Build: passed
+- art_check: 322 files, 0 failures
+- Unit tests: all passed
+- ui_lint: pre-existing failures only (non-blocking)
+- label_fit: passed
+- Commit: `2d95c5f` (artifact content) + `4b9bc5f` (mark done)
+- Exit code: 0
 ========================================
