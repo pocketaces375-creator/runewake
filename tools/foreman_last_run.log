@@ -1,11 +1,5 @@
   session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
 ========================================
-=== foreman: 2026-09-08T06:10:24Z TASK-ITEMS-NECROMANCER-2 blocked ===
-Session: 5/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-2 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-08T06:41:07Z TASK-ITEMS-NECROMANCER-2 retry ===
 Session: 6/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Session: 12/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-ITEMS-DRUID-2 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T10:01:01Z TASK-MAP-PANEL-1 retry ===
+Session: 13/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-MAP-PANEL-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
