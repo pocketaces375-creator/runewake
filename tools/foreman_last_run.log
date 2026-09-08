@@ -1,11 +1,5 @@
   session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
-=== foreman: 2026-09-07T21:56:26Z TASK-HAND-CARDNAME-1 retry ===
-Session: 21/96
-Failures: finish_task_failure
---- session tail ---
-  session TASK-HAND-CARDNAME-1 on deepseek/deepseek-v4-flash: 900s
-========================================
 === foreman: 2026-09-07T22:26:10Z TASK-CHOOSE-PATH-2 retry ===
 Session: 22/96
 Failures: finish_task_failure
@@ -47,4 +41,10 @@ Session: 2/96
 Failures: finish_task_failure
 --- session tail ---
   session TASK-DUEL-HUD-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-08T05:31:01Z TASK-CAPTURE-COVERAGE-2 retry ===
+Session: 3/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-CAPTURE-COVERAGE-2 on deepseek/deepseek-v4-flash: 901s
 ========================================
