@@ -37,6 +37,7 @@ public partial class CardPlate : Control
 
     // ── Persistent child nodes ──
     private ColorRect? _nameBandBg;
+    private Panel? _nameTextBacking;
     private ColorRect? _statRailBg;
     private Label? _cardName;
     private Label? _attackBadge;
@@ -129,6 +130,19 @@ public partial class CardPlate : Control
             };
             AddChild(_statRailBg);
 
+            // ── Name text backing plaque — isolates the name from the mottled stone
+            // texture behind it. Sized to the fitted text width below, not the
+            // whole band (keeps the pale-stone plate law for the rest of the band).
+            _nameTextBacking = new Panel { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+            var backingStyle = new StyleBoxFlat
+            {
+                BgColor = new Color(0.098f, 0.078f, 0.055f, 0.92f),
+                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
+            };
+            _nameTextBacking.AddThemeStyleboxOverride("panel", backingStyle);
+            AddChild(_nameTextBacking);
+
             // ── Name clipping container — prevents text from overflowing into stat rail ──
             _nameClipContainer = new Control
             {
@@ -220,6 +234,23 @@ public partial class CardPlate : Control
         // guarantees consistency after the container is re-sized.
         _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
         _cardName.MaxLinesVisible = fit.LineCount;
+
+        // ── Name text backing plaque: sized to the actual rendered text width ──
+        if (_nameTextBacking != null)
+        {
+            var measureFont = _cardName.GetThemeFont("font");
+            float textW = measureFont != null
+                ? measureFont.GetStringSize(_cardName.Text, HorizontalAlignment.Left, -1, fit.FontSize).X
+                : safeWidth;
+            float chipPadX = Mathf.Max(8f, cardWidth * 0.02f);
+            float chipW = Mathf.Min(safeWidth, textW + chipPadX * 2f);
+            float chipH = Mathf.Min(nameBandH - 4f, fit.TextHeight + Mathf.Max(4f, cardHeight * 0.012f));
+            _nameTextBacking.Size = new Vector2(chipW, chipH);
+            _nameTextBacking.Position = new Vector2(
+                (cardWidth - chipW) / 2f,
+                (nameBandH - chipH) / 2f);
+            _nameTextBacking.Visible = true;
+        }
 
         // ── Stat rail: attack left, vigor right, DOCKED INSIDE (no overhang) — pill-shaped gold-ring medallions ──
         // Card law: a stat sits in a keyline box on the soil band — 19% of card
