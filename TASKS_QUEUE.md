@@ -481,7 +481,7 @@
 # NOT IN THIS PACKET — these need Trikzos' keys or a decision, and will be queued later:
 # Supabase and accounts, the Tower, store signing and listing, FLUX credit refills.
 
-- [ ] TASK-BORDER-REDESIGN-SCALE-1 — The Root-Bound Stone border art is
+- [x] TASK-BORDER-REDESIGN-SCALE-1 — The Root-Bound Stone border art is
   painted with fine detail (flowers, thin vines, carved rune lines) that
   cannot survive being rendered at its actual on-screen size. Board cards
   render the border at ~14-20px thick; hand cards even less. At that size ANY
