@@ -183,7 +183,7 @@ public partial class CardPlate : Control
         _cardName.Position = Vector2.Zero;
         _cardName.Size = new Vector2(safeWidth, maxBandH - 2f);
         _cardName.Text = name;
-        ApplyHeaderFont(_cardName, FontCardName);
+        ApplyCardNameFont(_cardName, FontCardName);
         // Engraved: the cut is darker than the stone it sits in.
         _cardName.AddThemeColorOverride("font_color", new Color(0.157f, 0.125f, 0.086f));
         _cardName.AddThemeConstantOverride("outline_size", 0);
