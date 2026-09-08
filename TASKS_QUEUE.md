@@ -55,7 +55,7 @@
   `python3 tools/visual_gate.py --only duel_test` no longer reports placeholder text
   or blank artifact art. Before/after gate output in the DONE line.
 
-- [ ] TASK-CHOOSE-PATH-2 — Class select polish (client/scripts/ChooseYourPathScene.cs
+- [x] TASK-CHOOSE-PATH-2 — Class select polish (client/scripts/ChooseYourPathScene.cs
   ONLY). From the gate on choose_path.png:
   (a) the class blurb is cut off at the bottom of its panel — the Battlemage text
       ends mid-sentence on "Saltmere,". Size the panel to its text, or scroll it;
