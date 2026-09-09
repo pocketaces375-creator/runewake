@@ -20,35 +20,14 @@ public partial class RulesSlab : Control
     private Label _attackChip;
     private Label _vigorChip;
     private Label _rulesLabel;
-    private VBoxContainer _keywordsLabel;
+    private Label _keywordsLabel;
     private Control _statRow;
 
     private const float SlabWidthFraction = 0.40f;
     private const float SlabHeightFraction = 0.14f;
 
     /// <summary>Which slab-local keyword reminders are currently shown, for unit-test scruitiny.</summary>
-    public string KeywordRemindersText
-    {
-        get
-        {
-            var parts = new System.Collections.Generic.List<string>();
-            foreach (var child in _keywordsLabel.GetChildren())
-            {
-                if (child is HBoxContainer hbox)
-                {
-                    foreach (var sub in hbox.GetChildren())
-                    {
-                        if (sub is Label lbl)
-                        {
-                            parts.Add(lbl.Text);
-                            break; // only the first Label per row
-                        }
-                    }
-                }
-            }
-            return string.Join(", ", parts);
-        }
-    }
+    public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
 
     public override void _Ready()
     {
@@ -131,12 +110,15 @@ public partial class RulesSlab : Control
         vbox.AddChild(_rulesLabel);
 
         // ── Keyword reminders (dimmer engraved tone) ──
-        _keywordsLabel = new VBoxContainer
+        _keywordsLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3, // Fill
-            SizeFlagsVertical = (Control.SizeFlags)0,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Top,
+            AutowrapMode = TextServer.AutowrapMode.Word,
         };
+        _keywordsLabel.AddThemeColorOverride("font_color", TextMuted);
+        ApplyBodyFont(_keywordsLabel, 10);
         vbox.AddChild(_keywordsLabel);
     }
 
@@ -201,73 +183,11 @@ public partial class RulesSlab : Control
         ApplyBodyFont(_rulesLabel, rulesFontSize);
 
         // ── Keyword reminders ──
-        // Clear previous keyword rows
-        foreach (var child in _keywordsLabel.GetChildren())
-            child.QueueFree();
-        if (card.Keywords.Count > 0)
-        {
-            _keywordsLabel.Visible = true;
-            foreach (var kw in card.Keywords)
-            {
-                var row = new HBoxContainer
-                {
-                    MouseFilter = MouseFilterEnum.Ignore,
-                    SizeFlagsHorizontal = (Control.SizeFlags)3, // Fill
-                    Alignment = BoxContainer.AlignmentMode.Center,
-                };
-                // Keyword icon
-                string iconPath = CardView.KeywordIconPath(kw);
-                if (ResourceLoader.Exists(iconPath, nameof(Texture2D)))
-                {
-                    var icon = new TextureRect
-                    {
-                        Texture = ResourceLoader.Load<Texture2D>(iconPath),
-                        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                        StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                        CustomMinimumSize = new Vector2(14, 14),
-                        Size = new Vector2(14, 14),
-                        MouseFilter = MouseFilterEnum.Ignore,
-                    };
-                    row.AddChild(icon);
-                }
-                // Keyword reminder text
-                string display = RulesTextRenderer.FormatKeyword(kw);
-                string reminder = kw switch
-                {
-                    "GUARD" => "May block for adjacent allies.",
-                    "SWIFT" => "May attack the turn it is played.",
-                    "PIERCE" => "Excess damage carries over to the enemy player.",
-                    "WARD" => "Negate the first enemy ability that targets this creature.",
-                    "VENOM" => "Deals 1 extra damage to the target.",
-                    "REACH" => "May attack any lane.",
-                    "ROOTED" => "Cannot be moved or returned to hand.",
-                    "UNEARTH" => "Return to hand when this dies.",
-                    "ECHO" => "Copy the last ability played.",
-                    "FRAGILE" => "Dies when it takes damage.",
-                    "SEALED" => "Starts unidentified; revealed when its condition is met.",
-                    "ANCESTRAL_SHIELD" => "Once per turn, clamp ally Vigor to 1 when hit by an enemy spell.",
-                    "STEALTH_STRIKE" => "Deals no counter-damage when attacking.",
-                    _ => ""
-                };
-                string labelText = string.IsNullOrEmpty(reminder) ? display : $"{display}: {reminder}";
-                var kwLabel = new Label
-                {
-                    Text = labelText,
-                    MouseFilter = MouseFilterEnum.Ignore,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    AutowrapMode = TextServer.AutowrapMode.Word,
-                };
-                kwLabel.AddThemeColorOverride("font_color", TextMuted);
-                ApplyBodyFont(kwLabel, 10);
-                row.AddChild(kwLabel);
-                _keywordsLabel.AddChild(row);
-            }
-        }
-        else
-        {
-            _keywordsLabel.Visible = false;
-        }
+        string kwReminders = BuildKeywordReminders(card.Keywords);
+        _keywordsLabel.Text = kwReminders;
+        _keywordsLabel.Visible = !string.IsNullOrEmpty(kwReminders);
+        int kwFontSize = Mathf.Max(9, Mathf.RoundToInt(slabH * 0.09f));
+        ApplyBodyFont(_keywordsLabel, kwFontSize);
 
         _rootPanel.Size = new Vector2(slabW, slabH);
 
@@ -302,4 +222,41 @@ public partial class RulesSlab : Control
         return label;
     }
 
+    /// <summary>
+    /// Build keyword reminder text — one line per keyword, in a dimmer engraved tone.
+    /// Reminders come from the keyword table so they stay correct.
+    /// </summary>
+    private static string BuildKeywordReminders(List<string> keywords)
+    {
+        if (keywords == null || keywords.Count == 0)
+            return "";
+
+        var lines = new System.Collections.Generic.List<string>();
+        foreach (var kw in keywords)
+        {
+            string display = RulesTextRenderer.FormatKeyword(kw);
+            string reminder = kw switch
+            {
+                "GUARD" => "May block for adjacent allies.",
+                "SWIFT" => "May attack the turn it is played.",
+                "PIERCE" => "Excess damage carries over to the enemy player.",
+                "WARD" => "Negate the first enemy ability that targets this creature.",
+                "VENOM" => "Deals 1 extra damage to the target.",
+                "REACH" => "May attack any lane.",
+                "ROOTED" => "Cannot be moved or returned to hand.",
+                "UNEARTH" => "Return to hand when this dies.",
+                "ECHO" => "Copy the last ability played.",
+                "FRAGILE" => "Dies when it takes damage.",
+                "SEALED" => "Starts unidentified; revealed when its condition is met.",
+                "ANCESTRAL_SHIELD" => "Once per turn, clamp ally Vigor to 1 when hit by an enemy spell.",
+                "STEALTH_STRIKE" => "Deals no counter-damage when attacking.",
+                _ => ""
+            };
+            if (!string.IsNullOrEmpty(reminder))
+                lines.Add($"{display}: {reminder}");
+            else
+                lines.Add($"{display}");
+        }
+        return string.Join("\n", lines);
     }
+}
