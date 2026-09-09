@@ -1,3 +1,4 @@
+| TASK-MAP-SIZE-1 | 2026-09-09 | fix map node font size, bounds, truncation, and side button sizes | DONE |
 | TASK-BORDER-PALE-1 | 2026-09-09 | pale limestone border with gold keyline | DONE |
 | TASK-ART-ICONS-1 | 2026-09-09 | A matching icon set for the eleven keywords and five strata in the locked style, .webp with .import files, wired into the card frame next to the keyword text. Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list. | DONE |
 | TASK-ART-ICONS-1 | 2026-09-09 | Generate 16 keyword and strata icons in locked style as .webp with .import files, wired into CardView and RulesSlab next to keyword text | DONE |
