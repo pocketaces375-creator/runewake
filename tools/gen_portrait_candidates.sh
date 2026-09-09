@@ -1,9 +1,8 @@
 #!/bin/bash
 set -euo pipefail
-cd /home/fictive/runewake
+cd "$(cd "$(dirname "$0")/.." && pwd)"
 
-source /home/fictive/.hermes/profiles/tcgbot/.env
-export OPENROUTER_API_KEY
+# Expect OPENROUTER_API_KEY in the environment (set by .env or foreman)
 
 GEN="python3 pipeline/gen_image_openrouter.py"
 OUTDIR="art_output/portraits"
