@@ -283,7 +283,7 @@
   DO: (1) seed the touch smoke test with a deterministic hand and enough attunement that TOUCH_LANE_PLAY and TOUCH_COMBAT can always run — no card in hand is a broken fixture, not a reason to skip; (2) make SKIP on TOUCH_LANE_PLAY or TOUCH_COMBAT exit non-zero with "SKIPPED A CRITICAL CHECK — this is a failure"; (3) apply the same rule anywhere else a smoke test can skip its main assertion.
   DONE: touch_smoke_result.json shows TOUCH_LANE_PLAY:PASS with a creature actually on the board afterwards, and deliberately emptying the seeded hand makes the run FAIL rather than skip.
 
-- [ ] TASK-UI-READABLE-2 — FABLE. Map-screen readability. TASK-UI-READABLE-1 was parked after 3 sessions with no progress; Fable takes it directly. Do not run this in a lane.
+- [x] TASK-UI-READABLE-2 — FABLE. Map-screen readability. TASK-UI-READABLE-1 was parked after 3 sessions with no progress; Fable takes it directly. Do not run this in a lane.
 
 - [x] TASK-TITLE-ALIGN-1 (closed by Fable: the campaign panel sits in one column with Reliquary/Settings, verified in a capture) — — Title screen: the "No Campaign / New Campaign" panel floats at a random spot on the left, unaligned with anything. It must sit in ONE column with Decks / Reliquary / Settings: same left edge, same width, same gap between panels, the whole stack centred horizontally as a group and vertically balanced under the title. New Campaign is the primary action and sits at the top of that stack.
   ALSO: delete the rune-wheel overlay entirely — client/content/art/title/rune_wheel.png and the block in Main.cs that loads and rotates it. It is a programmatically drawn hoop, not generated art, and the title painting already contains a rune wheel. Fable is animating the real one.
