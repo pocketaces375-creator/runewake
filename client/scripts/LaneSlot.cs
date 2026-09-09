@@ -466,17 +466,114 @@ public partial class LaneSlot : PanelContainer
 
     private readonly TapGuard _tap = new();
 
+    // TASK-CARD-TEXT-1: Long-press for rules slab
+    private Godot.Timer? _holdTimer;
+    private bool _isLongPressing;
+    private const float LongPressThreshold = 0.25f;
+    private bool _pendingLaneTapOnRelease; // true = emit LaneTapped on quick-tap release
+    /// <summary>DuelScene hooks this to show the rules slab.</summary>
+    public Action<CardDef?>? CardLongPressStarted;
+    /// <summary>DuelScene hooks this to hide the rules slab.</summary>
+    public Action? LongPressEnded;
+    /// <summary>Current CardDef for this slot (null when empty).</summary>
+    public CardDef? CurrentCardDef { get; private set; }
+
+    // ——— Long-press timer management ———
+    private void StartHoldTimer()
+    {
+        StopHoldTimer();
+        _holdTimer = new Godot.Timer();
+        _holdTimer.OneShot = true;
+        _holdTimer.WaitTime = LongPressThreshold;
+        _holdTimer.Timeout += OnHoldTimerFired;
+        AddChild(_holdTimer);
+        _holdTimer.Start();
+    }
+
+    private void StopHoldTimer()
+    {
+        if (_holdTimer != null && IsInstanceValid(_holdTimer))
+        {
+            _holdTimer.Stop();
+            _holdTimer.QueueFree();
+            _holdTimer = null;
+        }
+    }
+
+    private void OnHoldTimerFired()
+    {
+        // 250ms elapsed — this is a long-press (only on occupied slots)
+        if (_state == NodeState.Empty)
+        {
+            _isLongPressing = false;
+            return;
+        }
+        _isLongPressing = true;
+        _pendingLaneTapOnRelease = false; // suppress the lane tap — we're reading rules
+        var def = CardRegistry.Get(_currentCardId);
+        CardLongPressStarted?.Invoke(def);
+        GetViewport().SetInputAsHandled();
+    }
+
+    private bool IsReleaseEvent(InputEvent @event)
+    {
+        return (@event is InputEventMouseButton mb && !mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+            || (@event is InputEventScreenTouch st && !st.Pressed);
+    }
+
+    /// <summary>Clean up timer when node exits tree.</summary>
+    public override void _ExitTree()
+    {
+        StopHoldTimer();
+        base._ExitTree();
+    }
+
     // ——— Tap handling ———
 
     public override void _GuiInput(InputEvent @event)
     {
-        // A tap on glass arrives twice — as a touch event and again as the mouse event Godot
-        // emulates from it. TapGuard collapses the pair so one finger press is one press.
+        // Handle release events for long-press
+        if (IsReleaseEvent(@event))
+        {
+            if (_isLongPressing)
+            {
+                // Long-press release — hide slab, no LaneTapped
+                _isLongPressing = false;
+                _pendingLaneTapOnRelease = false;
+                LongPressEnded?.Invoke();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+
+            // Quick-tap release — stop timer, fire delayed LaneTapped if needed
+            bool shouldTap = _pendingLaneTapOnRelease;
+            StopHoldTimer();
+            _pendingLaneTapOnRelease = false;
+            if (shouldTap && _state == NodeState.Occupied)
+            {
+                EmitSignal(SignalName.LaneTapped, LaneIndex, false);
+            }
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        // Press events: use TapGuard to deduplicate touch+mouse pairs
         bool accepted = _tap.Accept(@event);
         if (accepted)
         {
             GD.Print($"[LANESLOT_TOUCH] _GuiInput accepted: event={@event.GetType().Name}, lane={LaneIndex}, empty={_state == NodeState.Empty}");
-            EmitSignal(SignalName.LaneTapped, LaneIndex, _state == NodeState.Empty);
+
+            if (_state == NodeState.Empty)
+            {
+                // Empty slot — emit LaneTapped immediately (no long-press possible)
+                EmitSignal(SignalName.LaneTapped, LaneIndex, true);
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+
+            // Occupied slot — start hold timer, defer LaneTapped
+            _pendingLaneTapOnRelease = true;
+            StartHoldTimer();
             GetViewport().SetInputAsHandled();
         }
     }

@@ -37,6 +37,15 @@ public partial class HandCard : PanelContainer
 
     public Control ArtRectNode => _artRect;
 
+    // TASK-CARD-TEXT-1: Long-press for rules slab
+    private Godot.Timer? _holdTimer;
+    private bool _isLongPressing;
+    private const float LongPressThreshold = 0.25f;
+    /// <summary>DuelScene hooks this to show the rules slab with the card's CardDef.</summary>
+    public Action<CardDef?>? LongPressStarted;
+    /// <summary>DuelScene hooks this to hide the rules slab.</summary>
+    public Action? LongPressEnded;
+
     [Signal]
     public delegate void PressedEventHandler();
 
@@ -293,19 +302,100 @@ public partial class HandCard : PanelContainer
 
     private readonly TapGuard _tap = new();
 
+    // ——— Long-press timer management ———
+    private void StartHoldTimer()
+    {
+        StopHoldTimer();
+        _holdTimer = new Godot.Timer();
+        _holdTimer.OneShot = true;
+        _holdTimer.WaitTime = LongPressThreshold;
+        _holdTimer.Timeout += OnHoldTimerFired;
+        AddChild(_holdTimer);
+        _holdTimer.Start();
+    }
+
+    private void StopHoldTimer()
+    {
+        if (_holdTimer != null && IsInstanceValid(_holdTimer))
+        {
+            _holdTimer.Stop();
+            _holdTimer.QueueFree();
+            _holdTimer = null;
+        }
+    }
+
+    private void OnHoldTimerFired()
+    {
+        // 250ms elapsed — this is a long-press
+        _isLongPressing = true;
+        var def = CardRegistry.Get(CardId);
+        LongPressStarted?.Invoke(def);
+        GetViewport().SetInputAsHandled();
+    }
+
+    /// <summary>Clean up timer when node exits tree.</summary>
+    public override void _ExitTree()
+    {
+        StopHoldTimer();
+        base._ExitTree();
+    }
+
+    private bool IsReleaseEvent(InputEvent @event)
+    {
+        return (@event is InputEventMouseButton mb && !mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+            || (@event is InputEventScreenTouch st && !st.Pressed);
+    }
+
     // ——— Click/touch handling via GuiInput ———
     public override void _GuiInput(InputEvent @event)
     {
+        // Check for release first — hides slab or cancels timer
+        if (IsReleaseEvent(@event))
+        {
+            if (_isLongPressing)
+            {
+                // Release after long-press — hide the slab
+                _isLongPressing = false;
+                LongPressEnded?.Invoke();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            // Early release before 250ms — fire the normal tap
+            StopHoldTimer();
+            EmitSignal(SignalName.Pressed);
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        // Press events: use TapGuard to deduplicate touch+mouse pairs
         bool accepted = _tap.Accept(@event);
         GD.Print($"[HANDCARD_TOUCH] _GuiInput: event={@event.GetType().Name}, " +
             $"pressed={(@event is InputEventScreenTouch t ? t.Pressed : @event is InputEventMouseButton m ? m.Pressed : false)}, " +
             $"card={CardName}, accepted={accepted}");
         if (accepted)
         {
-            EmitSignal(SignalName.Pressed);
+            // Start the hold timer — if it fires in 250ms, it's a long-press
+            StartHoldTimer();
+            // Don't emit the Pressed signal yet — wait to see if it's a tap or long-press
             GetViewport().SetInputAsHandled();
         }
     }
+
+    // /// <summary>
+    // /// OLD _GuiInput — replaced by TASK-CARD-TEXT-1 long-press handler above
+    // /// </summary>
+    // public override void _GuiInput(InputEvent @event)
+    // {
+    //     bool accepted = _tap.Accept(@event);
+    //     GD.Print($"[HANDCARD_TOUCH] _GuiInput: event={@event.GetType().Name}, " +
+    //         $"pressed={(@event is InputEventScreenTouch t ? t.Pressed : @event is InputEventMouseButton m ? m.Pressed : false)}, " +
+    //         $"card={CardName}, accepted={accepted}");
+    //     if (accepted)
+    //     {
+    //         EmitSignal(SignalName.Pressed);
+    //         GetViewport().SetInputAsHandled();
+    //     }
+    // }
 
     // ——— Drag-and-drop ———
     public override Variant _GetDragData(Vector2 atPosition)

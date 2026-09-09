@@ -80,6 +80,10 @@ public partial class DuelScene : Control
     private CardView _cardDetail = default!;
     private bool _cardDetailVisible;
 
+    // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
+    private RulesSlab _rulesSlab = default!;
+    private bool _rulesSlabVisible;
+
     // State snapshot for diff-based animation
     private struct BoardSnapshot
     {
@@ -394,6 +398,12 @@ public partial class DuelScene : Control
         _openingRuleLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.9f, 0.5f)); // pale green
         ruleBanner.AddChild(_openingRuleLabel);
         _openingRuleBanner = ruleBanner;
+
+        // ═══ TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info ═══
+        _rulesSlab = new RulesSlab { Name = "RulesSlab" };
+        AddChild(_rulesSlab);
+        _rulesSlabVisible = false;
+        // ═══ END TASK-CARD-TEXT-1 ═══
 
         var encounter = CampaignContext.CurrentEncounter;
         _isCampaignEncounter = encounter != null;
@@ -1030,9 +1040,13 @@ public partial class DuelScene : Control
 
     /// <summary>
     /// Handle taps on the background (empty space) to cancel selection.
+    /// TASK-CARD-TEXT-1: Also dismiss rules slab on background tap.
     /// </summary>
     private void OnBackgroundGuiInput(InputEvent @event)
     {
+        // Dismiss rules slab on any background tap
+        HideRulesSlab();
+
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
         {
             if (_input.State != InputController.InputState.Idle)
@@ -1294,9 +1308,85 @@ public partial class DuelScene : Control
         plate.Setup("—", w, h, 0, 0, false);
         panel.AddChild(plate);
 
+        // TASK-CARD-TEXT-1: Transparent touch overlay for long-press rules slab
+        AddArtifactTouchOverlay(panel, 1, index, w, h);
+
         _enemyArtifactPlates[index] = plate;
         _enemyArsenalPanels[index] = panel;
         parent.AddChild(panel);
+    }
+
+    // TASK-CARD-TEXT-1: Transparent overlay with long-press detection for artifact slots
+    private void AddArtifactTouchOverlay(PanelContainer panel, int side, int slotIndex, float w, float h)
+    {
+        var overlay = new Control
+        {
+            Name = $"ArtifactTouchOverlay_{side}_{slotIndex}",
+            CustomMinimumSize = new Vector2(w, h),
+            MouseFilter = MouseFilterEnum.Stop,
+        };
+        overlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        panel.AddChild(overlay);
+
+        Godot.Timer? holdTimer = null;
+        bool isLongPressing = false;
+
+        void StopTimer()
+        {
+            if (holdTimer != null && GodotObject.IsInstanceValid(holdTimer))
+            {
+                holdTimer.Stop();
+                holdTimer.QueueFree();
+                holdTimer = null;
+            }
+        }
+
+        overlay.GuiInput += (InputEvent evt) =>
+        {
+            // Release
+            bool isRelease = (evt is InputEventMouseButton mbR && !mbR.Pressed && mbR.ButtonIndex == MouseButton.Left)
+                || (evt is InputEventScreenTouch stR && !stR.Pressed);
+            if (isRelease)
+            {
+                if (isLongPressing)
+                {
+                    isLongPressing = false;
+                    HideRulesSlab();
+                }
+                StopTimer();
+                return;
+            }
+
+            // Press
+            bool isPress = (evt is InputEventMouseButton mbP && mbP.Pressed && mbP.ButtonIndex == MouseButton.Left)
+                || (evt is InputEventScreenTouch stP && stP.Pressed);
+            if (!isPress) return;
+
+            // Start hold timer
+            StopTimer();
+            holdTimer = new Godot.Timer();
+            holdTimer.OneShot = true;
+            holdTimer.WaitTime = 0.25f;
+            holdTimer.Timeout += () =>
+            {
+                if (_gsm == null || _gsm.State == null) return;
+                var players = _gsm.State.Players;
+                if (players.Length <= side) return;
+                var slots = players[side].ArtifactSlots;
+                if (slots == null || slots.Length <= slotIndex) return;
+                var slot = slots[slotIndex];
+                if (slot.Occupant == null) return;
+                string artDefId = slot.Occupant.CardDefId;
+                var artDef = ArtifactRegistry.Get(artDefId);
+                if (artDef != null)
+                {
+                    isLongPressing = true;
+                    ShowRulesSlab(ArtifactDefToCardDef(artDef));
+                }
+            };
+            overlay.AddChild(holdTimer);
+            holdTimer.Start();
+        };
     }
 
     /// <summary>
@@ -1546,6 +1636,9 @@ public partial class DuelScene : Control
         plate.Name = $"ArtPlateP{index}";
         plate.Setup("—", w, h, 0, 0, false);
         panel.AddChild(plate);
+
+        // TASK-CARD-TEXT-1: Transparent touch overlay for long-press rules slab
+        AddArtifactTouchOverlay(panel, 0, index, w, h);
 
         _playerArtifactPlates[index] = plate;
         _playerArsenalPanels[index] = panel;
@@ -1957,6 +2050,9 @@ public partial class DuelScene : Control
             enemySlot.Row = 0;
             enemySlot.LaneIndex = i;
             enemySlot.LaneTapped += OnLaneTapped;
+            // TASK-CARD-TEXT-1: Long-press for rules slab on enemy lane cards
+            enemySlot.CardLongPressStarted += ShowRulesSlab;
+            enemySlot.LongPressEnded += HideRulesSlab;
             _altarContainer.AddChild(enemySlot);
             // Font sizing via ScaleTo (needs _Ready first, so call after AddChild)
             enemySlot.ScaleTo(slotH);
@@ -1977,6 +2073,9 @@ public partial class DuelScene : Control
             playerSlot.LaneIndex = i;
             playerSlot.LaneTapped += OnLaneTapped;
             playerSlot.CardDropped += OnCardDropped;
+            // TASK-CARD-TEXT-1: Long-press for rules slab on lane cards
+            playerSlot.CardLongPressStarted += ShowRulesSlab;
+            playerSlot.LongPressEnded += HideRulesSlab;
             _altarContainer.AddChild(playerSlot);
             playerSlot.ScaleTo(slotH);
             playerSlot.CustomMinimumSize = new Vector2(slotW, slotH);
@@ -2089,6 +2188,9 @@ public partial class DuelScene : Control
             _cardDetail.Visible = false;
             _cardDetailVisible = false;
         }
+
+        // TASK-CARD-TEXT-1: Dismiss rules slab on state change
+        HideRulesSlab();
 
         // Get the current state from GSM
         var state = _gsm.State;
@@ -2807,6 +2909,11 @@ public partial class DuelScene : Control
 
             var capturedCard = card;
             card.Pressed += () => OnHandCardPressed(capturedCard);
+
+            // TASK-CARD-TEXT-1: Long-press for rules slab
+            card.LongPressStarted += ShowRulesSlab;
+            card.LongPressEnded += HideRulesSlab;
+
             _handCards.Add(card);
         }
     }
@@ -2951,6 +3058,52 @@ public partial class DuelScene : Control
             UpdatePlayHighlights();
             UpdateSelectionVisuals();
         }
+    }
+
+    // ——— TASK-CARD-TEXT-1: Rules slab show/hide ———
+
+    private void ShowRulesSlab(CardDef card)
+    {
+        if (card == null) return;
+        _rulesSlab.ShowForCard(card, GetViewportRect().Size);
+        _rulesSlabVisible = true;
+    }
+
+    private void HideRulesSlab()
+    {
+        if (_rulesSlabVisible)
+        {
+            _rulesSlab.Hide();
+            _rulesSlabVisible = false;
+        }
+    }
+
+    /// <summary>Convert an ArtifactDef to a CardDef for rules slab display.</summary>
+    private static CardDef ArtifactDefToCardDef(ArtifactDef artDef)
+    {
+        var card = new CardDef
+        {
+            Id = artDef.Id,
+            Name = artDef.Name,
+            Type = CardType.ARTIFACT,
+            Flavor = artDef.Flavor,
+            Abilities = new System.Collections.Generic.List<AbilityDef>(),
+        };
+        // Wrap passive as an ability with PASSIVE trigger
+        if (artDef.Passive != null)
+        {
+            card.Abilities.Add(new AbilityDef
+            {
+                Trigger = Trigger.PASSIVE,
+                Effects = new System.Collections.Generic.List<EffectDef> { artDef.Passive },
+            });
+        }
+        // Add trigger ability (it's already an AbilityDef)
+        if (artDef.Trigger != null && artDef.Trigger.Effects.Count > 0)
+        {
+            card.Abilities.Add(artDef.Trigger);
+        }
+        return card;
     }
 
     /// <summary>
