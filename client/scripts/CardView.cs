@@ -14,7 +14,7 @@ public partial class CardView : PanelContainer
     private Label _costLabel;
     private TextureRect _artRect;
     private Label _typeLine;
-    private Label _keywordLine;
+    private HBoxContainer _keywordLine;
     private Label _rulesLabel;
     private Label _flavorLabel;
     private Label _attackLabel;
@@ -34,7 +34,7 @@ public partial class CardView : PanelContainer
         _costLabel = GetNode<Label>("Margin/VBox/Header/CostLabel");
         _artRect = GetNode<TextureRect>("Margin/VBox/ArtRect");
         _typeLine = GetNode<Label>("Margin/VBox/TypeLine");
-        _keywordLine = GetNode<Label>("Margin/VBox/KeywordLine");
+        _keywordLine = GetNode<HBoxContainer>("Margin/VBox/KeywordLine");
         _rulesLabel = GetNode<Label>("Margin/VBox/RulesLabel");
         _flavorLabel = GetNode<Label>("Margin/VBox/FlavorLabel");
         _attackLabel = GetNode<Label>("Margin/VBox/StatsPanel/AttackLabel");
@@ -65,12 +65,44 @@ public partial class CardView : PanelContainer
         // Type line: "Creature · Verdant · Common"
         _typeLine.Text = $"{FormatCardType(card.Type)} · {FormatStrata(card.Strata)} · {FormatRarity(card.Rarity)}";
 
-        // Keywords
-        string keywords = card.Keywords.Count > 0
-            ? string.Join(", ", card.Keywords.Select(FormatKeyword))
-            : "";
-        _keywordLine.Text = keywords;
-        _keywordLine.Visible = keywords.Length > 0;
+        // Keywords — icon + label pairs
+        ClearKeywordLine();
+        if (card.Keywords.Count > 0)
+        {
+            _keywordLine.Visible = true;
+            foreach (var kw in card.Keywords)
+            {
+                // Keyword icon
+                string iconPath = KeywordIconPath(kw);
+                if (ResourceLoader.Exists(iconPath, nameof(Texture2D)))
+                {
+                    var icon = new TextureRect
+                    {
+                        Texture = ResourceLoader.Load<Texture2D>(iconPath),
+                        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                        StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                        CustomMinimumSize = new Vector2(18, 18),
+                        Size = new Vector2(18, 18),
+                        MouseFilter = MouseFilterEnum.Ignore,
+                    };
+                    _keywordLine.AddChild(icon);
+                }
+                // Keyword name label
+                var kwLabel = new Label
+                {
+                    Text = RulesTextRenderer.FormatKeyword(kw),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                };
+                kwLabel.AddThemeColorOverride("font_color", ThemeTokens.TextPrimary);
+                kwLabel.AddThemeFontSizeOverride("font_size", 14);
+                _keywordLine.AddChild(kwLabel);
+            }
+        }
+        else
+        {
+            _keywordLine.Visible = false;
+        }
 
         // Rules text (ability text only — stats and flavor are rendered separately)
         string rules = RulesTextRenderer.RenderAbilityTextOnly(card);
@@ -107,7 +139,7 @@ public partial class CardView : PanelContainer
         _nameLabel.Text = "?";
         _costLabel.Text = "?";
         _typeLine.Text = "?";
-        _keywordLine.Visible = false;
+        ClearKeywordLine();
         _rulesLabel.Visible = false;
         _flavorLabel.Visible = false;
         _statsPanel.Visible = false;
@@ -230,6 +262,45 @@ public partial class CardView : PanelContainer
         Rarity.RARE => "Rare",
         Rarity.RELIC => "Relic",
         _ => "?"
+    };
+
+    private void ClearKeywordLine()
+    {
+        foreach (var child in _keywordLine.GetChildren())
+            child.QueueFree();
+        _keywordLine.Visible = false;
+    }
+
+    /// <summary>
+    /// Map keyword constant to its icon resource path.
+    /// </summary>
+    public static string KeywordIconPath(string keyword) => keyword.ToUpperInvariant() switch
+    {
+        "GUARD" => "res://content/art/icons/kw_guard.webp",
+        "SWIFT" => "res://content/art/icons/kw_swift.webp",
+        "PIERCE" => "res://content/art/icons/kw_pierce.webp",
+        "WARD" => "res://content/art/icons/kw_ward.webp",
+        "VENOM" => "res://content/art/icons/kw_venom.webp",
+        "REACH" => "res://content/art/icons/kw_reach.webp",
+        "ROOTED" => "res://content/art/icons/kw_rooted.webp",
+        "UNEARTH" => "res://content/art/icons/kw_unearth.webp",
+        "ECHO" => "res://content/art/icons/kw_echo.webp",
+        "FRAGILE" => "res://content/art/icons/kw_fragile.webp",
+        "SEALED" => "res://content/art/icons/kw_sealed.webp",
+        _ => ""
+    };
+
+    /// <summary>
+    /// Map strata constant to its icon resource path.
+    /// </summary>
+    public static string StrataIconPath(Strata strata) => strata switch
+    {
+        Strata.VERDANT => "res://content/art/icons/str_verdant.webp",
+        Strata.EMBER => "res://content/art/icons/str_ember.webp",
+        Strata.TIDE => "res://content/art/icons/str_tide.webp",
+        Strata.HOLLOW => "res://content/art/icons/str_hollow.webp",
+        Strata.DAWN => "res://content/art/icons/str_dawn.webp",
+        _ => ""
     };
 
     private static string FormatKeyword(string keyword) => RulesTextRenderer.FormatKeyword(keyword);
