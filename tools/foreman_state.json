@@ -10,8 +10,8 @@
   "transient_notified": false,
   "bus_last_seq": 4,
   "bus_session_count": 0,
-  "no_progress_count": 1,
+  "no_progress_count": 0,
   "validated_count": 7,
-  "last_heartbeat_epoch": 1788985339,
-  "last_heartbeat_reason": "running_TASK-ART-ICONS-1"
+  "last_heartbeat_epoch": 1788989101,
+  "last_heartbeat_reason": "HALT"
 }
