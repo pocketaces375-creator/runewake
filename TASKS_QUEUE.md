@@ -357,7 +357,7 @@
   Acceptance: tactician beats greedy at least 65% over 200 seeded mirrors, reported per class
   in plain words; the 5-duel soak and loop_smoke still pass; no shipped card value changes.
 
-- [ ] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
+- [!] TASK-CLASS-PORTRAITS-1 — SUPERSEDED by TASK-ART-ROSTER-1 (portraits for all 7 now exist); reopen only if Trikzos rejects them. Real portraits for Battlemage, Thief and Paladin. FLUX.2 Pro via
   OpenRouter, style v3.0, matching the existing four portraits' framing and palette; per
   class, generate 6 candidates and post them to the group as separate images as a veto gate,
   then wire the one Trikzos picks (or the best if he hasn't answered within a day — he can
