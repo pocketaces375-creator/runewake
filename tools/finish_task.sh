@@ -89,6 +89,14 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
     rm -f "${PROJECT_DIR}/client/.godot/mono/temp/bin/Debug/Runewake.Client.dll"
     dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null
 
+    # ── Import step: force-clean and re-import all assets before capturing ──
+    echo "  Clearing import cache and re-importing all assets..."
+    rm -rf "${PROJECT_DIR}/client/.godot/imported/"
+    if ! timeout 600 xvfb-run -a "${GODOT_BIN}" --headless --import --path "${PROJECT_DIR}/client" 2>&1; then
+        fail "Asset import failed — see errors above"
+    fi
+    ok "Asset import complete"
+
     # Define capture modes
     MODES=(
       "map_test:2316:1080"

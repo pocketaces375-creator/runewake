@@ -81,6 +81,7 @@ public partial class RootBoundBorder : Control
         int bandPx = Mathf.Max(1, Mathf.RoundToInt(cardWidth * 0.07f));
         float innerW = cardWidth - 2 * bandPx;
         float innerH = cardHeight - 2 * bandPx;
+        GD.Print($"[ROOTBOUND] Setup cardWidth={cardWidth} cardHeight={cardHeight} bandPx={bandPx}");
 
         // Lazy-create all 8 TextureRect children
         TextureRect MakeChild(Texture2D? tex, string name, float px, float py, float pw, float ph, TextureRect.StretchModeEnum stretch, TextureRect.ExpandModeEnum expand)

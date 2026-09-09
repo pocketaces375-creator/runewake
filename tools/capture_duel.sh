@@ -59,6 +59,16 @@ with open('${CAPTURE_DIR}/duel_test${suffix}.png','rb') as f:
         return 1
     fi
 }
+
+# ── Import step: force-clean and re-import all assets before capturing ──
+echo "=== Importing all assets ==="
+rm -rf "${ROOT}/client/.godot/imported/"
+if ! timeout 600 xvfb-run -a "${GODOT_BIN}" --headless --import --path "${ROOT}/client" 2>&1; then
+    echo "  Asset import failed" >&2
+    exit 1
+fi
+echo "=== Asset import complete ==="
+
 # 1. Standard capture at 2316x1080
 if ! capture_one "" 2316 1080; then STD_RC=1; else STD_RC=0; fi
 
