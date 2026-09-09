@@ -1,9 +1,4 @@
 
-**TASK-BORDER-STONE-1 DONE**
-
-Commit `8120ca0` — `TASK-BORDER-STONE-1: plain stone border`
-12 files changed, +201/-203
-
 - **`tools/gen_rootbound_border.py`** — completely rewritten. All gold, vine, and rune code removed. Now generates only dark charcoal stone (RGB 40-60 base), an irregular chipped inner lip (RGB 90-120, 1-2px at source scale) around the art window seam, and subtle grain marks. No plaque, no motifs.
 - **8 border slices regenerated** — same filenames, same pixel sizes (148×172 corners, 527×172 top edge, etc.)
 - **`stone_grain.png`** — 64×64 stone grain texture generated alongside the borders
@@ -47,4 +42,9 @@ TASK-UI-READABLE-2 complete.
 - Increased label size from 140×18 to 140×24
 
 At 1080p design resolution: buttons render at 30px (2.8%), labels at 24px (2.2%), body text at 26px (2.4%). All sizes scale proportionally at any viewport height.
+========================================
+=== foreman: 2026-09-09T16:44:23Z TASK-CARD-TEXT-1 success ===
+Session: 6/96
+--- session tail ---
+  session TASK-CARD-TEXT-1 on deepseek/deepseek-v4-flash: 900s
 ========================================
