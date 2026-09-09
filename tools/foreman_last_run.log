@@ -1,30 +1,3 @@
-=== foreman: 2026-09-09T13:36:09Z TASK-PIPE-INBOX-1 success ===
-Session: 2/96
---- session tail ---
-  session TASK-PIPE-INBOX-1 on deepseek/deepseek-v4-flash: 310s
-Task TASK-PIPE-INBOX-1 is complete. Commit `77fa3f4`, mark commit `92d3364`.
-
-**What changed in `tools/inbox_apply.sh`:**
-
-1. **Header comment** (line 8) — updated to say "moved to needs_reformat/ for Fable to fix" instead of "run as one-shot hermes prompt"
-
-2. **Entire else-branch** (lines 181-187) — replaced 42 lines of hermes prompt-passing code with:
-   - `mkdir -p "${INBOX_DIR}/needs_reformat"` — creates the drop directory
-   - `mv "${inbox_file}" "${INBOX_DIR}/needs_reformat/"` — moves the malformed file out of inbox
-   - Log line with timestamp explaining the action
-   - Telegram notification via `"${HERMES_BIN}" send --to` using the foreman's `TELEGRAM_TARGET` pattern: *"Inbox file <name> is not pure queue format — moved to needs_reformat/, nothing was run. Fable: resend as - [ ] TASK blocks with indented continuation lines."*
-
-3. **Common log label** (line 193) — changed from `'one-shot'` to `'needs-reformat'` since that's the only remaining outcome for non-queue files
-
-4. **Atomic edit** — written to `.tmp` file then `mv` over the original to avoid cron seeing a half-written file
-========================================
-=== foreman: 2026-09-09T13:45:03Z TASK-BORDER-STONE-1 success ===
-Session: 3/96
---- session tail ---
-  session TASK-BORDER-STONE-1 on deepseek/deepseek-v4-flash: 483s
-I've delivered the report and all acceptance crops to Adam's DM since the bot couldn't reach the group directly. Here's the full delivery:
-
----
 
 **TASK-BORDER-STONE-1 DONE**
 
@@ -47,4 +20,31 @@ Commit `8120ca0` — `TASK-BORDER-STONE-1: plain stone border`
 Session: 4/96
 --- session tail ---
   session TASK-APK-SHIP-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-09T16:28:32Z TASK-UI-READABLE-2 success ===
+Session: 5/96
+--- session tail ---
+  session TASK-UI-READABLE-2 on deepseek/deepseek-v4-flash: 235s
+TASK-UI-READABLE-2 complete.
+
+**Changes made to MapScene.cs:**
+- Added `_viewportHeight` field set to `GetViewportRect().Size.Y` in `_Ready()`
+- Added scale helpers: `FontPx(float pct)`, `BtnFontPx()` (2.8%), `LabelFontPx()` (2.2%), `BodyFontPx()` (2.4%), `BtnPaddingV()` (0.9%)
+- Updated `StyleButton()` to use `BtnFontPx()` — removed `float fontSize` parameter
+- Updated all 7 `StyleButton` calls to drop the hardcoded size argument
+- Updated button padding in `MakeBtnNormal()` / `MakeBtnHover()` from 4px to 10px
+- Updated `_regionBanner` from 22px → `LabelFontPx()`
+- Updated `_shardLabel` from 15px → `LabelFontPx()`
+- Updated `_deckChipLabel` from 12px → `LabelFontPx()`
+- Updated `_infoName` from 19px → `BodyFontPx()`
+- Updated `_infoRewards` from 12px → `BodyFontPx()`
+- Updated deck popup title from 14px → `LabelFontPx()`
+
+**Changes made to MapNodeIcon.cs:**
+- Added `_viewportHeight` field and `NameFontPx()` helper (2.2%)
+- Updated `_nameLabel` from 10px → `NameFontPx()`
+- Increased icon size from 80×80 to 80×90 to accommodate larger text
+- Increased label size from 140×18 to 140×24
+
+At 1080p design resolution: buttons render at 30px (2.8%), labels at 24px (2.2%), body text at 26px (2.4%). All sizes scale proportionally at any viewport height.
 ========================================
