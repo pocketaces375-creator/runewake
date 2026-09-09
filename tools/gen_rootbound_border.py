@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Generate Root-Bound Stone card border — built for readability at 15-25px band width.
-Programmatic design with:
-  - Dark charcoal stone frame
-  - Clean continuous bright gold inlay line along inner edge (15px wide)
-  - Simplified bold stylized vine/leaf silhouette (not painterly)
-  - One bold angular rune motif per corner
+Generate Root-Bound Stone card border — Option 5: plain carved dark stone.
+Dark charcoal/grey stone frame with irregular chipped inner lip and subtle grain.
+No gold, no vines, no rune motifs, no plaque.
+
 Output: full 832x1216 border PNG, slices to client/content/art/border/
 """
 import math
 import os
+import random
 import sys
 from PIL import Image, ImageDraw
 
@@ -18,197 +17,209 @@ W, H = 832, 1216
 BAND = max(1, round(W * 0.07))  # 58px
 INNER_W = W - 2 * BAND   # 716
 INNER_H = H - 2 * BAND   # 1100
-GOLD_LINE_W = 15
-VINE_COLOR = (22, 50, 28)     # dark green
-GOLD_COLOR = (230, 190, 50)   # bright gold
-STONE_DARK = (30, 28, 25)     # dark charcoal
-STONE_MID = (55, 52, 48)      # mid stone
-STONE_LIGHT = (80, 76, 70)    # lighter stone for texture
-CANVAS_COLOR = (35, 33, 30)   # base canvas
 
-def draw_vine_pattern(draw, x0, y0, x1, y1, thickness=4):
-    """Draw a simplified bold vine with broad leaves along a vertical or horizontal edge band."""
-    is_horizontal = (y1 - y0) < (x1 - x0)
-    band_center = (y0 + y1) // 2 if is_horizontal else (x0 + x1) // 2
-    half_band = (y1 - y0) // 4 if is_horizontal else (x1 - x0) // 4
-    
-    if is_horizontal:
-        # Horizontal vine runs centered in the band
-        cy = band_center - 8
-        step = 40
-        for tx in range(x0, x1, step):
-            draw.line([(tx, cy), (tx+step//2, cy-12), (tx+step, cy)], fill=VINE_COLOR, width=thickness)
-            # Broad leaf at each node
-            draw.ellipse([(tx-10, cy-18), (tx+10, cy-2)], fill=VINE_COLOR if tx % 80 < 60 else STONE_LIGHT)
-            draw.ellipse([(tx-8, cy+2), (tx+12, cy+18)], fill=VINE_COLOR)
-        # Second vine strand slightly offset
-        cy2 = band_center + 12
-        step2 = 50
-        for tx in range(x0, x1, step2):
-            draw.line([(tx, cy2), (tx+step2//3, cy2-8), (tx+step2, cy2)], fill=VINE_COLOR, width=thickness-1)
-            draw.ellipse([(tx-8, cy2-18), (tx+8, cy2+2)], fill=VINE_COLOR)
-    else:
-        # Vertical vine runs centered in the band
-        cx = band_center - 8
-        step = 45
-        for ty in range(y0, y1, step):
-            draw.line([(cx, ty), (cx-12, ty+step//2), (cx, ty+step)], fill=VINE_COLOR, width=thickness)
-            # Broad leaf
-            draw.ellipse([(cx-18, ty-10), (cx-2, ty+10)], fill=VINE_COLOR)
-            draw.ellipse([(cx+2, ty-8), (cx+18, ty+12)], fill=VINE_COLOR)
-        # Second strand
-        cx2 = band_center + 12
-        step2 = 55
-        for ty in range(y0, y1, step2):
-            draw.line([(cx2, ty), (cx2-10, ty+step2//3), (cx2, ty+step2)], fill=VINE_COLOR, width=thickness-1)
-            draw.ellipse([(cx2-18, ty-8), (cx2, ty+8)], fill=VINE_COLOR)
-
-
-def draw_corner_rune(draw, cx, cy, style=0, size=28):
-    """Draw a bold angular rune motif at corner position cx,cy."""
-    half = size // 2
-    pts = half  # inset from center
-    if style == 0:  # Diamond-chevron (TL)
-        draw.polygon([(cx, cy-pts), (cx+pts, cy), (cx, cy+pts), (cx-pts, cy)], fill=GOLD_COLOR)
-        draw.polygon([(cx, cy-pts+5), (cx+pts-5, cy), (cx, cy+pts-5), (cx-pts+5, cy)], fill=STONE_DARK)
-        # Inner dot
-        draw.ellipse([(cx-4, cy-4), (cx+4, cy+4)], fill=GOLD_COLOR)
-    elif style == 1:  # Angular sun-burst (TR)
-        draw.polygon([(cx, cy-pts-4), (cx+pts+4, cy-pts), (cx+pts+6, cy), (cx+pts+4, cy+pts), (cx, cy+pts+4),
-                       (cx-pts-4, cy+pts), (cx-pts-6, cy), (cx-pts-4, cy-pts)], fill=GOLD_COLOR)
-        draw.ellipse([(cx-6, cy-6), (cx+6, cy+6)], fill=STONE_DARK)
-        draw.ellipse([(cx-3, cy-3), (cx+3, cy+3)], fill=GOLD_COLOR)
-    elif style == 2:  # Vertical zigzag (BL)
-        draw.polygon([(cx-pts-2, cy+pts+4), (cx-pts, cy-4), (cx-2, cy+4), (cx+2, cy-4), (cx+pts, cy-4), (cx+pts+2, cy+pts+4)],
-                     fill=GOLD_COLOR)
-        # Two horizontal bars
-        draw.rectangle([(cx-pts-4, cy-pts+2), (cx+pts+4, cy-pts+6)], fill=GOLD_COLOR)
-        draw.rectangle([(cx-pts-4, cy-pts+12), (cx+pts+4, cy-pts+16)], fill=GOLD_COLOR)
-    elif style == 3:  # Circle-triangle (BR)
-        draw.ellipse([(cx-pts, cy-pts), (cx+pts, cy+pts)], outline=GOLD_COLOR, width=4)
-        draw.ellipse([(cx-pts+8, cy-pts+8), (cx+pts-8, cy+pts-8)], fill=GOLD_COLOR)
-        draw.polygon([(cx, cy-pts-8), (cx+pts+6, cy+pts), (cx-pts-6, cy+pts)], fill=GOLD_COLOR)
+# ── Stone palette — NO gold, NO vines, NO motifs ──
+# Base frame stone in RGB 40-60 range (dark charcoal)
+STONE_BASE = (50, 47, 43)
+STONE_DARK = (30, 28, 25)      # very dark charcoal for outer-shadow feel
+STONE_MID = (55, 52, 48)       # mid-grey stone
+STONE_LIGHT = (80, 76, 70)     # lighter stone for texture highlights
+# Chipped inner lip: lighter stone edge (RGB 90-120) at the art-window seam
+CHIPPED_INNER = (105, 100, 95)
+CANVAS_COLOR = (35, 33, 30)    # base canvas (matches darkest frame shadow)
 
 
 def draw_stone_texture(draw, x0, y0, x1, y1):
-    """Add subtle stone grain marks to the border area."""
-    import random
-    # Seed for reproducibility
+    """Add subtle stone grain marks to the border area — short fine scratches."""
     rng = random.Random(42)
-    for _ in range(y1 - y0):
-        y = y0 + _ * 4
-        for sx in range(x0, x1, 3):
-            if rng.random() < 0.03:
-                b = rng.randint(-5, 5)
-                c = STONE_LIGHT[0] + b
-                c = max(20, min(100, c))
-                draw.point((sx + rng.randint(-1, 1), y), fill=(c, c-3, c-5))
+    for y in range(y0, y1, 2):
+        for x in range(x0, x1, 3):
+            if rng.random() < 0.04:
+                b = rng.randint(-4, 4)
+                c = STONE_MID[0] + b
+                c = max(25, min(80, c))
+                draw.point((x + rng.randint(-1, 1), y), fill=(c, c - 2, c - 4))
+    # Occasional longer scratch lines
+    rng2 = random.Random(73)
+    for _ in range(max(1, (x1 - x0) * (y1 - y0) // 8000)):
+        sx = rng2.randint(x0, x1 - 8)
+        sy = rng2.randint(y0, y1 - 2)
+        length = rng2.randint(4, 12)
+        sc = rng2.randint(40, 70)
+        for lx in range(length):
+            ly = rng2.randint(-1, 1)
+            px = sx + lx
+            py = sy + ly
+            if x0 <= px < x1 and y0 <= py < y1:
+                draw.point((px, py), fill=(sc, sc - 2, sc - 4))
 
 
 def generate_border(output_path):
     img = Image.new('RGB', (W, H), CANVAS_COLOR)
     draw = ImageDraw.Draw(img)
-    
-    # 1. Base stone frame - fill the entire border band area
+    rng_edge = random.Random(137)
+
+    # ── 1. Base stone frame ──
+    # Fill the full border band with mid-dark stone
     # Top band
-    draw.rectangle([(0, 0), (W-1, BAND-1)], fill=STONE_MID)
+    draw.rectangle([(0, 0), (W - 1, BAND - 1)], fill=STONE_MID)
     # Bottom band
-    draw.rectangle([(0, H-BAND), (W-1, H-1)], fill=STONE_MID)
+    draw.rectangle([(0, H - BAND), (W - 1, H - 1)], fill=STONE_MID)
     # Left band
-    draw.rectangle([(0, 0), (BAND-1, H-1)], fill=STONE_MID)
+    draw.rectangle([(0, 0), (BAND - 1, H - 1)], fill=STONE_MID)
     # Right band
-    draw.rectangle([(W-BAND, 0), (W-1, H-1)], fill=STONE_MID)
-    
-    # Darken corners slightly
-    # TL
-    draw.rectangle([(0, 0), (BAND-1, BAND-1)], fill=STONE_MID)
-    # TR
-    draw.rectangle([(W-BAND, 0), (W-1, BAND-1)], fill=STONE_MID)
-    # BL
-    draw.rectangle([(0, H-BAND), (BAND-1, H-1)], fill=STONE_MID)
-    # BR
-    draw.rectangle([(W-BAND, H-BAND), (W-1, H-1)], fill=STONE_MID)
-    
-    # Add stone texture
-    draw_stone_texture(draw, 0, 0, BAND, H)
-    draw_stone_texture(draw, W-BAND, 0, W, H)
-    for x in range(BAND, W-BAND):
-        draw.point((x, 0), fill=STONE_DARK if (x % 11 == 0) else STONE_MID)
-        draw.point((x, BAND-1), fill=STONE_DARK if (x % 13 == 0) else STONE_MID)
-        draw.point((x, H-BAND), fill=STONE_DARK if (x % 7 == 0) else STONE_MID)
-        draw.point((x, H-1), fill=STONE_DARK if (x % 17 == 0) else STONE_MID)
-    
-    # 2. Gold inlay line along the inner edge (continuous, clean)
-    # Inner edge rect = the rectangle where art window begins
-    inner_x = BAND
-    inner_y = BAND
-    inner_x2 = W - BAND
-    inner_y2 = H - BAND
-    
-    # Gold line on top inner edge
-    draw.rectangle([(inner_x, inner_y-GOLD_LINE_W//2), (inner_x2-1, inner_y+GOLD_LINE_W//2)], fill=GOLD_COLOR)
-    # Bottom inner edge
-    draw.rectangle([(inner_x, inner_y2-GOLD_LINE_W//2-1), (inner_x2-1, inner_y2+GOLD_LINE_W//2)], fill=GOLD_COLOR)
-    # Left inner edge
-    draw.rectangle([(inner_x-GOLD_LINE_W//2, inner_y), (inner_x+GOLD_LINE_W//2, inner_y2-1)], fill=GOLD_COLOR)
-    # Right inner edge
-    draw.rectangle([(inner_x2-GOLD_LINE_W//2-1, inner_y), (inner_x2+GOLD_LINE_W//2, inner_y2-1)], fill=GOLD_COLOR)
-    
-    # Gold corner squares where gold lines meet
-    gold_corner_size = GOLD_LINE_W + 4
-    draw.rectangle([(inner_x-gold_corner_size//2, inner_y-gold_corner_size//2),
-                    (inner_x+gold_corner_size//2, inner_y+gold_corner_size//2)], fill=GOLD_COLOR)
-    draw.rectangle([(inner_x2-gold_corner_size//2, inner_y-gold_corner_size//2),
-                    (inner_x2+gold_corner_size//2, inner_y+gold_corner_size//2)], fill=GOLD_COLOR)
-    draw.rectangle([(inner_x-gold_corner_size//2, inner_y2-gold_corner_size//2),
-                    (inner_x+gold_corner_size//2, inner_y2+gold_corner_size//2)], fill=GOLD_COLOR)
-    draw.rectangle([(inner_x2-gold_corner_size//2, inner_y2-gold_corner_size//2),
-                    (inner_x2+gold_corner_size//2, inner_y2+gold_corner_size//2)], fill=GOLD_COLOR)
-    
-    # 3. Simplified vine/leaf silhouette on the border
-    # Vertical veins on left band, between gold line and outer edge
-    vine_left_x = BAND // 2 - 10
-    draw_vine_pattern(draw, 6, BAND+GOLD_LINE_W, BAND-6, H-BAND-GOLD_LINE_W)
-    
-    # Right band
-    draw_vine_pattern(draw, W-BAND+6, BAND+GOLD_LINE_W, W-6, H-BAND-GOLD_LINE_W)
-    
-    # Top band - horizontal vine
-    draw_vine_pattern(draw, BAND+GOLD_LINE_W, 6, W-BAND-GOLD_LINE_W, BAND-6)
-    
-    # Bottom band - horizontal vine
-    draw_vine_pattern(draw, BAND+GOLD_LINE_W, H-BAND+6, W-BAND-GOLD_LINE_W, H-6)
-    
-    # 4. Bold corner runes
-    # TL corner - rune positioned in the corner area, inset
-    cr_size = 32
-    draw_corner_rune(draw, BAND//2, BAND//2, style=0, size=cr_size)
-    draw_corner_rune(draw, W-BAND//2, BAND//2, style=1, size=cr_size)
-    draw_corner_rune(draw, BAND//2, H-BAND//2, style=2, size=cr_size)
-    draw_corner_rune(draw, W-BAND//2, H-BAND//2, style=3, size=cr_size)
-    
-    # 5. Fill the center window solid black
-    draw.rectangle([(inner_x, inner_y), (inner_x2-1, inner_y2-1)], fill=(0, 0, 0))
-    
+    draw.rectangle([(W - BAND, 0), (W - 1, H - 1)], fill=STONE_MID)
+
+    # Darken the four corner squares slightly for depth
+    # (they are already filled by the band rects; this is a subtle overlay)
+    for cx, cy in [(BAND // 2, BAND // 2),
+                    (W - BAND // 2, BAND // 2),
+                    (BAND // 2, H - BAND // 2),
+                    (W - BAND // 2, H - BAND // 2)]:
+        for dy in range(-BAND // 2, BAND // 2):
+            for dx in range(-BAND // 2, BAND // 2):
+                dist = math.sqrt(dx * dx + dy * dy)
+                if dist < BAND * 0.35:
+                    factor = 1 - (dist / (BAND * 0.35)) * 0.15
+                    px = cx + dx
+                    py = cy + dy
+                    if 0 <= px < W and 0 <= py < H:
+                        orig = img.getpixel((px, py))
+                        darkened = tuple(int(c * factor) for c in orig)
+                        draw.point((px, py), fill=darkened)
+
+    # ── 2. Chipped inner lip (1-2px at source scale) ──
+    # The inner lip runs along the art-window boundary (148, 172, 675, 1019).
+    # Draw it as a slightly irregular line with a chipped / broken appearance:
+    # some pixels present, some missing, 1-2px thickness, color CHIPPED_INNER.
+    inner_l = 148
+    inner_t = 172
+    inner_r = 675
+    inner_b = 1019
+
+    # Helper: draw one pixel of the lip with jitter perpendicular to the edge
+    def lip_segment(x, y, is_horizontal, flip_jitter=False):
+        """Draw 1-2px of chipped lip at (x,y) with ±1px perpendicular jitter."""
+        if is_horizontal:
+            jy = rng_edge.randint(-1, 1)
+            if flip_jitter:
+                jy = -jy
+            for thick in range(2):
+                py = y + jy + thick
+                if 0 <= py < H:
+                    draw.point((x, py), fill=CHIPPED_INNER)
+                    # Slight colour variation
+                    if rng_edge.random() < 0.2:
+                        var = rng_edge.randint(-8, 8)
+                        dv = (var, var - 2, var - 4)
+                        alt = tuple(max(50, min(130, CHIPPED_INNER[i] + dv[i])) for i in range(3))
+                        draw.point((x, py), fill=alt)
+        else:
+            jx = rng_edge.randint(-1, 1)
+            if flip_jitter:
+                jx = -jx
+            for thick in range(2):
+                px = x + jx + thick
+                if 0 <= px < W:
+                    draw.point((px, y), fill=CHIPPED_INNER)
+                    if rng_edge.random() < 0.2:
+                        var = rng_edge.randint(-8, 8)
+                        dv = (var, var - 2, var - 4)
+                        alt = tuple(max(50, min(130, CHIPPED_INNER[i] + dv[i])) for i in range(3))
+                        draw.point((px, y), fill=alt)
+
+    # Top edge: inner_l → inner_r at y=inner_t
+    for ex in range(inner_l, inner_r):
+        if rng_edge.random() < 0.12:
+            continue  # chip missing
+        lip_segment(ex, inner_t, is_horizontal=True, flip_jitter=False)
+        # Second pass for the 2nd pixel width (the lip is 2px deep)
+        # Offset perpendicular outward (into border area) = y+2
+        if ex % 3 == 0:  # every 3rd pixel gets a 2nd row
+            lip_segment(ex, inner_t + 2, is_horizontal=True, flip_jitter=True)
+
+    # Bottom edge: inner_l → inner_r at y=inner_b
+    for ex in range(inner_l, inner_r):
+        if rng_edge.random() < 0.12:
+            continue
+        lip_segment(ex, inner_b, is_horizontal=True, flip_jitter=False)
+        if ex % 3 == 0:
+            lip_segment(ex, inner_b - 2, is_horizontal=True, flip_jitter=True)
+
+    # Left edge: inner_t → inner_b at x=inner_l
+    for ey in range(inner_t, inner_b):
+        if rng_edge.random() < 0.12:
+            continue
+        lip_segment(inner_l, ey, is_horizontal=False, flip_jitter=False)
+        if ey % 3 == 0:
+            lip_segment(inner_l + 2, ey, is_horizontal=False, flip_jitter=True)
+
+    # Right edge: inner_t → inner_b at x=inner_r
+    for ey in range(inner_t, inner_b):
+        if rng_edge.random() < 0.12:
+            continue
+        lip_segment(inner_r, ey, is_horizontal=False, flip_jitter=False)
+        if ey % 3 == 0:
+            lip_segment(inner_r - 2, ey, is_horizontal=False, flip_jitter=True)
+
+    # ── 3. Stone grain texture over the frame ──
+    draw_stone_texture(draw, 0, 0, W, BAND)       # top band
+    draw_stone_texture(draw, 0, H - BAND, W, H)   # bottom band
+    draw_stone_texture(draw, 0, 0, BAND, H)       # left band
+    draw_stone_texture(draw, W - BAND, 0, W, H)   # right band
+
+    # Additional fine grain along the inner edge of the frame
+    for y in range(inner_t - 3, inner_t + BAND):
+        for x in range(inner_l, inner_r):
+            if rng_edge.random() < 0.015:
+                shade = rng_edge.randint(35, 75)
+                draw.point((x, y), fill=(shade, shade - 2, shade - 4))
+
+    # ── 4. Fill the center (art window) solid black ──
+    draw.rectangle([(inner_l, inner_t), (inner_r - 1, inner_b - 1)], fill=(0, 0, 0))
+
     img.save(output_path, 'PNG')
     print(f"Generated border: {output_path} ({os.path.getsize(output_path)} bytes)")
     return img
 
 
+def generate_stone_grain_texture(output_path, size=64):
+    """Generate a small stone-grain noise texture for the name-band background."""
+    rng = random.Random(88)
+    img = Image.new('RGB', (size, size), (50, 47, 43))
+    draw = ImageDraw.Draw(img)
+    for y in range(size):
+        for x in range(size):
+            if rng.random() < 0.06:
+                b = rng.randint(-6, 6)
+                c = 50 + b
+                c = max(30, min(80, c))
+                draw.point((x, y), fill=(c, c - 2, c - 4))
+    # A few scratch lines
+    for _ in range(8):
+        sx = rng.randint(0, size - 10)
+        sy = rng.randint(0, size - 2)
+        for lx in range(rng.randint(4, 14)):
+            ly = rng.randint(-1, 1)
+            px = sx + lx
+            py = sy + ly
+            if 0 <= px < size and 0 <= py < size:
+                sc = rng.randint(60, 85)
+                draw.point((px, py), fill=(sc, sc - 2, sc - 4))
+    img.save(output_path, 'PNG')
+    print(f"Generated stone grain texture: {output_path}")
+
+
 def slice_border(img, output_dir):
     """Slice the full border into 8 individual PNGs matching the 9-slice spec."""
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Corner sizes vary slightly in the original assets
-    # TL=148x172, TR=157x172, BL=148x197, BR=157x197
-    # Our BAND=58, so corners at full source are 58px square on 832w card
-    # But the actual source has wider corners due to the window position
-    # Let's use the same window as the original: (148, 172, 675, 1019)
+
+    # Exact same window coordinates as the original
     window_left = 148
     window_top = 172
     window_right = 675
     window_bottom = 1019
-    
+
     slices = {
         'corner_tl': (0, 0, window_left, window_top),
         'corner_tr': (window_right, 0, W, window_top),
@@ -219,13 +230,13 @@ def slice_border(img, output_dir):
         'edge_left': (0, window_top, window_left, window_bottom),
         'edge_right': (window_right, window_top, W, window_bottom),
     }
-    
+
     for name, box in slices.items():
         outpath = os.path.join(output_dir, f'rootbound_{name}.png')
         crop = img.crop(box)
         crop.save(outpath, 'PNG')
         print(f"Saved: {outpath} ({crop.size})")
-    
+
     # Save full image too
     full_path = os.path.join(output_dir, 'rootbound_full.png')
     img.save(full_path, 'PNG')
@@ -235,17 +246,17 @@ def slice_border(img, output_dir):
 def generate_downscale_previews(img, out_dir):
     """Generate 16px and 24px downscale previews for the taste check."""
     os.makedirs(out_dir, exist_ok=True)
-    
+
     window_left, window_top = 148, 172
     window_right, window_bottom = 675, 1019
-    
+
     corners = {
         'corner_tl': (0, 0, window_left, window_top),
         'corner_tr': (window_right, 0, W, window_top),
         'corner_bl': (0, window_bottom, window_left, H),
         'corner_br': (window_right, window_bottom, W, H),
     }
-    
+
     for sz in [16, 24]:
         for name, box in corners.items():
             c = img.crop(box)
@@ -253,39 +264,29 @@ def generate_downscale_previews(img, out_dir):
             outpath = os.path.join(out_dir, f'{name}_{sz}px.png')
             c_scaled.save(outpath, 'PNG')
             print(f"Preview: {outpath}")
-        
+
         # Edge strips
         edge = img.crop((window_left, 0, window_right, window_top))
         edge_scaled = edge.resize((200, sz), Image.LANCZOS)
         edge_scaled.save(os.path.join(out_dir, f'edge_top_{sz}px.png'), 'PNG')
-    
-    # Also generate a name-band crop showing the gradient effect
-    if CARD_PLATE_FAKE:
-        # Simulate what the name band will look like
-        # The name band sits at bottom of card, ~7% height
-        band_h = int(H * 0.07)
-        name_band_crop = img.crop((0, H - band_h - 120, W, H - 60))
-        name_band_crop.save(os.path.join(out_dir, 'name_band_reference.png'), 'PNG')
 
     print(f"All previews in {out_dir}")
 
 
-CARD_PLATE_FAKE = False  # Set True to also generate a fake name-band preview
-
-
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == '--card-plate-fake':
-        CARD_PLATE_FAKE = True
-    
     output_path = '/tmp/gen_rootbound_border.png'
     img = generate_border(output_path)
-    
+
     # Slice to the game's border directory
     border_dir = 'client/content/art/border'
     slice_border(img, border_dir)
-    
+
+    # Generate stone grain texture for the name-band background
+    grain_path = os.path.join(border_dir, 'stone_grain.png')
+    generate_stone_grain_texture(grain_path)
+
     # Generate 16px/24px previews in /tmp/
     preview_dir = '/tmp/border_previews'
     generate_downscale_previews(img, preview_dir)
-    
+
     print("\nDone. Verify the previews in /tmp/border_previews/")

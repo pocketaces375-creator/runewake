@@ -111,23 +111,20 @@ public partial class CardPlate : Control
         // Lazy init
         if (_nameBandBg == null)
         {
-            // ── Name band background — gradient scrim ──
+            // ── Name band background — dark gradient scrim with real stone texture ──
             _nameBandBg = new TextureRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
                 StretchMode = TextureRect.StretchModeEnum.Scale,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                Texture = GD.Load<Texture2D>("res://content/art/border/stone_grain.png")
             };
-            // Vertical gradient: transparent at top → beige/cream at bottom (shader material)
+            // Vertical gradient: transparent at top → dark charcoal at bottom (shader material)
             var gradMat = new ShaderMaterial();
             var gradShader = new Shader();
-            gradShader.Code = "shader_type canvas_item; void fragment() { vec4 c = vec4(0.776, 0.741, 0.667, 1.0); COLOR = vec4(c.rgb, c.a * UV.y); }";
+            gradShader.Code = "shader_type canvas_item; void fragment() { COLOR = vec4(0.12, 0.10, 0.09, UV.y * 0.75); }";
             gradMat.Shader = gradShader;
             _nameBandBg.Material = gradMat;
-            // Assign a 1x1 white pixel texture so the shader has pixels to alpha-ramp
-            var whiteImg = new Image();
-            whiteImg.SetData(1, 1, false, Image.Format.Rgba8, new byte[] { 255, 255, 255, 255 });
-            _nameBandBg.Texture = ImageTexture.CreateFromImage(whiteImg);
             AddChild(_nameBandBg);
 
             // ── Stat rail background ──
