@@ -13,8 +13,7 @@
       "tid_c_whirlpool_elemental",
       "tid_u_brine_witch"
     ],
-    "portraits": {"m": "battlemage_m.png", "f": "battlemage_f.png"},
-    "portrait_placeholder": true
+    "portraits": {"m": "battlemage_m.png", "f": "battlemage_f.png"}
   },
   {
     "id": "necromancer",
@@ -46,8 +45,7 @@
       "dwn_c_golden_retainer",
       "dwn_u_steadfast_bulwark"
     ],
-    "portraits": {"m": "paladin_m.png", "f": "paladin_f.png"},
-    "portrait_placeholder": true
+    "portraits": {"m": "paladin_m.png", "f": "paladin_f.png"}
   },
   {
     "id": "druid",
@@ -79,8 +77,7 @@
       "hol_u_barrow_revenant",
       "hol_c_bone_shard_volley"
     ],
-    "portraits": {"m": "rogue_m.png", "f": "rogue_f.png"},
-    "portrait_placeholder": true
+    "portraits": {"m": "rogue_m.png", "f": "rogue_f.png"}
   },
   {
     "id": "astrologist",

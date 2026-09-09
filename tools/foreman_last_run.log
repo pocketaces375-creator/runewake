@@ -1,9 +1,3 @@
-
-- **`tools/gen_rootbound_border.py`** — completely rewritten. All gold, vine, and rune code removed. Now generates only dark charcoal stone (RGB 40-60 base), an irregular chipped inner lip (RGB 90-120, 1-2px at source scale) around the art window seam, and subtle grain marks. No plaque, no motifs.
-- **8 border slices regenerated** — same filenames, same pixel sizes (148×172 corners, 527×172 top edge, etc.)
-- **`stone_grain.png`** — 64×64 stone grain texture generated alongside the borders
-- **`client/scripts/CardPlate.cs`** — `_nameBandBg` changed from beige/cream gradient (`vec4(0.776, 0.741, 0.667, a*UV.y)`) over a 1×1 white pixel to a transparent-to-dark charcoal scrim (`vec4(0.12, 0.10, 0.09, UV.y*0.75)`) over the real `stone_grain.png` texture
-
 **Acceptance crops delivered to Adam's DM:**
 - (a) 4 corner PNGs → 16×16 → 6× nearest upscale (96×96 each)
 - (b) Hand card TL corner + board card TL corner → 4× nearest from `duel_test.png` (240×240 each) — stone frame with lighter chipped inner lip visible
@@ -47,4 +41,10 @@ At 1080p design resolution: buttons render at 30px (2.8%), labels at 24px (2.2%)
 Session: 6/96
 --- session tail ---
   session TASK-CARD-TEXT-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-09T17:00:07Z TASK-CLASS-PORTRAITS-1 retry ===
+Session: 7/96
+Failures: finish_task_failure
+--- session tail ---
+  session TASK-CLASS-PORTRAITS-1 on deepseek/deepseek-v4-flash: 900s
 ========================================

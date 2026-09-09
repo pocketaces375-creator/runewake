@@ -12,8 +12,7 @@
       "tid_c_deep_one",
       "tid_c_whirlpool_elemental",
       "tid_u_brine_witch"
-    ],
-    "portrait_placeholder": true
+    ]
   },
   {
     "id": "necromancer",
@@ -43,8 +42,7 @@
       "dwn_c_sunblade_recruit",
       "dwn_c_golden_retainer",
       "dwn_u_steadfast_bulwark"
-    ],
-    "portrait_placeholder": true
+    ]
   },
   {
     "id": "druid",
@@ -74,8 +72,7 @@
       "hol_u_soul_harvest",
       "hol_u_barrow_revenant",
       "hol_c_bone_shard_volley"
-    ],
-    "portrait_placeholder": true
+    ]
   },
   {
     "id": "astrologist",
