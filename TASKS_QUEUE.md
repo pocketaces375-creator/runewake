@@ -375,7 +375,7 @@
 
 # ---- PACKET A (2026-09-03 evening) — launch-gap work, two lanes ----
 
-- [ ] TASK-ART-ICONS-1 — A matching icon set for the eleven keywords and five strata in the locked
+- [x] TASK-ART-ICONS-1 — A matching icon set for the eleven keywords and five strata in the locked
   style, .webp with .import files, wired into the card frame next to the keyword text.
   Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list.
 
