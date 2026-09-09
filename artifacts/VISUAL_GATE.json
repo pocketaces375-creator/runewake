@@ -1,6 +1,6 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-09T15:46:03Z",
+  "checked_at": "2026-09-09T16:26:16Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
@@ -54,70 +54,103 @@
     {
       "screen": "duel_test",
       "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
-      "verdict": "FAIL",
       "issues": [
         {
-          "description": "vision check errored/unparseable: Expecting ',' delimiter: line 4015 column 6 (char 247008)",
-          "severity": "high"
+          "description": "The text 'SEALINGLIGHT' on the card in the top row, third from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEALINGLIGHT' on the card in the top row, fourth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEALINGLIGHT' on the card in the bottom row, fifth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEALINGLIGHT' on the card in the bottom row, eighth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'UNDYING' on the card in the bottom row, fourth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDER' on the card in the bottom row, sixth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDER' on the card in the bottom row, seventh from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDER' on the card in the bottom row, ninth from the left, is partially obscured by the card's art, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'DUSKEANG' in the bottom left panel is partially cut off, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'DECK 0 BARROW' in the top right panel is partially cut off, making it difficult to read the full word.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'TURN 1' at the top center has low contrast against the dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'THE WAYFARER | 25' in the top right has low contrast against the dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'YOUR TURN' above the 'End Turn' button has low contrast against the dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
         }
-      ]
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
     },
     {
       "screen": "duel_test_safe",
       "path": "/home/fictive/runewake/artifacts/captures/duel_test_safe.png",
       "issues": [
         {
-          "description": "The text 'SEALILIGHT' on the card in the top row, third from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'SEALILIGHT' on the card in the bottom row, fifth from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'SEALILIGHT' on the card in the bottom row, seventh from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'DUSKFANG' in the player's artifact display area is partially cut off on the right side.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the top right slot.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the bottom left slot.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the bottom right slot.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'YOUR TURN' is rendered on top of the card in the bottom right, making it hard to read the card's details.",
+          "description": "The text 'SEALILIGHT' on the card art is partially obscured by the card's frame/border, making it difficult to read. This occurs on multiple cards in the hand and on the board.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'WILD' on the card in the bottom row, fourth from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "description": "The text 'DUSKEANG' in the bottom left panel is partially cut off, specifically the 'F' is missing, making it 'DUSKEANG' instead of 'DUSKEFANG'.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'YOUR TURN' is rendered on top of the card art in the bottom right, making it hard to read and obscuring part of the card.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The text 'WOOD' on the card in the top row, second from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "description": "The text 'DEN' and 'UNDYING' on the cards in the hand are partially obscured by the numerical badges at the bottom of the cards.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The text 'WOOD' on the card in the bottom row, second from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "description": "The text 'WILD' on one of the cards in the hand is partially obscured by the numerical badges at the bottom of the card.",
           "severity": "low",
           "count": 1
         }
@@ -131,19 +164,24 @@
       "path": "/home/fictive/runewake/artifacts/captures/victory_overlay.png",
       "issues": [
         {
-          "description": "The text 'Dig Ch:' under 'Rewards' is cut off and incomplete.",
+          "description": "The text 'Dig Ch:' under 'Rewards' is cut off, indicating it spills outside its intended display area or is truncated.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Turns taken: 1' is rendered with very low contrast against its background, making it difficult to read.",
+          "description": "The text 'SEALINSIGHT' on the card in the bottom right is partially obscured by the card's frame or another UI element, making it hard to read.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The text 'THE WAYFARER | 0' in the top right corner has very low contrast against its background, making it difficult to read.  [and 1 more like it]",
-          "severity": "low",
-          "count": 2
+          "description": "The text 'THE WAYFARER | 0' in the top right corner has a very low contrast against its dark red background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text '34 DECK O BARROW' in the top right corner has a very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
         }
       ],
       "blocking": [],
@@ -155,42 +193,42 @@
       "path": "/home/fictive/runewake/artifacts/captures/defeat_overlay.png",
       "issues": [
         {
-          "description": "The text \"Rewards forfeited\" has very low contrast against its dark background, making it difficult to read.",
+          "description": "The text \"THE WAYFARER | 25\" in the top right corner has very low contrast against its dark background, making it difficult to read.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text \"+EMBER:1\" under 'Fragments' has very low contrast against its dark background, making it difficult to read.",
+          "description": "The text \"34 DECK O BARROW\" in the top right corner has very low contrast against its dark background, making it difficult to read.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text \"Turns taken: 1\" has very low contrast against its dark background, making it difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text \"THE WAYFARER | 25\" in the top right corner has very low contrast against its dark red background, making it difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text \"14 DECK 0 BARROW\" in the top right corner has very low contrast against its dark background, making it difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text \"TRIKZOS | 0\" in the bottom left corner has very low contrast against its dark green background, making it difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text \"SWORD\" and \"CRUELAND\" in the bottom left corner are very small and have low contrast, making them difficult to read.",
+          "description": "The text \"SWORD\" and \"DUSKEANG\" in the bottom left corner are very small and have low contrast, making them hard to read.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The numbers '1', '4', '2', '4', '2' in the bottom row of cards have low contrast against their respective backgrounds, making them somewhat difficult to read.",
+          "description": "The text \"TRIKZOS | 0\" in the bottom left corner has low contrast against its green background, making it somewhat difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text \"Turns taken: 1\" within the 'DEFEATED' panel has low contrast against the dark background, making it somewhat difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text \"Rewards forfeited\" within the 'DEFEATED' panel has low contrast against the dark background, making it somewhat difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text for the rewards (Shards, Dig Charges, Fragments) within the 'DEFEATED' panel has low contrast against the dark background, making it somewhat difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text \"Try Again\" and \"Return to Map\" on the buttons have low contrast against their button backgrounds, making them somewhat difficult to read.",
           "severity": "low",
           "count": 1
         }
@@ -272,7 +310,7 @@
       "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
       "issues": [
         {
-          "description": "The 'Delete' button text is clipped; only 'Dele' is visible, with the 'te' cut off.",
+          "description": "The 'Delete' button text is clipped; only 'Dele' is visible.",
           "severity": "medium",
           "count": 1
         },

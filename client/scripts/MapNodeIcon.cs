@@ -18,6 +18,11 @@ public partial class MapNodeIcon : Button
     
     // Lock padlock (ColorRect assembly)
     private Control _lockGroup;
+
+    // TASK-UI-READABLE-2: viewport-driven font size
+    private float _viewportHeight = 1080f;
+    private int NameFontPx() =>
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 2.2f / 100f), 8);
     
     /// <summary>Node ID from the map region JSON.</summary>
     public string NodeId { get; private set; } = string.Empty;
@@ -35,9 +40,11 @@ public partial class MapNodeIcon : Button
 
     public override void _Ready()
     {
+        _viewportHeight = GetViewportRect().Size.Y;
+
         // Minimal container — 56px medallion + auto-fit name chip below
-        CustomMinimumSize = new Vector2(80, 80);
-        Size = new Vector2(80, 80);
+        CustomMinimumSize = new Vector2(80, 90);
+        Size = new Vector2(80, 90);
         MouseFilter = MouseFilterEnum.Pass;
         FocusMode = FocusModeEnum.None;
 
@@ -50,12 +57,12 @@ public partial class MapNodeIcon : Button
             MouseFilter = MouseFilterEnum.Ignore,
             AutowrapMode = TextServer.AutowrapMode.Off
         };
-        ThemeTokens.ApplyHeaderFont(_nameLabel, 10);
+        ThemeTokens.ApplyHeaderFont(_nameLabel, NameFontPx());
         _nameLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.9f, 0.76f, 1));
         _nameLabel.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
         _nameLabel.AddThemeConstantOverride("outline_size", 6);
         _nameLabel.Position = new Vector2(-30, 60);
-        _nameLabel.Size = new Vector2(140, 18);
+        _nameLabel.Size = new Vector2(140, 24);
         AddChild(_nameLabel);
 
         // Medallion background (56px round) via StyleBoxFlat on a container

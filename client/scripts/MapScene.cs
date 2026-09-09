@@ -72,8 +72,21 @@ public partial class MapScene : Control
     // Map center offset
     private Vector2 _mapOffset;
 
+    // TASK-UI-READABLE-2: viewport height for scale helper
+    private float _viewportHeight = 1080f;
+
+    // ── Readability scale helpers (driven by viewport height, not hardcoded px) ──
+    private int FontPx(float pct) =>
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * pct / 100f), 8);
+    private int BtnFontPx() => FontPx(2.8f);
+    private int LabelFontPx() => FontPx(2.2f);
+    private int BodyFontPx() => FontPx(2.4f);
+    private int BtnPaddingV() =>
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 0.9f / 100f), 4);
+
     public override void _Ready()
     {
+        _viewportHeight = GetViewportRect().Size.Y;
         EnsureCampaignContext();
         BuildBackground();
         BuildTopBar();
@@ -341,8 +354,8 @@ public partial class MapScene : Control
         BorderWidthRight = 1, BorderWidthBottom = 1,
         CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
         CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-        ContentMarginLeft = 10, ContentMarginTop = 4,
-        ContentMarginRight = 10, ContentMarginBottom = 4
+        ContentMarginLeft = 10, ContentMarginTop = 10,
+        ContentMarginRight = 10, ContentMarginBottom = 10
     };
 
     private StyleBoxFlat MakeBtnHover() => new()
@@ -353,13 +366,14 @@ public partial class MapScene : Control
         BorderWidthRight = 1, BorderWidthBottom = 1,
         CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
         CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-        ContentMarginLeft = 10, ContentMarginTop = 4,
-        ContentMarginRight = 10, ContentMarginBottom = 4
+        ContentMarginLeft = 10, ContentMarginTop = 10,
+        ContentMarginRight = 10, ContentMarginBottom = 10
     };
 
-    private void StyleButton(Button btn, float fontSize = 12, bool goldText = true)
+    private void StyleButton(Button btn, bool goldText = true)
     {
-        btn.AddThemeFontSizeOverride("font_size", (int)fontSize);
+        int fontSize = BtnFontPx();
+        btn.AddThemeFontSizeOverride("font_size", fontSize);
         var fc = goldText ? new Color(0.95f, 0.88f, 0.65f, 1f) : new Color(0.8f, 0.75f, 0.6f, 1f);
         var fd = new Color(0.4f, 0.35f, 0.25f, 0.5f);
         btn.AddThemeColorOverride("font_color", fc);
@@ -431,7 +445,7 @@ public partial class MapScene : Control
             Position = new Vector2(510 - 166, -189 - 17)
         };
         _regionBanner.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-        ThemeTokens.ApplyHeaderFont(_regionBanner, 22);
+        ThemeTokens.ApplyHeaderFont(_regionBanner, LabelFontPx());
         // Ink on parchment, not gold on black — it is sitting on the scroll now.
         _regionBanner.AddThemeColorOverride("font_color", new Color(0.24f, 0.16f, 0.09f, 0.96f));
         _regionBanner.AddThemeConstantOverride("outline_size", 0);
@@ -472,7 +486,7 @@ public partial class MapScene : Control
             AnchorLeft = 0.01f, AnchorRight = 0.12f,
             AnchorTop = 0.002f, AnchorBottom = 0.053f
         };
-        StyleButton(_backButton, 11, goldText: true);
+        StyleButton(_backButton, goldText: true);
         _backButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
@@ -487,7 +501,7 @@ public partial class MapScene : Control
             AnchorLeft = 0.87f, AnchorRight = 0.985f,
             AnchorTop = 0.006f, AnchorBottom = 0.049f
         };
-        _shardLabel.AddThemeFontSizeOverride("font_size", 15);
+        _shardLabel.AddThemeFontSizeOverride("font_size", LabelFontPx());
         _shardLabel.Modulate = new Color(0.92f, 0.80f, 0.42f, 1f); // gold, full strength
         AddChild(_shardLabel);
 
@@ -530,8 +544,8 @@ public partial class MapScene : Control
 
         // Deck name label (Cinzel 10px)
         _deckChipLabel = new Label();
-        _deckChipLabel.AddThemeFontSizeOverride("font_size", 12);
-        ThemeTokens.ApplyHeaderFont(_deckChipLabel, 12);
+        _deckChipLabel.AddThemeFontSizeOverride("font_size", LabelFontPx());
+        ThemeTokens.ApplyHeaderFont(_deckChipLabel, LabelFontPx());
         _deckChipLabel.MouseFilter = MouseFilterEnum.Ignore;
         chipInner.AddChild(_deckChipLabel);
 
@@ -574,7 +588,7 @@ public partial class MapScene : Control
             AnchorLeft = xL, AnchorRight = xL + btnW,
             AnchorTop = 0.79f, AnchorBottom = 0.86f
         };
-        StyleButton(_forgeBtn, 11, goldText: false);
+        StyleButton(_forgeBtn, goldText: false);
         _forgeBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
@@ -587,7 +601,7 @@ public partial class MapScene : Control
             AnchorLeft = xL, AnchorRight = xL + btnW,
             AnchorTop = 0.845f, AnchorBottom = 0.897f
         };
-        StyleButton(_runePageBtn, 11, goldText: false);
+        StyleButton(_runePageBtn, goldText: false);
         _runePageBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
@@ -600,7 +614,7 @@ public partial class MapScene : Control
             AnchorLeft = xL, AnchorRight = xL + btnW,
             AnchorTop = 0.897f, AnchorBottom = 0.949f
         };
-        StyleButton(_reliquaryBtn, 11, goldText: false);
+        StyleButton(_reliquaryBtn, goldText: false);
         _reliquaryBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
@@ -613,7 +627,7 @@ public partial class MapScene : Control
             AnchorLeft = xL, AnchorRight = xL + btnW,
             AnchorTop = 0.949f, AnchorBottom = 1f
         };
-        StyleButton(_settingsBtn, 11, goldText: false);
+        StyleButton(_settingsBtn, goldText: false);
         _settingsBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
@@ -750,7 +764,7 @@ public partial class MapScene : Control
 
         // Name — Cinzel gold
         _infoName = new Label();
-        ThemeTokens.ApplyHeaderFont(_infoName, 19);
+        ThemeTokens.ApplyHeaderFont(_infoName, BodyFontPx());
         _infoName.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 1f));
         infoVbox.AddChild(_infoName);
 
@@ -771,7 +785,7 @@ public partial class MapScene : Control
         // When a node has no rewards, this row is hidden entirely
         // (no "Rewards: —" placeholder).
         _infoRewards = new Label();
-        _infoRewards.AddThemeFontSizeOverride("font_size", 12);
+        _infoRewards.AddThemeFontSizeOverride("font_size", BodyFontPx());
         _infoRewards.AddThemeColorOverride("font_color", new Color(0.65f, 0.72f, 0.5f, 0.95f));
         _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
         infoVbox.AddChild(_infoRewards);
@@ -786,7 +800,7 @@ public partial class MapScene : Control
         infoVbox.AddChild(buttonRow);
 
         _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(88, 44) };
-        StyleButton(_infoCloseButton, 12, goldText: false);
+        StyleButton(_infoCloseButton, goldText: false);
         _infoCloseButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -795,7 +809,7 @@ public partial class MapScene : Control
         buttonRow.AddChild(_infoCloseButton);
 
         _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(126, 44) };
-        StyleButton(_infoGoButton, 14);
+        StyleButton(_infoGoButton);
         // Go button: bright, clearly enabled styling so it doesn't read as disabled
         // against the dark info panel background
         _infoGoButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
@@ -1225,7 +1239,7 @@ public partial class MapScene : Control
         // Title
         var title = new Label { Text = "Select Deck", HorizontalAlignment = HorizontalAlignment.Center };
         title.Modulate = new Color(0.90f, 0.82f, 0.55f, 1f);
-        ThemeTokens.ApplyHeaderFont(title, 14);
+        ThemeTokens.ApplyHeaderFont(title, LabelFontPx());
         vbox.AddChild(title);
 
         // Separator
