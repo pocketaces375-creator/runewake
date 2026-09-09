@@ -5,7 +5,7 @@
 # - Exit instantly when the inbox is empty
 # - Own lock file so two runs never overlap
 # - Pure queue files: insert lines above top unchecked task in TASKS_QUEUE.md
-# - Free-form files (no `- [ ] TASK-` lines): run as one-shot hermes prompt
+# - Free-form files (no `- [ ] TASK-` lines): moved to needs_reformat/ for Fable to fix
 # - After applying a queue insert: if foreman not running + budget remains,
 #   start it via nohup
 # - Move processed files to inbox/applied/
@@ -178,51 +178,17 @@ print('NO_INSERT')
       warn "Fable inbox: no unchecked task found to insert above" >> "${LOG_FILE}"
     fi
   else
-    # Free-form instruction — run as one-shot prompt
-    info "Fable inbox: executing ${base_name} as one-shot prompt" >> "${LOG_FILE}"
-
-    # Log the exact prompt before launching (capture garbled text for diagnostics)
-    ONE_SHOT_PROMPT=$(cat "${inbox_file}")
-    echo "  === ONE-SHOT PROMPT START ===" >> "${LOG_FILE}"
-    echo "${ONE_SHOT_PROMPT}" >> "${LOG_FILE}"
-    echo "  === ONE-SHOT PROMPT END ===" >> "${LOG_FILE}"
-
-    # Gate on foreman lock — only one work session at a time.
-    # When called from foreman.sh (FOREMAN_CALLER=1), the foreman
-    # already holds its own lock — skip the gate entirely.
-    FOREMAN_LOCKED=0
-    if [[ -z "${FOREMAN_CALLER:-}" ]]; then
-      FOREMAN_PID_FILE="/tmp/runewake_foreman.pid"
-      while [[ -f "${FOREMAN_PID_FILE}" ]]; do
-        FPID=$(cat "${FOREMAN_PID_FILE}" 2>/dev/null || echo "")
-        if [[ -n "${FPID}" ]] && kill -0 "${FPID}" 2>/dev/null; then
-          # PID is alive — foreman is running, never clear a live lock
-          FOREMAN_LOCKED=1
-          info "Foreman running (PID ${FPID}) — skipping one-shot, ${base_name} stays in inbox/" >> "${LOG_FILE}"
-          break
-        else
-          # PID file exists but no process — stale, clear it
-          rm -f "${FOREMAN_PID_FILE}"
-          break
-        fi
-      done
-    fi
-
-    if [[ "${FOREMAN_LOCKED}" -eq 1 ]]; then
-      # Skipped — file stays in inbox/ for next minute's retry
-      info "Skip ${base_name} — foreman running, leaving in inbox/ for retry" >> "${LOG_FILE}"
-      continue
-    fi
-
-    # Archive BEFORE launching. The session below runs for tens of minutes; the
-    # file must not still be in inbox/ where another run could pick it up again.
-    mkdir -p "${INBOX_DIR}/applied"
-    if [[ -f "${inbox_file}" ]]; then mv "${inbox_file}" "${INBOX_DIR}/applied/"; fi 2>/dev/null || true
-    "${HERMES_BIN}" -p tcgbot chat -q "${ONE_SHOT_PROMPT}" -Q >> "${LOG_FILE}" 2>&1 || true
+    # Free-form file — not pure queue format. Move to needs_reformat/.
+    info "Fable inbox: ${base_name} is not pure queue format — moved to needs_reformat/" >> "${LOG_FILE}"
+    mkdir -p "${INBOX_DIR}/needs_reformat"
+    mv "${inbox_file}" "${INBOX_DIR}/needs_reformat/"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: ${base_name} — not pure queue format, moved to needs_reformat/" >> "${LOG_FILE}"
+    TELEGRAM_TARGET="${FOREMAN_TELEGRAM_TARGET:-telegram:Runewake}"
+    "${HERMES_BIN}" send --to "${TELEGRAM_TARGET}" "Inbox file ${base_name} is not pure queue format — moved to needs_reformat/, nothing was run. Fable: resend as - [ ] TASK blocks with indented continuation lines." 2>/dev/null || true
   fi
 
   # Move file to applied/ (only reached when actually processed)
   mkdir -p "${INBOX_DIR}/applied"
   if [[ -f "${inbox_file}" ]]; then mv "${inbox_file}" "${INBOX_DIR}/applied/"; fi
-  echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: processed ${base_name} ($([[ "${is_pure_queue}" == true ]] && echo 'queue insert' || echo 'one-shot'))" >> "${LOG_FILE}"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') FABLE-INBOX: processed ${base_name} ($([[ "${is_pure_queue}" == true ]] && echo 'queue insert' || echo 'needs-reformat'))" >> "${LOG_FILE}"
 done

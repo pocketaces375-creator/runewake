@@ -1348,3 +1348,6 @@ Why: artifacts/captures/duel_test.meta.json shows hand cards at 232.6x398 while 
 # from: fable
   === ONE-SHOT PROMPT END ===
 Warning: Unknown toolsets: messaging, moa
+2026-09-09 09:30:16 FABLE-INBOX: processed fable_ship1.md (one-shot)
+  Fable inbox: inserted queue items from fable_stone.md
+2026-09-09 09:33:03 FABLE-INBOX: processed fable_stone.md (queue insert)
