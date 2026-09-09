@@ -1,28 +1,3 @@
-
-**TASK-PIPE-IMPORT-1: import before capture**
-
-Changes:
-- `client/scripts/RootBoundBorder.cs` — added `GD.Print` after `bandPx` compute: `[ROOTBOUND] Setup cardWidth=W cardHeight=H bandPx=B`
-- `tools/finish_task.sh` — added `rm -rf .godot/imported/` + `xvfb-run godot --headless --import` before the capture loop, with hard fail on non-zero exit
-- `tools/capture_duel.sh` — same import step before all `capture_one` calls
-
-Verification — `finish_task.sh` exited 0 through all steps (build, art_check, tests, capture regen, ui_lint, label_fit, commit).
-
-[ROOTBOUND] Loaded lines from duel_test capture (all 8 present):
-```
-[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tl.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tr.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_bl.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_br.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_top.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_bottom.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_left.png
-[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_right.png
-```
-
-[ROOTBOUND] Setup lines — hand card and board card:
-```
-  Hand card:  [ROOTBOUND] Setup cardWidth=232.63158 cardHeight=340 bandPx=16
   Board card: [ROOTBOUND] Setup cardWidth=199.69032 cardHeight=292 bandPx=14
 ```
 
@@ -47,4 +22,29 @@ Task TASK-PIPE-INBOX-1 is complete. Commit `77fa3f4`, mark commit `92d3364`.
 3. **Common log label** (line 193) — changed from `'one-shot'` to `'needs-reformat'` since that's the only remaining outcome for non-queue files
 
 4. **Atomic edit** — written to `.tmp` file then `mv` over the original to avoid cron seeing a half-written file
+========================================
+=== foreman: 2026-09-09T13:45:03Z TASK-BORDER-STONE-1 success ===
+Session: 3/96
+--- session tail ---
+  session TASK-BORDER-STONE-1 on deepseek/deepseek-v4-flash: 483s
+I've delivered the report and all acceptance crops to Adam's DM since the bot couldn't reach the group directly. Here's the full delivery:
+
+---
+
+**TASK-BORDER-STONE-1 DONE**
+
+Commit `8120ca0` — `TASK-BORDER-STONE-1: plain stone border`
+12 files changed, +201/-203
+
+- **`tools/gen_rootbound_border.py`** — completely rewritten. All gold, vine, and rune code removed. Now generates only dark charcoal stone (RGB 40-60 base), an irregular chipped inner lip (RGB 90-120, 1-2px at source scale) around the art window seam, and subtle grain marks. No plaque, no motifs.
+- **8 border slices regenerated** — same filenames, same pixel sizes (148×172 corners, 527×172 top edge, etc.)
+- **`stone_grain.png`** — 64×64 stone grain texture generated alongside the borders
+- **`client/scripts/CardPlate.cs`** — `_nameBandBg` changed from beige/cream gradient (`vec4(0.776, 0.741, 0.667, a*UV.y)`) over a 1×1 white pixel to a transparent-to-dark charcoal scrim (`vec4(0.12, 0.10, 0.09, UV.y*0.75)`) over the real `stone_grain.png` texture
+
+**Acceptance crops delivered to Adam's DM:**
+- (a) 4 corner PNGs → 16×16 → 6× nearest upscale (96×96 each)
+- (b) Hand card TL corner + board card TL corner → 4× nearest from `duel_test.png` (240×240 each) — stone frame with lighter chipped inner lip visible
+- (c) Hand card name band → 4× nearest (928×180) — text over gradient darkening
+
+**Note:** The bot token has no access to the Runewake group chat (returns "Chat not found"). Delivery went to Adam's DM. If you want me to try re-adding the bot or using a different delivery channel, let me know.
 ========================================
