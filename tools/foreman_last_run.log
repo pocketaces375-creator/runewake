@@ -1,38 +1,3 @@
-Session: 40/96
---- session tail ---
-  session TASK-ENGINE-DRUID-P1-1 on deepseek/deepseek-v4-flash: 303s
-Task TASK-ENGINE-DRUID-P1-1 is complete.
-
-**Result:** Bug found and fixed at `engine/Engine/TriggerBus.cs` line 159-161. The `CollectAbilities` method was collecting `ON_TURN_START` triggers from BOTH players' artifacts for every turn start. This meant Book of Familiar summoned ROOTED tokens on EVERY turn (not just the owning player's turn), doubling the board-fill rate and creating a deadlock where all lanes filled with ROOTED tokens, preventing the Druid from playing real creatures or attacking.
-
-**Fix:** Added `if (trigger != Trigger.ON_TURN_START)` guard at line 161 so only the current player's turn-start abilities fire.
-
-**Test results (finish_task.sh):**
-- Build: passed
-- dotnet test: 3/3 passed (DruidMirror_200Games_Seed42_CombatHappens, DruidP1VsWarrior_Above15Percent, OnTurnStart_FiresOnlyForCurrentPlayerArtifacts)
-- art_check: 322 files, 0 failures
-- Committed as `8308db6` and pushed, TASKS_QUEUE.md checkbox flipped, DONE entry added to HERMES_STATUS.md
-========================================
-=== foreman: 2026-09-08T19:05:36Z TASK-TUNE-AURAS-1 success ===
-Session: 41/96
---- session tail ---
-  session TASK-TUNE-AURAS-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T19:35:50Z TASK-TUNE-WHISPER-1 success ===
-Session: 42/96
---- session tail ---
-  session TASK-TUNE-WHISPER-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T19:52:07Z TASK-ITEMS-NECROMANCER-1 success ===
-Session: 43/96
---- session tail ---
-  session TASK-ITEMS-NECROMANCER-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-08T20:00:38Z TASK-ITEMS-ROGUE-1 success ===
-Session: 44/96
---- session tail ---
-  session TASK-ITEMS-ROGUE-1 on deepseek/deepseek-v4-flash: 458s
-**TASK-ITEMS-ROGUE-1 — complete.**
 
 The task was already in place from a prior session. Verification run validated every gate:
 
@@ -47,4 +12,39 @@ The task was already in place from a prior session. Verification run validated e
 Session: 45/96
 --- session tail ---
   session TASK-BORDER-REDESIGN-SCALE-1 on deepseek/deepseek-v4-flash: 900s
+========================================
+=== foreman: 2026-09-09T13:08:55Z TASK-PIPE-IMPORT-1 success ===
+Session: 1/96
+--- session tail ---
+  session TASK-PIPE-IMPORT-1 on deepseek/deepseek-v4-flash: 185s
+All evidence gathered. Task is complete. Here's the DONE report:
+
+**TASK-PIPE-IMPORT-1: import before capture**
+
+Changes:
+- `client/scripts/RootBoundBorder.cs` — added `GD.Print` after `bandPx` compute: `[ROOTBOUND] Setup cardWidth=W cardHeight=H bandPx=B`
+- `tools/finish_task.sh` — added `rm -rf .godot/imported/` + `xvfb-run godot --headless --import` before the capture loop, with hard fail on non-zero exit
+- `tools/capture_duel.sh` — same import step before all `capture_one` calls
+
+Verification — `finish_task.sh` exited 0 through all steps (build, art_check, tests, capture regen, ui_lint, label_fit, commit).
+
+[ROOTBOUND] Loaded lines from duel_test capture (all 8 present):
+```
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tr.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_bl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_br.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_top.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_bottom.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_left.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_right.png
+```
+
+[ROOTBOUND] Setup lines — hand card and board card:
+```
+  Hand card:  [ROOTBOUND] Setup cardWidth=232.63158 cardHeight=340 bandPx=16
+  Board card: [ROOTBOUND] Setup cardWidth=199.69032 cardHeight=292 bandPx=14
+```
+
+Commits: `5be70e5` (import before capture) + `b20d037` (mark [x] + DONE entry). Task marked done in queue.
 ========================================
