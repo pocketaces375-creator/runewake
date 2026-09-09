@@ -284,7 +284,10 @@ public partial class SettingsScene : Control
             CustomMinimumSize = new Vector2(100, 0),
             VerticalAlignment = VerticalAlignment.Center
         };
-        ThemeTokens.ApplyBodyFont(lbl, ThemeTokens.FontBody);
+        var boldFont = ThemeTokens.GetButtonFont(ThemeTokens.FontBody);
+        if (boldFont != null)
+            lbl.AddThemeFontOverride("font", boldFont);
+        lbl.AddThemeFontSizeOverride("font_size", ThemeTokens.FontBody);
         lbl.Modulate = Color.FromHtml("#E8DCC8"); // cream
         hbox.AddChild(lbl);
 
