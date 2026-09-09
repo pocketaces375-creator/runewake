@@ -1,24 +1,4 @@
 
-The task was already in place from a prior session. Verification run validated every gate:
-
-- **art_check tile** — all 4 tiles PASS (832x832, 1453-2105 colours, no human detected)
-- **art_check variety** — PASS (all sufficiently distinct)
-- **Build** — succeeded
-- **Tests** — 11 tests passed (Poisoner's Kiss: 3, Shadowfang: 3, Lockpick: 3, Gloomblade: 3, load+equip: 1)
-- **finish_task.sh** — exited 0, committed + pushed (3852a2d)
-- **Telegram** — text description + 4 tiles posted to the Runewake group
-========================================
-=== foreman: 2026-09-08T21:35:54Z TASK-BORDER-REDESIGN-SCALE-1 success ===
-Session: 45/96
---- session tail ---
-  session TASK-BORDER-REDESIGN-SCALE-1 on deepseek/deepseek-v4-flash: 900s
-========================================
-=== foreman: 2026-09-09T13:08:55Z TASK-PIPE-IMPORT-1 success ===
-Session: 1/96
---- session tail ---
-  session TASK-PIPE-IMPORT-1 on deepseek/deepseek-v4-flash: 185s
-All evidence gathered. Task is complete. Here's the DONE report:
-
 **TASK-PIPE-IMPORT-1: import before capture**
 
 Changes:
@@ -47,4 +27,24 @@ Verification — `finish_task.sh` exited 0 through all steps (build, art_check, 
 ```
 
 Commits: `5be70e5` (import before capture) + `b20d037` (mark [x] + DONE entry). Task marked done in queue.
+========================================
+=== foreman: 2026-09-09T13:36:09Z TASK-PIPE-INBOX-1 success ===
+Session: 2/96
+--- session tail ---
+  session TASK-PIPE-INBOX-1 on deepseek/deepseek-v4-flash: 310s
+Task TASK-PIPE-INBOX-1 is complete. Commit `77fa3f4`, mark commit `92d3364`.
+
+**What changed in `tools/inbox_apply.sh`:**
+
+1. **Header comment** (line 8) — updated to say "moved to needs_reformat/ for Fable to fix" instead of "run as one-shot hermes prompt"
+
+2. **Entire else-branch** (lines 181-187) — replaced 42 lines of hermes prompt-passing code with:
+   - `mkdir -p "${INBOX_DIR}/needs_reformat"` — creates the drop directory
+   - `mv "${inbox_file}" "${INBOX_DIR}/needs_reformat/"` — moves the malformed file out of inbox
+   - Log line with timestamp explaining the action
+   - Telegram notification via `"${HERMES_BIN}" send --to` using the foreman's `TELEGRAM_TARGET` pattern: *"Inbox file <name> is not pure queue format — moved to needs_reformat/, nothing was run. Fable: resend as - [ ] TASK blocks with indented continuation lines."*
+
+3. **Common log label** (line 193) — changed from `'one-shot'` to `'needs-reformat'` since that's the only remaining outcome for non-queue files
+
+4. **Atomic edit** — written to `.tmp` file then `mv` over the original to avoid cron seeing a half-written file
 ========================================
