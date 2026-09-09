@@ -22,7 +22,7 @@ public partial class MapNodeIcon : Button
     // TASK-UI-READABLE-2: viewport-driven font size
     private float _viewportHeight = 1080f;
     private int NameFontPx() =>
-        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 2.2f / 100f), 8);
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 1.3f / 100f), 8);
     
     /// <summary>Node ID from the map region JSON.</summary>
     public string NodeId { get; private set; } = string.Empty;
@@ -43,8 +43,8 @@ public partial class MapNodeIcon : Button
         _viewportHeight = GetViewportRect().Size.Y;
 
         // Minimal container — 56px medallion + auto-fit name chip below
-        CustomMinimumSize = new Vector2(80, 90);
-        Size = new Vector2(80, 90);
+        CustomMinimumSize = new Vector2(130, 90);
+        Size = new Vector2(130, 90);
         MouseFilter = MouseFilterEnum.Pass;
         FocusMode = FocusModeEnum.None;
 
@@ -453,7 +453,7 @@ public partial class MapNodeIcon : Button
         medPanel.AddThemeStyleboxOverride("panel", s);
     }
 
-    private static string TruncateName(string name, int maxLen = 16)
+    private static string TruncateName(string name, int maxLen = 24)
     {
         if (name.Length <= maxLen) return name;
         return name[..(maxLen - 1)] + "\u2026";

@@ -78,11 +78,11 @@ public partial class MapScene : Control
     // ── Readability scale helpers (driven by viewport height, not hardcoded px) ──
     private int FontPx(float pct) =>
         Mathf.Max(Mathf.RoundToInt(_viewportHeight * pct / 100f), 8);
-    private int BtnFontPx() => FontPx(2.8f);
+    private int BtnFontPx() => FontPx(1.6f);
     private int LabelFontPx() => FontPx(2.2f);
     private int BodyFontPx() => FontPx(2.4f);
     private int BtnPaddingV() =>
-        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 0.9f / 100f), 4);
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 0.5f / 100f), 4);
 
     public override void _Ready()
     {
