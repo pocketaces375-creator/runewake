@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Runewake.Tests.Cards;
 
+[Collection("NonParallel")]
 public class EncounterLoaderTests
 {
     private static readonly EncounterPack EarlyPack = EncounterLoader.LoadPack(

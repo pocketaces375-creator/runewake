@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Runewake.Tests.State;
 
+[Collection("NonParallel")]
 public class ProgressionStateGrindTests
 {
     /// <summary>
