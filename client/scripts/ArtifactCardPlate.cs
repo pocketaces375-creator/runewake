@@ -66,7 +66,8 @@ public partial class ArtifactCardPlate : Control
     {
         _designCardWidth = cardWidth;
         _designCardHeight = cardHeight;
-        _cardNameText = name;
+        // TASK-ARTIFACT-TRAY-1: treat "?" and "#REF!" as empty (no placeholder text visible to player)
+        _cardNameText = (name == "?" || name == "#REF!") ? "" : name;
         _suppressed = suppressed;
         _showCharges = maxCharges > 0;
 
@@ -92,10 +93,11 @@ public partial class ArtifactCardPlate : Control
             _artRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_artRect);
 
-            // ── ARTIFACT tag (top of card, inside root-bound rim) ──
+            // ── Artifact type tag (top of card, inside root-bound rim) ──
+            // TASK-ARTIFACT-TRAY-1: empty tag is a deliberate edge-outline — no placeholder word
             _artifactTag = new Label
             {
-                Text = "ARTIFACT",
+                Text = "",
                 MouseFilter = MouseFilterEnum.Ignore,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center

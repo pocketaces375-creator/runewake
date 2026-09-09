@@ -1,40 +1,339 @@
 {
-  "overall": "PASS",
-  "checked_at": "2026-09-08T18:41:12Z",
+  "overall": "FAIL",
+  "checked_at": "2026-09-09T15:46:03Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "reliquary_test",
-      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test.png",
+      "screen": "choose_path",
+      "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
       "issues": [
         {
-          "description": "The text 'VERD' in the filter options is partially obscured by the 'ALL' filter, making it difficult to read. It appears to be 'VERDANT' or similar, but is clipped.  [and 2 more like it]",
-          "severity": "medium",
-          "count": 3
-        },
-        {
-          "description": "The text 'DAWN' in the filter options is partially obscured by the 'HOL' filter, making it difficult to read.",
+          "description": "The text 'Origin - Salrmere' under 'BATTLEMAGE' is partially obscured by the left arrow UI element.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Owned 13 / 146' and 'Runes: 0' in the top right corner have very low contrast against the dark background, making them hard to read.",
-          "severity": "low",
+          "description": "The text 'Origin - Emberhold' under 'WARRIOR' is partially obscured by the right arrow UI element.",
+          "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'x1' on the 'CINDER RUNNER' card is partially obscured by the number '2' icon, making it hard to read.  [and 2 more like it]",
-          "severity": "low",
-          "count": 3
+          "description": "The description text for 'WARRIOR' is cut off at the bottom, specifically the line 'ancient craft of war into every fight.' is incomplete.  [and 6 more like it]",
+          "severity": "medium",
+          "count": 7
         },
         {
-          "description": "The scrollbar on the right side of the screen is very thin and difficult to see, potentially impacting usability.",
+          "description": "The small square icons below 'DRUID' are partially cut off at the bottom of the card.",
           "severity": "low",
           "count": 1
         }
       ],
       "blocking": [],
       "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "map_test",
+      "path": "/home/fictive/runewake/artifacts/captures/map_test.png",
+      "issues": [
+        {
+          "description": "The text 'SHRINE' is rendered on top of the circular icon, making the icon's details difficult to discern and the text itself slightly less clear due to the underlying pattern.  [and 10 more like it]",
+          "severity": "low",
+          "count": 11
+        },
+        {
+          "description": "The text 'DECK: FORGEGUARD STANDARD' has very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "duel_test",
+      "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
+      "verdict": "FAIL",
+      "issues": [
+        {
+          "description": "vision check errored/unparseable: Expecting ',' delimiter: line 4015 column 6 (char 247008)",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "screen": "duel_test_safe",
+      "path": "/home/fictive/runewake/artifacts/captures/duel_test_safe.png",
+      "issues": [
+        {
+          "description": "The text 'SEALILIGHT' on the card in the top row, third from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEALILIGHT' on the card in the bottom row, fifth from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEALILIGHT' on the card in the bottom row, seventh from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'DUSKFANG' in the player's artifact display area is partially cut off on the right side.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the top right slot.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the bottom left slot.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ARTIFACT' in the opponent's artifact display area is partially cut off on the right side in the bottom right slot.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'YOUR TURN' is rendered on top of the card in the bottom right, making it hard to read the card's details.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILD' on the card in the bottom row, fourth from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'WOOD' on the card in the top row, second from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'WOOD' on the card in the bottom row, second from the left, is partially obscured by the card's frame, making it difficult to read the full word.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "victory_overlay",
+      "path": "/home/fictive/runewake/artifacts/captures/victory_overlay.png",
+      "issues": [
+        {
+          "description": "The text 'Dig Ch:' under 'Rewards' is cut off and incomplete.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'Turns taken: 1' is rendered with very low contrast against its background, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'THE WAYFARER | 0' in the top right corner has very low contrast against its background, making it difficult to read.  [and 1 more like it]",
+          "severity": "low",
+          "count": 2
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "defeat_overlay",
+      "path": "/home/fictive/runewake/artifacts/captures/defeat_overlay.png",
+      "issues": [
+        {
+          "description": "The text \"Rewards forfeited\" has very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"+EMBER:1\" under 'Fragments' has very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"Turns taken: 1\" has very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"THE WAYFARER | 25\" in the top right corner has very low contrast against its dark red background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"14 DECK 0 BARROW\" in the top right corner has very low contrast against its dark background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"TRIKZOS | 0\" in the bottom left corner has very low contrast against its dark green background, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text \"SWORD\" and \"CRUELAND\" in the bottom left corner are very small and have low contrast, making them difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The numbers '1', '4', '2', '4', '2' in the bottom row of cards have low contrast against their respective backgrounds, making them somewhat difficult to read.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "reliquary_test",
+      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test.png",
+      "issues": [
+        {
+          "description": "The text 'VERO' in the filter options is partially obscured by the 'ALL' filter button, making it difficult to read.  [and 2 more like it]",
+          "severity": "medium",
+          "count": 3
+        },
+        {
+          "description": "The text 'BLAZE SCOUT' is rendered on top of the card art for 'BLAZE SCOUT', making the card art partially obscured and the text less clear.  [and 24 more like it]",
+          "severity": "low",
+          "count": 25
+        },
+        {
+          "description": "The scrollbar on the right side of the screen is very thin and difficult to see against the dark background, making it hard to interact with.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "reliquary_test_all",
+      "path": "/home/fictive/runewake/artifacts/captures/reliquary_test_all.png",
+      "issues": [
+        {
+          "description": "The text 'VERD' in the filter options is partially obscured by the 'ALL' icon, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'EMB' in the filter options is partially obscured by the 'VERD' text, making it difficult to read.  [and 1 more like it]",
+          "severity": "medium",
+          "count": 2
+        },
+        {
+          "description": "The 'x1' text on the first card (Dawnbreaker Charger) is partially obscured by the card's border and the '1' icon, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The 'x1' text on the second card (Oath-Sworn Guard) is partially obscured by the card's border and the '2' icon, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The 'x1' text on the third card (Blaze Scout) is partially obscured by the card's border and the '2' icon, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The 'x1' text on the fourth card (unnamed, dog-like creature) is partially obscured by the card's border and the '2' icon, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The scrollbar on the right side of the screen is very thin and difficult to see, especially against the dark background, which could lead to poor user experience.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "title_test",
+      "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
+      "issues": [
+        {
+          "description": "The 'Delete' button text is clipped; only 'Dele' is visible, with the 'te' cut off.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'Diag' text in the top-left corner is very low contrast against its dark background, making it hard to read.",
+          "severity": "low",
+          "count": 1
+        }
+      ],
+      "blocking": [],
+      "verdict": "PASS",
+      "model_verdict": "FAIL"
+    },
+    {
+      "screen": "settings_test",
+      "path": "/home/fictive/runewake/artifacts/captures/settings_test.png",
+      "issues": [
+        {
+          "description": "The text 'SEX' is present as a UI label, which is likely a placeholder or an error, as 'SFX' (Sound Effects) is the common term in game settings.",
+          "severity": "high",
+          "count": 1
+        },
+        {
+          "description": "The text '80' next to the 'Music' slider is very low contrast against the dark background, making it hard to read.  [and 1 more like it]",
+          "severity": "medium",
+          "count": 2
+        },
+        {
+          "description": "The text '100' next to the 'SFX' (labeled 'SEX') slider is very low contrast against the dark background, making it hard to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'Low' next to 'Graphics Quality' is very low contrast against the dark background, making it hard to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text '0.1.0 (20bdfbf9)' in the bottom right corner is extremely low contrast against the dark background, making it almost illegible.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The scrollbar on the right side of the screen is present but there is no content to scroll, suggesting a layout issue or an unnecessary UI element.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The overall layout is severely unbalanced, with a large empty space on the right side of the screen while all interactive elements are crammed into the left, making it look unfinished.",
+          "severity": "medium",
+          "count": 1
+        }
+      ],
+      "blocking": [
+        {
+          "description": "The text 'SEX' is present as a UI label, which is likely a placeholder or an error, as 'SFX' (Sound Effects) is the common term in game settings.",
+          "severity": "high",
+          "count": 1
+        }
+      ],
+      "verdict": "FAIL",
       "model_verdict": "FAIL"
     }
   ]
