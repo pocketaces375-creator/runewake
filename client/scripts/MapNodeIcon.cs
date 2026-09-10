@@ -22,7 +22,7 @@ public partial class MapNodeIcon : Button
     // TASK-UI-READABLE-2: viewport-driven font size
     private float _viewportHeight = 1080f;
     private int NameFontPx() =>
-        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 1.3f / 100f), 8);
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 1.75f / 100f), 8);
     
     /// <summary>Node ID from the map region JSON.</summary>
     public string NodeId { get; private set; } = string.Empty;
@@ -43,8 +43,8 @@ public partial class MapNodeIcon : Button
         _viewportHeight = GetViewportRect().Size.Y;
 
         // Minimal container — 56px medallion + auto-fit name chip below
-        CustomMinimumSize = new Vector2(130, 90);
-        Size = new Vector2(130, 90);
+        CustomMinimumSize = new Vector2(130, 110);
+        Size = new Vector2(130, 110);
         MouseFilter = MouseFilterEnum.Pass;
         FocusMode = FocusModeEnum.None;
 
@@ -62,7 +62,7 @@ public partial class MapNodeIcon : Button
         _nameLabel.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.05f, 0.03f, 0.9f));
         _nameLabel.AddThemeConstantOverride("outline_size", 6);
         _nameLabel.Position = new Vector2(-30, 60);
-        _nameLabel.Size = new Vector2(140, 24);
+        _nameLabel.Size = new Vector2(160, 40);
         AddChild(_nameLabel);
 
         // Medallion background (56px round) via StyleBoxFlat on a container
@@ -456,6 +456,12 @@ public partial class MapNodeIcon : Button
     private static string TruncateName(string name, int maxLen = 24)
     {
         if (name.Length <= maxLen) return name;
-        return name[..(maxLen - 1)] + "\u2026";
+        int mid = name.Length / 2;
+        int breakAt = name.LastIndexOf(' ', mid);
+        if (breakAt <= 0)
+            breakAt = name.IndexOf(' ', mid);
+        if (breakAt > 0)
+            return name[..breakAt] + "\n" + name[(breakAt + 1)..];
+        return name[..mid] + "\n" + name[mid..];
     }
 }

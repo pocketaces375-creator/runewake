@@ -18,6 +18,17 @@ except ImportError:
 
 CAPTURE_DIR = Path(__file__).resolve().parent.parent / "artifacts" / "captures"
 
+# TASK-MAP-INFOBOX-1
+INFO_BOX_ANCHORS = (0.665, 0.78, 0.985, 0.945)
+
+# Map plate
+MAP_PLATE_SIZE = (1536, 704)
+
+# Node label
+NODE_LABEL_OFFSET = (-30, 60)
+NODE_LABEL_SIZE = (160, 40)
+
+
 
 def load_layout(basename: str) -> dict | None:
     path = CAPTURE_DIR / f"{basename}.layout.json"
@@ -797,6 +808,31 @@ def check_artifact_luminance(controls: list[dict], capture_name: str) -> list[st
                 )
 
     return failures
+
+def rects_intersect(a, b):
+    return (a["x"] < b["x"] + b["w"] and a["x"] + a["w"] > b["x"] and a["y"] < b["y"] + b["h"] and a["y"] + a["h"] > b["y"])
+
+
+def check_map_info_zone(controls, viewport, basename):
+    failures = []
+    region_id = "region_01"
+    if "_r2" in basename: region_id = "region_02"
+    region_path = CAPTURE_DIR.parent / "content" / "map" / f"{region_id}.json"
+    if not region_path.exists(): return failures
+    try: region = json.loads(region_path.read_text())
+    except: return failures
+    for node in region.get("nodes", []):
+        nx, ny = node["position"]
+        icon_x = nx - 768 - 40.0; icon_y = ny - 352 - 32.0
+        cz = max(viewport["width"]/1536, viewport["height"]/704)
+        sx = viewport["width"]/2 + (icon_x - 30)*cz
+        sy = viewport["height"]/2 + (icon_y + 60)*cz
+        lr = {"x": sx, "y": sy, "w": 160*cz, "h": 40*cz}
+        ir = {"x": 0.665*viewport["width"], "y": 0.78*viewport["height"], "w": 0.32*viewport["width"], "h": 0.165*viewport["height"]}
+        if rects_intersect(lr, ir):
+            failures.append(f'INFO_ZONE: node "{node["id"]}" label overlaps info panel at default zoom')
+    return failures
+
 def main():
     seen_basenames = []
     passed = 0
@@ -840,6 +876,8 @@ def main():
         elif any(kw in basename for kw in ["map_test", "settings_test", "title_test", "title_deck",
                                             "reliquary_test", "victory_overlay", "defeat_overlay"]):
             scene_failures.extend(check_content_span(controls, viewport))
+            if "map_test" in basename or "map_test" in capture_name:
+                scene_failures.extend(check_map_info_zone(controls, viewport, basename))
         else:
             # For other captures (dig, tutorial, etc.) just run all-scene rules
             pass

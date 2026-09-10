@@ -72,17 +72,20 @@ public partial class MapScene : Control
     // Map center offset
     private Vector2 _mapOffset;
 
+    // TASK-MAP-INFOBOX-1: reserved info panel rectangle (normalized anchors)
+    private static readonly Vector4 InfoBoxAnchors = new(0.665f, 0.78f, 0.985f, 0.945f);
+
     // TASK-UI-READABLE-2: viewport height for scale helper
     private float _viewportHeight = 1080f;
 
     // ── Readability scale helpers (driven by viewport height, not hardcoded px) ──
     private int FontPx(float pct) =>
         Mathf.Max(Mathf.RoundToInt(_viewportHeight * pct / 100f), 8);
-    private int BtnFontPx() => FontPx(1.6f);
+    private int BtnFontPx() => FontPx(2.2f);
     private int LabelFontPx() => FontPx(2.2f);
     private int BodyFontPx() => FontPx(2.4f);
     private int BtnPaddingV() =>
-        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 0.5f / 100f), 4);
+        Mathf.Max(Mathf.RoundToInt(_viewportHeight * 0.7f / 100f), 6);
 
     public override void _Ready()
     {
@@ -586,7 +589,7 @@ public partial class MapScene : Control
         {
             Text = "Forge",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.79f, AnchorBottom = 0.86f
+            AnchorTop = 0.72f, AnchorBottom = 0.782f
         };
         StyleButton(_forgeBtn, goldText: false);
         _forgeBtn.Pressed += () => {
@@ -599,7 +602,7 @@ public partial class MapScene : Control
         {
             Text = "Rune Page",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.845f, AnchorBottom = 0.897f
+            AnchorTop = 0.785f, AnchorBottom = 0.847f
         };
         StyleButton(_runePageBtn, goldText: false);
         _runePageBtn.Pressed += () => {
@@ -612,7 +615,7 @@ public partial class MapScene : Control
         {
             Text = "Reliquary",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.897f, AnchorBottom = 0.949f
+            AnchorTop = 0.850f, AnchorBottom = 0.912f
         };
         StyleButton(_reliquaryBtn, goldText: false);
         _reliquaryBtn.Pressed += () => {
@@ -625,7 +628,7 @@ public partial class MapScene : Control
         {
             Text = "Settings",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.949f, AnchorBottom = 1f
+            AnchorTop = 0.915f, AnchorBottom = 0.977f
         };
         StyleButton(_settingsBtn, goldText: false);
         _settingsBtn.Pressed += () => {
@@ -733,10 +736,10 @@ public partial class MapScene : Control
         // Bottom-RIGHT so it never overlaps the Forge/Rune Page/Settings
         // stack in the bottom-left. Sized to its content, not the map.
         _infoPanel = new Panel();
-        _infoPanel.AnchorLeft = 0.665f;
-        _infoPanel.AnchorRight = 0.985f;
-        _infoPanel.AnchorTop = 0.665f;
-        _infoPanel.AnchorBottom = 0.955f;
+        _infoPanel.AnchorLeft = InfoBoxAnchors.X;
+        _infoPanel.AnchorRight = InfoBoxAnchors.Z;
+        _infoPanel.AnchorTop = InfoBoxAnchors.Y;
+        _infoPanel.AnchorBottom = InfoBoxAnchors.W;
 
         var panelStyle = new StyleBoxFlat
         {
@@ -790,8 +793,8 @@ public partial class MapScene : Control
         _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
         infoVbox.AddChild(_infoRewards);
 
-        // Spacer pushes buttons to the panel bottom
-        var spacer = new Control { SizeFlagsVertical = SizeFlags.ExpandFill };
+        // Fixed spacer so button row sits just below content, not pushed to bottom
+        var spacer = new Control { CustomMinimumSize = new Vector2(0, 6) };
         infoVbox.AddChild(spacer);
 
         var buttonRow = new HBoxContainer();
@@ -799,7 +802,7 @@ public partial class MapScene : Control
         buttonRow.AddThemeConstantOverride("separation", 10);
         infoVbox.AddChild(buttonRow);
 
-        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(88, 44) };
+        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(100, 44) };
         StyleButton(_infoCloseButton, goldText: false);
         _infoCloseButton.Pressed += () =>
         {
@@ -808,7 +811,7 @@ public partial class MapScene : Control
         };
         buttonRow.AddChild(_infoCloseButton);
 
-        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(126, 44) };
+        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(150, 44) };
         StyleButton(_infoGoButton);
         // Go button: bright, clearly enabled styling so it doesn't read as disabled
         // against the dark info panel background
@@ -845,15 +848,25 @@ public partial class MapScene : Control
         };
         buttonRow.AddChild(_infoGoButton);
 
-        _infoPanel.Hide();
+        SetIdleInfoState();
     }
 
     private void HideInfoPanel()
     {
-        _infoPanel.Hide();
         if (_selectedNodeId != null && _nodeIcons.TryGetValue(_selectedNodeId, out var icon))
             icon.SetSelected(false);
         _selectedNodeId = null;
+        SetIdleInfoState();
+    }
+
+    private void SetIdleInfoState()
+    {
+        _infoName.Text = "Select a destination";
+        _infoRewards.Text = "";
+        _infoRewards.Hide();
+        _infoGoButton.Disabled = true;
+        _infoGoButton.Text = "Go";
+        _infoCloseButton.Disabled = true;
     }
 
     /// <summary>
@@ -984,8 +997,7 @@ public partial class MapScene : Control
         else
             _infoGoButton.Text = "Go";
 
-        _infoPanel.Show();
-
+        // Panel is always visible now
         GD.Print($"[MAP] Selected node {nodeId} ({displayName}) — type={mapNode.Type} cleared={isCleared} locked={isLocked} button={_infoGoButton.Text}");
     }
 
@@ -1122,7 +1134,7 @@ public partial class MapScene : Control
         if (!_tap.Accept(@event)) return;
 
         // Don't handle taps on the info panel
-        if (_infoPanel.Visible && _infoPanel.GetGlobalRect().HasPoint(screenPos))
+        if (_infoPanel.GetGlobalRect().HasPoint(screenPos))
             return;
 
         // Convert screen position to map container local coordinates
