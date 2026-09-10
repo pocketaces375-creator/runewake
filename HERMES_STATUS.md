@@ -1,3 +1,4 @@
+| TASK-MAP-INFOBOX-1 | 2026-09-10 | reserved map info box | DONE |
 | TASK-MAP-INFOBOX-1 | 2026-09-10 | permanent reserved info panel + zone gate | DONE |
 | TASK-MAP-INFOBOX-1 | 2026-09-10 | permanent reserved info panel + zone gate | DONE |
 | TASK-MAP-INFOBOX-1 | 2026-09-10 | permanent reserved info panel + zone gate | DONE |
