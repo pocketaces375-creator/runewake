@@ -1,0 +1,32 @@
+{
+  "capture": "title_test",
+  "viewport": {"width": 2316, "height": 1080},
+  "safe_area": {"x": 0, "y": 0, "w": 2316, "h": 1080},
+  "controls": [
+    {"path": "Main", "class": "Main", "rect": {"x": 0.0, "y": 0.0, "w": 2316.0, "h": 1080.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@TextureRect@9", "class": "TextureRect", "rect": {"x": 0.0, "y": 0.0, "w": 2316.0, "h": 1080.0}, "mouse_filter": "Ignore", "rot": 0.00000, "has_texture": true},
+    {"path": "Main/@ColorRect@10", "class": "ColorRect", "rect": {"x": 347.4, "y": 64.8, "w": 1621.2, "h": 259.2}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Label@11", "class": "Label", "rect": {"x": 0.0, "y": 86.4, "w": 2316.0, "h": 151.2}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Label@12", "class": "Label", "rect": {"x": 0.0, "y": 237.6, "w": 2316.0, "h": 64.8}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Label@13", "class": "Label", "rect": {"x": 0.0, "y": 1042.2, "w": 2316.0, "h": 32.4}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22", "class": "VBoxContainer", "rect": {"x": 509.5, "y": 604.8, "w": 1297.0, "h": 432.0}, "mouse_filter": "Pass", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@GridContainer@23", "class": "GridContainer", "rect": {"x": 509.5, "y": 604.8, "w": 1296.0, "h": 256.0}, "mouse_filter": "Pass", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@GridContainer@23/@Button@24", "class": "Button", "rect": {"x": 509.5, "y": 604.8, "w": 640.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@GridContainer@23/@Button@25", "class": "Button", "rect": {"x": 1165.5, "y": 604.8, "w": 640.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@GridContainer@23/@Button@26", "class": "Button", "rect": {"x": 509.5, "y": 740.8, "w": 640.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@GridContainer@23/@Button@27", "class": "Button", "rect": {"x": 1165.5, "y": 740.8, "w": 640.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@VBoxContainer@22/@Button@28", "class": "Button", "rect": {"x": 509.5, "y": 876.8, "w": 1296.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Control@31", "class": "Control", "rect": {"x": 787.4, "y": 345.6, "w": 741.1, "h": 237.6}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41", "class": "PanelContainer", "rect": {"x": 787.4, "y": 345.6, "w": 741.1, "h": 314.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32", "class": "VBoxContainer", "rect": {"x": 801.4, "y": 355.6, "w": 713.1, "h": 294.0}, "mouse_filter": "Pass", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@TextureRect@33", "class": "TextureRect", "rect": {"x": 1121.4, "y": 355.6, "w": 72.0, "h": 72.0}, "mouse_filter": "Pass", "rot": 0.00000, "has_texture": true},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@34", "class": "Label", "rect": {"x": 801.4, "y": 431.6, "w": 713.0, "h": 42.0}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@35", "class": "Label", "rect": {"x": 801.4, "y": 477.6, "w": 713.0, "h": 20.0}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@36", "class": "Label", "rect": {"x": 801.4, "y": 501.6, "w": 713.0, "h": 20.0}, "mouse_filter": "Ignore", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Control@37", "class": "Control", "rect": {"x": 801.4, "y": 525.6, "w": 713.0, "h": 0.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38", "class": "HBoxContainer", "rect": {"x": 801.4, "y": 529.6, "w": 713.0, "h": 120.0}, "mouse_filter": "Pass", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38/@Button@39", "class": "Button", "rect": {"x": 1002.4, "y": 529.6, "w": 167.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38/@Button@40", "class": "Button", "rect": {"x": 1173.4, "y": 529.6, "w": 140.0, "h": 120.0}, "mouse_filter": "Stop", "rot": 0.00000},
+    {"path": "Main/@Button@43", "class": "Button", "rect": {"x": 8.0, "y": 8.0, "w": 60.0, "h": 32.0}, "mouse_filter": "Stop", "rot": 0.00000}
+  ]
+}
