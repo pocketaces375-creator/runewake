@@ -1,24 +1,24 @@
 {
   "overall": "PASS",
-  "checked_at": "2026-09-10T12:35:22Z",
+  "checked_at": "2026-09-10T14:05:34Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
-      "screen": "title_test",
-      "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
+      "screen": "title_test_wide",
+      "path": "/home/fictive/runewake/artifacts/captures/title_test_wide.png",
       "issues": [
         {
-          "description": "The text 'Continue' and 'Delete' are rendered with very low contrast against their background buttons, making them difficult to read.",
+          "description": "The text 'Continue' and 'Delete' are rendered with very low contrast against their background buttons, making them difficult to read. 'Continue' is yellow on a dark brown button, and 'Delete' is red on a dark brown button.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Diag' in the top left corner appears to be a placeholder or debug text that is not intended for the final user interface.",
-          "severity": "medium",
+          "description": "The text 'Region 1' and 'Cards: 0' are very small and have low contrast against the dark brown background, making them hard to read.",
+          "severity": "low",
           "count": 1
         },
         {
-          "description": "The layout is severely unbalanced, with a large empty space on the left side of the screen while content is centered and somewhat cramped, giving an unfinished appearance.",
+          "description": "The text 'The Buried Age' has low contrast against the dark background, making it somewhat difficult to read.",
           "severity": "low",
           "count": 1
         }
