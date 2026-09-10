@@ -1,3 +1,4 @@
+| TASK-MAP-INFOBOX-1 | 2026-09-10 | permanent reserved info panel + zone gate | DONE |
 | TASK-MAP-SIZE-2 | 2026-09-10 | map text and button calibration | DONE |
 | TASK-MAP-SIZE-2 | 2026-09-10 | map text and button calibration | DONE |
 | TASK-TITLE-LAYOUT-2 | 2026-09-10 | fix campaign panel overflow + diag button lint false positive | DONE |
