@@ -1,3 +1,4 @@
+| TASK-CARD-BORDER-RENDER-1 | 2026-09-10 | card border reads at render size | DONE |
 | TASK-DUEL-BLACKSCREEN-1 | 2026-09-10 | first-launch black duel screen | DONE |
 | TASK-APK-SHIP-2 | 2026-09-10 | debug APK shipped — settings_test waived, gate left red | DONE |
 | TASK-MAP-INFOBOX-1 | 2026-09-10 | reserved map info box | DONE |
