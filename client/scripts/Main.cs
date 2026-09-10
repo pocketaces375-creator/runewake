@@ -1313,11 +1313,12 @@ public partial class Main : Control
             };
             vbox.AddChild(btnHbox);
 
-            // Continue button
+            // Continue button — use 48px height (MIN_TOUCH floor is 44px; these are small
+            // secondary buttons inside a compact card panel, not primary menu buttons)
             var continueBtn = new Button
             {
                 Text = "Continue",
-                CustomMinimumSize = new Vector2(140, ThemeTokens.MinButtonHeight),
+                CustomMinimumSize = new Vector2(140, 48),
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
             };
             continueBtn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
@@ -1339,11 +1340,11 @@ public partial class Main : Control
                 continueBtn.AddThemeFontOverride("font", contLabelFont);
             btnHbox.AddChild(continueBtn);
 
-            // Delete button
+            // Delete button — 48px height, matching Continue button
             var deleteBtn = new Button
             {
                 Text = "Delete",
-                CustomMinimumSize = new Vector2(140, ThemeTokens.MinButtonHeight),
+                CustomMinimumSize = new Vector2(140, 48),
                 SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
             };
             deleteBtn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);

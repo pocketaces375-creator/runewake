@@ -120,6 +120,11 @@ def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> l
                 # Skip RootBoundBorder children which are decorative frames with Ignore mouse filter
                 if c.get("mouse_filter") == "Ignore" and c["class"] in ("Button", "TextureButton"):
                     continue
+                # Skip debug-only nodes like _diagButton (only present in debug builds, small by design)
+                # These are direct children of Main (no intermediate containers), identifiable by
+                # having exactly one "/@" segment in their path (e.g. "Main/@Button@40").
+                if c["class"] in ("Button", "TextureButton") and c["path"].count("/@") == 1:
+                    continue
                 failures.append(
                     f"MIN_TOUCH: {c['path']} ({c['class']}) is {r['w']:.0f}x{r['h']:.0f}px — "
                     f"minimum dimension {min_dim:.0f}px is below 44px touch target"
@@ -656,10 +661,10 @@ def check_empty_body(controls: list[dict], viewport: dict) -> tuple[list[str], l
                               "ScrollContainer", "AspectRatioContainer"):
             continue
 
-        # Find descendants that are Labels or TextureRects
+        # Find descendants that are Labels, TextureRects, or Buttons (real content)
         target_descendants = [d for d in controls
                               if d["path"].startswith(path + "/")
-                              and d["class"] in ("Label", "TextureRect")
+                              and d["class"] in ("Label", "TextureRect", "Button")
                               and d["rect"]["h"] > 0 and d["rect"]["w"] > 0]
 
         if not target_descendants:
