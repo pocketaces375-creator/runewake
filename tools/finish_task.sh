@@ -80,7 +80,7 @@ ORIGIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
 
 CAPTURES_REGENERATED=0
 if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" != "${ORIGIN_SHA}" ]]; then
-  CHANGED_FILES=$(git diff --name-only "${ORIGIN_SHA}" "${CURRENT_SHA}" 2>/dev/null || echo "")
+  CHANGED_FILES=$( (git diff --name-only "${ORIGIN_SHA}" "${CURRENT_SHA}"; git diff --name-only HEAD; git diff --name-only --cached; git ls-files --others --exclude-standard) 2>/dev/null | sort -u || echo "")
   if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
     echo "  Client/engine changed — regenerating all captures"
     rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
@@ -96,6 +96,10 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
         fail "Asset import failed — see errors above"
     fi
     ok "Asset import complete"
+
+    # Capture run log for layout failure extraction
+    CAPTURE_LOG="${PROJECT_DIR}/capture_run.log"
+    : > "${CAPTURE_LOG}"
 
     # Define capture modes
     MODES=(
@@ -133,12 +137,25 @@ if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" 
       echo "  Capturing ${mode_name} (${width}x${height})"
       sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "${PROJECT_DIR}/client/project.godot"
       sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "${PROJECT_DIR}/client/project.godot"
-      timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 || true
+      timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 | tee -a "${CAPTURE_LOG}" || true
     done
 
     # Restore project.godot
     sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "${PROJECT_DIR}/client/project.godot"
     sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "${PROJECT_DIR}/client/project.godot"
+
+    # Extract layout check failures from capture log and print them
+    if [[ -f "${CAPTURE_LOG}" ]]; then
+      LAYOUT_FAILS=$(grep -E '\[VERIFY\] FAIL:' "${CAPTURE_LOG}" || true)
+      LAYOUT_COUNT=$(echo "${LAYOUT_FAILS}" | grep -c 'FAIL' 2>/dev/null || echo 0)
+      if [[ "${LAYOUT_COUNT}" -gt 0 ]]; then
+        echo "  [VERIFY] ${LAYOUT_COUNT} check(s) failed:"
+        echo "${LAYOUT_FAILS}" | sed 's/.*\[VERIFY\] FAIL: /    - /'
+        SUMMARY=$(grep -E '\[VERIFY\] === [0-9]+ check\(s\) failed ===' "${CAPTURE_LOG}" | tail -1)
+        echo "  ${SUMMARY}"
+      fi
+      rm -f "${CAPTURE_LOG}"
+    fi
 
     CAPTURES_REGENERATED=1
   else

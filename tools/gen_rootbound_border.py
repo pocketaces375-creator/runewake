@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
 Generate Root-Bound Stone card border — Pale warm limestone with gold keyline.
-Stone band: RGB (158,149,118) — mean brightness ~141.
-Gold keyline: RGB (161,139,79) — 1-2px at inner edge where band meets art.
-Card bezel: RGB (13,12,10) — near-black.
-Texture: vary +/-25 around base, never below 110.
+Stone band: RGBA (158,149,118,255) — mean brightness ~141.
+Gold keyline: RGBA (161,139,79,255) — 4px at inner edge of band.
+Chipped inner lip: RGBA (168,158,128,255) — 10px at inner edge.
 
-Output: full 832x1216 border PNG, slices to client/content/art/border/
+The interior (58..773, 58..1157) is fully transparent (0,0,0,0) so card art
+shows through. All drawing stays within the 58px outer band.
+
+Output: full 832x1216 RGBA border PNG, 8 RGBA slice PNGs to client/content/art/border/
 """
 import math
 import os
@@ -15,26 +17,25 @@ import sys
 from PIL import Image, ImageDraw
 
 W, H = 832, 1216
-BAND = max(1, round(W * 0.07))  # 58px
-INNER_W = W - 2 * BAND   # 716
-INNER_H = H - 2 * BAND   # 1100
+BAND = max(1, round(W * 0.07))  # 58
 
-# ── Pale warm limestone palette ──
-STONE_BASE = (158, 149, 118)      # pale warm limestone, mean brightness ~141
-STONE_DARK = (133, 125, 98)       # darker veining (base -25)
-STONE_LIGHT = (183, 173, 143)     # lighter highlight (base +25)
-STONE_SHADOW = (110, 104, 82)     # deepest shadow, never below 110
+# Band-derived geometry — interior must stay fully transparent
+INNER_L = BAND                    # 58
+INNER_T = BAND                    # 58
+INNER_R = W - BAND - 1            # 773
+INNER_B = H - BAND - 1            # 1157
+INNER_W = W - 2 * BAND            # 716
+INNER_H = H - 2 * BAND            # 1100
+
+# ── Pale warm limestone palette (RGBA) ──
+STONE_BASE = (158, 149, 118, 255)      # pale warm limestone, mean brightness ~141
+STONE_DARK = (133, 125, 98, 255)       # darker veining (base -25)
+STONE_LIGHT = (183, 173, 143, 255)     # lighter highlight (base +25)
+STONE_SHADOW = (110, 104, 82, 255)     # deepest shadow, never below 110
 # Gold keyline at inner edge where band meets art
-GOLD_KEY = (161, 139, 79)
+GOLD_KEY = (161, 139, 79, 255)
 # Chipped inner lip: between stone and gold, slightly lighter
-CHIPPED_INNER = (168, 158, 128)
-CANVAS_COLOR = (13, 12, 10)       # near-black card bezel
-
-# Art window boundaries (source image coords)
-WIN_L = 148
-WIN_T = 172
-WIN_R = 675
-WIN_B = 1019
+CHIPPED_INNER = (168, 158, 128, 255)
 
 
 def draw_veining(draw, x0, y0, x1, y1):
@@ -53,7 +54,7 @@ def draw_veining(draw, x0, y0, x1, y1):
                 fade = 1.0 - (lx / length) * 0.6
                 c = tuple(int(round(STONE_BASE[i] - 20 * fade)) for i in range(3))
                 c = tuple(max(STONE_SHADOW[i], min(STONE_LIGHT[i], c[i])) for i in range(3))
-                draw.point((px, py), fill=c)
+                draw.point((px, py), fill=c + (255,))
 
 
 def draw_chipped_chipping(draw, x0, y0, x1, y1):
@@ -70,102 +71,52 @@ def draw_chipped_chipping(draw, x0, y0, x1, y1):
                     brightness_var = rng.randint(-15, 15)
                     c = tuple(int(round(STONE_BASE[i] + brightness_var)) for i in range(3))
                     c = tuple(max(STONE_SHADOW[i], min(STONE_LIGHT[i], c[i])) for i in range(3))
-                    draw.point((sx, sy), fill=c)
+                    draw.point((sx, sy), fill=c + (255,))
 
 
 def generate_border(output_path):
-    img = Image.new('RGB', (W, H), CANVAS_COLOR)
+    img = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     rng = random.Random(137)
 
-    # ── 1. Base stone frame ──
+    # ── 1. Base stone frame — only the 58px outer band ──
     draw.rectangle([(0, 0), (W - 1, BAND - 1)], fill=STONE_BASE)          # top band
     draw.rectangle([(0, H - BAND), (W - 1, H - 1)], fill=STONE_BASE)      # bottom band
     draw.rectangle([(0, 0), (BAND - 1, H - 1)], fill=STONE_BASE)          # left band
     draw.rectangle([(W - BAND, 0), (W - 1, H - 1)], fill=STONE_BASE)      # right band
 
-    # ── 2. Subtle corner shadow for depth ──
-    for cx, cy in [(BAND // 2, BAND // 2),
-                    (W - BAND // 2, BAND // 2),
-                    (BAND // 2, H - BAND // 2),
-                    (W - BAND // 2, H - BAND // 2)]:
-        for dy in range(-BAND // 2, BAND // 2):
-            for dx in range(-BAND // 2, BAND // 2):
-                dist = math.sqrt(dx * dx + dy * dy)
-                if dist < BAND * 0.4:
-                    factor = 1 - (dist / (BAND * 0.4)) * 0.10  # subtle 10% dark
-                    px = cx + dx
-                    py = cy + dy
-                    if 0 <= px < W and 0 <= py < H:
-                        orig = img.getpixel((px, py))
-                        darkened = tuple(min(255, max(0, int(c * factor))) for c in orig)
-                        draw.point((px, py), fill=darkened)
-
-    # ── 3. Texture: darker veining lines ──
+    # ── 2. Texture: darker veining lines ──
     draw_veining(draw, 0, 0, W, BAND)                   # top
     draw_veining(draw, 0, H - BAND, W, H)               # bottom
     draw_veining(draw, 0, 0, BAND, H)                   # left
     draw_veining(draw, W - BAND, 0, W, H)               # right
 
-    # ── 4. Texture: chipped/eroded spots ──
+    # ── 3. Texture: chipped/eroded spots ──
     draw_chipped_chipping(draw, 0, 0, W, BAND)
     draw_chipped_chipping(draw, 0, H - BAND, W, H)
     draw_chipped_chipping(draw, 0, 0, BAND, H)
     draw_chipped_chipping(draw, W - BAND, 0, W, H)
 
-    # ── 5. Gold keyline (1-2px) at the inner edge where band meets art ──
-    # Top edge
-    for ex in range(WIN_L, WIN_R + 1):
-        draw.point((ex, WIN_T), fill=GOLD_KEY)
-        if ex % 2 == 0:
-            draw.point((ex, WIN_T + 1), fill=GOLD_KEY)
-    # Bottom edge
-    for ex in range(WIN_L, WIN_R + 1):
-        draw.point((ex, WIN_B), fill=GOLD_KEY)
-        if ex % 2 == 0:
-            draw.point((ex, WIN_B - 1), fill=GOLD_KEY)
-    # Left edge
-    for ey in range(WIN_T, WIN_B + 1):
-        draw.point((WIN_L, ey), fill=GOLD_KEY)
-        if ey % 2 == 0:
-            draw.point((WIN_L + 1, ey), fill=GOLD_KEY)
-    # Right edge
-    for ey in range(WIN_T, WIN_B + 1):
-        draw.point((WIN_R, ey), fill=GOLD_KEY)
-        if ey % 2 == 0:
-            draw.point((WIN_R - 1, ey), fill=GOLD_KEY)
-
-    # ── 6. Chipped inner lip (overlapping the gold keyline slightly) ──
-    # Add some chips/breaks to the gold to keep it looking natural
-    rng_chip = random.Random(73)
-    for edge_name, x_range, y_range, is_horizontal in [
-        ("top", (WIN_L, WIN_R), (WIN_T, WIN_T + 2), True),
-        ("bottom", (WIN_L, WIN_R), (WIN_B - 2, WIN_B), True),
-        ("left", (WIN_L, WIN_L + 2), (WIN_T, WIN_B), False),
-        ("right", (WIN_R - 2, WIN_R), (WIN_T, WIN_B), False),
-    ]:
-        for cx in range(x_range[0], x_range[1] + 1):
-            for cy in range(y_range[0], y_range[1] + 1):
-                if rng_chip.random() < 0.15:
-                    var = rng_chip.randint(-6, 6)
-                    chip_color = tuple(min(255, max(0, CHIPPED_INNER[i] + var)) for i in range(3))
-                    draw.point((cx, cy), fill=chip_color)
-
-    # ── 7. Fine grain texture along the stone band ──
+    # ── 4. Fine grain texture along the stone band ──
     rng_fine = random.Random(99)
     for y in range(0, H):
         for x in range(0, W):
-            # Skip the art window area
-            if WIN_L <= x <= WIN_R and WIN_T <= y <= WIN_B:
+            # Skip the transparent interior
+            if INNER_L <= x <= INNER_R and INNER_T <= y <= INNER_B:
                 continue
             if rng_fine.random() < 0.025:
                 var_g = rng_fine.randint(-8, 8)
                 c = tuple(int(round(STONE_BASE[i] + var_g)) for i in range(3))
                 c = tuple(max(STONE_SHADOW[i], min(STONE_LIGHT[i], c[i])) for i in range(3))
-                draw.point((x, y), fill=c)
+                draw.point((x, y), fill=c + (255,))
 
-    # ── 8. Fill art window with black ──
-    draw.rectangle([(WIN_L, WIN_T), (WIN_R, WIN_B)], fill=(0, 0, 0))
+    # ── 5. Chipped inner lip (10px wide) — drawn before gold keyline ──
+    draw.rectangle([(INNER_L - 10, INNER_T - 10), (INNER_R + 10, INNER_B + 10)],
+                   outline=CHIPPED_INNER, width=10)
+
+    # ── 6. Gold keyline (4px wide) — drawn LAST, nothing after it ──
+    draw.rectangle([(INNER_L - 4, INNER_T - 4), (INNER_R + 4, INNER_B + 4)],
+                   outline=GOLD_KEY, width=4)
 
     img.save(output_path, 'PNG')
     print(f"Generated border: {output_path} ({os.path.getsize(output_path)} bytes)")
@@ -175,7 +126,7 @@ def generate_border(output_path):
 def generate_stone_grain_texture(output_path, size=64):
     """Generate a small limestone-grain noise texture for the name-band background."""
     rng = random.Random(88)
-    img = Image.new('RGB', (size, size), STONE_BASE)
+    img = Image.new('RGB', (size, size), STONE_BASE[:3])
     draw = ImageDraw.Draw(img)
     for y in range(size):
         for x in range(size):
@@ -200,18 +151,24 @@ def generate_stone_grain_texture(output_path, size=64):
 
 
 def slice_border(img, output_dir):
-    """Slice the full border into 8 individual PNGs matching the 9-slice spec."""
+    """Slice the full border into 8 individual RGBA PNGs matching the 9-slice spec.
+    
+    Slices are cut at BAND (58px) from each edge:
+      corners: 58x58
+      edge_top / edge_bottom: 716x58
+      edge_left / edge_right: 58x1100
+    """
     os.makedirs(output_dir, exist_ok=True)
 
     slices = {
-        'corner_tl': (0, 0, WIN_L, WIN_T),
-        'corner_tr': (WIN_R, 0, W, WIN_T),
-        'corner_bl': (0, WIN_B, WIN_L, H),
-        'corner_br': (WIN_R, WIN_B, W, H),
-        'edge_top': (WIN_L, 0, WIN_R, WIN_T),
-        'edge_bottom': (WIN_L, WIN_B, WIN_R, H),
-        'edge_left': (0, WIN_T, WIN_L, WIN_B),
-        'edge_right': (WIN_R, WIN_T, W, WIN_B),
+        'corner_tl': (0, 0, BAND, BAND),
+        'corner_tr': (W - BAND, 0, W, BAND),
+        'corner_bl': (0, H - BAND, BAND, H),
+        'corner_br': (W - BAND, H - BAND, W, H),
+        'edge_top': (BAND, 0, W - BAND, BAND),
+        'edge_bottom': (BAND, H - BAND, W - BAND, H),
+        'edge_left': (0, BAND, BAND, H - BAND),
+        'edge_right': (W - BAND, BAND, W, H - BAND),
     }
 
     for name, box in slices.items():
@@ -227,14 +184,14 @@ def slice_border(img, output_dir):
 
 
 def generate_downscale_previews(img, out_dir):
-    """Generate 16x16 upscaled previews for visual verification."""
+    """Generate 16x16 upscaled previews for visual verification — committed to repo."""
     os.makedirs(out_dir, exist_ok=True)
 
     corners = {
-        'corner_tl': (0, 0, WIN_L, WIN_T),
-        'corner_tr': (WIN_R, 0, W, WIN_T),
-        'corner_bl': (0, WIN_B, WIN_L, H),
-        'corner_br': (WIN_R, WIN_B, W, H),
+        'corner_tl': (0, 0, BAND, BAND),
+        'corner_tr': (W - BAND, 0, W, BAND),
+        'corner_bl': (0, H - BAND, BAND, H),
+        'corner_br': (W - BAND, H - BAND, W, H),
     }
 
     for name, box in corners.items():
@@ -259,8 +216,8 @@ if __name__ == '__main__':
     grain_path = os.path.join(border_dir, 'stone_grain.png')
     generate_stone_grain_texture(grain_path)
 
-    # Generate 16x16 upscaled 6x previews in /tmp/
-    preview_dir = '/tmp/border_previews'
+    # Generate 16x16 upscaled 6x corner previews to artifacts/border_previews/ (committed)
+    preview_dir = 'artifacts/border_previews'
     generate_downscale_previews(img, preview_dir)
 
-    print("\nDone. Verify the previews in /tmp/border_previews/")
+    print("\nDone. Verify the previews in artifacts/border_previews/")
