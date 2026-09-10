@@ -10,7 +10,7 @@
 ## Queue
 # New tasks MUST be added ABOVE any '## ' subheader in this section, or the parser will never see them.
 
-- [ ] TASK-COMMIT-TITLE-1 — Get the title captures INTO GIT and lint them. They exist on disk and nowhere else. Steps IN ORDER.
+- [x] TASK-COMMIT-TITLE-1 — Get the title captures INTO GIT and lint them. They exist on disk and nowhere else. Steps IN ORDER.
     WHY — Your chat run at 23:39-23:41 produced title_test.png (2,135,580 bytes) and title_test_wide.png and both passed the black-screen gate. Good. But neither file is on origin/main — I checked git ls-tree, they are NOT COMMITTED. TASK-VERIFY-TITLE-1 has two DONE rows in HERMES_STATUS.md and the second run (dece62e) committed one line of foreman_state.json and nothing else. From the repo's side there is still zero proof the title screen renders. Also: my STEP 2 last time said stop on ANY non-zero exit — that was my mistake. capture_polish.sh exits 1 if ANY of its twelve captures fails, and duel_test has 10 pre-existing HAND_FIELD_OVERLAP failures that have nothing to do with the title screen. That false-stopped you. This task only cares about title_test.
     STEP 1 — Run bash tools/capture_polish.sh once more so the files are fresh from the current tree. IGNORE its overall exit code. The only two lines that matter are the ones for title_test and title_test_wide. If either prints "FAIL: title_test" STOP and paste the surrounding 30 lines. Otherwise continue.
     STEP 2 — Confirm the four files exist and paste the output: ls -la artifacts/captures/title_test.png artifacts/captures/title_test_wide.png artifacts/captures/title_test.layout.json artifacts/captures/title_test_wide.layout.json
