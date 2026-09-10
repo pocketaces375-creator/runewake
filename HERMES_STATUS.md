@@ -1,3 +1,4 @@
+| TASK-TITLE-LAYOUT-1 | 2026-09-09 | title screen layout | DONE |
 | TASK-BORDER-SLICE-1 | 2026-09-09 | Cut border slices at 7% band, ship gold keyline with 4px width | DONE |
 | TASK-MAP-SIZE-1 | 2026-09-09 | fix map node font size, bounds, truncation, and side button sizes | DONE |
 | TASK-BORDER-PALE-1 | 2026-09-09 | pale limestone border with gold keyline | DONE |
