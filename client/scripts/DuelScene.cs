@@ -257,11 +257,20 @@ public partial class DuelScene : Control
 
         // Create card detail popup (hidden until tapped)
         var cardViewScene = GD.Load<PackedScene>("res://scenes/components/CardView.tscn");
-        _cardDetail = cardViewScene.Instantiate<CardView>();
-        _cardDetail.Visible = false;
-        _cardDetailVisible = false;
-        _cardDetail.Dismissed += () => { _cardDetailVisible = false; };
-        AddChild(_cardDetail);
+        if (cardViewScene != null)
+        {
+            _cardDetail = cardViewScene.Instantiate<CardView>();
+            _cardDetail.Visible = false;
+            _cardDetailVisible = false;
+            _cardDetail.Dismissed += () => { _cardDetailVisible = false; };
+            AddChild(_cardDetail);
+        }
+        else
+        {
+            GD.PrintErr("[DuelScene] FAILED to load CardView.tscn — card detail popup disabled");
+            _cardDetail = null;
+            _cardDetailVisible = false;
+        }
 
         // Create End Turn button if not in scene
         var existingEndBtn = GetNodeOrNull<Button>("EndTurnButton");
@@ -500,6 +509,7 @@ public partial class DuelScene : Control
         // Position card detail centered using CallDeferred (direct SetPosition post-tree-attach)
         Callable.From(() =>
         {
+            if (_cardDetail == null) return;
             _cardDetail.Position = new Vector2(
                 (GetViewportRect().Size.X - 280) / 2f,
                 (GetViewportRect().Size.Y - 400) / 2f
@@ -2819,6 +2829,11 @@ public partial class DuelScene : Control
 
         // Rebuild from state using HBoxContainer layout
         var handScene = GD.Load<PackedScene>("res://scenes/components/HandCard.tscn");
+        if (handScene == null)
+        {
+            GD.PrintErr("[DuelScene] FAILED to load HandCard.tscn — hand not rendered");
+            return;
+        }
         var hand = _gsm.GetHand(0);
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         int n = hand.Count;
@@ -3111,6 +3126,8 @@ public partial class DuelScene : Control
     /// </summary>
     private void ShowCardDetail(HandCard card)
     {
+        if (_cardDetail == null) return;
+
         // Toggle card detail popup
         if (_cardDetailVisible && _cardDetail.CurrentCard?.Name == card.CardName)
         {
