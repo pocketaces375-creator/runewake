@@ -134,7 +134,15 @@ for i, line in enumerate(after.split('\n')):
             f.write(result)
         print('INSERT_OK')
         sys.exit(0)
-print('NO_INSERT')
+lines = content.split('\\n')
+qi = next(i for i, l in enumerate(lines) if l.startswith('## Queue'))
+j = qi + 1
+while j < len(lines) and (lines[j].lstrip().startswith('#') or not lines[j].strip()):
+    j += 1
+result = '\\n'.join(lines[:j]) + '\\n' + insert_data.rstrip('\\n') + '\\n\\n' + '\\n'.join(lines[j:])
+with open(queue_file, 'w') as f:
+    f.write(result)
+print('INSERT_OK')
 ")
     if [[ "${insert_result}" == "INSERT_OK" ]]; then
       git add "${QUEUE_FILE}"
