@@ -187,7 +187,7 @@ public partial class Main : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             AnchorLeft = 0f, AnchorRight = 1f,
-            AnchorTop = 0.93f, AnchorBottom = 0.97f
+            AnchorTop = 0.965f, AnchorBottom = 0.995f
         };
         _statusLabel.AddThemeFontSizeOverride("font_size", 12);
         _statusLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.4f);
@@ -253,50 +253,59 @@ public partial class Main : Control
         // ═══ Build slot picker (single campaign panel) ═══
         BuildSlotPicker();
 
-        // ── "Create New Account" button (below slot picker, opens accounts carousel) ──
-        var newAccountBtn = MakeStoneButton("Create New Account");
-        newAccountBtn.AnchorTop = 0.67f;
-        newAccountBtn.AnchorBottom = 0.75f;
-        newAccountBtn.Pressed += OnOpenAccountsCarousel;
-        AddChild(newAccountBtn);
+        // ═══ Button stack (VBox with 2×2 grid + full-width Create New Account) ═══
+        var buttonStack = new VBoxContainer
+        {
+            AnchorLeft = 0.22f, AnchorRight = 0.78f,
+            AnchorTop = 0.56f, AnchorBottom = 0.96f,
+        };
+        buttonStack.AddThemeConstantOverride("separation", 16);
+        AddChild(buttonStack);
 
-        // ── Decks button ──
+        // 2×2 grid: Decks, Reliquary, Settings, Duel Arena
+        var buttonGrid = new GridContainer
+        {
+            Columns = 2,
+        };
+        buttonGrid.AddThemeConstantOverride("h_separation", 16);
+        buttonGrid.AddThemeConstantOverride("v_separation", 16);
+        buttonStack.AddChild(buttonGrid);
+
         var decksButton = MakeStoneButton("Decks");
-        decksButton.AnchorTop = 0.65f;
-        decksButton.AnchorBottom = 0.73f;
+        decksButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         decksButton.Pressed += OnOpenDecks;
-        AddChild(decksButton);
+        buttonGrid.AddChild(decksButton);
         _decksButton = decksButton;
 
-        // Reliquary button
         var reliquaryButton = MakeStoneButton("Reliquary");
-        reliquaryButton.AnchorTop = 0.75f;
-        reliquaryButton.AnchorBottom = 0.83f;
+        reliquaryButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         reliquaryButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
         };
-        AddChild(reliquaryButton);
+        buttonGrid.AddChild(reliquaryButton);
 
-        // Settings button (bottom row)
         var settingsButton = MakeStoneButton("Settings");
-        settingsButton.AnchorTop = 0.85f;
-        settingsButton.AnchorBottom = 0.93f;
+        settingsButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         settingsButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
         };
-        AddChild(settingsButton);
+        buttonGrid.AddChild(settingsButton);
 
-        // Duel Arena button
         var arenaButton = MakeStoneButton("Duel Arena");
-        arenaButton.AnchorTop = 0.94f;
-        arenaButton.AnchorBottom = 1.00f;
+        arenaButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         arenaButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
         };
-        AddChild(arenaButton);
+        buttonGrid.AddChild(arenaButton);
+
+        // Full-width "Create New Account" button beneath the grid
+        var newAccountBtn = MakeStoneButton("Create New Account");
+        newAccountBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        newAccountBtn.Pressed += OnOpenAccountsCarousel;
+        buttonStack.AddChild(newAccountBtn);
 
         // Rune Page button (hidden — accessible from Decks/Settings screens)
         _runeButton = new Button { Visible = false, Disabled = false };
@@ -1190,8 +1199,8 @@ public partial class Main : Control
         // Single campaign panel — centered, fills ~25% viewport height
         _slotPickerContainer = new Control
         {
-            AnchorLeft = 0.20f, AnchorRight = 0.80f,
-            AnchorTop = 0.38f, AnchorBottom = 0.65f,
+            AnchorLeft = 0.34f, AnchorRight = 0.66f,
+            AnchorTop = 0.32f, AnchorBottom = 0.54f,
             MouseFilter = MouseFilterEnum.Stop
         };
         AddChild(_slotPickerContainer);
@@ -1415,6 +1424,7 @@ public partial class Main : Control
         }
 
         _slotPickerContainer.AddChild(slotCard);
+        slotCard.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
     }
 
     /// <summary>
