@@ -1,3 +1,4 @@
+| TASK-BORDER-SLICE-1 | 2026-09-09 | Cut border slices at 7% band, ship gold keyline with 4px width | DONE |
 | TASK-MAP-SIZE-1 | 2026-09-09 | fix map node font size, bounds, truncation, and side button sizes | DONE |
 | TASK-BORDER-PALE-1 | 2026-09-09 | pale limestone border with gold keyline | DONE |
 | TASK-ART-ICONS-1 | 2026-09-09 | A matching icon set for the eleven keywords and five strata in the locked style, .webp with .import files, wired into the card frame next to the keyword text. Acceptance: a Reliquary capture showing icons on real cards; no visible upscaling; file list. | DONE |
