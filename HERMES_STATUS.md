@@ -1,3 +1,4 @@
+| TASK-CARD-BORDER-FLUX-1 | 2026-09-10 | FLUX-painted border, sliced and reading at render size | DONE |
 | TASK-CARD-BORDER-RENDER-1 | 2026-09-10 | card border reads at render size | DONE |
 | TASK-DUEL-BLACKSCREEN-1 | 2026-09-10 | first-launch black duel screen | DONE |
 | TASK-APK-SHIP-2 | 2026-09-10 | debug APK shipped — settings_test waived, gate left red | DONE |
