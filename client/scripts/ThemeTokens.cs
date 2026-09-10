@@ -166,10 +166,10 @@ public static class ThemeTokens
     public static readonly Color ArtifactSuppressedBorder = Color.FromHtml("#3A3A3A");
     /// <summary>Card face fill inside the gold border</summary>
     public static readonly Color FrameFill = Color.FromHtml("#2C2824");
-    /// <summary>Name band background — semi-transparent dark</summary>
-    public static readonly Color FrameNameBand = Color.FromHtml("#281E16");
-    /// <summary>Name band text color</summary>
-    public static readonly Color FrameNameText = Color.FromHtml("#F0E4D0");
+    /// <summary>Name band background — pale parchment</summary>
+    public static readonly Color FrameNameBand = Color.FromHtml("#C8B898");
+    /// <summary>Name band text color — dark brown</summary>
+    public static readonly Color FrameNameText = Color.FromHtml("#3A2816");
     /// <summary>Stat rail background — dark stone</summary>
     public static readonly Color FrameStatRail = Color.FromHtml("#201E1A");
     /// <summary>Attack stat color — deep ember red</summary>

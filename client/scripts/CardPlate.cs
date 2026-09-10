@@ -119,10 +119,10 @@ public partial class CardPlate : Control
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
                 Texture = GD.Load<Texture2D>("res://content/art/border/stone_grain.png")
             };
-            // Vertical gradient: transparent at top → dark charcoal at bottom (shader material)
+            // Vertical gradient: pale parchment (darker at bottom)
             var gradMat = new ShaderMaterial();
             var gradShader = new Shader();
-            gradShader.Code = "shader_type canvas_item; void fragment() { COLOR = vec4(0.12, 0.10, 0.09, UV.y * 0.75); }";
+            gradShader.Code = "shader_type canvas_item; void fragment() { vec4 pale = vec4(0.78, 0.72, 0.60, 1.0); vec4 base = vec4(0.68, 0.62, 0.50, 1.0); COLOR = mix(base, pale, UV.y); }";
             gradMat.Shader = gradShader;
             _nameBandBg.Material = gradMat;
             AddChild(_nameBandBg);
@@ -154,8 +154,7 @@ public partial class CardPlate : Control
                 TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming
             };
             _cardName.AddThemeColorOverride("font_color", FrameNameText);
-            _cardName.AddThemeConstantOverride("outline_size", 2);
-            _cardName.AddThemeColorOverride("font_outline_color", Color.FromHtml("#0A0806FF"));
+            // No outline — pale parchment + dark brown text, per Trikzos' reference
             _nameClipContainer.AddChild(_cardName);
 
             // ── Attack badge ──
