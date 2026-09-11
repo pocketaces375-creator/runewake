@@ -1,3 +1,4 @@
+| TASK-CARD-TEMPLATE-1 | 2026-09-10 | single painted card template | DONE |
 | TASK-CARD-BORDER-FLUX-1 | 2026-09-10 | FLUX-painted border, sliced and reading at render size | DONE |
 | TASK-CARD-BORDER-RENDER-1 | 2026-09-10 | card border reads at render size | DONE |
 | TASK-DUEL-BLACKSCREEN-1 | 2026-09-10 | first-launch black duel screen | DONE |
