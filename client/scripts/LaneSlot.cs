@@ -19,7 +19,6 @@ public partial class LaneSlot : PanelContainer
     private TextureRect _artRect;
     private Label _noArtLabel;
     private Label _costLabel;
-    private RootBoundBorder _rootBound;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
     private Label _faceLabel;
@@ -87,20 +86,13 @@ public partial class LaneSlot : PanelContainer
 
         SetEmpty();
 
-        // Root-Bound 9-slice border overlay (hidden for empty slots)
-        _rootBound = new RootBoundBorder();
-        _rootBound.Name = "RootBoundBorder";
-        AddChild(_rootBound);
-        _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
-        _rootBound.Visible = false; // BOARD-MATCH-3: hidden on empty — gold keyline takes over
-
         // CardPlate — unified card frame: name band, stat rail
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
 
-        // Cost rune — top-right inside Root-Bound border
+        // Cost rune at top-right inside border
         _costLabel = CardPlate.MakeCostRune(0, CustomMinimumSize.X, CustomMinimumSize.Y, out _);
         _costLabel.Name = "CostRune";
         content.AddChild(_costLabel);
@@ -182,12 +174,8 @@ public partial class LaneSlot : PanelContainer
         var def = CardRegistry.Get(cardDefId);
         if (def != null) cost = def.Cost;
 
-        // Update RootBound border (show on occupied)
-        _rootBound.Setup(w, h);
-        _rootBound.Visible = true;
-
         // CardPlate handles name, stat rail
-        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost);
+        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost, artTexture: _artRect.Texture);
         _cardPlate.Show();
 
         // Cost rune at top-right
@@ -256,9 +244,6 @@ public partial class LaneSlot : PanelContainer
         // Apply warm-gold keyline socket style for empty slots
         if (_emptySlotStyle != null)
             AddThemeStyleboxOverride("panel", _emptySlotStyle);
-        // BOARD-MATCH-3: hide RootBound border so gold keyline is visible through empty slot
-        if (_rootBound != null)
-            _rootBound.Visible = false;
     }
 
     /// <summary>
@@ -272,9 +257,6 @@ public partial class LaneSlot : PanelContainer
         _cardHeight = targetHeight;
         CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
-
-        // Update RootBound border
-        _rootBound.Setup(_cardWidth, _cardHeight);
     }
 
     public void HighlightAsSelected()
