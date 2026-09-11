@@ -8,6 +8,11 @@ PROJECT_GODOT="$ROOT/client/project.godot"
 GODOT_BIN="${GODOT_BIN:-$HOME/.local/bin/godot}"
 CAPTURE_DIR="$ROOT/artifacts/captures"
 
+# Import any new assets before capture
+echo "--- Import pass ---"
+timeout 600 xvfb-run -a "${GODOT_BIN}" --headless --import --path client 2>&1 || true
+echo "---"
+
 # Clean previous captures
 mkdir -p "$CAPTURE_DIR"
 rm -f "$CAPTURE_DIR"/title_test*.png "$CAPTURE_DIR"/title_test*.meta.json
