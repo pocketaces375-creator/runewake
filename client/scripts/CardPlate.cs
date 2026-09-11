@@ -18,7 +18,7 @@ public partial class CardPlate : Control
     {
         if (_templateLoaded) return;
         var path = "res://content/art/frame/card_template.json";
-        using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+        using var file = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
         if (file == null) { GD.PrintErr("[CARDTEMPLATE] JSON not found"); return; }
         var json = Json.ParseString(file.GetAsText());
         var dict = json.AsGodotDictionary();
@@ -230,6 +230,18 @@ public partial class CardPlate : Control
         };
         label.AddThemeStyleboxOverride("normal", hexStyle);
         return label;
+    }
+
+    public static void UpdateCostRuneStyle(Label label, float hexSize)
+    {
+        var hexStyle = new StyleBoxFlat
+        {
+            BgColor = FrameHexFill, BorderColor = FrameHexBorder,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusTopRight = Mathf.RoundToInt(hexSize / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
+        };
+        label.AddThemeStyleboxOverride("normal", hexStyle);
     }
 
     private NameFitResult FitCardNameAuto(float safeWidth, float maxBandH)
