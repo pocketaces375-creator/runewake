@@ -3,44 +3,51 @@
     {
       "id": "card_draw",
       "type": "sfx",
-      "streamNonNull": false,
-      "enteredPlaying": false,
-      "callCount": 2
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 1
     },
     {
       "id": "wind_reach",
       "type": "ambient",
-      "streamNonNull": false,
-      "enteredPlaying": false,
+      "streamNonNull": true,
+      "enteredPlaying": true,
       "callCount": 1
     },
     {
       "id": "ambient_reach",
       "type": "music",
-      "streamNonNull": false,
-      "enteredPlaying": false,
+      "streamNonNull": true,
+      "enteredPlaying": true,
       "callCount": 1
     },
     {
       "id": "card_shuffle",
       "type": "sfx",
-      "streamNonNull": false,
-      "enteredPlaying": false,
+      "streamNonNull": true,
+      "enteredPlaying": true,
       "callCount": 1
+    },
+    {
+      "id": "defeat",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 3
     },
     {
       "id": "metal_clink",
       "type": "sfx",
-      "streamNonNull": false,
-      "enteredPlaying": false,
+      "streamNonNull": true,
+      "enteredPlaying": true,
       "callCount": 1
     },
     {
-      "id": "card_play",
+      "id": "hit_heavy",
       "type": "sfx",
-      "streamNonNull": false,
-      "enteredPlaying": false,
-      "callCount": 2
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 1
     }
   ],
   "manifestEventIds": [
@@ -63,21 +70,20 @@
     "ambient:wind_reach"
   ],
   "unhookedEventIds": [
+    "sfx:card_play",
     "sfx:click",
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
-    "sfx:defeat",
-    "sfx:hit_heavy",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
     "sfx:unlock",
     "sfx:victory"
   ],
-  "musicExercised": false,
-  "sfxExercised": false,
+  "musicExercised": true,
+  "sfxExercised": true,
   "totalMusicCalls": 1,
-  "totalSfxCalls": 6,
+  "totalSfxCalls": 7,
   "totalAmbientCalls": 1
 }
