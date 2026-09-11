@@ -18,7 +18,6 @@ public partial class HandCard : PanelContainer
     private ColorRect _desatOverlay;
     private Label _noArtLabel;
     private Label _costLabel;
-    private RootBoundBorder _rootBound;
     private bool _isHovered;
     private bool _selected;
 
@@ -54,13 +53,7 @@ public partial class HandCard : PanelContainer
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
 
-        // Root-Bound 9-slice border overlay
-        _rootBound = new RootBoundBorder();
-        _rootBound.Name = "RootBoundBorder";
-        AddChild(_rootBound);
-        _rootBound.Setup(CustomMinimumSize.X, CustomMinimumSize.Y);
-
-        // CardPlate — unified card frame: name band, stat rail
+        // CardPlate now paints the full template (frame, name band, stats)
         _cardPlate = new CardPlate();
         _cardPlate.Name = "CardPlate";
         var content = GetNode<Control>("Content");
@@ -133,10 +126,9 @@ public partial class HandCard : PanelContainer
         float w = CustomMinimumSize.X > 0 ? CustomMinimumSize.X : _cardWidth;
         float h = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
         if (w <= 0) w = 104; if (h <= 0) h = 152;
-        _rootBound.Setup(w, h);
 
         // CardPlate handles name band, stat rail
-        _cardPlate.Setup(name, CardAttack, CardVigor, strata, w, h, cost);
+        _cardPlate.Setup(name, CardAttack, CardVigor, strata, w, h, cost, artTexture: _artRect.Texture);
 
         // Cost rune at top-right
         float costW = _costLabel.Size.X;
@@ -255,11 +247,8 @@ public partial class HandCard : PanelContainer
         CustomMinimumSize = new Vector2(_cardWidth, _cardHeight);
         Size = CustomMinimumSize;
 
-        // Update RootBound border
-        _rootBound.Setup(_cardWidth, _cardHeight);
-
         // Re-setup CardPlate with new dimensions
-        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight, CardCost);
+        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight, CardCost, artTexture: _artRect.Texture);
 
         // Reposition cost rune
         if (CardCost > 0 && _costLabel != null)
