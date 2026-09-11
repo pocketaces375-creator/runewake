@@ -18,7 +18,6 @@ public partial class LaneSlot : PanelContainer
     private CardPlate _cardPlate;
     private TextureRect _artRect;
     private Label _noArtLabel;
-    private Label _costLabel;
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
     private Label _faceLabel;
@@ -92,12 +91,7 @@ public partial class LaneSlot : PanelContainer
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
 
-        // Cost rune at top-right inside border
-        _costLabel = CardPlate.MakeCostRune(0, CustomMinimumSize.X, CustomMinimumSize.Y, out _);
-        _costLabel.Name = "CostRune";
-        content.AddChild(_costLabel);
-
-        // Create the FACE attack target label (hidden by default)
+        		// Create the FACE attack target label (hidden by default)
         _faceLabel = new Label
         {
             Text = "→ FACE",
@@ -174,29 +168,11 @@ public partial class LaneSlot : PanelContainer
         var def = CardRegistry.Get(cardDefId);
         if (def != null) cost = def.Cost;
 
-        // CardPlate handles name, stat rail
-        _cardPlate.Setup(name, attack, vigor, Strata.VERDANT, w, h, cost, artTexture: _artRect.Texture);
+        // CardPlate shows baked card + stat numerals
+        _cardPlate.Setup(_currentCardId, attack, vigor, w, h, cost, artTexture: _artRect.Texture);
         _cardPlate.Show();
 
-        // Cost rune at top-right
-        if (cost > 0 && _costLabel != null)
-        {
-            _costLabel.Visible = true;
-            _costLabel.Text = cost.ToString();
-            int bandPx = Mathf.Max(1, Mathf.RoundToInt(w * 0.07f));
-            float hexSize = w * FrameHexSizeFraction;
-            float hexX = w - bandPx - hexSize - 2f;
-            float hexY = bandPx + 2f;
-            _costLabel.Position = new Vector2(hexX, hexY);
-            _costLabel.Size = new Vector2(hexSize, hexSize);
-            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
-            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
-            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
-        }
-        else if (_costLabel != null)
-        {
-            _costLabel.Visible = false;
-        }
+        // Cost rune — not needed, cost is baked
 
         LoadArt(cardDefId);
 
@@ -238,8 +214,6 @@ public partial class LaneSlot : PanelContainer
             _faceLabel.Visible = false;
         if (_cardPlate != null)
             _cardPlate.Hide();
-        if (_costLabel != null)
-            _costLabel.Visible = false;
         Modulate = Colors.White;
         // Apply warm-gold keyline socket style for empty slots
         if (_emptySlotStyle != null)

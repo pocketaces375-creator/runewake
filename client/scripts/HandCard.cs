@@ -17,7 +17,6 @@ public partial class HandCard : PanelContainer
     private TextureRect _artRect;
     private ColorRect _desatOverlay;
     private Label _noArtLabel;
-    private Label _costLabel;
     private bool _isHovered;
     private bool _selected;
 
@@ -127,30 +126,8 @@ public partial class HandCard : PanelContainer
         float h = CustomMinimumSize.Y > 0 ? CustomMinimumSize.Y : _cardHeight;
         if (w <= 0) w = 104; if (h <= 0) h = 152;
 
-        // CardPlate handles name band, stat rail
-        _cardPlate.Setup(name, CardAttack, CardVigor, strata, w, h, cost, artTexture: _artRect.Texture);
-
-        // Cost rune at top-right
-        float costW = _costLabel.Size.X;
-        if (cost > 0)
-        {
-            _costLabel.Visible = true;
-            _costLabel.Text = cost.ToString();
-            // Reposition for current card size
-            int bandPx = Mathf.Max(1, Mathf.RoundToInt(w * 0.07f));
-            float hexSize = w * FrameHexSizeFraction;
-            float hexX = w - bandPx - hexSize - 2f;
-            float hexY = bandPx + 2f;
-            _costLabel.Position = new Vector2(hexX, hexY);
-            _costLabel.Size = new Vector2(hexSize, hexSize);
-            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
-            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
-            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
-        }
-        else
-        {
-            _costLabel.Visible = false;
-        }
+        // CardPlate shows baked card + stat numerals
+        _cardPlate.Setup(CardId, CardAttack, CardVigor, w, h, cost, artTexture: _artRect.Texture);
 
         LoadArt(cardId);
     }
@@ -248,21 +225,7 @@ public partial class HandCard : PanelContainer
         Size = CustomMinimumSize;
 
         // Re-setup CardPlate with new dimensions
-        _cardPlate.Setup(CardName, CardAttack, CardVigor, CardStrata, _cardWidth, _cardHeight, CardCost, artTexture: _artRect.Texture);
-
-        // Reposition cost rune
-        if (CardCost > 0 && _costLabel != null)
-        {
-            int bandPx = Mathf.Max(1, Mathf.RoundToInt(_cardWidth * 0.07f));
-            float hexSize = _cardWidth * FrameHexSizeFraction;
-            float hexX = _cardWidth - bandPx - hexSize - 2f;
-            float hexY = bandPx + 2f;
-            _costLabel.Position = new Vector2(hexX, hexY);
-            _costLabel.Size = new Vector2(hexSize, hexSize);
-            CardPlate.UpdateCostRuneStyle(_costLabel, hexSize);
-            int costFontSize = Mathf.Max(11, Mathf.RoundToInt(hexSize * 0.5f));
-            _costLabel.AddThemeFontSizeOverride("font_size", costFontSize);
-        }
+        _cardPlate.Setup(CardId, CardAttack, CardVigor, _cardWidth, _cardHeight, CardCost, artTexture: _artRect.Texture);
 
         // Hover pivot: bottom-center so card enlarges upward
         PivotOffset = new Vector2(CustomMinimumSize.X / 2f, CustomMinimumSize.Y);

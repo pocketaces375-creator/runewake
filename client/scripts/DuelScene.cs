@@ -4637,17 +4637,7 @@ public partial class DuelScene : Control
             MouseFilter = Control.MouseFilterEnum.Stop,
             CustomMinimumSize = new Vector2(cardW, cardH),
         };
-        plate.Setup(card.CardName, card.Attack, card.Vigor, card.Strata, cardW, cardH, card.Cost);
-
-        // Cost rune
-        float hexSize;
-        var costLabel = CardPlate.MakeCostRune(card.Cost, cardW, cardH, out hexSize);
-        plate.AddChild(costLabel);
-
-        // Root-Bound border
-        var border = new RootBoundBorder();
-        border.Setup(cardW, cardH);
-        plate.AddChild(border);
+        plate.Setup(card.CardId, card.Attack, card.Vigor, cardW, cardH, card.Cost);
 
         ctr.AddChild(plate);
 
