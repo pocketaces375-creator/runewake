@@ -764,7 +764,7 @@ public partial class ReliquaryScene : Control
         {
             var plate = new CardPlate();
             content.AddChild(plate);
-            plate.Setup(card.Name, card.Attack, card.Vigor, card.Strata, cardW, cardH, card.Cost);
+            plate.Setup(card.Id, card.Attack, card.Vigor, cardW, cardH, card.Cost);
         }
         else
         {

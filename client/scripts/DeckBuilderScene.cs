@@ -869,7 +869,7 @@ public partial class DeckBuilderScene : Control
         // CardPlate
         var plate = new CardPlate();
         content.AddChild(plate);
-        plate.Setup(card.Name, card.Attack, card.Vigor, card.Strata, gridW, gridH);
+        plate.Setup(card.Id, card.Attack, card.Vigor, gridW, gridH, card.Cost);
 
         // xN badge (copies in current deck)
         if (inDeckCount > 0)
