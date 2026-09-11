@@ -1,87 +1,69 @@
 using Godot;
 using Runewake.Engine.Cards;
-using static ThemeTokens;
 
 namespace Runewake.Client;
 
 /// <summary>
-/// CardPlate — addendum-compliant draw order: art → name plate → stat strip + badges →
-/// gold keyline → frame → cost badge. Frame is last on top with transparent window.
+/// CardPlate — addendum draw order: art → name plate → stat strip + badges →
+/// gold keyline → frame → cost badge. All regions hardcoded from frame_1 measurements.
 /// </summary>
 public partial class CardPlate : Control
 {
     public CardPlate() { MouseFilter = MouseFilterEnum.Ignore; }
 
-    private static bool _loaded = false;
-    private static Vector4 _artWin, _nameR, _statR, _wellL, _wellR, _keyRect, _wind;
-    private static Vector2 _costAnchor;
-    private static float _keyThick, _costDiam;
-
-    private static void L()
-    {
-        if (_loaded) return;
-        using var f = Godot.FileAccess.Open("res://content/art/frame/card_template.json", Godot.FileAccess.ModeFlags.Read);
-        if (f == null) { GD.PrintErr("[CT] JSON not found"); return; }
-        var d = Json.ParseString(f.GetAsText()).AsGodotDictionary();
-        var a4 = (Godot.Collections.Array v) => new Vector4((float)(double)v[0], (float)(double)v[1], (float)(double)v[2], (float)(double)v[3]);
-        var a2 = (Godot.Collections.Array v) => new Vector2((float)(double)v[0], (float)(double)v[1]);
-        _wind = a4(d["window"].AsGodotArray());
-        _artWin = a4(d["art_window"].AsGodotArray());
-        _nameR = a4(d["name_plate"].AsGodotArray());
-        _statR = a4(d["stat_strip"].AsGodotArray());
-        _wellL = a4(d["stat_well_left"].AsGodotArray());
-        _wellR = a4(d["stat_well_right"].AsGodotArray());
-        var k = d["gold_keyline"].AsGodotDictionary();
-        _keyRect = a4(k["rect"].AsGodotArray());
-        _keyThick = (float)(double)k["thickness"];
-        var c = d["cost_badge"].AsGodotDictionary();
-        _costDiam = (float)(double)c["diameter"];
-        _costAnchor = a2(c["anchor"].AsGodotArray());
-        _loaded = true;
-    }
-
-    private TextureRect? _frameBg;
-    private TextureRect? _artBg;
-    private Control? _namePlate;
-    private Label? _cardName;
-    private Control? _statPlate;
-    private Label? _atkBadge, _vigBadge;
-    private ColorRect? _keyline;
-
-    private float _cw, _ch;
+    // Hardcoded from frame_1 window (180,199)-(655,1023) = 57.09%×67.76% of 832x1216
+    private static readonly float W_X = 0.2163f, W_Y = 0.1637f, W_W = 0.5709f, W_H = 0.6776f;
+    // Art = top 83%, Name = next 7%, Stat = bottom 10% of window height
+    private static readonly float A_X = W_X, A_Y = W_Y, A_W = W_W, A_H = W_H * 0.83f;
+    private static readonly float N_X = W_X, N_Y = W_Y + W_H * 0.83f, N_W = W_W, N_H = W_H * 0.07f;
+    private static readonly float S_X = W_X, S_Y = W_Y + W_H * 0.90f, S_W = W_W, S_H = W_H * 0.10f;
+    // Badges: side = 78% of strip height, inset 6% window width from ends
+    private static readonly float _bdgS = S_H * 0.78f;
+    private static readonly float _bdgY = S_Y + (S_H - _bdgS) / 2f;
+    private static readonly float _inset = W_W * 0.06f;
+    private static readonly float BL_X = W_X + _inset, BL_Y = _bdgY, BL_S = _bdgS;
+    private static readonly float BR_X = W_X + W_W - _inset - _bdgS, BR_Y = _bdgY, BR_S = _bdgS;
+    // Cost badge: diameter 12% of card width, centre on window top-right
+    private static readonly float _costD = 0.12f;
+    private static readonly float _costCX = W_X + W_W;
+    private static readonly float _costCY = W_Y;
 
     // Addendum exact colors
-    private static Color GOLD_KEY = new Color(0.788f, 0.659f, 0.298f);  // #C9A84C
-    private static Color NAME_BG = new Color(0.784f, 0.722f, 0.596f);   // #C8B898
-    private static Color NAME_FG = new Color(0.227f, 0.157f, 0.086f);   // #3A2816
-    private static Color STAT_BG = new Color(0.126f, 0.118f, 0.102f);   // #201E1A
-    private static Color ATK_BORDER = new Color(0.722f, 0.220f, 0.180f);// #B8382E
-    private static Color ATK_FILL = new Color(0.788f, 0.294f, 0.235f);  // #C94A3C
-    private static Color VIG_BORDER = new Color(0.243f, 0.478f, 0.243f);// #3E7A3E
-    private static Color VIG_FILL = new Color(0.306f, 0.549f, 0.306f);  // #4E8C4E
-    private static Color STAT_NUM = new Color(0.941f, 0.894f, 0.816f);  // #F0E4D0
-    private static Color COST_BG = new Color(0.165f, 0.118f, 0.071f);   // #2A1E12
-    private static Color COST_RING = new Color(0.788f, 0.659f, 0.298f); // #C9A84C
-    private static Color COST_NUM = new Color(0.910f, 0.851f, 0.659f);  // #E8D9A8
+    private static readonly Color GOLD = new Color(0.788f, 0.659f, 0.298f);
+    private static readonly Color N_BG = new Color(0.784f, 0.722f, 0.596f);
+    private static readonly Color N_FG = new Color(0.227f, 0.157f, 0.086f);
+    private static readonly Color S_BG = new Color(0.126f, 0.118f, 0.102f);
+    private static readonly Color AB = new Color(0.722f, 0.220f, 0.180f);
+    private static readonly Color AF = new Color(0.788f, 0.294f, 0.235f);
+    private static readonly Color VB = new Color(0.243f, 0.478f, 0.243f);
+    private static readonly Color VF = new Color(0.306f, 0.549f, 0.306f);
+    private static readonly Color SN = new Color(0.941f, 0.894f, 0.816f);
+    private static readonly Color CB = new Color(0.165f, 0.118f, 0.071f);
+    private static readonly Color CR = new Color(0.788f, 0.659f, 0.298f);
+    private static readonly Color CN = new Color(0.910f, 0.851f, 0.659f);
+
+    private TextureRect? _frameBg, _artBg;
+    private Control? _nameCtrl, _statCtrl;
+    private Label? _nameLabel, _atkL, _vigL;
+    private ColorRect? _keyline;
 
     public void Setup(string name, int? attack, int? vigor, Strata strata,
-        float cardWidth, float cardHeight, int cost = 0, bool isArtifact = false,
+        float cw, float ch, int cost = 0, bool isArtifact = false,
         Texture2D? artTexture = null)
     {
-        L();
-        _cw = cardWidth; _ch = cardHeight;
-        Position = Vector2.Zero; Size = new Vector2(cardWidth, cardHeight);
+        Position = Vector2.Zero;
+        Size = new Vector2(cw, ch);
 
         if (_frameBg == null)
         {
-            // 1. CARD ART
+            // 1. Card art
             _artBg = new TextureRect { MouseFilter = MouseFilterEnum.Ignore, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize };
             AddChild(_artBg);
 
-            // 2. NAME PLATE — pale parchment
-            _namePlate = new Control { MouseFilter = MouseFilterEnum.Ignore };
-            AddChild(_namePlate);
-            _cardName = new Label
+            // 2. Name plate
+            _nameCtrl = new Control { MouseFilter = MouseFilterEnum.Ignore };
+            AddChild(_nameCtrl);
+            _nameLabel = new Label
             {
                 MouseFilter = MouseFilterEnum.Ignore,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -90,23 +72,22 @@ public partial class CardPlate : Control
                 MaxLinesVisible = 1,
                 TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis
             };
-            _cardName.AddThemeColorOverride("font_color", NAME_FG);
-            _cardName.AddThemeConstantOverride("outline_size", 0);
-            _namePlate.AddChild(_cardName);
+            _nameLabel.AddThemeColorOverride("font_color", N_FG);
+            _nameCtrl.AddChild(_nameLabel);
 
-            // 3. STAT STRIP + BADGES
-            _statPlate = new Control { MouseFilter = MouseFilterEnum.Ignore };
-            AddChild(_statPlate);
-            _atkBadge = MakeBadge(ATK_FILL, ATK_BORDER);
-            _statPlate.AddChild(_atkBadge);
-            _vigBadge = MakeBadge(VIG_FILL, VIG_BORDER);
-            _statPlate.AddChild(_vigBadge);
+            // 3. Stat strip + badges
+            _statCtrl = new Control { MouseFilter = MouseFilterEnum.Ignore };
+            AddChild(_statCtrl);
+            _atkL = MkBadge(AF, AB);
+            _statCtrl.AddChild(_atkL);
+            _vigL = MkBadge(VF, VB);
+            _statCtrl.AddChild(_vigL);
 
-            // 4. GOLD KEYLINE — inner edge of window, beneath frame
+            // 4. Gold keyline
             _keyline = new ColorRect { MouseFilter = MouseFilterEnum.Ignore };
             AddChild(_keyline);
 
-            // 5. FRAME — LAST on top
+            // 5. Frame — LAST on top
             _frameBg = new TextureRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
@@ -114,73 +95,56 @@ public partial class CardPlate : Control
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
                 Texture = GD.Load<Texture2D>("res://content/art/frame/card_frame.png"),
                 Position = Vector2.Zero,
-                Size = new Vector2(cardWidth, cardHeight)
+                Size = new Vector2(cw, ch)
             };
             AddChild(_frameBg);
         }
 
         // Position art
-        float ax = _artWin.X * cardWidth, ay = _artWin.Y * cardHeight;
-        float aw = _artWin.Z * cardWidth, ah = _artWin.W * cardHeight;
-        _artBg.Position = new Vector2(ax, ay);
-        _artBg.Size = new Vector2(aw, ah);
+        _artBg.Position = new Vector2(A_X * cw, A_Y * ch);
+        _artBg.Size = new Vector2(A_W * cw, A_H * ch);
         if (artTexture != null) _artBg.Texture = artTexture;
 
-        // Name plate — spans full window width
-        float nx = _nameR.X * cardWidth, ny = _nameR.Y * cardHeight;
-        float nw = _nameR.Z * cardWidth, nh = _nameR.W * cardHeight;
-        _namePlate.Position = new Vector2(nx, ny);
-        _namePlate.Size = new Vector2(nw, nh);
-        _namePlate.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = NAME_BG });
+        // Name plate
+        _nameCtrl.Position = new Vector2(N_X * cw, N_Y * ch);
+        _nameCtrl.Size = new Vector2(N_W * cw, N_H * ch);
+        _nameCtrl.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = N_BG });
 
-        _cardName.Size = new Vector2(nw, nh);
-        _cardName.Text = name;
-        int nameFs = Mathf.Clamp(Mathf.RoundToInt(nh * 0.62f), 9, 24);
-        _cardName.AddThemeFontSizeOverride("font_size", nameFs);
+        _nameLabel.Size = new Vector2(N_W * cw, N_H * ch);
+        _nameLabel.Text = name;
+        _nameLabel.AddThemeFontSizeOverride("font_size", Mathf.Clamp(Mathf.RoundToInt(N_H * ch * 0.62f), 9, 24));
 
-        // Stat strip — dark charcoal recess
-        float sx = _statR.X * cardWidth, sy = _statR.Y * cardHeight;
-        float sw = _statR.Z * cardWidth, sh = _statR.W * cardHeight;
-        _statPlate.Position = new Vector2(sx, sy);
-        _statPlate.Size = new Vector2(sw, sh);
-        _statPlate.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = STAT_BG });
+        // Stat strip
+        _statCtrl.Position = new Vector2(S_X * cw, S_Y * ch);
+        _statCtrl.Size = new Vector2(S_W * cw, S_H * ch);
+        _statCtrl.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = S_BG });
 
-        // Left badge (attack) and right badge (vigor)
-        float lx = _wellL.X * cardWidth, ly = _wellL.Y * cardHeight;
-        float lw = _wellL.Z * cardWidth, lh = _wellL.W * cardHeight;
-        float rx = _wellR.X * cardWidth, ry = _wellR.Y * cardHeight;
-        float rw = _wellR.Z * cardWidth, rh = _wellR.W * cardHeight;
-        float cornerR = Mathf.RoundToInt(lw * 0.08f);
+        float badgeS = BL_S * cw;
+        float cr = Mathf.RoundToInt(badgeS * 0.08f);
+        _atkL.Visible = attack.HasValue;
+        if (attack.HasValue) Place(_atkL, attack!.Value.ToString(), BL_X * cw, BL_Y * ch, badgeS, cr, AF, AB);
+        _vigL.Visible = vigor.HasValue;
+        if (vigor.HasValue) Place(_vigL, vigor!.Value.ToString(), BR_X * cw, BR_Y * ch, badgeS, cr, VF, VB);
 
-        _atkBadge.Visible = attack.HasValue;
-        if (attack.HasValue) SetBadge(_atkBadge, attack!.Value.ToString(), lx, ly, lw, lh, cornerR, ATK_FILL, ATK_BORDER);
-        _vigBadge.Visible = vigor.HasValue;
-        if (vigor.HasValue) SetBadge(_vigBadge, vigor!.Value.ToString(), rx, ry, rw, rh, cornerR, VIG_FILL, VIG_BORDER);
-
-        // Gold keyline — rectangle along window inner edge
-        float kthick = Mathf.Max(_keyThick * cardWidth, 1f);
-        float kw = _wind.Z * cardWidth, kh = _wind.W * cardHeight;
-        _keyline.Position = new Vector2(_wind.X * cardWidth, _wind.Y * cardHeight);
-        _keyline.Size = new Vector2(kw, kh);
+        // Gold keyline — inner edge of window
+        float kt = Mathf.Max(0.005f * cw, 1f);
+        _keyline.Position = new Vector2(W_X * cw, W_Y * ch);
+        _keyline.Size = new Vector2(W_W * cw, W_H * ch);
         _keyline.Color = Colors.Transparent;
         _keyline.AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
             BgColor = Colors.Transparent,
-            BorderColor = GOLD_KEY,
-            BorderWidthLeft = Mathf.RoundToInt(kthick),
-            BorderWidthTop = Mathf.RoundToInt(kthick),
-            BorderWidthRight = Mathf.RoundToInt(kthick),
-            BorderWidthBottom = Mathf.RoundToInt(kthick),
-            ContentMarginLeft = 0, ContentMarginTop = 0, ContentMarginRight = 0, ContentMarginBottom = 0
+            BorderColor = GOLD,
+            BorderWidthLeft = Mathf.RoundToInt(kt),
+            BorderWidthTop = Mathf.RoundToInt(kt),
+            BorderWidthRight = Mathf.RoundToInt(kt),
+            BorderWidthBottom = Mathf.RoundToInt(kt)
         });
 
-        // Frame already positioned — it's on top, window is transparent
-
-        // Cost badge — above frame, at window top-right corner
-        // (This is not created in Setup — too expensive per card; needs a static helper)
+        // Frame is on top — positioned at creation, window is transparent
     }
 
-    private static Label MakeBadge(Color fill, Color border)
+    private static Label MkBadge(Color fill, Color border)
     {
         var l = new Label
         {
@@ -188,40 +152,33 @@ public partial class CardPlate : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        l.AddThemeColorOverride("font_color", STAT_NUM);
+        l.AddThemeColorOverride("font_color", SN);
         l.AddThemeColorOverride("font_outline_color", Colors.Black);
         l.AddThemeConstantOverride("outline_size", 1);
         return l;
     }
 
-    private static void SetBadge(Label l, string text, float x, float y, float w, float h, float cr, Color fill, Color border)
+    private static void Place(Label l, string text, float x, float y, float s, float cr, Color fill, Color border)
     {
         l.Text = text;
         l.Position = new Vector2(x, y);
-        l.Size = new Vector2(w, h);
-        int fs = Mathf.Clamp(Mathf.RoundToInt(h * 0.55f), 9, 20);
-        l.AddThemeFontSizeOverride("font_size", fs);
+        l.Size = new Vector2(s, s);
+        l.AddThemeFontSizeOverride("font_size", Mathf.Clamp(Mathf.RoundToInt(s * 0.55f), 9, 20));
         l.AddThemeStyleboxOverride("normal", new StyleBoxFlat
         {
-            BgColor = fill,
-            BorderColor = border,
+            BgColor = fill, BorderColor = border,
             BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = Mathf.RoundToInt(cr),
-            CornerRadiusTopRight = Mathf.RoundToInt(cr),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(cr),
-            CornerRadiusBottomRight = Mathf.RoundToInt(cr),
+            CornerRadiusTopLeft = Mathf.RoundToInt(cr), CornerRadiusTopRight = Mathf.RoundToInt(cr),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(cr), CornerRadiusBottomRight = Mathf.RoundToInt(cr),
             ContentMarginLeft = 2, ContentMarginRight = 2, ContentMarginTop = 1, ContentMarginBottom = 1
         });
     }
 
-    public static Label MakeCostRune(int cost, float cardWidth, float cardHeight, out float diam)
+    public static Label MakeCostRune(int cost, float cw, float ch, out float diam)
     {
-        L();
-        diam = _costDiam * cardWidth;
-        float cx = _costAnchor.X * cardWidth, cy = _costAnchor.Y * cardHeight;
-        // Circle centred on window top-right corner
-        float bx = cx - diam / 2f;
-        float by = cy;
+        diam = _costD * cw;
+        float cx = _costCX * cw, cy = _costCY * ch;
+        float bx = cx - diam / 2f, by = cy;
 
         var l = new Label
         {
@@ -230,20 +187,16 @@ public partial class CardPlate : Control
             VerticalAlignment = VerticalAlignment.Center,
             Text = cost.ToString()
         };
-        l.AddThemeColorOverride("font_color", COST_NUM);
-        l.AddThemeConstantOverride("outline_size", 0);
+        l.AddThemeColorOverride("font_color", CN);
         l.Position = new Vector2(bx, by);
         l.Size = new Vector2(diam, diam);
         l.AddThemeFontSizeOverride("font_size", Mathf.Max(11, Mathf.RoundToInt(diam * 0.5f)));
         l.AddThemeStyleboxOverride("normal", new StyleBoxFlat
         {
-            BgColor = COST_BG,
-            BorderColor = COST_RING,
+            BgColor = CB, BorderColor = CR,
             BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusTopRight = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusBottomRight = Mathf.RoundToInt(diam / 2f)
+            CornerRadiusTopLeft = Mathf.RoundToInt(diam / 2f), CornerRadiusTopRight = Mathf.RoundToInt(diam / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(diam / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(diam / 2f)
         });
         return l;
     }
@@ -252,22 +205,19 @@ public partial class CardPlate : Control
     {
         label.AddThemeStyleboxOverride("normal", new StyleBoxFlat
         {
-            BgColor = COST_BG,
-            BorderColor = COST_RING,
+            BgColor = CB, BorderColor = CR,
             BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusTopRight = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(diam / 2f),
-            CornerRadiusBottomRight = Mathf.RoundToInt(diam / 2f)
+            CornerRadiusTopLeft = Mathf.RoundToInt(diam / 2f), CornerRadiusTopRight = Mathf.RoundToInt(diam / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(diam / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(diam / 2f)
         });
     }
 
     public void SetStatValues(int? attack, int? vigor)
     {
-        if (attack.HasValue && _atkBadge != null) _atkBadge.Text = attack.Value.ToString();
-        if (vigor.HasValue && _vigBadge != null) _vigBadge.Text = vigor.Value.ToString();
+        if (attack.HasValue && _atkL != null) _atkL.Text = attack.Value.ToString();
+        if (vigor.HasValue && _vigL != null) _vigL.Text = vigor.Value.ToString();
     }
 
-    public Label? GetNameLabel() => _cardName;
-    public Rect2 GetNameRect() => _cardName?.GetRect() ?? new Rect2();
+    public Label? GetNameLabel() => _nameLabel;
+    public Rect2 GetNameRect() => _nameLabel?.GetRect() ?? new Rect2();
 }
