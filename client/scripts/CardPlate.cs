@@ -11,8 +11,8 @@ public partial class CardPlate : Control
 {
     public CardPlate() { MouseFilter = MouseFilterEnum.Ignore; }
 
-    // Hardcoded from frame_1 window (180,199)-(655,1023) = 57.09%×67.76% of 832x1216
-    private static readonly float W_X = 0.2163f, W_Y = 0.1637f, W_W = 0.5709f, W_H = 0.6776f;
+    // Hardcoded from R8-cropped frame: window (131,127)-(606,951) = 64.71%×76.87% of 734x1072
+    private static readonly float W_X = 0.1785f, W_Y = 0.1185f, W_W = 0.6471f, W_H = 0.7687f;
     // Art = top 83%, Name = next 7%, Stat = bottom 10% of window height
     private static readonly float A_X = W_X, A_Y = W_Y, A_W = W_W, A_H = W_H * 0.83f;
     private static readonly float N_X = W_X, N_Y = W_Y + W_H * 0.83f, N_W = W_W, N_H = W_H * 0.07f;
