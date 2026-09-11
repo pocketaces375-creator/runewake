@@ -1,3 +1,4 @@
+| TASK-BAKE-IMPORT-1 | 2026-09-11 | bakes imported, rendering verified | DONE |
 | TASK-BUILD-GREEN-2 | 2026-09-11 | all CardPlate call sites migrated, build green, bakes rendering | DONE |
 | TASK-CARD-TEMPLATE-1 | 2026-09-10 | single painted card template | DONE |
 | TASK-CARD-BORDER-FLUX-1 | 2026-09-10 | FLUX-painted border, sliced and reading at render size | DONE |
