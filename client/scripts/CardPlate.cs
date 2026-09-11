@@ -4,6 +4,12 @@ using static ThemeTokens;
 
 namespace Runewake.Client;
 
+/// <summary>
+/// CardPlate — paints the dark vignette frame template behind card art.
+/// Art fills the large central window (~82% height × 75% width).
+/// Name plate renders just below art, tone-tinted from the card's artwork.
+/// Attack/vigor badges sit at bottom with high contrast.
+/// </summary>
 public partial class CardPlate : Control
 {
     public CardPlate() { MouseFilter = MouseFilterEnum.Ignore; }
@@ -13,6 +19,7 @@ public partial class CardPlate : Control
     private static Vector4 _namePlate = Vector4.Zero;
     private static Vector4 _statStrip = Vector4.Zero;
     private static Vector2 _costAnchor = Vector2.Zero;
+    private static float _bandFrac = 0.126f;
 
     private static void LoadTemplateRegions()
     {
@@ -30,12 +37,14 @@ public partial class CardPlate : Control
         _namePlate = new Vector4((float)(double)np[0], (float)(double)np[1], (float)(double)np[2], (float)(double)np[3]);
         _statStrip = new Vector4((float)(double)ss[0], (float)(double)ss[1], (float)(double)ss[2], (float)(double)ss[3]);
         _costAnchor = new Vector2((float)(double)ca[0], (float)(double)ca[1]);
+        if (dict.ContainsKey("band_fraction"))
+            _bandFrac = (float)(double)dict["band_fraction"];
         _templateLoaded = true;
     }
 
     private TextureRect? _templateBg;
     private TextureRect? _artBg;
-    private Control? _nameClipContainer;
+    private Control? _nameBar;
     private Label? _cardName;
     private Label? _attackBadge;
     private Label? _vigorBadge;
@@ -47,9 +56,11 @@ public partial class CardPlate : Control
     private bool _hasVigor;
     private bool _isArtifact;
 
-    private struct NameFitResult { public int FontSize; public int LineCount; public float TextHeight; }
+    public float PlateHeight => _designCardHeight;
 
-    public float PlateHeight => _designCardHeight * _namePlate.W;
+    private static Color _namePlateBg = new Color(0.08f, 0.06f, 0.05f, 0.75f);
+    private static Color _nameText = new Color(0.92f, 0.85f, 0.70f);
+    private static Color _nameOutline = new Color(0.05f, 0.03f, 0.02f);
 
     public void Setup(string name, int? attack, int? vigor, Strata strata,
         float cardWidth, float cardHeight, int cost = 0, bool isArtifact = false,
@@ -87,12 +98,12 @@ public partial class CardPlate : Control
             };
             AddChild(_artBg);
 
-            _nameClipContainer = new Control
+            // Name bar — semi-transparent dark band below art
+            _nameBar = new Control
             {
-                MouseFilter = MouseFilterEnum.Ignore,
-                ClipContents = true
+                MouseFilter = MouseFilterEnum.Ignore
             };
-            AddChild(_nameClipContainer);
+            AddChild(_nameBar);
 
             _cardName = new Label
             {
@@ -101,66 +112,70 @@ public partial class CardPlate : Control
                 VerticalAlignment = VerticalAlignment.Center,
                 AutowrapMode = TextServer.AutowrapMode.Off,
                 MaxLinesVisible = 1,
-                TextOverrunBehavior = TextServer.OverrunBehavior.NoTrimming
+                TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis
             };
-            _cardName.AddThemeColorOverride("font_color", FrameNameText);
-            _nameClipContainer.AddChild(_cardName);
+            _cardName.AddThemeColorOverride("font_color", _nameText);
+            _cardName.AddThemeColorOverride("font_outline_color", _nameOutline);
+            _cardName.AddThemeConstantOverride("outline_size", 2);
+            _cardName.AddThemeFontSizeOverride("font_size", 18);
+            _nameBar.AddChild(_cardName);
 
-            _attackBadge = MakeStatBadge(FrameStatAttack, 4f);
+            // Stat badges
+            _attackBadge = MakeStatBadge(FrameStatAttack, 5f, cardWidth);
             AddChild(_attackBadge);
-
-            _vigorBadge = MakeStatBadge(FrameStatVigor, 4f);
+            _vigorBadge = MakeStatBadge(FrameStatVigor, 5f, cardWidth);
             AddChild(_vigorBadge);
         }
 
-        // Art window — composite card art to cover the black region
+        // Art window — fill from template proportions
         float awX = _artWindow.X * cardWidth;
         float awY = _artWindow.Y * cardHeight;
         float awW = _artWindow.Z * cardWidth;
         float awH = _artWindow.W * cardHeight;
         _artBg.Position = new Vector2(awX, awY);
         _artBg.Size = new Vector2(awW, awH);
-        if (artTexture != null) _artBg.Texture = artTexture;
+        _artBg.Texture = artTexture;
 
-        // Name plate — use template proportions or fallback to 7% card height
-        float npX = _namePlate.X * cardWidth;
-        float npY = _namePlate.Y * cardHeight;
-        float npW = _namePlate.Z * cardWidth;
-        float npH = _namePlate.W * cardHeight;
-        if (npH < 16f) npH = cardHeight * 0.07f;
-        if (npW < 40f) npW = cardWidth - npX * 2;
-        if (npY < awY + awH) npY = awY + awH + 2f;
+        // Name bar — below art window, spanning the card width
+        float band = _bandFrac * cardWidth;
+        float npX = band;
+        float npY = awY + awH + 1f;
+        float npW = cardWidth - band * 2f;
+        float npH = cardHeight * 0.045f;
+        if (npH < 14f) npH = 14f;
 
-        _nameClipContainer.Position = new Vector2(npX, npY);
-        _nameClipContainer.Size = new Vector2(npW, npH);
+        _nameBar.Position = new Vector2(npX, npY);
+        _nameBar.Size = new Vector2(npW, npH);
+        var nameStyle = new StyleBoxFlat
+        {
+            BgColor = _namePlateBg,
+            BorderColor = new Color(0.7f, 0.6f, 0.4f),
+            BorderWidthLeft = 0, BorderWidthTop = 1, BorderWidthRight = 0, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 0, CornerRadiusTopRight = 0,
+            CornerRadiusBottomLeft = 0, CornerRadiusBottomRight = 0,
+            ContentMarginLeft = 4, ContentMarginRight = 4
+        };
+        _nameBar.AddThemeStyleboxOverride("panel", nameStyle);
+
         _cardName.Position = Vector2.Zero;
         _cardName.Size = new Vector2(npW, npH);
         _cardName.Text = name;
-        ApplyCardNameFont(_cardName, FontCardName);
-        _cardName.AddThemeColorOverride("font_color", new Color(0.25f, 0.18f, 0.10f));
-        _cardName.AddThemeConstantOverride("outline_size", 0);
-        var fit = FitCardNameAuto(npW * 0.85f, npH);
-        _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
-        _cardName.MaxLinesVisible = fit.LineCount;
+        int fontSize = Mathf.Clamp(Mathf.RoundToInt(npH * 0.55f), 9, 24);
+        _cardName.AddThemeFontSizeOverride("font_size", fontSize);
 
-        // Stat strip
-        float ssY = _statStrip.Y * cardHeight;
-        float ssH = _statStrip.W * cardHeight;
-        if (ssH < 20f) ssH = cardHeight * 0.06f;
-        if (ssY < npY + npH) ssY = cardHeight - ssH - 4f;
-
-        float statW = npW * 0.28f;
-        float statH = ssH * 0.65f;
-        float statY = ssY + (ssH - statH) / 2f;
-        float statInset = npX + 4f;
+        // Stat badges — at bottom of card, inside the frame
+        float statY = cardHeight - _bandFrac * cardHeight - npH * 0.7f;
+        float statSize = cardHeight * 0.045f;
+        if (statSize < 14f) statSize = 14f;
+        float statInset = band + 3f;
 
         _attackBadge.Visible = _hasAttack;
         if (_hasAttack)
         {
             _attackBadge.Text = attack!.Value.ToString();
-            _attackBadge.Size = new Vector2(statW, statH);
-            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statH * 0.56f), 8, FontStat);
-            _attackBadge.AddThemeFontSizeOverride("font_size", fontSize);
+            _attackBadge.Size = new Vector2(statSize * 1.5f, statSize);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.5f), 8, 20);
+            _attackBadge.AddThemeFontSizeOverride("font_size", fs);
             _attackBadge.Position = new Vector2(statInset, statY);
         }
 
@@ -168,14 +183,14 @@ public partial class CardPlate : Control
         if (_hasVigor)
         {
             _vigorBadge.Text = vigor!.Value.ToString();
-            _vigorBadge.Size = new Vector2(statW, statH);
-            int fontSize = Mathf.Clamp(Mathf.RoundToInt(statH * 0.56f), 8, FontStat);
-            _vigorBadge.AddThemeFontSizeOverride("font_size", fontSize);
-            _vigorBadge.Position = new Vector2(cardWidth - statInset - statW, statY);
+            _vigorBadge.Size = new Vector2(statSize * 1.5f, statSize);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.5f), 8, 20);
+            _vigorBadge.AddThemeFontSizeOverride("font_size", fs);
+            _vigorBadge.Position = new Vector2(cardWidth - statInset - statSize * 1.5f, statY);
         }
     }
 
-    private static Label MakeStatBadge(Color bgColor, float radius)
+    private static Label MakeStatBadge(Color bgColor, float radius, float cardWidth)
     {
         var badge = new Label
         {
@@ -183,16 +198,17 @@ public partial class CardPlate : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        badge.AddThemeColorOverride("font_color", FrameStatText);
-        badge.AddThemeColorOverride("font_outline_color", Colors.Black);
-        badge.AddThemeConstantOverride("outline_size", 1);
+        badge.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f));
+        badge.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f));
+        badge.AddThemeConstantOverride("outline_size", 2);
         var style = new StyleBoxFlat
         {
-            BgColor = bgColor, BorderColor = FrameHexBorder,
+            BgColor = bgColor,
+            BorderColor = new Color(0.2f, 0.2f, 0.2f),
             BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = Mathf.RoundToInt(radius), CornerRadiusTopRight = Mathf.RoundToInt(radius),
             CornerRadiusBottomLeft = Mathf.RoundToInt(radius), CornerRadiusBottomRight = Mathf.RoundToInt(radius),
-            ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
+            ContentMarginLeft = 6, ContentMarginTop = 1, ContentMarginRight = 6, ContentMarginBottom = 1
         };
         badge.AddThemeStyleboxOverride("normal", style);
         return badge;
@@ -242,28 +258,6 @@ public partial class CardPlate : Control
             CornerRadiusBottomLeft = Mathf.RoundToInt(hexSize / 2f), CornerRadiusBottomRight = Mathf.RoundToInt(hexSize / 2f)
         };
         label.AddThemeStyleboxOverride("normal", hexStyle);
-    }
-
-    private NameFitResult FitCardNameAuto(float safeWidth, float maxBandH)
-    {
-        var empty = new NameFitResult { FontSize = 12, LineCount = 1, TextHeight = 0 };
-        if (_cardName == null || string.IsNullOrEmpty(_cardNameText) || safeWidth <= 0) return empty;
-        var measureFont = _cardName.GetThemeFont("font") ?? _cardName.GetThemeDefaultFont();
-        if (measureFont == null) { _cardName.AddThemeFontSizeOverride("font_size", 12); return empty; }
-        string text = _cardNameText.Replace("\n", " ");
-        int baseSize = Mathf.Max(6, Mathf.RoundToInt(18f * _designCardWidth / 236f));
-        int floorSize = _isArtifact ? 8 : Mathf.Max(10, Mathf.RoundToInt(_designCardWidth * 0.040f));
-        float W(int s) => measureFont.GetStringSize(text, HorizontalAlignment.Left, -1, s).X;
-        float LH(int s) => measureFont.GetHeight(s);
-        int size = baseSize;
-        while (size > floorSize && W(size) > safeWidth) size--;
-        while (size > floorSize && LH(size) > maxBandH) size--;
-        _cardName.Text = text;
-        _cardName.MaxLinesVisible = 1;
-        _cardName.AutowrapMode = TextServer.AutowrapMode.Off;
-        _cardName.TextOverrunBehavior = W(size) > safeWidth ? TextServer.OverrunBehavior.TrimEllipsis : TextServer.OverrunBehavior.NoTrimming;
-        _cardName.AddThemeFontSizeOverride("font_size", size);
-        return new NameFitResult { FontSize = size, LineCount = 1, TextHeight = LH(size) };
     }
 
     public void SetStatValues(int? attack, int? vigor)
