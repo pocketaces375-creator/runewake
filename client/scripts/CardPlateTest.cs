@@ -4,16 +4,16 @@ using Runewake.Engine.Cards;
 namespace Runewake.Client;
 
 /// <summary>
-/// Standalone test scene for CardPlate — shows shortest and longest card names
-/// at hand size and board size. Auto-captures and exits.
+/// Standalone test scene for CardPlate — shows baked cards at hand size
+/// and board size. Auto-captures and exits.
 /// Run via: Godot_v4.3-stable_mono_linux.x86_64 --path client --scene res://scenes/test/CardPlateTest.tscn
 /// </summary>
 public partial class CardPlateTest : Control
 {
-    private const string ShortName = "Deep One";
-    private const string LongName = "Cinderstorm Elemental";
-    private const string ShortName2 = "Deep One";
-    private const string LongName2 = "Forgeguard Berserker";
+    private const string ShortName = "tid_c_deep_one";
+    private const string LongName = "emb_u_cinderstorm_elemental";
+    private const string ShortName2 = "tid_c_deep_one";
+    private const string LongName2 = "emb_c_forgeguard_berserker";
 
     public override void _Ready()
     {
@@ -31,7 +31,7 @@ public partial class CardPlateTest : Control
         // Title
         var title = new Label
         {
-            Text = "CardPlate — Shortest vs Longest Names",
+            Text = "CardPlate — Baked Cards",
             HorizontalAlignment = HorizontalAlignment.Center
         };
         ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontSubtitle);
@@ -128,7 +128,7 @@ public partial class CardPlateTest : Control
     }
 
     private void AddPlateCard(float x, float y, float cardW, float cardH,
-        string name, int attack, int vigor, Strata strata)
+        string cardId, int attack, int vigor, Strata strata)
     {
         var card = new PanelContainer();
         card.Position = new Vector2(x, y);
@@ -182,7 +182,7 @@ public partial class CardPlateTest : Control
         // CardPlate
         var plate = new CardPlate();
         content.AddChild(plate);
-        plate.Setup(name, attack, vigor, strata, cardW, cardH);
+        plate.Setup(cardId, attack, vigor, cardW, cardH);
 
         AddChild(card);
     }
