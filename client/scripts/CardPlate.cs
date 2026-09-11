@@ -102,17 +102,21 @@ public partial class CardPlate : Control
             AddChild(_vigorBadge);
         }
 
-        // Set art
+        // Art fills the top portion of the card
         if (artTexture != null) _artBg.Texture = artTexture;
-
-        // Name bar — bottom quarter of card, full width inside border
         float inset = 4f;
-        float nameH = cardHeight * 0.045f;
-        if (nameH < 14f) nameH = 14f;
-        float nameY = cardHeight - nameH - cardHeight * 0.04f - inset;
+        _artBg.Position = new Vector2(inset, inset);
+        float artH = cardHeight * 0.73f;
+        float artW = cardWidth - inset * 2;
+        _artBg.Size = new Vector2(artW, artH);
+
+        // Name bar — distinct band below the art
+        float nameH = cardHeight * 0.06f;
+        if (nameH < 18f) nameH = 18f;
+        float nameY = inset + artH + 2f;
 
         _nameBar.Position = new Vector2(inset, nameY);
-        _nameBar.Size = new Vector2(cardWidth - inset * 2f, nameH);
+        _nameBar.Size = new Vector2(artW, nameH);
         var nameStyle = new StyleBoxFlat
         {
             BgColor = _nameBarBg,
@@ -128,18 +132,18 @@ public partial class CardPlate : Control
         _cardName.AddThemeFontSizeOverride("font_size", fontSize);
         _cardName.SetPosition(Vector2.Zero);
 
-        // Stat badges — bottom corners, inside border
-        float statSize = cardHeight * 0.045f;
-        if (statSize < 16f) statSize = 16f;
-        float statY = cardHeight - statSize - inset;
+        // Stat strip — below name bar
+        float statH = nameH * 0.75f;
+        if (statH < 14f) statH = 14f;
+        float statY = nameY + nameH + 3f;
         float sidePad = inset + 2f;
 
         _attackBadge.Visible = _hasAttack;
         if (_hasAttack)
         {
             _attackBadge.Text = attack!.Value.ToString();
-            _attackBadge.Size = new Vector2(statSize * 1.4f, statSize);
-            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.48f), 9, 18);
+            _attackBadge.Size = new Vector2(statH * 1.5f, statH);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statH * 0.48f), 9, 18);
             _attackBadge.AddThemeFontSizeOverride("font_size", fs);
             _attackBadge.Position = new Vector2(sidePad, statY);
         }
@@ -148,10 +152,10 @@ public partial class CardPlate : Control
         if (_hasVigor)
         {
             _vigorBadge.Text = vigor!.Value.ToString();
-            _vigorBadge.Size = new Vector2(statSize * 1.4f, statSize);
-            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.48f), 9, 18);
+            _vigorBadge.Size = new Vector2(statH * 1.5f, statH);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statH * 0.48f), 9, 18);
             _vigorBadge.AddThemeFontSizeOverride("font_size", fs);
-            _vigorBadge.Position = new Vector2(cardWidth - sidePad - statSize * 1.4f, statY);
+            _vigorBadge.Position = new Vector2(cardWidth - sidePad - statH * 1.5f, statY);
         }
     }
 
