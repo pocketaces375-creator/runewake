@@ -5,100 +5,75 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// CardPlate — paints the dark vignette frame template behind card art.
-/// Art fills the large central window (~82% height × 75% width).
-/// Name plate renders just below art, tone-tinted from the card's artwork.
-/// Attack/vigor badges sit at bottom with high contrast.
+/// CardPlate — art fills full card, thin code-drawn border, translucent name band.
 /// </summary>
 public partial class CardPlate : Control
 {
     public CardPlate() { MouseFilter = MouseFilterEnum.Ignore; }
 
-    private static bool _templateLoaded = false;
-    private static Vector4 _artWindow = Vector4.Zero;
-    private static Vector4 _namePlate = Vector4.Zero;
-    private static Vector4 _statStrip = Vector4.Zero;
-    private static Vector2 _costAnchor = Vector2.Zero;
-    private static float _bandFrac = 0.126f;
-
-    private static void LoadTemplateRegions()
-    {
-        if (_templateLoaded) return;
-        var path = "res://content/art/frame/card_template.json";
-        using var file = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Read);
-        if (file == null) { GD.PrintErr("[CARDTEMPLATE] JSON not found"); return; }
-        var json = Json.ParseString(file.GetAsText());
-        var dict = json.AsGodotDictionary();
-        var aw = dict["art_window"].AsGodotArray();
-        var np = dict["name_plate"].AsGodotArray();
-        var ss = dict["stat_strip"].AsGodotArray();
-        var ca = dict["cost_badge_anchor"].AsGodotArray();
-        _artWindow = new Vector4((float)(double)aw[0], (float)(double)aw[1], (float)(double)aw[2], (float)(double)aw[3]);
-        _namePlate = new Vector4((float)(double)np[0], (float)(double)np[1], (float)(double)np[2], (float)(double)np[3]);
-        _statStrip = new Vector4((float)(double)ss[0], (float)(double)ss[1], (float)(double)ss[2], (float)(double)ss[3]);
-        _costAnchor = new Vector2((float)(double)ca[0], (float)(double)ca[1]);
-        if (dict.ContainsKey("band_fraction"))
-            _bandFrac = (float)(double)dict["band_fraction"];
-        _templateLoaded = true;
-    }
-
-    private TextureRect? _templateBg;
     private TextureRect? _artBg;
     private Control? _nameBar;
     private Label? _cardName;
     private Label? _attackBadge;
     private Label? _vigorBadge;
+    private NinePatchRect? _borderDecor;
+    private bool _firstSetup = true;
 
     private float _designCardWidth;
     private float _designCardHeight;
-    private string _cardNameText = "";
     private bool _hasAttack;
     private bool _hasVigor;
-    private bool _isArtifact;
 
-    public float PlateHeight => _designCardHeight;
-
-    private static Color _namePlateBg = new Color(0.08f, 0.06f, 0.05f, 0.75f);
-    private static Color _nameText = new Color(0.92f, 0.85f, 0.70f);
+    private static Color _borderColor = new Color(0.08f, 0.06f, 0.04f);
+    private static Color _nameBarBg = new Color(0.06f, 0.04f, 0.03f, 0.75f);
+    private static Color _nameText = new Color(0.95f, 0.88f, 0.72f);
     private static Color _nameOutline = new Color(0.05f, 0.03f, 0.02f);
+    private static Color _badgeBgAttack = new Color(0.65f, 0.08f, 0.05f);
+    private static Color _badgeBgVigor = new Color(0.05f, 0.45f, 0.18f);
+    private static Color _badgeBorder = new Color(0.15f, 0.12f, 0.08f);
+    private static Color _badgeText = new Color(1f, 0.97f, 0.88f);
 
     public void Setup(string name, int? attack, int? vigor, Strata strata,
         float cardWidth, float cardHeight, int cost = 0, bool isArtifact = false,
         Texture2D? artTexture = null)
     {
-        LoadTemplateRegions();
         _designCardWidth = cardWidth;
         _designCardHeight = cardHeight;
-        _cardNameText = name;
         _hasAttack = attack.HasValue;
         _hasVigor = vigor.HasValue;
-        _isArtifact = isArtifact;
 
         Position = Vector2.Zero;
         Size = new Vector2(cardWidth, cardHeight);
 
-        if (_templateBg == null)
+        // First-time node setup
+        if (_firstSetup)
         {
-            _templateBg = new TextureRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                StretchMode = TextureRect.StretchModeEnum.Scale,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                Texture = GD.Load<Texture2D>("res://content/art/frame/card_template.png"),
-                Position = Vector2.Zero,
-                Size = new Vector2(cardWidth, cardHeight)
-            };
-            AddChild(_templateBg);
+            _firstSetup = false;
 
+            // Card border — thin dark edge
+            var borderStyle = new StyleBoxFlat
+            {
+                BgColor = Colors.Transparent,
+                BorderColor = _borderColor,
+                BorderWidthLeft = 3, BorderWidthTop = 3, BorderWidthRight = 3, BorderWidthBottom = 3,
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
+                CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+                ContentMarginLeft = 3, ContentMarginTop = 3, ContentMarginRight = 3, ContentMarginBottom = 3
+            };
+            AddThemeStyleboxOverride("panel", borderStyle);
+
+            // Art fills entire card
             _artBg = new TextureRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
                 StretchMode = TextureRect.StretchModeEnum.Scale,
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                Position = Vector2.Zero,
+                Size = new Vector2(cardWidth, cardHeight)
             };
             AddChild(_artBg);
 
-            // Name bar — semi-transparent dark band below art
+            // Name bar — translucent, overlays the art bottom
             _nameBar = new Control
             {
                 MouseFilter = MouseFilterEnum.Ignore
@@ -116,81 +91,71 @@ public partial class CardPlate : Control
             };
             _cardName.AddThemeColorOverride("font_color", _nameText);
             _cardName.AddThemeColorOverride("font_outline_color", _nameOutline);
-            _cardName.AddThemeConstantOverride("outline_size", 2);
+            _cardName.AddThemeConstantOverride("outline_size", 3);
             _cardName.AddThemeFontSizeOverride("font_size", 18);
             _nameBar.AddChild(_cardName);
 
             // Stat badges
-            _attackBadge = MakeStatBadge(FrameStatAttack, 5f, cardWidth);
+            _attackBadge = MakeStatBadge(_badgeBgAttack);
             AddChild(_attackBadge);
-            _vigorBadge = MakeStatBadge(FrameStatVigor, 5f, cardWidth);
+            _vigorBadge = MakeStatBadge(_badgeBgVigor);
             AddChild(_vigorBadge);
         }
 
-        // Art window — fill from template proportions
-        float awX = _artWindow.X * cardWidth;
-        float awY = _artWindow.Y * cardHeight;
-        float awW = _artWindow.Z * cardWidth;
-        float awH = _artWindow.W * cardHeight;
-        _artBg.Position = new Vector2(awX, awY);
-        _artBg.Size = new Vector2(awW, awH);
-        _artBg.Texture = artTexture;
+        // Set art
+        if (artTexture != null) _artBg.Texture = artTexture;
 
-        // Name bar — below art window, spanning the card width
-        float band = _bandFrac * cardWidth;
-        float npX = band;
-        float npY = awY + awH + 1f;
-        float npW = cardWidth - band * 2f;
-        float npH = cardHeight * 0.045f;
-        if (npH < 14f) npH = 14f;
+        // Name bar — bottom quarter of card, full width inside border
+        float inset = 4f;
+        float nameH = cardHeight * 0.045f;
+        if (nameH < 14f) nameH = 14f;
+        float nameY = cardHeight - nameH - cardHeight * 0.04f - inset;
 
-        _nameBar.Position = new Vector2(npX, npY);
-        _nameBar.Size = new Vector2(npW, npH);
+        _nameBar.Position = new Vector2(inset, nameY);
+        _nameBar.Size = new Vector2(cardWidth - inset * 2f, nameH);
         var nameStyle = new StyleBoxFlat
         {
-            BgColor = _namePlateBg,
-            BorderColor = new Color(0.7f, 0.6f, 0.4f),
-            BorderWidthLeft = 0, BorderWidthTop = 1, BorderWidthRight = 0, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 0, CornerRadiusTopRight = 0,
-            CornerRadiusBottomLeft = 0, CornerRadiusBottomRight = 0,
-            ContentMarginLeft = 4, ContentMarginRight = 4
+            BgColor = _nameBarBg,
+            BorderColor = new Color(0.5f, 0.4f, 0.25f, 0.3f),
+            BorderWidthLeft = 0, BorderWidthTop = 1, BorderWidthRight = 0, BorderWidthBottom = 0,
+            ContentMarginLeft = 6, ContentMarginRight = 6
         };
         _nameBar.AddThemeStyleboxOverride("panel", nameStyle);
 
-        _cardName.Position = Vector2.Zero;
-        _cardName.Size = new Vector2(npW, npH);
+        _cardName.Size = new Vector2(_nameBar.Size.X, nameH);
         _cardName.Text = name;
-        int fontSize = Mathf.Clamp(Mathf.RoundToInt(npH * 0.55f), 9, 24);
+        int fontSize = Mathf.Clamp(Mathf.RoundToInt(nameH * 0.55f), 9, 22);
         _cardName.AddThemeFontSizeOverride("font_size", fontSize);
+        _cardName.SetPosition(Vector2.Zero);
 
-        // Stat badges — at bottom of card, inside the frame
-        float statY = cardHeight - _bandFrac * cardHeight - npH * 0.7f;
+        // Stat badges — bottom corners, inside border
         float statSize = cardHeight * 0.045f;
-        if (statSize < 14f) statSize = 14f;
-        float statInset = band + 3f;
+        if (statSize < 16f) statSize = 16f;
+        float statY = cardHeight - statSize - inset;
+        float sidePad = inset + 2f;
 
         _attackBadge.Visible = _hasAttack;
         if (_hasAttack)
         {
             _attackBadge.Text = attack!.Value.ToString();
-            _attackBadge.Size = new Vector2(statSize * 1.5f, statSize);
-            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.5f), 8, 20);
+            _attackBadge.Size = new Vector2(statSize * 1.4f, statSize);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.48f), 9, 18);
             _attackBadge.AddThemeFontSizeOverride("font_size", fs);
-            _attackBadge.Position = new Vector2(statInset, statY);
+            _attackBadge.Position = new Vector2(sidePad, statY);
         }
 
         _vigorBadge.Visible = _hasVigor;
         if (_hasVigor)
         {
             _vigorBadge.Text = vigor!.Value.ToString();
-            _vigorBadge.Size = new Vector2(statSize * 1.5f, statSize);
-            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.5f), 8, 20);
+            _vigorBadge.Size = new Vector2(statSize * 1.4f, statSize);
+            int fs = Mathf.Clamp(Mathf.RoundToInt(statSize * 0.48f), 9, 18);
             _vigorBadge.AddThemeFontSizeOverride("font_size", fs);
-            _vigorBadge.Position = new Vector2(cardWidth - statInset - statSize * 1.5f, statY);
+            _vigorBadge.Position = new Vector2(cardWidth - sidePad - statSize * 1.4f, statY);
         }
     }
 
-    private static Label MakeStatBadge(Color bgColor, float radius, float cardWidth)
+    private static Label MakeStatBadge(Color bgColor)
     {
         var badge = new Label
         {
@@ -198,17 +163,17 @@ public partial class CardPlate : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        badge.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f));
-        badge.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f));
+        badge.AddThemeColorOverride("font_color", _badgeText);
+        badge.AddThemeColorOverride("font_outline_color", Colors.Black);
         badge.AddThemeConstantOverride("outline_size", 2);
         var style = new StyleBoxFlat
         {
             BgColor = bgColor,
-            BorderColor = new Color(0.2f, 0.2f, 0.2f),
-            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = Mathf.RoundToInt(radius), CornerRadiusTopRight = Mathf.RoundToInt(radius),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(radius), CornerRadiusBottomRight = Mathf.RoundToInt(radius),
-            ContentMarginLeft = 6, ContentMarginTop = 1, ContentMarginRight = 6, ContentMarginBottom = 1
+            BorderColor = _badgeBorder,
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 4, ContentMarginTop = 1, ContentMarginRight = 4, ContentMarginBottom = 1
         };
         badge.AddThemeStyleboxOverride("normal", style);
         return badge;
@@ -216,12 +181,9 @@ public partial class CardPlate : Control
 
     public static Label MakeCostRune(int cost, float cardWidth, float cardHeight, out float hexSize)
     {
-        LoadTemplateRegions();
         hexSize = cardWidth * 0.14f;
-        float anchorX = _costAnchor.X * cardWidth;
-        float anchorY = _costAnchor.Y * cardHeight;
-        float hexX = anchorX - hexSize - 2f;
-        float hexY = anchorY + 2f;
+        float hexX = cardWidth - hexSize - 2f;
+        float hexY = 2f;
 
         var label = new Label
         {
