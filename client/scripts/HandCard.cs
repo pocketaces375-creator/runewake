@@ -58,11 +58,6 @@ public partial class HandCard : PanelContainer
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
 
-        // Cost rune — top-right inside Root-Bound border
-        _costLabel = CardPlate.MakeCostRune(0, CustomMinimumSize.X, CustomMinimumSize.Y, out _);
-        _costLabel.Name = "CostRune";
-        content.AddChild(_costLabel);
-
         // Desaturation overlay for unplayable cards — global rule: NEVER black out.
         _desatOverlay = new ColorRect
         {
