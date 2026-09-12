@@ -69,14 +69,6 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
 
     d = ImageDraw.Draw(canvas, "RGBA")
 
-    # Bottom scrim inside the art window
-    sh = int(ah * 0.26)
-    scrim = Image.new("RGBA", (aw - 0, sh), (0, 0, 0, 0))
-    ds = ImageDraw.Draw(scrim)
-    for yy in range(sh):
-        ds.line([(0, yy), (aw, yy)], fill=(5, 4, 3, int(215 * (yy / sh) ** 0.8)))
-    canvas.alpha_composite(scrim, (x0, y1 - sh))
-
     # Cost disc top-right (on the frame border)
     r = 52
     ccx, ccy = W - 96, 100
@@ -85,20 +77,30 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
     d.text((ccx, ccy + 2), str(cost), font=cinzel(58),
            fill=(232, 205, 120), anchor="mm")
 
-    # Name centred at bottom of art window
-    ny = y1 - int(ah * 0.085)
-    d.text((W // 2 + 2, ny - 56 + 2), name.upper(), font=cinzel(46),
-           fill=(0, 0, 0, 230), anchor="mm")
-    d.text((W // 2, ny - 56), name.upper(), font=cinzel(46),
-           fill=(232, 220, 200), anchor="mm")
+    # Parchment name plate at bottom of art window
+    ph = int(ah * 0.095)
+    py = y1 - ph
+    d.rectangle([x0, py, x1, py + ph], fill=(200, 184, 152))
+
+    # Name in dark brown Cinzel, no shadow, no outline — autofit
+    name_text = name.upper()
+    fs = 46
+    font = cinzel(fs)
+    bb = d.textbbox((0, 0), name_text, font=font)
+    while (bb[2] - bb[0]) > (aw - 24) and fs > 20:
+        fs -= 1
+        font = cinzel(fs)
+        bb = d.textbbox((0, 0), name_text, font=font)
+    d.text(((x0 + x1) // 2, py + ph // 2), name_text, font=font,
+           fill=(58, 40, 22), anchor="mm")
 
     # Stat chips
     for sx, col, val in [(x0 + 78, (176, 58, 48), atk),
                          (x1 - 78, (76, 138, 76), hp)]:
-        d.rounded_rectangle([sx - 56, ny - 20, sx + 56, ny + 44],
+        d.rounded_rectangle([sx - 56, py + ph - 20, sx + 56, py + ph + 44],
                             radius=14, fill=col,
                             outline=(0, 0, 0, 200), width=3)
-        d.text((sx, ny + 12), str(val), font=cinzel(46),
+        d.text((sx, py + ph + 12), str(val), font=cinzel(46),
                fill=(255, 255, 255), anchor="mm")
 
     return canvas

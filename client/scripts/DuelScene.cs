@@ -2928,7 +2928,7 @@ public partial class DuelScene : Control
             float cx = startX + idx * (cardWidth + spacing) + cardWidth * 0.5f;
 
             card.PivotOffset = new Vector2(cardWidth * 0.5f, cardHeight);
-            card.Rotation = rot;
+            card.Rotation = Mathf.DegToRad(rot);
             card.Position = new Vector2(cx - cardWidth * 0.5f, yOff);
 
             card.ScaleTo(cardHeight);
