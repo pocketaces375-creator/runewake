@@ -1,6 +1,6 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-12T02:53:01Z",
+  "checked_at": "2026-09-12T03:12:14Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
@@ -8,22 +8,12 @@
       "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
       "issues": [
         {
-          "description": "The text description for 'BATTLEMAGE' is cut off at the bottom, making the last line 'Origin Salrmere' partially illegible.  [and 6 more like it]",
+          "description": "The text description for 'BATTLEMAGE' is cut off at the bottom, making it incomplete and hard to read the full lore.  [and 6 more like it]",
           "severity": "medium",
           "count": 7
         },
         {
-          "description": "The navigation dots below 'DRUID' are partially obscured by the bottom edge of the card, with the last dot almost completely cut off.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The left navigation arrow is partially obscured by the edge of the screen.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The right navigation arrow is partially obscured by the edge of the screen.",
+          "description": "The navigation dots below 'DRUID' are partially obscured by the card frame, making them appear incomplete.",
           "severity": "low",
           "count": 1
         }
@@ -37,9 +27,24 @@
       "path": "/home/fictive/runewake/artifacts/captures/map_test.png",
       "issues": [
         {
-          "description": "The text 'ARA' is rendered on top of the 'GROVE WARDEN' text, making both difficult to read.  [and 2 more like it]",
+          "description": "The text 'GROVE WARDEN' is partially obscured by the icon next to it, and 'ARA' is cut off. Similarly, 'SILT-READER MAI' is cut off, and 'WARDEN A' is also cut off, indicating text spilling outside its intended display area or being truncated.",
           "severity": "medium",
-          "count": 3
+          "count": 1
+        },
+        {
+          "description": "The text 'THE ROOT-BINDER' is rendered on top of the map's terrain, making it difficult to read due to low contrast against the dark background of the mountains and trees.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'THORNBARK' is rendered on top of the map's terrain, making it difficult to read due to low contrast against the dark background of the trees.  [and 6 more like it]",
+          "severity": "low",
+          "count": 7
+        },
+        {
+          "description": "The text 'SHRINE' (below the 'A' icon) is rendered on top of the map's terrain, making it difficult to read due to low contrast against the dark background of the trees.",
+          "severity": "low",
+          "count": 1
         }
       ],
       "blocking": [],
@@ -206,13 +211,18 @@
       "path": "/home/fictive/runewake/artifacts/captures/reliquary_test_all.png",
       "issues": [
         {
-          "description": "The text 'VERE' in the filter options is partially obscured by the 'ALL' filter icon, making it difficult to read.  [and 4 more like it]",
+          "description": "The text 'VERD' in the filter options is partially obscured by the 'ALL' filter icon, making it difficult to read.  [and 2 more like it]",
           "severity": "medium",
-          "count": 5
+          "count": 3
         },
         {
-          "description": "The scrollbar on the right side of the screen is severely unbalanced, taking up a large portion of the screen while the content area is not fully utilized, making the layout look unfinished.",
+          "description": "The scrollbar on the right side of the screen is rendered on top of the card grid, obscuring part of the last column of cards.",
           "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'Owned 13 / 146' text and 'Runes: 0' text in the top right corner have very low contrast against the dark background, making them hard to read.",
+          "severity": "low",
           "count": 1
         }
       ],
