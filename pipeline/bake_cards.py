@@ -56,30 +56,40 @@ def bake_card(card_id, name, cost, atk, vig):
     d.ellipse([ccx - r, ccy - r, ccx + r, ccy + r], fill=(30, 25, 18), outline=(232, 205, 120), width=3)
     d.text((ccx, ccy + 1), str(cost), font=cinzel(29), fill=(232, 205, 120), anchor="mm")
 
-    # Parchment name plate at bottom of art window
-    ph = int(ah * 0.095)
-    py = y1 - ph
-    d.rectangle([x0, py, x1, py + ph], fill=(200, 184, 152))
+    # Two bands: parchment name band + dark stat strip
+    ph_total = int(ah * 0.17)
+    py = y1 - ph_total
+    name_h = int(ph_total * 0.55)
+    stat_h = ph_total - name_h
+    name_by = py
+    stat_sy = py + name_h
+
+    # Name band (parchment)
+    d.rectangle([x0, name_by, x1, name_by + name_h], fill=(200, 184, 152))
+
+    # Stat strip (dark charcoal)
+    d.rectangle([x0, stat_sy, x1, y1], fill=(32, 30, 26))
 
     # Name in dark brown Cinzel, no shadow, no outline — autofit
     name_text = name.upper()
     fs = 35
     font = cinzel(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
-    while (bb[2] - bb[0]) > (aw - 16) and fs > 16:
+    while ((bb[2] - bb[0]) > (aw - 16) or (bb[3] - bb[1]) > (name_h - 2)) and fs > 16:
         fs -= 1
         font = cinzel(fs)
         bb = d.textbbox((0, 0), name_text, font=font)
-    d.text(((x0 + x1) // 2, py + ph // 2), name_text, font=font,
+    d.text(((x0 + x1) // 2, name_by + name_h // 2), name_text, font=font,
            fill=(58, 40, 22), anchor="mm")
 
-    # Stat badges — EMPTY
+    # Stat badges — EMPTY, inside the dark strip
     has_badges = atk is not None and vig is not None
     atk_b = vig_b = None
+    strip_cx = stat_sy + stat_h // 2
     if has_badges:
         for sx, col, isAtk in [(x0 + 39, (176, 58, 48), True), (x1 - 39, (76, 138, 76), False)]:
-            d.rounded_rectangle([sx - 28, py + (ph // 2) - 16, sx + 28, py + (ph // 2) + 16], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
-            b = (sx - 28, py + ph - 10, sx + 28, py + ph + 22)
+            d.rounded_rectangle([sx - 28, strip_cx - 16, sx + 28, strip_cx + 16], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
+            b = (sx - 28, strip_cx - 16, sx + 28, strip_cx + 16)
             if isAtk: atk_b = b
             else: vig_b = b
 
@@ -90,7 +100,7 @@ def bake_card(card_id, name, cost, atk, vig):
     rects = {
         "attack_badge": norm(atk_b),
         "vigor_badge": norm(vig_b),
-        "name_plate": [x0/OUT_W, py/OUT_H, aw/OUT_W, ph/OUT_H],
+        "name_plate": [x0/OUT_W, py/OUT_H, aw/OUT_W, name_h/OUT_H],
         "cost_badge": [(ccx-r)/OUT_W, (ccy-r)/OUT_H, (2*r)/OUT_W, (2*r)/OUT_H],
     }
     return canvas, rects

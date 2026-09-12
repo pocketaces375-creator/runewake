@@ -2193,6 +2193,12 @@ public partial class DuelScene : Control
     /// </summary>
     private void OnStateChanged()
     {
+        // Clear all lane highlights on state change — prevents stale
+        // "→ FACE" labels persisting from an un-cancelled attack selection
+        // (e.g. player selected an attacker then hit End Turn without attacking).
+        foreach (var slot in _enemySlots) slot.Unhighlight();
+        foreach (var slot in _playerSlots) slot.Unhighlight();
+
         // Dismiss card detail popup on state change
         if (_cardDetailVisible)
         {

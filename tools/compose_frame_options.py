@@ -77,30 +77,40 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
     d.text((ccx, ccy + 2), str(cost), font=cinzel(58),
            fill=(232, 205, 120), anchor="mm")
 
-    # Parchment name plate at bottom of art window
-    ph = int(ah * 0.095)
-    py = y1 - ph
-    d.rectangle([x0, py, x1, py + ph], fill=(200, 184, 152))
+    # Two bands: parchment name band + dark stat strip
+    ph_total = int(ah * 0.17)
+    py = y1 - ph_total
+    name_h = int(ph_total * 0.55)
+    stat_h = ph_total - name_h
+    name_by = py                          # name band top
+    stat_sy = py + name_h                 # stat strip top
+
+    # Name band (parchment)
+    d.rectangle([x0, name_by, x1, name_by + name_h], fill=(200, 184, 152))
+
+    # Stat strip (dark charcoal)
+    d.rectangle([x0, stat_sy, x1, y1], fill=(32, 30, 26))
 
     # Name in dark brown Cinzel, no shadow, no outline — autofit
     name_text = name.upper()
     fs = 46
     font = cinzel(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
-    while (bb[2] - bb[0]) > (aw - 24) and fs > 20:
+    while ((bb[2] - bb[0]) > (aw - 24) or (bb[3] - bb[1]) > (name_h - 4)) and fs > 20:
         fs -= 1
         font = cinzel(fs)
         bb = d.textbbox((0, 0), name_text, font=font)
-    d.text(((x0 + x1) // 2, py + ph // 2), name_text, font=font,
+    d.text(((x0 + x1) // 2, name_by + name_h // 2), name_text, font=font,
            fill=(58, 40, 22), anchor="mm")
 
-    # Stat chips
+    # Stat chips inside the dark strip, vertically centred
+    strip_cx = stat_sy + stat_h // 2
     for sx, col, val in [(x0 + 78, (176, 58, 48), atk),
                          (x1 - 78, (76, 138, 76), hp)]:
-        d.rounded_rectangle([sx - 56, py + (ph // 2) - 32, sx + 56, py + (ph // 2) + 32],
+        d.rounded_rectangle([sx - 56, strip_cx - 32, sx + 56, strip_cx + 32],
                             radius=14, fill=col,
                             outline=(0, 0, 0, 200), width=3)
-        d.text((sx, py + ph // 2), str(val), font=cinzel(46),
+        d.text((sx, strip_cx), str(val), font=cinzel(46),
                fill=(255, 255, 255), anchor="mm")
 
     return canvas
