@@ -97,10 +97,10 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
     # Stat chips
     for sx, col, val in [(x0 + 78, (176, 58, 48), atk),
                          (x1 - 78, (76, 138, 76), hp)]:
-        d.rounded_rectangle([sx - 56, py + ph - 20, sx + 56, py + ph + 44],
+        d.rounded_rectangle([sx - 56, py + (ph // 2) - 32, sx + 56, py + (ph // 2) + 32],
                             radius=14, fill=col,
                             outline=(0, 0, 0, 200), width=3)
-        d.text((sx, py + ph + 12), str(val), font=cinzel(46),
+        d.text((sx, py + ph // 2), str(val), font=cinzel(46),
                fill=(255, 255, 255), anchor="mm")
 
     return canvas

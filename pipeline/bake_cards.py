@@ -78,7 +78,7 @@ def bake_card(card_id, name, cost, atk, vig):
     atk_b = vig_b = None
     if has_badges:
         for sx, col, isAtk in [(x0 + 39, (176, 58, 48), True), (x1 - 39, (76, 138, 76), False)]:
-            d.rounded_rectangle([sx - 28, py + ph - 10, sx + 28, py + ph + 22], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
+            d.rounded_rectangle([sx - 28, py + (ph // 2) - 16, sx + 28, py + (ph // 2) + 16], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
             b = (sx - 28, py + ph - 10, sx + 28, py + ph + 22)
             if isAtk: atk_b = b
             else: vig_b = b

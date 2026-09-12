@@ -2849,7 +2849,6 @@ public partial class DuelScene : Control
         float availWidth = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
         // Always center alignment — N/A for plain Control, card positions handle it
-        // _handFlow.Alignment = BoxContainer.AlignmentMode.Center;
 
         // Max overlap: 35% of card width — keeps >50% of each card visible so art is readable
         const float maxOverlapFraction = 0.35f;
@@ -2911,7 +2910,7 @@ public partial class DuelScene : Control
 
         // Compute total width and starting X for manual layout
         float totalW = n * cardWidth + (n - 1) * spacing;
-        float startX = (availWidth - totalW) * 0.5f + 180f;
+        float startX = (availWidth - totalW) * 0.5f;
 
         GD.Print($"[HAND] {n} cards, height={cardHeight:F0}, cardW={cardWidth:F0}, spacing={spacing:F1}, avail={availWidth:F0}, viewport={GetViewportRect().Size.X:F0}");
 
@@ -2938,9 +2937,18 @@ public partial class DuelScene : Control
             card.SetPlayable(info.Cost <= currentAttune);
 
             var capturedCard = card;
-            card.Pressed += () => OnHandCardPressed(capturedCard);
+            card.Pressed += () =>
+            {
+                OnHandCardPressed(capturedCard);
+                // TASK-CARD-POLISH-3: Tap opens rules slab (toggle)
+                if (_rulesSlabVisible && _slabCard == capturedCard)
+                    HideRulesSlab();
+                else
+                    ShowRulesSlab(capturedCard);
+                _slabCard = _rulesSlabVisible ? capturedCard : null;
+            };
 
-            // TASK-CARD-TEXT-1: Long-press for rules slab
+            // TASK-CARD-TEXT-1: Long-press for rules slab (kept as alternative path)
             card.LongPressStarted += ShowRulesSlab;
             card.LongPressEnded += HideRulesSlab;
 
