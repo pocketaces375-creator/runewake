@@ -102,6 +102,10 @@ else
 fi
 
 cd "$CLIENT_DIR"
+
+echo "── Import pass ──"
+timeout 600 xvfb-run -a godot --headless --import --path . 2>&1 || true
+
 if godot --headless "$EXPORT_FLAG" "$PRESET" "exports/$OUTFILE" 2>&1; then
     echo "  ✅ Export complete: $OUTFILE"
 else
