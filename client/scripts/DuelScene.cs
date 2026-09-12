@@ -2912,10 +2912,26 @@ public partial class DuelScene : Control
 
         GD.Print($"[HAND] {n} cards, height={cardHeight:F0}, cardW={cardWidth:F0}, spacing={spacing:F1}, avail={availWidth:F0}, viewport={GetViewportRect().Size.X:F0}");
 
+        int idx = 0;
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
-            _handFlow.AddChild(card);
+
+            // Wrap in a plain Control so HBox spacing stays correct despite rotation/offset
+            var wrapper = new Control();
+            wrapper.CustomMinimumSize = new Vector2(cardWidth, cardHeight);
+            wrapper.Size = new Vector2(cardWidth, cardHeight);
+            wrapper.MouseFilter = MouseFilterEnum.Ignore;
+            _handFlow.AddChild(wrapper);
+            wrapper.AddChild(card);
+
+            // Fan arc: centre card (idx ~ N/2) stays flat; edges rotate outward and drop slightly
+            float t = n <= 1 ? 0f : (idx - (n - 1) * 0.5f) / Mathf.Max(1f, (n - 1) * 0.5f);
+            float rot = t * 7f;
+            card.PivotOffset = new Vector2(cardWidth * 0.5f, cardHeight);
+            card.Rotation = rot;
+            card.Position = new Vector2(0f, t * t * 22f);
+
             card.ScaleTo(cardHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
 
@@ -2930,6 +2946,7 @@ public partial class DuelScene : Control
             card.LongPressEnded += HideRulesSlab;
 
             _handCards.Add(card);
+            idx++;
         }
     }
 

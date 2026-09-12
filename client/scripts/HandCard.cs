@@ -234,7 +234,7 @@ public partial class HandCard : PanelContainer
         _isHovered = true;
         ZIndex = 10;
         var tween = CreateTween();
-        tween.TweenProperty(this, "scale", new Vector2(1.8f, 1.8f), 0.15f)
+        tween.TweenProperty(this, "scale", new Vector2(1.3f, 1.3f), 0.15f)
             .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
     }
 

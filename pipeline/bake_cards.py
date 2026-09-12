@@ -46,13 +46,6 @@ def bake_card(card_id, name, cost, atk, vig):
     else:
         art = Image.new("RGB", (aw, ah), (25, 22, 18))
     canvas.paste(art, (x0, y0))
-
-    sh = int(ah * 0.26)
-    scrim = Image.new("RGBA", (aw, sh), (0, 0, 0, 0))
-    ds = ImageDraw.Draw(scrim)
-    for yy in range(sh):
-        ds.line([(0, yy), (aw, yy)], fill=(5, 4, 3, int(215 * (yy / sh) ** 0.8)))
-    canvas.alpha_composite(scrim, (x0, y1 - sh))
     canvas.alpha_composite(border)
 
     d = ImageDraw.Draw(canvas, "RGBA")
@@ -63,18 +56,30 @@ def bake_card(card_id, name, cost, atk, vig):
     d.ellipse([ccx - r, ccy - r, ccx + r, ccy + r], fill=(30, 25, 18), outline=(232, 205, 120), width=3)
     d.text((ccx, ccy + 1), str(cost), font=cinzel(29), fill=(232, 205, 120), anchor="mm")
 
-    # Name
-    ny = y1 - int(ah * 0.085)
-    d.text((OUT_W // 2 + 1, ny - 28 + 1), name.upper(), font=cinzel(23), fill=(0, 0, 0, 230), anchor="mm")
-    d.text((OUT_W // 2, ny - 28), name.upper(), font=cinzel(23), fill=(232, 220, 200), anchor="mm")
+    # Parchment name plate at bottom of art window
+    ph = int(ah * 0.095)
+    py = y1 - ph
+    d.rectangle([x0, py, x1, py + ph], fill=(200, 184, 152))
+
+    # Name in dark brown Cinzel, no shadow, no outline — autofit
+    name_text = name.upper()
+    fs = 35
+    font = cinzel(fs)
+    bb = d.textbbox((0, 0), name_text, font=font)
+    while (bb[2] - bb[0]) > (aw - 16) and fs > 16:
+        fs -= 1
+        font = cinzel(fs)
+        bb = d.textbbox((0, 0), name_text, font=font)
+    d.text(((x0 + x1) // 2, py + ph // 2), name_text, font=font,
+           fill=(58, 40, 22), anchor="mm")
 
     # Stat badges — EMPTY
     has_badges = atk is not None and vig is not None
     atk_b = vig_b = None
     if has_badges:
         for sx, col, isAtk in [(x0 + 39, (176, 58, 48), True), (x1 - 39, (76, 138, 76), False)]:
-            d.rounded_rectangle([sx - 28, ny - 10, sx + 28, ny + 22], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
-            b = (sx - 28, ny - 10, sx + 28, ny + 22)
+            d.rounded_rectangle([sx - 28, py + ph - 10, sx + 28, py + ph + 22], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
+            b = (sx - 28, py + ph - 10, sx + 28, py + ph + 22)
             if isAtk: atk_b = b
             else: vig_b = b
 
@@ -85,7 +90,7 @@ def bake_card(card_id, name, cost, atk, vig):
     rects = {
         "attack_badge": norm(atk_b),
         "vigor_badge": norm(vig_b),
-        "name_plate": [x0/OUT_W, (ny-28-14)/OUT_H, aw/OUT_W, 28/OUT_H*2],
+        "name_plate": [x0/OUT_W, py/OUT_H, aw/OUT_W, ph/OUT_H],
         "cost_badge": [(ccx-r)/OUT_W, (ccy-r)/OUT_H, (2*r)/OUT_W, (2*r)/OUT_H],
     }
     return canvas, rects
