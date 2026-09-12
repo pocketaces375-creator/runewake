@@ -74,8 +74,10 @@ public partial class CardPlate : Control
         }
 
         string ip = $"res://content/art/cards_baked/{cardId}.webp";
-        _baked.Texture = GD.Load<Texture2D>(ip);
-        if (_baked.Texture == null)
+        var tex = ResourceLoader.Load<Texture2D>(ip);
+        if (tex != null)
+            _baked.Texture = tex;
+        else
             GD.PrintErr($"[BAKE] load failed: {ip}");
 
         float fs = 0;
