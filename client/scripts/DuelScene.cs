@@ -83,6 +83,7 @@ public partial class DuelScene : Control
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
+    private HandCard? _slabCard;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -2944,7 +2945,7 @@ public partial class DuelScene : Control
                 if (_rulesSlabVisible && _slabCard == capturedCard)
                     HideRulesSlab();
                 else
-                    ShowRulesSlab(capturedCard);
+                    ShowRulesSlab(CardRegistry.Get(capturedCard.CardId));
                 _slabCard = _rulesSlabVisible ? capturedCard : null;
             };
 
