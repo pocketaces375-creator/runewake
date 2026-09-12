@@ -44,8 +44,10 @@ public partial class CardPlate : Control
     private bool _hasB;
 
     private static readonly Color CREAM = new Color(0.941f, 0.894f, 0.816f);
-    private static readonly Color RED_TINT = new Color(0.941f, 0.700f, 0.600f);
-    private static readonly Color GREEN_TINT = new Color(0.700f, 0.941f, 0.700f);
+    private static readonly Color ATK_COLOR = new Color(150f/255f, 45f/255f, 38f/255f);
+    private static readonly Color VIG_COLOR = new Color(58f/255f, 105f/255f, 58f/255f);
+    private static readonly Color RED_TINT = new Color(120f/255f, 30f/255f, 34f/255f);
+    private static readonly Color GREEN_TINT = new Color(34f/255f, 90f/255f, 34f/255f);
 
     public void Setup(string cardId, int? attack, int? vigor,
         float cardWidth, float cardHeight, int cost = 0, bool isArtifact = false,
@@ -100,6 +102,9 @@ public partial class CardPlate : Control
             _vigNum.Text = vigor!.Value.ToString();
             _atkNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
             _vigNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
+            // Set chip-specific numeral colours (replaces default CREAM)
+            _atkNum.AddThemeColorOverride("font_color", ATK_COLOR);
+            _vigNum.AddThemeColorOverride("font_color", VIG_COLOR);
         }
     }
 
@@ -125,9 +130,7 @@ public partial class CardPlate : Control
     private static Label MkNum()
     {
         var l = new Label { MouseFilter = MouseFilterEnum.Ignore, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-        l.AddThemeColorOverride("font_color", CREAM);
-        l.AddThemeConstantOverride("outline_size", 1);
-        l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
+        l.AddThemeColorOverride("font_color", ATK_COLOR);
         return l;
     }
 

@@ -5,16 +5,14 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// TASK-CARD-TEXT-1: Rules slab — fixed panel in the top-centre band of the duel screen.
-/// Shows card name, cost/ATK/VIG chips, rules text (via RulesTextRenderer), and
-/// keyword reminders on press-and-hold of any card (hand, lane, artifact).
-///
-/// LOOK: pale carved stone (same as card name plaque), Root-Bound edge, no glow,
-/// no flat rectangle of colour.
+/// TASK-CARD-TEXT-1: Rules slab — panel showing card details on press-and-hold.
+/// Content-driven height, derived font sizes, left-anchored so it never
+/// covers board lanes.
 /// </summary>
 public partial class RulesSlab : Control
 {
     private PanelContainer _rootPanel;
+    private VBoxContainer _vbox;
     private Label _nameLabel;
     private Label _costChip;
     private Label _attackChip;
@@ -22,19 +20,20 @@ public partial class RulesSlab : Control
     private Label _rulesLabel;
     private Label _keywordsLabel;
     private Control _statRow;
+    private Vector2 _vpSize;
+    private const float MaxWidthFrac = 0.40f;
+    private const float MaxHeightFrac = 0.45f;
 
-    private const float SlabWidthFraction = 0.40f;
-    private const float SlabHeightFraction = 0.14f;
-
-    /// <summary>Which slab-local keyword reminders are currently shown, for unit-test scruitiny.</summary>
     public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
+
+    private int FontPx(float pct) =>
+        Mathf.Max(Mathf.RoundToInt(_vpSize.Y * pct / 100f), 8);
 
     public override void _Ready()
     {
         MouseFilter = MouseFilterEnum.Ignore;
         Visible = false;
 
-        // ── Root panel: pale carved stone with Root-Bound edge ──
         _rootPanel = new PanelContainer
         {
             Name = "RulesSlabPanel",
@@ -42,53 +41,46 @@ public partial class RulesSlab : Control
         };
         AddChild(_rootPanel);
 
-        // Pale carved stone background — same colour family as the card name plaque
         var slabStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.22f, 0.19f, 0.16f, 0.96f), // pale carved stone
-            BorderColor = new Color(0.35f, 0.30f, 0.25f, 1.0f), // stone rim
+            BgColor = new Color(0.22f, 0.19f, 0.16f, 0.96f),
+            BorderColor = new Color(0.35f, 0.30f, 0.25f, 1.0f),
             BorderWidthLeft = 1, BorderWidthTop = 1,
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
             CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 0, ContentMarginTop = 0,
-            ContentMarginRight = 0, ContentMarginBottom = 0,
+            ContentMarginLeft = 8, ContentMarginTop = 6,
+            ContentMarginRight = 8, ContentMarginBottom = 6,
         };
         _rootPanel.AddThemeStyleboxOverride("panel", slabStyle);
 
-        // Root-Bound 9-slice border overlay
         var rootBound = new RootBoundBorder { Name = "RulesSlabBorder" };
         _rootPanel.AddChild(rootBound);
 
-        // ── Inner VBox for content ──
-        var vbox = new VBoxContainer
+        _vbox = new VBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3, // Fill
-            SizeFlagsVertical = (Control.SizeFlags)3,   // Fill
+            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
         };
-        _rootPanel.AddChild(vbox);
+        _rootPanel.AddChild(_vbox);
 
-        // ── Name label (Cinzel small caps) ──
         _nameLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore,
             HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Off,
             MaxLinesVisible = 1,
         };
         _nameLabel.AddThemeColorOverride("font_color", FrameNameText);
-        ApplyHeaderFont(_nameLabel, 16);
-        vbox.AddChild(_nameLabel);
+        _vbox.AddChild(_nameLabel);
 
-        // ── Stat row: cost / attack / vigor chips ──
         _statRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             Alignment = BoxContainer.AlignmentMode.Center,
         };
-        vbox.AddChild(_statRow);
+        _vbox.AddChild(_statRow);
 
         _costChip = MakeInfoChip("0");
         _attackChip = MakeInfoChip("0");
@@ -97,102 +89,107 @@ public partial class RulesSlab : Control
         _statRow.AddChild(_attackChip);
         _statRow.AddChild(_vigorChip);
 
-        // ── Rules text (Cormorant Garamond body) ──
         _rulesLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore,
             HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top,
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
         _rulesLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyBodyFont(_rulesLabel, 11);
-        vbox.AddChild(_rulesLabel);
+        _vbox.AddChild(_rulesLabel);
 
-        // ── Keyword reminders (dimmer engraved tone) ──
         _keywordsLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore,
             HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top,
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
         _keywordsLabel.AddThemeColorOverride("font_color", TextMuted);
-        ApplyBodyFont(_keywordsLabel, 10);
-        vbox.AddChild(_keywordsLabel);
+        _vbox.AddChild(_keywordsLabel);
     }
 
-    /// <summary>
-    /// Position the slab in the top-centre band of the given viewport rect,
-    /// then show it populated with the given card's data.
-    /// </summary>
     public void ShowForCard(CardDef card, Vector2 viewportSize)
     {
         if (card == null) { Hide(); return; }
+        _vpSize = viewportSize;
 
-        // Compute slab geometry: ~40% wide × ~14% tall, centred in the top band
-        float slabW = viewportSize.X * SlabWidthFraction;
-        float slabH = viewportSize.Y * SlabHeightFraction;
+        float slabW = viewportSize.X * MaxWidthFrac;
         slabW = Mathf.Max(200f, slabW);
-        slabH = Mathf.Max(100f, slabH);
-        float slabX = (viewportSize.X - slabW) / 2f;
 
-        // Top-centre band: ~45px from top, grows downward within the band
-        // (below turn label/enemy nameplate area, above the battlefield)
-        float bandTop = 40f;
-        float slabY = bandTop;
+        // Set font sizes from viewport height (FontPx)
+        int nameFs = FontPx(3.0f);
+        int chipFs = FontPx(2.2f);
+        int bodyFs = FontPx(2.4f);
+        int kwFs = FontPx(2.0f);
 
-        Position = new Vector2(slabX, slabY);
-        Size = new Vector2(slabW, slabH);
-        CustomMinimumSize = new Vector2(slabW, slabH);
-
-        // Update Root-Bound border for current slab size
-        var rootBound = _rootPanel.GetNodeOrNull<RootBoundBorder>("RulesSlabBorder");
-        if (rootBound != null)
-        {
-            rootBound.Setup(slabW, slabH);
-        }
-
-        // ── Populate ──
-
-        // Name
+        // Populate
         _nameLabel.Text = card.Name;
-        int nameFontSize = Mathf.Max(12, Mathf.RoundToInt(slabH * 0.13f));
-        ApplyHeaderFont(_nameLabel, nameFontSize);
+        _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
         _nameLabel.Visible = true;
 
-        // Cost chip
         _costChip.Text = $"Cost {card.Cost}";
+        _costChip.AddThemeFontSizeOverride("font_size", chipFs);
         _costChip.Visible = true;
 
-        // Attack / Vigor chips — only for creatures and tokens
         bool hasStats = card.Type is CardType.CREATURE or CardType.TOKEN;
         _attackChip.Visible = hasStats;
         _vigorChip.Visible = hasStats;
         if (hasStats)
         {
             _attackChip.Text = $"ATK {card.Attack ?? 0}";
+            _attackChip.AddThemeFontSizeOverride("font_size", chipFs);
             _vigorChip.Text = $"VIG {card.Vigor ?? 0}";
+            _vigorChip.AddThemeFontSizeOverride("font_size", chipFs);
         }
 
-        // ── Rules text via RulesTextRenderer ──
         string rules = RulesTextRenderer.RenderAbilityTextOnly(card);
         _rulesLabel.Text = rules;
+        _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
         _rulesLabel.Visible = !string.IsNullOrEmpty(rules);
-        int rulesFontSize = Mathf.Max(10, Mathf.RoundToInt(slabH * 0.10f));
-        ApplyBodyFont(_rulesLabel, rulesFontSize);
 
-        // ── Keyword reminders ──
         string kwReminders = BuildKeywordReminders(card.Keywords);
         _keywordsLabel.Text = kwReminders;
+        _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
         _keywordsLabel.Visible = !string.IsNullOrEmpty(kwReminders);
-        int kwFontSize = Mathf.Max(9, Mathf.RoundToInt(slabH * 0.09f));
-        ApplyBodyFont(_keywordsLabel, kwFontSize);
 
+        // Let the VBox measure its content height, then size slab to it
+        _vbox.Size = Vector2.Zero; // force relayout
+        Vector2 contentMin = _vbox.GetCombinedMinimumSize();
+        float contentH = contentMin.Y;
+        float maxH = viewportSize.Y * MaxHeightFrac;
+        if (contentH > maxH)
+        {
+            // Shrink body & kw fonts if content overflows
+            while (contentH > maxH && bodyFs > 10)
+            {
+                bodyFs--;
+                _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
+                kwFs = Mathf.Max(kwFs - 1, 8);
+                _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
+                contentMin = _vbox.GetCombinedMinimumSize();
+                contentH = contentMin.Y;
+            }
+            contentH = maxH;
+        }
+        float slabH = contentH + 12f; // padding
+
+        // Left-anchored, vertically centred
+        float slabX = viewportSize.X * 0.02f;
+        float slabY = (viewportSize.Y - slabH) / 2f;
+        // Keep away from the very bottom (hand area) and very top (enemy nameplate)
+        slabY = Mathf.Max(slabY, 40f);
+        slabY = Mathf.Min(slabY, viewportSize.Y - slabH - 60f);
+
+        Position = new Vector2(slabX, slabY);
+        Size = new Vector2(slabW, slabH);
+        CustomMinimumSize = new Vector2(slabW, slabH);
         _rootPanel.Size = new Vector2(slabW, slabH);
 
+        var rootBound = _rootPanel.GetNodeOrNull<RootBoundBorder>("RulesSlabBorder");
+        if (rootBound != null) rootBound.Setup(slabW, slabH);
+
         Visible = true;
-        ZIndex = 100; // above hand, lanes, and End Turn
+        ZIndex = 100;
     }
 
     // ——— Helpers ———
