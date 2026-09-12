@@ -676,8 +676,8 @@
     {
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@312/Content/CardPlate/@Label@315",
       "class": "Label",
-      "x": 1051,
-      "y": 1006,
+      "x": 1050,
+      "y": 999,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -686,8 +686,8 @@
     {
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@312/Content/CardPlate/@Label@316",
       "class": "Label",
-      "x": 1202,
-      "y": 987,
+      "x": 1201,
+      "y": 981,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -762,7 +762,7 @@
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@317/Content/CardPlate/@Label@320",
       "class": "Label",
       "x": 1288,
-      "y": 979,
+      "y": 972,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -772,7 +772,7 @@
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@317/Content/CardPlate/@Label@321",
       "class": "Label",
       "x": 1440,
-      "y": 972,
+      "y": 966,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -846,8 +846,8 @@
     {
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@322/Content/CardPlate/@Label@325",
       "class": "Label",
-      "x": 1526,
-      "y": 971,
+      "x": 1527,
+      "y": 964,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -856,8 +856,8 @@
     {
       "path": "DuelScene/HandArea/HandFlow/@PanelContainer@322/Content/CardPlate/@Label@326",
       "class": "Label",
-      "x": 1678,
-      "y": 977,
+      "x": 1679,
+      "y": 971,
       "w": 31,
       "h": 23,
       "mouse_filter": 2,
@@ -1545,8 +1545,8 @@
       "class": "PanelContainer",
       "x": 0,
       "y": 0,
-      "w": 0,
-      "h": 0,
+      "w": 16,
+      "h": 12,
       "mouse_filter": 2
     },
     {
@@ -1573,7 +1573,7 @@
       "x": 0,
       "y": 0,
       "w": 1,
-      "h": 22,
+      "h": 23,
       "mouse_filter": 2,
       "font_size": 16
     },
@@ -1622,9 +1622,9 @@
       "x": 0,
       "y": 0,
       "w": 1,
-      "h": 15,
+      "h": 23,
       "mouse_filter": 2,
-      "font_size": 11
+      "font_size": 16
     },
     {
       "path": "DuelScene/RulesSlabPanel/@VBoxContainer@104/@Label@111",
@@ -1632,9 +1632,9 @@
       "x": 0,
       "y": 0,
       "w": 1,
-      "h": 13,
+      "h": 23,
       "mouse_filter": 2,
-      "font_size": 10
+      "font_size": 16
     },
     {
       "path": "DuelScene/PlayerNameplate",
@@ -2937,7 +2937,7 @@
       "path": "DuelScene/@Control@366/@CenterContainer@365/@PanelContainer@364/@VBoxContainer@333/DropRevealCardWrapper/DropCardPlate/@Label@372",
       "class": "Label",
       "x": 1209,
-      "y": 551,
+      "y": 543,
       "w": 35,
       "h": 23,
       "mouse_filter": 2,
@@ -2947,7 +2947,7 @@
       "path": "DuelScene/@Control@366/@CenterContainer@365/@PanelContainer@364/@VBoxContainer@333/DropRevealCardWrapper/DropCardPlate/@Label@373",
       "class": "Label",
       "x": 1379,
-      "y": 551,
+      "y": 543,
       "w": 35,
       "h": 23,
       "mouse_filter": 2,

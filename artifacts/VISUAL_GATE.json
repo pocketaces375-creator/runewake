@@ -1,6 +1,6 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-12T19:56:49Z",
+  "checked_at": "2026-09-12T22:32:53Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
@@ -8,12 +8,22 @@
       "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
       "issues": [
         {
-          "description": "The text description for 'BATTLEMAGE' is cut off at the bottom, making it incomplete and hard to read the full lore.  [and 6 more like it]",
+          "description": "The text description for 'BATTLEMAGE' is cut off at the bottom, making the last line 'Origin Salrmere' incomplete and hard to read.  [and 1 more like it]",
           "severity": "medium",
-          "count": 7
+          "count": 2
         },
         {
-          "description": "The pagination dots below 'DRUID' are partially obscured by the bottom edge of the card, making them appear cut off.",
+          "description": "The text description for 'PALADIN' has a duplicated phrase 'every shadow, and the light follows.' appearing twice in consecutive sentences.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text description for 'ASTROLOGIST' has a garbled word 'tomorrow's t sorrow's tide' which appears to be a rendering error or typo.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The pagination dots below 'DRUID' are partially obscured by the bottom edge of the card, making them appear incomplete.",
           "severity": "low",
           "count": 1
         }
@@ -27,22 +37,37 @@
       "path": "/home/fictive/runewake/artifacts/captures/map_test.png",
       "issues": [
         {
-          "description": "The text 'GROVE WARDEN' is partially obscured by the icon next to it, and the text 'ARA' is rendered on top of the icon.",
+          "description": "The text 'GROVE WARDEN' is partially obscured by the icon below it, making it difficult to read the full text 'GROVE WARDEN ARA'. The 'ARA' part is also partially obscured by another icon.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'SILT-READER MAI' is partially obscured by the icon next to it.  [and 1 more like it]",
+          "description": "The text 'SILT-READER MAI' is partially obscured by the icon below it, making it difficult to read the full text 'SILT-READER MAI'.  [and 1 more like it]",
           "severity": "medium",
           "count": 2
         },
         {
-          "description": "The text 'THE ROOT-BINDER' has low contrast against the dark background of the map, making it difficult to read.  [and 7 more like it]",
-          "severity": "low",
-          "count": 8
+          "description": "The text 'AELIN, THE LAST STEWARD' is partially obscured by the icon above it, making it difficult to read the full text.",
+          "severity": "medium",
+          "count": 1
         },
         {
-          "description": "The text 'SHRINE' below the 'A' icon has low contrast against the dark background of the map, making it difficult to read.",
+          "description": "The text 'BINDER' (part of 'THE ROOT-BINDER') is partially obscured by the icon above it.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'DIG' is partially obscured by the icon above it.  [and 1 more like it]",
+          "severity": "medium",
+          "count": 2
+        },
+        {
+          "description": "The text 'SHRINE' in the pop-up window is cut off at the top, indicating a rendering issue or incorrect positioning.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'Close' button text has low contrast against its background, making it hard to read.",
           "severity": "low",
           "count": 1
         }
@@ -56,27 +81,87 @@
       "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
       "issues": [
         {
-          "description": "The card 'CINDER RUNNER' is duplicated and overlapping itself on the left side of the screen, making the text and card art difficult to distinguish.",
+          "description": "The text 'SEATING LIGHT' on the card in the top row, third from the left, is illegible due to low contrast against the bright background of the card art.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The card 'HEARTWOOD RELIC' is duplicated and overlapping itself in the middle-left of the screen, making the text and card art difficult to distinguish.",
+          "description": "The text 'SEATING LIGHT' on the card in the middle row, third from the left, is illegible due to low contrast against the bright background of the card art.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The card 'SEALING LIGHT' is duplicated and overlapping itself in the middle-right of the screen, making the text and card art difficult to distinguish.",
+          "description": "The text 'SEALING LIGHT' on the card in the bottom row, fifth from the left, is illegible due to low contrast against the bright background of the card art.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'YOUR TURN' is rendered with low contrast against its dark background, making it difficult to read.",
+          "description": "The text 'SEALING LIGHT' on the card in the bottom row, second from the right, is illegible due to low contrast against the bright background of the card art.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'HEARTWOOD RELIC' on the card in the top row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The text 'ROOT WA' on the last card in the hand is clipped, indicating that the full card name 'ROOT WARDEN' is not fully visible.",
+          "description": "The text 'HEARTWOOD RELIC' on the card in the middle row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'CINDER RUNNER' on the card in the top row, first from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'CINDER RUNNER' on the card in the middle row, first from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, first from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card in the bottom row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDFIRE ADEPT' on the card in the bottom row, third from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, sixth from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card in the bottom row, seventh from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDFIRE ADEPT' on the card in the bottom row, eighth from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, ninth from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WA' on the card in the bottom row, tenth from the left, is clipped, indicating incomplete text rendering.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The mini-map in the top right corner has a placeholder-looking '?' character in the center, suggesting missing or incomplete art/information.",
           "severity": "medium",
           "count": 1
         }
@@ -90,17 +175,92 @@
       "path": "/home/fictive/runewake/artifacts/captures/duel_test_safe.png",
       "issues": [
         {
-          "description": "The text '34 DECK O BARROW' in the top right corner has a '0' where a '0' (zero) or 'O' (letter O) is used, but it is likely intended to be a number zero for '0 BARROW'. This is a minor legibility issue.",
-          "severity": "low",
-          "count": 1
-        },
-        {
-          "description": "The text 'ROOT WA' on the far right of the player's hand is clipped, indicating that the full card name 'ROOT WARDEN' does not fit within its designated display area.",
+          "description": "The text 'SEATING LIGHT' on the card in the top middle row, second from the right, is illegible due to low contrast against the bright background of the card art.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The map in the top right corner has a question mark icon rendered on top of what appears to be a card slot or area, making the underlying UI element unclear.",
+          "description": "The text 'SEATING LIGHT' on the card in the bottom row, fourth from the left, is illegible due to low contrast against the bright background of the card art.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'SEATING LIGHT' on the card in the bottom row, second from the right, is illegible due to low contrast against the bright background of the card art.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'HEARTWOOD RELIC' on the card in the top middle row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'HEARTWOOD RELIC' on the card in the middle row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'CINDER RUNNER' on the card in the top left has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'CINDER RUNNER' on the card in the middle left has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, first from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card in the bottom row, second from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDFIRE ADEPT' on the card in the bottom row, third from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, fifth from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card in the bottom row, sixth from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'WILDFIRE ADEPT' on the card in the bottom row, seventh from the left, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'BLOOMWEAVER' on the card in the bottom row, third from the right, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'ROOT WARDEN' on the card in the bottom row, second from the right, has very low contrast against the dark, textured background of the card art, making it difficult to read.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'SWORD' and 'DUSKFANG' in the bottom left UI element have low contrast against their dark background.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The text 'YOUR TURN' above the 'End Turn' button has low contrast against its dark background.",
+          "severity": "low",
+          "count": 1
+        },
+        {
+          "description": "The small map in the top right corner has a '?' icon that appears to be a placeholder or missing art for a specific location marker.",
           "severity": "low",
           "count": 1
         }
@@ -114,27 +274,12 @@
       "path": "/home/fictive/runewake/artifacts/captures/victory_overlay.png",
       "issues": [
         {
-          "description": "The text 'Dig Ch:' under 'Rewards' is cut off, indicating it spills outside its intended display area or is truncated.",
+          "description": "The text 'Dig Ch:' under 'Rewards' is cut off and incomplete.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Turns taken: 1' has very low contrast against its dark background, making it difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text '34 DECK O BARROW' in the top right corner has very low contrast against its dark background, making it difficult to read.  [and 1 more like it]",
-          "severity": "medium",
-          "count": 2
-        },
-        {
-          "description": "The text 'SWORD' and 'DUSKEANG' in the bottom left corner have very low contrast against their dark background, making them difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The text 'TRIKZOS | 25' in the bottom left corner has very low contrast against its dark background, making it difficult to read.",
+          "description": "The text '34 DECK O BARROW' in the top right corner has a '0' where a 'OF' or similar separator is expected, making it look like a placeholder or garbled text.",
           "severity": "medium",
           "count": 1
         }
@@ -148,17 +293,17 @@
       "path": "/home/fictive/runewake/artifacts/captures/defeat_overlay.png",
       "issues": [
         {
-          "description": "The text \"+EMBER:1\" under 'Fragments' in the 'Rewards forfeited' section is partially cut off, specifically the '1' is clipped.",
+          "description": "The text \"+EMBER:1\" under 'Fragments' in the 'Rewards forfeited' section appears to have a garbled or corrupted glyph for the colon, or it's an unexpected character. It looks like a square or box, not a standard colon.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text \"DECK O BARROW\" in the top right corner is partially obscured by the edge of the screen or another UI element, making it difficult to read the 'O' and 'BARROW' fully.",
+          "description": "The text \"DUSKEANG\" on the bottom left, below the two card placeholders, appears to be a misspelling of 'DUSKFANG'.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The text \"DUSKEANG\" in the bottom left is partially obscured by the edge of the screen or another UI element, making it difficult to read the 'G' fully.",
+          "description": "The text \"DECK O BARROW\" in the top right corner, below \"THE WAYFARER | 25\", seems to be missing an 'F' and should likely be \"DECK OF BARROW\".",
           "severity": "low",
           "count": 1
         }
@@ -172,22 +317,27 @@
       "path": "/home/fictive/runewake/artifacts/captures/reliquary_test.png",
       "issues": [
         {
-          "description": "The text 'AMETMB' in the filter options appears to be a garbled or corrupted glyph where 'EMBER' was likely intended, as suggested by the surrounding filter options (VERD, TIDE, HOL, DAWN).",
+          "description": "The text 'ANETAB' in the filter bar is partially obscured by the 'TIDE' filter button, making it difficult to read. It appears to be 'VERDANTAB' or similar, but the 'T' is cut off.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Owned 13 / 146' and 'Runes: 0' in the top right corner have very low contrast against the dark background, making them difficult to read.",
+          "description": "The text 'WILDFIRE ADEPI' on the card at the bottom is clipped, the last letter 'T' is missing. It should likely be 'WILDFIRE ADEPT'.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'Owned 13 / 146' and 'Runes: 0' in the top right corner have very low contrast against the dark background, making them hard to read.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The scrollbar on the right side of the screen is very thin and almost blends into the background, making it hard to see and interact with.",
+          "description": "The text 'BLAZE SCOUT' is very low contrast against the dark background, making it hard to read.  [and 24 more like it]",
           "severity": "low",
-          "count": 1
+          "count": 25
         },
         {
-          "description": "The overall layout is severely unbalanced, with a large empty space in the middle of the screen and content (cards and text labels) crammed into the left and bottom sections. This looks unfinished.",
+          "description": "The overall layout of the main content area (the grid of cards) is severely unbalanced. There are many empty card slots, making the screen look unfinished and sparse, especially given the scrollbar on the right suggests there's more content below.",
           "severity": "medium",
           "count": 1
         }
@@ -201,22 +351,32 @@
       "path": "/home/fictive/runewake/artifacts/captures/reliquary_test_all.png",
       "issues": [
         {
-          "description": "The text 'VERE EMB TIDE HOL DAWN' is rendered on top of the colored badges, making it difficult to read the badges and the text itself.",
+          "description": "The text 'SUNBLADE RECRUIT' on the card in the second row, seventh column, is partially obscured by the 'x1' badge and the green mana cost icon. The 'T' in 'RECRUIT' is almost completely covered.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'ALL' is rendered on top of the 'ALL' badge, making it difficult to read the badge and the text itself.",
+          "description": "The text 'CINDER RUNNER' on the card in the fourth row, seventh column, is partially obscured by the 'x1' badge and the green mana cost icon. The 'R' in 'RUNNER' is partially covered.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'Owned 13 / 146' and 'Runes: 0' have very low contrast against the dark background, making them hard to read.",
+          "description": "The text 'EMBER HOUND' on the card in the fourth row, eighth column, is partially obscured by the 'x1' badge and the green mana cost icon. The 'D' in 'HOUND' is partially covered.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The text 'DAWN WARDER' on the card in the second row, first column, is partially obscured by the 'x1' badge and the green mana cost icon. The 'R' in 'WARDER' is partially covered.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The scrollbar on the right side of the screen is severely unbalanced. It is very thin and difficult to see, especially against the dark background, making it look unfinished.",
           "severity": "low",
           "count": 1
         },
         {
-          "description": "The scrollbar on the right side of the screen is partially rendered, appearing as a thin, dark gray line against the black background, which looks unfinished.",
+          "description": "The 'Owned 13 / 146' and 'Runes: 0' text in the top right corner has low contrast against the dark background, making it somewhat difficult to read.",
           "severity": "low",
           "count": 1
         }
@@ -230,18 +390,13 @@
       "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
       "issues": [
         {
-          "description": "The text 'Diag' in the top-left corner is rendered on top of the background art without any container or clear purpose, making it look like a debug overlay that was left in.",
+          "description": "The text 'Diag' in the top-left corner is rendered on top of the background art without any container, making it appear as a debug overlay that should not be visible to players.",
           "severity": "medium",
           "count": 1
         },
         {
           "description": "The text 'Region 1' and 'Cards: 0' under 'Warrior' have very low contrast against their dark background, making them difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The 'Delete' button text is partially obscured by the 'Continue' button's background, making it look misaligned or overlapping.",
-          "severity": "medium",
+          "severity": "low",
           "count": 1
         }
       ],
