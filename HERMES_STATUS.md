@@ -1,3 +1,4 @@
+| TASK-CARD-BAKE-ANDROID-2 | 2026-09-11 | ResourceLoader.Load, CHECK 9 regex .ctex fix, APK v4 | DONE |
 | TASK-CARD-BAKE-ANDROID-1 | 2026-09-11 | bakes load in export; ctex verification gate added | DONE |
 | TASK-APK-IMPORT-1 | 2026-09-11 | APK exports imported textures | DONE |
 | TASK-BAKE-IMPORT-1 | 2026-09-11 | bakes imported, rendering verified | DONE |
