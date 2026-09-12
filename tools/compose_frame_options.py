@@ -77,11 +77,15 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
     d.text((ccx, ccy + 2), str(cost), font=cinzel(58),
            fill=(232, 205, 120), anchor="mm")
 
-    # Two bands: parchment name band + dark stat strip
-    ph_total = int(ah * 0.17)
-    py = y1 - ph_total
+    # Bottom scrim inside the art window
+    sh = int(ah * 0.26)
+    scrim = Image.new("RGBA", (aw, sh), (0, 0, 0, 0))
+    ds = ImageDraw.Draw(scrim)
+    for yy in range(sh):
+        ds.line([(0, yy), (aw, yy)], fill=(5, 4, 3, int(215 * (yy / sh) ** 0.8)))
+    canvas.alpha_composite(scrim, (x0, y1 - sh))
 
-    # —— Name band (tight to text) ——
+    # Name centred at bottom of art window — autofit to fit width
     name_text = name.upper()
     fs = 46
     font = cinzel(fs)
@@ -90,35 +94,20 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
         fs -= 1
         font = cinzel(fs)
         bb = d.textbbox((0, 0), name_text, font=font)
-    text_h = bb[3] - bb[1]
-    name_h = text_h + 16                               # 8px margin top + 8px bottom
-    name_by = py
-    stat_sy = py + name_h
+    ny = y1 - int(ah * 0.085)
+    d.text((W // 2 + 2, ny - 56 + 2), name_text, font=font,
+           fill=(0, 0, 0, 230), anchor="mm")
+    d.text((W // 2, ny - 56), name_text, font=font,
+           fill=(232, 220, 200), anchor="mm")
 
-    # Parchment band
-    d.rectangle([x0, name_by, x1, name_by + name_h], fill=(200, 184, 152))
-    # Dark rules top and bottom (3px, colour 40,34,26)
-    rule_col = (40, 34, 26)
-    d.rectangle([x0, name_by, x1, name_by + 3], fill=rule_col)
-    d.rectangle([x0, name_by + name_h - 3, x1, name_by + name_h], fill=rule_col)
-
-    # Name (centred in the tight band)
-    d.text(((x0 + x1) // 2, name_by + name_h // 2), name_text, font=font,
-           fill=(58, 40, 22), anchor="mm")
-
-    # —— Stat strip (dark) ——
-    d.rectangle([x0, stat_sy, x1, y1], fill=(32, 30, 26))
-
-    # Stat chips — pale fill, coloured border, coloured numeral
-    strip_cx = stat_sy + (y1 - stat_sy) // 2
-    for sx, (fill_c, border_c, txt_c), val in [
-        (x0 + 78, ((214, 201, 176), (150, 45, 38), (150, 45, 38)), atk),
-        (x1 - 78, ((214, 201, 176), (58, 105, 58), (58, 105, 58)), hp)]:
-        d.rounded_rectangle([sx - 56, strip_cx - 32, sx + 56, strip_cx + 32],
-                            radius=14, fill=fill_c,
-                            outline=border_c, width=3)
-        d.text((sx, strip_cx), str(val), font=cinzel(46),
-               fill=txt_c, anchor="mm")
+    # Stat chips — solid colour, black outline, white numeral
+    for sx, col, val in [(x0 + 78, (176, 58, 48), atk),
+                         (x1 - 78, (76, 138, 76), hp)]:
+        d.rounded_rectangle([sx - 56, ny - 20, sx + 56, ny + 44],
+                            radius=14, fill=col,
+                            outline=(0, 0, 0, 200), width=3)
+        d.text((sx, ny + 12), str(val), font=font,
+               fill=(255, 255, 255), anchor="mm")
 
     return canvas
 
