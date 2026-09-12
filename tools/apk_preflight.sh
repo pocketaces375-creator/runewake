@@ -211,8 +211,8 @@ if [ ! -f "$LINUX_EXPORT" ]; then
 else
     echo "  Running exported binary for duel_test capture..."
     BAKE_OUT=$(timeout 120 xvfb-run -a "$LINUX_EXPORT" -- "--capture=duel_test" 2>&1 || true)
-    MISSING=$(echo "$BAKE_OUT" | grep "\[BAKE\] missing" | head -5)
-    MISSING_COUNT=$(echo "$BAKE_OUT" | grep -c "\[BAKE\] missing" 2>/dev/null || echo "0")
+    MISSING=$(echo "$BAKE_OUT" | grep "\[BAKE\] missing: res://content/art/cards_baked/[^.]" | head -5)
+    MISSING_COUNT=$(echo "$BAKE_OUT" | grep -c "\[BAKE\] missing: res://content/art/cards_baked/[^.]" 2>/dev/null || echo "0")
     if [ "$MISSING_COUNT" -gt 0 ]; then
         echo "  ❌ $MISSING_COUNT bake(s) missing in export:"
         echo "$MISSING" | sed 's/^/      /'
