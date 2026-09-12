@@ -1,3 +1,4 @@
+| TASK-CARD-FIX-1 | 2026-09-12 | drag restored, plaque and chips match reference | DONE |
 | TASK-CARD-NAMEBAND-1 | 2026-09-12 | name band and stat strip split | DONE |
 | TASK-CARD-POLISH-1 | 2026-09-11 | hover 1.3, hand fan, parchment name plate, HAND_FIELD_OVERLAP 5→0 | DONE |
 | TASK-CARD-BAKE-ANDROID-2 | 2026-09-11 | ResourceLoader.Load, CHECK 9 regex .ctex fix, APK v4 | DONE |
