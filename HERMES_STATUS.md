@@ -1,3 +1,4 @@
+| TASK-CARD-FONT-SHIP-1 | 2026-09-12 | decorative card name font, APK from current main | DONE |
 | TASK-CARD-REVERT-BAND-1 | 2026-09-12 | revert to dark scrim, light name shadow, solid chips, cream numerals | DONE |
 | TASK-RULES-READABLE-1 | 2026-09-12 | stat numeral colours, slab self-sizes, left-anchored, FontPx | DONE |
 | TASK-CARD-FIX-1 | 2026-09-12 | drag restored, plaque and chips match reference | DONE |
