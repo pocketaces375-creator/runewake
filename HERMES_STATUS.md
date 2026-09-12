@@ -1,3 +1,4 @@
+| TASK-APK-IMPORT-1 | 2026-09-11 | APK exports imported textures | DONE |
 | TASK-BAKE-IMPORT-1 | 2026-09-11 | bakes imported, rendering verified | DONE |
 | TASK-BUILD-GREEN-2 | 2026-09-11 | all CardPlate call sites migrated, build green, bakes rendering | DONE |
 | TASK-CARD-TEMPLATE-1 | 2026-09-10 | single painted card template | DONE |
