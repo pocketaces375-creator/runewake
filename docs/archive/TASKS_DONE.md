@@ -1228,3 +1228,4 @@ Write results to sim/balance_matrix.md. NO balance changes to cards — numbers 
   most responsible in each case. Change no values.
   Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
 - [x] TASK-CARD-POLISH-1 — hover 1.3, fanned hand, parchment name plate, HAND_FIELD_OVERLAP 5→0
+- [x] TASK-CARD-POLISH-3 — chips inside frame, hand centred, tap opens rules
