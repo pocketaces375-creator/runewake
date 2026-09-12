@@ -208,8 +208,8 @@ CARDS_BAKED_IMPORTS=$(grep -c 'content/art/cards_baked/.*\.webp\.import' "$TMPFI
 # For every cards_baked .import, check a .ctex exists with the same source webp name
 MISSING_BAKE=0
 while IFS= read -r name; do
-    base=$(echo "$name" | sed 's/\.import$//')
-    if ! grep -q "${base}"'-[a-f0-9]*\.ctex' "$TMPFILE" 2>/dev/null; then
+    base=$(echo "$name" | sed 's/.*\///')
+        if ! grep -q "${base}"'-[a-f0-9]*\\.ctex' "$TMPFILE" 2>/dev/null; then
         MISSING_BAKE=$((MISSING_BAKE + 1))
         echo "  ❌ No .ctex for: $base" | head -3
     fi
