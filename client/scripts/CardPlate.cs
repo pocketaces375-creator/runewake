@@ -74,7 +74,7 @@ public partial class CardPlate : Control
         }
 
         string ip = $"res://content/art/cards_baked/{cardId}.webp";
-        if (Godot.FileAccess.FileExists(ip))
+        if (ResourceLoader.Exists(ip))
             _baked.Texture = GD.Load<Texture2D>(ip);
         else
             GD.PrintErr($"[BAKE] missing: {ip}");
