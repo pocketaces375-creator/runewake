@@ -83,6 +83,7 @@ public partial class DuelScene : Control
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
+    private string? _slabCardId;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -411,6 +412,7 @@ public partial class DuelScene : Control
         // ═══ TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info ═══
         _rulesSlab = new RulesSlab { Name = "RulesSlab" };
         AddChild(_rulesSlab);
+        _slabCardId = null;
         _rulesSlabVisible = false;
         // ═══ END TASK-CARD-TEXT-1 ═══
 
@@ -2944,11 +2946,21 @@ public partial class DuelScene : Control
             var capturedCard = card;
             card.Pressed += () =>
             {
-                // Tap is for playing cards only — never opens the rules slab
+                // Tap both selects the card AND shows its description
                 OnHandCardPressed(capturedCard);
+                if (_slabCardId == capturedCard.CardId)
+                {
+                    HideRulesSlab();
+                }
+                else
+                {
+                    var cd = CardRegistry.Get(capturedCard.CardId);
+                    if (cd != null) ShowRulesSlab(cd);
+                }
+                _slabCardId = _rulesSlabVisible ? capturedCard.CardId : null;
             };
 
-            // Long-press is the ONLY gesture that opens the rules slab
+            // Long-press keeps working as it does now
             card.LongPressStarted += ShowRulesSlab;
             card.LongPressEnded += HideRulesSlab;
 
@@ -2999,6 +3011,8 @@ public partial class DuelScene : Control
             if (isPlayerLane && isEmpty)
             {
                 _input.SelectTargetLane(laneIndex);
+                HideRulesSlab();
+                _slabCardId = null;
             }
             else if (isPlayerLane && !isEmpty)
             {
@@ -3032,11 +3046,29 @@ public partial class DuelScene : Control
         }
         else
         {
-            // Idle state
-            if (isPlayerLane && !isEmpty)
+            // Idle state — board card taps show description
+            if (!isEmpty)
             {
-                _input.SelectAttacker(laneIndex);
-                UpdateAttackHighlights();
+                var slot = _playerSlots.FirstOrDefault(s => s.LaneIndex == laneIndex)
+                    ?? _enemySlots.FirstOrDefault(s => s.LaneIndex == laneIndex);
+                var def = slot?.CurrentCardDef;
+                if (def != null)
+                {
+                    if (_slabCardId == def.Id)
+                    {
+                        HideRulesSlab();
+                    }
+                    else
+                    {
+                        ShowRulesSlab(def);
+                    }
+                    _slabCardId = _rulesSlabVisible ? def.Id : null;
+                }
+            }
+            else
+            {
+                HideRulesSlab();
+                _slabCardId = null;
             }
         }
     }

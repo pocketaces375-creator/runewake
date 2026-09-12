@@ -72,7 +72,7 @@ def bake_card(card_id, name, cost, atk, vig):
 
     # Name centred at bottom of art window — autofit
     name_text = name.upper()
-    fs = 23
+    fs = 26
     font = cinzel_decorative(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
     while (bb[2] - bb[0]) > (aw - 16) and fs > 10:

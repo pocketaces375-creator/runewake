@@ -92,7 +92,7 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
 
     # Name centred at bottom of art window — autofit to fit width
     name_text = name.upper()
-    fs = 46
+    fs = 52
     font = cinzel_decorative(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
     while (bb[2] - bb[0]) > (aw - 24) and fs > 20:

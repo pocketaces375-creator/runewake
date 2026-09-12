@@ -103,6 +103,10 @@ public partial class RulesSlab : Control
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
         _rulesLabel.AddThemeColorOverride("font_color", TextPrimary);
+        // Cormorant Garamond for readable body copy
+        var bodyFont = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
+        if (bodyFont != null)
+            _rulesLabel.AddThemeFontOverride("font", bodyFont);
         _vbox.AddChild(_rulesLabel);
 
         _keywordsLabel = new Label
@@ -112,6 +116,10 @@ public partial class RulesSlab : Control
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
         _keywordsLabel.AddThemeColorOverride("font_color", TextMuted);
+        // Cormorant Garamond for keyword reminders too
+        var kwFont = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
+        if (kwFont != null)
+            _keywordsLabel.AddThemeFontOverride("font", kwFont);
         _vbox.AddChild(_keywordsLabel);
     }
 
