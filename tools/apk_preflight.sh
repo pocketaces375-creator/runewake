@@ -197,16 +197,30 @@ fi
 # ─── CHECK 9: Baked textures present in APK ─────────────────────────────────
 echo ""
 echo "[9/9] Baked textures in APK"
-# The APK is a zip — verify baked .ctex files are packed inside (catches
-# export-only failures like missing import pass or ResourceLoader vs FileExists)
-BAKE_CTEX=$(unzip -l "$APK" 2>/dev/null | grep -c "cards_baked.*\.ctex$" || echo "0")
-EXPECTED_BAKES=146
-if [ "$BAKE_CTEX" -ge "$EXPECTED_BAKES" ]; then
-    report PASS "$BAKE_CTEX baked .ctex entries in APK (≥ $EXPECTED_BAKES)"
+# The APK stores .import files under assets/content/art/cards_baked/ and
+# the actual .ctex textures under assets/.godot/imported/ (named by source
+# filename, not directory). Cross-reference: count cards_baked .import files
+# for which a matching .ctex exists.
+TMPFILE=$(mktemp)
+unzip -l "$APK" 2>/dev/null > "$TMPFILE"
+TOTAL_CTEX=$(grep -c '\.ctex$' "$TMPFILE" || echo "0")
+CARDS_BAKED_IMPORTS=$(grep -c 'content/art/cards_baked/.*\.webp\.import' "$TMPFILE" || echo "0")
+# For every cards_baked .import, check a .ctex exists with the same source webp name
+MISSING_BAKE=0
+while IFS= read -r name; do
+    base=$(echo "$name" | sed 's/\.import$//')
+    if ! grep -q "${base}"'-[a-f0-9]*\.ctex' "$TMPFILE" 2>/dev/null; then
+        MISSING_BAKE=$((MISSING_BAKE + 1))
+        echo "  ❌ No .ctex for: $base" | head -3
+    fi
+done < <(grep -oP 'content/art/cards_baked/[^/]+\.webp(?=\.import)' "$TMPFILE" | sort -u)
+rm -f "$TMPFILE"
+if [ "$MISSING_BAKE" -eq 0 ] && [ "$CARDS_BAKED_IMPORTS" -ge 146 ]; then
+    report PASS "$CARDS_BAKED_IMPORTS baked .import files in APK, all $TOTAL_CTEX .ctex textures present"
 else
-    echo "  ❌ Expected ≥ $EXPECTED_BAKES baked .ctex entries in APK, found $BAKE_CTEX"
-    echo "     Bakes are not shipping — aborting."
-    report FAIL "Baked textures missing from APK ($BAKE_CTEX / $EXPECTED_BAKES)"
+    echo "  ❌ Expected ≥ 146 baked .webp.import + matching .ctex in APK"
+    echo "     Found $CARDS_BAKED_IMPORTS .import, $MISSING_BAKE bake(s) missing .ctex"
+    report FAIL "Baked textures missing from APK ($TOTAL_CTEX total .ctex, $CARDS_BAKED_IMPORTS .import)"
 fi
 
 # ─── Summary ───────────────────────────────────────────────────────────────
