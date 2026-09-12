@@ -74,7 +74,40 @@ fi
 
 # ── Step 4: Check diff against origin/main ──
 echo ""
-echo "── Step 4: Diff check for client/engine changes ──"
+# ── Step 4b: Required-files guard ──
+echo ""
+echo "── Step 4b: Required-files guard (task-named paths must be in commit) ──"
+# Read the task's full line from TASKS_QUEUE.md
+TASK_LINE=$(grep -m1 "^- \[ \] ${TASK_ID}" "${PROJECT_DIR}/TASKS_QUEUE.md" 2>/dev/null || echo "")
+if [[ -n "${TASK_LINE}" ]]; then
+  # Extract all paths matching client/scripts/, tools/ or pipeline/ from the task text
+  REQUIRED_PATHS=$(echo "${TASK_LINE}" | grep -oP '(client/scripts/|tools/|pipeline/)\S+\.\S+' | sort -u || echo "")
+  if [[ -n "${REQUIRED_PATHS}" ]]; then
+    MISSING=""
+    for rp in ${REQUIRED_PATHS}; do
+      # Strip trailing punctuation that might be glued on (colon, comma, period, bracket)
+      rp_clean=$(echo "${rp}" | sed 's/[,:;)\]]*$//')
+      COMMITTED_FILES=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || git diff --name-only --cached 2>/dev/null || echo "")
+      # Also check working tree (unstaged but modified)
+      MODIFIED_FILES=$(git diff --name-only 2>/dev/null || echo "")
+      ALL_FILES=$(echo "${COMMITTED_FILES}${MODIFIED_FILES}" | tr ' ' '\n' | sort -u)
+      if ! echo "${ALL_FILES}" | grep -q "${rp_clean}"; then
+        MISSING="${MISSING}  ❌ ${rp_clean}\n"
+      fi
+    done
+    if [[ -n "${MISSING}" ]]; then
+      echo -e "  Required files missing from commit/worktree:\n${MISSING}"
+      fail "Task names files under client/scripts/, tools/ or pipeline/ that are not in the commit. Do NOT mark [x] — fix the missing files first."
+    fi
+    ok "All task-named paths found in commit"
+  else
+    echo "  No required paths found in task text — guard skipped"
+  fi
+else
+  echo "  Task line not found in TASKS_QUEUE.md — guard skipped"
+fi
+
+# ── Step 5: Diff check for client/engine changes ──
 CURRENT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
 ORIGIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
 

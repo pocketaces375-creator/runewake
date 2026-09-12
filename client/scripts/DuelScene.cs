@@ -1978,7 +1978,7 @@ public partial class DuelScene : Control
         // Current: hand bottom = vh + OffsetTop + handCardHeight = 6px from vh bottom = tucked in
         // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
         float safeMargin = vh - safeAreaBottom;
-        float bottomGap = Mathf.Max(6f, safeMargin + 8f);
+        float bottomGap = Mathf.Max(6f, safeMargin + 8f) + 34f;
         _handArea.OffsetTop = -(_handCardHeight + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
@@ -2906,7 +2906,7 @@ public partial class DuelScene : Control
                         + DisplayServer.GetDisplaySafeArea().Size.Y;
                     float vh = GetViewportRect().Size.Y;
                     float safeMargin = vh - safeBottom;
-                    float bottomGap = Mathf.Max(6f, (CampaignContext.DebugSafeAreaMode ? safeMargin : 0f) + 8f);
+                    float bottomGap = Mathf.Max(6f, (CampaignContext.DebugSafeAreaMode ? safeMargin : 0f) + 8f) + 34f;
                     _handArea.OffsetTop = -(cardHeight + bottomGap);
                 }
             }

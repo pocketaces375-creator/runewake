@@ -323,8 +323,10 @@ public partial class HandCard : PanelContainer
         {
             // Start the hold timer — if it fires in 250ms, it's a long-press
             StartHoldTimer();
-            // Don't emit the Pressed signal yet — wait to see if it's a tap or long-press
-            GetViewport().SetInputAsHandled();
+            // NOTE: intentionally NOT calling SetInputAsHandled() here.
+            // Godot initiates drag-from-press when the press event propagates;
+            // marking it handled cancels the drag before _GetDragData fires.
+            // The release branches below still call SetInputAsHandled.
         }
     }
 

@@ -59,36 +59,45 @@ def bake_card(card_id, name, cost, atk, vig):
     # Two bands: parchment name band + dark stat strip
     ph_total = int(ah * 0.17)
     py = y1 - ph_total
-    name_h = int(ph_total * 0.55)
-    stat_h = ph_total - name_h
-    name_by = py
-    stat_sy = py + name_h
 
-    # Name band (parchment)
-    d.rectangle([x0, name_by, x1, name_by + name_h], fill=(200, 184, 152))
-
-    # Stat strip (dark charcoal)
-    d.rectangle([x0, stat_sy, x1, y1], fill=(32, 30, 26))
-
-    # Name in dark brown Cinzel, no shadow, no outline — autofit
+    # —— Name band (tight to text) ——
     name_text = name.upper()
     fs = 35
     font = cinzel(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
-    while ((bb[2] - bb[0]) > (aw - 16) or (bb[3] - bb[1]) > (name_h - 2)) and fs > 16:
+    while (bb[2] - bb[0]) > (aw - 16) and fs > 16:
         fs -= 1
         font = cinzel(fs)
         bb = d.textbbox((0, 0), name_text, font=font)
+    text_h = bb[3] - bb[1]
+    name_h = text_h + 8                               # 4px margin top + 4px bottom
+    name_by = py
+    stat_sy = py + name_h
+
+    # Parchment band
+    d.rectangle([x0, name_by, x1, name_by + name_h], fill=(200, 184, 152))
+    # Dark rules top and bottom (2px, colour 40,34,26)
+    rule_col = (40, 34, 26)
+    d.rectangle([x0, name_by, x1, name_by + 2], fill=rule_col)
+    d.rectangle([x0, name_by + name_h - 2, x1, name_by + name_h], fill=rule_col)
+
+    # Name (centred in the tight band)
     d.text(((x0 + x1) // 2, name_by + name_h // 2), name_text, font=font,
            fill=(58, 40, 22), anchor="mm")
 
-    # Stat badges — EMPTY, inside the dark strip
+    # —— Stat strip (dark) ——
+    d.rectangle([x0, stat_sy, x1, y1], fill=(32, 30, 26))
+
+    # Stat badges — pale fill, coloured border, coloured numeral
     has_badges = atk is not None and vig is not None
     atk_b = vig_b = None
-    strip_cx = stat_sy + stat_h // 2
+    strip_cx = stat_sy + (y1 - stat_sy) // 2
     if has_badges:
-        for sx, col, isAtk in [(x0 + 39, (176, 58, 48), True), (x1 - 39, (76, 138, 76), False)]:
-            d.rounded_rectangle([sx - 28, strip_cx - 16, sx + 28, strip_cx + 16], radius=7, fill=col, outline=(0, 0, 0, 200), width=2)
+        for sx, col, isAtk in [
+            (x0 + 39, ((214, 201, 176), (150, 45, 38), (150, 45, 38)), True),
+            (x1 - 39, ((214, 201, 176), (58, 105, 58), (58, 105, 58)), False)]:
+            fill_c, border_c, txt_c = col
+            d.rounded_rectangle([sx - 28, strip_cx - 16, sx + 28, strip_cx + 16], radius=7, fill=fill_c, outline=border_c, width=2)
             b = (sx - 28, strip_cx - 16, sx + 28, strip_cx + 16)
             if isAtk: atk_b = b
             else: vig_b = b
