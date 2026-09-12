@@ -83,7 +83,6 @@ public partial class DuelScene : Control
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
-    private HandCard? _slabCard;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -1051,12 +1050,11 @@ public partial class DuelScene : Control
 
     /// <summary>
     /// Handle taps on the background (empty space) to cancel selection.
-    /// TASK-CARD-TEXT-1: Also dismiss rules slab on background tap.
+    /// Long-press release is the only way to dismiss the rules slab.
     /// </summary>
     private void OnBackgroundGuiInput(InputEvent @event)
     {
-        // Dismiss rules slab on any background tap
-        HideRulesSlab();
+        // Background tap does not dismiss the rules slab — only long-press release does.
 
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
         {
@@ -2946,16 +2944,11 @@ public partial class DuelScene : Control
             var capturedCard = card;
             card.Pressed += () =>
             {
+                // Tap is for playing cards only — never opens the rules slab
                 OnHandCardPressed(capturedCard);
-                // TASK-CARD-POLISH-3: Tap opens rules slab (toggle)
-                if (_rulesSlabVisible && _slabCard == capturedCard)
-                    HideRulesSlab();
-                else
-                    ShowRulesSlab(CardRegistry.Get(capturedCard.CardId));
-                _slabCard = _rulesSlabVisible ? capturedCard : null;
             };
 
-            // TASK-CARD-TEXT-1: Long-press for rules slab (kept as alternative path)
+            // Long-press is the ONLY gesture that opens the rules slab
             card.LongPressStarted += ShowRulesSlab;
             card.LongPressEnded += HideRulesSlab;
 

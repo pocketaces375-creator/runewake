@@ -5,9 +5,8 @@ using static ThemeTokens;
 namespace Runewake.Client;
 
 /// <summary>
-/// TASK-CARD-TEXT-1: Rules slab — panel showing card details on press-and-hold.
-/// Content-driven height, derived font sizes, left-anchored so it never
-/// covers board lanes.
+/// TASK-RULES-SLAB-SYSTEM-1: Rules slab — ONE fixed rect, ONE gesture (long-press).
+/// Content shrinks to fit the box; box position is always identical.
 /// </summary>
 public partial class RulesSlab : Control
 {
@@ -21,8 +20,12 @@ public partial class RulesSlab : Control
     private Label _keywordsLabel;
     private Control _statRow;
     private Vector2 _vpSize;
-    private const float MaxWidthFrac = 0.40f;
-    private const float MaxHeightFrac = 0.45f;
+    private Tween? _fadeTween;
+
+    private const float LeftFrac = 0.02f;
+    private const float TopFrac = 0.30f;
+    private const float WidthFrac = 0.34f;
+    private const float HeightFrac = 0.26f;
 
     public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
 
@@ -45,12 +48,12 @@ public partial class RulesSlab : Control
         {
             BgColor = new Color(0.22f, 0.19f, 0.16f, 0.96f),
             BorderColor = new Color(0.35f, 0.30f, 0.25f, 1.0f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
             CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
             CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 8, ContentMarginTop = 6,
-            ContentMarginRight = 8, ContentMarginBottom = 6,
+            ContentMarginLeft = 12, ContentMarginTop = 8,
+            ContentMarginRight = 12, ContentMarginBottom = 8,
         };
         _rootPanel.AddThemeStyleboxOverride("panel", slabStyle);
 
@@ -73,6 +76,10 @@ public partial class RulesSlab : Control
             MaxLinesVisible = 1,
         };
         _nameLabel.AddThemeColorOverride("font_color", FrameNameText);
+        // Cinzel Decorative for the card name in the slab
+        var decFont = ResourceLoader.Load<FontFile>(FontCinzelDecorative);
+        if (decFont != null)
+            _nameLabel.AddThemeFontOverride("font", decFont);
         _vbox.AddChild(_nameLabel);
 
         _statRow = new HBoxContainer
@@ -113,23 +120,25 @@ public partial class RulesSlab : Control
         if (card == null) { Hide(); return; }
         _vpSize = viewportSize;
 
-        float slabW = viewportSize.X * MaxWidthFrac;
-        slabW = Mathf.Max(200f, slabW);
+        // Fixed rect — identical for every card
+        float slabX = viewportSize.X * LeftFrac;
+        float slabY = viewportSize.Y * TopFrac;
+        float slabW = viewportSize.X * WidthFrac;
+        float slabH = viewportSize.Y * HeightFrac;
 
-        // Set font sizes from viewport height (FontPx)
+        // Set starting font sizes (viewport-relative, from TASK-RULES-READABLE-1)
         int nameFs = FontPx(3.0f);
         int chipFs = FontPx(2.2f);
         int bodyFs = FontPx(2.4f);
         int kwFs = FontPx(2.0f);
+        int minBodyFs = FontPx(2.0f); // floor at 2.0% viewport height
 
         // Populate
         _nameLabel.Text = card.Name;
         _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
-        _nameLabel.Visible = true;
 
         _costChip.Text = $"Cost {card.Cost}";
         _costChip.AddThemeFontSizeOverride("font_size", chipFs);
-        _costChip.Visible = true;
 
         bool hasStats = card.Type is CardType.CREATURE or CardType.TOKEN;
         _attackChip.Visible = hasStats;
@@ -145,41 +154,28 @@ public partial class RulesSlab : Control
         string rules = RulesTextRenderer.RenderAbilityTextOnly(card);
         _rulesLabel.Text = rules;
         _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
-        _rulesLabel.Visible = !string.IsNullOrEmpty(rules);
 
         string kwReminders = BuildKeywordReminders(card.Keywords);
         _keywordsLabel.Text = kwReminders;
         _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
-        _keywordsLabel.Visible = !string.IsNullOrEmpty(kwReminders);
 
-        // Let the VBox measure its content height, then size slab to it
-        _vbox.Size = Vector2.Zero; // force relayout
-        Vector2 contentMin = _vbox.GetCombinedMinimumSize();
-        float contentH = contentMin.Y;
-        float maxH = viewportSize.Y * MaxHeightFrac;
-        if (contentH > maxH)
+        // Content area: fixed rect minus panel padding (12px each side, 8px top/bottom)
+        float contentW = slabW - 24f;
+        float contentH = slabH - 16f;
+
+        // Shrink body + kw fonts until content fits or hits the floor
+        _vbox.Size = Vector2.Zero;
+        Vector2 minSize = _vbox.GetCombinedMinimumSize();
+        while (minSize.Y > contentH && bodyFs > minBodyFs)
         {
-            // Shrink body & kw fonts if content overflows
-            while (contentH > maxH && bodyFs > 10)
-            {
-                bodyFs--;
-                _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
-                kwFs = Mathf.Max(kwFs - 1, 8);
-                _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
-                contentMin = _vbox.GetCombinedMinimumSize();
-                contentH = contentMin.Y;
-            }
-            contentH = maxH;
+            bodyFs--;
+            _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
+            kwFs = Mathf.Max(kwFs - 1, minBodyFs - 2);
+            _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
+            minSize = _vbox.GetCombinedMinimumSize();
         }
-        float slabH = contentH + 12f; // padding
 
-        // Left-anchored, vertically centred
-        float slabX = viewportSize.X * 0.02f;
-        float slabY = (viewportSize.Y - slabH) / 2f;
-        // Keep away from the very bottom (hand area) and very top (enemy nameplate)
-        slabY = Mathf.Max(slabY, 40f);
-        slabY = Mathf.Min(slabY, viewportSize.Y - slabH - 60f);
-
+        // Apply the fixed rect position
         Position = new Vector2(slabX, slabY);
         Size = new Vector2(slabW, slabH);
         CustomMinimumSize = new Vector2(slabW, slabH);
@@ -188,8 +184,24 @@ public partial class RulesSlab : Control
         var rootBound = _rootPanel.GetNodeOrNull<RootBoundBorder>("RulesSlabBorder");
         if (rootBound != null) rootBound.Setup(slabW, slabH);
 
+        // Fade in over 0.12s
+        _fadeTween?.Kill();
+        _fadeTween = CreateTween();
+        Modulate = new Color(1, 1, 1, 0);
+        _fadeTween.TweenProperty(this, "modulate", Colors.White, 0.12f);
         Visible = true;
         ZIndex = 100;
+    }
+
+    public new void Hide()
+    {
+        if (!Visible) return;
+        // Fade out over 0.12s, then actually hide
+        _fadeTween?.Kill();
+        _fadeTween = CreateTween();
+        _fadeTween.TweenProperty(this, "modulate", new Color(1, 1, 1, 0), 0.12f);
+        _fadeTween.TweenInterval(0.12f);
+        _fadeTween.TweenCallback(Callable.From(() => base.Hide()));
     }
 
     // ——— Helpers ———
@@ -219,10 +231,6 @@ public partial class RulesSlab : Control
         return label;
     }
 
-    /// <summary>
-    /// Build keyword reminder text — one line per keyword, in a dimmer engraved tone.
-    /// Reminders come from the keyword table so they stay correct.
-    /// </summary>
     private static string BuildKeywordReminders(List<string> keywords)
     {
         if (keywords == null || keywords.Count == 0)
