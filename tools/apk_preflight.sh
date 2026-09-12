@@ -194,6 +194,34 @@ else
     report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
 fi
 
+# ─── CHECK 9: Export-run bake loading test ─────────────────────────────────
+echo ""
+echo "[9/9] Export-run bake loading test"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CLIENT_DIR="$REPO_ROOT/client"
+LINUX_EXPORT="$CLIENT_DIR/exports/Runewake.x86_64"
+# Export Linux headless binary (strips sources like Android does)
+echo "  Exporting Linux headless..."
+mkdir -p "$CLIENT_DIR/exports"
+if ! timeout 300 xvfb-run -a godot --headless --export-debug "Linux/X11" "$LINUX_EXPORT" --path "$CLIENT_DIR" 2>/dev/null; then
+    godot --headless --export-debug "Linux/X11" "$LINUX_EXPORT" 2>/dev/null || true
+fi
+if [ ! -f "$LINUX_EXPORT" ]; then
+    report FAIL "Export-run gate: Linux export failed (binary not found at $LINUX_EXPORT)"
+else
+    echo "  Running exported binary for duel_test capture..."
+    BAKE_OUT=$(timeout 120 xvfb-run -a "$LINUX_EXPORT" -- "--capture=duel_test" 2>&1 || true)
+    MISSING=$(echo "$BAKE_OUT" | grep "\[BAKE\] missing" | head -5)
+    MISSING_COUNT=$(echo "$BAKE_OUT" | grep -c "\[BAKE\] missing" 2>/dev/null || echo "0")
+    if [ "$MISSING_COUNT" -gt 0 ]; then
+        echo "  ❌ $MISSING_COUNT bake(s) missing in export:"
+        echo "$MISSING" | sed 's/^/      /'
+        report FAIL "Export-run gate: $MISSING_COUNT bake(s) missing (listed above)"
+    else
+        report PASS "Export-run gate: zero [BAKE] missing lines from exported binary"
+    fi
+fi
+
 # ─── Summary ───────────────────────────────────────────────────────────────
 echo ""
 echo "═══════════════════════════════════════════════════"
