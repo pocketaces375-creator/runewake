@@ -15,12 +15,18 @@ CARD_DIR = os.path.join(ROOT, "client", "content", "cards")
 ART_DIR = os.path.join(ROOT, "client", "content", "art")
 OUT_DIR = os.path.join(ART_DIR, "cards_baked")
 CINZEL = os.path.join(ROOT, "client", "assets", "fonts", "Cinzel.ttf")
+CINZEL_DEC = os.path.join(ROOT, "client", "assets", "fonts", "CinzelDecorative-Bold.ttf")
 CHOSEN_FRAME = os.path.join(ROOT, "pipeline", "work", "card_frames", "frame_8.png")
 OUT_W, OUT_H = 416, 608
 BAND_PX = int(OUT_W * BAND_FRAC)
 
 def cinzel(sz):
     return ImageFont.truetype(CINZEL, sz)
+
+
+def cinzel_decorative(sz):
+    return ImageFont.truetype(CINZEL_DEC, sz)
+
 
 def fit_cover(img, size, bias=0.28):
     w, h = size
@@ -67,11 +73,11 @@ def bake_card(card_id, name, cost, atk, vig):
     # Name centred at bottom of art window — autofit
     name_text = name.upper()
     fs = 23
-    font = cinzel(fs)
+    font = cinzel_decorative(fs)
     bb = d.textbbox((0, 0), name_text, font=font)
     while (bb[2] - bb[0]) > (aw - 16) and fs > 10:
         fs -= 1
-        font = cinzel(fs)
+        font = cinzel_decorative(fs)
         bb = d.textbbox((0, 0), name_text, font=font)
     ny = y1 - int(ah * 0.085)
     cx = OUT_W // 2
