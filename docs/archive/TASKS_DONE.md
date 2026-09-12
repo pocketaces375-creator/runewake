@@ -1227,3 +1227,4 @@ Write results to sim/balance_matrix.md. NO balance changes to cards — numbers 
   TASK-CARD-FILL-1 lands and list any class above 60% or below 40% win rate, with the three cards
   most responsible in each case. Change no values.
   Acceptance: the matrix and the list in HERMES_STATUS.md; one plain paragraph to the group.
+- [x] TASK-CARD-POLISH-1 — hover 1.3, fanned hand, parchment name plate, HAND_FIELD_OVERLAP 5→0
