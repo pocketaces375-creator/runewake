@@ -26,7 +26,7 @@ public partial class DuelScene : Control
     private Label _playerAttuneValue;
     private Label _turnLabel;
     private MarginContainer _handArea;
-    private HBoxContainer _handFlow;
+    private Control _handFlow;
     private Button? _endTurnButton;
     private Label _turnIndicatorLabel = default!; // TASK-UI3e: small "YOUR TURN" above End Turn button
     // TASK-TU2: Tutorial runner
@@ -152,7 +152,7 @@ public partial class DuelScene : Control
         _playerAttuneValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerAttuneValue");
         _turnLabel = GetNode<Label>("TurnLabel");
         _handArea = GetNode<MarginContainer>("HandArea");
-        _handFlow = GetNode<HBoxContainer>("HandArea/HandFlow");
+        _handFlow = GetNode<Control>("HandArea/HandFlow");
 
         // Card sizing from viewport height — proportional to screen size
         ScaleCardSizes(GetViewportRect().Size.Y);
@@ -2848,8 +2848,8 @@ public partial class DuelScene : Control
         float endTurnBuffer = 100f;
         float availWidth = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
-        // Always center alignment
-        _handFlow.Alignment = BoxContainer.AlignmentMode.Center;
+        // Always center alignment — N/A for plain Control, card positions handle it
+        // _handFlow.Alignment = BoxContainer.AlignmentMode.Center;
 
         // Max overlap: 35% of card width — keeps >50% of each card visible so art is readable
         const float maxOverlapFraction = 0.35f;
@@ -2906,9 +2906,12 @@ public partial class DuelScene : Control
             }
         }
 
-        // Clamp spacing to reasonable range
+        // Clamp spacing for manual layout
         spacing = Mathf.Clamp(spacing, -60f, 20f);
-        _handFlow.AddThemeConstantOverride("separation", Mathf.RoundToInt(spacing));
+
+        // Compute total width and starting X for manual layout
+        float totalW = n * cardWidth + (n - 1) * spacing;
+        float startX = (availWidth - totalW) * 0.5f + 180f;
 
         GD.Print($"[HAND] {n} cards, height={cardHeight:F0}, cardW={cardWidth:F0}, spacing={spacing:F1}, avail={availWidth:F0}, viewport={GetViewportRect().Size.X:F0}");
 
@@ -2916,21 +2919,17 @@ public partial class DuelScene : Control
         foreach (var info in hand)
         {
             var card = handScene.Instantiate<HandCard>();
+            _handFlow.AddChild(card);
 
-            // Wrap in a plain Control so HBox spacing stays correct despite rotation/offset
-            var wrapper = new Control();
-            wrapper.CustomMinimumSize = new Vector2(cardWidth, cardHeight);
-            wrapper.Size = new Vector2(cardWidth, cardHeight);
-            wrapper.MouseFilter = MouseFilterEnum.Ignore;
-            _handFlow.AddChild(wrapper);
-            wrapper.AddChild(card);
-
-            // Fan arc: centre card (idx ~ N/2) stays flat; edges rotate outward and drop slightly
+            // Fan arc: centre card (idx ~ N/2) stays flat; edges rotate and drop
             float t = n <= 1 ? 0f : (idx - (n - 1) * 0.5f) / Mathf.Max(1f, (n - 1) * 0.5f);
             float rot = t * 7f;
+            float yOff = t * t * 22f;
+            float cx = startX + idx * (cardWidth + spacing) + cardWidth * 0.5f;
+
             card.PivotOffset = new Vector2(cardWidth * 0.5f, cardHeight);
             card.Rotation = rot;
-            card.Position = new Vector2(0f, t * t * 22f);
+            card.Position = new Vector2(cx - cardWidth * 0.5f, yOff);
 
             card.ScaleTo(cardHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);

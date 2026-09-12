@@ -111,7 +111,7 @@ mouse_filter = 0
 theme_override_constants/margin_left = 220
 theme_override_constants/margin_right = 20
 
-[node name="HandFlow" type="HBoxContainer" parent="HandArea"]
+[node name="HandFlow" type="Control" parent="HandArea"]
 anchors_preset = 0
 size_flags_horizontal = 3
 size_flags_vertical = 3
