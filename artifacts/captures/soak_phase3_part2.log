@@ -1,0 +1,31 @@
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+[MAPSOAK] Auto-selecting node: r1_n05 (dig=False)
+[MAP] Selected node r1_n05 (Wildwood Stalker) — type=Duel cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=8 winner=1 p0Vigor=-1 p1Vigor=20
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n06 (dig=False)
+[MAP] Selected node r1_n06 (Grove Warden Elara) — type=Duel cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=8 winner=1 p0Vigor=-4 p1Vigor=20
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n07 (dig=True)
+[MAP] Selected node r1_n07 (The Earthen Maw) — type=Dig cleared=False locked=False button=Dig
+[MAPSOAK] Dig site r1_n07 resolved — marking cleared, returning to map
+[MAPSOAK] Auto-cleared non-encounter node: r1_n08
+[MAPSOAK] Auto-selecting node: r1_n09 (dig=False)
+[MAP] Selected node r1_n09 (Ashkeeper Vorn) — type=Elite cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=8 winner=1 p0Vigor=0 p1Vigor=17
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n10 (dig=False)
+[MAP] Selected node r1_n10 (Silt-Reader Maren) — type=Duel cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=8 winner=0 p0Vigor=23 p1Vigor=0
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n11 (dig=False)
+[MAP] Selected node r1_n11 (Warden Aelin) — type=Warden cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=9 winner=1 p0Vigor=-1 p1Vigor=20
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n12 (dig=False)
+[MAP] Selected node r1_n12 (Aelin, the Last Steward) — type=WardenBoss cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=13 winner=0 p0Vigor=13 p1Vigor=0
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] All nodes cleared — capturing final map and quitting
+ERROR: 2 resources still in use at exit (run with --verbose for details).

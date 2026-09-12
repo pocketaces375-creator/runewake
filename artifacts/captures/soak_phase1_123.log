@@ -1,0 +1,33 @@
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+[MAPSOAK] Auto-selecting node: r1_n01 (dig=False)
+[MAPSOAK] Skipping tutorial encounter r1_n01 — marking cleared
+[MAPSOAK] Auto-selecting node: r1_n02 (dig=False)
+[BotDuelTest] RESULT budget-exhausted turn=25 p0Vigor=6 p1Vigor=25
+[BotDuelTest] Soak budget exhausted — marking node cleared and continuing
+[MAPSOAK] Auto-cleared non-encounter node: r1_n03
+[MAPSOAK] Auto-selecting node: r1_n04 (dig=False)
+[BotDuelTest] RESULT budget-exhausted turn=18 p0Vigor=17 p1Vigor=23
+[BotDuelTest] Soak budget exhausted — marking node cleared and continuing
+[MAPSOAK] Auto-selecting node: r1_n05 (dig=False)
+[BotDuelTest] RESULT budget-exhausted turn=14 p0Vigor=19 p1Vigor=9
+[BotDuelTest] Soak budget exhausted — marking node cleared and continuing
+[MAPSOAK] Auto-selecting node: r1_n06 (dig=False)
+[BotDuelTest] RESULT gameOver turn=10 winner=1 p0Vigor=-1 p1Vigor=12
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n07 (dig=True)
+[MAPSOAK] Dig site r1_n07 resolved — marking cleared, returning to map
+[MAPSOAK] Auto-cleared non-encounter node: r1_n08
+[MAPSOAK] Auto-selecting node: r1_n09 (dig=False)
+[BotDuelTest] RESULT gameOver turn=14 winner=0 p0Vigor=15 p1Vigor=-2
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n10 (dig=False)
+[BotDuelTest] RESULT gameOver turn=12 winner=0 p0Vigor=24 p1Vigor=-3
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-selecting node: r1_n11 (dig=False)
+[BotDuelTest] RESULT budget-exhausted turn=13 p0Vigor=13 p1Vigor=9
+[BotDuelTest] Soak budget exhausted — marking node cleared and continuing
+[MAPSOAK] Auto-selecting node: r1_n12 (dig=False)
+[BotDuelTest] RESULT gameOver turn=11 winner=1 p0Vigor=-1 p1Vigor=22
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] All nodes cleared — capturing final map and quitting
+ERROR: 2 resources still in use at exit (run with --verbose for details).

@@ -1,0 +1,11 @@
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+[DebugCapture] Defeat test phase: will test defeat->retry flow
+[MAPSOAK] Auto-pressing Challenge for node: r1_n02
+[DUELSOAK] Soak mode — auto-continue (defeatRetry=True, won=False, hasRetried=False)
+[BotDuelTest] RESULT gameOver turn=14 winner=1 p0Vigor=0 p1Vigor=18
+[DUELSOAK] Defeat test — pressing Try Again to retry
+[DUELSOAK] Soak mode — auto-continue (defeatRetry=False, won=False, hasRetried=True)
+[BotDuelTest] RESULT gameOver turn=14 winner=1 p0Vigor=0 p1Vigor=18
+[DUELSOAK] Auto-pressing Continue
+[DUELSOAK] SoakStopAfterRetry — quitting after retry cycle
+ERROR: 4 resources still in use at exit (run with --verbose for details).

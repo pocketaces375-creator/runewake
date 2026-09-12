@@ -1,0 +1,200 @@
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+[DebugCapture] Cmdline args: --capture=map_loop_soak, --soak-seed=42
+[DebugCapture] Soak loop test enabled: --capture=map_loop_soak
+[DebugCapture] Soak seed set: 42
+[DebugCapture] Soak mode: AutoCaptureScreenshot=true, BotDuelTest=true
+[Main] Soak loop mode active — starting campaign
+[MAPSOAK] Soak active — will auto-select and challenge next unlocked node
+[MAPSOAK] Auto-selecting node: r1_n01 (dig=False)
+[MAP] Selected node r1_n01 (The Wayfarer) — type=Duel cleared=False locked=False button=Challenge
+[MAPSOAK] Skipping tutorial encounter r1_n01 — marking cleared
+[MAPSOAK] Soak active — will auto-select and challenge next unlocked node
+[MAPSOAK] Auto-selecting node: r1_n02 (dig=False)
+[MAP] Selected node r1_n02 (Thornbark) — type=Duel cleared=False locked=False button=Challenge
+[MAPSOAK] Auto-pressing Challenge for node: r1_n02
+[DUEL] viewport height 1080 → hand 340px, board 292px
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tr.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_bl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_br.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_top.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_bottom.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_left.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_right.png
+[DUEL] Revised HUD: Enemy nameplate + DECK/BARROW panel built (top-right)
+[DUEL] WORLD-POLISH-1: Populated 5 enemy + 5 player arc slots
+[DUEL] Hand position: hand top=734, card height=340, viewport=1080
+[DUEL] TASK-UI3b: Altar field built
+[DUEL] Loaded 14 artifact definitions
+[DUEL] Overrode bloomweaver name for long-name auto-fit test
+[DUEL] Revised HUD: Player nameplate + DECK/BARROW + artifacts built (bottom-left)
+[DUEL] Revised HUD: Enemy nameplate + DECK/BARROW panel built (top-right)
+[DUEL] TASK-UI4-ARSENAL: Both arsenal groups built (player bottom-left, enemy upper-right)
+[BotDuelTest] Soak P0 played emb_c_ember_hound to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 1, P0) ===
+=== After TryEndTurn (Turn 1, P1) ===
+=== Before TryEndTurn (Turn 1, P1) ===
+=== After TryEndTurn (Turn 2, P0) ===
+[BotDuelTest] Soak P0 played dwn_r_sealing_light to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 2, P0) ===
+=== After TryEndTurn (Turn 2, P1) ===
+=== Before TryEndTurn (Turn 2, P1) ===
+=== After TryEndTurn (Turn 3, P0) ===
+[BotDuelTest] Soak P0 played tid_c_deep_one to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 3, P0) ===
+=== After TryEndTurn (Turn 3, P1) ===
+=== Before TryEndTurn (Turn 3, P1) ===
+=== After TryEndTurn (Turn 4, P0) ===
+[BotDuelTest] Soak P0 played hol_c_deathspeaker to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 4, P0) ===
+=== After TryEndTurn (Turn 4, P1) ===
+=== Before TryEndTurn (Turn 4, P1) ===
+=== After TryEndTurn (Turn 5, P0) ===
+[BotDuelTest] Soak P0 played dwn_u_steadfast_bulwark to lane 1
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 5, P0) ===
+=== After TryEndTurn (Turn 5, P1) ===
+=== Before TryEndTurn (Turn 5, P1) ===
+=== After TryEndTurn (Turn 6, P0) ===
+[BotDuelTest] Soak P0 played hol_c_ossuary_guard to lane 2
+[BotDuelTest] Soak P0 played emb_u_wildfire_adept to lane 3
+[BotDuelTest] Soak P0 played vrd_c_verdant_sproutling to lane 4
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 6, P0) ===
+=== After TryEndTurn (Turn 6, P1) ===
+=== Before TryEndTurn (Turn 6, P1) ===
+=== After TryEndTurn (Turn 7, P0) ===
+[BotDuelTest] Soak P0 played hol_c_gravewrit_thrall to lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 attacked lane 2
+[BotDuelTest] Soak P0 attacked lane 3
+[BotDuelTest] Soak P0 played emb_c_flame_javelin to lane 3
+[BotDuelTest] Soak P0 attacked lane 4
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 7, P0) ===
+=== After TryEndTurn (Turn 7, P1) ===
+=== Before TryEndTurn (Turn 7, P1) ===
+=== After TryEndTurn (Turn 8, P0) ===
+[BotDuelTest] Soak P0 played emb_u_cinderstorm_elemental to lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 8, P0) ===
+=== After TryEndTurn (Turn 8, P1) ===
+=== Before TryEndTurn (Turn 8, P1) ===
+=== After TryEndTurn (Turn 9, P0) ===
+[BotDuelTest] Soak P0 played vrd_c_wildwood_stalker to lane 1
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 9, P0) ===
+=== After TryEndTurn (Turn 9, P1) ===
+=== Before TryEndTurn (Turn 9, P1) ===
+=== After TryEndTurn (Turn 10, P0) ===
+[BotDuelTest] Soak P0 played hol_u_barrow_revenant to lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 10, P0) ===
+=== After TryEndTurn (Turn 10, P1) ===
+=== Before TryEndTurn (Turn 10, P1) ===
+=== After TryEndTurn (Turn 11, P0) ===
+[BotDuelTest] Soak P0 played tid_u_brine_witch to lane 2
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 11, P0) ===
+=== After TryEndTurn (Turn 11, P1) ===
+=== Before TryEndTurn (Turn 11, P1) ===
+=== After TryEndTurn (Turn 12, P0) ===
+[BotDuelTest] Soak P0 played tid_c_silt_reader to lane 1
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 attacked lane 2
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 12, P0) ===
+=== After TryEndTurn (Turn 12, P1) ===
+=== Before TryEndTurn (Turn 12, P1) ===
+=== After TryEndTurn (Turn 13, P0) ===
+[BotDuelTest] Soak P0 played tid_c_tidal_scholar to lane 3
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 attacked lane 2
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 13, P0) ===
+=== After TryEndTurn (Turn 13, P1) ===
+=== Before TryEndTurn (Turn 13, P1) ===
+=== After TryEndTurn (Turn 14, P0) ===
+[BotDuelTest] Soak P0 played emb_u_lava_serpent to lane 0
+[BotDuelTest] Soak P0 attacked lane 2
+[BotDuelTest] Soak P0 attacked lane 3
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 14, P0) ===
+=== After TryEndTurn (Turn 14, P1) ===
+[DUELSOAK] Soak mode — will auto-continue to map after overlay
+[BotDuelTest] RESULT gameOver turn=14 winner=1 p0Vigor=0 p1Vigor=18
+[BotDuelTest] Soak mode active — game over, letting OnGameOver handle flow
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Soak active — will auto-select and challenge next unlocked node
+[MAPSOAK] Auto-selecting node: r1_n02 (dig=False)
+[MAP] Selected node r1_n02 (Thornbark) — type=Duel cleared=False locked=False button=Challenge
+[MAPSOAK] Auto-pressing Challenge for node: r1_n02
+[DUEL] viewport height 1080 → hand 340px, board 292px
+[DUEL] Revised HUD: Enemy nameplate + DECK/BARROW panel built (top-right)
+[DUEL] WORLD-POLISH-1: Populated 5 enemy + 5 player arc slots
+[DUEL] Hand position: hand top=734, card height=340, viewport=1080
+[DUEL] TASK-UI3b: Altar field built
+[DUEL] Loaded 14 artifact definitions
+[DUEL] Overrode bloomweaver name for long-name auto-fit test
+[DUEL] Revised HUD: Player nameplate + DECK/BARROW + artifacts built (bottom-left)
+[DUEL] Revised HUD: Enemy nameplate + DECK/BARROW panel built (top-right)
+[DUEL] TASK-UI4-ARSENAL: Both arsenal groups built (player bottom-left, enemy upper-right)
+[BotDuelTest] Soak P0 played emb_c_ember_hound to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 1, P0) ===
+=== After TryEndTurn (Turn 1, P1) ===
+=== Before TryEndTurn (Turn 1, P1) ===
+=== After TryEndTurn (Turn 2, P0) ===
+[BotDuelTest] Soak P0 played dwn_r_sealing_light to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 2, P0) ===
+=== After TryEndTurn (Turn 2, P1) ===
+=== Before TryEndTurn (Turn 2, P1) ===
+=== After TryEndTurn (Turn 3, P0) ===
+[BotDuelTest] Soak P0 played tid_c_deep_one to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 3, P0) ===
+=== After TryEndTurn (Turn 3, P1) ===
+=== Before TryEndTurn (Turn 3, P1) ===
+=== After TryEndTurn (Turn 4, P0) ===
+[BotDuelTest] Soak P0 played hol_c_deathspeaker to lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 4, P0) ===
+=== After TryEndTurn (Turn 4, P1) ===
+=== Before TryEndTurn (Turn 4, P1) ===
+=== After TryEndTurn (Turn 5, P0) ===
+[BotDuelTest] Soak P0 played dwn_u_steadfast_bulwark to lane 1
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 5, P0) ===
+=== After TryEndTurn (Turn 5, P1) ===
+=== Before TryEndTurn (Turn 5, P1) ===
+=== After TryEndTurn (Turn 6, P0) ===
+[BotDuelTest] Soak P0 played hol_c_ossuary_guard to lane 2
+[BotDuelTest] Soak P0 played emb_u_wildfire_adept to lane 3
+[BotDuelTest] Soak P0 played vrd_c_verdant_sproutling to lane 4
+[BotDuelTest] Soak P0 attacked lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 nothing to do — ending turn
+=== Before TryEndTurn (Turn 6, P0) ===
+=== After TryEndTurn (Turn 6, P1) ===
+=== Before TryEndTurn (Turn 6, P1) ===
+=== After TryEndTurn (Turn 7, P0) ===
+[BotDuelTest] Soak P0 played hol_c_gravewrit_thrall to lane 0
+[BotDuelTest] Soak P0 attacked lane 1
+[BotDuelTest] Soak P0 attacked lane 2
+[BotDuelTest] Soak P0 attacked lane 3
+[BotDuelTest] Soak P0 played emb_c_flame_javelin to lane 3

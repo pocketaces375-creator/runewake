@@ -1,0 +1,15 @@
+ERROR: Condition "status < 0" is true. Returning: ERR_CANT_OPEN
+[DebugCapture] Save/quit phase: will quit after 4 nodes
+[MAPSOAK] Auto-selecting node: r1_n01 (dig=False)
+[MAP] Selected node r1_n01 (The Wayfarer) — type=Duel cleared=False locked=False button=Challenge
+[MAPSOAK] Skipping tutorial encounter r1_n01 — marking cleared
+[MAPSOAK] Auto-selecting node: r1_n02 (dig=False)
+[MAP] Selected node r1_n02 (Thornbark) — type=Duel cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=14 winner=1 p0Vigor=0 p1Vigor=18
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Auto-cleared non-encounter node: r1_n03
+[MAPSOAK] Auto-selecting node: r1_n04 (dig=False)
+[MAP] Selected node r1_n04 (The Root-Binder) — type=Elite cleared=False locked=False button=Challenge
+[BotDuelTest] RESULT gameOver turn=10 winner=1 p0Vigor=-1 p1Vigor=21
+[DUELSOAK] Auto-pressing Continue
+[MAPSOAK] Save/quit phase: 4 nodes cleared, saving and quitting
