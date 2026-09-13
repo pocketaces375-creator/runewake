@@ -1,3 +1,4 @@
+| TASK-TAP-STICKY-1 | 2026-09-13 | tap always opens slab, no hide on release, 0.45s hold threshold | DONE |
 | TASK-RULES-PARCHMENT-1 | 2026-09-13 | parchment description plaque, flavour text, cost disc contrast | DONE |
 | TASK-RULES-PARCHMENT-1 | 2026-09-13 | parchment plaque slab, no stat chips, flavour, cost disc contrast | DONE |
 | TASK-RULES-PARCHMENT-1 | 2026-09-13 | parchment plaque slab, no stat chips, flavour, cost disc contrast | DONE |
