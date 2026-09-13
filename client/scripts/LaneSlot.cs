@@ -493,10 +493,9 @@ public partial class LaneSlot : PanelContainer
         {
             if (_isLongPressing)
             {
-                // Long-press release — hide slab, no LaneTapped
+                // Long-press release — no longer hides slab, just clear flags
                 _isLongPressing = false;
                 _pendingLaneTapOnRelease = false;
-                LongPressEnded?.Invoke();
                 GetViewport().SetInputAsHandled();
                 return;
             }

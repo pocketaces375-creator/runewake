@@ -84,6 +84,7 @@ public partial class DuelScene : Control
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
     private string? _slabCardId;
+    private long _slabOpenedAtMs;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -2948,9 +2949,12 @@ public partial class DuelScene : Control
             {
                 // Tap both selects the card AND shows its description
                 OnHandCardPressed(capturedCard);
+                long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 if (_slabCardId == capturedCard.CardId)
                 {
-                    HideRulesSlab();
+                    // Same card: ignore toggle-off if slab just opened (flap guard)
+                    if (now - _slabOpenedAtMs >= 600)
+                        HideRulesSlab();
                 }
                 else
                 {
@@ -2958,11 +2962,12 @@ public partial class DuelScene : Control
                     if (cd != null) ShowRulesSlab(cd);
                 }
                 _slabCardId = _rulesSlabVisible ? capturedCard.CardId : null;
+                if (_rulesSlabVisible)
+                    _slabOpenedAtMs = now;
             };
 
             // Long-press keeps working as it does now
             card.LongPressStarted += ShowRulesSlab;
-            card.LongPressEnded += HideRulesSlab;
 
             _handCards.Add(card);
             idx++;

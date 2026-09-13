@@ -38,7 +38,8 @@ public partial class HandCard : PanelContainer
     // TASK-CARD-TEXT-1: Long-press for rules slab
     private Godot.Timer? _holdTimer;
     private bool _isLongPressing;
-    private const float LongPressThreshold = 0.25f;
+    private bool _dragStarted;
+    private const float LongPressThreshold = 0.45f;
     /// <summary>DuelScene hooks this to show the rules slab with the card's CardDef.</summary>
     public Action<CardDef?>? LongPressStarted;
     /// <summary>DuelScene hooks this to hide the rules slab.</summary>
@@ -299,18 +300,15 @@ public partial class HandCard : PanelContainer
         // Check for release first — hides slab or cancels timer
         if (IsReleaseEvent(@event))
         {
-            if (_isLongPressing)
-            {
-                // Release after long-press — hide the slab
-                _isLongPressing = false;
-                LongPressEnded?.Invoke();
-                GetViewport().SetInputAsHandled();
-                return;
-            }
-            // Early release before 250ms — fire the normal tap
+            // Release — clear long-press, fire Pressed unless a drag is in progress
+            _isLongPressing = false;
             StopHoldTimer();
-            EmitSignal(SignalName.Pressed);
-            GetViewport().SetInputAsHandled();
+            if (!_dragStarted)
+            {
+                EmitSignal(SignalName.Pressed);
+                GetViewport().SetInputAsHandled();
+            }
+            _dragStarted = false;
             return;
         }
 
@@ -349,6 +347,7 @@ public partial class HandCard : PanelContainer
     // ——— Drag-and-drop ———
     public override Variant _GetDragData(Vector2 atPosition)
     {
+        _dragStarted = true;
         var preview = new Label();
         preview.Text = CardName;
         preview.Size = new Vector2(80, 24);
