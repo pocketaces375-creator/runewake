@@ -1,4 +1,5 @@
 | TASK-RULES-PARCHMENT-1 | 2026-09-13 | parchment plaque slab, no stat chips, flavour, cost disc contrast | DONE |
+| TASK-RULES-PARCHMENT-1 | 2026-09-13 | parchment plaque slab, no stat chips, flavour, cost disc contrast | DONE |
 | TASK-RULES-SLAB-TAP-1 | 2026-09-12 | tap opens card description, larger card names | DONE |
 | TASK-CARD-FONT-SHIP-1 | 2026-09-12 | decorative card name font, APK from current main | DONE |
 | TASK-CARD-REVERT-BAND-1 | 2026-09-12 | revert to dark scrim, light name shadow, solid chips, cream numerals | DONE |
