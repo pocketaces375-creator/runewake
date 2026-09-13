@@ -4220,10 +4220,9 @@ public partial class DuelScene : Control
                 // Continue playing until game over via touch-only End Turn
                 if (_gsm.IsGameOver)
                 {
-                    GD.Print("[TouchOnlySmokeTest] Game over detected — test complete");
+                    GD.Print("[TouchOnlySmokeTest] Game over detected — commencing dwell tap verification");
                     results.Add("TOUCH_VICTORY:PASS");
-                    WriteTouchSmokeResults(results);
-                    t.Stop();
+                    step = 30;
                     return;
                 }
 
@@ -4241,6 +4240,69 @@ public partial class DuelScene : Control
                 WriteTouchSmokeResults(results);
                 t.Stop();
             }
+
+            // ═══ DWELL TAP VERIFICATION (TASK-TAP-STICKY-1) ═══
+            if (step == 30)
+            {
+                var dwellCard = _handCards.Count > 0 ? _handCards[0] : null;
+                if (dwellCard == null)
+                {
+                    results.Add("DWELL_TAP_ALL:FAIL - no card");
+                    WriteTouchSmokeResults(results);
+                    t.Stop();
+                    return;
+                }
+                _slabCardId = null;
+                _rulesSlabVisible = false;
+                step = 31;
+            }
+            if (step is >= 31 and <= 33)
+            {
+                var dwellCard = _handCards.Count > 0 ? _handCards[0] : null;
+                if (dwellCard == null)
+                {
+                    results.Add("DWELL_TAP_ALL:FAIL - no card");
+                    WriteTouchSmokeResults(results);
+                    t.Stop();
+                    return;
+                }
+                float[] dwellTimes = [0.08f, 0.30f, 0.60f];
+                string[] labels = ["80ms", "300ms", "600ms"];
+                int idx = step - 31;
+                GD.Print($"[DwellTest] {labels[idx]} tap on '{dwellCard.CardName}' — press");
+                var press = new InputEventScreenTouch();
+                press.Position = Vector2.Zero;
+                press.Pressed = true;
+                press.Index = 0;
+                dwellCard._GuiInput(press);
+                var releaseTimer = new Godot.Timer();
+                releaseTimer.OneShot = true;
+                releaseTimer.WaitTime = dwellTimes[idx];
+                string capturedLabel = labels[idx];
+                int nextStep = step + 1;
+                releaseTimer.Timeout += () =>
+                {
+                    var release = new InputEventScreenTouch();
+                    release.Position = Vector2.Zero;
+                    release.Pressed = false;
+                    release.Index = 0;
+                    dwellCard._GuiInput(release);
+                    bool slabOk = _rulesSlabVisible;
+                    GD.Print($"[DwellTest] {capturedLabel} tap — slab visible = {slabOk}");
+                    results.Add(slabOk ? $"DWELL_TAP_{capturedLabel}:PASS" : $"DWELL_TAP_{capturedLabel}:FAIL");
+                    step = nextStep;
+                    if (nextStep > 33)
+                    {
+                        GD.Print("[DwellTest] All dwell taps complete");
+                        WriteTouchSmokeResults(results);
+                        t.Stop();
+                    }
+                };
+                AddChild(releaseTimer);
+                releaseTimer.Start();
+                return;
+            }
+            if (step == 34) { return; }
         };
         AddChild(t);
         t.Start();
