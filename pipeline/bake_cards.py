@@ -59,8 +59,8 @@ def bake_card(card_id, name, cost, atk, vig):
     # Cost disc
     r = 26
     ccx, ccy = OUT_W - 48, 50
-    d.ellipse([ccx - r, ccy - r, ccx + r, ccy + r], fill=(60, 45, 27), outline=(232, 205, 120), width=3)
-    d.text((ccx, ccy + 1), str(cost), font=cinzel(29), fill=(232, 205, 120), anchor="mm")
+    d.ellipse([ccx - r, ccy - r, ccx + r, ccy + r], fill=(75, 58, 19), outline=(232, 205, 120), width=3)
+    d.text((ccx, ccy + 1), str(cost), font=cinzel(29), fill=(250, 244, 226), anchor="mm")
 
     # Bottom scrim inside the art window
     sh = int(ah * 0.26)

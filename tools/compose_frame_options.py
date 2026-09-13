@@ -78,9 +78,9 @@ def compose(frame_path, card_id, name, cost, atk, hp, out_size=(440, 643)):
     r = 52
     ccx, ccy = W - 96, 100
     d.ellipse([ccx - r, ccy - r, ccx + r, ccy + r],
-              fill=(120, 90, 55), outline=(232, 205, 120), width=6)
+              fill=(150, 116, 38), outline=(232, 205, 120), width=6)
     d.text((ccx, ccy + 2), str(cost), font=cinzel(58),
-           fill=(232, 205, 120), anchor="mm")
+           fill=(250, 244, 226), anchor="mm")
 
     # Bottom scrim inside the art window
     sh = int(ah * 0.26)
