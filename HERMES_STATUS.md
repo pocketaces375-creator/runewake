@@ -1,3 +1,4 @@
+| TASK-DUEL-CORNERS-1 | 2026-09-13 | relics to corners (112x152), enemy hand backs, FLUX card back | DONE |
 | TASK-SLAB-HOLD-1 | 2026-09-13 | hold-only slab, fixed plaque | DONE |
 | TASK-RELICS-ALWAYS-1 | 2026-09-13 | both players always start every duel with 2 relics | DONE |
 | TASK-TAP-STICKY-1 | 2026-09-13 | tap always opens slab, no hide on release, 0.45s hold threshold | DONE |
