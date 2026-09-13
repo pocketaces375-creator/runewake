@@ -1,0 +1,27 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://cardbackimport1"
+path.remap="res://.godot/imported/client/content/art/card_back.webp-526e7696c27034b86ba45a99a1a98fae.ctex"
+
+[deps]
+
+source_file="res://client/content/art/card_back.webp"
+dest_files=["res://.godot/imported/client/content/art/card_back.webp-526e7696c27034b86ba45a99a1a98fae.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=3
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/action=0
+process/file_scale=0.25
+process/size_scale_factors=["0.25", "0.5", "1.0", "2.0"]
