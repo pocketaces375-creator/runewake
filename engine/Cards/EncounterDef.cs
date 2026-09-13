@@ -68,6 +68,17 @@ public class EncounterDef
     [JsonPropertyName("modifier")]
     public string? Modifier { get; set; }
 
+    /// <summary>Optional class name for this encounter's wielder (e.g. "warrior"). Used for artifact loadout.</summary>
+    [JsonPropertyName("class")]
+    public string? Class { get; set; }
+
+    /// <summary>
+    /// Optional explicit artifact IDs for this encounter. When null/empty, DefaultLoadoutFor(Class) is used.
+    /// When both are absent, DefaultLoadoutFor(hash-based pick) provides 2 relics every time.
+    /// </summary>
+    [JsonPropertyName("artifacts")]
+    public List<string>? Artifacts { get; set; }
+
     /// <summary>If true, this encounter fires tutorial popups instead of playing normally.</summary>
     [JsonPropertyName("is_tutorial")]
     public bool IsTutorial { get; set; }

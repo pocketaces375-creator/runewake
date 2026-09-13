@@ -109,10 +109,25 @@ public partial class GameStateManager : Node
             ContentVersion = 1,
             Player0DeckIds = allCards.ToList(),
             Player1DeckIds = allCards.ToList(),
+            Player0ArtifactIds = ArtifactRegistry.DefaultLoadoutFor("battlemage"),
+            Player0Class = "battlemage",
+            Player1ArtifactIds = ArtifactRegistry.DefaultLoadoutFor("warrior"),
+            Player1Class = "warrior",
             MatchConfig = null
         };
 
         Initialize(config);
+
+        // ═══ TASK-RELICS-ALWAYS-1: Assert both players have exactly 2 relics ═══
+        if (State != null)
+        {
+            for (int p = 0; p < 2; p++)
+            {
+                int count = State.Players[p].ArtifactSlots?.Length ?? 0;
+                if (count != 2)
+                    GD.PrintErr($"[RELICS] FAIL: Player {p} has {count} artifact slots (expected 2)");
+            }
+        }
     }
 
     // ——— Action dispatch ———

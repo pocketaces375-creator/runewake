@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Runewake.Engine.Cards;
 
@@ -48,5 +49,35 @@ public static class ArtifactRegistry
     public static void Clear()
     {
         _artifacts.Clear();
+    }
+
+    /// <summary>
+    /// Returns the two launch-artifact IDs for the given class (one per slot_pool, stable order).
+    /// Unknown/empty class defaults to "battlemage".
+    /// </summary>
+    public static string[] DefaultLoadoutFor(string classId)
+    {
+        if (string.IsNullOrEmpty(classId))
+            classId = "battlemage";
+
+        var artifacts = _artifacts.Values
+            .Where(a => a.Class == classId)
+            .OrderBy(a => a.SlotPool)
+            .Take(2)
+            .Select(a => a.Id)
+            .ToArray();
+
+        if (artifacts.Length < 2)
+        {
+            // Fallback to battlemage
+            artifacts = _artifacts.Values
+                .Where(a => a.Class == "battlemage")
+                .OrderBy(a => a.SlotPool)
+                .Take(2)
+                .Select(a => a.Id)
+                .ToArray();
+        }
+
+        return artifacts;
     }
 }

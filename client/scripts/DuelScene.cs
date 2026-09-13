@@ -484,8 +484,18 @@ public partial class DuelScene : Control
                 Player0DeckIds = CampaignContext.PlayerDeckIds,
                 Player1DeckIds = encounter.Deck,
                 RunePage = CampaignContext.CurrentRunePage,
-                Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds,
-                Player0Class = CampaignContext.TutorialPlayerClass,
+                // Player 0: tutorial artifacts if set, else DefaultLoadoutFor(ChosenClass)
+                Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds.Length > 0
+                    ? CampaignContext.TutorialPlayerArtifactIds
+                    : ArtifactRegistry.DefaultLoadoutFor(CampaignContext.ChosenClass),
+                Player0Class = CampaignContext.TutorialPlayerClass.Length > 0
+                    ? CampaignContext.TutorialPlayerClass
+                    : CampaignContext.ChosenClass,
+                // Player 1 (encounter): explicit artifacts, else DefaultLoadoutFor(encounter.Class), else hash-based stable pick
+                Player1ArtifactIds = encounter.Artifacts is { Count: > 0 }
+                    ? encounter.Artifacts.ToArray()
+                    : ArtifactRegistry.DefaultLoadoutFor(encounter.Class ?? PickClassForEncounter(encounter.Id)),
+                Player1Class = encounter.Class ?? PickClassForEncounter(encounter.Id),
                 MatchConfig = null,
                 OpeningRule = encounter.OpeningRule
             };
@@ -6406,5 +6416,14 @@ private void ShowGameOverOverlay(int winnerIndex)
             "root_choked" => "Root-choked — your leftmost lane is buried until the Warden's first creature dies.",
             _ => $"Rule: {ruleId}"
         };
+    }
+
+    /// <summary>Helper: stable class pick for encounters without a class field (ensures 2 relics).</summary>
+    private static string PickClassForEncounter(string encounterId)
+    {
+        string[] classes = ["battlemage", "warrior", "rogue", "paladin", "necromancer", "astrologist", "druid"];
+        int hash = encounterId.GetHashCode();
+        int idx = (hash & 0x7FFFFFFF) % classes.Length;
+        return classes[idx];
     }
 }
