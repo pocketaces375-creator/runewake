@@ -307,6 +307,21 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
     # BOARD-DEVICE-1: Occupied slot luminance check
     failures.extend(check_artifact_luminance(controls, capture_name))
 
+    # TASK-DUEL-CORNERS-1: HAND_RELIC_OVERLAP — no hand card rect may overlap any artifact slot rect
+    hand_cards = [c for c in controls if c["class"] in ("PanelContainer", "CardPlate", "HandCard")
+                  and any(kw in c["path"] for kw in ["CardPlate", "HandCard", "Card@"])]
+    art_slots = [c for c in controls if c["class"] == "PanelContainer"
+                 and any("ArsenalPanel" in c["path"] or "ArtPlate" in c["path"] for c2 in controls
+                         if c2["path"].startswith(c["path"] + "/"))]
+    for hc in hand_cards:
+        hr = hc["rect"]
+        for aslot in art_slots:
+            ar = aslot["rect"]
+            if rects_overlap(hr, ar):
+                failures.append(
+                    f"HAND_RELIC_OVERLAP: hand card {hc['path']} {hr} overlaps artifact slot {aslot['path']} {ar}"
+                )
+
     return failures
 
 
