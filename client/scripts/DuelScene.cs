@@ -84,7 +84,6 @@ public partial class DuelScene : Control
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
     private string? _slabCardId;
-    private long _slabOpenedAtMs;
 
     // State snapshot for diff-based animation
     private struct BoardSnapshot
@@ -413,7 +412,6 @@ public partial class DuelScene : Control
         // ═══ TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info ═══
         _rulesSlab = new RulesSlab { Name = "RulesSlab" };
         AddChild(_rulesSlab);
-        _slabCardId = null;
         _rulesSlabVisible = false;
         // ═══ END TASK-CARD-TEXT-1 ═══
 
@@ -2957,27 +2955,13 @@ public partial class DuelScene : Control
             var capturedCard = card;
             card.Pressed += () =>
             {
-                // Tap both selects the card AND shows its description
+                // Tap selects the card — does NOT touch the rules slab (hold-only)
                 OnHandCardPressed(capturedCard);
-                long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                if (_slabCardId == capturedCard.CardId)
-                {
-                    // Same card: ignore toggle-off if slab just opened (flap guard)
-                    if (now - _slabOpenedAtMs >= 600)
-                        HideRulesSlab();
-                }
-                else
-                {
-                    var cd = CardRegistry.Get(capturedCard.CardId);
-                    if (cd != null) ShowRulesSlab(cd);
-                }
-                _slabCardId = _rulesSlabVisible ? capturedCard.CardId : null;
-                if (_rulesSlabVisible)
-                    _slabOpenedAtMs = now;
             };
 
-            // Long-press keeps working as it does now
+            // Long-press shows slab; release hides it
             card.LongPressStarted += ShowRulesSlab;
+            card.LongPressEnded += HideRulesSlab;
 
             _handCards.Add(card);
             idx++;
@@ -3027,7 +3011,6 @@ public partial class DuelScene : Control
             {
                 _input.SelectTargetLane(laneIndex);
                 HideRulesSlab();
-                _slabCardId = null;
             }
             else if (isPlayerLane && !isEmpty)
             {
@@ -3083,7 +3066,6 @@ public partial class DuelScene : Control
             else
             {
                 HideRulesSlab();
-                _slabCardId = null;
             }
         }
     }
@@ -4262,7 +4244,6 @@ public partial class DuelScene : Control
                     t.Stop();
                     return;
                 }
-                _slabCardId = null;
                 _rulesSlabVisible = false;
                 step = 31;
             }

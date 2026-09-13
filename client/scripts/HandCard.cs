@@ -39,7 +39,7 @@ public partial class HandCard : PanelContainer
     private Godot.Timer? _holdTimer;
     private bool _isLongPressing;
     private bool _dragStarted;
-    private const float LongPressThreshold = 0.45f;
+    private const float LongPressThreshold = 0.35f;
     /// <summary>DuelScene hooks this to show the rules slab with the card's CardDef.</summary>
     public Action<CardDef?>? LongPressStarted;
     /// <summary>DuelScene hooks this to hide the rules slab.</summary>
@@ -274,7 +274,7 @@ public partial class HandCard : PanelContainer
 
     private void OnHoldTimerFired()
     {
-        // 250ms elapsed — this is a long-press
+        // 350ms elapsed — this is a long-press
         _isLongPressing = true;
         var def = CardRegistry.Get(CardId);
         LongPressStarted?.Invoke(def);
@@ -300,8 +300,17 @@ public partial class HandCard : PanelContainer
         // Check for release first — hides slab or cancels timer
         if (IsReleaseEvent(@event))
         {
-            // Release — clear long-press, fire Pressed unless a drag is in progress
-            _isLongPressing = false;
+            if (_isLongPressing)
+            {
+                // Hold-duration release — hide slab, no Pressed
+                _isLongPressing = false;
+                _dragStarted = false;
+                StopHoldTimer();
+                LongPressEnded?.Invoke();
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+            // Quick tap (before hold threshold) — select only, NO slab
             StopHoldTimer();
             if (!_dragStarted)
             {
