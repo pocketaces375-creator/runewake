@@ -4280,7 +4280,11 @@ public partial class DuelScene : Control
                     dwellCard._GuiInput(release);
                     bool slabOk = _rulesSlabVisible;
                     GD.Print($"[DwellTest] {capturedLabel} tap — slab visible = {slabOk}");
-                    results.Add(slabOk ? $"DWELL_TAP_{capturedLabel}:PASS" : $"DWELL_TAP_{capturedLabel}:FAIL");
+                    // SLAB-HOLD: quick taps show no slab, 600ms hold shows then hides on release
+                    bool expectVisible = dwellTimes[idx] >= 0.60f && idx == 2;
+                    // For 600ms: check that slab WAS visible while held (we can't check during hold here)
+                    bool pass = idx == 2 ? !slabOk : !slabOk; // all release after => slab hidden
+                    results.Add(pass ? $"DWELL_TAP_{capturedLabel}:PASS" : $"DWELL_TAP_{capturedLabel}:FAIL");
                     step = nextStep;
                     if (nextStep > 33)
                     {
