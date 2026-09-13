@@ -609,7 +609,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305",
       "class": "HandCard",
       "x": 990,
       "y": 714,
@@ -618,7 +618,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/CardBg",
       "class": "ColorRect",
       "x": 990,
       "y": 714,
@@ -627,7 +627,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content",
       "class": "Control",
       "x": 990,
       "y": 714,
@@ -636,7 +636,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/ArtTexture",
       "class": "TextureRect",
       "x": 990,
       "y": 714,
@@ -646,7 +646,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/@ColorRect@307",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/@ColorRect@306",
       "class": "ColorRect",
       "x": 990,
       "y": 714,
@@ -655,7 +655,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/CardPlate",
       "class": "CardPlate",
       "x": 990,
       "y": 714,
@@ -664,7 +664,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/CardPlate/@TextureRect@308",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/CardPlate/@TextureRect@307",
       "class": "TextureRect",
       "x": 990,
       "y": 714,
@@ -674,7 +674,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/CardPlate/@Label@309",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/CardPlate/@Label@308",
       "class": "Label",
       "x": 1050,
       "y": 999,
@@ -684,7 +684,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@306/Content/CardPlate/@Label@310",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@305/Content/CardPlate/@Label@309",
       "class": "Label",
       "x": 1201,
       "y": 981,
@@ -694,7 +694,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310",
       "class": "HandCard",
       "x": 1252,
       "y": 683,
@@ -703,7 +703,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/CardBg",
       "class": "ColorRect",
       "x": 1252,
       "y": 683,
@@ -712,7 +712,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content",
       "class": "Control",
       "x": 1252,
       "y": 683,
@@ -721,7 +721,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1252,
       "y": 683,
@@ -731,7 +731,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/@ColorRect@312",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/@ColorRect@311",
       "class": "ColorRect",
       "x": 1252,
       "y": 683,
@@ -740,7 +740,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/CardPlate",
       "class": "CardPlate",
       "x": 1252,
       "y": 683,
@@ -749,7 +749,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/CardPlate/@TextureRect@313",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/CardPlate/@TextureRect@312",
       "class": "TextureRect",
       "x": 1252,
       "y": 683,
@@ -759,7 +759,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/CardPlate/@Label@314",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/CardPlate/@Label@313",
       "class": "Label",
       "x": 1288,
       "y": 972,
@@ -769,7 +769,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@311/Content/CardPlate/@Label@315",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@310/Content/CardPlate/@Label@314",
       "class": "Label",
       "x": 1440,
       "y": 966,
@@ -779,7 +779,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315",
       "class": "HandCard",
       "x": 1514,
       "y": 673,
@@ -788,7 +788,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/CardBg",
       "class": "ColorRect",
       "x": 1514,
       "y": 673,
@@ -797,7 +797,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content",
       "class": "Control",
       "x": 1514,
       "y": 673,
@@ -806,7 +806,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1514,
       "y": 673,
@@ -816,7 +816,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/@ColorRect@317",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/@ColorRect@316",
       "class": "ColorRect",
       "x": 1514,
       "y": 673,
@@ -825,7 +825,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/CardPlate",
       "class": "CardPlate",
       "x": 1514,
       "y": 673,
@@ -834,7 +834,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/CardPlate/@TextureRect@318",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/CardPlate/@TextureRect@317",
       "class": "TextureRect",
       "x": 1514,
       "y": 673,
@@ -844,7 +844,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/CardPlate/@Label@319",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/CardPlate/@Label@318",
       "class": "Label",
       "x": 1527,
       "y": 964,
@@ -854,7 +854,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@316/Content/CardPlate/@Label@320",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@315/Content/CardPlate/@Label@319",
       "class": "Label",
       "x": 1679,
       "y": 971,
@@ -864,7 +864,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320",
       "class": "HandCard",
       "x": 1777,
       "y": 686,
@@ -873,7 +873,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/CardBg",
       "class": "ColorRect",
       "x": 1777,
       "y": 686,
@@ -882,7 +882,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/Content",
       "class": "Control",
       "x": 1777,
       "y": 686,
@@ -891,7 +891,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1777,
       "y": 686,
@@ -901,7 +901,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/Content/@ColorRect@322",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/Content/@ColorRect@321",
       "class": "ColorRect",
       "x": 1777,
       "y": 686,
@@ -910,7 +910,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/Content/CardPlate",
       "class": "CardPlate",
       "x": 1777,
       "y": 686,
@@ -919,7 +919,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@321/Content/CardPlate/@TextureRect@323",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@320/Content/CardPlate/@TextureRect@322",
       "class": "TextureRect",
       "x": 1777,
       "y": 686,
@@ -1551,16 +1551,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@ColorRect@105",
-      "class": "ColorRect",
-      "x": 0,
-      "y": 0,
-      "w": 0,
-      "h": 0,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105",
       "class": "VBoxContainer",
       "x": 0,
       "y": 0,
@@ -1569,7 +1560,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Label@107",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Label@106",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1579,7 +1570,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Control@108",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Control@107",
       "class": "Control",
       "x": 0,
       "y": 0,
@@ -1588,7 +1579,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Label@109",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Label@108",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1598,7 +1589,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Label@110",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Label@109",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1608,7 +1599,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Control@111",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Control@110",
       "class": "Control",
       "x": 0,
       "y": 0,
@@ -1617,7 +1608,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@106/@Label@112",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@105/@Label@111",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1636,7 +1627,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@132",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@131",
       "class": "HBoxContainer",
       "x": 14,
       "y": 694,
@@ -1645,7 +1636,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@132/@Label@133",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@131/@Label@132",
       "class": "Label",
       "x": 55,
       "y": 698,
@@ -1655,7 +1646,7 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@132/@Label@134",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@131/@Label@133",
       "class": "Label",
       "x": 118,
       "y": 698,
@@ -1665,7 +1656,7 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@132/@Label@135",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@131/@Label@134",
       "class": "Label",
       "x": 130,
       "y": 698,
@@ -1675,7 +1666,7 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/@HBoxContainer@136",
+      "path": "DuelScene/@HBoxContainer@135",
       "class": "HBoxContainer",
       "x": 14,
       "y": 660,
@@ -1684,7 +1675,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@136/@Label@137",
+      "path": "DuelScene/@HBoxContainer@135/@Label@136",
       "class": "Label",
       "x": 31,
       "y": 664,
@@ -1694,7 +1685,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@136/@Label@138",
+      "path": "DuelScene/@HBoxContainer@135/@Label@137",
       "class": "Label",
       "x": 52,
       "y": 666,
@@ -1704,7 +1695,7 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@136/@Label@139",
+      "path": "DuelScene/@HBoxContainer@135/@Label@138",
       "class": "Label",
       "x": 92,
       "y": 664,
@@ -1714,7 +1705,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@136/@Label@140",
+      "path": "DuelScene/@HBoxContainer@135/@Label@139",
       "class": "Label",
       "x": 106,
       "y": 666,
@@ -1724,7 +1715,7 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@141",
+      "path": "DuelScene/@HBoxContainer@140",
       "class": "HBoxContainer",
       "x": 12,
       "y": 560,
@@ -1733,7 +1724,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151",
       "class": "PanelContainer",
       "x": 12,
       "y": 560,
@@ -1742,7 +1733,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder",
       "class": "RootBoundBorder",
       "x": 12,
       "y": 560,
@@ -1751,7 +1742,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/CornerTL",
       "class": "TextureRect",
       "x": 12,
       "y": 560,
@@ -1761,7 +1752,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/CornerTR",
       "class": "TextureRect",
       "x": 79,
       "y": 560,
@@ -1771,7 +1762,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/CornerBL",
       "class": "TextureRect",
       "x": 12,
       "y": 651,
@@ -1781,7 +1772,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/CornerBR",
       "class": "TextureRect",
       "x": 79,
       "y": 651,
@@ -1791,7 +1782,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
       "x": 17,
       "y": 560,
@@ -1801,7 +1792,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
       "x": 17,
       "y": 651,
@@ -1811,7 +1802,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
       "x": 12,
       "y": 565,
@@ -1821,7 +1812,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
       "x": 79,
       "y": 565,
@@ -1831,7 +1822,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0",
       "class": "ArtifactCardPlate",
       "x": 12,
       "y": 641,
@@ -1840,7 +1831,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@TextureRect@143",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@TextureRect@142",
       "class": "TextureRect",
       "x": 12,
       "y": 641,
@@ -1850,7 +1841,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@Label@144",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@Label@143",
       "class": "Label",
       "x": 19,
       "y": 630,
@@ -1860,7 +1851,7 @@
       "font_size": 7
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@ColorRect@145",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@ColorRect@144",
       "class": "ColorRect",
       "x": 12,
       "y": 641,
@@ -1869,7 +1860,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@ColorRect@146",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@ColorRect@145",
       "class": "ColorRect",
       "x": 12,
       "y": 668,
@@ -1878,7 +1869,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@Control@147",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@Control@146",
       "class": "Control",
       "x": 29,
       "y": 641,
@@ -1887,7 +1878,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@Control@147/@Label@148",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@Control@146/@Label@147",
       "class": "Label",
       "x": 29,
       "y": 641,
@@ -1897,7 +1888,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtPlateP0/@ColorRect@151",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtPlateP0/@ColorRect@150",
       "class": "ColorRect",
       "x": 12,
       "y": 641,
@@ -1906,7 +1897,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@152/ArtifactTouchOverlay_0_0",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@151/ArtifactTouchOverlay_0_0",
       "class": "Control",
       "x": 12,
       "y": 560,
@@ -1915,7 +1906,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162",
       "class": "PanelContainer",
       "x": 88,
       "y": 560,
@@ -1924,7 +1915,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder",
       "class": "RootBoundBorder",
       "x": 88,
       "y": 560,
@@ -1933,7 +1924,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/CornerTL",
       "class": "TextureRect",
       "x": 88,
       "y": 560,
@@ -1943,7 +1934,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/CornerTR",
       "class": "TextureRect",
       "x": 155,
       "y": 560,
@@ -1953,7 +1944,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/CornerBL",
       "class": "TextureRect",
       "x": 88,
       "y": 651,
@@ -1963,7 +1954,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/CornerBR",
       "class": "TextureRect",
       "x": 155,
       "y": 651,
@@ -1973,7 +1964,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
       "x": 93,
       "y": 560,
@@ -1983,7 +1974,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
       "x": 93,
       "y": 651,
@@ -1993,7 +1984,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
       "x": 88,
       "y": 565,
@@ -2003,7 +1994,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
       "x": 155,
       "y": 565,
@@ -2013,7 +2004,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1",
       "class": "ArtifactCardPlate",
       "x": 88,
       "y": 641,
@@ -2022,7 +2013,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@TextureRect@154",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@TextureRect@153",
       "class": "TextureRect",
       "x": 88,
       "y": 641,
@@ -2032,7 +2023,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@Label@155",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@Label@154",
       "class": "Label",
       "x": 95,
       "y": 630,
@@ -2042,7 +2033,7 @@
       "font_size": 7
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@ColorRect@156",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@ColorRect@155",
       "class": "ColorRect",
       "x": 88,
       "y": 641,
@@ -2051,7 +2042,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@ColorRect@157",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@ColorRect@156",
       "class": "ColorRect",
       "x": 88,
       "y": 668,
@@ -2060,7 +2051,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@Control@158",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@Control@157",
       "class": "Control",
       "x": 105,
       "y": 641,
@@ -2069,7 +2060,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@Control@158/@Label@159",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@Control@157/@Label@158",
       "class": "Label",
       "x": 105,
       "y": 641,
@@ -2079,7 +2070,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@Label@160",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@Label@159",
       "class": "Label",
       "x": 99,
       "y": 672,
@@ -2089,7 +2080,7 @@
       "font_size": 8
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtPlateP1/@ColorRect@162",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtPlateP1/@ColorRect@161",
       "class": "ColorRect",
       "x": 88,
       "y": 641,
@@ -2098,7 +2089,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@141/@PanelContainer@163/ArtifactTouchOverlay_0_1",
+      "path": "DuelScene/@HBoxContainer@140/@PanelContainer@162/ArtifactTouchOverlay_0_1",
       "class": "Control",
       "x": 88,
       "y": 560,
@@ -2116,7 +2107,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Label@164",
+      "path": "DuelScene/@Label@163",
       "class": "Label",
       "x": 12,
       "y": 692,
@@ -2126,7 +2117,7 @@
       "font_size": 9
     },
     {
-      "path": "DuelScene/@PanelContainer@165",
+      "path": "DuelScene/@PanelContainer@164",
       "class": "PanelContainer",
       "x": 2777,
       "y": 8,
@@ -2135,7 +2126,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@PanelContainer@165/@HBoxContainer@166",
+      "path": "DuelScene/@PanelContainer@164/@HBoxContainer@165",
       "class": "HBoxContainer",
       "x": 2779,
       "y": 8,
@@ -2144,7 +2135,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@PanelContainer@165/@HBoxContainer@166/@Label@167",
+      "path": "DuelScene/@PanelContainer@164/@HBoxContainer@165/@Label@166",
       "class": "Label",
       "x": 2808,
       "y": 12,
@@ -2154,7 +2145,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@PanelContainer@165/@HBoxContainer@166/@Label@168",
+      "path": "DuelScene/@PanelContainer@164/@HBoxContainer@165/@Label@167",
       "class": "Label",
       "x": 2925,
       "y": 12,
@@ -2164,7 +2155,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@PanelContainer@165/@HBoxContainer@166/@Label@169",
+      "path": "DuelScene/@PanelContainer@164/@HBoxContainer@165/@Label@168",
       "class": "Label",
       "x": 2938,
       "y": 12,
@@ -2174,7 +2165,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@HBoxContainer@171",
+      "path": "DuelScene/@HBoxContainer@170",
       "class": "HBoxContainer",
       "x": 2779,
       "y": 40,
@@ -2183,7 +2174,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@171/@Label@172",
+      "path": "DuelScene/@HBoxContainer@170/@Label@171",
       "class": "Label",
       "x": 2815,
       "y": 44,
@@ -2193,7 +2184,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@171/@Label@173",
+      "path": "DuelScene/@HBoxContainer@170/@Label@172",
       "class": "Label",
       "x": 2837,
       "y": 46,
@@ -2203,7 +2194,7 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@171/@Label@174",
+      "path": "DuelScene/@HBoxContainer@170/@Label@173",
       "class": "Label",
       "x": 2877,
       "y": 44,
@@ -2213,7 +2204,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@171/@Label@175",
+      "path": "DuelScene/@HBoxContainer@170/@Label@174",
       "class": "Label",
       "x": 2891,
       "y": 46,
@@ -2223,7 +2214,7 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@176",
+      "path": "DuelScene/@HBoxContainer@175",
       "class": "HBoxContainer",
       "x": 2777,
       "y": 88,
@@ -2232,7 +2223,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186",
       "class": "PanelContainer",
       "x": 2777,
       "y": 88,
@@ -2241,7 +2232,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder",
       "class": "RootBoundBorder",
       "x": 2777,
       "y": 88,
@@ -2250,7 +2241,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/CornerTL",
       "class": "TextureRect",
       "x": 2777,
       "y": 88,
@@ -2260,7 +2251,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/CornerTR",
       "class": "TextureRect",
       "x": 2844,
       "y": 88,
@@ -2270,7 +2261,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/CornerBL",
       "class": "TextureRect",
       "x": 2777,
       "y": 179,
@@ -2280,7 +2271,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/CornerBR",
       "class": "TextureRect",
       "x": 2844,
       "y": 179,
@@ -2290,7 +2281,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
       "x": 2782,
       "y": 88,
@@ -2300,7 +2291,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
       "x": 2782,
       "y": 179,
@@ -2310,7 +2301,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
       "x": 2777,
       "y": 93,
@@ -2320,7 +2311,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
       "x": 2844,
       "y": 93,
@@ -2330,7 +2321,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0",
       "class": "ArtifactCardPlate",
       "x": 2777,
       "y": 169,
@@ -2339,7 +2330,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@TextureRect@178",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@TextureRect@177",
       "class": "TextureRect",
       "x": 2777,
       "y": 169,
@@ -2349,7 +2340,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@Label@179",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@Label@178",
       "class": "Label",
       "x": 2784,
       "y": 158,
@@ -2359,7 +2350,7 @@
       "font_size": 7
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@ColorRect@180",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@ColorRect@179",
       "class": "ColorRect",
       "x": 2777,
       "y": 169,
@@ -2368,7 +2359,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@ColorRect@181",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@ColorRect@180",
       "class": "ColorRect",
       "x": 2777,
       "y": 196,
@@ -2377,7 +2368,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@Control@182",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@Control@181",
       "class": "Control",
       "x": 2794,
       "y": 169,
@@ -2386,7 +2377,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@Control@182/@Label@183",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@Control@181/@Label@182",
       "class": "Label",
       "x": 2794,
       "y": 169,
@@ -2396,7 +2387,7 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@ColorRect@185",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@ColorRect@184",
       "class": "ColorRect",
       "x": 2777,
       "y": 169,
@@ -2405,7 +2396,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtPlateE0/@ColorRect@186",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtPlateE0/@ColorRect@185",
       "class": "ColorRect",
       "x": 2777,
       "y": 169,
@@ -2414,7 +2405,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@187/ArtifactTouchOverlay_1_0",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@186/ArtifactTouchOverlay_1_0",
       "class": "Control",
       "x": 2777,
       "y": 88,
@@ -2423,7 +2414,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197",
       "class": "PanelContainer",
       "x": 2853,
       "y": 88,
@@ -2432,7 +2423,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder",
       "class": "RootBoundBorder",
       "x": 2853,
       "y": 88,
@@ -2441,7 +2432,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/CornerTL",
       "class": "TextureRect",
       "x": 2853,
       "y": 88,
@@ -2451,7 +2442,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/CornerTR",
       "class": "TextureRect",
       "x": 2920,
       "y": 88,
@@ -2461,7 +2452,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/CornerBL",
       "class": "TextureRect",
       "x": 2853,
       "y": 179,
@@ -2471,7 +2462,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/CornerBR",
       "class": "TextureRect",
       "x": 2920,
       "y": 179,
@@ -2481,7 +2472,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
       "x": 2858,
       "y": 88,
@@ -2491,7 +2482,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
       "x": 2858,
       "y": 179,
@@ -2501,7 +2492,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
       "x": 2853,
       "y": 93,
@@ -2511,7 +2502,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
       "x": 2920,
       "y": 93,
@@ -2521,7 +2512,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1",
       "class": "ArtifactCardPlate",
       "x": 2853,
       "y": 169,
@@ -2530,7 +2521,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@ColorRect@188",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@ColorRect@187",
       "class": "ColorRect",
       "x": 2853,
       "y": 169,
@@ -2539,7 +2530,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@Label@190",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@Label@189",
       "class": "Label",
       "x": 2860,
       "y": 158,
@@ -2549,7 +2540,7 @@
       "font_size": 7
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@ColorRect@191",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@ColorRect@190",
       "class": "ColorRect",
       "x": 2853,
       "y": 169,
@@ -2558,7 +2549,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@ColorRect@192",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@ColorRect@191",
       "class": "ColorRect",
       "x": 2853,
       "y": 196,
@@ -2567,7 +2558,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@Control@193",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@Control@192",
       "class": "Control",
       "x": 2870,
       "y": 169,
@@ -2576,7 +2567,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@Control@193/@Label@194",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@Control@192/@Label@193",
       "class": "Label",
       "x": 2870,
       "y": 169,
@@ -2586,7 +2577,7 @@
       "font_size": 8
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@Label@195",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@Label@194",
       "class": "Label",
       "x": 2864,
       "y": 200,
@@ -2596,7 +2587,7 @@
       "font_size": 8
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtPlateE1/@ColorRect@197",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtPlateE1/@ColorRect@196",
       "class": "ColorRect",
       "x": 2853,
       "y": 169,
@@ -2605,7 +2596,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@198/ArtifactTouchOverlay_1_1",
+      "path": "DuelScene/@HBoxContainer@175/@PanelContainer@197/ArtifactTouchOverlay_1_1",
       "class": "Control",
       "x": 2853,
       "y": 88,
@@ -2614,7 +2605,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@199",
+      "path": "DuelScene/@Control@198",
       "class": "Control",
       "x": 2777,
       "y": 8,
@@ -2623,7 +2614,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354",
+      "path": "DuelScene/@Control@353",
       "class": "Control",
       "x": 0,
       "y": 0,
@@ -2632,7 +2623,7 @@
       "mouse_filter": 1
     },
     {
-      "path": "DuelScene/@Control@354/@ColorRect@326",
+      "path": "DuelScene/@Control@353/@ColorRect@325",
       "class": "ColorRect",
       "x": 0,
       "y": 0,
@@ -2641,7 +2632,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353",
+      "path": "DuelScene/@Control@353/@CenterContainer@352",
       "class": "CenterContainer",
       "x": 0,
       "y": 0,
@@ -2650,7 +2641,7 @@
       "mouse_filter": 1
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351",
       "class": "PanelContainer",
       "x": 1179,
       "y": 225,
@@ -2659,7 +2650,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326",
       "class": "VBoxContainer",
       "x": 1182,
       "y": 228,
@@ -2668,7 +2659,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Control@328",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Control@327",
       "class": "Control",
       "x": 1182,
       "y": 228,
@@ -2677,7 +2668,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Label@329",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Label@328",
       "class": "Label",
       "x": 1254,
       "y": 234,
@@ -2687,7 +2678,7 @@
       "font_size": 96
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Label@330",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Label@329",
       "class": "Label",
       "x": 1182,
       "y": 370,
@@ -2697,7 +2688,7 @@
       "font_size": 56
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@332",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@331",
       "class": "CenterContainer",
       "x": 1379,
       "y": 531,
@@ -2706,7 +2697,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@332/@ColorRect@331",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@331/@ColorRect@330",
       "class": "ColorRect",
       "x": 1379,
       "y": 532,
@@ -2715,7 +2706,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Label@333",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Label@332",
       "class": "Label",
       "x": 1458,
       "y": 541,
@@ -2725,7 +2716,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@335",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@334",
       "class": "CenterContainer",
       "x": 1379,
       "y": 566,
@@ -2734,7 +2725,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@335/@ColorRect@334",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@334/@ColorRect@333",
       "class": "ColorRect",
       "x": 1379,
       "y": 567,
@@ -2743,7 +2734,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Label@336",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Label@335",
       "class": "Label",
       "x": 1353,
       "y": 576,
@@ -2753,7 +2744,7 @@
       "font_size": 32
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@339",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@338",
       "class": "HBoxContainer",
       "x": 1453,
       "y": 622,
@@ -2762,7 +2753,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@339/@Label@337",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@338/@Label@336",
       "class": "Label",
       "x": 1453,
       "y": 625,
@@ -2772,7 +2763,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@339/@Label@338",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@338/@Label@337",
       "class": "Label",
       "x": 1520,
       "y": 622,
@@ -2782,7 +2773,7 @@
       "font_size": 18
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@342",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@341",
       "class": "HBoxContainer",
       "x": 1444,
       "y": 653,
@@ -2791,7 +2782,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@342/@Label@340",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@341/@Label@339",
       "class": "Label",
       "x": 1444,
       "y": 656,
@@ -2801,7 +2792,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@342/@Label@341",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@341/@Label@340",
       "class": "Label",
       "x": 1536,
       "y": 653,
@@ -2811,7 +2802,7 @@
       "font_size": 18
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@345",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@344",
       "class": "HBoxContainer",
       "x": 1420,
       "y": 684,
@@ -2820,7 +2811,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@345/@Label@343",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@344/@Label@342",
       "class": "Label",
       "x": 1420,
       "y": 687,
@@ -2830,7 +2821,7 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@345/@Label@344",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@344/@Label@343",
       "class": "Label",
       "x": 1502,
       "y": 684,
@@ -2840,7 +2831,7 @@
       "font_size": 18
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@347",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@346",
       "class": "CenterContainer",
       "x": 1379,
       "y": 715,
@@ -2849,7 +2840,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@CenterContainer@347/@ColorRect@346",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@CenterContainer@346/@ColorRect@345",
       "class": "ColorRect",
       "x": 1379,
       "y": 716,
@@ -2858,7 +2849,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@350",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@349",
       "class": "HBoxContainer",
       "x": 1182,
       "y": 725,
@@ -2867,7 +2858,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@350/@Button@348",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@349/@Button@347",
       "class": "Button",
       "x": 1240,
       "y": 725,
@@ -2876,7 +2867,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@HBoxContainer@350/@Button@349",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@HBoxContainer@349/@Button@348",
       "class": "Button",
       "x": 1469,
       "y": 725,
@@ -2885,7 +2876,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@354/@CenterContainer@353/@PanelContainer@352/@VBoxContainer@327/@Control@351",
+      "path": "DuelScene/@Control@353/@CenterContainer@352/@PanelContainer@351/@VBoxContainer@326/@Control@350",
       "class": "Control",
       "x": 1182,
       "y": 851,
