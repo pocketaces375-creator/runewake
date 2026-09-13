@@ -80,6 +80,14 @@ public partial class DuelScene : Control
     private CardView _cardDetail = default!;
     private bool _cardDetailVisible;
 
+    // TASK-DUEL-CORNERS-1: artifact frame dimensions (set at build time)
+    private float _artFrameW = 112f;
+    private float _artFrameH = 152f;
+
+    // TASK-DUEL-CORNERS-1: Enemy hand back row
+    private Control? _enemyHandRow;
+    private readonly List<TextureRect> _enemyHandBacks = new();
+
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
     private bool _rulesSlabVisible;
@@ -1084,221 +1092,165 @@ public partial class DuelScene : Control
     /// All values are live-bound through RenderHud().
     /// _enemyGroupRect is set to the arsenal group container for capture meta.json.
     /// </summary>
-    private void BuildEnemyArsenalGroup()
+        private void BuildEnemyArsenalGroup()
     {
         float vh = GetViewportRect().Size.Y;
         float vw = GetViewportRect().Size.X;
-        float scale = vh / 1080f; // BOARD-MATCH-1: Use 1080 reference
+        float scale = vh / 1080f;
 
-        // Design-unit sizes, scaled
-        float artW = 72f * scale;
-        float artH = 96f * scale;
-        float portraitW = 44f * scale;
-        float portraitH = 48f * scale;
-        float chipW = 36f * scale;
-        float chipH = 40f * scale;
-        float gap = 4f * scale;
-        float pad = 6f * scale;
+        _artFrameW = 112f * scale;
+        _artFrameH = 152f * scale;
+        float gap = 8f * scale;
+        float marginX = 12f * scale;
 
-        // ═══ TOP BAR: turn indicator + enemy name + enemy vigor ═══
-        // Uses the existing _turnLabel from the scene, repositioned.
-        
-        // Reposition and restyle the turn label
         _turnLabel.Text = "Turn 1";
         _turnLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(20 * scale));
         _turnLabel.AddThemeColorOverride("font_color", Ember);
         ApplyHeaderFont(_turnLabel, Mathf.RoundToInt(20 * scale));
         _turnLabel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
-        _turnLabel.Position = new Vector2(vw / 2f - 60f, 10f * scale);
+        _turnLabel.Position = new Vector2(vw / 2f - 60f, 46f * scale + 8f * scale);
         _turnLabel.Size = new Vector2(120f, 30f * scale);
 
-        // ── Enemy nameplate (red pill, top-right) ──
-        float nameplateW = 210f * scale; // BOARD-MATCH-1: Widen for "THE WAYFARER"
-        float nameplateH = 30f * scale;
-        var enemyNameplate = new PanelContainer
-        {
-            Name = "EnemyNameplate",
-            MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(nameplateW, nameplateH)
-        };
-        var nameplateStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.66f, 0.16f, 0.10f, 0.85f),  // red pill
-            BorderColor = new Color(0.85f, 0.30f, 0.15f, 0.9f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusTopRight = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusBottomRight = Mathf.RoundToInt(nameplateH / 2f),
-            ContentMarginLeft = 2, ContentMarginTop = 0,
-            ContentMarginRight = 2, ContentMarginBottom = 0
-        };
-        enemyNameplate.AddThemeStyleboxOverride("panel", nameplateStyle);
-        enemyNameplate.Position = new Vector2(vw - nameplateW - 12f * scale, 8f * scale);
-        AddChild(enemyNameplate);
-
-        var nameplateHBox = new HBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3,
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        enemyNameplate.AddChild(nameplateHBox);
-
-        _enemyNameLabel = new Label
-        {
-            Text = "THE WAYFARER",
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        int nameFontSize = Mathf.RoundToInt(15 * scale); // BOARD-MATCH-1: Larger for readability
-        _enemyNameLabel.AddThemeFontSizeOverride("font_size", nameFontSize);
-        _enemyNameLabel.AddThemeColorOverride("font_color", Colors.White);
-        ApplyHeaderFont(_enemyNameLabel, Mathf.RoundToInt(nameFontSize));
-        nameplateHBox.AddChild(_enemyNameLabel);
-
-        // Separator
-        var sep = new Label
-        {
-            Text = "|",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        sep.AddThemeFontSizeOverride("font_size", nameFontSize);
-        sep.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
-        nameplateHBox.AddChild(sep);
-
-        _enemyVigorValue = new Label
-        {
-            Text = "22",
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _enemyVigorValue.AddThemeFontSizeOverride("font_size", nameFontSize);
-        _enemyVigorValue.AddThemeColorOverride("font_color", Colors.White);
-        nameplateHBox.AddChild(_enemyVigorValue);
-
-        // ── DECK/BARROW panel just below the enemy nameplate ──
-        float panelW = nameplateW;
-        float panelH = 30f * scale; // TASK-DUEL-HUD-1: taller panel for larger fonts
-        var enemyDeckBarrowPanel = new PanelContainer
-        {
-            Name = "EnemyDeckBarrowPanel",
-            MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(panelW, panelH)
-        };
-        _enemyDeckBarrowPanel = enemyDeckBarrowPanel;
-        var panelStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
-            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 2, ContentMarginTop = 0,
-            ContentMarginRight = 2, ContentMarginBottom = 0
-        };
-        enemyDeckBarrowPanel.AddThemeStyleboxOverride("panel", panelStyle);
-        enemyDeckBarrowPanel.Position = new Vector2(vw - panelW - 12f * scale, 40f * scale);
-        AddChild(enemyDeckBarrowPanel);
-
-        var dbRow = new HBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3,
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        enemyDeckBarrowPanel.AddChild(dbRow);
-
-        // Deck count
-        _enemyDeckValue = new Label
-        {
-            Text = "0",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale)); // TASK-DUEL-HUD-1: larger for legibility
-        _enemyDeckValue.AddThemeColorOverride("font_color", Colors.White); // TASK-DUEL-HUD-1: max contrast for 0/O disambiguation
-        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(16 * scale));
-        dbRow.AddChild(_enemyDeckValue);
-
-        // DECK label
-        var deckLabel = new Label
-        {
-            Text = "DECK",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
-        dbRow.AddChild(deckLabel);
-
-        // Barrow count
-        _enemyBarrowValue = new Label
-        {
-            Text = "0",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
-        _enemyBarrowValue.AddThemeColorOverride("font_color", Colors.White);
-        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(16 * scale));
-        dbRow.AddChild(_enemyBarrowValue);
-
-        // BARROW label
-        var barrowLabel = new Label
-        {
-            Text = "BARROW",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
-        dbRow.AddChild(barrowLabel);
-
-        // ── Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
-        float artFrameW = 72f * scale;
-        float artFrameH = 96f * scale;
-        float artFrameGap = 4f * scale;
+        float artX = vw - 2 * _artFrameW - gap - marginX;
+        float artY = 10f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
-        artifactRow.Position = new Vector2(vw - panelW - 12f * scale, 40f * scale + panelH + 18f * scale);
+        artifactRow.Position = new Vector2(artX, artY);
         AddChild(artifactRow);
-
         for (int i = 0; i < 2; i++)
-        {
-            BuildEnemyArsenalArtifact(artifactRow, i, artFrameW, artFrameH, scale);
-        }
+            BuildEnemyArsenalArtifact(artifactRow, i, _artFrameW, _artFrameH, scale);
 
-        // Set _enemyGroupRect to a dummy control for capture meta.json compatibility
-        _enemyGroupRect = new Control { Name = "EnemyGroupRect" };
-        _enemyGroupRect.MouseFilter = MouseFilterEnum.Ignore;
-        _enemyGroupRect.Position = new Vector2(vw - nameplateW - 12f * scale, 8f * scale);
-        _enemyGroupRect.Size = new Vector2(nameplateW, panelH + 32f * scale);
+        float nameplateW = 210f * scale;
+        float nameplateH = 30f * scale;
+        float panelH = 30f * scale;
+        float nameY = artY + _artFrameH + gap;
+        float panelY = nameY + nameplateH + gap;
+
+        var enp = new PanelContainer
+        {
+            Name = "EnemyNameplate", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(nameplateW, nameplateH)
+        };
+        var ens = new StyleBoxFlat
+        {
+            BgColor = new Color(0.66f, 0.16f, 0.10f, 0.85f),
+            BorderColor = new Color(0.85f, 0.30f, 0.15f, 0.9f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusTopRight = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusBottomRight = Mathf.RoundToInt(nameplateH / 2f),
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        enp.AddThemeStyleboxOverride("panel", ens);
+        enp.Position = new Vector2(vw - nameplateW - marginX, nameY);
+        AddChild(enp);
+
+        var enh = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center
+        };
+        enp.AddChild(enh);
+
+        _enemyNameLabel = new Label
+        {
+            Text = "THE WAYFARER", HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore
+        };
+        int nfs2 = Mathf.RoundToInt(15 * scale);
+        _enemyNameLabel.AddThemeFontSizeOverride("font_size", nfs2);
+        _enemyNameLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyNameLabel, Mathf.RoundToInt(nfs2));
+        enh.AddChild(_enemyNameLabel);
+
+        var sep2 = new Label { Text = "|", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        sep2.AddThemeFontSizeOverride("font_size", nfs2);
+        sep2.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
+        enh.AddChild(sep2);
+
+        _enemyVigorValue = new Label { Text = "22", HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyVigorValue.AddThemeFontSizeOverride("font_size", nfs2);
+        _enemyVigorValue.AddThemeColorOverride("font_color", Colors.White);
+        enh.AddChild(_enemyVigorValue);
+
+        float dW = nameplateW;
+        var edp = new PanelContainer
+        {
+            Name = "EnemyDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(dW, panelH)
+        };
+        _enemyDeckBarrowPanel = edp;
+        var eps = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
+            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        edp.AddThemeStyleboxOverride("panel", eps);
+        edp.Position = new Vector2(vw - dW - marginX, panelY);
+        AddChild(edp);
+
+        var edr = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center
+        };
+        edp.AddChild(edr);
+
+        _enemyDeckValue = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyDeckValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _enemyDeckValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyDeckValue, Mathf.RoundToInt(16 * scale));
+        edr.AddChild(_enemyDeckValue);
+        var dl2 = new Label { Text = "DECK", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        dl2.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        dl2.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(dl2, Mathf.RoundToInt(13 * scale));
+        edr.AddChild(dl2);
+        _enemyBarrowValue = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _enemyBarrowValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyBarrowValue, Mathf.RoundToInt(16 * scale));
+        edr.AddChild(_enemyBarrowValue);
+        var bl2 = new Label { Text = "BARROW", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        bl2.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        bl2.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(bl2, Mathf.RoundToInt(13 * scale));
+        edr.AddChild(bl2);
+
+        _enemyGroupRect = new Control { Name = "EnemyGroupRect", MouseFilter = MouseFilterEnum.Ignore };
+        _enemyGroupRect.Position = new Vector2(artX, artY);
+        _enemyGroupRect.Size = new Vector2(2 * _artFrameW + gap + marginX, _artFrameH + nameplateH + panelH + 3 * gap);
         AddChild(_enemyGroupRect);
 
-        // Legacy enemy name field for other references
         _enemyName = _enemyNameLabel;
 
-        GD.Print("[DUEL] Revised HUD: Enemy nameplate + DECK/BARROW panel built (top-right)");
-    }
+        _enemyHandRow = new Control
+        {
+            Name = "EnemyHandRow", MouseFilter = MouseFilterEnum.Ignore
+        };
+        _enemyHandRow.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+        _enemyHandRow.ZIndex = 50;
+        _enemyHandRow.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(_enemyHandRow);
 
-    /// <summary>Build a single enemy artifact frame using ArtifactCardPlate.</summary>
+        GD.Print("[DUEL] CORNERS: Enemy relics top-right, nameplate+deck/barrow stacked below");
+    }
+/// <summary>Build a single enemy artifact frame using ArtifactCardPlate.</summary>
     private void BuildEnemyArsenalArtifact(HBoxContainer parent, int index, float w, float h, float scale)
     {
         var panel = new PanelContainer();
@@ -1415,219 +1367,156 @@ public partial class DuelScene : Control
     /// and vigor/attune labels. Matches the authority image layout.
     /// _playerGroupRect is set to the group container for capture meta.json.
     /// </summary>
-    private void BuildPlayerArsenalGroup()
+        private void BuildPlayerArsenalGroup()
     {
         float vh = GetViewportRect().Size.Y;
         float vw = GetViewportRect().Size.X;
-        float scale = vh / 1080f; // BOARD-MATCH-1: Use 1080 reference for consistency
+        float scale = vh / 1080f;
 
-        // ── Player nameplate (green pill, bottom-left) ──
-        float nameplateW = 170f * scale;
-        float nameplateH = 28f * scale;
-        float handCardH = Mathf.Max(140f, 340f * (vh / 1080f));
-        float handTop = vh - handCardH - 6f;
-        // BOARD-MATCH-3: Use PanelContainer (same pattern as enemy nameplate) for reliable bg rendering
-        var playerNameplate = new PanelContainer
-        {
-            Name = "PlayerNameplate",
-            MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(nameplateW, nameplateH)
-        };
-        var nameplateStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.25f, 0.60f, 0.35f, 1.0f),  // green pill
-            BorderColor = new Color(0.35f, 0.65f, 0.35f, 0.9f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusTopRight = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusBottomLeft = Mathf.RoundToInt(nameplateH / 2f),
-            CornerRadiusBottomRight = Mathf.RoundToInt(nameplateH / 2f),
-            ContentMarginLeft = 2, ContentMarginTop = 0,
-            ContentMarginRight = 2, ContentMarginBottom = 0
-        };
-        playerNameplate.AddThemeStyleboxOverride("panel", nameplateStyle);
-        playerNameplate.Position = new Vector2(12f * scale, handTop - nameplateH - 12f);
-        AddChild(playerNameplate);
+        _artFrameW = 112f * scale;
+        _artFrameH = 152f * scale;
+        float gap = 8f * scale;
+        float marginX = 12f * scale;
+        float marginBottom = 10f * scale;
 
-        var nameplateHBox = new HBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3,
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        playerNameplate.AddChild(nameplateHBox);
-
-        var playerNameLabel = new Label
-        {
-            Text = "TRIKZOS",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        int nameFontSize = Mathf.RoundToInt(14 * scale);
-        playerNameLabel.AddThemeFontSizeOverride("font_size", nameFontSize);
-        playerNameLabel.AddThemeColorOverride("font_color", Colors.White);
-        ApplyHeaderFont(playerNameLabel, Mathf.RoundToInt(nameFontSize));
-        nameplateHBox.AddChild(playerNameLabel);
-
-        // Separator
-        var sep = new Label
-        {
-            Text = "|",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        sep.AddThemeFontSizeOverride("font_size", nameFontSize);
-        sep.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
-        nameplateHBox.AddChild(sep);
-
-        _playerVigorValue = new Label
-        {
-            Text = "25",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _playerVigorValue.AddThemeFontSizeOverride("font_size", nameFontSize);
-        _playerVigorValue.AddThemeColorOverride("font_color", Colors.White);
-        nameplateHBox.AddChild(_playerVigorValue);
-
-        // Store vigor label for updates (reuse the label inside the nameplate)
-        _playerShrineVigorLabel = _playerVigorValue;
-
-        // ── Player panel: DECK/BARROW counts + artifact frames ──
-                // MUST be ABOVE the nameplate (not overlapping) so both are visible.
-                float panelW = nameplateW;
-                float panelH = 30f * scale;
-                var playerDeckBarrowPanel = new PanelContainer
-                {
-                    Name = "PlayerDeckBarrowPanel",
-                    MouseFilter = MouseFilterEnum.Ignore,
-                    CustomMinimumSize = new Vector2(panelW, panelH)
-                };
-        _playerDeckBarrowPanelContainer = playerDeckBarrowPanel;
-        var panelStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
-            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 2, ContentMarginTop = 0,
-            ContentMarginRight = 2, ContentMarginBottom = 0
-        };
-        playerDeckBarrowPanel.AddThemeStyleboxOverride("panel", panelStyle);
-        // BOARD-MATCH-3: Set explicit size (CustomMinimumSize is a request, not a hard size)
-        playerDeckBarrowPanel.Size = new Vector2(panelW, panelH);
-        playerDeckBarrowPanel.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f);
-        AddChild(playerDeckBarrowPanel);
-
-        var dbRow = new HBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (Control.SizeFlags)3,
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        playerDeckBarrowPanel.AddChild(dbRow);
-
-        // Deck count
-        _playerShrineDeckLabel = new Label
-        {
-            Text = "0",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
-        _playerShrineDeckLabel.AddThemeColorOverride("font_color", Colors.White);
-        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(16 * scale));
-        dbRow.AddChild(_playerShrineDeckLabel);
-
-        // DECK label
-        var deckLabel = new Label
-        {
-            Text = "DECK",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        deckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
-        deckLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(deckLabel, Mathf.RoundToInt(13 * scale));
-        dbRow.AddChild(deckLabel);
-
-        _playerShrineBarrowLabel = new Label
-        {
-            Text = "0",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
-        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", Colors.White);
-        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(16 * scale));
-        dbRow.AddChild(_playerShrineBarrowLabel);
-
-        // BARROW label
-        var barrowLabel = new Label
-        {
-            Text = "BARROW",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        barrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
-        barrowLabel.AddThemeColorOverride("font_color", TextPrimary);
-        ApplyHeaderFont(barrowLabel, Mathf.RoundToInt(13 * scale));
-        dbRow.AddChild(barrowLabel);
-
-        // ── Player Artifact card frames (teal-rimmed thumbnails, below DECK/BARROW) ──
-        float artFrameW = 72f * scale;
-        float artFrameH = 96f * scale;
+        float artY = vh - _artFrameH - marginBottom;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
-        artifactRow.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f - artFrameH - 4f * scale);
+        artifactRow.Position = new Vector2(marginX, artY);
         AddChild(artifactRow);
 
         for (int i = 0; i < 2; i++)
-        {
-            BuildPlayerArsenalArtifact(artifactRow, i, artFrameW, artFrameH, scale);
-        }
+            BuildPlayerArsenalArtifact(artifactRow, i, _artFrameW, _artFrameH, scale);
 
-        // Set _playerGroupRect for capture meta.json compatibility
-        _playerGroupRect = new Control { Name = "PlayerGroupRect" };
-        _playerGroupRect.MouseFilter = MouseFilterEnum.Ignore;
-        // BOARD-MATCH-1: Group encompasses nameplate + deck/barrow + artifacts
-        _playerGroupRect.Position = new Vector2(8f * scale, handTop - nameplateH - panelH - artFrameH - 24f * scale);
-        _playerGroupRect.Size = new Vector2(nameplateW + 8f * scale, nameplateH + panelH + artFrameH + 24f * scale);
+        float nameplateW = 170f * scale;
+        float nameplateH = 28f * scale;
+        float panelH = 30f * scale;
+        float nameY = artY - nameplateH - gap;
+        float panelY = nameY - panelH - gap;
+
+        var playerNameplate = new PanelContainer
+        {
+            Name = "PlayerNameplate", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(nameplateW, nameplateH)
+        };
+        var ns = new StyleBoxFlat
+        {
+            BgColor = new Color(0.25f, 0.60f, 0.35f, 1.0f),
+            BorderColor = new Color(0.35f, 0.65f, 0.35f, 0.9f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusTopRight = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(nameplateH / 2f),
+            CornerRadiusBottomRight = Mathf.RoundToInt(nameplateH / 2f),
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        playerNameplate.AddThemeStyleboxOverride("panel", ns);
+        playerNameplate.Position = new Vector2(marginX, nameY);
+        AddChild(playerNameplate);
+
+        var nh = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3,
+            Alignment = BoxContainer.AlignmentMode.Center
+        };
+        playerNameplate.AddChild(nh);
+
+        var pnl = new Label
+        {
+            Text = "TRIKZOS", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore
+        };
+        int nfs = Mathf.RoundToInt(14 * scale);
+        pnl.AddThemeFontSizeOverride("font_size", nfs);
+        pnl.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(pnl, Mathf.RoundToInt(nfs));
+        nh.AddChild(pnl);
+
+        var sep = new Label
+        {
+            Text = "|", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore
+        };
+        sep.AddThemeFontSizeOverride("font_size", nfs);
+        sep.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
+        nh.AddChild(sep);
+
+        _playerVigorValue = new Label
+        {
+            Text = "25", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore
+        };
+        _playerVigorValue.AddThemeFontSizeOverride("font_size", nfs);
+        _playerVigorValue.AddThemeColorOverride("font_color", Colors.White);
+        nh.AddChild(_playerVigorValue);
+        _playerShrineVigorLabel = _playerVigorValue;
+
+        float dW = nameplateW;
+        var dbp = new PanelContainer
+        {
+            Name = "PlayerDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(dW, panelH)
+        };
+        _playerDeckBarrowPanelContainer = dbp;
+        var ps = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
+            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        dbp.AddThemeStyleboxOverride("panel", ps);
+        dbp.Size = new Vector2(dW, panelH);
+        dbp.Position = new Vector2(marginX, panelY);
+        AddChild(dbp);
+
+        var dr = new HBoxContainer
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center
+        };
+        dbp.AddChild(dr);
+
+        _playerShrineDeckLabel = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineDeckLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineDeckLabel, Mathf.RoundToInt(16 * scale));
+        dr.AddChild(_playerShrineDeckLabel);
+        var dl = new Label { Text = "DECK", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        dl.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        dl.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(dl, Mathf.RoundToInt(13 * scale));
+        dr.AddChild(dl);
+        _playerShrineBarrowLabel = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16 * scale));
+        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineBarrowLabel, Mathf.RoundToInt(16 * scale));
+        dr.AddChild(_playerShrineBarrowLabel);
+        var bl = new Label { Text = "BARROW", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        bl.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(13 * scale));
+        bl.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(bl, Mathf.RoundToInt(13 * scale));
+        dr.AddChild(bl);
+
+        _playerGroupRect = new Control { Name = "PlayerGroupRect", MouseFilter = MouseFilterEnum.Ignore };
+        _playerGroupRect.Position = new Vector2(marginX, panelY);
+        _playerGroupRect.Size = new Vector2(dW, nameplateH + panelH + _artFrameH + 3 * gap);
         AddChild(_playerGroupRect);
 
-        // Attune label below artifacts
-        _playerShrineAttuneLabel = new Label
-        {
-            Text = "ATTUNE 3/5",
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(9 * scale));
-        _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.2f, 1));
-        ApplyHeaderFont(_playerShrineAttuneLabel, Mathf.RoundToInt(9 * scale));
-        // BOARD-MATCH-3: Position below artifacts panel, between deck/barrow and nameplate
-        _playerShrineAttuneLabel.Position = new Vector2(12f * scale, handTop - nameplateH - 12f - panelH - 4f + panelH + 2f * scale);
-        AddChild(_playerShrineAttuneLabel);
-
-        GD.Print("[DUEL] Revised HUD: Player nameplate + DECK/BARROW + artifacts built (bottom-left)");
+        GD.Print("[DUEL] CORNERS: Player relics bottom-left, nameplate+deck/barrow stacked above");
     }
-
-    /// <summary>Build a single player artifact frame using ArtifactCardPlate.</summary>
+/// <summary>Build a single player artifact frame using ArtifactCardPlate.</summary>
     private void BuildPlayerArsenalArtifact(HBoxContainer parent, int index, float w, float h, float scale)
     {
         var panel = new PanelContainer();
@@ -1991,7 +1880,7 @@ public partial class DuelScene : Control
         _handArea.OffsetTop = -(_handCardHeight + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
-        float marginLeft = Mathf.Max(180f, 180f * scale);
+        float marginLeft = 2f * _artFrameW + 8f * scale + 12f * scale + 20f * scale;
         _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
         _handArea.AddThemeConstantOverride("margin_right", 80);
 
@@ -2689,7 +2578,7 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_enemyArtifactPlates[i] != null)
                     {
-                        _enemyArtifactPlates[i].Setup(artName, 100f, 136f, ch, maxCh, suppressed);
+                        _enemyArtifactPlates[i].Setup(artName, _artFrameW, _artFrameH, ch, maxCh, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _enemyArtifactPlates[i].SetArt(occ.CardDefId);
                     }
@@ -2721,7 +2610,7 @@ public partial class DuelScene : Control
                 else
                 {
                     if (_enemyArtifactPlates[i] != null)
-                        _enemyArtifactPlates[i].Setup("—", 100f, 136f, 0, 0, false);
+                        _enemyArtifactPlates[i].Setup("—", _artFrameW, _artFrameH, 0, 0, false);
                 }
             }
         }
@@ -2755,7 +2644,7 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_playerArtifactPlates[i] != null)
                     {
-                        _playerArtifactPlates[i].Setup(artName, 100f, 136f, ch, maxCh, suppressed);
+                        _playerArtifactPlates[i].Setup(artName, _artFrameW, _artFrameH, ch, maxCh, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _playerArtifactPlates[i].SetArt(occ.CardDefId);
                     }
@@ -2787,7 +2676,7 @@ public partial class DuelScene : Control
                 else
                 {
                     if (_playerArtifactPlates[i] != null)
-                        _playerArtifactPlates[i].Setup("—", 100f, 136f, 0, 0, false);
+                        _playerArtifactPlates[i].Setup("—", _artFrameW, _artFrameH, 0, 0, false);
                 }
             }
         }
@@ -2801,6 +2690,49 @@ public partial class DuelScene : Control
         _turnLabel.Modulate = isMyTurn ? Gold : Ember;
         _turnIndicatorLabel.Text = isMyTurn ? "YOUR TURN" : "ENEMY TURN";
         _turnIndicatorLabel.Modulate = isMyTurn ? Gold : Ember;
+
+        // ── TASK-DUEL-CORNERS-1: Enemy hand backs peeking from top edge ──
+        float _vh = GetViewportRect().Size.Y;
+        float _vw = GetViewportRect().Size.X;
+        float _scale = _vh / 1080f;
+        foreach (var tr in _enemyHandBacks)
+        {
+            if (tr != null && IsInstanceValid(tr))
+                tr.QueueFree();
+        }
+        _enemyHandBacks.Clear();
+
+        if (state != null && state.Players.Length > 1)
+        {
+            int n = state.Players[1].Hand.Count;
+            GD.Print($"[ENEMYHAND] n={n}");
+            if (_enemyHandRow != null)
+            {
+                float backW = 0.62f * _handCardHeight * (104f / 152f);
+                float backH = backW * (608f / 416f);
+                float peekPx = 46f * _scale;
+                float yPos = -(backH - peekPx);
+                float maxRowW = _vw * 0.42f;
+                float spacing = n > 1 ? Mathf.Min(maxRowW / n, backW * 0.25f) : 0f;
+                float totalRowW = n * backW + (n - 1) * spacing;
+                float xStart = (_vw - totalRowW) / 2f;
+
+                for (int i = 0; i < n; i++)
+                {
+                    var back = new TextureRect
+                    {
+                        MouseFilter = MouseFilterEnum.Ignore,
+                        Position = new Vector2(xStart + i * (backW + spacing), yPos),
+                        Size = new Vector2(backW, backH),
+                        StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                    };
+                    var tex = GD.Load<Texture2D>("res://client/content/art/card_back.webp");
+                    if (tex != null) back.Texture = tex;
+                    _enemyHandBacks.Add(back);
+                    _enemyHandRow.AddChild(back);
+                }
+            }
+        }
     }
 
     /// <summary>Health bar color: moss > gold > ember as vigor drops.</summary>
