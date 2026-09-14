@@ -1606,6 +1606,201 @@ public partial class DuelScene : Control
     /// Each player's deck pile + TWO Artifact frames form one visual group ("this is my sword and shield,
     /// next to my arsenal"). Player's group in the lower-left area, opponent's mirrored upper-right.
     /// Portraits stay; the Artifacts anchor to the DECK group. Placeholder frames with faint "Artifact" labels.
+    /// <summary>TASK-DUEL-BREATHE-1: Right-edge HUD column — both players' nameplate + DECK/BARROW.</summary>
+    private void BuildSideHud()
+    {
+        float vh = GetViewportRect().Size.Y;
+        float vw = GetViewportRect().Size.X;
+        float scale = vh / 1080f;
+
+        float colX = vw - 210f * scale - 14f * scale;
+        float colW = 210f * scale;
+        int nameFont = Mathf.RoundToInt(15 * scale);
+        int labelFont = Mathf.RoundToInt(13 * scale);
+        int valFont = Mathf.RoundToInt(16 * scale);
+
+        // ── Enemy: nameplate pill ──
+        float enY = 306f * scale;
+        var enp = new PanelContainer
+        {
+            Name = "EnemyNameplate", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 34f * scale)
+        };
+        var es = new StyleBoxFlat
+        {
+            BgColor = new Color(0.66f, 0.16f, 0.10f, 0.85f),
+            BorderColor = new Color(0.85f, 0.30f, 0.15f, 0.9f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(17f * scale),
+            CornerRadiusTopRight = Mathf.RoundToInt(17f * scale),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(17f * scale),
+            CornerRadiusBottomRight = Mathf.RoundToInt(17f * scale),
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        enp.AddThemeStyleboxOverride("panel", es);
+        enp.Position = new Vector2(colX, enY);
+        AddChild(enp);
+
+        var enh = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        enp.AddChild(enh);
+
+        _enemyNameLabel = new Label { Text = "THE WAYFARER", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyNameLabel.AddThemeFontSizeOverride("font_size", nameFont);
+        _enemyNameLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyNameLabel, nameFont);
+        enh.AddChild(_enemyNameLabel);
+        _enemyName = _enemyNameLabel;
+
+        var esep = new Label { Text = "|", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        esep.AddThemeFontSizeOverride("font_size", nameFont);
+        esep.AddThemeColorOverride("font_color", new Color(1, 1, 1, 0.70f));
+        enh.AddChild(esep);
+
+        _enemyVigorValue = new Label { Text = "22", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyVigorValue.AddThemeFontSizeOverride("font_size", nameFont);
+        _enemyVigorValue.AddThemeColorOverride("font_color", Colors.White);
+        enh.AddChild(_enemyVigorValue);
+
+        // ── Enemy: DECK/BARROW panel ──
+        float edY = 346f * scale;
+        var edp = new PanelContainer
+        {
+            Name = "EnemyDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 30f * scale)
+        };
+        _enemyDeckBarrowPanel = edp;
+        var eps = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
+            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        edp.AddThemeStyleboxOverride("panel", eps);
+        edp.Position = new Vector2(colX, edY);
+        AddChild(edp);
+
+        var edr = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        edp.AddChild(edr);
+
+        _enemyDeckValue = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyDeckValue.AddThemeFontSizeOverride("font_size", valFont);
+        _enemyDeckValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyDeckValue, valFont);
+        edr.AddChild(_enemyDeckValue);
+        var dl2 = new Label { Text = "DECK", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        dl2.AddThemeFontSizeOverride("font_size", labelFont);
+        dl2.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(dl2, labelFont);
+        edr.AddChild(dl2);
+        _enemyBarrowValue = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyBarrowValue.AddThemeFontSizeOverride("font_size", valFont);
+        _enemyBarrowValue.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_enemyBarrowValue, valFont);
+        edr.AddChild(_enemyBarrowValue);
+        var bl2 = new Label { Text = "BARROW", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        bl2.AddThemeFontSizeOverride("font_size", labelFont);
+        bl2.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(bl2, labelFont);
+        edr.AddChild(bl2);
+
+        // ── Player: nameplate pill ──
+        float pnY = 566f * scale;
+        var pnp = new PanelContainer
+        {
+            Name = "PlayerNameplate", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 34f * scale)
+        };
+        var ps2 = new StyleBoxFlat
+        {
+            BgColor = new Color(0.25f, 0.60f, 0.35f, 1.0f),
+            BorderColor = new Color(0.35f, 0.65f, 0.35f, 0.9f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = Mathf.RoundToInt(17f * scale),
+            CornerRadiusTopRight = Mathf.RoundToInt(17f * scale),
+            CornerRadiusBottomLeft = Mathf.RoundToInt(17f * scale),
+            CornerRadiusBottomRight = Mathf.RoundToInt(17f * scale),
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        pnp.AddThemeStyleboxOverride("panel", ps2);
+        pnp.Position = new Vector2(colX, pnY);
+        AddChild(pnp);
+
+        var pnh = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        pnp.AddChild(pnh);
+
+        _playerVigorValue = new Label { Text = "25", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerVigorValue.AddThemeFontSizeOverride("font_size", nameFont);
+        _playerVigorValue.AddThemeColorOverride("font_color", Colors.White);
+        pnh.AddChild(_playerVigorValue);
+        _playerShrineVigorLabel = _playerVigorValue;
+
+        // ── Player: DECK/BARROW panel ──
+        float pdY = 606f * scale;
+        var pdp = new PanelContainer
+        {
+            Name = "PlayerDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 30f * scale)
+        };
+        _playerDeckBarrowPanelContainer = pdp;
+        var pds = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f),
+            BorderColor = new Color(0.40f, 0.35f, 0.20f, 0.5f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+            ContentMarginLeft = 2, ContentMarginTop = 0, ContentMarginRight = 2, ContentMarginBottom = 0
+        };
+        pdp.AddThemeStyleboxOverride("panel", pds);
+        pdp.Position = new Vector2(colX, pdY);
+        AddChild(pdp);
+
+        var pdr = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        pdp.AddChild(pdr);
+
+        _playerShrineDeckLabel = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerShrineDeckLabel.AddThemeFontSizeOverride("font_size", valFont);
+        _playerShrineDeckLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineDeckLabel, valFont);
+        pdr.AddChild(_playerShrineDeckLabel);
+        var pdl = new Label { Text = "DECK", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        pdl.AddThemeFontSizeOverride("font_size", labelFont);
+        pdl.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(pdl, labelFont);
+        pdr.AddChild(pdl);
+        _playerShrineBarrowLabel = new Label { Text = "0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerShrineBarrowLabel.AddThemeFontSizeOverride("font_size", valFont);
+        _playerShrineBarrowLabel.AddThemeColorOverride("font_color", Colors.White);
+        ApplyHeaderFont(_playerShrineBarrowLabel, valFont);
+        pdr.AddChild(_playerShrineBarrowLabel);
+        var pbl = new Label { Text = "BARROW", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        pbl.AddThemeFontSizeOverride("font_size", labelFont);
+        pbl.AddThemeColorOverride("font_color", TextPrimary);
+        ApplyHeaderFont(pbl, labelFont);
+        pdr.AddChild(pbl);
+
+        GD.Print("[DUEL] BREATHE: Side HUD built");
+    }
+
     /// The group rects are stored in _playerGroupRect/_enemyGroupRect and written to duel_test.meta.json.
     /// TASK-UI3a: Enemy side removed — replaced by top bar.
     /// </summary>
