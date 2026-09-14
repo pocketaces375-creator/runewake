@@ -2823,8 +2823,8 @@ public partial class DuelScene : Control
         float cardWidth = cardHeight * aspect;
         float RArc = 1400f * scaleRH;
         float vhArc = GetViewportRect().Size.Y;
-        // Hand bottom = vh + _handArea.OffsetTop + cardHeight
-        float handBottomY = vhArc + _handArea.OffsetTop + cardHeight;
+        // Hand bottom = where the seated palm holds the cards
+        float handBottomY = vhArc - 40f * scaleRH;
         float spreadDeg = Mathf.Min(n * 5.0f, 44f);
         float availW = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
