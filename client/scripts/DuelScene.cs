@@ -2842,7 +2842,8 @@ public partial class DuelScene : Control
             RArc *= availW / arcW;
         }
 
-        float pivotX = lMargin + availW / 2f;
+        float pivotX = availW / 2f;
+        float pivotY = cardHeight / 2f + RArc;
 
         GD.Print($"[HAND] {n} cards, arc R={RArc:F0}, spread={spreadDeg:F1}deg, handBottomY={handBottomY:F0}, avail={availW:F0}");
 
