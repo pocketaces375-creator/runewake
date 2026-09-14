@@ -506,7 +506,14 @@ public partial class DuelScene : Control
                 MatchConfig = null,
                 OpeningRule = encounter.OpeningRule
             };
-            _gsm.Initialize(config);
+            if (_gsm.Initialize(config))
+        {
+            var state = _gsm.State;
+            if (state != null)
+            {
+                GD.Print($"[DUEL-INIT] P0 deck={state.Players[0].Deck.Count} artifacts={string.Join(",", state.Players[0].ArtifactDefIds)} P1 deck={state.Players[1].Deck.Count} artifacts={string.Join(",", state.Players[1].ArtifactDefIds)}");
+            }
+        }
         }
         else
         {
