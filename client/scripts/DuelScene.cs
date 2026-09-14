@@ -1142,7 +1142,7 @@ public partial class DuelScene : Control
         AddChild(_enemyGroupRect);
 
 
-        float stripH = 44f * scale;
+        float stripH = 88f * scale;
         _enemyHandRow = new Control { Name = "EnemyHandRow", MouseFilter = MouseFilterEnum.Ignore, ClipContents = true, ZIndex = 50 };
         AddChild(_enemyHandRow);
         _enemyHandRow.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
