@@ -108,100 +108,110 @@ else
 fi
 
 # ── Step 5: Diff check for client/engine changes ──
-CURRENT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "")
-ORIGIN_SHA=$(git rev-parse origin/main 2>/dev/null || echo "")
-
-CAPTURES_REGENERATED=0
-if [[ -n "${CURRENT_SHA}" ]] && [[ -n "${ORIGIN_SHA}" ]] && [[ "${CURRENT_SHA}" != "${ORIGIN_SHA}" ]]; then
-  CHANGED_FILES=$( (git diff --name-only "${ORIGIN_SHA}" "${CURRENT_SHA}"; git diff --name-only HEAD; git diff --name-only --cached; git ls-files --others --exclude-standard) 2>/dev/null | sort -u || echo "")
-  if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
-    echo "  Client/engine changed — regenerating all captures"
-    rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
-
-    # Build fresh DLLs first — force-clean so Godot loads the new one
-    rm -f "${PROJECT_DIR}/client/.godot/mono/temp/bin/Debug/Runewake.Client.dll"
-    dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null
-
-    # ── Import step: force-clean and re-import all assets before capturing ──
-    echo "  Clearing import cache and re-importing all assets..."
-    rm -rf "${PROJECT_DIR}/client/.godot/imported/"
-    if ! timeout 600 xvfb-run -a "${GODOT_BIN}" --headless --import --path "${PROJECT_DIR}/client" 2>&1; then
-        fail "Asset import failed — see errors above"
-    fi
-    ok "Asset import complete"
-
-    # Capture run log for layout failure extraction
-    CAPTURE_LOG="${PROJECT_DIR}/capture_run.log"
-    : > "${CAPTURE_LOG}"
-
-    # Define capture modes
-    MODES=(
-      "map_test:2316:1080"
-      "map_test_wide:2999:1080"
-      "map_test_r2:2316:1080"
-      "map_test_r2_wide:2999:1080"
-      "duel_test:2316:1080"
-      "duel_test_wide:2999:1080"
-      "duel_test_safe:2316:1080"
-      "duel_test_r2:2316:1080"
-      "choose_path:2316:1080"
-      "choose_path_wide:2999:1080"
-      "victory_overlay:2316:1080"
-      "victory_overlay_wide:2999:1080"
-      "defeat_overlay:2316:1080"
-      "defeat_overlay_wide:2999:1080"
-      "reliquary_test:2316:1080"
-      "reliquary_test_wide:2999:1080"
-      "reliquary_test_all:2316:1080"
-      "reliquary_test_all_wide:2999:1080"
-      "slots_test:2316:1080"
-      "title_test:2316:1080"
-      "title_test_wide:2999:1080"
-      "settings_test:2316:1080"
-      "settings_test_wide:2999:1080"
-    )
-
-    for mode_entry in "${MODES[@]}"; do
-      mode_name="${mode_entry%%:*}"
-      rest="${mode_entry#*:}"
-      width="${rest%%:*}"
-      height="${rest#*:}"
-
-      echo "  Capturing ${mode_name} (${width}x${height})"
-      sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "${PROJECT_DIR}/client/project.godot"
-      sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "${PROJECT_DIR}/client/project.godot"
-      timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 | tee -a "${CAPTURE_LOG}" || true
-    done
-
-    # Restore project.godot
-    sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "${PROJECT_DIR}/client/project.godot"
-    sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "${PROJECT_DIR}/client/project.godot"
-
-    # Extract layout check failures from capture log and print them
-    if [[ -f "${CAPTURE_LOG}" ]]; then
-      LAYOUT_FAILS=$(grep -E '\[VERIFY\] FAIL:' "${CAPTURE_LOG}" || true)
-      LAYOUT_COUNT=$(echo "${LAYOUT_FAILS}" | grep -c 'FAIL' 2>/dev/null || echo 0)
-      if [[ "${LAYOUT_COUNT}" -gt 0 ]]; then
-        echo "  [VERIFY] ${LAYOUT_COUNT} check(s) failed:"
-        echo "${LAYOUT_FAILS}" | sed 's/.*\[VERIFY\] FAIL: /    - /'
-        SUMMARY=$(grep -E '\[VERIFY\] === [0-9]+ check\(s\) failed ===' "${CAPTURE_LOG}" | tail -1)
-        echo "  ${SUMMARY}"
-      fi
-      rm -f "${CAPTURE_LOG}"
-    fi
-
-    CAPTURES_REGENERATED=1
-  else
-    echo "  No client/engine changes — skipping capture regen"
-  fi
-else
-  echo "  No diff to origin/main found (same commit or detached) — skipping capture regen"
+# A1: Find newest commit NOT part of this task (works whether or not pushed)
+BASE_SHA=$(git log --format='%H %s' -100 | grep -vE "^[0-9a-f]+ ${TASK_ID}[: ]" | head -1 | cut -d' ' -f1)
+if [[ -z "${BASE_SHA}" ]]; then
+  # A2: if BASE_SHA is empty, treat as changed — never silently skip
+  BASE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+  CHANGED_FILES="client/fallback"
 fi
 
-# ── Step 4: Blob check ──
+CAPTURES_REGENERATED=0
+CHANGED_FILES=$( (
+  git diff --name-only "${BASE_SHA}" HEAD 2>/dev/null || true
+  git diff --name-only HEAD 2>/dev/null || true
+  git diff --name-only --cached 2>/dev/null || true
+  git ls-files --others --exclude-standard 2>/dev/null || true
+) | sort -u | grep -v '^artifacts/captures/' || echo "")
+
+if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
+  echo "  Client/engine changed — regenerating all captures"
+  rm -f "${CAPTURE_DIR}"/*.png "${CAPTURE_DIR}"/*.json
+
+  # Build fresh DLLs first — force-clean so Godot loads the new one
+  rm -f "${PROJECT_DIR}/client/.godot/mono/temp/bin/Debug/Runewake.Client.dll"
+  dotnet build client/Runewake.Client.csproj -c Debug 2>/dev/null
+
+  # ── Import step: force-clean and re-import all assets before capturing ──
+  echo "  Clearing import cache and re-importing all assets..."
+  rm -rf "${PROJECT_DIR}/client/.godot/imported/"
+  if ! timeout 600 xvfb-run -a "${GODOT_BIN}" --headless --import --path "${PROJECT_DIR}/client" 2>&1; then
+    fail "Asset import failed — see errors above"
+  fi
+  ok "Asset import complete"
+
+  # Capture run log for layout failure extraction
+  CAPTURE_LOG="${PROJECT_DIR}/capture_run.log"
+  : > "${CAPTURE_LOG}"
+
+  # Define capture modes
+  MODES=(
+    "map_test:2316:1080"
+    "map_test_wide:2999:1080"
+    "map_test_r2:2316:1080"
+    "map_test_r2_wide:2999:1080"
+    "duel_test:2316:1080"
+    "duel_test_wide:2999:1080"
+    "duel_test_safe:2316:1080"
+    "duel_test_r2:2316:1080"
+    "choose_path:2316:1080"
+    "choose_path_wide:2999:1080"
+    "victory_overlay:2316:1080"
+    "victory_overlay_wide:2999:1080"
+    "defeat_overlay:2316:1080"
+    "defeat_overlay_wide:2999:1080"
+    "reliquary_test:2316:1080"
+    "reliquary_test_wide:2999:1080"
+    "reliquary_test_all:2316:1080"
+    "reliquary_test_all_wide:2999:1080"
+    "slots_test:2316:1080"
+    "title_test:2316:1080"
+    "title_test_wide:2999:1080"
+    "settings_test:2316:1080"
+    "settings_test_wide:2999:1080"
+  )
+
+  for mode_entry in "${MODES[@]}"; do
+    mode_name="${mode_entry%%:*}"
+    rest="${mode_entry#*:}"
+    width="${rest%%:*}"
+    height="${rest#*:}"
+
+    echo "  Capturing ${mode_name} (${width}x${height})"
+    sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "${PROJECT_DIR}/client/project.godot"
+    sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "${PROJECT_DIR}/client/project.godot"
+    timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 | tee -a "${CAPTURE_LOG}" || true
+  done
+
+  # Restore project.godot
+  sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "${PROJECT_DIR}/client/project.godot"
+  sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "${PROJECT_DIR}/client/project.godot"
+
+  # Extract layout check failures from capture log and print them
+  if [[ -f "${CAPTURE_LOG}" ]]; then
+    LAYOUT_FAILS=$(grep -E '\[VERIFY\] FAIL:' "${CAPTURE_LOG}" || true)
+    LAYOUT_COUNT=$(echo "${LAYOUT_FAILS}" | grep -c 'FAIL' 2>/dev/null || echo 0)
+    if [[ "${LAYOUT_COUNT}" -gt 0 ]]; then
+      echo "  [VERIFY] ${LAYOUT_COUNT} check(s) failed:"
+      echo "${LAYOUT_FAILS}" | sed 's/.*\[VERIFY\] FAIL: /    - /'
+      SUMMARY=$(grep -E '\[VERIFY\] === [0-9]+ check\(s\) failed ===' "${CAPTURE_LOG}" | tail -1)
+      echo "  ${SUMMARY}"
+    fi
+    rm -f "${CAPTURE_LOG}"
+  fi
+
+  CAPTURES_REGENERATED=1
+else
+  echo "  No client/engine changes — skipping capture regen"
+fi
+
+# ── Step 5: Blob check ──
 echo ""
 echo "── Step 5: Blob check ──"
-if [[ "${CAPTURES_REGENERATED}" -eq 1 ]]; then
+# A3: hard fail if client/engine changed but captures not regenerated
+if [[ "${CAPTURES_REGENERATED}" -eq 0 ]] && echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
+  fail "client/engine changed but captures were not regenerated — the gate is broken, fix it before marking done"
+elif [[ "${CAPTURES_REGENERATED}" -eq 1 ]]; then
   BLOB_DIFFERED=0
   ORIGIN_FILES=$(git ls-tree -r "${ORIGIN_SHA}" -- artifacts/captures/ 2>/dev/null | awk '{print $4 "|" $3}' || echo "")
   for entry in ${ORIGIN_FILES}; do
@@ -370,6 +380,9 @@ else
   echo "${DONE_LINE}" > "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
 fi
 git add "${PROJECT_DIR}/${FOREMAN_STATUS_NAME:-HERMES_STATUS.md}"
+
+# A4: Verify captures actually entered the commit
+git show --stat HEAD -- artifacts/captures/ | grep -q png || fail "captures did not reach the commit"
 
 # Flip checkbox in TASKS_QUEUE.md
 sed -i "0,/^- \[ \] ${TASK_ID}/{s/^- \[ \] ${TASK_ID}/- [x] ${TASK_ID}/}" "${PROJECT_DIR}/TASKS_QUEUE.md"
