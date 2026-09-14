@@ -488,7 +488,7 @@ fi
 _sb=$(mktemp); cp "${STATE_FILE}" "${_sb}" 2>/dev/null || true
 if git fetch -q origin main 2>/dev/null; then
   git reset -q --hard origin/main 2>/dev/null || warn "git reset failed"
-  git clean -qfd -e art_output -e client/android -e exports -e tools/foreman_lane*.log 2>/dev/null || true
+  git clean -qfd -e art_output -e client/android -e exports -e tools/foreman_lane*.log -e client/scripts -e engine -e tools 2>/dev/null || true
   info "Tree reset to origin/main $(git rev-parse --short HEAD)"
 else
   warn "git fetch failed (network) — continuing on current tree"
