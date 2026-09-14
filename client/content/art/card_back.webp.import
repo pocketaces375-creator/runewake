@@ -2,13 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cardbackimport1"
-path.remap="res://.godot/imported/client/content/art/card_back.webp-526e7696c27034b86ba45a99a1a98fae.ctex"
+uid="uid://cqn0o5va0bawf"
+path="res://.godot/imported/card_back.webp-b5bb4dfad652f13637971876c33fe2f3.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://client/content/art/card_back.webp"
-dest_files=["res://.godot/imported/client/content/art/card_back.webp-526e7696c27034b86ba45a99a1a98fae.ctex"]
+source_file="res://content/art/card_back.webp"
+dest_files=["res://.godot/imported/card_back.webp-b5bb4dfad652f13637971876c33fe2f3.ctex"]
 
 [params]
 
@@ -22,6 +25,10 @@ mipmaps/generate=3
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
-process/action=0
-process/file_scale=0.25
-process/size_scale_factors=["0.25", "0.5", "1.0", "2.0"]
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
