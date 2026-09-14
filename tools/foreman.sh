@@ -899,9 +899,14 @@ else
     if [[ -n "${POST_SESSION_HEAD}" ]] && [[ "${POST_SESSION_HEAD}" != "${CURRENT_HEAD}" ]]; then
       _rb=$(mktemp); cp "${STATE_FILE}" "${_rb}" 2>/dev/null || true
       git fetch origin main 2>/dev/null || true
-      git reset --hard origin/main 2>/dev/null || true
-      git checkout -- . 2>/dev/null || true
-      git clean -fd 2>/dev/null || true
+      # Foreman-nostomp-1: if dirty, stash and refuse to reset
+      if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
+        stash_ref=$(git stash push -u -m "foreman-rescue-$(date +%s)" 2>&1 | tail -1)
+        warn "REFUSING to reset — dirty tree stashed as ${stash_ref}"
+        git stash list | head -3
+      else
+        git reset --hard origin/main 2>/dev/null || true
+      fi
       cp "${_rb}" "${STATE_FILE}" 2>/dev/null || true; rm -f "${_rb}"
     fi
 fi
