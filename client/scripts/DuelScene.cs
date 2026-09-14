@@ -1991,7 +1991,7 @@ public partial class DuelScene : Control
         // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
         float vhPop = GetViewportRect().Size.Y;
         float scalePop = vhPop / 1080f;
-        float handCardHPop = Mathf.Max(140f, 340f * scalePop); // Hand larger than board cards
+        float handCardHPop = Mathf.Max(140f, 320f * scalePop); // Hand larger than board cards
         var saPop = DisplayServer.GetDisplaySafeArea();
         if (CampaignContext.DebugSafeAreaMode)
         {
