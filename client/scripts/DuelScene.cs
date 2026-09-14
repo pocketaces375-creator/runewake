@@ -716,8 +716,12 @@ public partial class DuelScene : Control
                         captureSuffix = "_safe";
                     else if (CampaignContext.CaptureHandSize == 5)
                         captureSuffix = CampaignContext.WideCaptureMode ? "_hand5_wide" : "_hand5";
+                    else if (CampaignContext.CaptureHandSize == 4)
+                        captureSuffix = "_hand4";
                     else if (CampaignContext.CaptureHandSize == 8)
                         captureSuffix = CampaignContext.WideCaptureMode ? "_hand8_wide" : "_hand8";
+                    else if (CampaignContext.CaptureHandSize == 10)
+                        captureSuffix = "_hand10";
                     else if (CampaignContext.WideCaptureMode)
                         captureSuffix = "_wide";
                     else if (CampaignContext.R2CardScale)

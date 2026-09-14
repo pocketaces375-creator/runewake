@@ -159,6 +159,18 @@ public partial class DebugCapture : Node
                 CampaignContext.WideCaptureMode = true;
                 GD.Print("[DebugCapture] Hand-8 wide capture mode enabled: --capture=duel_test_hand8_wide");
             }
+            if (arg == "--capture=duel_test_hand4")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 4;
+                GD.Print("[DebugCapture] Hand-4 capture mode enabled: --capture=duel_test_hand4");
+            }
+            if (arg == "--capture=duel_test_hand10")
+            {
+                _active = true;
+                CampaignContext.CaptureHandSize = 10;
+                GD.Print("[DebugCapture] Hand-10 capture mode enabled: --capture=duel_test_hand10");
+            }
             if (arg == "--capture=deck_test")
             {
                 deckBuilderMode = true;
