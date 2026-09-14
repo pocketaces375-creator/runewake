@@ -1942,8 +1942,8 @@ public partial class DuelScene : Control
 
         // DUELRES-1: Board slots at design scale, spread rows
         float boardTopOffset = 123f;
-        float enemyBaseY = 60f * scale - boardTopOffset;
-        float playerBaseY = 404f * scale - boardTopOffset - slotH;
+        float enemyBaseY  =  96f * scale - boardTopOffset;
+        float playerBaseY = 440f * scale - boardTopOffset;
 
         for (int i = 0; i < 5; i++)
         {
