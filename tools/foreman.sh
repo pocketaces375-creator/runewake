@@ -39,6 +39,17 @@
 #
 set -euo pipefail
 
+# ── Foreman-nostomp-1: guard against stomping source edits ──────────────
+guard_source_dirty() {
+  local dirty_files dirty_n=0 label="$1"
+  dirty_files=$(git status --porcelain 2>/dev/null | grep -E '^( M|M |MM|\?\? )' | awk '{print $2}' | grep -E '^(client/scripts|engine/|tools/)' || true)
+  if [[ -n "${dirty_files}" ]]; then
+    dirty_n=$(echo "${dirty_files}" | wc -l)
+    warn "FOREMAN WOULD HAVE DESTROYED ${dirty_n} SOURCE EDITS — stashed instead (${label})"
+    telegram_text "🚨 Foreman saved ${dirty_n} source edits from destruction — stashed at $(date +%H:%M)"
+  fi
+}
+
 # ── Log rotation for foreman_cron.log ────────────────────────────────────────
 FOREMAN_LOG="${PROJECT_DIR}/tools/foreman_cron.log"
 if [[ -f "${FOREMAN_LOG}" ]]; then
@@ -320,6 +331,7 @@ run_session_with_retry() {
 
     if [[ "${attempt}" -lt "${max_attempts}" ]]; then
       # Dead session debris — stash rather than stomp (foreman-nostomp-1)
+      guard_source_dirty "retry-transient"
       warn "${label}: attempt ${attempt} transient — stashing debris"
       git stash push -u -m "foreman-rescue-$(date +%s)" 2>/dev/null || true
     else
@@ -487,6 +499,7 @@ fi
 # Clean start: every iteration begins from origin/main exactly (keeps this lane's state file)
 _sb=$(mktemp); cp "${STATE_FILE}" "${_sb}" 2>/dev/null || true
 if git fetch -q origin main 2>/dev/null; then
+  guard_source_dirty "cycle-start"
   git reset -q --hard origin/main 2>/dev/null || warn "git reset failed"
   git clean -qfd -e art_output -e client/android -e exports -e tools/foreman_lane*.log -e client/scripts -e engine -e tools 2>/dev/null || true
   info "Tree reset to origin/main $(git rev-parse --short HEAD)"
@@ -814,6 +827,7 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
 
   # Clean up partial worktree changes from the dead session
   if [[ -n "${WORKTREE_CHANGES}" ]]; then
+    guard_source_dirty "dead-session"
     warn "Cleaning up ${WORKTREE_CHANGES} partial worktree changes from dead session"
     stash_ref=$(git stash push -u -m "foreman-rescue-$(date +%s)" 2>&1 | tail -1)
     echo "Stashed debris as: ${stash_ref}"
