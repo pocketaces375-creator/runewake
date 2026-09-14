@@ -2798,6 +2798,7 @@ public partial class DuelScene : Control
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         int n = hand.Count;
         float aspect = 104f / 152f;
+        float scaleRH = GetViewportRect().Size.Y / 1080f;
 
         // TASK-DUEL-HAND-1: Dynamic hand fan — always fits on screen with art readable.
         // Available width: viewport minus HandArea margins minus End Turn button buffer.
@@ -2816,7 +2817,7 @@ public partial class DuelScene : Control
         // Start with base card height from ScaleCardSizes
         float cardHeight = _handCardHeight;
         float cardWidth = cardHeight * aspect;
-        float RArc = 1400f * scale;
+        float RArc = 1400f * scaleRH;
         float vhArc = GetViewportRect().Size.Y;
         // Hand bottom = vh + _handArea.OffsetTop + cardHeight
         float handBottomY = vhArc + _handArea.OffsetTop + cardHeight;
