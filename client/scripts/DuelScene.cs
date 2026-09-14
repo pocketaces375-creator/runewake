@@ -1838,15 +1838,15 @@ public partial class DuelScene : Control
 
         // BOARD-MATCH-1: Hand cards distinctly larger than board cards
         // Board = 292px tall, Hand = 340px tall at design scale
-        _handCardHeight = Mathf.Max(140f, 340f * scale);
+        _handCardHeight = Mathf.Max(140f, 320f * scale);
         // DUELRES-1: Board cards ~200px wide at 1080, 7% band ~14px
-        _boardCardHeight = Mathf.Max(70f, 292f * scale);
+        _boardCardHeight = Mathf.Max(70f, 330f * scale);
 
         // R2 variant: increase card sizes by ~10% for wider art share
         if (CampaignContext.R2CardScale)
         {
-            _handCardHeight = Mathf.Max(140f, 370f * scale);
-            _boardCardHeight = Mathf.Max(70f, 320f * scale);
+            _handCardHeight = Mathf.Max(140f, 350f * scale);
+            _boardCardHeight = Mathf.Max(70f, 360f * scale);
         }
 
         // BOARD-MATCH-1: Hand tray bottom-edge tucked into frame
@@ -1868,7 +1868,7 @@ public partial class DuelScene : Control
         _handArea.OffsetTop = -(_handCardHeight + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
-        float marginLeft = 2f * _artFrameW + 8f * scale + 12f * scale + 20f * scale;
+        float marginLeft = 348f * scale;
         _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
         _handArea.AddThemeConstantOverride("margin_right", 80);
 
@@ -1915,25 +1915,27 @@ public partial class DuelScene : Control
         float vh = GetViewportRect().Size.Y;
         // DUELRES-1: Design resolution 2316×1080. Reference = 1080.
         float scale = vh / 1080f;
-        float slotH = 292f * scale;
-        float slotW = 200f * scale;
+        float slotH = 330f * scale;
+        float slotW = slotH * (104f / 152f);
 
         // R2 variant: increase slot sizes
         if (CampaignContext.R2CardScale)
         {
-            slotH = 320f * scale;
-            slotW = 220f * scale;
+            slotH = 360f * scale;
+            slotW = slotH * (104f / 152f);
         }
 
-        // Arc geometry: X positions (centers) spread across the ellipse
-        float centerX = vw / 2f;
-        // DUELRES-1: 5 × 200px cards + gaps fit within 2316
-        float spacing = 350f * scale;
+        // TASK-HAND-AND-TUTORIAL-1 A3: lanes centred between x=360*scale and vw-250*scale
+        float laneLeft = 360f * scale;
+        float laneRight = vw - 250f * scale;
+        float laneBand = laneRight - laneLeft;
+        float spacing = (laneBand - 5f * slotW) / 4f;
+        float centerX = laneLeft + laneBand / 2f;
 
-        // DUELRES-1: Board slots 200×292 at 1080, spread rows
+        // DUELRES-1: Board slots at design scale, spread rows
         float boardTopOffset = 123f;
-        float enemyBaseY = 100f * scale - boardTopOffset;
-        float playerBaseY = 740f * scale - boardTopOffset - slotH;
+        float enemyBaseY = 60f * scale - boardTopOffset;
+        float playerBaseY = 404f * scale - boardTopOffset - slotH;
 
         for (int i = 0; i < 5; i++)
         {
