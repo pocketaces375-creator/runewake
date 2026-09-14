@@ -319,10 +319,9 @@ run_session_with_retry() {
     fi
 
     if [[ "${attempt}" -lt "${max_attempts}" ]]; then
-      # Dead session debris — clean the tree before the next attempt
-      warn "${label}: attempt ${attempt} transient — cleaning dead-session tree litter"
-      git checkout -- . 2>/dev/null || true
-      git clean -fd 2>/dev/null || true
+      # Dead session debris — stash rather than stomp (foreman-nostomp-1)
+      warn "${label}: attempt ${attempt} transient — stashing debris"
+      git stash push -u -m "foreman-rescue-$(date +%s)" 2>/dev/null || true
     else
       warn "${label}: all ${max_attempts} attempts transient — waiting ${backoff[2]}s final recovery window"
       sleep "${backoff[2]}"
