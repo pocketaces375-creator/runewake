@@ -1872,7 +1872,7 @@ public partial class DuelScene : Control
         // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
         float safeMargin = vh - safeAreaBottom;
         float bottomGap = Mathf.Max(6f, safeMargin + 8f) + 34f;
-        _handArea.OffsetTop = -(_handCardHeight + bottomGap);
+        _handArea.OffsetTop = -(_handCardHeight + 102f * scale + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
         float marginLeft = 348f * scale;
@@ -2009,7 +2009,6 @@ public partial class DuelScene : Control
         float safeMarginPop = vhPop - saBottomPop;
         float bottomGapPop = Mathf.Max(6f, safeMarginPop + 8f);
         float handTopPop = vhPop - handCardHPop - bottomGapPop;
-        _handArea.OffsetTop = -(vhPop - handTopPop);
         GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}, safe-area-bottom-margin={safeMarginPop:F0}");
 
         // [VERIFY] Band layout — DUELRES-1: enemy 100..412, player 448..740, gap 13px at design
