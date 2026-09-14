@@ -507,11 +507,7 @@ public partial class DuelScene : Control
                 OpeningRule = encounter.OpeningRule
             };
             _gsm.Initialize(config);
-            var state2 = _gsm.State;
-            if (state2 != null)
-            {
-                GD.Print($"[DUEL-INIT] P0 deck={state2.Players[0].Deck.Count} artifacts={string.Join(",", state2.Players[0].ArtifactDefIds)} P1 deck={state2.Players[1].Deck.Count} artifacts={string.Join(",", state2.Players[1].ArtifactDefIds)}");
-            }
+            GD.Print($"[DUEL-INIT] P0 artifacts={string.Join(",", config.Player0ArtifactIds)} P1 artifacts={string.Join(",", config.Player1ArtifactIds)} P0 class={config.Player0Class} P1 class={config.Player1Class}");
         }
         else
         {
