@@ -548,6 +548,7 @@ public partial class DuelScene : Control
 
         // ═══ TASK-H/UI4-ARSENAL: Player and Enemy arsenal groups (bordered groups with artifact frames + deck + barrow) ═══
         AddArsenalGroups();
+        Callable.From(OnStateChanged).CallDeferred();
         // Re-apply encounter name AFTER BuildSideHud creates the labels (TASK-BREATHE-FIX-1)
         _enemyName.Text = _encounterName;
         _enemyNameLabel.Text = _encounterName;
