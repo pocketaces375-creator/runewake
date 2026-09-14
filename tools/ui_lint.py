@@ -191,7 +191,7 @@ def check_all_scenes(controls: list[dict], safe_area: dict, viewport: dict) -> l
     return failures
 
 
-def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
+def check_duel_scene(controls: list[dict], capture_name: str, viewport: dict | None = None) -> list[str]:
     """Rules for duel_test* captures."""
     failures = []
 
@@ -324,7 +324,7 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
 
     # TASK-ENEMYHAND-STRIP-1: ENEMY_HAND_STRIP — every child of EnemyHandRow must have bottom edge <= 60*scale px
     enemy_hand_children = [c for c in controls if "EnemyHandRow" in c["path"] and c["path"] != "_enemyHandRow" and c["path"] != "EnemyHandRow"]
-    viewport_h = viewport.get("height", 1080)
+    viewport_h = (viewport or {}).get("height", 1080)
     scale_est = viewport_h / 1080.0
     max_bottom = 60.0 * scale_est
     for child in enemy_hand_children:
@@ -337,8 +337,8 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
 
     # TASK-DUEL-BREATHE-1: RELIC_CLIPPED — every relic plate must be fully inside viewport with >= 6px margin
     artifact_plates = [c for c in controls if "ArsenalPanel" in c["path"] or "ArtPlate" in c["path"]]
-    vw = viewport.get("width", 2316)
-    vh = viewport.get("height", 1080)
+    vw = (viewport or {}).get("width", 2316)
+    vh = (viewport or {}).get("height", 1080)
     for ap in artifact_plates:
         r = ap["rect"]
         if not (6 <= r["x"] <= vw - r["w"] - 6 and 6 <= r["y"] <= vh - r["h"] - 6):
@@ -355,6 +355,14 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
             lr = l["rect"]
             if rects_overlap(hr, lr):
                 failures.append(f"HUD_LANE_OVERLAP: {h['path']} {hr} overlaps lane {l['path']} {lr}")
+
+    # TASK-BREATHE-FIX-1: NO_DUPLICATE_HUD — exactly one EnemyNameplate and one PlayerNameplate
+    enemy_plates = [c for c in controls if "EnemyNameplate" in c["path"]]
+    player_plates = [c for c in controls if "PlayerNameplate" in c["path"]]
+    if len(enemy_plates) != 1:
+        failures.append(f"NO_DUPLICATE_HUD: expected exactly 1 EnemyNameplate node, found {len(enemy_plates)}")
+    if len(player_plates) != 1:
+        failures.append(f"NO_DUPLICATE_HUD: expected exactly 1 PlayerNameplate node, found {len(player_plates)}")
 
     return failures
 
@@ -919,7 +927,7 @@ def main():
 
         # (2) Scene-specific rules
         if "duel_test" in basename or "duel_test" in capture_name:
-            scene_failures.extend(check_duel_scene(controls, capture_name))
+            scene_failures.extend(check_duel_scene(controls, capture_name, viewport))
         elif "choose_path" in basename or "choose_path" in capture_name:
             scene_failures.extend(check_choose_path_scene(controls, viewport))
         elif any(kw in basename for kw in ["map_test", "settings_test", "title_test", "title_deck",
