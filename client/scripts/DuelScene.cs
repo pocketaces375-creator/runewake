@@ -87,6 +87,7 @@ public partial class DuelScene : Control
     // TASK-DUEL-CORNERS-1: Enemy hand back row
     private Control? _enemyHandRow;
     private readonly List<TextureRect> _enemyHandBacks = new();
+    private static Texture2D? _cardBackTex;
 
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
@@ -2713,8 +2714,14 @@ public partial class DuelScene : Control
                 float peekPx = 46f * _scale;
                 float yPos = -(backH - peekPx);
                 float maxRowW = _vw * 0.42f;
-                float spacing = n > 1 ? Mathf.Min(maxRowW / n, backW * 0.25f) : 0f;
-                float totalRowW = n * backW + (n - 1) * spacing;
+                // TASK-CORNERS-FIX-1: overlap so row never exceeds maxRowW and cards never stack >60% hidden
+                float spacing = 0f;
+                if (n > 1)
+                {
+                    spacing = Mathf.Min(backW * 0.25f, (maxRowW - backW) / Mathf.Max(1, n - 1)) - backW;
+                    spacing = Mathf.Max(spacing, -backW * 0.60f); // never hide more than 60%
+                }
+                float totalRowW = Mathf.Min(n * backW + (n - 1) * spacing, maxRowW);
                 float xStart = (_vw - totalRowW) / 2f;
 
                 for (int i = 0; i < n; i++)
@@ -2726,8 +2733,15 @@ public partial class DuelScene : Control
                         Size = new Vector2(backW, backH),
                         StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
                     };
-                    var tex = GD.Load<Texture2D>("res://client/content/art/card_back.webp");
-                    if (tex != null) back.Texture = tex;
+                    // TASK-CORNERS-FIX-1: cache card back texture once
+                    if (_cardBackTex == null)
+                    {
+                        if (ResourceLoader.Exists("res://content/art/card_back.webp"))
+                            _cardBackTex = ResourceLoader.Load<Texture2D>("res://content/art/card_back.webp");
+                        else
+                            GD.PrintErr("[ENEMYHAND] card_back texture missing");
+                    }
+                    if (_cardBackTex != null) back.Texture = _cardBackTex;
                     _enemyHandBacks.Add(back);
                     _enemyHandRow.AddChild(back);
                 }
