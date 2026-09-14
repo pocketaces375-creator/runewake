@@ -815,8 +815,9 @@ if [[ "${TRANSIENT}" -eq 1 ]]; then
   # Clean up partial worktree changes from the dead session
   if [[ -n "${WORKTREE_CHANGES}" ]]; then
     warn "Cleaning up ${WORKTREE_CHANGES} partial worktree changes from dead session"
-    git checkout -- . 2>/dev/null || true
-    git clean -fd 2>/dev/null || true
+    stash_ref=$(git stash push -u -m "foreman-rescue-$(date +%s)" 2>&1 | tail -1)
+    echo "Stashed debris as: ${stash_ref}"
+    git stash list | head -3
   fi
 
   # Alert once per day on the 4th consecutive transient
