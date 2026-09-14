@@ -1994,6 +1994,8 @@ public partial class DuelScene : Control
         }
 
         GD.Print($"[DUEL] WORLD-POLISH-1: Populated {_enemySlots.Count} enemy + {_playerSlots.Count} player arc slots");
+        float firstSlotX = centerX + (0 - 2) * pitch;
+        GD.Print($"[LANES] enemy y={enemyBaseY + boardTopOffset}, player y={playerBaseY + boardTopOffset}, pitch={pitch:F0}, x0={firstSlotX:F0}");
 
         // BOARD-MATCH-1: Hand anchored to viewport bottom, tighter tuck
         // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
