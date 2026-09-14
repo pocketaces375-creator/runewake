@@ -335,6 +335,27 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
                 f"ENEMY_HAND_STRIP: {child['path']} bottom edge at y={bottom:.0f} exceeds {max_bottom:.0f}px threshold — would cover board"
             )
 
+    # TASK-DUEL-BREATHE-1: RELIC_CLIPPED — every relic plate must be fully inside viewport with >= 6px margin
+    artifact_plates = [c for c in controls if "ArsenalPanel" in c["path"] or "ArtPlate" in c["path"]]
+    vw = viewport.get("width", 2316)
+    vh = viewport.get("height", 1080)
+    for ap in artifact_plates:
+        r = ap["rect"]
+        if not (6 <= r["x"] <= vw - r["w"] - 6 and 6 <= r["y"] <= vh - r["h"] - 6):
+            failures.append(f"RELIC_CLIPPED: {ap['path']} rect {r} exceeds viewport {vw}x{vh} with <6px margin")
+
+    # TASK-DUEL-BREATHE-1: HUD_LANE_OVERLAP — no HUD column rect may intersect any lane rect
+    hud_panels = [c for c in controls if c["class"] == "PanelContainer"
+                  and any(name in c["path"] for name in ["Nameplate", "DeckBarrow", "ArsenalPanel"])]
+    lane_slots = [c for c in controls if c["class"] in ("LaneSlot", "PanelContainer")
+                  and any(kw in c["path"] for kw in ["LaneSlot", "enemySlot", "playerSlot"])]
+    for h in hud_panels:
+        hr = h["rect"]
+        for l in lane_slots:
+            lr = l["rect"]
+            if rects_overlap(hr, lr):
+                failures.append(f"HUD_LANE_OVERLAP: {h['path']} {hr} overlaps lane {l['path']} {lr}")
+
     return failures
 
 
