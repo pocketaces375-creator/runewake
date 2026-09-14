@@ -1814,6 +1814,7 @@ public partial class DuelScene : Control
 
         // ═══ PLAYER: Lower-left arsenal group with portrait medallion above ═══
         BuildPlayerArsenalGroup();
+        BuildSideHud();
 
         // ═══ ENEMY: Upper-right arsenal group with portrait medallion above ═══
         BuildEnemyArsenalGroup();
