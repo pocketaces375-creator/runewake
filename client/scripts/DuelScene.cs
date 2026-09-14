@@ -2711,16 +2711,23 @@ public partial class DuelScene : Control
             GD.Print($"[ENEMYHAND] n={n}");
             if (_enemyHandRow != null)
             {
-                float stripH = 44f * _scale;
-                float backH = 128f * _scale;
+                // TASK-FIELD-BACK-1 C1: Enemy hand fans as an arc (centre highest, outer droop)
+                float stripH   = 88f * _scale;                       // _enemyHandRow.Size.Y; ClipContents stays true
+                float backH    = 140f * _scale;
                 float backW = backH * (416f / 608f);
-                float step = 30f * _scale;
-                float yPos = -(backH - stripH);
-                float totalW = backW + (n - 1) * step;
-                float xStart = (_vw - totalW) / 2f;
+                float R        = 700f * _scale;
+                float spreadDeg = Mathf.Min(n * 6f, 40f);            // degrees
+                float peek     = 40f * _scale;                       // visible height of the CENTRE card
+                float pivotX   = _vw / 2f;
+                float pivotY   = (peek - backH / 2f) + R;
 
                 for (int i = 0; i < n; i++)
                 {
+                    float angleDeg = (n <= 1f) ? 0f : -spreadDeg / 2f + i * spreadDeg / Mathf.Max(1f, n - 1f);
+                    float a = Mathf.DegToRad(angleDeg);
+                    float cx = pivotX + Mathf.Sin(a) * R;
+                    float cy = pivotY - Mathf.Cos(a) * R;
+
                     var back = new TextureRect
                     {
                         MouseFilter = MouseFilterEnum.Ignore,
@@ -2736,12 +2743,23 @@ public partial class DuelScene : Control
                     if (_cardBackTex != null) back.Texture = _cardBackTex;
                     _enemyHandRow.AddChild(back);
                     back.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                    back.Position = new Vector2(xStart + i * step, yPos);
+                    back.Position = new Vector2(cx - backW / 2f, cy - backH / 2f);
                     back.Size = new Vector2(backW, backH);
+                    back.PivotOffset = new Vector2(backW / 2f, backH / 2f);
+                    back.Rotation = a;
+                    back.ZIndex = i;
                     _enemyHandBacks.Add(back);
                 }
 
-                // STEP 4: count numeral
+                // C2: fan geometry print
+                float centreY = pivotY - Mathf.Cos(0f) * R;
+                float outerA = Mathf.DegToRad(spreadDeg / 2f);
+                float outerY = pivotY - Mathf.Cos(outerA) * R;
+                GD.Print($"[ENEMYHAND] n={n} spread={spreadDeg:F0} centre_y={centreY:F0} outer_y={outerY:F0}");
+
+                // count numeral, placed just right of the rightmost card
+                float lastAngleRad = (n <= 1f) ? 0f : Mathf.DegToRad(spreadDeg / 2f);
+                float lastCardX = pivotX + Mathf.Sin(lastAngleRad) * R;
                 var countLabel = new Label
                 {
                     MouseFilter = MouseFilterEnum.Ignore,
@@ -2755,7 +2773,7 @@ public partial class DuelScene : Control
                 if (cinzel != null) countLabel.AddThemeFontOverride("font", cinzel);
                 _enemyHandRow.AddChild(countLabel);
                 countLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                countLabel.Position = new Vector2(xStart + totalW + 12f * _scale, 10f * _scale);
+                countLabel.Position = new Vector2(lastCardX + backW / 2f + 12f * _scale, 10f * _scale);
             }
         }
     }
