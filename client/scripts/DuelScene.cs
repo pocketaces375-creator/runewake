@@ -19,6 +19,7 @@ namespace Runewake.Client;
 public partial class DuelScene : Control
 {
     // Node references
+    private string _encounterName = "THE WAYFARER";
     private Label _enemyName;
     private Label _enemyVigorValue;
     private Label _enemyAttuneValue;
@@ -481,8 +482,7 @@ public partial class DuelScene : Control
         if (_isCampaignEncounter && encounter != null)
         {
             // Campaign mode: enemy uses encounter deck, player uses saved deck
-            _enemyName.Text = encounter.Name;
-            _enemyNameLabel.Text = encounter.Name;
+            _encounterName = encounter.Name;
 
             var config = new GameConfig
             {
@@ -548,6 +548,9 @@ public partial class DuelScene : Control
 
         // ═══ TASK-H/UI4-ARSENAL: Player and Enemy arsenal groups (bordered groups with artifact frames + deck + barrow) ═══
         AddArsenalGroups();
+        // Re-apply encounter name AFTER BuildSideHud creates the labels (TASK-BREATHE-FIX-1)
+        _enemyName.Text = _encounterName;
+        _enemyNameLabel.Text = _encounterName;
         // ═══ END TASK-H ═══
 
         // Start tutorial popup sequence if this is a tutorial encounter
