@@ -1936,7 +1936,8 @@ public partial class DuelScene : Control
         float laneLeft = 360f * scale;
         float laneRight = vw - 250f * scale;
         float laneBand = laneRight - laneLeft;
-        float spacing = (laneBand - 5f * slotW) / 4f;
+        float gap   = (laneBand - 5f * slotW) / 4f;
+        float pitch = slotW + gap;
         float centerX = laneLeft + laneBand / 2f;
 
         // DUELRES-1: Board slots at design scale, spread rows
@@ -1946,7 +1947,7 @@ public partial class DuelScene : Control
 
         for (int i = 0; i < 5; i++)
         {
-            float xCenter = centerX + (i - 2) * spacing;
+            float xCenter = centerX + (i - 2) * pitch;
             float x = xCenter - slotW / 2f;
 
             // ── Enemy slot (top arc, slight bowing) ──
