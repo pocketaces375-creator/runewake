@@ -2857,7 +2857,7 @@ public partial class DuelScene : Control
             float angleDeg = (n <= 1f) ? 0f : -spreadDeg / 2f + idx * spreadDeg / Mathf.Max(1f, n - 1f);
             float a = Mathf.DegToRad(angleDeg);
             float cx = pivotX + Mathf.Sin(a) * RArc;
-            float cy = handBottomY + RArc - Mathf.Cos(a) * RArc;
+            float cy = pivotY - Mathf.Cos(a) * RArc;
             card.PivotOffset = new Vector2(cardWidth / 2f, cardHeight / 2f);
             card.Position = new Vector2(cx - cardWidth / 2f, cy - cardHeight / 2f);
             card.Rotation = a;
