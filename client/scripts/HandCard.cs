@@ -19,6 +19,10 @@ public partial class HandCard : PanelContainer
     private Label _noArtLabel;
     private bool _isHovered;
     private bool _selected;
+    private Vector2 _arcPosition;
+    private float _storedRotation;
+
+    public void StoreArcTransform(Vector2 pos, float rot) { _arcPosition = pos; _storedRotation = rot; }
 
     private StyleBoxFlat? _selectedStyle;
 
@@ -235,16 +239,23 @@ public partial class HandCard : PanelContainer
         _isHovered = true;
         ZIndex = 10;
         var tween = CreateTween();
+        tween.SetParallel(true);
         tween.TweenProperty(this, "scale", new Vector2(1.3f, 1.3f), 0.15f)
             .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+        tween.TweenProperty(this, "rotation", 0f, 0.12f);
+        float liftPx = 40f * (GetViewportRect().Size.Y / 1080f);
+        tween.TweenProperty(this, "position", new Vector2(_arcPosition.X, _arcPosition.Y - liftPx), 0.12f);
     }
 
     private void OnHoverExited()
     {
         _isHovered = false;
         var tween = CreateTween();
+        tween.SetParallel(true);
         tween.TweenProperty(this, "scale", new Vector2(1f, 1f), 0.12f)
             .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+        tween.TweenProperty(this, "rotation", _storedRotation, 0.1f);
+        tween.TweenProperty(this, "position", _arcPosition, 0.1f);
         tween.TweenCallback(Callable.From(() => ZIndex = 0));
     }
 

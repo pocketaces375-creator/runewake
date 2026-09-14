@@ -2816,63 +2816,30 @@ public partial class DuelScene : Control
         // Start with base card height from ScaleCardSizes
         float cardHeight = _handCardHeight;
         float cardWidth = cardHeight * aspect;
+        float RArc = 1400f * scale;
+        float vhArc = GetViewportRect().Size.Y;
+        // Hand bottom = vh + _handArea.OffsetTop + cardHeight
+        float handBottomY = vhArc + _handArea.OffsetTop + cardHeight;
+        float spreadDeg = Mathf.Min(n * 5.0f, 44f);
+        float availW = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
-        // Compute spacing/overlap
-        float spacing;
-        if (n <= 1)
+        // If arc too wide, shrink spreadDeg; if still too wide, shrink RArc
+        // Never shrink card size
+        float arcW = Mathf.Abs(Mathf.Sin(Mathf.DegToRad(spreadDeg / 2f)) * RArc * 2f);
+        if (arcW > availW)
         {
-            spacing = 0f;
+            float ratio = availW / arcW;
+            spreadDeg = spreadDeg * ratio;
+            arcW = Mathf.Abs(Mathf.Sin(Mathf.DegToRad(spreadDeg / 2f)) * RArc * 2f);
         }
-        else
+        if (arcW > availW)
         {
-            // Ideal spacing: small positive gap for few cards, slight overlap for many
-            float idealSpacing = n <= 3 ? 6f : (n <= 6 ? 2f : -4f);
-            float totalWidth = n * cardWidth + (n - 1) * idealSpacing;
-
-            if (totalWidth <= availWidth)
-            {
-                // Fits with ideal spacing
-                spacing = idealSpacing;
-            }
-            else
-            {
-                // Need more overlap. Compute minimum overlap to fit.
-                float requiredOverlap = (availWidth - n * cardWidth) / (n - 1);
-                float overlapFraction = -requiredOverlap / cardWidth;
-
-                if (overlapFraction <= maxOverlapFraction)
-                {
-                    spacing = requiredOverlap; // negative = overlap
-                }
-                else
-                {
-                    // Overlap would hide too much art — shrink cards instead.
-                    // Solve: newCardWidth * (n - (n-1) * maxOverlapFraction) = availWidth
-                    float newCardWidth = availWidth / (n - (n - 1) * maxOverlapFraction);
-                    cardHeight = newCardWidth / aspect;
-                    cardHeight = Mathf.Max(120f, cardHeight); // floor: keep art and text readable
-                    cardWidth = cardHeight * aspect;
-                    spacing = -maxOverlapFraction * cardWidth;
-
-                    // Update hand area vertical position for new height
-                    float safeBottom = DisplayServer.GetDisplaySafeArea().Position.Y
-                        + DisplayServer.GetDisplaySafeArea().Size.Y;
-                    float vh = GetViewportRect().Size.Y;
-                    float safeMargin = vh - safeBottom;
-                    float bottomGap = Mathf.Max(6f, (CampaignContext.DebugSafeAreaMode ? safeMargin : 0f) + 8f) + 34f;
-                    _handArea.OffsetTop = -(cardHeight + bottomGap);
-                }
-            }
+            RArc *= availW / arcW;
         }
 
-        // Clamp spacing for manual layout
-        spacing = Mathf.Clamp(spacing, -60f, 20f);
+        float pivotX = lMargin + availW / 2f;
 
-        // Compute total width and starting X for manual layout
-        float totalW = n * cardWidth + (n - 1) * spacing;
-        float startX = (availWidth - totalW) * 0.5f;
-
-        GD.Print($"[HAND] {n} cards, height={cardHeight:F0}, cardW={cardWidth:F0}, spacing={spacing:F1}, avail={availWidth:F0}, viewport={GetViewportRect().Size.X:F0}");
+        GD.Print($"[HAND] {n} cards, arc R={RArc:F0}, spread={spreadDeg:F1}deg, handBottomY={handBottomY:F0}, avail={availW:F0}");
 
         int idx = 0;
         foreach (var info in hand)
@@ -2880,15 +2847,16 @@ public partial class DuelScene : Control
             var card = handScene.Instantiate<HandCard>();
             _handFlow.AddChild(card);
 
-            // Fan arc: centre card (idx ~ N/2) stays flat; edges rotate and drop
-            float t = n <= 1 ? 0f : (idx - (n - 1) * 0.5f) / Mathf.Max(1f, (n - 1) * 0.5f);
-            float rot = t * 7f;
-            float yOff = t * t * 22f;
-            float cx = startX + idx * (cardWidth + spacing) + cardWidth * 0.5f;
-
-            card.PivotOffset = new Vector2(cardWidth * 0.5f, cardHeight);
-            card.Rotation = Mathf.DegToRad(rot);
-            card.Position = new Vector2(cx - cardWidth * 0.5f, yOff);
+            // TASK-HAND-AND-TUTORIAL-1 B: true arc around pivot below screen
+            float angleDeg = (n <= 1f) ? 0f : -spreadDeg / 2f + idx * spreadDeg / Mathf.Max(1f, n - 1f);
+            float a = Mathf.DegToRad(angleDeg);
+            float cx = pivotX + Mathf.Sin(a) * RArc;
+            float cy = handBottomY + RArc - Mathf.Cos(a) * RArc;
+            card.PivotOffset = new Vector2(cardWidth / 2f, cardHeight / 2f);
+            card.Position = new Vector2(cx - cardWidth / 2f, cy - cardHeight / 2f);
+            card.Rotation = a;
+            card.ZIndex = idx;
+            card.StoreArcTransform(new Vector2(cx - cardWidth / 2f, cy - cardHeight / 2f), a);
 
             card.ScaleTo(cardHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
