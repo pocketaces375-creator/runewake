@@ -2555,8 +2555,11 @@ public partial class DuelScene : Control
         if (state != null && state.Players.Length > 1)
         {
             var p1 = state.Players[1];
-            _enemyDeckValue.Text = p1.Deck.Count.ToString();
-            _enemyBarrowValue.Text = p1.Barrow.Count.ToString();
+            // Guard: RenderHud fires before BuildSideHud from _Ready→GSM.Initialize
+            if (_enemyDeckValue != null)
+                _enemyDeckValue.Text = p1.Deck.Count.ToString();
+            if (_enemyBarrowValue != null)
+                _enemyBarrowValue.Text = p1.Barrow.Count.ToString();
 
             // TASK-UI4-ARSENAL: Artifact frames via ArtifactCardPlate — teal-gold rim, charge rail, suppressed state
             int artSlots = p1.ArtifactSlots?.Length ?? 0;
