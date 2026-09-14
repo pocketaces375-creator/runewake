@@ -211,101 +211,72 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41",
+      "path": "Main/@Control@31/@PanelContainer@38",
       "class": "PanelContainer",
       "x": 787,
       "y": 345,
       "w": 741,
-      "h": 250,
+      "h": 237,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32",
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32",
       "class": "VBoxContainer",
       "x": 801,
       "y": 355,
       "w": 713,
-      "h": 230,
+      "h": 217,
       "mouse_filter": 1
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@TextureRect@33",
-      "class": "TextureRect",
-      "x": 1121,
-      "y": 355,
-      "w": 72,
-      "h": 72,
-      "mouse_filter": 1,
-      "texture_non_null": true
-    },
-    {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@34",
-      "class": "Label",
-      "x": 801,
-      "y": 431,
-      "w": 713,
-      "h": 42,
-      "mouse_filter": 2,
-      "font_size": 30
-    },
-    {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@35",
-      "class": "Label",
-      "x": 801,
-      "y": 477,
-      "w": 713,
-      "h": 20,
-      "mouse_filter": 2,
-      "font_size": 14
-    },
-    {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Label@36",
-      "class": "Label",
-      "x": 801,
-      "y": 501,
-      "w": 713,
-      "h": 20,
-      "mouse_filter": 2,
-      "font_size": 14
-    },
-    {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@Control@37",
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32/@Control@33",
       "class": "Control",
       "x": 801,
-      "y": 525,
+      "y": 355,
       "w": 713,
       "h": 0,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38",
-      "class": "HBoxContainer",
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32/@Label@34",
+      "class": "Label",
       "x": 801,
-      "y": 529,
+      "y": 375,
       "w": 713,
-      "h": 56,
-      "mouse_filter": 1
+      "h": 28,
+      "mouse_filter": 2,
+      "font_size": 20
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38/@Button@39",
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32/@Label@35",
+      "class": "Label",
+      "x": 801,
+      "y": 407,
+      "w": 713,
+      "h": 20,
+      "mouse_filter": 2,
+      "font_size": 14
+    },
+    {
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32/@Button@36",
       "class": "Button",
-      "x": 1002,
-      "y": 529,
-      "w": 167,
-      "h": 56,
+      "x": 1021,
+      "y": 431,
+      "w": 272,
+      "h": 120,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@31/@PanelContainer@41/@VBoxContainer@32/@HBoxContainer@38/@Button@40",
-      "class": "Button",
-      "x": 1173,
-      "y": 529,
-      "w": 140,
-      "h": 56,
+      "path": "Main/@Control@31/@PanelContainer@38/@VBoxContainer@32/@Control@37",
+      "class": "Control",
+      "x": 801,
+      "y": 555,
+      "w": 713,
+      "h": 0,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Button@43",
+      "path": "Main/@Button@40",
       "class": "Button",
       "x": 8,
       "y": 8,
@@ -314,7 +285,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@46",
+      "path": "Main/@Control@43",
       "class": "Control",
       "x": 787,
       "y": 345,
@@ -323,65 +294,25 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56",
+      "path": "Main/@Control@43/@PanelContainer@50",
       "class": "PanelContainer",
       "x": 787,
       "y": 345,
       "w": 741,
-      "h": 250,
+      "h": 237,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47",
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44",
       "class": "VBoxContainer",
       "x": 787,
       "y": 345,
-      "w": 311,
-      "h": 230,
+      "w": 295,
+      "h": 184,
       "mouse_filter": 1
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@TextureRect@48",
-      "class": "TextureRect",
-      "x": 787,
-      "y": 345,
-      "w": 72,
-      "h": 72,
-      "mouse_filter": 1,
-      "texture_non_null": true
-    },
-    {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@Label@49",
-      "class": "Label",
-      "x": 787,
-      "y": 345,
-      "w": 111,
-      "h": 42,
-      "mouse_filter": 2,
-      "font_size": 30
-    },
-    {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@Label@50",
-      "class": "Label",
-      "x": 787,
-      "y": 345,
-      "w": 58,
-      "h": 20,
-      "mouse_filter": 2,
-      "font_size": 14
-    },
-    {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@Label@51",
-      "class": "Label",
-      "x": 787,
-      "y": 345,
-      "w": 55,
-      "h": 20,
-      "mouse_filter": 2,
-      "font_size": 14
-    },
-    {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@Control@52",
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44/@Control@45",
       "class": "Control",
       "x": 787,
       "y": 345,
@@ -390,30 +321,41 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@HBoxContainer@53",
-      "class": "HBoxContainer",
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44/@Label@46",
+      "class": "Label",
       "x": 787,
       "y": 345,
-      "w": 311,
-      "h": 56,
-      "mouse_filter": 1
+      "w": 130,
+      "h": 28,
+      "mouse_filter": 2,
+      "font_size": 20
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@HBoxContainer@53/@Button@54",
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44/@Label@47",
+      "class": "Label",
+      "x": 787,
+      "y": 345,
+      "w": 295,
+      "h": 20,
+      "mouse_filter": 2,
+      "font_size": 14
+    },
+    {
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44/@Button@48",
       "class": "Button",
       "x": 787,
       "y": 345,
-      "w": 167,
-      "h": 56,
+      "w": 272,
+      "h": 120,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@46/@PanelContainer@56/@VBoxContainer@47/@HBoxContainer@53/@Button@55",
-      "class": "Button",
+      "path": "Main/@Control@43/@PanelContainer@50/@VBoxContainer@44/@Control@49",
+      "class": "Control",
       "x": 787,
       "y": 345,
-      "w": 140,
-      "h": 56,
+      "w": 0,
+      "h": 0,
       "mouse_filter": 0
     }
   ]

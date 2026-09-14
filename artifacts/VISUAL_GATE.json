@@ -1,6 +1,6 @@
 {
   "overall": "FAIL",
-  "checked_at": "2026-09-13T05:41:48Z",
+  "checked_at": "2026-09-14T00:31:58Z",
   "model": "google/gemini-2.5-flash",
   "screens": [
     {
@@ -8,22 +8,22 @@
       "path": "/home/fictive/runewake/artifacts/captures/choose_path.png",
       "issues": [
         {
-          "description": "The text description for 'BATTLEMAGE' is cut off at the bottom, making it incomplete and hard to read the last line.  [and 1 more like it]",
-          "severity": "medium",
-          "count": 2
-        },
-        {
-          "description": "The text description for 'PALADIN' has a duplicated phrase: 'and the light follows' appears twice in consecutive sentences.",
+          "description": "The text 'CROMANCER' is partially visible and appears to be a fragment of a larger word, likely 'NECROMANCER', which is also present in full below an image. This suggests a rendering issue where part of the text is cut off or misaligned.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text description for 'ASTROLOGIST' has a duplicated word: 'tomorrow's' appears twice in the first line.",
+          "description": "The 'WARRIOR' card on the far right has its description text cut off at the bottom, making it unreadable. The text spills outside the visible area of the card.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The pagination dots below 'DRUID' are partially obscured by the bottom edge of the screen, making them appear incomplete.",
+          "description": "The 'BATTLEMAGE' card on the far left has its description text cut off at the bottom, making it unreadable. The text spills outside the visible area of the card.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'DRUID' card has small square icons below its description text that appear to be placeholder or broken art, as they are simple, unstyled squares where more detailed icons might be expected.",
           "severity": "low",
           "count": 1
         }
@@ -66,39 +66,28 @@
       "path": "/home/fictive/runewake/artifacts/captures/duel_test.png",
       "issues": [
         {
-          "description": "The text '34 DECK O BARROW' in the top right corner has 'O' instead of '0' (zero), which appears to be a garbled glyph or typo.",
+          "description": "The text '34 DECK O BARROW' in the top right corner is partially obscured by the mini-map UI element, making it difficult to read the 'O' and 'BARROW' parts.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'YOUR TURN' in the bottom right corner is partially obscured by the 'End Turn' button.",
+          "description": "The mini-map UI element in the top right corner has a '?' icon and an 'H' character rendered on top of what appears to be a blank or missing map image, indicating placeholder or missing art.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text 'TRIKZOS | 25' in the bottom left is partially obscured by the card 'BLOOMWEAVER'.  [and 2 more like it]",
-          "severity": "medium",
-          "count": 3
-        },
-        {
-          "description": "The small map in the top right corner has a '?' and 'H' that appear to be placeholder or garbled text, and the map itself seems incomplete or broken.",
-          "severity": "high",
+          "description": "The text 'SWORD' and 'DUSKFANG' in the bottom left corner are rendered with very low contrast against their dark background, making them hard to read.",
+          "severity": "low",
           "count": 1
         },
         {
-          "description": "The card 'ROOT WA' on the far right of the hand is clipped, showing only part of its name.",
+          "description": "The text 'YOUR TURN' above the 'End Turn' button is rendered with very low contrast against its dark background, making it hard to read.",
           "severity": "low",
           "count": 1
         }
       ],
-      "blocking": [
-        {
-          "description": "The small map in the top right corner has a '?' and 'H' that appear to be placeholder or garbled text, and the map itself seems incomplete or broken.",
-          "severity": "high",
-          "count": 1
-        }
-      ],
-      "verdict": "FAIL",
+      "blocking": [],
+      "verdict": "PASS",
       "model_verdict": "FAIL"
     },
     {
@@ -121,12 +110,17 @@
           "count": 1
         },
         {
-          "description": "The text 'ROOT WA' on the far right card in the player's hand is clipped, with the 'RDEN' part of 'ROOT WARDEN' missing.",
+          "description": "The text 'ROOT WA' on the far right card in the player's hand is clipped, the full word 'WARDEN' is not visible.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text '34 DECK O BARROW' in the top right corner has a '0' instead of an 'OF' or '0F' which seems like a typo or placeholder.",
+          "description": "The text '34 DECK O BARROW' in the top right corner has a '0' instead of an 'OF' or '0' for the deck count, which looks like a placeholder or an error.",
+          "severity": "medium",
+          "count": 1
+        },
+        {
+          "description": "The 'End Turn' button has a small, faint, dark grey text 'YOUR TURN' rendered directly above it, which is hard to read due to low contrast against the dark background and also appears to be redundant or misplaced.",
           "severity": "low",
           "count": 1
         }
@@ -169,18 +163,18 @@
       "path": "/home/fictive/runewake/artifacts/captures/defeat_overlay.png",
       "issues": [
         {
-          "description": "The text \"+EMBER:1\" under 'Fragments' in the 'Rewards forfeited' section is partially cut off, specifically the '1' is clipped.",
+          "description": "The text 'Rewards forfeited' is partially obscured by the red line that is rendered on top of it, making it difficult to read the word 'forfeited'.",
           "severity": "medium",
           "count": 1
         },
         {
-          "description": "The text \"DECK O BARROW\" in the top right corner appears to be a placeholder or incomplete, as 'O' is likely intended to be 'OF'.",
-          "severity": "medium",
+          "description": "The text '+EMBER:1' under 'Fragments' is rendered with a colon that is partially cut off, appearing as '+EMBER.1' or similar, which could be misread.",
+          "severity": "low",
           "count": 1
         },
         {
-          "description": "The text \"DUSKEANG\" in the bottom left corner is likely a typo and should be \"DUSKFANG\".",
-          "severity": "medium",
+          "description": "The text 'Return to Map' in the button is slightly cut off on the right side, specifically the 'p' in 'Map' is very close to the edge of the button.",
+          "severity": "low",
           "count": 1
         }
       ],
@@ -257,23 +251,24 @@
       "path": "/home/fictive/runewake/artifacts/captures/title_test.png",
       "issues": [
         {
-          "description": "The text 'Diag' in the top-left corner is rendered on top of the background art without any container, making it appear as a debug overlay that is not part of the intended UI.",
-          "severity": "medium",
+          "description": "The 'Diag' text in the top left corner is rendered on top of the background art and appears to be a debug or placeholder element that should not be visible in a release build.",
+          "severity": "high",
           "count": 1
         },
         {
-          "description": "The text 'Region 1' and 'Cards: 0' under 'Warrior' have very low contrast against their dark background, making them difficult to read.",
-          "severity": "medium",
-          "count": 1
-        },
-        {
-          "description": "The 'Delete' button text is partially obscured by the 'Continue' button's background, making it look like the 'Delete' button is incomplete or misaligned.",
+          "description": "The text 'Region 1' and 'Cards: 0' under 'Battlemage' have very low contrast against their dark background, making them difficult to read.",
           "severity": "medium",
           "count": 1
         }
       ],
-      "blocking": [],
-      "verdict": "PASS",
+      "blocking": [
+        {
+          "description": "The 'Diag' text in the top left corner is rendered on top of the background art and appears to be a debug or placeholder element that should not be visible in a release build.",
+          "severity": "high",
+          "count": 1
+        }
+      ],
+      "verdict": "FAIL",
       "model_verdict": "FAIL"
     },
     {
