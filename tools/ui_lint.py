@@ -322,6 +322,19 @@ def check_duel_scene(controls: list[dict], capture_name: str) -> list[str]:
                     f"HAND_RELIC_OVERLAP: hand card {hc['path']} {hr} overlaps artifact slot {aslot['path']} {ar}"
                 )
 
+    # TASK-ENEMYHAND-STRIP-1: ENEMY_HAND_STRIP — every child of EnemyHandRow must have bottom edge <= 60*scale px
+    enemy_hand_children = [c for c in controls if "EnemyHandRow" in c["path"] and c["path"] != "_enemyHandRow" and c["path"] != "EnemyHandRow"]
+    viewport_h = viewport.get("height", 1080)
+    scale_est = viewport_h / 1080.0
+    max_bottom = 60.0 * scale_est
+    for child in enemy_hand_children:
+        cr = child["rect"]
+        bottom = cr["y"] + cr["h"]
+        if bottom > max_bottom:
+            failures.append(
+                f"ENEMY_HAND_STRIP: {child['path']} bottom edge at y={bottom:.0f} exceeds {max_bottom:.0f}px threshold — would cover board"
+            )
+
     return failures
 
 

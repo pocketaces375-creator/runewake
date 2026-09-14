@@ -1240,14 +1240,12 @@ public partial class DuelScene : Control
 
         _enemyName = _enemyNameLabel;
 
-        _enemyHandRow = new Control
-        {
-            Name = "EnemyHandRow", MouseFilter = MouseFilterEnum.Ignore
-        };
-        _enemyHandRow.SetAnchorsPreset(Control.LayoutPreset.TopWide);
-        _enemyHandRow.ZIndex = 50;
-        _enemyHandRow.MouseFilter = MouseFilterEnum.Ignore;
+        float stripH = 44f * scale;
+        _enemyHandRow = new Control { Name = "EnemyHandRow", MouseFilter = MouseFilterEnum.Ignore, ClipContents = true, ZIndex = 50 };
         AddChild(_enemyHandRow);
+        _enemyHandRow.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+        _enemyHandRow.Position = new Vector2(0, 0);
+        _enemyHandRow.Size = new Vector2(vw, stripH);
 
         GD.Print("[DUEL] CORNERS: Enemy relics top-right, nameplate+deck/barrow stacked below");
     }
@@ -2709,31 +2707,21 @@ public partial class DuelScene : Control
             GD.Print($"[ENEMYHAND] n={n}");
             if (_enemyHandRow != null)
             {
-                float backW = 0.62f * _handCardHeight * (104f / 152f);
-                float backH = backW * (608f / 416f);
-                float peekPx = 46f * _scale;
-                float yPos = -(backH - peekPx);
-                float maxRowW = _vw * 0.42f;
-                // TASK-CORNERS-FIX-1: overlap so row never exceeds maxRowW and cards never stack >60% hidden
-                float spacing = 0f;
-                if (n > 1)
-                {
-                    spacing = Mathf.Min(backW * 0.25f, (maxRowW - backW) / Mathf.Max(1, n - 1)) - backW;
-                    spacing = Mathf.Max(spacing, -backW * 0.60f); // never hide more than 60%
-                }
-                float totalRowW = Mathf.Min(n * backW + (n - 1) * spacing, maxRowW);
-                float xStart = (_vw - totalRowW) / 2f;
+                float stripH = 44f * _scale;
+                float backH = 128f * _scale;
+                float backW = backH * (416f / 608f);
+                float step = 30f * _scale;
+                float yPos = -(backH - stripH);
+                float totalW = backW + (n - 1) * step;
+                float xStart = (_vw - totalW) / 2f;
 
                 for (int i = 0; i < n; i++)
                 {
                     var back = new TextureRect
                     {
                         MouseFilter = MouseFilterEnum.Ignore,
-                        Position = new Vector2(xStart + i * (backW + spacing), yPos),
-                        Size = new Vector2(backW, backH),
-                        StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                        StretchMode = TextureRect.StretchModeEnum.Scale,
                     };
-                    // TASK-CORNERS-FIX-1: cache card back texture once
                     if (_cardBackTex == null)
                     {
                         if (ResourceLoader.Exists("res://content/art/card_back.webp"))
@@ -2742,9 +2730,28 @@ public partial class DuelScene : Control
                             GD.PrintErr("[ENEMYHAND] card_back texture missing");
                     }
                     if (_cardBackTex != null) back.Texture = _cardBackTex;
-                    _enemyHandBacks.Add(back);
                     _enemyHandRow.AddChild(back);
+                    back.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+                    back.Position = new Vector2(xStart + i * step, yPos);
+                    back.Size = new Vector2(backW, backH);
+                    _enemyHandBacks.Add(back);
                 }
+
+                // STEP 4: count numeral
+                var countLabel = new Label
+                {
+                    MouseFilter = MouseFilterEnum.Ignore,
+                    Text = n.ToString(),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top,
+                };
+                countLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(20f * _scale));
+                countLabel.AddThemeColorOverride("font_color", new Color(232f/255f, 220f/255f, 200f/255f));
+                var cinzel = ResourceLoader.Load<FontFile>("res://assets/fonts/CinzelDecorative-Bold.ttf");
+                if (cinzel != null) countLabel.AddThemeFontOverride("font", cinzel);
+                _enemyHandRow.AddChild(countLabel);
+                countLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+                countLabel.Position = new Vector2(xStart + totalW + 12f * _scale, 10f * _scale);
             }
         }
     }
