@@ -54,6 +54,7 @@ public partial class HandCard : PanelContainer
 
     public override void _Ready()
     {
+        ClipContents = true;
         _artRect = GetNode<TextureRect>("Content/ArtTexture");
         _noArtLabel = GetNode<Label>("Content/NoArtLabel");
 

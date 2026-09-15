@@ -191,6 +191,15 @@ public partial class RulesSlab : Control
         float contentW = slabW - 2 * padSide - 8f;
 
         int nameFs = ScalePx(NameSize1080);
+        // C1: autofit name to inner width
+        float innerW = slabW - 2f * ScalePx(InnerPadSides);
+        _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
+        _nameLabel.Text = card.Name;
+        while (_nameLabel.GetCombinedMinimumSize().X > innerW && nameFs > ScalePx(22f))
+        {
+            nameFs -= ScalePx(2f);
+            _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
+        }
         int bodyFs = ScalePx(BodySize1080);
         int kwFs = ScalePx(KwSize1080);
         int flvFs = ScalePx(FlavorSize1080);
@@ -241,6 +250,12 @@ public partial class RulesSlab : Control
         Position = new Vector2(slabX, slabY);
         Size = new Vector2(slabW, slabH);
         CustomMinimumSize = new Vector2(slabW, slabH);
+        // C2: height fits content, clamped
+        float contentH = _vbox.GetCombinedMinimumSize().Y;
+        float minH = 260f * (viewportSize.Y / RefVh);
+        float actualH = Mathf.Clamp(ScalePx(InnerPadTop) + contentH + ScalePx(InnerPadBottom), minH, slabH);
+        Size = new Vector2(slabW, actualH);
+        CustomMinimumSize = new Vector2(slabW, actualH);
         _bgPanel.Size = new Vector2(slabW, slabH);
 
         _gradientRect.Position = new Vector2(4, 4);

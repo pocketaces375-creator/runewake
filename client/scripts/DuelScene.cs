@@ -2844,7 +2844,7 @@ public partial class DuelScene : Control
                 if (cinzel != null) countLabel.AddThemeFontOverride("font", cinzel);
                 _enemyHandRow.AddChild(countLabel);
                 countLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                countLabel.Position = new Vector2(lastCardX + backW / 2f + 12f * _scale, 10f * _scale);
+                countLabel.Position = new Vector2(1420f * _scale, 24f * _scale);
             }
         }
     }

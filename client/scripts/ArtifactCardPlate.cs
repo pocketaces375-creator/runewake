@@ -205,22 +205,22 @@ public partial class ArtifactCardPlate : Control
 
         float nameBandH = Mathf.Clamp(fit.TextHeight + 4f, baseBandH, maxBandH);
 
-        float plateH = tagH + nameBandH + railH;
-        Position = new Vector2(0, cardHeight - plateH);
-        Size = new Vector2(cardWidth, plateH);
+        // B1: plate fills the full cardHeight — no self-resize
 
-        // ── ARTIFACT tag ──
-        _artifactTag.Position = new Vector2(bandPx, -tagH);
+        // ── ARTIFACT tag across the top edge ──
+        _artifactTag.Position = new Vector2(bandPx, 0);
         _artifactTag.Size = new Vector2(cardWidth - bandPx * 2, tagH);
         int tagFontSize = Mathf.Max(7, Mathf.RoundToInt(tagH * 0.60f));
         _artifactTag.AddThemeFontSizeOverride("font_size", tagFontSize);
 
-        // ── Name band (middle section of plate) ──
-        _nameBandBg.Position = new Vector2(0, 0);
+        // ── Name band at the BOTTOM of the full plate ──
+        float railY = cardHeight - railH;
+        float bandY = railY - nameBandH;
+        _nameBandBg.Position = new Vector2(0, bandY);
         _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
 
         // ── Name label clip container — exact band height ──
-        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, 0);
+        _nameClipContainer.Position = new Vector2(bandPx + bufferPx, bandY);
         _nameClipContainer.Size = new Vector2(safeWidth, nameBandH - 2f);
         _cardName.Size = new Vector2(safeWidth, nameBandH - 2f);
         _cardName.AddThemeFontSizeOverride("font_size", fit.FontSize);
