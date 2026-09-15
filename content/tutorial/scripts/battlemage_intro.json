@@ -1,0 +1,141 @@
+{
+  "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
+  "tutorial_id": "battlemage_intro",
+  "title": "The Drowned Archive",
+  "class": "battlemage",
+  "description": "Learn the basics: summoning, attacking, and using your artifacts. The Battlemage wields arcane steel and tide magic.",
+  "artifacts": ["artf_battlemage_aura", "artf_battlemage_wand"],
+  "player_deck": [
+    "tid_c_tidal_scholar",
+    "tid_c_deep_one",
+    "tid_c_whirlpool_elemental",
+    "tid_u_brine_witch",
+    "tid_c_tidal_scholar",
+    "tid_c_deep_one",
+    "tid_c_whirlpool_elemental",
+    "tid_c_tidal_scholar",
+    "tid_c_deep_one",
+    "tid_u_brine_witch"
+  ],
+  "opponent_deck": [
+    "tut_opponent_token",
+    "tut_opponent_token",
+    "tut_opponent_token"
+  ],
+  "turns": [
+    {
+      "turn_number": 1,
+      "type": "player",
+      "player_hand_override": [
+        "tid_c_tidal_scholar",
+        "tid_c_deep_one",
+        "tid_c_whirlpool_elemental",
+        "tid_c_tidal_scholar"
+      ],
+      "player_attunement_override": 4,
+      "player_beats": [
+        {
+          "id": "t1_summon",
+          "trigger_event": "SUMMON_CREATURE",
+          "highlight": ["hand_card_0", "lane_2"],
+          "popup": "Your Aura gives your creatures +1 Vigor while they are on the board. Summon a creature to start building your front line."
+        },
+        {
+          "id": "t1_attack",
+          "trigger_event": "ATTACK_WITH_CREATURE",
+          "highlight": ["lane_2"],
+          "popup": "Your Aura's Vigor bonus protected that creature. Now attack the opponent's creature in the center lane."
+        },
+        {
+          "id": "t1_end",
+          "trigger_event": "END_TURN",
+          "highlight": ["end_turn_button"],
+          "popup": "Well played. End your turn and watch what the opponent does."
+        }
+      ]
+    },
+    {
+      "turn_number": 1,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "SUMMON",
+          "card_id": "tut_opponent_token",
+          "lane": 2,
+          "label": "Opponent summons a Thorn Sprout in the center lane."
+        },
+        {
+          "action": "END_TURN"
+        }
+      ]
+    },
+    {
+      "turn_number": 2,
+      "type": "player",
+      "player_hand_override": [
+        "tid_c_deep_one",
+        "tid_c_whirlpool_elemental",
+        "tid_c_tidal_scholar"
+      ],
+      "player_attunement_override": 5,
+      "player_beats": [
+        {
+          "id": "t2_summon",
+          "trigger_event": "SUMMON_CREATURE",
+          "highlight": ["artifact_shield", "hand_card_0"],
+          "popup": "Your Wand — the Ancestral Wand — lets you spend mana for bonus effects. Summon a creature to fill your ranks."
+        },
+        {
+          "id": "t2_end",
+          "trigger_event": "END_TURN",
+          "popup": "Your Aura and Wand work together. The Aura keeps your creatures alive; the Wand opens tactical options."
+        }
+      ]
+    },
+    {
+      "turn_number": 2,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "SUMMON",
+          "card_id": "tut_opponent_token",
+          "lane": 4,
+          "label": "Opponent places another Thorn Sprout."
+        },
+        {
+          "action": "END_TURN"
+        }
+      ]
+    },
+    {
+      "turn_number": 3,
+      "type": "player",
+      "player_attunement_override": 6,
+      "player_beats": [
+        {
+          "id": "t3_attack_all",
+          "trigger_event": "ATTACK_WITH_CREATURE",
+          "highlight": ["all_creatures_highlight"],
+          "popup": "Your Aura has kept your creatures alive across multiple turns. Attack with your strongest creature to clear the opponent's board."
+        },
+        {
+          "id": "t3_end",
+          "trigger_event": "END_TURN",
+          "popup": "You control the field. Your Aura rewards steady presence, your Wand rewards bold plays. Choose wisely each turn."
+        }
+      ]
+    },
+    {
+      "turn_number": 3,
+      "type": "opponent",
+      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_actions": [
+        {
+          "action": "END_TURN"
+        }
+      ]
+    }
+  ]
+}
