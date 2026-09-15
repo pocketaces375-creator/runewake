@@ -3037,6 +3037,7 @@ public partial class DuelScene : Control
 
             card.ScaleTo(cardHeight);
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
+            card.SetAttunementAvailable(currentAttune);
 
             // Playability: full brightness when affordable; desaturated when not
             card.SetPlayable(info.Cost <= currentAttune);
