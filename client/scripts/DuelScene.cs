@@ -3078,6 +3078,8 @@ public partial class DuelScene : Control
         if (_bot.IsThinking)
         {
             GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (bot thinking) lane={laneIndex} isEmpty={isEmpty}");
+            GD.Print($"[INPUT] DROPPED (lane tap) IsThinking=true");
+            ShowToast("Wait — your opponent is acting.", Gold);
             return;
         }
 
@@ -3164,7 +3166,7 @@ public partial class DuelScene : Control
     private void OnCardDropped(string cardId, int laneIndex)
     {
         GD.Print($"[INPUT] OnCardDropped card={cardId} lane={laneIndex}");
-        if (_bot.IsThinking) return;
+        if (_bot.IsThinking) { GD.Print($"[INPUT] DROPPED (drag drop) IsThinking=true"); return; }
         var result = _input.TryPlayCard(cardId, laneIndex);
         // The TryPlayCard emits PlayCardRequested, which is handled in OnPlayCardRequested
     }
@@ -3174,6 +3176,8 @@ public partial class DuelScene : Control
         if (_bot.IsThinking)
         {
             GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (bot thinking) card={card.CardName}");
+            GD.Print($"[INPUT] DROPPED (hand tap) IsThinking=true");
+            ShowToast("Wait — your opponent is acting.", Gold);
             return;
         }
 
@@ -3500,6 +3504,12 @@ public partial class DuelScene : Control
         t.Timeout += () =>
         {
             if (_gsm == null) return;
+
+        if (_gsm.CurrentPlayerIndex == 0 && _bot.IsThinking)
+        {
+            GD.Print($"[INPUT] DROPPED (stuck IsThinking on player turn)");
+            _bot.ForceIdle("player turn began with IsThinking stuck");
+        }
             if (_gsm.IsGameOver)
             {
                 var st = _gsm.State;
@@ -4448,6 +4458,12 @@ public partial class DuelScene : Control
     private void DispatchBotAction(GameAction action, int playerIndex)
     {
         if (_gsm == null) return;
+
+        if (_gsm.CurrentPlayerIndex == 0 && _bot.IsThinking)
+        {
+            GD.Print($"[INPUT] DROPPED (stuck IsThinking on player turn)");
+            _bot.ForceIdle("player turn began with IsThinking stuck");
+        }
         if (action is PlayCardAction play)
         {
             var player = _gsm.State.Players[playerIndex];

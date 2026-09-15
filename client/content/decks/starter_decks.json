@@ -128,13 +128,10 @@
         "tid_c_tidal_scholar",
         "tid_u_memory_tides",
         "vrd_c_wildwood_stalker",
-        "dwn_c_sunblade_recruit",
         "emb_c_forgeguard_berserker",
-        "hol_c_deathspeaker",
         "hol_c_gravewrit_thrall",
         "tid_c_deep_one",
         "tid_c_whirlpool_elemental",
-        "vrd_c_root_warden",
         "vrd_u_grove_healer",
         "emb_u_cinderstorm_elemental",
         "hol_u_crypt_crawler",
@@ -145,7 +142,10 @@
         "emb_u_lava_serpent",
         "tid_u_coral_guardian",
         "vrd_u_saphoof_charger",
-        "vrd_u_elder_treant"
+        "vrd_u_elder_treant",
+        "tid_c_brine_scout",
+        "tid_c_foam_runner",
+        "emb_c_scorch_imp"
       ]
     },
     {
