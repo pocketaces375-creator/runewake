@@ -93,6 +93,18 @@ public partial class ArtifactCardPlate : Control
             _artRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_artRect);
 
+            // D1: Bottom scrim — gradient from transparent to dark
+            _nameBandBg = new ColorRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                Color = new Color(0.039f, 0.039f, 0.031f, 0.0f) // transparent — we use modulate for gradient
+            };
+            _nameBandBg.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            _nameBandBg.Modulate = new Color(1, 1, 1, 0.0f);
+            // Note: full gradient requires a GradientTexture2D — for now dark scrim
+            _nameBandBg.Color = new Color(0.039f, 0.039f, 0.031f, 0.85f);
+            AddChild(_nameBandBg);
+
             // D1: Name band removed — bottom scrim replaces it
             // ── Name clipping container — prevents text from overflowing into charge rail ──
             _nameClipContainer = new Control
@@ -186,8 +198,7 @@ public partial class ArtifactCardPlate : Control
         // ── Name band at the BOTTOM of the full plate ──
         float railY = cardHeight - railH;
         float bandY = railY - nameBandH;
-        _nameBandBg.Position = new Vector2(0, bandY);
-        _nameBandBg.Size = new Vector2(cardWidth, nameBandH);
+        if (_nameBandBg != null) { _nameBandBg.Position = new Vector2(0, bandY); _nameBandBg.Size = new Vector2(cardWidth, nameBandH); }
 
         // ── Name label clip container — exact band height ──
         _nameClipContainer.Position = new Vector2(bandPx + bufferPx, bandY);
