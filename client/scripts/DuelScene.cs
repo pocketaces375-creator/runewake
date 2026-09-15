@@ -1161,6 +1161,7 @@ public partial class DuelScene : Control
 
         if (@event is InputEventMouseButton mouse && mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
         {
+            GD.Print($"[INPUT] background tap at ({mouse.Position.X:F0},{mouse.Position.Y:F0}) — deselect");
             if (_input.State != InputController.InputState.Idle)
             {
                 _input.CancelSelection();
@@ -3005,6 +3006,8 @@ public partial class DuelScene : Control
         }
 
         GD.Print($"[DUEL_TRACE] OnLaneTapped: lane={laneIndex} isEmpty={isEmpty} inputState={_input.State}");
+        string selId = _input.State == InputController.InputState.SelectingLane ? _input.SelectedCardId ?? "none" : "none";
+        GD.Print($"[INPUT] OnLaneTapped lane={laneIndex} isEmpty={isEmpty} selected={selId}");
 
         // Dismiss card detail popup on any lane interaction
         if (_cardDetailVisible)
@@ -3084,6 +3087,7 @@ public partial class DuelScene : Control
 
     private void OnCardDropped(string cardId, int laneIndex)
     {
+        GD.Print($"[INPUT] OnCardDropped card={cardId} lane={laneIndex}");
         if (_bot.IsThinking) return;
         var result = _input.TryPlayCard(cardId, laneIndex);
         // The TryPlayCard emits PlayCardRequested, which is handled in OnPlayCardRequested
@@ -3098,6 +3102,7 @@ public partial class DuelScene : Control
         }
 
         GD.Print($"[DUEL_TRACE] OnHandCardPressed: card={card.CardName} state={_input.State} selectedId={_input.SelectedCardId}");
+        GD.Print($"[INPUT] select {card.CardId}");
 
         // Tap-again-to-deselect: if this card is already selected, cancel
         if (_input.State == InputController.InputState.SelectingLane

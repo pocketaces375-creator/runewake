@@ -327,6 +327,11 @@ public partial class HandCard : PanelContainer
             {
                 EmitSignal(SignalName.Pressed);
                 GetViewport().SetInputAsHandled();
+                GD.Print($"[INPUT] hand release card={CardName} handled=true");
+            }
+            else
+            {
+                GD.Print($"[INPUT] hand release card={CardName} handled=false (drag)");
             }
             _dragStarted = false;
             return;

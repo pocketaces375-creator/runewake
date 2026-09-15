@@ -517,6 +517,7 @@ public partial class LaneSlot : PanelContainer
         if (accepted)
         {
             GD.Print($"[LANESLOT_TOUCH] _GuiInput accepted: event={@event.GetType().Name}, lane={LaneIndex}, empty={_state == NodeState.Empty}");
+            GD.Print($"[INPUT] lane tap row={(LaneIndex < 5 ? 0 : 1)} idx={LaneIndex % 5} empty={_state == NodeState.Empty}");
 
             if (_state == NodeState.Empty)
             {
