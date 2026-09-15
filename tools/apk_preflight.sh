@@ -223,6 +223,19 @@ else
     report FAIL "Baked textures missing from APK ($TOTAL_CTEX total .ctex, $CARDS_BAKED_IMPORTS .import)"
 fi
 
+# ─── GATE 10: UX gate ──────────────────────────────────────────────────
+echo ""
+echo "[10/10] UX gate"
+if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
+    echo "  ⏭️ Skipped"
+else
+    if timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 | grep -q "FAIL"; then
+        report FAIL "UX walkthrough failed"
+    else
+        report PASS "UX walkthrough passed"
+    fi
+fi
+
 # ─── Summary ───────────────────────────────────────────────────────────────
 echo ""
 echo "═══════════════════════════════════════════════════"
@@ -232,17 +245,6 @@ echo "════════════════════════�
 if [ "$FAIL" -gt 0 ]; then
     exit 1
 fi
-exit # ─── GATE 10: UX gate ──
-echo ""
-echo "[10/10] UX gate"
-if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
-    echo "  ⏭️ Skiped"
-else
-    if timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 | grep -q "FAIL"; then
-        report FAIL "UX walkthrough failed"
-    else
-        report PASS "UX walkthrough passed"
-    fi
-fi
+
 
 0
