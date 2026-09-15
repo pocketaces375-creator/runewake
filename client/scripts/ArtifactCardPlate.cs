@@ -496,6 +496,9 @@ public partial class ArtifactCardPlate : Control
     {
         if (_artRect == null) return;
 
+        // B1: already loaded this art — nothing to do
+        if (artId == _loadedArtId && _artRect.Texture != null) return;
+
         // Try .webp first, then .png
         Texture2D? LoadTexture(string ext)
         {
@@ -512,10 +515,18 @@ public partial class ArtifactCardPlate : Control
             _artRect.Visible = true;
             if (_artBg != null)
                 _artBg.Visible = false;
+            _loadedArtId = artId;
             return;
         }
 
-        // No art file — show dark parchment background
+        // B2: failure branch — keep existing art if we had one, don't flash to parchment
+        if (_artRect.Texture != null)
+        {
+            GD.PrintErr($"[ARTPLATE] reload failed for '{artId}' (had '{_loadedArtId}') — keeping existing art");
+            return;
+        }
+
+        // No art file and no previous art — show dark parchment background
         _artRect.Texture = null;
         _artRect.Visible = false;
         if (_artBg != null)
