@@ -215,6 +215,20 @@ public partial class SettingsScene : Control
 
         btnHbox.AddChild(new Control { CustomMinimumSize = new Vector2(16, 0) });
 
+        // TASK-TUTORIAL-WALKTHROUGH-2 C2: Replay tutorial
+        var replayBtn = MakeStoneButton("Replay Tutorial");
+        replayBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
+        replayBtn.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            CampaignContext.TutorialScriptId = "battlemage_intro";
+            var profile = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null;
+            if (profile != null)
+                profile.TutorialDone = false;
+            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        };
+        btnHbox.AddChild(replayBtn);
+
         _backBtn = MakeStoneButton("Back");
         _backBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
         _backBtn.Pressed += () =>
