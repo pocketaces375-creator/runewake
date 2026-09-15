@@ -1188,15 +1188,16 @@ public partial class DuelScene : Control
         float marginX = 12f * scale;
 
         _turnLabel.Text = "Turn 1";
-        _turnLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(20 * scale));
-        _turnLabel.AddThemeColorOverride("font_color", Ember);
-        ApplyHeaderFont(_turnLabel, Mathf.RoundToInt(20 * scale));
-        _turnLabel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
-        _turnLabel.Position = new Vector2(vw / 2f - 60f, 46f * scale + 8f * scale);
-        _turnLabel.Size = new Vector2(120f, 30f * scale);
+        _turnLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(22 * scale));
+        _turnLabel.AddThemeColorOverride("font_color", Gold);
+        ApplyHeaderFont(_turnLabel, Mathf.RoundToInt(22 * scale));
+        _turnLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+        _turnLabel.Position = new Vector2(vw - 2f * _artFrameW - 8f * scale - 12f * scale, 462f * scale);
+        _turnLabel.Size = new Vector2(322f * scale, 30f * scale);
+        _turnLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
         float artX = vw - 2 * _artFrameW - gap - marginX;
-        float artY = 10f * scale;
+        float artY = 16f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -1355,7 +1356,7 @@ public partial class DuelScene : Control
         float marginBottom = 10f * scale;
 
         float artX = vw - 2 * _artFrameW - gap - marginX;
-        float artY = 660f * scale;
+        float artY = 688f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -1479,14 +1480,14 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float scale = vh / 1080f;
 
-        float colX = vw - 210f * scale - 14f * scale;
-        float colW = 210f * scale;
+        float colX = vw - 344f * scale;
+        float colW = 322f * scale;
         int nameFont = Mathf.RoundToInt(15 * scale);
         int labelFont = Mathf.RoundToInt(13 * scale);
         int valFont = Mathf.RoundToInt(16 * scale);
 
         // ── Enemy: nameplate pill ──
-        float enY = 306f * scale;
+        float enY = 270f * scale;
         var enp = new PanelContainer
         {
             Name = "EnemyNameplate", MouseFilter = MouseFilterEnum.Ignore,
@@ -1532,7 +1533,7 @@ public partial class DuelScene : Control
         enh.AddChild(_enemyVigorValue);
 
         // ── Enemy: DECK/BARROW panel ──
-        float edY = 346f * scale;
+        float edY = 312f * scale;
         var edp = new PanelContainer
         {
             Name = "EnemyDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
@@ -1582,7 +1583,7 @@ public partial class DuelScene : Control
         edr.AddChild(bl2);
 
         // ── Player: nameplate pill ──
-        float pnY = 566f * scale;
+        float pnY = 600f * scale;
         var pnp = new PanelContainer
         {
             Name = "PlayerNameplate", MouseFilter = MouseFilterEnum.Ignore,
@@ -1628,7 +1629,7 @@ public partial class DuelScene : Control
         _playerShrineVigorLabel = _playerVigorValue;
 
         // ── Player: DECK/BARROW panel ──
-        float pdY = 606f * scale;
+        float pdY = 642f * scale;
         var pdp = new PanelContainer
         {
             Name = "PlayerDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
@@ -1921,6 +1922,7 @@ public partial class DuelScene : Control
         // Board cards ~200px wide, 7% band ~14px. Hand cards 173×253 at design scale.
         float reference = 1080f;
         float scale = viewportHeight / reference;
+        float vw = GetViewportRect().Size.X;
 
         // BOARD-MATCH-1: Hand cards distinctly larger than board cards
         // Board = 292px tall, Hand = 340px tall at design scale
@@ -1931,8 +1933,8 @@ public partial class DuelScene : Control
         // R2 variant: increase card sizes by ~10% for wider art share
         if (CampaignContext.R2CardScale)
         {
-            _handCardHeight = Mathf.Max(140f, 350f * scale);
-            _boardCardHeight = Mathf.Max(70f, 360f * scale);
+            _handCardHeight = Mathf.Max(140f, 310f * scale);
+                    _boardCardHeight = Mathf.Max(70f, 300f * scale);
         }
 
         // BOARD-MATCH-1: Hand tray bottom-edge tucked into frame
@@ -1951,12 +1953,12 @@ public partial class DuelScene : Control
         // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
         float safeMargin = vh - safeAreaBottom;
         float bottomGap = Mathf.Max(6f, safeMargin + 8f) + 34f;
-        _handArea.OffsetTop = -(_handCardHeight + 102f * scale + bottomGap);
+        _handArea.OffsetTop = -(_handCardHeight + 54f * scale + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
-        float marginLeft = 80f * scale;
+        float marginLeft = 476f * scale;
         _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
-        _handArea.AddThemeConstantOverride("margin_right", 80);
+        _handArea.AddThemeConstantOverride("margin_right", Mathf.FloorToInt(vw - 1841f * scale));
 
         GD.Print($"[DUEL] viewport height {viewportHeight:F0} → hand {_handCardHeight:F0}px, board {_boardCardHeight:F0}px");
     }
@@ -2001,28 +2003,25 @@ public partial class DuelScene : Control
         float vh = GetViewportRect().Size.Y;
         // DUELRES-1: Design resolution 2316×1080. Reference = 1080.
         float scale = vh / 1080f;
-        float slotH = 330f * scale;
+        float slotH = 300f * scale;
         float slotW = slotH * (104f / 152f);
 
         // R2 variant: increase slot sizes
         if (CampaignContext.R2CardScale)
         {
-            slotH = 360f * scale;
+            slotH = 330f * scale;
             slotW = slotH * (104f / 152f);
         }
 
-        // TASK-HAND-AND-TUTORIAL-1 A3: lanes centred between x=360*scale and vw-250*scale
-        float laneLeft = 360f * scale;
-        float laneRight = vw - 250f * scale;
-        float laneBand = laneRight - laneLeft;
-        float gap   = (laneBand - 5f * slotW) / 4f;
-        float pitch = slotW + gap;
-        float centerX = laneLeft + laneBand / 2f;
+        // TASK-DUEL-LAYOUT-TABLE-1: Lane band 476..1841, pitch 290
+        float laneLeft = 476f * scale;
+        float pitch = 290f * scale;
+        float centerX = laneLeft + 2f * pitch;
 
         // DUELRES-1: Board slots at design scale, spread rows
         float boardTopOffset = 123f;
-        float enemyBaseY  =  96f * scale - boardTopOffset;
-        float playerBaseY = 440f * scale - boardTopOffset;
+        float enemyBaseY  = 100f * scale - boardTopOffset;
+        float playerBaseY = 416f * scale - boardTopOffset;
 
         for (int i = 0; i < 5; i++)
         {
@@ -2782,22 +2781,22 @@ public partial class DuelScene : Control
             GD.Print($"[ENEMYHAND] n={n}");
             if (_enemyHandRow != null)
             {
-                // TASK-FIELD-BACK-1 C1: Enemy hand fans as an arc (centre highest, outer droop)
-                float stripH   = 88f * _scale;                       // _enemyHandRow.Size.Y; ClipContents stays true
+                // TASK-DUEL-LAYOUT-TABLE-1 B4: Enemy hand fans ABOVE (converge upward, outer cards sit higher)
+                float stripH   = 90f * _scale;                       // strip height per table
                 float backH    = 140f * _scale;
                 float backW = backH * (416f / 608f);
                 float R        = 700f * _scale;
-                float spreadDeg = Mathf.Min(n * 6f, 40f);            // degrees
-                float peek     = 40f * _scale;                       // visible height of the CENTRE card
-                float pivotX   = _vw / 2f;
-                float pivotY   = (peek - backH / 2f) + R;
+                float spreadDeg = Mathf.Min(n * 4f, 28f);            // narrower spread for above
+                float peek     = 70f * _scale;                       // visible height of CENTRE card
+                float pivotX   = 1158f * _scale;
+                float pivotY   = (peek - backH / 2f) - R;            // above the strip (negative relative)
 
                 for (int i = 0; i < n; i++)
                 {
                     float angleDeg = (n <= 1f) ? 0f : -spreadDeg / 2f + i * spreadDeg / Mathf.Max(1f, n - 1f);
                     float a = Mathf.DegToRad(angleDeg);
                     float cx = pivotX + Mathf.Sin(a) * R;
-                    float cy = pivotY - Mathf.Cos(a) * R;
+                    float cy = pivotY + Mathf.Cos(a) * R;            // +Cos because pivot is above
 
                     var back = new TextureRect
                     {
@@ -2817,16 +2816,16 @@ public partial class DuelScene : Control
                     back.Position = new Vector2(cx - backW / 2f, cy - backH / 2f);
                     back.Size = new Vector2(backW, backH);
                     back.PivotOffset = new Vector2(backW / 2f, backH / 2f);
-                    back.Rotation = a;
+                    back.Rotation = -a;                               // rotated opposite direction
                     back.ZIndex = i;
                     _enemyHandBacks.Add(back);
                 }
 
-                // C2: fan geometry print
-                float centreY = pivotY - Mathf.Cos(0f) * R;
+                // B4: fan geometry print — outer_bottom must be LESS than centre_bottom
+                float centreY = pivotY + Mathf.Cos(0f) * R;
                 float outerA = Mathf.DegToRad(spreadDeg / 2f);
-                float outerY = pivotY - Mathf.Cos(outerA) * R;
-                GD.Print($"[ENEMYHAND] n={n} spread={spreadDeg:F0} centre_y={centreY:F0} outer_y={outerY:F0}");
+                float outerY = pivotY + Mathf.Cos(outerA) * R;
+                GD.Print($"[ENEMYHAND] n={n} spread={spreadDeg:F0} centre_bottom={centreY:F0} outer_bottom={outerY:F0}");
 
                 // count numeral, placed just right of the rightmost card
                 float lastAngleRad = (n <= 1f) ? 0f : Mathf.DegToRad(spreadDeg / 2f);
@@ -2919,8 +2918,8 @@ public partial class DuelScene : Control
         // Start with base card height from ScaleCardSizes
         float cardHeight = _handCardHeight;
         float cardWidth = cardHeight * aspect;
-        float RArc = 1400f * scaleRH;
-        float spreadDeg = Mathf.Min(n * 5.0f, 44f);
+        float RArc = 900f * scaleRH;
+        float spreadDeg = Mathf.Min(n * 5f, 40f);
         float availW = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
 
         // If arc too wide, shrink spreadDeg; if still too wide, shrink RArc

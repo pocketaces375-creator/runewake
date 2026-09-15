@@ -24,21 +24,18 @@ public partial class RulesSlab : Control
     private static GradientTexture2D? _parchmentGradient;
 
     // Fixed geometry — identical for every card
-    private const float LeftFrac = 0.02f;
-    private const float TopFrac = 0.27f;
-    private const float WidthFrac = 0.34f;
-    private const float HeightFrac = 0.40f;
+    
     private const float InnerPadTop = 26f;
     private const float InnerPadSides = 36f;
     private const float InnerPadBottom = 28f;
 
     // Fixed typography at 1080p reference, scaled by vh/1080
-    private const float NameSize1080 = 46f;
-    private const float BodySize1080 = 37f;
-    private const float KwSize1080 = 30f;
-    private const float FlavorSize1080 = 31f;
-    private const float FlavorMin1080 = 26f;
-    private const float KwMin1080 = 24f;
+    private const float NameSize1080 = 34f;
+    private const float BodySize1080 = 27f;
+    private const float KwSize1080 = 22f;
+    private const float FlavorSize1080 = 22f;
+    private const float FlavorMin1080 = 18f;
+    private const float KwMin1080 = 16f;
     private const float RefVh = 1080f;
 
     private static readonly Color BorderColor = new Color(107f / 255f, 86f / 255f, 54f / 255f, 1f);
@@ -185,10 +182,10 @@ public partial class RulesSlab : Control
         if (card == null) { Hide(); return; }
         _vpSize = viewportSize;
 
-        float slabX = viewportSize.X * LeftFrac;
-        float slabY = viewportSize.Y * TopFrac;
-        float slabW = viewportSize.X * WidthFrac;
-        float slabH = viewportSize.Y * HeightFrac;
+        float slabX = 24f * (viewportSize.Y / RefVh);
+        float slabY = 300f * (viewportSize.Y / RefVh);
+        float slabW = 420f * (viewportSize.Y / RefVh);
+        float slabH = 440f * (viewportSize.Y / RefVh);
         float padTop = ScalePx(InnerPadTop);
         float padSide = ScalePx(InnerPadSides);
         float contentW = slabW - 2 * padSide - 8f;
