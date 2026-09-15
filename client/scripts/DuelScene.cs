@@ -1280,14 +1280,15 @@ public partial class DuelScene : Control
         float marginX = 12f * scale;
         float marginBottom = 10f * scale;
 
-        float artY = vh - _artFrameH - marginBottom;
+        float artX = vw - 2 * _artFrameW - gap - marginX;
+        float artY = 660f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
-        artifactRow.Position = new Vector2(marginX, artY);
+        artifactRow.Position = new Vector2(artX, artY);
         AddChild(artifactRow);
 
         for (int i = 0; i < 2; i++)
@@ -1295,7 +1296,7 @@ public partial class DuelScene : Control
 
 
         _playerGroupRect = new Control { Name = "PlayerGroupRect", MouseFilter = MouseFilterEnum.Ignore };
-        _playerGroupRect.Position = new Vector2(marginX, artY);
+        _playerGroupRect.Position = new Vector2(artX, artY);
         _playerGroupRect.Size = new Vector2(2 * _artFrameW + gap + marginX, _artFrameH);
         AddChild(_playerGroupRect);
 
