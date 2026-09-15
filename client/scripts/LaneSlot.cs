@@ -264,6 +264,16 @@ public partial class LaneSlot : PanelContainer
         Modulate = new Color(1, 1, 0.8f, 1);
     }
 
+    public void HighlightGoldPulse()
+    {
+        _faceLabel.Visible = false;
+        var tween = CreateTween().SetLoops();
+        tween.TweenProperty(this, "modulate", new Color(1f, 0.85f, 0.3f, 1), 0.6f)
+            .SetEase(Tween.EaseType.InOut).SetTrans(Tween.TransitionType.Sine);
+        tween.TweenProperty(this, "modulate", new Color(1, 1, 0.8f, 1), 0.6f)
+            .SetEase(Tween.EaseType.InOut).SetTrans(Tween.TransitionType.Sine);
+    }
+
     /// <summary>
     /// Show that this empty lane is a valid face-attack target.
     /// </summary>

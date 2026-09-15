@@ -187,8 +187,11 @@ public partial class HandCard : PanelContainer
             AddThemeStyleboxOverride("panel", _selectedStyle);
             ZIndex = 10;
             var tween = CreateTween();
-            tween.TweenProperty(this, "position:y", -20f, 0.12f)
+            float lift = 24f * (GetViewportRect().Size.Y / 1080f);
+            tween.TweenProperty(this, "position:y", -lift, 0.12f)
                 .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+            tween.Parallel();
+            tween.TweenProperty(this, "scale", new Vector2(1.08f, 1.08f), 0.12f);
             tween.Parallel();
             tween.TweenProperty(this, "modulate", new Color(1.15f, 1.1f, 1.0f, 1), 0.12f);
         }
@@ -207,6 +210,8 @@ public partial class HandCard : PanelContainer
             var tween = CreateTween();
             tween.TweenProperty(this, "position:y", 0f, 0.1f)
                 .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+            tween.Parallel();
+            tween.TweenProperty(this, "scale", Vector2.One, 0.1f);
             tween.Parallel();
             tween.TweenProperty(this, "modulate", Colors.White, 0.1f);
             tween.TweenCallback(Callable.From(() => ZIndex = 1));
@@ -374,10 +379,11 @@ public partial class HandCard : PanelContainer
     public override Variant _GetDragData(Vector2 atPosition)
     {
         _dragStarted = true;
-        var preview = new Label();
-        preview.Text = CardName;
-        preview.Size = new Vector2(80, 24);
-        preview.Modulate = new Color(1, 1, 1, 0.7f);
+        var preview = new TextureRect();
+        preview.Texture = _artRect.Texture;
+        preview.Size = new Vector2(Size.X * 0.9f, Size.Y * 0.9f);
+        preview.Modulate = new Color(1, 1, 1, 0.85f);
+        preview.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
         SetDragPreview(preview);
 
         var data = new Godot.Collections.Dictionary

@@ -26,7 +26,6 @@ public partial class ArtifactCardPlate : Control
     private ColorRect? _artBg;           // BOARD-MATCH-2: art background (parchment when no texture)
     private TextureRect? _artRect;       // BOARD-MATCH-2: artifact art thumbnail
     private string _loadedArtId = "";
-    private Label? _artifactTag;
     private Label? _cardName;
     private Label? _chargeDisplay;
     /// <summary>Container for name label that clips to name band height.</summary>
@@ -45,7 +44,7 @@ public partial class ArtifactCardPlate : Control
 
     // Use same proportions as CardPlate for consistency
     private const float NameBandFraction = 0.20f;
-    private const float ChargeRailFraction = 0.12f;
+    private const float ChargeRailFraction = 0f; // B2: removed, pips in name band
     private const float TagHeightFraction = 0.08f;
 
     /// <summary>
@@ -73,7 +72,7 @@ public partial class ArtifactCardPlate : Control
         _showCharges = maxCharges > 0;
 
         // Lazy init
-        if (_artifactTag == null)
+        if (_nameBandBg == null)
         {
             // ── Art artwork background (parchment fill when no art texture) ──
             _artBg = new ColorRect
@@ -94,20 +93,6 @@ public partial class ArtifactCardPlate : Control
             _artRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_artRect);
 
-            // ── Artifact type tag (top of card, inside root-bound rim) ──
-            // TASK-ARTIFACT-TRAY-1: empty tag is a deliberate edge-outline — no placeholder word
-            _artifactTag = new Label
-            {
-                Text = "",
-                MouseFilter = MouseFilterEnum.Ignore,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            _artifactTag.AddThemeColorOverride("font_color", ArtifactTagColor);
-            _artifactTag.AddThemeConstantOverride("outline_size", 1);
-            _artifactTag.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.6f));
-            AddChild(_artifactTag);
-
             // ── Name band background ──
             _nameBandBg = new ColorRect
             {
@@ -115,14 +100,6 @@ public partial class ArtifactCardPlate : Control
                 Color = FrameNameBand
             };
             AddChild(_nameBandBg);
-
-            // ── Charge rail background ──
-            _chargeRailBg = new ColorRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                Color = FrameStatRail
-            };
-            AddChild(_chargeRailBg);
 
             // ── Name clipping container — prevents text from overflowing into charge rail ──
             _nameClipContainer = new Control
@@ -184,8 +161,8 @@ public partial class ArtifactCardPlate : Control
         // Reserve the charge rail FIRST; the name band grows into the remainder when
         // a two-line name needs more height (never touches the reserved rail).
 
-        float tagH = cardHeight * TagHeightFraction;
-        float railH = cardHeight * ChargeRailFraction;
+        float tagH = 0f; // B1: removed
+        float railH = 0f; // B2: removed
         float baseBandH = cardHeight * NameBandFraction;
         // Rail + tag are reserved; band may grow between them (leave 1px margins).
         float maxBandH = Mathf.Max(baseBandH, cardHeight - railH - tagH - 2f);
@@ -208,10 +185,10 @@ public partial class ArtifactCardPlate : Control
         // B1: plate fills the full cardHeight — no self-resize
 
         // ── ARTIFACT tag across the top edge ──
-        _artifactTag.Position = new Vector2(bandPx, 0);
-        _artifactTag.Size = new Vector2(cardWidth - bandPx * 2, tagH);
-        int tagFontSize = Mathf.Max(7, Mathf.RoundToInt(tagH * 0.60f));
-        _artifactTag.AddThemeFontSizeOverride("font_size", tagFontSize);
+
+        
+        
+        
 
         // ── Name band at the BOTTOM of the full plate ──
         float railY = cardHeight - railH;
@@ -227,15 +204,13 @@ public partial class ArtifactCardPlate : Control
         _cardName.MaxLinesVisible = fit.LineCount;
 
         // ── Charge rail (bottom section of plate) ──
-        _chargeRailBg.Position = new Vector2(0, nameBandH);
-        _chargeRailBg.Size = new Vector2(cardWidth, railH);
 
         // ── Charge pips ──
         float pipW = railH * 0.6f;
-        float pipH = railH * 0.6f;
-        float pipY = nameBandH + (railH - pipH) / 2f;
-        _chargeDisplay.Position = new Vector2(bandPx + 4, pipY);
-        _chargeDisplay.Size = new Vector2(cardWidth - bandPx * 2 - 8, pipH);
+        float pipH = 14f;
+        float pipY = bandY + (nameBandH - pipH) / 2f;
+        _chargeDisplay.Position = new Vector2(cardWidth - 60f - 12f, pipY);
+        _chargeDisplay.Size = new Vector2(60f, pipH);
         int chargeFontSize = Mathf.Max(8, Mathf.RoundToInt(pipH * 0.7f));
         _chargeDisplay.AddThemeFontSizeOverride("font_size", chargeFontSize);
         _chargeDisplay.Visible = _showCharges;

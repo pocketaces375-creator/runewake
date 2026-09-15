@@ -250,9 +250,14 @@ public partial class RulesSlab : Control
         Position = new Vector2(slabX, slabY);
         Size = new Vector2(slabW, slabH);
         CustomMinimumSize = new Vector2(slabW, slabH);
-        // C2: height fits content, clamped
-        float contentH = _vbox.GetCombinedMinimumSize().Y;
-        float minH = 260f * (viewportSize.Y / RefVh);
+        // C1: height fits content, measured per-line
+        float H(Label l) => l.Visible ? l.GetLineCount() * l.GetLineHeight() : 0f;
+        float ruleH = _rulesLabel.Visible ? _rulesLabel.GetLineHeight() * 0.5f : 0f;
+        float kwGap = _keywordsLabel.Visible ? 4f : 0f;
+        float flavorRuleH = _flavorLabel.Visible ? _rulesLabel.GetLineHeight() * 0.5f : 0f;
+        float flavorGap = _flavorLabel.Visible ? 4f : 0f;
+        float contentH = H(_nameLabel) + ruleH + H(_rulesLabel) + kwGap + H(_keywordsLabel) + flavorRuleH + flavorGap + H(_flavorLabel);
+        float minH = 160f * (viewportSize.Y / RefVh);
         float actualH = Mathf.Clamp(ScalePx(InnerPadTop) + contentH + ScalePx(InnerPadBottom), minH, slabH);
         Size = new Vector2(slabW, actualH);
         CustomMinimumSize = new Vector2(slabW, actualH);

@@ -3376,7 +3376,7 @@ public partial class DuelScene : Control
                     var lanes = _gsm.GetLanes(0);
                     var info = lanes[slot.LaneIndex];
                     if (info.IsEmpty)
-                        slot.Highlight();
+                        slot.HighlightGoldPulse();
                     else
                         slot.Unhighlight();
                 }
@@ -3441,7 +3441,7 @@ public partial class DuelScene : Control
                     if (info.IsEmpty)
                         slot.Unhighlight();
                     else
-                        slot.Highlight(); // still a valid attacker option
+                        slot.HighlightGoldPulse(); // still a valid attacker option
                 }
             }
         }
