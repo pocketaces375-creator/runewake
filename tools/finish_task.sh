@@ -329,6 +329,15 @@ else
   echo "  Skipping (no client/engine changes this run, or tools/visual_gate.py not yet installed)"
 fi
 
+# ── Step 6d: layout_lint — validate geometry against DUEL_LAYOUT.md ──
+echo ""
+echo "── Step 6d: layout_lint ──"
+if [[ -f "${PROJECT_DIR}/artifacts/captures/duel_test.meta.json" ]]; then
+  python3 "${PROJECT_DIR}/tools/layout_lint.py" 2>&1 && ok "layout_lint passed" || fail "layout_lint failed"
+else
+  warn "No duel_test.meta.json — layout_lint skipped"
+fi
+
 echo ""
 echo "── Step 7: Input/loop smoke tests ──"
 if [[ "${CAPTURES_REGENERATED:-0}" -ne 1 ]]; then
