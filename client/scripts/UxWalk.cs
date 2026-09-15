@@ -2,7 +2,6 @@ using Godot;
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace Runewake.Client;
 
@@ -26,14 +25,12 @@ public partial class UxWalk : Node
         System.IO.Directory.CreateDirectory(_captureDir);
         GD.Print($"{T} Starting UX walkthrough, captures → {_captureDir}");
 
-        var t = new Godot.Timer { OneShot = true, WaitTime = 2f };
+        var t = new Godot.Timer { OneShot = true, WaitTime = 1f };
         t.Timeout += Step01;
         AddChild(t); t.Start();
     }
 
-    void Step01()
-    {
-        _step = 1;
+    void Step01() { _step = 1; GD.Print($"{T} BEGIN s01");
         var p = _gsm.GetPlayerHud(0);
         Check("player att>0", p.Attunement > 0);
         Check("player vig>0", p.Vigor > 0);
@@ -45,9 +42,7 @@ public partial class UxWalk : Node
         Next(Step02);
     }
 
-    void Step02()
-    {
-        _step = 2;
+    void Step02() { _step = 2; GD.Print($"{T} BEGIN s02");
         var hand = _gsm.GetHand(0);
         int att = _gsm.GetPlayerHud(0).Attunement;
         var card = hand.FirstOrDefault(h => h.Cost <= att);
@@ -63,9 +58,7 @@ public partial class UxWalk : Node
         Next(Step03);
     }
 
-    void Step03()
-    {
-        _step = 3;
+    void Step03() { _step = 3; GD.Print($"{T} BEGIN s03");
         int bc = _gsm.GetHand(0).Count;
         int ba = _gsm.GetPlayerHud(0).Attunement;
         _d.UxTapLane(0, true);
@@ -82,9 +75,7 @@ public partial class UxWalk : Node
         AddChild(t); t.Start();
     }
 
-    void Step04()
-    {
-        _step = 4;
+    void Step04() { _step = 4; GD.Print($"{T} BEGIN s04");
         int att = _gsm.GetPlayerHud(0).Attunement;
         var hand = _gsm.GetHand(0);
         var unaff = hand.FirstOrDefault(h => h.Cost > att);
@@ -98,9 +89,7 @@ public partial class UxWalk : Node
         Next(Step05);
     }
 
-    void Step05()
-    {
-        _step = 5;
+    void Step05() { _step = 5; GD.Print($"{T} BEGIN s05");
         var hand = _gsm.GetHand(0);
         if (hand.Count == 0) { Fail("no cards"); Snap(); Next(Step06); return; }
         var card = hand[0];
@@ -119,9 +108,7 @@ public partial class UxWalk : Node
         AddChild(t); t.Start();
     }
 
-    void Step06()
-    {
-        _step = 6;
+    void Step06() { _step = 6; GD.Print($"{T} BEGIN s06");
         var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == _selId);
         if (hc != null) hc.LongPressEnded?.Invoke();
         var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
@@ -135,9 +122,7 @@ public partial class UxWalk : Node
         AddChild(t); t.Start();
     }
 
-    void Step07()
-    {
-        _step = 7;
+    void Step07() { _step = 7; GD.Print($"{T} BEGIN s07");
         _d.UxEndTurn();
         var t = new Godot.Timer { OneShot = true, WaitTime = 6f };
         t.Timeout += () =>
@@ -150,9 +135,7 @@ public partial class UxWalk : Node
         AddChild(t); t.Start();
     }
 
-    void Step08()
-    {
-        _step = 8;
+    void Step08() { _step = 8; GD.Print($"{T} BEGIN s08");
         int att = _gsm.GetPlayerHud(0).Attunement;
         var hand = _gsm.GetHand(0);
         var card = hand.FirstOrDefault(h => h.Cost <= att);
@@ -161,7 +144,7 @@ public partial class UxWalk : Node
         if (hc == null) { Fail("card node null"); Snap(); Next(Step10); return; }
         _d.UxSelectCard(hc);
         _selId = card.CardDefId;
-        Snap(); // capture selection
+        Snap();
         var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
         t.Timeout += () =>
         {
@@ -179,12 +162,8 @@ public partial class UxWalk : Node
         AddChild(t); t.Start();
     }
 
-    void Step09()
-    {
-        _step = 9;
-        GD.Print($"{T} s09: ATTACK — end turn and observe bot taking damage from board");
-        // Skip direct combat simulation (too complex for headless)
-        // Instead verify the board state is valid and advance
+    void Step09() { _step = 9; GD.Print($"{T} BEGIN s09");
+        GD.Print($"{T} s09: board state check");
         int p0Board = _gsm.GetLanes(0).Count(l => !l.IsEmpty);
         Check("player has creatures on board", p0Board > 0);
         Check("player vigor positive", _gsm.GetPlayerHud(0).Vigor > 0);
@@ -193,9 +172,7 @@ public partial class UxWalk : Node
         Next(Step10);
     }
 
-    void Step10()
-    {
-        _step = 10;
+    void Step10() { _step = 10; GD.Print($"{T} BEGIN s10");
         for (int s = 0; s <= 1; s++)
         {
             var lanes = _gsm.GetLanes(s);
@@ -213,17 +190,10 @@ public partial class UxWalk : Node
         Next(Step11);
     }
 
-    void Step11()
-    {
-        _step = 11;
-        GD.Print($"{T} s11: LABEL SCAN — walking entire scene tree for text overflow");
-
+    void Step11() { _step = 11; GD.Print($"{T} BEGIN s11");
         var vp = GetViewport().GetVisibleRect().Size;
-    float vw = vp.X, vh = vp.Y;
-
-        // Deep scan for visible labels
+        float vw = vp.X, vh = vp.Y;
         WalkLabels(_d, vw, vh);
-
         Snap();
         Next(Step12);
     }
@@ -231,7 +201,6 @@ public partial class UxWalk : Node
     void WalkLabels(Node node, float vw, float vh, int depth = 0)
     {
         if (depth > 50) return;
-
         if (node is Label label && label.Visible)
         {
             string path = node.GetPath();
@@ -240,22 +209,15 @@ public partial class UxWalk : Node
             bool overflow = textSize.X > rectW + 1f && rectW > 0
                 && label.AutowrapMode != TextServer.AutowrapMode.Word
                 && label.AutowrapMode != TextServer.AutowrapMode.Arbitrary;
-
             if (overflow)
             {
                 float delta = textSize.X - rectW;
                 Fail($"text overflow at {path} by {delta:F0}px (textW={textSize.X:F0} rectW={rectW:F0})");
             }
-
-            // Check inside viewport
-            var pos = label.Position;
             var global = label.GlobalPosition;
             if (global.X + label.Size.X > vw + 2f || global.Y + label.Size.Y > vh + 2f)
-            {
                 Fail($"label outside viewport at {path} (pos={global} size={label.Size})");
-            }
         }
-
         foreach (var child in node.GetChildren())
         {
             if (child is Node n)
@@ -263,13 +225,11 @@ public partial class UxWalk : Node
         }
     }
 
-    void Step12()
-    {
-        _step = 12;
+    void Step12() { _step = 12; GD.Print($"{T} BEGIN s12");
+        GD.Print($"[UXWALK] COMPLETE steps=12 pass={_pass} fail={_fail}");
         GD.Print($"\n{T} === WALKTHROUGH DONE === {_pass} pass, {_fail} fail");
         if (_fail > 0)
             foreach (var f in _fails) GD.PrintErr(f);
-
         Snap();
         var qt = new Godot.Timer { OneShot = true, WaitTime = 0.1f };
         qt.Timeout += () => GetTree().Quit(_fail > 0 ? 1 : 0);
@@ -301,21 +261,19 @@ public partial class UxWalk : Node
         else
             GD.PrintErr($"{T} FAIL: SavePng returned {err} for s{_step:D2}");
 
-        // Write layout.json
-        var layout = new Dictionary<string, Godot.Collections.Dictionary>();
+        var layout = new Godot.Collections.Dictionary();
         try { WriteLayout(layout); }
         catch (System.Exception ex) { GD.PrintErr($"{T} layout.json error: {ex.Message}"); }
-
-        string json = System.Text.Json.JsonSerializer.Serialize(layout,
-            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        string json = Json.Stringify(layout);
         string jsonPath = System.IO.Path.Combine(_captureDir, $"uxwalk_s{_step:D2}.layout.json");
         System.IO.File.WriteAllText(jsonPath, json);
     }
 
-    void WriteLayout(Dictionary<string, Godot.Collections.Dictionary> layout)
+    void WriteLayout(Godot.Collections.Dictionary layout)
     {
         var tile = GetViewport().GetVisibleRect().Size;
-        layout["viewport"] = new Godot.Collections.Dictionary { { "w", tile.X }, { "h", tile.Y } };
+        layout["viewport_w"] = (double)tile.X;
+        layout["viewport_h"] = (double)tile.Y;
 
         AddLayout(layout, "rules_slab", _d.FindChild("RulesSlab", true, false) as Control);
         AddLayout(layout, "turn_label", _d.FindChild("TurnLabel", true, false) as Control);
@@ -325,7 +283,6 @@ public partial class UxWalk : Node
             AddLayout(layout, $"player_lane_{i}", _d.UxPlayerSlots[i] as Control);
         for (int i = 0; i < _d.UxEnemySlots.Count; i++)
             AddLayout(layout, $"enemy_lane_{i}", _d.UxEnemySlots[i] as Control);
-
         for (int i = 0; i < _d.UxHandCards.Count; i++)
             AddLayout(layout, $"hand_card_{i}", _d.UxHandCards[i] as Control);
 
@@ -337,14 +294,13 @@ public partial class UxWalk : Node
             foreach (var c in relicPlayer.GetChildren()) AddLayout(layout, "relic", c as Control);
     }
 
-    void AddLayout(Dictionary<string, Godot.Collections.Dictionary> layout, string key, Control? c)
+    void AddLayout(Godot.Collections.Dictionary layout, string key, Control? c)
     {
         if (c == null) return;
         if (layout.ContainsKey(key)) key = key + "_dup";
-        layout[key] = new Godot.Collections.Dictionary
-        {
-            { "x", c.Position.X }, { "y", c.Position.Y },
-            { "w", c.Size.X }, { "h", c.Size.Y }
-        };
+        layout[key + "_x"] = (double)c.Position.X;
+        layout[key + "_y"] = (double)c.Position.Y;
+        layout[key + "_w"] = (double)c.Size.X;
+        layout[key + "_h"] = (double)c.Size.Y;
     }
 }
