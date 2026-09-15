@@ -184,7 +184,7 @@ public partial class RulesSlab : Control
 
         float slabX = 24f * (viewportSize.Y / RefVh);
         float slabY = 300f * (viewportSize.Y / RefVh);
-        float slabW = 420f * (viewportSize.Y / RefVh);
+        float slabW = 380f * (viewportSize.Y / RefVh);
         float slabH = 440f * (viewportSize.Y / RefVh);
         float padTop = ScalePx(InnerPadTop);
         float padSide = ScalePx(InnerPadSides);

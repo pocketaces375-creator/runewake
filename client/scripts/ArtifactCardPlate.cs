@@ -20,7 +20,7 @@ namespace Runewake.Client;
 public partial class ArtifactCardPlate : Control
 {
     // ── Persistent child nodes ──
-    private ColorRect? _nameBandBg;
+    private ColorRect? _nameBandBg; // D1: removed, replaced by scrim
     private ColorRect? _chargeRailBg;
     private ColorRect? _suppressedOverlay;
     private ColorRect? _artBg;           // BOARD-MATCH-2: art background (parchment when no texture)
@@ -93,14 +93,7 @@ public partial class ArtifactCardPlate : Control
             _artRect.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             AddChild(_artRect);
 
-            // ── Name band background ──
-            _nameBandBg = new ColorRect
-            {
-                MouseFilter = MouseFilterEnum.Ignore,
-                Color = FrameNameBand
-            };
-            AddChild(_nameBandBg);
-
+            // D1: Name band removed — bottom scrim replaces it
             // ── Name clipping container — prevents text from overflowing into charge rail ──
             _nameClipContainer = new Control
             {

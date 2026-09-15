@@ -1988,8 +1988,8 @@ public partial class DuelScene : Control
         // R2 variant: increase card sizes by ~10% for wider art share
         if (CampaignContext.R2CardScale)
         {
-            _handCardHeight = Mathf.Max(140f, 310f * scale);
-                    _boardCardHeight = Mathf.Max(70f, 300f * scale);
+            _handCardHeight = Mathf.Max(140f, 280f * scale);
+                    _boardCardHeight = Mathf.Max(70f, 280f * scale);
         }
 
         // BOARD-MATCH-1: Hand tray bottom-edge tucked into frame
@@ -2008,7 +2008,7 @@ public partial class DuelScene : Control
         // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
         float safeMargin = vh - safeAreaBottom;
         float bottomGap = Mathf.Max(6f, safeMargin + 8f) + 34f;
-        _handArea.OffsetTop = -(_handCardHeight + 54f * scale + bottomGap);
+        _handArea.OffsetTop = -(_handCardHeight + 54f * scale + bottomGap); // 732 ref
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
         float marginLeft = 476f * scale;
@@ -2064,12 +2064,12 @@ public partial class DuelScene : Control
         // R2 variant: increase slot sizes
         if (CampaignContext.R2CardScale)
         {
-            slotH = 330f * scale;
+            slotH = 300f * scale;
             slotW = slotH * (104f / 152f);
         }
 
         // TASK-DUEL-LAYOUT-TABLE-1: Lane band 476..1841, pitch 290
-        float laneLeft = 476f * scale;
+        float laneLeft = 416f * scale;
         float pitch = 290f * scale;
         float centerX = laneLeft + 2f * pitch;
 
@@ -2898,7 +2898,22 @@ public partial class DuelScene : Control
                 if (cinzel != null) countLabel.AddThemeFontOverride("font", cinzel);
                 _enemyHandRow.AddChild(countLabel);
                 countLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                countLabel.Position = new Vector2(1420f * _scale, 24f * _scale);
+                countLabel.Position = new Vector2(1098f * _scale, 46f * _scale);
+                countLabel.Size = new Vector2(36f * _scale, 36f * _scale);
+                countLabel.HorizontalAlignment = HorizontalAlignment.Center;
+                countLabel.VerticalAlignment = VerticalAlignment.Center;
+                countLabel.ZIndex = 100;
+                // Disc background
+                var disc = new ColorRect
+                {
+                    Name = "CountDisc",
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    Color = new Color(0.082f, 0.074f, 0.059f, 0.85f),
+                    Size = new Vector2(36f * _scale, 36f * _scale),
+                    Position = new Vector2(1098f * _scale - 18f * _scale, 46f * _scale - 18f * _scale),
+                    ZIndex = 99
+                };
+                _enemyHandRow.AddChild(disc);
             }
         }
     }
@@ -2921,7 +2936,10 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _enemySlots[i].SetEmpty();
             else
+            {
                 _enemySlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                GD.Print($"[BOARD] side=1 lane={i} card={info.CardDefId}");
+            }
         }
 
         // Player lanes
@@ -2932,7 +2950,10 @@ public partial class DuelScene : Control
             if (info.IsEmpty)
                 _playerSlots[i].SetEmpty();
             else
+            {
                 _playerSlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                GD.Print($"[BOARD] side=0 lane={i} card={info.CardDefId}");
+            }
         }
     }
 
@@ -3152,6 +3173,22 @@ public partial class DuelScene : Control
         if (_bot.IsThinking)
         {
             GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (bot thinking) card={card.CardName}");
+            return;
+        }
+
+        // A2: Unaffordable check — shake, toast, no select
+        int currentAttune = _gsm.GetPlayerHud(0).Attunement;
+        if (card.CardCost > currentAttune)
+        {
+            GD.Print($"[INPUT] unaffordable {card.CardId} cost={card.CardCost} have={currentAttune}");
+            ShowToast($"Needs {card.CardCost} Attunement — you have {currentAttune}", Gold);
+            var tween = CreateTween();
+            float origX = card.Position.X;
+            tween.TweenProperty(card, "position:x", origX - 6f, 0.04f).SetEase(Tween.EaseType.InOut);
+            tween.TweenProperty(card, "position:x", origX + 6f, 0.04f).SetEase(Tween.EaseType.InOut);
+            tween.TweenProperty(card, "position:x", origX - 4f, 0.04f).SetEase(Tween.EaseType.InOut);
+            tween.TweenProperty(card, "position:x", origX + 4f, 0.04f).SetEase(Tween.EaseType.InOut);
+            tween.TweenProperty(card, "position:x", origX, 0.04f);
             return;
         }
 
@@ -5860,7 +5897,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             if (row != null) RebuildAttunePips(row, cur, max);
         }
 
-    private void RebuildAttunePips(HBoxContainer row, int cur, int max)
+    private void RebuildAttunePips(HBoxContainer row, int cur, int max) // E1: capped at 10
     {
         // Remove old pips
         foreach (var child in row.GetChildren())
@@ -5870,7 +5907,8 @@ private void ShowGameOverOverlay(int winnerIndex)
         }
         float scale = GetViewportRect().Size.Y / 1080f;
         float ps = 12f * scale;
-        for (int i = 0; i < max; i++)
+        int showMax = Mathf.Min(max, 10);
+        for (int i = 0; i < showMax; i++)
         {
             var pip = new ColorRect
             {

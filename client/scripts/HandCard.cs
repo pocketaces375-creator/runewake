@@ -64,10 +64,10 @@ public partial class HandCard : PanelContainer
         var content = GetNode<Control>("Content");
         content.AddChild(_cardPlate);
 
-        // Desaturation overlay for unplayable cards — global rule: NEVER black out.
+        // Desaturation overlay for unplayable cards — dark scrim over art only
         _desatOverlay = new ColorRect
         {
-            Color = new Color(0.5f, 0.5f, 0.5f, 0.3f),
+            Color = new Color(0.039f, 0.039f, 0.031f, 0.55f),
             MouseFilter = MouseFilterEnum.Ignore,
             Visible = false
         };

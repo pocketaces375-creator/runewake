@@ -51,7 +51,7 @@ def main():
     print(f"Layout lint @ {vw}x{vh} (scale={s:.3f})")
 
     # ── LANE BAND ──
-    lane_band = (scale_ref(476, vh), scale_ref(100, vh), scale_ref(1841, vh), scale_ref(716, vh))
+    lane_band = (scale_ref(416, vh), scale_ref(100, vh), scale_ref(1781, vh), scale_ref(716, vh))
 
     # ── RIGHT COLUMN ──
     col = (scale_ref(1972, vh), 0, scale_ref(2294, vh), vh)
@@ -129,7 +129,7 @@ def main():
         pass_rule("LANES_VS_STRIP", f"all slot tops >= {strip_bottom:.0f}")
 
     # ── RULE 5: HAND_VS_ROW ──
-    hand_rest_top = scale_ref(716, vh)
+    hand_rest_top = scale_ref(732, vh)
     if hand_cards:
         n = len(hand_cards)
         # centre card is roughly index n/2
@@ -141,6 +141,16 @@ def main():
             all_ok = False
     if all_ok:
         pass_rule("HAND_VS_ROW", f"resting at y ~{hand_rest_top:.0f}")
+
+    # ── RULE 7: HAND_CHIPS_VISIBLE ──
+    all_ok = True
+    for hc in hand_cards:
+        bottom = hc.get("y", 0) + hc.get("h", 0)
+        if bottom > vh - 4:
+            fail("HAND_CHIPS_VISIBLE", f"card bottom ({bottom:.0f}) > vh-4 ({vh-4:.0f})")
+            all_ok = False
+    if all_ok:
+        pass_rule("HAND_CHIPS_VISIBLE", f"{len(hand_cards)} card bottoms <= vh-4")
 
     # ── RULE 6: COLUMN_STACK ──
     sorted_nodes = sorted(right_nodes, key=lambda n: n[2])  # sort by y (gy)
@@ -155,7 +165,7 @@ def main():
         pass_rule("COLUMN_STACK", f"{len(sorted_nodes)} nodes, no overlap")
 
     # ── SUMMARY ──
-    total = 7
+    total = 8
     passed = total - len(FAILURES)
     print(f"\n  {passed}/{total} rules PASS ({len(FAILURES)} fail{'s' if len(FAILURES)!=1 else ''})")
 
