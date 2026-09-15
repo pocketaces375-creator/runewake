@@ -1877,7 +1877,7 @@ public partial class DuelScene : Control
         _handArea.OffsetTop = -(_handCardHeight + 102f * scale + bottomGap);
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
-        float marginLeft = 348f * scale;
+        float marginLeft = 80f * scale;
         _handArea.AddThemeConstantOverride("margin_left", Mathf.FloorToInt(marginLeft));
         _handArea.AddThemeConstantOverride("margin_right", 80);
 
