@@ -610,6 +610,11 @@ public partial class DuelScene : Control
                     StartTouchOnlySmokeTest();
                     return;
                 }
+                if (CampaignContext.UxWalk)
+                {
+                    StartUxWalk();
+                    return;
+                }
 
                 // ═══ TASK-TUTORIAL-VERIFY-1: Skip pre-place/artifacts/inflate in tutorial script mode ═══
                 // The TutorialRunner handles its own state and captures for each beat.
@@ -3242,6 +3247,17 @@ public partial class DuelScene : Control
         }
     }
 
+        // ——— Public methods for UX walkthrough ———
+    public void UxSelectCard(HandCard card) { OnHandCardPressed(card); }
+    public void UxTapLane(int idx, bool empty) { OnLaneTapped(idx, empty); }
+    public void UxEndTurn() { OnEndTurnPressed(); }
+    public InputController UxInput => _input;
+    public System.Collections.Generic.List<LaneSlot> UxPlayerSlots => _playerSlots;
+    public System.Collections.Generic.List<LaneSlot> UxEnemySlots => _enemySlots;
+    public System.Collections.Generic.List<HandCard> UxHandCards => _handCards;
+    public GameStateManager UxGsm => _gsm;
+    public BotController UxBot => _bot;
+
     // ——— TASK-CARD-TEXT-1: Rules slab show/hide ———
 
     private void ShowRulesSlab(CardDef card)
@@ -3316,6 +3332,14 @@ public partial class DuelScene : Control
     }
 
     // ——— Action callbacks from InputController ———
+
+    private void StartUxWalk()
+    {
+        GD.Print("[UxWalk] Starting UX walkthrough...");
+        var walk = new UxWalk();
+        walk.Name = "UxWalk";
+        AddChild(walk);
+    }
 
     private void OnPlayCardRequested(string cardId, int laneIndex)
     {

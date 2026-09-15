@@ -119,6 +119,7 @@ public static class CampaignContext
     /// <summary>Touch-only smoke test: inject ONLY InputEventScreenTouch events into a seeded duel.
     /// Set by --capture=touch_smoke_test CLI arg via DebugCapture. No mouse events anywhere.</summary>
     public static bool TouchOnlySmokeTest { get; set; }
+    public static bool UxWalk { get; set; }
 
     /// <summary>Test hook: auto-navigate to map scene, select first unlocked node, capture.
         /// Set by --capture-map CLI arg or --capture=map_test/duel_map_test.
