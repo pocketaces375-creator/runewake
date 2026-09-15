@@ -2332,30 +2332,29 @@ public partial class DuelScene : Control
         }
 
         // Tutorial gate: detect summon (t05)
-                if (_tutorialGateStep == 5 && state != null && state.Players.Length > 0)
+        if (_tutorialGateStep == 5 && state != null && state.Players.Length > 0)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (state.Players[0].Lanes[i].Occupant != null)
                 {
-                    for (int i = 0; i < 5; i++)
-                    {
-                        if (state.Players[0].Lanes[i].Occupant != null)
-                        {
-                            _tutorialGateStep = -1;
-                            GD.Print("[TUTORIAL] gate t05 satisfied");
-                            Callable.From(ShowTutorialStep_t06).CallDeferred();
-                            break;
-                        }
-                    }
+                    _tutorialGateStep = -1;
+                    GD.Print("[TUTORIAL] gate t05 satisfied");
+                    Callable.From(ShowTutorialStep_t06).CallDeferred();
+                    break;
                 }
+            }
+        }
 
-                // Tutorial gate: detect attack (t11) — enemy vigor decreased
-                if (_tutorialGateStep == 11 && state != null && _prevEnemyVigor >= 0)
-                {
-                    if (state.Players[1].Vigor < _prevEnemyVigor)
-                    {
-                        _tutorialGateStep = -1;
-                        GD.Print("[TUTORIAL] gate t11 satisfied");
-                        Callable.From(ShowTutorialStep_t12).CallDeferred();
-                    }
-                }
+        // Tutorial gate: detect attack (t11) — enemy vigor decreased
+        if (_tutorialGateStep == 11 && state != null && _prevEnemyVigor >= 0)
+        {
+            if (state.Players[1].Vigor < _prevEnemyVigor)
+            {
+                _tutorialGateStep = -1;
+                GD.Print("[TUTORIAL] gate t11 satisfied");
+                Callable.From(ShowTutorialStep_t12).CallDeferred();
+            }
         }
 
         // TASK-TU2: Notify TutorialRunner of state change
