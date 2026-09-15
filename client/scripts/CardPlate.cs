@@ -42,6 +42,10 @@ public partial class CardPlate : Control
     private Vector4 _atkR, _vigR;
     private int _baseAtk = -1, _baseVig = -1;
     private bool _hasB;
+    private int _cost = 0;
+    private int _attuneAvailable = 0;
+    private Control? _pipDock;
+    private ColorRect? _pipGradient;
 
     private static readonly Color CREAM = new Color(0.941f, 0.894f, 0.816f);
     private static readonly Color RED_TINT = new Color(0.941f, 0.800f, 0.750f);
@@ -68,6 +72,17 @@ public partial class CardPlate : Control
                 Position = Vector2.Zero, Size = new Vector2(cardWidth, cardHeight)
             };
             AddChild(_baked);
+
+            // Cost-pip dock
+            _pipDock = new Control { MouseFilter = Control.MouseFilterEnum.Ignore, Name = "PipDock" };
+            AddChild(_pipDock);
+            _pipGradient = new ColorRect
+            {
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                Color = new Color(0.082f, 0.074f, 0.059f, 0.85f),
+                Name = "PipGradient"
+            };
+            _pipDock.AddChild(_pipGradient);
 
             _atkNum = MkNum(); AddChild(_atkNum);
             _vigNum = MkNum(); AddChild(_vigNum);
@@ -100,6 +115,53 @@ public partial class CardPlate : Control
             _vigNum.Text = vigor!.Value.ToString();
             _atkNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
             _vigNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
+        }
+        // A1: Cost-pip dock — N diamonds on gradient pill, top-left
+        _cost = cost;
+        RebuildCostPips(cardWidth, cardHeight);
+    }
+
+    public void SetAttunementAvailable(int available)
+    {
+        _attuneAvailable = available;
+        if (_pipDock != null) RebuildCostPips(Size.X, Size.Y);
+    }
+
+    private void RebuildCostPips(float cardWidth, float cardHeight)
+    {
+        if (_pipDock == null) return;
+        // Remove old pips
+        foreach (var child in _pipDock.GetChildren())
+        {
+            if (child is ColorRect cr && cr.Name.ToString().StartsWith("Pip_"))
+                cr.QueueFree();
+        }
+        if (_cost <= 0) { _pipDock.Visible = false; return; }
+        _pipDock.Visible = true;
+        float scale = cardHeight / 1080f;
+        float pipS = 7f * scale;
+        float gap = 3f * scale;
+        float totalW = _cost * pipS + (_cost - 1) * gap;
+        float dockW = totalW + 12f * scale;
+        float dockH = pipS + 10f * scale;
+        _pipGradient!.Size = new Vector2(dockW, dockH);
+        float dockX = 6f * scale;
+        float dockY = 6f * scale;
+        _pipDock.Position = new Vector2(dockX, dockY);
+        _pipGradient.Position = Vector2.Zero;
+        for (int i = 0; i < _cost; i++)
+        {
+            var pip = new ColorRect
+            {
+                Name = $"Pip_{i}",
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                CustomMinimumSize = new Vector2(pipS, pipS),
+                Size = new Vector2(pipS, pipS),
+                Color = i < _attuneAvailable ? Color.FromHtml("#E3B23C") : Color.FromHtml("#6B5636"),
+            };
+            pip.Position = new Vector2(6f * scale + i * (pipS + gap), (dockH - pipS) / 2f);
+            pip.Rotation = Mathf.DegToRad(45f);
+            _pipDock.AddChild(pip);
         }
     }
 
