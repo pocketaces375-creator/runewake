@@ -1,0 +1,82 @@
+{
+  "popups": [
+    {
+      "popup_id": "t01",
+      "title": "Enemy Arsenal",
+      "text": "This is your opponent's arsenal. Their relics, deck count, and identity appear here. Study it before committing your forces.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t02",
+      "title": "Your Hand",
+      "text": "These are the cards in your hand. Each costs attunement (the number at the top) to play. Drag a card onto the board to summon it.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t03",
+      "title": "Card Anatomy",
+      "text": "The cost disc (top-left) shows attunement needed. The red number is Attack; the green is Vigor (health). A creature with 0 attack cannot deal damage.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t04",
+      "title": "Attunement",
+      "text": "Your attunement is your mana pool. Each card costs attunement to play. Attunement refills each turn, and can be increased by excavating.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t05",
+      "title": "The Board",
+      "text": "These are your lanes — the battlefield. Drag a creature card from your hand onto an empty lane to summon it. Each lane holds one creature per side.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t06",
+      "title": "Ritual Cards",
+      "text": "This card has a Ritual effect — a one-time ability that triggers when played. Your artifacts also have active abilities; watch for their triggers.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t07",
+      "title": "Your Relics",
+      "text": "Your relics — the Aura and the Wand — sit here. Each grants a passive bonus. The Aura gives +1 Vigor to your creatures; the Wand opens spell options.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t08",
+      "title": "Enemy Hand",
+      "text": "The enemy also holds cards. You can see how many by counting the card backs here. Plan your attacks around what they might play.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t09",
+      "title": "Your Deck & Barrow",
+      "text": "Your deck contains cards you haven't drawn yet. The Barrow holds cards that have been Buried — removed from your deck by effects or overdraw.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t10",
+      "title": "End Turn",
+      "text": "When you have no more actions to take, press End Turn to pass to your opponent. Your attunement will refill at the start of your next turn.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t11",
+      "title": "Attack!",
+      "text": "Tap one of your creatures, then tap an enemy creature or lane to attack. Your Aura gives +1 Vigor while they stand, making them harder to remove.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t12",
+      "title": "Keywords",
+      "text": "Some cards have keywords like GUARD or SWIFT. GUARD creatures protect adjacent allies. SWIFT creatures can attack the turn they are summoned.",
+      "show_skip": true
+    },
+    {
+      "popup_id": "t13",
+      "title": "Victory",
+      "text": "You have learned the basics. Keep practicing — each class plays differently. The Drowned Archive is just the beginning of your journey.",
+      "show_skip": true
+    }
+  ]
+}
