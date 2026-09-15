@@ -402,4 +402,4 @@ git commit -m "${TASK_ID}: mark [x] + DONE entry" 2>/dev/null || true
 bash "${PROJECT_DIR}/tools/git_push_locked.sh" 2>&1 || true
 
 ok "Task ${TASK_ID} complete!"
-echo "═══════════════════════════════════════"
+echo "═══════════════════════════════════════"" && timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 || true)\nif echo "${UXWALK_OUTPUT}" | grep -q "PASS.*WALKTHROUGH.*0 fail"; then\n  ok "UX walkthrough passed"\nelse\n  echo "${UXWALK_OUTPUT}" | tail -5\n  fail "UX walkthrough failed"\nfi\n\n# ── Step 6: layout_lint ──"}
