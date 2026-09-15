@@ -5,13 +5,18 @@ set -euo pipefail
 
 MODE="${1:-debug}"
 SKIP_DELIVER=false
+SKIP_UX_GATE=false
 if [ "$MODE" = "--skip-deliver" ]; then
     SKIP_DELIVER=true
+    MODE="debug"
+elif [ "$MODE" = "--skip-ux-gate" ]; then
+    SKIP_UX_GATE=true
     MODE="debug"
 elif [ "$MODE" = "--release" ]; then
     MODE="release"
     shift 2>/dev/null || true
     if [ "${1:-}" = "--skip-deliver" ]; then SKIP_DELIVER=true; fi
+    if [ "${1:-}" = "--skip-ux-gate" ]; then SKIP_UX_GATE=true; fi
 fi
 
 # ─── Keychain (release mode only) ───────────────────────────────────────────
