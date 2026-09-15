@@ -25,6 +25,7 @@ public partial class ArtifactCardPlate : Control
     private ColorRect? _suppressedOverlay;
     private ColorRect? _artBg;           // BOARD-MATCH-2: art background (parchment when no texture)
     private TextureRect? _artRect;       // BOARD-MATCH-2: artifact art thumbnail
+    private string _loadedArtId = "";
     private Label? _artifactTag;
     private Label? _cardName;
     private Label? _chargeDisplay;
