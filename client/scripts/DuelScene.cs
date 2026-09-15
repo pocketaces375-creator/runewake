@@ -1583,8 +1583,35 @@ public partial class DuelScene : Control
         ApplyHeaderFont(bl2, labelFont);
         edr.AddChild(bl2);
 
+        // ── Enemy: attunement row ──
+        float eAttuneY = 350f * scale;
+        var eatp = new PanelContainer
+        {
+            Name = "EnemyAttunement", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 26f * scale)
+        };
+        var eats = new StyleBoxFlat { BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f) };
+        eatp.AddThemeStyleboxOverride("panel", eats);
+        eatp.Position = new Vector2(colX, eAttuneY);
+        AddChild(eatp);
+        var eath = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        eatp.AddChild(eath);
+        var eattuneLabel = new Label { Text = "ATTUNE", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        eattuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(14f * scale));
+        eattuneLabel.AddThemeColorOverride("font_color", Gold);
+        ApplyHeaderFont(eattuneLabel, Mathf.RoundToInt(14f * scale));
+        eath.AddChild(eattuneLabel);
+        _enemyAttuneValue = new Label { Text = "0/0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _enemyAttuneValue.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16f * scale));
+        _enemyAttuneValue.AddThemeColorOverride("font_color", new Color(232f/255f, 220f/255f, 200f/255f));
+        ApplyHeaderFont(_enemyAttuneValue, Mathf.RoundToInt(16f * scale));
+        eath.AddChild(_enemyAttuneValue);
+
         // ── Player: nameplate pill ──
-        float pnY = 600f * scale;
+        float pnY = 592f * scale;
         var pnp = new PanelContainer
         {
             Name = "PlayerNameplate", MouseFilter = MouseFilterEnum.Ignore,
@@ -1630,7 +1657,7 @@ public partial class DuelScene : Control
         _playerShrineVigorLabel = _playerVigorValue;
 
         // ── Player: DECK/BARROW panel ──
-        float pdY = 642f * scale;
+        float pdY = 630f * scale;
         var pdp = new PanelContainer
         {
             Name = "PlayerDeckBarrowPanel", MouseFilter = MouseFilterEnum.Ignore,
@@ -1678,6 +1705,33 @@ public partial class DuelScene : Control
         pbl.AddThemeColorOverride("font_color", TextPrimary);
         ApplyHeaderFont(pbl, labelFont);
         pdr.AddChild(pbl);
+
+        // ── Player: attunement row ──
+        float pAttuneY = 662f * scale;
+        var patp = new PanelContainer
+        {
+            Name = "PlayerAttunement", MouseFilter = MouseFilterEnum.Ignore,
+            CustomMinimumSize = new Vector2(colW, 26f * scale)
+        };
+        var pats = new StyleBoxFlat { BgColor = new Color(0.08f, 0.07f, 0.06f, 0.70f) };
+        patp.AddThemeStyleboxOverride("panel", pats);
+        patp.Position = new Vector2(colX, pAttuneY);
+        AddChild(patp);
+        var path = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
+        patp.AddChild(path);
+        var pattuneLabel = new Label { Text = "ATTUNE", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        pattuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(14f * scale));
+        pattuneLabel.AddThemeColorOverride("font_color", Gold);
+        ApplyHeaderFont(pattuneLabel, Mathf.RoundToInt(14f * scale));
+        path.AddChild(pattuneLabel);
+        _playerShrineAttuneLabel = new Label { Text = "0/0", HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        _playerShrineAttuneLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(16f * scale));
+        _playerShrineAttuneLabel.AddThemeColorOverride("font_color", new Color(232f/255f, 220f/255f, 200f/255f));
+        ApplyHeaderFont(_playerShrineAttuneLabel, Mathf.RoundToInt(16f * scale));
+        path.AddChild(_playerShrineAttuneLabel);
 
         GD.Print("[DUEL] BREATHE: Side HUD built");
     }
