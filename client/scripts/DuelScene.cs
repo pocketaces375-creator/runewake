@@ -1303,8 +1303,11 @@ public partial class DuelScene : Control
         GD.Print("[DUEL] BREATHE-FIX: Player relics bottom-left, side HUD handles name/deck/barrow");
 
         GD.Print("[DUEL] CORNERS: Player relics bottom-left, nameplate+deck/barrow stacked above");
+        float bottomEdge = artY + _artFrameH;
+        float endTurnTop = vh + _turnIndicatorLabel.OffsetTop; // BottomRight anchor: actual = vh + offset
+        GD.Print($"[RELICS] player_y={artY:F0} bottom={bottomEdge:F0} endturn_top={endTurnTop:F0}");
     }
-/// <summary>Build a single player artifact frame using ArtifactCardPlate.</summary>
+    /// <summary>Build a single player artifact frame using ArtifactCardPlate.</summary>
     private void BuildPlayerArsenalArtifact(HBoxContainer parent, int index, float w, float h, float scale)
     {
         var panel = new PanelContainer();
