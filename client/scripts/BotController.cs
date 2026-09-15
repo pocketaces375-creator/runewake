@@ -46,12 +46,12 @@ public partial class BotController : Node
     /// </summary>
     public void Resume()
     {
-        // IsThinking = false; (broken for test)
+        IsThinking = false;
     }
 
     public void ForceIdle(string why)
     {
-        // IsThinking = false; (broken for test)
+        IsThinking = false;
         _pendingAction = false;
         _timer?.Stop();
         GD.Print($"[BOT] ForceIdle: {why}");
@@ -206,7 +206,7 @@ public partial class BotController : Node
     private void EndBotTurn()
     {
         GD.Print($"[BOT] IsThinking -> false turn={_gsm.TurnNumber}");
-        // IsThinking = false; (broken for test)
+        IsThinking = false;
         _pendingAction = false;
         _timer?.Stop();
         BotTurnEnded?.Invoke();
