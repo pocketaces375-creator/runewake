@@ -496,6 +496,11 @@ public partial class ArtifactCardPlate : Control
     {
         if (_artRect == null) return;
 
+        // B3: diagnostic print for vanish debugging
+        string webpPath = $"res://content/art/artifacts/{artId}.webp";
+        string pngPath = $"res://content/art/artifacts/{artId}.png";
+        GD.Print($"[ARTPLATE] SetArt id='{artId}' webp={ResourceLoader.Exists(webpPath)} png={ResourceLoader.Exists(pngPath)}");
+
         // B1: already loaded this art — nothing to do
         if (artId == _loadedArtId && _artRect.Texture != null) return;
 
