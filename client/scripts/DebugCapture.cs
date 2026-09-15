@@ -67,6 +67,12 @@ public partial class DebugCapture : Node
                 CampaignContext.TouchOnlySmokeTest = true;
                 GD.Print("[DebugCapture] Touch-only smoke test enabled: --capture=touch_smoke_test");
             }
+            if (arg == "--uxwalk")
+            {
+                _active = true;
+                CampaignContext.UxWalk = true;
+                GD.Print("[DebugCapture] UX walkthrough enabled: --uxwalk");
+            }
             if (arg == "--capture=loop_smoke_test")
             {
                 // Don't set _active = true — loop smoke test handles everything via
