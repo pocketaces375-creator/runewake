@@ -46,7 +46,7 @@ public partial class UxWalk : Node
         var hand = _gsm.GetHand(0);
         int att = _gsm.GetPlayerHud(0).Attunement;
         var card = hand.FirstOrDefault(h => h.Cost <= att);
-        if (string.IsNullOrEmpty(card.CardDefId)) { Fail("no affordable card"); Snap(); Next(Step07); return; }
+        if (string.IsNullOrEmpty(card.CardDefId)) { Fail("no affordable card"); Snap(); SnapSkipped(3); SnapSkipped(4); SnapSkipped(5); SnapSkipped(6); Next(Step07); return; }
         var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == card.CardDefId);
         if (hc == null) { Fail("hand card node not found"); Snap(); Next(Step07); return; }
         _d.UxSelectCard(hc);
@@ -249,6 +249,11 @@ public partial class UxWalk : Node
         var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
         t.Timeout += a;
         AddChild(t); t.Start();
+    }
+
+    void SnapSkipped(int s)
+    {
+        var prev = _step; _step = s; Snap(); _step = prev;
     }
 
     void Snap()
