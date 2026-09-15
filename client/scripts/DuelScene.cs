@@ -2074,7 +2074,7 @@ public partial class DuelScene : Control
         float centerX = laneLeft + 2f * pitch;
 
         // DUELRES-1: Board slots at design scale, spread rows
-        float boardTopOffset = 123f;
+        float boardTopOffset = 0f;
         float enemyBaseY  = 100f * scale - boardTopOffset;
         float playerBaseY = 416f * scale - boardTopOffset;
 
