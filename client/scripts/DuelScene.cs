@@ -5835,9 +5835,55 @@ private void ShowGameOverOverlay(int winnerIndex)
     // ——— Public update methods ———
 
     public void SetEnemyVigor(int vigor) { if (_enemyVigorValue != null) _enemyVigorValue.Text = Math.Max(0, vigor).ToString(); }
-        public void SetEnemyAttunement(string text) { if (_enemyAttuneValue != null) _enemyAttuneValue.Text = text; }
+        public void SetEnemyAttunement(string text)
+        {
+            if (_enemyAttuneValue == null) return;
+            var parts = text.Split('/');
+            if (parts.Length != 2) { _enemyAttuneValue.Text = text; return; }
+            int cur = int.Parse(parts[0]);
+            int max = int.Parse(parts[1]);
+            _enemyAttuneValue.Text = $"{cur}/{max}";
+            // Rebuild pips in the parent HBoxContainer
+            var row = _enemyAttuneValue.GetParent() as HBoxContainer;
+            if (row != null) RebuildAttunePips(row, cur, max);
+        }
         public void SetPlayerVigor(int vigor) { if (_playerShrineVigorLabel != null) _playerShrineVigorLabel.Text = Math.Max(0, vigor).ToString(); }
-        public void SetPlayerAttunement(string text) { if (_playerShrineAttuneLabel != null) _playerShrineAttuneLabel.Text = text; }
+        public void SetPlayerAttunement(string text)
+        {
+            if (_playerShrineAttuneLabel == null) return;
+            var parts = text.Split('/');
+            if (parts.Length != 2) { _playerShrineAttuneLabel.Text = text; return; }
+            int cur = int.Parse(parts[0]);
+            int max = int.Parse(parts[1]);
+            _playerShrineAttuneLabel.Text = $"{cur}/{max}";
+            var row = _playerShrineAttuneLabel.GetParent() as HBoxContainer;
+            if (row != null) RebuildAttunePips(row, cur, max);
+        }
+
+    private void RebuildAttunePips(HBoxContainer row, int cur, int max)
+    {
+        // Remove old pips
+        foreach (var child in row.GetChildren())
+        {
+            if (child is ColorRect cr && cr.Name.ToString().StartsWith("Pip_"))
+                cr.QueueFree();
+        }
+        float scale = GetViewportRect().Size.Y / 1080f;
+        float ps = 12f * scale;
+        for (int i = 0; i < max; i++)
+        {
+            var pip = new ColorRect
+            {
+                Name = $"Pip_{i}",
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+                CustomMinimumSize = new Vector2(ps, ps),
+                Size = new Vector2(ps, ps),
+                Color = i < cur ? Color.FromHtml("#E3B23C") : Color.FromHtml("#3a332a"),
+            };
+            row.AddChild(pip);
+            row.MoveChild(pip, 1 + i); // after ATTUNEMENT label
+        }
+    }
 
     public void ClearBoard()
     {
