@@ -2843,7 +2843,7 @@ public partial class DuelScene : Control
                 float R        = 700f * _scale;
                 float spreadDeg = Mathf.Min(n * 4f, 28f);            // narrower spread for above
                 float peek     = 70f * _scale;                       // visible height of CENTRE card
-                float pivotX   = 1158f * _scale;
+                float pivotX   = 1098f * _scale;
                 float pivotY   = (peek - backH / 2f) - R;            // above the strip (negative relative)
 
                 for (int i = 0; i < n; i++)
@@ -3014,6 +3014,7 @@ public partial class DuelScene : Control
 
         float pivotX = availW / 2f;
         float pivotY = cardHeight / 2f + RArc;
+        float droopAllowance = 54f * scaleRH;
 
         GD.Print($"[HAND] {n} cards, R={RArc:F0}, spread={spreadDeg:F1}deg, pivotY={pivotY:F0}, avail={availW:F0}");
 

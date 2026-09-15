@@ -10,8 +10,8 @@ x is measured from the LEFT edge of the viewport unless stated as "from right".
 | Region | x | y | Notes |
 |---|---|---|---|
 | **VIEWPORT** | 0..2316 | 0..1080 | Reference resolution |
-| **ENEMY STRIP** | 0..2316 | 0..90 | `ClipContents`. Fan centred on x=1158. |
-| **LANE BAND** | 476..1841 | 100..716 | 5 lanes per row, card W 205 H 300, pitch 290 |
+| **ENEMY STRIP** | 0..2316 | 0..90 | `ClipContents`. Fan centred on x=1098. |
+| **LANE BAND** | 416..1781 | 100..716 | 5 lanes per row, card W 205 H 300, pitch 290 |
 
 ### Lane row coordinates
 
@@ -24,17 +24,17 @@ x is measured from the LEFT edge of the viewport unless stated as "from right".
 
 | Slot | 0 | 1 | 2 | 3 | 4 |
 |---|---|---|---|---|---|
-| left | 476 | 766 | 1056 | 1346 | 1636 |
+| left | 416 | 706 | 996 | 1286 | 1576 |
 
 ### Hand (overlay)
 
 | Property | Value |
 |---|---|
-| Centre card top y | 716 |
-| Card W × H | 212 × 310 |
+| Centre card top y | 732 |
+| Card W × H | 192 × 280 |
 | Arc R | 900 |
 | Spread | `min(n * 5, 40)` degrees |
-| Pivot (_handFlow-local) | (682, 716 + 155 + 900) |
+| Pivot (_handFlow-local) | (1098, 732 + 140 + 900) |
 
 ### Right column
 
