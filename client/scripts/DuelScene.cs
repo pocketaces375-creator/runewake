@@ -140,8 +140,7 @@ public partial class DuelScene : Control
     private bool _isGameOverHandled;
     private TutorialController? _tutorialCtrl;
     private TutorialPopup? _tutorialPopup;
-    private bool _tutorialSummonedThisDuel;
-    private bool _tutorialAwaitingCreatureSelect;
+    private int _tutorialGateStep = -1;
     private int _prevBuryCount;
     private int _prevExcavateCardCount;
     
@@ -557,7 +556,7 @@ public partial class DuelScene : Control
         // Start tutorial popup sequence if this is a tutorial encounter
         if (_tutorialCtrl != null && _tutorialCtrl.IsActive)
         {
-            Callable.From(ShowPopup1_Goal).CallDeferred();
+            Callable.From(ShowTutorialStep_t01).CallDeferred();
         }
 
         // TASK-TU2: Start tutorial runner in script mode (after game init)
@@ -975,86 +974,161 @@ public partial class DuelScene : Control
     // ═══════════════════════════════════════════════════
 
     /// <summary>Popup 1: YOUR GOAL</summary>
-    private void ShowPopup1_Goal()
+    // ═══════════════════════════════════════════════════
+    // TASK-TUTORIAL-WALKTHROUGH-2: 13-step tutorial popup chain
+    // ═══════════════════════════════════════════════════
+
+    private void ShowTutorialStep_t01()
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
-
+        GD.Print("[TUTORIAL] step t01 shown");
         _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
-        _tutorialCtrl.ShowPopup("p1_goal",
-            onContinue: ShowPopup2_Attunement,
-            onSkip: () =>
-            {
-                _tutorialCtrl?.EndTutorial();
-            }
+        _tutorialCtrl.ShowPopup("t01",
+            onContinue: ShowTutorialStep_t02,
+            onSkip: () => { _tutorialCtrl?.EndTutorial(); }
         );
     }
 
-    /// <summary>Popup 2: ATTUNEMENT</summary>
-    private void ShowPopup2_Attunement()
+    private void ShowTutorialStep_t02()
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t02 shown");
+        var handControls = new System.Collections.Generic.List<Control>();
+        foreach (var hc in _handCards) { if (hc is Control c) handControls.Add(c); }
+        _tutorialPopup.SetHighlightTargets(handControls);
+        _tutorialCtrl.ShowPopup("t02", onContinue: ShowTutorialStep_t03);
+    }
 
+    private void ShowTutorialStep_t03()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t03 shown");
+        Control? target = _handCards.Count > 0 ? _handCards[0] as Control : null;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { target ?? new Control() });
+        _tutorialCtrl.ShowPopup("t03", onContinue: ShowTutorialStep_t04);
+    }
+
+    private void ShowTutorialStep_t04()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t04 shown");
         _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _playerAttuneValue });
-        _tutorialCtrl.ShowPopup("p2_attunement",
-            onContinue: ShowPopup3_Summoning
-        );
+        _tutorialCtrl.ShowPopup("t04", onContinue: ShowTutorialStep_t05);
     }
 
-    /// <summary>Popup 3: SUMMONING</summary>
-    private void ShowPopup3_Summoning()
-    {
-        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
-
-        _tutorialCtrl.ShowPopup("p3_summoning",
-            onContinue: () => { _tutorialSummonedThisDuel = false; }
-        );
-    }
-
-    /// <summary>Popup 4a: ATTACKING — YOUR TURN (fires after creature summoned)</summary>
-    private void ShowPopup4a_AttackingYourTurn()
+    private void ShowTutorialStep_t05()
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
-
-        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { FindPlayerCreatureNode() as Control });
-        _tutorialCtrl.ShowPopup("p4a_attacking",
-            onContinue: () => { _tutorialAwaitingCreatureSelect = true; }
-        );
+        GD.Print("[TUTORIAL] step t05 shown");
+        var laneControls = new System.Collections.Generic.List<Control>();
+        foreach (var ls in _playerSlots) { if (ls is Control c) laneControls.Add(c); }
+        _tutorialPopup.SetHighlightTargets(laneControls);
+        _tutorialCtrl.ShowPopup("t05", onContinue: () => { _tutorialGateStep = 5; });
     }
 
-    /// <summary>Popup 4b: ATTACKING — CHOOSING A TARGET (fires when player selects creature)</summary>
-    private void ShowPopup4b_ChoosingTarget()
-    {
-        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive) return;
-
-        _tutorialCtrl.ShowPopup("p4b_choosing",
-            onContinue: () => { _tutorialAwaitingCreatureSelect = false; }
-        );
-    }
-
-    /// <summary>Popup 5: FACE HIT (fires after attack resolves)</summary>
-    private void ShowPopup5_FaceHit()
+    private void ShowTutorialStep_t06()
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
-
-        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
-        _tutorialCtrl.ShowPopup("p5_facehit",
-            onContinue: ShowPopup6_TurnCycle
-        );
+        GD.Print("[TUTORIAL] step t06 shown");
+        Control? ritualCard = FindRitualInHand();
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { ritualCard ?? new Control() });
+        _tutorialCtrl.ShowPopup("t06", onContinue: ShowTutorialStep_t07);
     }
 
-    /// <summary>Popup 6: THE TURN CYCLE (final popup — end tutorial)</summary>
-    private void ShowPopup6_TurnCycle()
+    private void ShowTutorialStep_t07()
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t07 shown");
+        var plateControls = new System.Collections.Generic.List<Control>();
+        foreach (var ap in _playerArtifactPlates) { if (ap is Control c) plateControls.Add(c); }
+        _tutorialPopup.SetHighlightTargets(plateControls);
+        _tutorialCtrl.ShowPopup("t07", onContinue: ShowTutorialStep_t08);
+    }
 
+    private void ShowTutorialStep_t08()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t08 shown");
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyHandRow });
+        _tutorialCtrl.ShowPopup("t08", onContinue: ShowTutorialStep_t09);
+    }
+
+    private void ShowTutorialStep_t09()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t09 shown");
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _playerDeckBarrowPanelContainer });
+        _tutorialCtrl.ShowPopup("t09", onContinue: ShowTutorialStep_t10);
+    }
+
+    private void ShowTutorialStep_t10()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t10 shown");
         _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _endTurnButton });
-        _tutorialCtrl.ShowPopup("p6_turncycle",
+        _tutorialCtrl.ShowPopup("t10", onContinue: () => { _tutorialGateStep = 10; });
+    }
+
+    private void ShowTutorialStep_t11()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t11 shown");
+        Control? creature = FindPlayerCreatureNode() as Control;
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { creature ?? _endTurnButton });
+        _tutorialCtrl.ShowPopup("t11", onContinue: () => { _tutorialGateStep = 11; });
+    }
+
+    private void ShowTutorialStep_t12()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t12 shown");
+        Control? keywordCard = FindKeywordCardInHand();
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { keywordCard ?? new Control() });
+        _tutorialCtrl.ShowPopup("t12", onContinue: ShowTutorialStep_t13);
+    }
+
+    private void ShowTutorialStep_t13()
+    {
+        if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
+        GD.Print("[TUTORIAL] step t13 shown");
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
+        _tutorialCtrl.ShowPopup("t13",
             onContinue: () =>
             {
+                var profile = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null;
+                if (profile != null) profile.TutorialDone = true;
                 _tutorialCtrl?.EndTutorial();
-                GD.Print("[DuelScene] Tutorial popup sequence complete — free play.");
+                GD.Print("[DuelScene] Tutorial complete — free play.");
             }
         );
+    }
+
+    /// <summary>
+    /// Find a ritual card in the player's hand by checking CardRegistry.
+    /// </summary>
+    private Control? FindRitualInHand()
+    {
+        foreach (var hc in _handCards)
+        {
+            var def = Runewake.Engine.Cards.CardRegistry.Get(hc.CardId);
+            if (def != null && def.Type == Runewake.Engine.Cards.CardType.RITUAL)
+                return hc as Control;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Find a hand card that has keywords.
+    /// </summary>
+    private Control? FindKeywordCardInHand()
+    {
+        foreach (var hc in _handCards)
+        {
+            var def = Runewake.Engine.Cards.CardRegistry.Get(hc.CardId);
+            if (def != null && def.Keywords != null && def.Keywords.Count > 0)
+                return hc as Control;
+        }
+        return _handCards.Count > 0 ? _handCards[0] as Control : null;
     }
 
     /// <summary>
@@ -2257,37 +2331,31 @@ public partial class DuelScene : Control
                 MoveChild(_gameOverOverlay, GetChildCount() - 1);
         }
 
-        // Tutorial: detect first summon to trigger Popup 4a
-        if (_tutorialCtrl != null && _tutorialCtrl.IsActive
-            && !_tutorialSummonedThisDuel && state != null && state.Players.Length > 0)
-        {
-            // Check if any player lane is now occupied (first summon of the duel)
-            for (int i = 0; i < 5; i++)
-            {
-                if (state.Players[0].Lanes[i].Occupant != null)
+        // Tutorial gate: detect summon (t05)
+                if (_tutorialGateStep == 5 && state != null && state.Players.Length > 0)
                 {
-                    _tutorialSummonedThisDuel = true;
-                    GD.Print("[DuelScene] Player summoned creature — triggering Popup 4a.");
-                    Callable.From(ShowPopup4a_AttackingYourTurn).CallDeferred();
-                    break;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        if (state.Players[0].Lanes[i].Occupant != null)
+                        {
+                            _tutorialGateStep = -1;
+                            GD.Print("[TUTORIAL] gate t05 satisfied");
+                            Callable.From(ShowTutorialStep_t06).CallDeferred();
+                            break;
+                        }
+                    }
                 }
-            }
-        }
 
-        // Tutorial: detect face hit to trigger Popup 5
-        if (_tutorialCtrl != null && _tutorialCtrl.IsActive
-            && _tutorialSummonedThisDuel && state != null && _prevEnemyVigor >= 0)
-        {
-            int currentEnemyVigor = state.Players[1].Vigor;
-            if (currentEnemyVigor < _prevEnemyVigor)
-            {
-                int damage = _prevEnemyVigor - currentEnemyVigor;
-                if (damage > 0)
+                // Tutorial gate: detect attack (t11) — enemy vigor decreased
+                if (_tutorialGateStep == 11 && state != null && _prevEnemyVigor >= 0)
                 {
-                    GD.Print($"[DuelScene] Face hit detected ({damage} dmg) — triggering Popup 5.");
-                    Callable.From(ShowPopup5_FaceHit).CallDeferred();
+                    if (state.Players[1].Vigor < _prevEnemyVigor)
+                    {
+                        _tutorialGateStep = -1;
+                        GD.Print("[TUTORIAL] gate t11 satisfied");
+                        Callable.From(ShowTutorialStep_t12).CallDeferred();
+                    }
                 }
-            }
         }
 
         // TASK-TU2: Notify TutorialRunner of state change
@@ -3175,9 +3243,9 @@ public partial class DuelScene : Control
     private void OnCreatureSelectedForAttack(int attackerLane)
     {
         // Fire Popup 4b if we're waiting for it (after Popup 4a was dismissed)
-        if (_tutorialCtrl != null && _tutorialCtrl.IsActive && _tutorialAwaitingCreatureSelect)
+        if (_tutorialCtrl != null && _tutorialCtrl.IsActive && _tutorialGateStep == 11)
         {
-            Callable.From(ShowPopup4b_ChoosingTarget).CallDeferred();
+            // t11 popup already guided attack — no extra popup needed
         }
     }
 
@@ -4331,7 +4399,14 @@ public partial class DuelScene : Control
             ShowToast(result.ErrorMessage ?? "Cannot end turn.",
                 Ember);
         }
-        // Success — nothing special needed for new tutorial system
+        // Success
+        // Tutorial gate t10: detect end turn
+        if (_tutorialGateStep == 10)
+        {
+            _tutorialGateStep = -1;
+            GD.Print("[TUTORIAL] gate t10 satisfied");
+            Callable.From(ShowTutorialStep_t11).CallDeferred();
+        }
     }
 
     private Label _toastLabel = default!;
