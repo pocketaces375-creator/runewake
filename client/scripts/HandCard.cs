@@ -164,6 +164,11 @@ public partial class HandCard : PanelContainer
         Modulate = Colors.White;
     }
 
+    public void SetAttunementAvailable(int available)
+    {
+        _cardPlate.SetAttunementAvailable(available);
+    }
+
     public void SetSelected(bool selected)
     {
         _selected = selected;
