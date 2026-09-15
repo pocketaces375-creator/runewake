@@ -626,6 +626,7 @@ public static class CampaignContext
             public string ActiveDeckId { get; set; } = "";
             public string CreatedAt { get; set; } = "";
             public string PortraitVariant { get; set; } = "m";
+            public bool TutorialDone { get; set; }
         }
 
         // ════════════════════════════════════════════════════════════════
