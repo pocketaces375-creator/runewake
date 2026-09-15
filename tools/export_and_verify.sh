@@ -93,6 +93,27 @@ if [ "$MODE" = "release" ]; then
     echo "  ✅ Keystore staged at $EXPORT_DIR/release.keystore"
 fi
 
+# ─── Step 3.5: UX gate stamp check ──────────────────────────────────
+echo ""
+echo "── UX gate stamp check ──"
+STAMP_FILE="$REPO_ROOT/artifacts/ux_gate.stamp"
+if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
+    echo "  ⏭️ Skipped (--skip-ux-gate)"
+elif [ ! -f "$STAMP_FILE" ]; then
+    echo "  ❌ artifacts/ux_gate.stamp not found — run tools/ux_gate.sh first"
+    exit 1
+else
+    STAMP_CONTENT=$(cat "$STAMP_FILE")
+    HEAD=$(cd "$REPO_ROOT" && git rev-parse HEAD)
+    if [ "$STAMP_CONTENT" != "$HEAD" ]; then
+        echo "  ❌ artifacts/ux_gate.stamp is stale — run tools/ux_gate.sh again"
+        echo "     Stamp: $STAMP_CONTENT"
+        echo "     HEAD:  $HEAD"
+        exit 1
+    fi
+    echo "  ✅ UX gate stamp matches HEAD"
+fi
+
 # ─── Step 4: Godot export ─────────────────────────────────────────────────
 echo ""
 echo "── Godot export ──"

@@ -226,13 +226,20 @@ fi
 # ─── GATE 10: UX gate ──────────────────────────────────────────────────
 echo ""
 echo "[10/10] UX gate"
+STAMP_FILE="$PROJECT_ROOT/artifacts/ux_gate.stamp"
 if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
-    echo "  ⏭️ Skipped"
+    echo "  ⏭️ Skipped (--skip-ux-gate)"
+elif [ ! -f "$STAMP_FILE" ]; then
+    report FAIL "artifacts/ux_gate.stamp not found — run tools/ux_gate.sh first"
 else
-    if timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 | grep -q "FAIL"; then
+    STAMP_CONTENT=$(cat "$STAMP_FILE")
+    HEAD=$(cd "$PROJECT_ROOT" && git rev-parse HEAD)
+    if [ "$STAMP_CONTENT" != "$HEAD" ]; then
+        report FAIL "UX gate stamp is stale — run tools/ux_gate.sh"
+    elif timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 | grep -q "FAIL"; then
         report FAIL "UX walkthrough failed"
     else
-        report PASS "UX walkthrough passed"
+        report PASS "UX gate: stamp matches HEAD + walkthrough OK"
     fi
 fi
 
