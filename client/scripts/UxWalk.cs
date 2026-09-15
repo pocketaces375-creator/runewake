@@ -26,7 +26,7 @@ public partial class UxWalk : Node
         System.IO.Directory.CreateDirectory(_captureDir);
         GD.Print($"{T} Starting UX walkthrough, captures → {_captureDir}");
 
-        var t = new Godot.Timer { OneShot = true, WaitTime = 1f };
+        var t = new Godot.Timer { OneShot = true, WaitTime = 2f };
         t.Timeout += Step01;
         AddChild(t); t.Start();
     }
