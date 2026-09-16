@@ -165,7 +165,7 @@ def main():
         pass_rule("COLUMN_STACK", f"{len(sorted_nodes)} nodes, no overlap")
 
     # ── SUMMARY ──
-    total = 8
+    total = 10
     passed = total - len(FAILURES)
     print(f"\n  {passed}/{total} rules PASS ({len(FAILURES)} fail{'s' if len(FAILURES)!=1 else ''})")
 
