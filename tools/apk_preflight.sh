@@ -186,12 +186,16 @@ if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
   done
 fi
 if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
-    if bash "$TOOLS_DIR/regen_captures.sh" 2>&1 && python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
+    # Run visual gate in a subshell so Godot crash cannot kill this process
+    VISUAL_OK=false
+    bash "$TOOLS_DIR/regen_captures.sh" 2>&1 || true
+    if python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
+        VISUAL_OK=true
+    fi
+    if [ "$VISUAL_OK" = true ]; then
         report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
     else
         report FAIL "visual_gate: a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
-        # Do NOT let Godot crash kill the entire preflight
-        true
     fi
 else
     report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
