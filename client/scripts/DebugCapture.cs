@@ -50,11 +50,22 @@ public partial class DebugCapture : Node
         bool reliquaryMode = false;
         foreach (var arg in args)
         {
-            if (arg == "--capture=duel_test")
+            if (arg.StartsWith("--capture=duel_test"))
             {
                 _active = true;
                 GD.Print("[DebugCapture] Capture mode enabled: --capture=duel_test");
+                // Parse seed from --seed=N or default 42
+                foreach (var a in OS.GetCmdlineArgs())
+                {
+                    if (a.StartsWith("--seed="))
+                    {
+                        int seed = int.Parse(a.Substring("--seed=".Length));
+                        CampaignContext.DebugSeed = (ulong)Math.Abs(seed);
+                        GD.Print($"[DebugCapture] DebugSeed overridden to {seed}");
+                    }
+                }
             }
+
             if (arg == "--capture=input_smoke_test")
             {
                 _active = true;
