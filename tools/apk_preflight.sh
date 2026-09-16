@@ -226,7 +226,7 @@ fi
 # ─── GATE 10: UX gate ───────────────────────
 echo ""
 echo "[10/10] UX gate"
-STAMP_FILE="$PROJECT_ROOT/artifacts/ux_gate.stamp"
+STAMP_FILE="$REPO_ROOT/artifacts/ux_gate.stamp"
 if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
     echo "  ⏭️ Skipped (--skip-ux-gate)"
 elif [ ! -f "$STAMP_FILE" ]; then
@@ -246,7 +246,7 @@ fi
 # ─── GATE 11: SIGNING_CERT ─────────────────
 APKSIGNER="/home/fictive/Android/Sdk/build-tools/34.0.0/apksigner"
 AAPT="/home/fictive/Android/Sdk/build-tools/34.0.0/aapt"
-IDENTITY="$PROJECT_ROOT/exports/SIGNING_IDENTITY.txt"
+IDENTITY="$REPO_ROOT/exports/SIGNING_IDENTITY.txt"
 CERT_FP=$(grep "^cert_sha256=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "")
 PKG_NAME=$(grep "^package_name=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "")
 LAST_VER=$(grep "^last_version_code=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "0")
