@@ -147,6 +147,8 @@ public partial class DuelScene : Control
     // TASK-WARDEN-RULE-1: Opening rule banner card (top-center, below enemy nameplate)
     private Control? _openingRuleBanner;
     private Label? _openingRuleLabel;
+    private Control? _noPlayBanner;
+    private Label? _noPlayLabel;
     
     // TASK-E: Game-over overlay (lazy-created on first IsGameOver=true)
     private Control? _gameOverOverlay;
@@ -417,6 +419,30 @@ public partial class DuelScene : Control
         _openingRuleLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.9f, 0.5f)); // pale green
         ruleBanner.AddChild(_openingRuleLabel);
         _openingRuleBanner = ruleBanner;
+
+        // ── B1: No-playable-cards banner ──
+        var noPlayBg = new ColorRect
+        {
+            Name = "NoPlayableBg",
+            Color = new Color(0.04f, 0.04f, 0.03f, 0.75f),
+            Size = new Vector2(400f * s, 36f * s),
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        AddChild(noPlayBg);
+        noPlayBg.SetAnchorsPreset(Control.LayoutPreset.CenterTop);
+        noPlayBg.Position = new Vector2(0, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
+        _noPlayLabel = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _noPlayLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(22 * s));
+        _noPlayLabel.AddThemeColorOverride("font_color", new Color(0.89f, 0.76f, 0.0f));
+        noPlayBg.AddChild(_noPlayLabel);
+        _noPlayBanner = noPlayBg;
+        _noPlayBanner.Visible = false;
 
         // ═══ TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info ═══
         _rulesSlab = new RulesSlab { Name = "RulesSlab" };
@@ -2259,6 +2285,8 @@ public partial class DuelScene : Control
         RenderHud();
         RenderBoard();
         RenderHand();
+
+        CheckAffordableCards();
 
         // ═══ TASK-WARDEN-RULE-1: Update opening rule banner ═══
         if (_openingRuleBanner != null && _openingRuleLabel != null)
@@ -5938,6 +5966,33 @@ private void ShowGameOverOverlay(int winnerIndex)
             var row = _playerShrineAttuneLabel.GetParent() as HBoxContainer;
             if (row != null) RebuildAttunePips(row, cur, max);
         }
+
+    // ── B1: No-playable-cards check + pulse ──
+    private void CheckAffordableCards()
+    {
+        if (_gsm == null || _noPlayBanner == null) return;
+        int currentAttune = _gsm.GetPlayerHud(0).Attunement;
+        var hand = _gsm.GetHand(0);
+        if (hand == null || hand.Count == 0) { _noPlayBanner.Visible = false; return; }
+        bool hasAffordable = hand.Any(h => h.Cost <= currentAttune);
+
+        if (!hasAffordable)
+        {
+            _noPlayLabel!.Text = "No playable cards — tap End Turn";
+            _noPlayBanner!.Visible = true;
+            var pulseTween = GetTree().CreateTween();
+            pulseTween.TweenProperty(_endTurnButton, "modulate", new Color(1.2f, 1.0f, 0.6f), 0.4f);
+            pulseTween.TweenProperty(_endTurnButton, "modulate", Colors.White, 0.4f);
+            pulseTween.SetLoops(0);
+            var costs = string.Join(", ", hand.Select(h => h.Cost.ToString()));
+            GD.Print($"[TURN] no affordable cards att={currentAttune} hand=[{costs}]");
+        }
+        else if (_noPlayBanner.Visible)
+        {
+            _noPlayBanner.Visible = false;
+            _endTurnButton!.Modulate = Colors.White;
+        }
+    }
 
     private void RebuildAttunePips(HBoxContainer row, int cur, int max) // E1: capped at 10
     {
