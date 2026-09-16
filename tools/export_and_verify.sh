@@ -141,6 +141,15 @@ fi
 
 # ─── Step 4: Preflight ────────────────────────────────────────────────────
 echo ""
+echo "── Signing identity check ──"
+if bash "$REPO_ROOT/tools/signing_check.sh" "$APK"; then
+    echo "  ✅ Signing identity verified"
+else
+    echo "  ❌ Signing identity check FAILED"
+    exit 1
+fi
+
+echo ""
 echo "── Preflight checks ──"
 if bash "$REPO_ROOT/tools/apk_preflight.sh" "$APK" /home/fictive/Android/Sdk "$PREVIOUS_APK"; then
     echo "  ✅ Preflight PASSED"
