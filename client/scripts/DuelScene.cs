@@ -514,6 +514,10 @@ public partial class DuelScene : Control
             else
             {
                 GD.Print($"[DuelScene] Tutorial script mode: {tutorialScriptId}");
+                // FABLE-002 BUGFIX: SetupEncounter() was called in Initialize() before
+                // LoadScript(), so _script was null and the encounter was never set up.
+                // Call it again now that the script is loaded.
+                _tutorialRunner.SetupEncounter();
             }
 
             // TASK-TUTORIAL-VERIFY-1: Re-read encounter after TutorialRunner.SetupEncounter
