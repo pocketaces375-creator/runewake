@@ -11,7 +11,7 @@ x is measured from the LEFT edge of the viewport unless stated as "from right".
 |---|---|---|---|
 | **VIEWPORT** | 0..2316 | 0..1080 | Reference resolution |
 | **ENEMY STRIP** | 0..2316 | 0..90 | `ClipContents`. Fan centred on x=1098. |
-| **LANE BAND** | 416..1781 | 100..716 | 5 lanes per row, card W 205 H 300, pitch 290 |
+|| **LANE BAND** | 416..1885 | 100..716 | 5 lanes per row, slot W 205 H 300, pitch 316 |
 
 ### Lane row coordinates
 
@@ -20,11 +20,11 @@ x is measured from the LEFT edge of the viewport unless stated as "from right".
 | Enemy | 100..400 | |
 | Player | 416..716 | |
 
-### Lane slot x centres (476..1841 band)
+### Lane slot x centres (416..1885 band, pitch 316)
 
-| Slot | 0 | 1 | 2 | 3 | 4 |
-|---|---|---|---|---|---|
-| left | 416 | 706 | 996 | 1286 | 1576 |
+|| Slot | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|---|
+|| left | 416 | 732 | 1048 | 1364 | 1680 |
 
 ### Hand (overlay)
 
