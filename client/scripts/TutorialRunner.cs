@@ -57,6 +57,9 @@ public partial class TutorialRunner : Node
     private int _opponentActionIndex;
     private bool _awaitingDismiss;
     private TutorialPopup? _popup;
+    // FABLE-002: the human-facing presenter (prompt before, note after, narration during)
+    private TutorialCoach? _coach;
+    private bool _skipped;
     private int _prevAttackCount; // player's AttackCountThisTurn from previous frame
     private int _prevSummonCount; // number of occupied player lanes from previous frame
     private int _prevTurnNumber;
@@ -119,6 +122,14 @@ public partial class TutorialRunner : Node
         // reads the correct decks and artifacts when building GameConfig
         SetupEncounter();
 
+        // FABLE-002: the coach presents prompts, notes and narration for everyone.
+        // Headless capture runs use it too, so the PNGs show exactly what a player
+        // sees (prompt card + highlight frames, then the note), auto-advanced.
+        _coach = new TutorialCoach();
+        _coach.AnchorProvider = PromptAnchor;
+        _coach.SkipRequested += SkipTutorial;
+        _duelScene.AddChild(_coach);
+
         // Create action timer for opponent scripted plays and headless auto-play
         _actionTimer = new Godot.Timer();
         _actionTimer.OneShot = true;
@@ -173,32 +184,45 @@ public partial class TutorialRunner : Node
     {
         if (_script == null) return;
 
-        // Build encounter def for campaign context
+        // Build encounter def for campaign context.
+        // FABLE-002: a script that ships its own decks (the headless capture scripts)
+        // replaces the encounter wholesale, as before. A script with EMPTY decks —
+        // the guided first duel — keeps the player's real deck, chosen class, relics
+        // and the real campaign encounter (portrait, dialogue, rewards, node clear).
+        // It only scripts hands and the opponent's plays.
         var deck = _script.PlayerDeck.ToList();
         var oppDeck = _script.OpponentDeck.ToList();
 
-        CampaignContext.PlayerDeckIds = deck;
-        CampaignContext.CurrentEncounter = new EncounterDef
+        if (deck.Count > 0 && oppDeck.Count > 0)
         {
-            Id = _script.TutorialId,
-            Name = _script.Title,
-            IsTutorial = true,
-            Deck = oppDeck,
-            Portrait = "",
-            DialogueIntro = [],
-            DialogueOutro = [],
-            ShardReward = 0,
-            DigChargeReward = 0
-        };
+            CampaignContext.PlayerDeckIds = deck;
+            CampaignContext.CurrentEncounter = new EncounterDef
+            {
+                Id = _script.TutorialId,
+                Name = _script.Title,
+                IsTutorial = true,
+                Deck = oppDeck,
+                Portrait = "",
+                DialogueIntro = [],
+                DialogueOutro = [],
+                ShardReward = 0,
+                DigChargeReward = 0
+            };
+            CampaignContext.DebugSeed = 42;
+            GD.Print($"[TutorialRunner] Setup encounter: player deck size={deck.Count}, opponent deck size={oppDeck.Count}");
+        }
+        else
+        {
+            GD.Print($"[TutorialRunner] Setup encounter: keeping campaign deck/encounter ({CampaignContext.CurrentEncounter?.Id ?? "none"})");
+        }
 
-        CampaignContext.DebugSeed = 42;
+        // Set artifact IDs and class for the player's artifacts — only when the script names them
+        if (_script.Artifacts.Count > 0)
+            CampaignContext.TutorialPlayerArtifactIds = _script.Artifacts.ToArray();
+        if (!string.IsNullOrEmpty(_script.Class))
+            CampaignContext.TutorialPlayerClass = _script.Class;
 
-        // Set artifact IDs and class for the player's artifacts
-        CampaignContext.TutorialPlayerArtifactIds = _script.Artifacts.ToArray();
-        CampaignContext.TutorialPlayerClass = _script.Class;
-
-        GD.Print($"[TutorialRunner] Setup encounter: player deck size={deck.Count}, opponent deck size={oppDeck.Count}");
-        GD.Print($"[TutorialRunner] Artifacts: [{string.Join(", ", _script.Artifacts)}], class={_script.Class}");
+        GD.Print($"[TutorialRunner] Artifacts: [{string.Join(", ", _script.Artifacts)}], class={(string.IsNullOrEmpty(_script.Class) ? "(player's choice)" : _script.Class)}");
     }
 
     /// <summary>
@@ -251,6 +275,10 @@ public partial class TutorialRunner : Node
 
         // Apply first-turn overrides
         ApplyTurnOverrides();
+
+        // FABLE-002: coach sits above everything DuelScene built in _Ready
+        if (_coach != null && GodotObject.IsInstanceValid(_coach))
+            _duelScene.MoveChild(_coach, _duelScene.GetChildCount() - 1);
 
         // Set first beat
         _currentBeatIndex = 0;
@@ -367,6 +395,13 @@ public partial class TutorialRunner : Node
             _handOverriddenThisTurn = false;
             _attunementOverriddenThisTurn = false;
 
+            // FABLE-002: tell the player whose turn it is while the script plays it out
+            if (_coach != null)
+            {
+                _coach.HidePrompt();
+                _coach.ShowNarration($"{OpponentName}'s turn. Watch the board.", 2.0f);
+            }
+
             // Apply opponent hand override if specified
             ApplyTurnOverrides();
 
@@ -405,6 +440,13 @@ public partial class TutorialRunner : Node
         if (beat.RestrictActionsTo is { Count: > 0 })
         {
             ApplyActionRestrictions(beat.RestrictActionsTo);
+        }
+
+        // FABLE-002: the instruction, BEFORE the action, with live highlights
+        if (_coach != null && !string.IsNullOrEmpty(beat.Prompt))
+        {
+            var highlightIds = beat.Highlight ?? new List<string>();
+            _coach.ShowPrompt(beat.PromptTitle ?? "", beat.Prompt!, () => ResolveHighlights(highlightIds), showSkip: true);
         }
 
         // In headless mode, auto-play after a short delay
@@ -492,11 +534,29 @@ public partial class TutorialRunner : Node
 
     private void OnBeatMatched(TutorialBeat beat, GameState state)
     {
+        _coach?.HidePrompt();
+
         // Show popup if one exists
         if (!string.IsNullOrEmpty(beat.Popup))
         {
             _state = RunnerState.ShowingPopup;
             _awaitingDismiss = true;
+
+            if (_coach != null)
+            {
+                // FABLE-002: consequence note, modal, one Continue
+                _coach.ShowNote(beat.NoteTitle ?? "", beat.Popup!, OnPopupDismissed);
+
+                // Headless: capture the note, then auto-Continue after 2s
+                if (_isHeadless && _headlessTimer != null)
+                {
+                    _headlessTimer.OneShot = true;
+                    _headlessTimer.Timeout -= OnHeadlessTimerTimeout;
+                    _headlessTimer.Timeout += AutoDismissPopup;
+                    _headlessTimer.Start(2.0f);
+                }
+                return;
+            }
 
             ShowPopup(beat.Popup, beat.Highlight);
 
@@ -527,6 +587,16 @@ public partial class TutorialRunner : Node
         _headlessTimer.Timeout += OnHeadlessTimerTimeout;
 
         if (_state != RunnerState.ShowingPopup) return;
+
+        // FABLE-002: coach note — capture it while visible, then Continue (deferred:
+        // OnPopupDismissed advances the script and must not run inside the timer callback).
+        var coach = _coach;
+        if (coach != null && GodotObject.IsInstanceValid(coach) && coach.IsNoteOpen)
+        {
+            CaptureCurrentBeat("_note");
+            Callable.From(() => coach.DismissNote()).CallDeferred();
+            return;
+        }
 
         // IMPORTANT: Use CallDeferred to avoid Godot crash (propagate_notification)
         // when removing the popup from the scene tree during a timer callback.
@@ -560,30 +630,7 @@ public partial class TutorialRunner : Node
         };
 
         // Resolve highlight string IDs to actual Control nodes from the live layout
-        var resolvedHighlights = new List<Control>();
-        if (highlights is { Count: > 0 })
-        {
-            // "all_creatures_highlight" is a magic ID — we handle it first, expanding
-            // to all owned player slots, then treat the rest as individual IDs
-            bool expandAllCreatures = highlights.Contains("all_creatures_highlight");
-            foreach (var id in highlights)
-            {
-                if (id == "all_creatures_highlight")
-                    continue; // handled below
-                var ctrl = ResolveHighlight(id);
-                if (ctrl != null)
-                    resolvedHighlights.Add(ctrl);
-            }
-            if (expandAllCreatures && _duelScene.TutorialPlayerSlots is { Count: 5 })
-            {
-                // Add all player lane slots as separate highlights
-                foreach (var slot in _duelScene.TutorialPlayerSlots)
-                {
-                    if (slot != null && GodotObject.IsInstanceValid(slot) && !resolvedHighlights.Contains(slot))
-                        resolvedHighlights.Add(slot);
-                }
-            }
-        }
+        var resolvedHighlights = ResolveHighlights(highlights);
 
         _popup.HighlightMargins = new Vector2(8, 8);
 
@@ -592,6 +639,107 @@ public partial class TutorialRunner : Node
         _popup.Show(content);
 
         GD.Print($"[TutorialRunner] Popup shown: \"{text}\" ({resolvedHighlights.Count} highlights resolved)");
+    }
+
+    /// <summary>Resolve a list of highlight IDs (with the all_creatures_highlight expansion).</summary>
+    private List<Control> ResolveHighlights(List<string>? highlights)
+    {
+        var resolved = new List<Control>();
+        if (highlights is not { Count: > 0 }) return resolved;
+
+        // "all_creatures_highlight" is a magic ID — we handle it first, expanding
+        // to all owned player slots, then treat the rest as individual IDs
+        bool expandAllCreatures = highlights.Contains("all_creatures_highlight");
+        foreach (var id in highlights)
+        {
+            if (id == "all_creatures_highlight")
+                continue; // handled below
+            var ctrl = ResolveHighlight(id);
+            if (ctrl != null)
+                resolved.Add(ctrl);
+        }
+        if (expandAllCreatures && _duelScene.TutorialPlayerSlots is { Count: 5 })
+        {
+            foreach (var slot in _duelScene.TutorialPlayerSlots)
+            {
+                if (slot != null && GodotObject.IsInstanceValid(slot) && !resolved.Contains(slot))
+                    resolved.Add(slot);
+            }
+        }
+        return resolved;
+    }
+
+    /// <summary>Display name of the scripted opponent.</summary>
+    private string OpponentName => CampaignContext.CurrentEncounter?.Name ?? "Your opponent";
+
+    /// <summary>
+    /// FABLE-002: where the coach's prompt card sits — the union of the enemy's three
+    /// leftmost lane slots (global rect). The guided script never plays into enemy
+    /// lanes 0-2, so the card is big, readable and covers nothing that matters.
+    /// </summary>
+    private Rect2? PromptAnchor()
+    {
+        var slots = _duelScene.TutorialEnemySlots;
+        if (slots == null || slots.Count < 3) return null;
+        Rect2? acc = null;
+        for (int i = 0; i < 3; i++)
+        {
+            var s = slots[i];
+            if (s == null || !GodotObject.IsInstanceValid(s) || !s.IsInsideTree()) continue;
+            var r = s.GetGlobalRect();
+            if (r.Size.X <= 0 || r.Size.Y <= 0) continue;
+            acc = acc is Rect2 a ? a.Merge(r) : r;
+        }
+        return acc;
+    }
+
+    /// <summary>The instruction currently on screen (for DenyPopup's "follow the glow").</summary>
+    public string CurrentInstruction =>
+        _state == RunnerState.PlayerTurn && CurrentBeat is { } b && !string.IsNullOrEmpty(b.Prompt)
+            ? b.Prompt! : "Do what the instruction card asks.";
+
+    /// <summary>
+    /// FABLE-002: honour restrict_actions_to for summons. SUMMON_CREATURE / SUMMON_LANE_ANY /
+    /// ANY allow any lane; SUMMON_LANE_n allows only lane n. An empty list allows everything.
+    /// A beat that lists only non-summon actions (e.g. ["ATTACK_LANE_3"]) forbids summoning.
+    /// </summary>
+    public bool IsSummonAllowed(int laneIndex)
+    {
+        if (_state != RunnerState.PlayerTurn) return true;
+        var beat = CurrentBeat;
+        if (beat?.RestrictActionsTo is not { Count: > 0 } r) return true;
+        if (r.Contains("ANY") || r.Contains("SUMMON_CREATURE") || r.Contains("SUMMON_LANE_ANY")) return true;
+        if (r.Contains($"SUMMON_LANE_{laneIndex}")) return true;
+        // Specific summon lanes were listed and this is not one of them — or the list
+        // names only other actions (END_TURN, ATTACK_LANE_3...) — either way, no.
+        return false;
+    }
+
+    /// <summary>FABLE-002: honour restrict_actions_to for attacks (ATTACK_ANY / ATTACK_LANE_n).</summary>
+    public bool IsAttackAllowed(int sourceLane)
+    {
+        if (_state != RunnerState.PlayerTurn) return true;
+        var beat = CurrentBeat;
+        if (beat?.RestrictActionsTo is not { Count: > 0 } r) return true;
+        if (r.Contains("ANY") || r.Contains("ATTACK_ANY")) return true;
+        if (r.Contains($"ATTACK_LANE_{sourceLane}")) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// FABLE-002: the player tapped "Skip tutorial". Hand the duel back to the
+    /// normal flow immediately: restrictions off, coach gone, bot back in charge.
+    /// </summary>
+    public void SkipTutorial()
+    {
+        if (_state == RunnerState.Finished || _skipped) return;
+        _skipped = true;
+        GD.Print("[TutorialRunner] Tutorial SKIPPED by player");
+        _actionTimer?.Stop();
+        _headlessTimer?.Stop();
+        _awaitingDismiss = false;
+        _coach?.HideAll();
+        EndTutorial();
     }
 
     /// <summary>
@@ -699,8 +847,9 @@ public partial class TutorialRunner : Node
     {
         _awaitingDismiss = false;
 
-        // Capture screenshot at this beat boundary
-        CaptureCurrentBeat();
+        // Capture screenshot at this beat boundary (headless gate runs only)
+        if (_isHeadless)
+            CaptureCurrentBeat();
 
         if (_state == RunnerState.ShowingPopup)
         {
@@ -781,6 +930,10 @@ public partial class TutorialRunner : Node
         var action = turn.OpponentActions[_opponentActionIndex];
         GD.Print($"[TutorialRunner] Opponent action: {action.Action}");
 
+        // FABLE-002: narrate what the opponent is doing
+        if (_coach != null && !string.IsNullOrEmpty(action.Label))
+            _coach.ShowNarration(action.Label!);
+
         try
         {
             ExecuteScriptedAction(action);
@@ -852,6 +1005,10 @@ public partial class TutorialRunner : Node
         if (beat == null) return;
 
         GD.Print($"[TutorialRunner] Headless auto-play: beat '{beat.Id}' ({beat.TriggerEvent})");
+
+        // FABLE-002: capture the instruction card + highlight frames before acting on them
+        if (_coach != null && !string.IsNullOrEmpty(beat.Prompt))
+            CaptureCurrentBeat("_prompt");
 
         switch (beat.TriggerEvent)
         {
@@ -1042,14 +1199,14 @@ public partial class TutorialRunner : Node
 
     // ── Capture ──
 
-    private void CaptureCurrentBeat()
+    private void CaptureCurrentBeat(string suffix = "")
     {
         if (_gsm.State == null) return;
 
         var beat = CurrentBeat;
         string beatId = beat?.Id ?? "unknown";
         string turnStr = _gsm.State.TurnNumber.ToString();
-        string filename = $"{_tutorialCapturePrefix}{_script?.TutorialId ?? "unknown"}_t{turnStr}_{beatId}";
+        string filename = $"{_tutorialCapturePrefix}{_script?.TutorialId ?? "unknown"}_t{turnStr}_{beatId}{suffix}";
 
         try
         {
@@ -1103,6 +1260,7 @@ public partial class TutorialRunner : Node
         _duelInitialized = false;
 
         ClearActionRestrictions();
+        _coach?.HideAll();
 
         // Capture the final state as the gate-named capture (tutorial_warrior_intro.png)
         if (_isHeadless)

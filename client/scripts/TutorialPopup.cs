@@ -51,6 +51,7 @@ public partial class TutorialPopup : Control, ITutorialPresenter
         _wasSkipped = false;
 
         Name = $"TutorialPopup_{content.PopupId}";
+        Visible = true; // FABLE-002: a dismissed popup hides itself; re-show on next content
         AnchorLeft = 0;
         AnchorRight = 1;
         AnchorTop = 0;
@@ -270,6 +271,11 @@ public partial class TutorialPopup : Control, ITutorialPresenter
 
     private void OnDismissed()
     {
+        // FABLE-002: the dim overlay (MouseFilter.Stop) used to stay on screen after
+        // Continue, blocking every tap on the board until the next popup replaced it —
+        // a soft-lock at every "now do X" gate. Hide first, then notify.
+        RemoveAllHighlightFrames();
+        Visible = false;
         Dismissed?.Invoke();
     }
 
@@ -374,6 +380,8 @@ public partial class TutorialPopup : Control, ITutorialPresenter
     /// <summary>Dismiss the popup programmatically. Fires the Dismissed event.</summary>
     public void Dismiss()
     {
+        RemoveAllHighlightFrames();
+        Visible = false;
         Dismissed?.Invoke();
     }
 }

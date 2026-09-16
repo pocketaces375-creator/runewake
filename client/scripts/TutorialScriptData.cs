@@ -70,6 +70,22 @@ public class TutorialBeat
     [JsonPropertyName("condition")]
     public BeatCondition? Condition { get; set; }
 
+    /// <summary>FABLE-002: short heading for the instruction card, e.g. "SUMMON".</summary>
+    [JsonPropertyName("prompt_title")]
+    public string? PromptTitle { get; set; }
+
+    /// <summary>
+    /// FABLE-002: the instruction shown BEFORE the player acts ("Tap the Student, then
+    /// tap the glowing lane"). Non-modal, sits beside the board with the highlights.
+    /// </summary>
+    [JsonPropertyName("prompt")]
+    public string? Prompt { get; set; }
+
+    /// <summary>FABLE-002: short heading for the consequence note, e.g. "SWIFT".</summary>
+    [JsonPropertyName("note_title")]
+    public string? NoteTitle { get; set; }
+
+    /// <summary>The consequence note shown AFTER the player acts (modal, Continue).</summary>
     [JsonPropertyName("popup")]
     public string? Popup { get; set; }
 

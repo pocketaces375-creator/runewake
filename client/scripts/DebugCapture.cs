@@ -836,6 +836,7 @@ public partial class DebugCapture : Node
     {
         // Set the flag that tells DuelScene to create a TutorialRunner
         CampaignContext.TutorialScriptId = scriptId;
+        CampaignContext.TutorialHeadless = true; // FABLE-002: only the CLI capture path is headless
         // IMPORTANT: Must be true so Main.cs navigates to the duel scene in capture mode
         CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.DebugSeed = 42;

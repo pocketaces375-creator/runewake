@@ -34,6 +34,13 @@ public partial class DuelScene : Control
     private TutorialRunner? _tutorialRunner;
     private bool _isTutorialScriptMode;
 
+    // FABLE-002: explicit refusal panel ("why can't I do that?")
+    private DenyPopup? _deny;
+    /// <summary>Script id of the guided first duel a fresh profile plays through.</summary>
+    private const string GuidedFirstDuelScriptId = "first_duel";
+    /// <summary>True when the opponent is genuinely mid-turn (bot acting, or it is simply not P0's turn).</summary>
+    private bool OpponentBusy => (_bot != null && _bot.IsActing) || (_gsm != null && _gsm.IsInitialized && _gsm.CurrentPlayerIndex != 0);
+
     // Health bar ColorRects
     private ColorRect _enemyHealthBar = default!;
     private ColorRect _playerHealthBar = default!;
@@ -464,6 +471,29 @@ public partial class DuelScene : Control
         // or a tutorial script mode (--tutorial CLI arg)
         bool isTutorialEncounter = _isCampaignEncounter && encounter != null && encounter.IsTutorial;
         string? tutorialScriptId = CampaignContext.TutorialScriptId;
+        // FABLE-002: consume the static immediately so it can never leak into the NEXT duel.
+        CampaignContext.TutorialScriptId = null;
+        bool tutorialHeadless = CampaignContext.TutorialHeadless;
+        CampaignContext.TutorialHeadless = false;
+
+        // FABLE-002: a fresh profile's first Wayfarer duel is the guided first duel.
+        // Routed here (not in MapScene) so every entry into the tutorial encounter —
+        // map, replay button, smoke — takes the same path.
+        var activeProfile = CampaignContext.ActiveProfile
+            ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
+        bool tutorialDone = activeProfile?.TutorialDone ?? false;
+        if (string.IsNullOrEmpty(tutorialScriptId)
+            && isTutorialEncounter
+            && !tutorialDone
+            && !CampaignContext.SoakActive
+            && !CampaignContext.AutoCaptureScreenshot
+            && !CampaignContext.LoopSmokeTest
+            && !CampaignContext.BotDuelTest
+            && !CampaignContext.UxWalk)
+        {
+            tutorialScriptId = GuidedFirstDuelScriptId;
+            GD.Print($"[TUTORIAL] fresh profile on tutorial encounter — guided first duel '{tutorialScriptId}'");
+        }
         _isTutorialScriptMode = !string.IsNullOrEmpty(tutorialScriptId);
 
         if (_isTutorialScriptMode)
@@ -471,7 +501,8 @@ public partial class DuelScene : Control
             // TASK-TU2: Tutorial runner — consumes tutorial script data
             _tutorialRunner = new TutorialRunner();
             AddChild(_tutorialRunner);
-            _tutorialRunner.Initialize(this, _gsm, _bot, isHeadless: true);
+            _tutorialRunner.Initialize(this, _gsm, _bot, isHeadless: tutorialHeadless);
+            _tutorialRunner.TutorialFinished += OnGuidedTutorialFinished;
 
             // Load and validate the script
             if (!_tutorialRunner.LoadScript(tutorialScriptId!))
@@ -490,8 +521,10 @@ public partial class DuelScene : Control
             encounter = CampaignContext.CurrentEncounter;
             _isCampaignEncounter = encounter != null;
         }
-        else if (isTutorialEncounter && !CampaignContext.SoakActive)
+        else if (isTutorialEncounter && !CampaignContext.SoakActive && !tutorialDone)
         {
+            // Legacy 13-popup chain — kept for the capture/smoke flows that are excluded
+            // from the guided routing above. Never reached by a real player any more.
             _tutorialPopup = new TutorialPopup();
             AddChild(_tutorialPopup);
             _tutorialCtrl = new TutorialController();
@@ -3101,11 +3134,11 @@ public partial class DuelScene : Control
 
     private void OnLaneTapped(int laneIndex, bool isEmpty)
     {
-        if (_bot.IsThinking)
+        if (OpponentBusy)
         {
-            GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (bot thinking) lane={laneIndex} isEmpty={isEmpty}");
-            GD.Print($"[INPUT] DROPPED (lane tap) IsThinking=true");
-            ShowToast("Wait — your opponent is acting.", Gold);
+            GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (opponent busy) lane={laneIndex} isEmpty={isEmpty}");
+            GD.Print($"[INPUT] DROPPED (lane tap) OpponentBusy=true");
+            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
             return;
         }
 
@@ -3128,18 +3161,29 @@ public partial class DuelScene : Control
             // Tap-to-summon: player tapped a lane after selecting a card
             if (isPlayerLane && isEmpty)
             {
+                // FABLE-002: guided tutorial may insist on a specific lane — keep the
+                // card selected so the next tap on the glowing lane just works.
+                if (_tutorialRunner != null && !_tutorialRunner.IsSummonAllowed(laneIndex))
+                {
+                    Deny(DenyPopup.TutorialWants(_tutorialRunner.CurrentInstruction), hard: false);
+                    return;
+                }
                 _input.SelectTargetLane(laneIndex);
                 HideRulesSlab();
             }
             else if (isPlayerLane && !isEmpty)
             {
-                // Tapped occupied lane while selecting a card — cancel and show feedback
-                ShowToast("That lane is already occupied.", Gold);
-                _input.CancelSelection();
+                // Tapped occupied lane while placing a card — say why, keep the card selected
+                Deny(DenyPopup.LaneOccupied());
+            }
+            else if (isEnemyLane)
+            {
+                // Tapped the enemy's row while placing a card — say why, keep the card selected
+                Deny(DenyPopup.EnemySide());
             }
             else
             {
-                // Tapped enemy lane or empty space — cancel
+                // Empty space — cancel
                 _input.CancelSelection();
             }
         }
@@ -3147,6 +3191,11 @@ public partial class DuelScene : Control
         {
             if (isEnemyLane)
             {
+                if (_tutorialRunner != null && !_tutorialRunner.IsAttackAllowed(_input.SelectedAttackerLane))
+                {
+                    Deny(DenyPopup.TutorialWants(_tutorialRunner.CurrentInstruction), hard: false);
+                    return;
+                }
                 _input.SelectAttackTarget(laneIndex);
             }
             else if (isPlayerLane && isEmpty)
@@ -3156,18 +3205,52 @@ public partial class DuelScene : Control
             }
             else if (isPlayerLane && !isEmpty)
             {
-                // Switch attacker to this creature instead
-                _input.SelectAttacker(laneIndex);
-                UpdateAttackHighlights();
+                if (laneIndex == _input.SelectedAttackerLane)
+                {
+                    // Tap-again-to-deselect
+                    _input.CancelSelection();
+                    UpdateAttackHighlights();
+                }
+                else
+                {
+                    // Switch attacker to this creature instead
+                    _input.SelectAttacker(laneIndex);
+                    UpdateAttackHighlights();
+                }
             }
         }
         else
         {
-            // Idle state — board card taps show description
-            if (!isEmpty)
+            // Idle state.
+            // FABLE-002: tap on OWN creature = select it to attack (restored — this was
+            // removed by TASK-RULES-SLAB-TAP-1, which left the game with no way to attack
+            // by tap at all; rules are read by LONG-PRESS, which LaneSlot already does).
+            // Tap on an ENEMY creature = read its rules slab.
+            if (!isEmpty && isPlayerLane)
             {
-                var slot = _playerSlots.FirstOrDefault(s => s.LaneIndex == laneIndex)
-                    ?? _enemySlots.FirstOrDefault(s => s.LaneIndex == laneIndex);
+                HideRulesSlab();
+                _slabCardId = null;
+                var occupant = (laneIndex >= 0 && laneIndex < 5 && _gsm.State != null)
+                    ? _gsm.State.Players[0].Lanes[laneIndex].Occupant : null;
+                string creatureName = occupant != null
+                    ? (CardRegistry.Get(occupant.CardDefId)?.Name ?? "That creature") : "That creature";
+                if (occupant != null && occupant.HasAttackedThisTurn)
+                {
+                    Deny(DenyPopup.AlreadyAttacked(creatureName));
+                    return;
+                }
+                if (occupant != null && occupant.IsExhausted)
+                {
+                    Deny(DenyPopup.Resting(creatureName));
+                    return;
+                }
+                _input.SelectAttacker(laneIndex);
+                UpdateAttackHighlights();
+                ShowToast($"Tap the enemy lane across from {creatureName} to attack.", Moss);
+            }
+            else if (!isEmpty)
+            {
+                var slot = _enemySlots.FirstOrDefault(s => s.LaneIndex == laneIndex);
                 var def = slot?.CurrentCardDef;
                 if (def != null)
                 {
@@ -3185,6 +3268,7 @@ public partial class DuelScene : Control
             else
             {
                 HideRulesSlab();
+                _slabCardId = null;
             }
         }
     }
@@ -3199,20 +3283,20 @@ public partial class DuelScene : Control
 
     private void OnHandCardPressed(HandCard card)
     {
-        if (_bot.IsThinking)
+        if (OpponentBusy)
         {
-            GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (bot thinking) card={card.CardName}");
-            GD.Print($"[INPUT] DROPPED (hand tap) IsThinking=true");
-            ShowToast("Wait — your opponent is acting.", Gold);
+            GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (opponent busy) card={card.CardName}");
+            GD.Print($"[INPUT] DROPPED (hand tap) OpponentBusy=true");
+            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
             return;
         }
 
-        // A2: Unaffordable check — shake, toast, no select
+        // A2: Unaffordable check — shake, explicit refusal, no select
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         if (card.CardCost > currentAttune)
         {
             GD.Print($"[INPUT] unaffordable {card.CardId} cost={card.CardCost} have={currentAttune}");
-            ShowToast($"Needs {card.CardCost} Attunement — you have {currentAttune}", Gold);
+            Deny(DenyPopup.NotEnoughAttunement(card.CardName, card.CardCost, currentAttune));
             var tween = CreateTween();
             float origX = card.Position.X;
             tween.TweenProperty(card, "position:x", origX - 6f, 0.04f).SetEase(Tween.EaseType.InOut);
@@ -3221,6 +3305,18 @@ public partial class DuelScene : Control
             tween.TweenProperty(card, "position:x", origX + 4f, 0.04f).SetEase(Tween.EaseType.InOut);
             tween.TweenProperty(card, "position:x", origX, 0.04f);
             return;
+        }
+
+        // FABLE-002: field-full pre-check — a creature/relic needs an empty lane of ours.
+        {
+            var cardDef = CardRegistry.Get(card.CardId);
+            bool needsLane = cardDef == null || cardDef.Type == CardType.CREATURE || cardDef.Type == CardType.RELIC;
+            if (needsLane && !_gsm.GetLanes(0).Any(l => l.IsEmpty))
+            {
+                GD.Print($"[INPUT] field full — refusing {card.CardId}");
+                Deny(DenyPopup.FieldFull());
+                return;
+            }
         }
 
         GD.Print($"[DUEL_TRACE] OnHandCardPressed: card={card.CardName} state={_input.State} selectedId={_input.SelectedCardId}");
@@ -3368,11 +3464,13 @@ public partial class DuelScene : Control
         if (!result.Success)
         {
             GD.Print($"[DUEL_TRACE] OnPlayCardRequested FAILED: {result.ErrorMessage}");
-            ShowToast(result.ErrorMessage ?? "Cannot play that card.",
-                Gold);
+            string cardName = CardRegistry.Get(cardId)?.Name ?? "That card";
+            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, cardName, _encounterName,
+                _gsm.GetPlayerHud(0).Attunement));
         }
         else
         {
+            _deny?.HideNow();
             GD.Print($"[DUEL_TRACE] OnPlayCardRequested SUCCESS: card={cardId} placed in lane {laneIndex}");
             // TASK-AUDIO-HOOK-1: Play sfx for card played / spell resolved
             var audio = GetNode<AudioManager>("/root/AudioManager");
@@ -3398,8 +3496,14 @@ public partial class DuelScene : Control
         var result = _gsm.TryAttack(0, attackerLane, targetLane);
         if (!result.Success)
         {
-            ShowToast(result.ErrorMessage ?? "Cannot attack.",
-                Ember);
+            var lanes = _gsm.GetLanes(0);
+            string attackerName = attackerLane >= 0 && attackerLane < lanes.Count && !string.IsNullOrEmpty(lanes[attackerLane].Name)
+                ? lanes[attackerLane].Name : "That creature";
+            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, attackerName, _encounterName));
+        }
+        else
+        {
+            _deny?.HideNow();
         }
         // Success — face hit detection happens in OnStateChanged
     }
@@ -4543,8 +4647,11 @@ public partial class DuelScene : Control
     /// </summary>
     private void OnEndTurnPressed()
     {
-        if (_bot.IsThinking) return;
-        if (_gsm.CurrentPlayerIndex != 0) return;
+        if (OpponentBusy)
+        {
+            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
+            return;
+        }
 
         // TASK-AUDIO-HOOK-1: Button click
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -4552,8 +4659,11 @@ public partial class DuelScene : Control
         var result = _gsm.TryEndTurn();
         if (!result.Success)
         {
-            ShowToast(result.ErrorMessage ?? "Cannot end turn.",
-                Ember);
+            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, "End Turn", _encounterName));
+        }
+        else
+        {
+            _deny?.HideNow();
         }
         // Success
         // Tutorial gate t10: detect end turn
@@ -4566,6 +4676,42 @@ public partial class DuelScene : Control
     }
 
     private Label _toastLabel = default!;
+
+    // ——— FABLE-002: explicit refusals ———
+
+    /// <summary>
+    /// Show the player exactly why an action was refused and what to do instead.
+    /// Lazily creates the panel on first use so it always sits above everything
+    /// built in _Ready (arsenal groups, hand, altar).
+    /// </summary>
+    private void Deny(DenyText text, bool hard = true)
+    {
+        if (_deny == null || !IsInstanceValid(_deny))
+        {
+            _deny = new DenyPopup();
+            AddChild(_deny);
+        }
+        _deny.EndTurnButton = _endTurnButton;
+        MoveChild(_deny, GetChildCount() - 1);
+        _deny.Show(text, hard);
+    }
+
+    /// <summary>Guided first duel finished or skipped — never show it again for this profile.</summary>
+    private void OnGuidedTutorialFinished()
+    {
+        var profile = CampaignContext.ActiveProfile
+            ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
+        if (profile != null && !profile.TutorialDone)
+        {
+            profile.TutorialDone = true;
+            CampaignContext.SaveCampaignProfile();
+        }
+        // Script-mode overrides must not outlive the tutorial duel.
+        CampaignContext.TutorialPlayerArtifactIds = System.Array.Empty<string>();
+        CampaignContext.TutorialPlayerClass = string.Empty;
+        _deny?.HideNow();
+        GD.Print("[TUTORIAL] guided first duel finished — TutorialDone=true, free play from here");
+    }
 
     /// <summary>
     /// Show a floating toast message near the center of the screen.

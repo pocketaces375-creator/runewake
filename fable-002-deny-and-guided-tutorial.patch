@@ -1,0 +1,2547 @@
+diff --git a/client/content/tutorial/scripts/first_duel.json b/client/content/tutorial/scripts/first_duel.json
+new file mode 100644
+index 0000000..1091fd8
+--- /dev/null
++++ b/client/content/tutorial/scripts/first_duel.json
+@@ -0,0 +1,196 @@
++{
++  "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
++  "tutorial_id": "first_duel",
++  "title": "The Wayfarer",
++  "class": "",
++  "description": "Guided first duel. Keeps the player's chosen class, relics, deck and the real Wayfarer encounter; scripts only the hands and the opponent's plays so every instruction is always true.",
++  "artifacts": [],
++  "player_deck": [],
++  "opponent_deck": [],
++  "turns": [
++    {
++      "turn_number": 1,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_student_of_embers",
++        "tut_c_verdant_initiate",
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t1_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_3"],
++          "restrict_actions_to": ["SUMMON_LANE_3"],
++          "prompt_title": "SUMMON A CREATURE",
++          "prompt": "Your hand is at the bottom. Cards cost Attunement — the number in the card's top corner — and you have 1. Tap the STUDENT OF EMBERS, then tap the glowing lane on your side of the field.",
++          "note_title": "SWIFT",
++          "popup": "Summoned. Most creatures must rest the turn they arrive — but the Student has SWIFT, so it can attack right away."
++        },
++        {
++          "id": "t1_attack",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "ATTACK",
++          "prompt": "Creatures attack straight across their own lane. Tap your Student, then tap the enemy lane directly opposite. That lane is empty, so the blow lands on the Wayfarer.",
++          "note_title": "VIGOR",
++          "popup": "2 damage. The Wayfarer's Vigor — the number beside their name — dropped from 25 to 23. Bring it to 0 and the duel is yours."
++        },
++        {
++          "id": "t1_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "Your Student has attacked and you have no Attunement left. Tap END TURN.",
++          "note_title": "THE ENEMY MOVES",
++          "popup": "The Wayfarer takes a turn now. Watch what they do."
++        }
++      ]
++    },
++    {
++      "turn_number": 1,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "SUMMON",
++          "card_id": "tut_opponent_token",
++          "lane": 4,
++          "label": "The Wayfarer summons a Thorn Sprout across from your empty lane.",
++          "delay_ms": 1400
++        },
++        {
++          "action": "END_TURN",
++          "delay_ms": 1800
++        }
++      ]
++    },
++    {
++      "turn_number": 2,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_verdant_initiate",
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t2_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_4"],
++          "restrict_actions_to": ["SUMMON_LANE_4"],
++          "prompt_title": "ATTUNEMENT GROWS",
++          "prompt": "Each turn your Attunement refills and grows by one — you have 2 now. Tap the VERDANT INITIATE (cost 2), then tap the glowing lane facing the Thorn Sprout.",
++          "note_title": "GUARD",
++          "popup": "The Initiate has GUARD: enemy attacks aimed at your empty lanes are pulled onto it instead. It has no SWIFT, so it rests this turn."
++        },
++        {
++          "id": "t2_attack",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "ATTACK AGAIN",
++          "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits the Wayfarer again.",
++          "note_title": "ONCE PER TURN",
++          "popup": "Vigor 23 → 21. Every creature attacks once per turn, and only into the lane straight ahead of it."
++        },
++        {
++          "id": "t2_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "Nothing left to do. Tap END TURN and watch the Sprout."
++        }
++      ]
++    },
++    {
++      "turn_number": 2,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "ATTACK",
++          "lane": 4,
++          "target_lane": 4,
++          "label": "The Thorn Sprout attacks your Initiate — and breaks on its Guard.",
++          "delay_ms": 1400
++        },
++        {
++          "action": "SUMMON",
++          "card_id": "tut_opponent_token",
++          "lane": 3,
++          "label": "A second Sprout appears, this time facing your Student.",
++          "delay_ms": 2000
++        },
++        {
++          "action": "END_TURN",
++          "delay_ms": 1800
++        }
++      ]
++    },
++    {
++      "turn_number": 3,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t3_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_2"],
++          "restrict_actions_to": ["SUMMON_LANE_2"],
++          "prompt_title": "THREE ATTUNEMENT",
++          "prompt": "You have 3 Attunement — enough for the IRON APPRENTICE. Tap it, then tap the glowing lane."
++        },
++        {
++          "id": "t3_attack_face",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_4", "enemy_lane_4"],
++          "restrict_actions_to": ["ATTACK_LANE_4"],
++          "prompt_title": "PRESS THE ADVANTAGE",
++          "prompt": "The Sprout that hit your Initiate is gone, so the lane across from it is open. Tap the Initiate, then tap that empty enemy lane.",
++          "note_title": "OPEN LANES",
++          "popup": "Another 2 damage — Vigor 21 → 19. An open lane is an open road to the enemy's Vigor. Keep them open."
++        },
++        {
++          "id": "t3_attack_trade",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "FIGHT A CREATURE",
++          "prompt": "A Sprout now blocks your Student's lane. Tap the Student, then tap the Sprout. When creatures fight, BOTH deal their Attack to the other at the same time.",
++          "note_title": "EVERY FIGHT CUTS BOTH WAYS",
++          "popup": "The Sprout is destroyed. Check whether your Student survived — a creature dies when damage reaches its Vigor. Trade wisely."
++        },
++        {
++          "id": "t3_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "That is everything you need. Tap END TURN — from here the duel is yours to win.",
++          "note_title": "YOU KNOW THE BASICS",
++          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor; blocked lanes trade blows. Long-press any card to read it. Now finish the Wayfarer."
++        }
++      ]
++    },
++    {
++      "turn_number": 3,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "END_TURN",
++          "label": "The Wayfarer hesitates... and passes. The rest is up to you.",
++          "delay_ms": 1600
++        }
++      ]
++    }
++  ]
++}
+diff --git a/client/scripts/BotController.cs b/client/scripts/BotController.cs
+index 4d1f330..f58ff4f 100644
+--- a/client/scripts/BotController.cs
++++ b/client/scripts/BotController.cs
+@@ -30,6 +30,18 @@ public partial class BotController : Node
+     /// <summary>True while the bot is actively taking its turn.</summary>
+     public bool IsThinking { get; private set; }
+ 
++    /// <summary>
++    /// FABLE-002: True while <see cref="Suspend"/> is in effect (the TutorialRunner
++    /// drives the opponent). Suspend() sets IsThinking=true so the bot never reacts
++    /// to StateChanged — but that same flag is what DuelScene uses to refuse player
++    /// input as "opponent is acting", which locked the player out of every guided
++    /// tutorial. Input gates must check <c>IsThinking &amp;&amp; !IsSuspended</c>.
++    /// </summary>
++    public bool IsSuspended { get; private set; }
++
++    /// <summary>True when the bot is genuinely mid-turn (not merely suspended).</summary>
++    public bool IsActing => IsThinking && !IsSuspended;
++
+     /// <summary>
+     /// Suspends the bot's turn processing. Stops any pending timer and prevents
+     /// the bot from reacting to StateChanged. Call Resume() to re-enable.
+@@ -37,6 +49,7 @@ public partial class BotController : Node
+     public void Suspend()
+     {
+         IsThinking = true;
++        IsSuspended = true;
+         _pendingAction = false;
+         _timer?.Stop();
+     }
+@@ -47,11 +60,21 @@ public partial class BotController : Node
+     public void Resume()
+     {
+         IsThinking = false;
++        IsSuspended = false;
++        // If it is already this bot's turn (e.g. tutorial skipped mid-opponent-turn),
++        // nothing will fire StateChanged for us — start the turn now.
++        if (_gsm != null && _gsm.State != null && !_gsm.IsGameOver
++            && _gsm.CurrentPlayerIndex == _playerIndex && _timer != null)
++        {
++            GD.Print($"[BotController] Resume() during P{_playerIndex}'s own turn — starting bot turn");
++            StartBotTurn();
++        }
+     }
+ 
+     public void ForceIdle(string why)
+     {
+         IsThinking = false;
++        IsSuspended = false;
+         _pendingAction = false;
+         _timer?.Stop();
+         GD.Print($"[BOT] ForceIdle: {why}");
+diff --git a/client/scripts/CampaignContext.cs b/client/scripts/CampaignContext.cs
+index f5f24cf..21c98ea 100644
+--- a/client/scripts/CampaignContext.cs
++++ b/client/scripts/CampaignContext.cs
+@@ -230,6 +230,9 @@ public static class CampaignContext
+     /// <summary>Tutorial script mode: set by DebugCapture for --tutorial CLI arg. Non-null = use TutorialRunner.</summary>
+     public static string? TutorialScriptId { get; set; }
+ 
++    /// <summary>FABLE-002: true only for the headless --tutorial capture run (auto-play, auto-dismiss, quit at end). A human never sees headless.</summary>
++    public static bool TutorialHeadless { get; set; }
++
+     /// <summary>Artifact def IDs for the player in tutorial script mode (set by TutorialRunner).</summary>
+     public static string[] TutorialPlayerArtifactIds { get; set; } = System.Array.Empty<string>();
+ 
+diff --git a/client/scripts/DebugCapture.cs b/client/scripts/DebugCapture.cs
+index 900b211..9957c80 100644
+--- a/client/scripts/DebugCapture.cs
++++ b/client/scripts/DebugCapture.cs
+@@ -836,6 +836,7 @@ public partial class DebugCapture : Node
+     {
+         // Set the flag that tells DuelScene to create a TutorialRunner
+         CampaignContext.TutorialScriptId = scriptId;
++        CampaignContext.TutorialHeadless = true; // FABLE-002: only the CLI capture path is headless
+         // IMPORTANT: Must be true so Main.cs navigates to the duel scene in capture mode
+         CampaignContext.AutoCaptureScreenshot = true;
+         CampaignContext.DebugSeed = 42;
+diff --git a/client/scripts/DenyPopup.cs b/client/scripts/DenyPopup.cs
+new file mode 100644
+index 0000000..fc25eb8
+--- /dev/null
++++ b/client/scripts/DenyPopup.cs
+@@ -0,0 +1,306 @@
++using System;
++using Godot;
++
++namespace Runewake.Client;
++
++/// <summary>The three lines of a refusal.</summary>
++public readonly record struct DenyText(string Title, string Body, string Hint, bool PointAtEndTurn = false);
++
++/// <summary>
++/// FABLE-002: The "why can't I do that?" panel.
++///
++/// Every refused action in the duel (tapping a card you can't afford, a full
++/// field, a taken lane, attacking with a resting creature, acting on the
++/// opponent's turn...) goes through here instead of the tiny centre toast.
++/// Each refusal has three lines the player actually reads:
++///
++///     TITLE      what happened, in three words or fewer
++///     body       the concrete reason, with the real numbers
++///     hint       the one thing to do next
++///
++/// The panel never blocks input (MouseFilter.Ignore everywhere) — it is
++/// feedback, not a modal. It fades on its own. A new refusal replaces the
++/// old one immediately.
++///
++/// <see cref="FromEngineMessage"/> turns the engine's ActionResult.ErrorMessage
++/// strings into these three lines, so the engine remains the sole authority on
++/// legality and this class only decides how to say it.
++/// </summary>
++public partial class DenyPopup : Control
++{
++    // ── Reference-height geometry (1080) ──
++    private const float RefH = 1080f;
++    private const float PanelW = 820f;
++    private const float PadX = 34f;
++    private const float PadY = 22f;
++    private const int TitleSize = 36;
++    private const int BodySize = 30;
++    private const int HintSize = 25;
++    private const float HoldSeconds = 2.8f;
++    private const float FadeSeconds = 0.5f;
++
++    private static readonly Color BgColor = new Color(0.086f, 0.071f, 0.055f, 0.96f);   // #16120E
++    private static readonly Color BorderHard = new Color(0.66f, 0.23f, 0.16f);           // ember red
++    private static readonly Color BorderSoft = new Color(0.79f, 0.66f, 0.30f);           // gold
++    private static readonly Color TitleHard = new Color(0.95f, 0.45f, 0.35f);
++    private static readonly Color TitleSoft = new Color(0.90f, 0.75f, 0.35f);
++    private static readonly Color BodyColor = new Color(0.91f, 0.86f, 0.78f);            // parchment
++    private static readonly Color HintColor = new Color(0.72f, 0.66f, 0.54f);
++
++    private PanelContainer _panel = default!;
++    private StyleBoxFlat _style = default!;
++    private Label _title = default!;
++    private Label _body = default!;
++    private Label _hint = default!;
++    private Tween? _tween;
++    private float _s = 1f;
++
++    /// <summary>Optional: the End Turn button, pulsed when a hint says "press END TURN".</summary>
++    public Button? EndTurnButton { get; set; }
++    private Tween? _endTurnPulse;
++
++    public override void _Ready()
++    {
++        Name = "DenyPopup";
++        SetAnchorsPreset(LayoutPreset.FullRect);
++        MouseFilter = MouseFilterEnum.Ignore;
++        ZIndex = 200;
++        Visible = false;
++
++        _s = GetViewportRect().Size.Y / RefH;
++
++        _style = new StyleBoxFlat
++        {
++            BgColor = BgColor,
++            BorderColor = BorderSoft,
++            BorderWidthLeft = Mathf.RoundToInt(3 * _s),
++            BorderWidthRight = Mathf.RoundToInt(3 * _s),
++            BorderWidthTop = Mathf.RoundToInt(3 * _s),
++            BorderWidthBottom = Mathf.RoundToInt(3 * _s),
++            CornerRadiusTopLeft = Mathf.RoundToInt(8 * _s),
++            CornerRadiusTopRight = Mathf.RoundToInt(8 * _s),
++            CornerRadiusBottomLeft = Mathf.RoundToInt(8 * _s),
++            CornerRadiusBottomRight = Mathf.RoundToInt(8 * _s),
++            ShadowColor = new Color(0, 0, 0, 0.7f),
++            ShadowSize = Mathf.RoundToInt(18 * _s),
++            ShadowOffset = new Vector2(0, 6 * _s),
++            ContentMarginLeft = PadX * _s,
++            ContentMarginRight = PadX * _s,
++            ContentMarginTop = PadY * _s,
++            ContentMarginBottom = PadY * _s,
++        };
++
++        _panel = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
++        _panel.AddThemeStyleboxOverride("panel", _style);
++        AddChild(_panel);
++
++        var vbox = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
++        vbox.AddThemeConstantOverride("separation", Mathf.RoundToInt(8 * _s));
++        _panel.AddChild(vbox);
++
++        _title = MakeLabel(ThemeTokens.GetHeaderFont(Mathf.RoundToInt(TitleSize * _s)), TitleSize, TitleSoft);
++        _body = MakeLabel(ThemeTokens.GetButtonFont(Mathf.RoundToInt(BodySize * _s)), BodySize, BodyColor);
++        _hint = MakeLabel(ThemeTokens.GetBodyFont(Mathf.RoundToInt(HintSize * _s)), HintSize, HintColor);
++        vbox.AddChild(_title);
++        vbox.AddChild(_body);
++        vbox.AddChild(_hint);
++    }
++
++    private Label MakeLabel(Font? font, int refSize, Color color)
++    {
++        var l = new Label
++        {
++            HorizontalAlignment = HorizontalAlignment.Center,
++            VerticalAlignment = VerticalAlignment.Center,
++            AutowrapMode = TextServer.AutowrapMode.Word,
++            MouseFilter = MouseFilterEnum.Ignore,
++            CustomMinimumSize = new Vector2((PanelW - 2 * PadX) * _s, 0),
++        };
++        if (font != null) l.AddThemeFontOverride("font", font);
++        l.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(refSize * _s));
++        l.AddThemeColorOverride("font_color", color);
++        l.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
++        l.AddThemeConstantOverride("shadow_offset_y", Mathf.RoundToInt(2 * _s));
++        return l;
++    }
++
++    /// <summary>Show a refusal. Replaces whatever is currently shown.</summary>
++    public void Show(DenyText text, bool hard = true)
++    {
++        if (_panel == null) return; // not ready yet
++
++        _tween?.Kill();
++
++        _title.Text = text.Title;
++        _body.Text = text.Body;
++        _hint.Text = text.Hint;
++        _hint.Visible = !string.IsNullOrEmpty(text.Hint);
++
++        _style.BorderColor = hard ? BorderHard : BorderSoft;
++        _title.AddThemeColorOverride("font_color", hard ? TitleHard : TitleSoft);
++
++        Visible = true;
++        Modulate = new Color(1, 1, 1, 1);
++
++        // Size to content, then centre over the lane band (upper-middle of the
++        // screen — never over the hand, which is where the player is looking
++        // when they get refused and where the next tap is going).
++        Callable.From(Place).CallDeferred();
++
++        _tween = CreateTween();
++        _tween.TweenInterval(HoldSeconds);
++        _tween.TweenProperty(this, "modulate:a", 0f, FadeSeconds);
++        _tween.TweenCallback(Callable.From(() => { Visible = false; }));
++
++        if (text.PointAtEndTurn) PulseEndTurn();
++
++        GD.Print($"[DENY] {text.Title} — {text.Body} — {text.Hint}");
++    }
++
++    private void Place()
++    {
++        var vp = GetViewportRect().Size;
++        _panel.ResetSize();
++        var size = _panel.GetCombinedMinimumSize();
++        _panel.Size = size;
++        _panel.Position = new Vector2(
++            Mathf.Round(vp.X * 0.5f - size.X * 0.5f),
++            Mathf.Round(vp.Y * 0.40f - size.Y * 0.5f));
++    }
++
++    /// <summary>Hide immediately (e.g. when the player does something valid).</summary>
++    public void HideNow()
++    {
++        _tween?.Kill();
++        Visible = false;
++    }
++
++    private void PulseEndTurn()
++    {
++        var btn = EndTurnButton;
++        if (btn == null || !IsInstanceValid(btn)) return;
++        _endTurnPulse?.Kill();
++        btn.Modulate = Colors.White;
++        _endTurnPulse = CreateTween();
++        _endTurnPulse.SetLoops(3);
++        _endTurnPulse.TweenProperty(btn, "modulate", new Color(1.35f, 1.25f, 0.9f), 0.28f);
++        _endTurnPulse.TweenProperty(btn, "modulate", Colors.White, 0.28f);
++    }
++
++    // ── Reason catalogue ──
++
++    public static DenyText OpponentActing(string opponentName) => new(
++        "NOT YET",
++        $"{opponentName} is taking their turn.",
++        "Wait for YOUR TURN to light up above End Turn.");
++
++    public static DenyText NotEnoughAttunement(string cardName, int cost, int have) => new(
++        "NOT ENOUGH ATTUNEMENT",
++        $"{cardName} costs {cost}. You have {have}.",
++        "Attunement refills — and grows by one — every turn. Press END TURN.",
++        PointAtEndTurn: true);
++
++    public static DenyText FieldFull() => new(
++        "YOUR FIELD IS FULL",
++        "All five of your lanes already hold a creature.",
++        "Attack with the ones you have, or press END TURN.",
++        PointAtEndTurn: true);
++
++    public static DenyText LaneOccupied() => new(
++        "LANE TAKEN",
++        "A creature already stands in that lane.",
++        "Tap one of your empty, glowing lanes instead.");
++
++    public static DenyText LaneBuried() => new(
++        "LANE BURIED",
++        "Nothing can be played into a buried lane.",
++        "Choose another lane.");
++
++    public static DenyText EnemySide() => new(
++        "THAT IS THE ENEMY'S SIDE",
++        "Creatures are summoned into your own row — the lower one.",
++        "Tap one of your glowing lanes.");
++
++    public static DenyText Resting(string creatureName) => new(
++        "RESTING",
++        $"{creatureName} arrived this turn and cannot attack until your next turn.",
++        "Creatures with SWIFT are the exception — they strike at once.");
++
++    public static DenyText AlreadyAttacked(string creatureName) => new(
++        "ALREADY ATTACKED",
++        $"{creatureName} has attacked this turn. Each creature attacks once.",
++        "Use another creature, or press END TURN.",
++        PointAtEndTurn: true);
++
++    public static DenyText WrongLane() => new(
++        "WRONG LANE",
++        "Creatures attack straight across — only the enemy lane directly opposite.",
++        "Tap the lane facing your creature. An empty lane hits the enemy's Vigor.");
++
++    public static DenyText Rooted(string creatureName) => new(
++        "ROOTED",
++        $"{creatureName} is Rooted and cannot attack.",
++        "Choose another creature.");
++
++    public static DenyText GameOver() => new(
++        "THE DUEL IS OVER",
++        "No more actions can be taken.",
++        "");
++
++    public static DenyText TutorialWants(string instruction) => new(
++        "FOLLOW THE GLOW",
++        instruction,
++        "The glowing frame marks what the tutorial wants next.");
++
++    public static DenyText Generic(string message) => new(
++        "CAN'T DO THAT",
++        message,
++        "");
++
++    /// <summary>
++    /// Map an engine ActionResult.ErrorMessage to three readable lines.
++    /// The engine's strings are the source of truth for legality; this just
++    /// recognises them. Unknown strings fall back to showing the raw message.
++    /// </summary>
++    public static DenyText FromEngineMessage(string? message, string subjectName, string opponentName, int have = -1)
++    {
++        string m = (message ?? "").ToLowerInvariant();
++
++        if (m.Contains("not your turn"))
++            return OpponentActing(opponentName);
++        if (m.Contains("game is already over"))
++            return GameOver();
++        if (m.Contains("not enough attunement"))
++        {
++            // "Not enough attunement: have X, need Y."
++            int need = ExtractInt(m, "need ");
++            int has = ExtractInt(m, "have ");
++            if (has < 0) has = have;
++            return NotEnoughAttunement(subjectName, need, Math.Max(0, has));
++        }
++        if (m.Contains("already occupied"))
++            return LaneOccupied();
++        if (m.Contains("buried"))
++            return LaneBuried();
++        if (m.Contains("exhausted"))
++            return Resting(subjectName);
++        if (m.Contains("already attacked"))
++            return AlreadyAttacked(subjectName);
++        if (m.Contains("invalid attack target"))
++            return WrongLane();
++        if (m.Contains("rooted"))
++            return Rooted(subjectName);
++
++        return Generic(message ?? "That action is not allowed right now.");
++    }
++
++    private static int ExtractInt(string text, string afterToken)
++    {
++        int i = text.IndexOf(afterToken, StringComparison.Ordinal);
++        if (i < 0) return -1;
++        i += afterToken.Length;
++        int j = i;
++        while (j < text.Length && char.IsDigit(text[j])) j++;
++        return j > i && int.TryParse(text.AsSpan(i, j - i), out int v) ? v : -1;
++    }
++}
+diff --git a/client/scripts/DuelScene.cs b/client/scripts/DuelScene.cs
+index 7e48d21..46598cd 100644
+--- a/client/scripts/DuelScene.cs
++++ b/client/scripts/DuelScene.cs
+@@ -34,6 +34,13 @@ public partial class DuelScene : Control
+     private TutorialRunner? _tutorialRunner;
+     private bool _isTutorialScriptMode;
+ 
++    // FABLE-002: explicit refusal panel ("why can't I do that?")
++    private DenyPopup? _deny;
++    /// <summary>Script id of the guided first duel a fresh profile plays through.</summary>
++    private const string GuidedFirstDuelScriptId = "first_duel";
++    /// <summary>True when the opponent is genuinely mid-turn (bot acting, or it is simply not P0's turn).</summary>
++    private bool OpponentBusy => (_bot != null && _bot.IsActing) || (_gsm != null && _gsm.IsInitialized && _gsm.CurrentPlayerIndex != 0);
++
+     // Health bar ColorRects
+     private ColorRect _enemyHealthBar = default!;
+     private ColorRect _playerHealthBar = default!;
+@@ -464,6 +471,29 @@ public partial class DuelScene : Control
+         // or a tutorial script mode (--tutorial CLI arg)
+         bool isTutorialEncounter = _isCampaignEncounter && encounter != null && encounter.IsTutorial;
+         string? tutorialScriptId = CampaignContext.TutorialScriptId;
++        // FABLE-002: consume the static immediately so it can never leak into the NEXT duel.
++        CampaignContext.TutorialScriptId = null;
++        bool tutorialHeadless = CampaignContext.TutorialHeadless;
++        CampaignContext.TutorialHeadless = false;
++
++        // FABLE-002: a fresh profile's first Wayfarer duel is the guided first duel.
++        // Routed here (not in MapScene) so every entry into the tutorial encounter —
++        // map, replay button, smoke — takes the same path.
++        var activeProfile = CampaignContext.ActiveProfile
++            ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
++        bool tutorialDone = activeProfile?.TutorialDone ?? false;
++        if (string.IsNullOrEmpty(tutorialScriptId)
++            && isTutorialEncounter
++            && !tutorialDone
++            && !CampaignContext.SoakActive
++            && !CampaignContext.AutoCaptureScreenshot
++            && !CampaignContext.LoopSmokeTest
++            && !CampaignContext.BotDuelTest
++            && !CampaignContext.UxWalk)
++        {
++            tutorialScriptId = GuidedFirstDuelScriptId;
++            GD.Print($"[TUTORIAL] fresh profile on tutorial encounter — guided first duel '{tutorialScriptId}'");
++        }
+         _isTutorialScriptMode = !string.IsNullOrEmpty(tutorialScriptId);
+ 
+         if (_isTutorialScriptMode)
+@@ -471,7 +501,8 @@ public partial class DuelScene : Control
+             // TASK-TU2: Tutorial runner — consumes tutorial script data
+             _tutorialRunner = new TutorialRunner();
+             AddChild(_tutorialRunner);
+-            _tutorialRunner.Initialize(this, _gsm, _bot, isHeadless: true);
++            _tutorialRunner.Initialize(this, _gsm, _bot, isHeadless: tutorialHeadless);
++            _tutorialRunner.TutorialFinished += OnGuidedTutorialFinished;
+ 
+             // Load and validate the script
+             if (!_tutorialRunner.LoadScript(tutorialScriptId!))
+@@ -490,8 +521,10 @@ public partial class DuelScene : Control
+             encounter = CampaignContext.CurrentEncounter;
+             _isCampaignEncounter = encounter != null;
+         }
+-        else if (isTutorialEncounter && !CampaignContext.SoakActive)
++        else if (isTutorialEncounter && !CampaignContext.SoakActive && !tutorialDone)
+         {
++            // Legacy 13-popup chain — kept for the capture/smoke flows that are excluded
++            // from the guided routing above. Never reached by a real player any more.
+             _tutorialPopup = new TutorialPopup();
+             AddChild(_tutorialPopup);
+             _tutorialCtrl = new TutorialController();
+@@ -3101,11 +3134,11 @@ public partial class DuelScene : Control
+ 
+     private void OnLaneTapped(int laneIndex, bool isEmpty)
+     {
+-        if (_bot.IsThinking)
++        if (OpponentBusy)
+         {
+-            GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (bot thinking) lane={laneIndex} isEmpty={isEmpty}");
+-            GD.Print($"[INPUT] DROPPED (lane tap) IsThinking=true");
+-            ShowToast("Wait — your opponent is acting.", Gold);
++            GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (opponent busy) lane={laneIndex} isEmpty={isEmpty}");
++            GD.Print($"[INPUT] DROPPED (lane tap) OpponentBusy=true");
++            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
+             return;
+         }
+ 
+@@ -3128,18 +3161,29 @@ public partial class DuelScene : Control
+             // Tap-to-summon: player tapped a lane after selecting a card
+             if (isPlayerLane && isEmpty)
+             {
++                // FABLE-002: guided tutorial may insist on a specific lane — keep the
++                // card selected so the next tap on the glowing lane just works.
++                if (_tutorialRunner != null && !_tutorialRunner.IsSummonAllowed(laneIndex))
++                {
++                    Deny(DenyPopup.TutorialWants(_tutorialRunner.CurrentInstruction), hard: false);
++                    return;
++                }
+                 _input.SelectTargetLane(laneIndex);
+                 HideRulesSlab();
+             }
+             else if (isPlayerLane && !isEmpty)
+             {
+-                // Tapped occupied lane while selecting a card — cancel and show feedback
+-                ShowToast("That lane is already occupied.", Gold);
+-                _input.CancelSelection();
++                // Tapped occupied lane while placing a card — say why, keep the card selected
++                Deny(DenyPopup.LaneOccupied());
++            }
++            else if (isEnemyLane)
++            {
++                // Tapped the enemy's row while placing a card — say why, keep the card selected
++                Deny(DenyPopup.EnemySide());
+             }
+             else
+             {
+-                // Tapped enemy lane or empty space — cancel
++                // Empty space — cancel
+                 _input.CancelSelection();
+             }
+         }
+@@ -3147,6 +3191,11 @@ public partial class DuelScene : Control
+         {
+             if (isEnemyLane)
+             {
++                if (_tutorialRunner != null && !_tutorialRunner.IsAttackAllowed(_input.SelectedAttackerLane))
++                {
++                    Deny(DenyPopup.TutorialWants(_tutorialRunner.CurrentInstruction), hard: false);
++                    return;
++                }
+                 _input.SelectAttackTarget(laneIndex);
+             }
+             else if (isPlayerLane && isEmpty)
+@@ -3156,18 +3205,52 @@ public partial class DuelScene : Control
+             }
+             else if (isPlayerLane && !isEmpty)
+             {
+-                // Switch attacker to this creature instead
+-                _input.SelectAttacker(laneIndex);
+-                UpdateAttackHighlights();
++                if (laneIndex == _input.SelectedAttackerLane)
++                {
++                    // Tap-again-to-deselect
++                    _input.CancelSelection();
++                    UpdateAttackHighlights();
++                }
++                else
++                {
++                    // Switch attacker to this creature instead
++                    _input.SelectAttacker(laneIndex);
++                    UpdateAttackHighlights();
++                }
+             }
+         }
+         else
+         {
+-            // Idle state — board card taps show description
+-            if (!isEmpty)
++            // Idle state.
++            // FABLE-002: tap on OWN creature = select it to attack (restored — this was
++            // removed by TASK-RULES-SLAB-TAP-1, which left the game with no way to attack
++            // by tap at all; rules are read by LONG-PRESS, which LaneSlot already does).
++            // Tap on an ENEMY creature = read its rules slab.
++            if (!isEmpty && isPlayerLane)
++            {
++                HideRulesSlab();
++                _slabCardId = null;
++                var occupant = (laneIndex >= 0 && laneIndex < 5 && _gsm.State != null)
++                    ? _gsm.State.Players[0].Lanes[laneIndex].Occupant : null;
++                string creatureName = occupant != null
++                    ? (CardRegistry.Get(occupant.CardDefId)?.Name ?? "That creature") : "That creature";
++                if (occupant != null && occupant.HasAttackedThisTurn)
++                {
++                    Deny(DenyPopup.AlreadyAttacked(creatureName));
++                    return;
++                }
++                if (occupant != null && occupant.IsExhausted)
++                {
++                    Deny(DenyPopup.Resting(creatureName));
++                    return;
++                }
++                _input.SelectAttacker(laneIndex);
++                UpdateAttackHighlights();
++                ShowToast($"Tap the enemy lane across from {creatureName} to attack.", Moss);
++            }
++            else if (!isEmpty)
+             {
+-                var slot = _playerSlots.FirstOrDefault(s => s.LaneIndex == laneIndex)
+-                    ?? _enemySlots.FirstOrDefault(s => s.LaneIndex == laneIndex);
++                var slot = _enemySlots.FirstOrDefault(s => s.LaneIndex == laneIndex);
+                 var def = slot?.CurrentCardDef;
+                 if (def != null)
+                 {
+@@ -3185,6 +3268,7 @@ public partial class DuelScene : Control
+             else
+             {
+                 HideRulesSlab();
++                _slabCardId = null;
+             }
+         }
+     }
+@@ -3199,20 +3283,20 @@ public partial class DuelScene : Control
+ 
+     private void OnHandCardPressed(HandCard card)
+     {
+-        if (_bot.IsThinking)
++        if (OpponentBusy)
+         {
+-            GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (bot thinking) card={card.CardName}");
+-            GD.Print($"[INPUT] DROPPED (hand tap) IsThinking=true");
+-            ShowToast("Wait — your opponent is acting.", Gold);
++            GD.Print($"[DUEL_TRACE] OnHandCardPressed: SKIP (opponent busy) card={card.CardName}");
++            GD.Print($"[INPUT] DROPPED (hand tap) OpponentBusy=true");
++            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
+             return;
+         }
+ 
+-        // A2: Unaffordable check — shake, toast, no select
++        // A2: Unaffordable check — shake, explicit refusal, no select
+         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
+         if (card.CardCost > currentAttune)
+         {
+             GD.Print($"[INPUT] unaffordable {card.CardId} cost={card.CardCost} have={currentAttune}");
+-            ShowToast($"Needs {card.CardCost} Attunement — you have {currentAttune}", Gold);
++            Deny(DenyPopup.NotEnoughAttunement(card.CardName, card.CardCost, currentAttune));
+             var tween = CreateTween();
+             float origX = card.Position.X;
+             tween.TweenProperty(card, "position:x", origX - 6f, 0.04f).SetEase(Tween.EaseType.InOut);
+@@ -3223,6 +3307,18 @@ public partial class DuelScene : Control
+             return;
+         }
+ 
++        // FABLE-002: field-full pre-check — a creature/relic needs an empty lane of ours.
++        {
++            var cardDef = CardRegistry.Get(card.CardId);
++            bool needsLane = cardDef == null || cardDef.Type == CardType.CREATURE || cardDef.Type == CardType.RELIC;
++            if (needsLane && !_gsm.GetLanes(0).Any(l => l.IsEmpty))
++            {
++                GD.Print($"[INPUT] field full — refusing {card.CardId}");
++                Deny(DenyPopup.FieldFull());
++                return;
++            }
++        }
++
+         GD.Print($"[DUEL_TRACE] OnHandCardPressed: card={card.CardName} state={_input.State} selectedId={_input.SelectedCardId}");
+         GD.Print($"[INPUT] select {card.CardId}");
+ 
+@@ -3368,11 +3464,13 @@ public partial class DuelScene : Control
+         if (!result.Success)
+         {
+             GD.Print($"[DUEL_TRACE] OnPlayCardRequested FAILED: {result.ErrorMessage}");
+-            ShowToast(result.ErrorMessage ?? "Cannot play that card.",
+-                Gold);
++            string cardName = CardRegistry.Get(cardId)?.Name ?? "That card";
++            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, cardName, _encounterName,
++                _gsm.GetPlayerHud(0).Attunement));
+         }
+         else
+         {
++            _deny?.HideNow();
+             GD.Print($"[DUEL_TRACE] OnPlayCardRequested SUCCESS: card={cardId} placed in lane {laneIndex}");
+             // TASK-AUDIO-HOOK-1: Play sfx for card played / spell resolved
+             var audio = GetNode<AudioManager>("/root/AudioManager");
+@@ -3398,8 +3496,14 @@ public partial class DuelScene : Control
+         var result = _gsm.TryAttack(0, attackerLane, targetLane);
+         if (!result.Success)
+         {
+-            ShowToast(result.ErrorMessage ?? "Cannot attack.",
+-                Ember);
++            var lanes = _gsm.GetLanes(0);
++            string attackerName = attackerLane >= 0 && attackerLane < lanes.Count && !string.IsNullOrEmpty(lanes[attackerLane].Name)
++                ? lanes[attackerLane].Name : "That creature";
++            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, attackerName, _encounterName));
++        }
++        else
++        {
++            _deny?.HideNow();
+         }
+         // Success — face hit detection happens in OnStateChanged
+     }
+@@ -4543,8 +4647,11 @@ public partial class DuelScene : Control
+     /// </summary>
+     private void OnEndTurnPressed()
+     {
+-        if (_bot.IsThinking) return;
+-        if (_gsm.CurrentPlayerIndex != 0) return;
++        if (OpponentBusy)
++        {
++            Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
++            return;
++        }
+ 
+         // TASK-AUDIO-HOOK-1: Button click
+         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+@@ -4552,8 +4659,11 @@ public partial class DuelScene : Control
+         var result = _gsm.TryEndTurn();
+         if (!result.Success)
+         {
+-            ShowToast(result.ErrorMessage ?? "Cannot end turn.",
+-                Ember);
++            Deny(DenyPopup.FromEngineMessage(result.ErrorMessage, "End Turn", _encounterName));
++        }
++        else
++        {
++            _deny?.HideNow();
+         }
+         // Success
+         // Tutorial gate t10: detect end turn
+@@ -4567,6 +4677,42 @@ public partial class DuelScene : Control
+ 
+     private Label _toastLabel = default!;
+ 
++    // ——— FABLE-002: explicit refusals ———
++
++    /// <summary>
++    /// Show the player exactly why an action was refused and what to do instead.
++    /// Lazily creates the panel on first use so it always sits above everything
++    /// built in _Ready (arsenal groups, hand, altar).
++    /// </summary>
++    private void Deny(DenyText text, bool hard = true)
++    {
++        if (_deny == null || !IsInstanceValid(_deny))
++        {
++            _deny = new DenyPopup();
++            AddChild(_deny);
++        }
++        _deny.EndTurnButton = _endTurnButton;
++        MoveChild(_deny, GetChildCount() - 1);
++        _deny.Show(text, hard);
++    }
++
++    /// <summary>Guided first duel finished or skipped — never show it again for this profile.</summary>
++    private void OnGuidedTutorialFinished()
++    {
++        var profile = CampaignContext.ActiveProfile
++            ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
++        if (profile != null && !profile.TutorialDone)
++        {
++            profile.TutorialDone = true;
++            CampaignContext.SaveCampaignProfile();
++        }
++        // Script-mode overrides must not outlive the tutorial duel.
++        CampaignContext.TutorialPlayerArtifactIds = System.Array.Empty<string>();
++        CampaignContext.TutorialPlayerClass = string.Empty;
++        _deny?.HideNow();
++        GD.Print("[TUTORIAL] guided first duel finished — TutorialDone=true, free play from here");
++    }
++
+     /// <summary>
+     /// Show a floating toast message near the center of the screen.
+     /// Persists for 4s visible, then fades over 1s — readable on a phone.
+diff --git a/client/scripts/TutorialCoach.cs b/client/scripts/TutorialCoach.cs
+new file mode 100644
+index 0000000..a092780
+--- /dev/null
++++ b/client/scripts/TutorialCoach.cs
+@@ -0,0 +1,415 @@
++using System;
++using System.Collections.Generic;
++using Godot;
++
++namespace Runewake.Client;
++
++/// <summary>
++/// FABLE-002: The guided-duel coach. Three ways of talking to the player:
++///
++///   Prompt    — non-modal instruction card + pulsing frames around the things
++///               to tap. Shown BEFORE the action. The board stays live; the
++///               player does the thing. ("Tap the Student, then the glowing lane.")
++///   Note      — modal consequence card with one Continue button. Shown AFTER
++///               the action. ("It has SWIFT, so it can attack at once.")
++///   Narration — small non-modal line during the opponent's scripted turn.
++///               ("The Wayfarer summons a Thorn Sprout.")
++///
++/// The prompt card is placed by <see cref="AnchorProvider"/> — the runner hands
++/// it the union of the enemy's three leftmost lane slots, which the guided script
++/// never uses, so the card is large, readable and never covers anything that
++/// matters. If no anchor is available it falls back to the top-left corner.
++///
++/// Highlight frames are re-read from the live targets every frame, so they
++/// follow hand re-flows and late layout passes instead of freezing where a
++/// node was when the prompt appeared.
++/// </summary>
++public partial class TutorialCoach : Control
++{
++    public event Action? SkipRequested;
++
++    /// <summary>Where the prompt / narration card should sit (global rect). Null = fallback.</summary>
++    public Func<Rect2?>? AnchorProvider { get; set; }
++
++    // ── Reference geometry (1080) ──
++    private const float RefH = 1080f;
++    private const int PromptTitleSize = 27;
++    private const int PromptBodySize = 27;
++    private const int SkipSize = 21;
++    private const int NarrationSize = 27;
++    private const int NoteTitleSize = 34;
++    private const int NoteBodySize = 30;
++    private const int NoteButtonSize = 34;
++    private const float NoteW = 940f;
++    private const float FrameThickness = 4f;
++    private const float FrameMargin = 8f;
++
++    private static readonly Color CardBg = new Color(0.086f, 0.071f, 0.055f, 0.94f);
++    private static readonly Color CardBorder = new Color(0.79f, 0.66f, 0.30f);
++    private static readonly Color TitleColor = new Color(0.90f, 0.75f, 0.35f);
++    private static readonly Color BodyColor = new Color(0.91f, 0.86f, 0.78f);
++    private static readonly Color SkipColor = new Color(0.62f, 0.56f, 0.46f);
++    private static readonly Color DimColor = new Color(0f, 0f, 0f, 0.55f);
++    private static readonly Color FramePeak = new Color(0.98f, 0.80f, 0.30f, 0.95f);
++    private static readonly Color FrameTrough = new Color(0.98f, 0.80f, 0.30f, 0.30f);
++
++    private float _s = 1f;
++    private float _t;
++
++    // Prompt
++    private PanelContainer _prompt = default!;
++    private Label _promptTitle = default!;
++    private Label _promptBody = default!;
++    private Button _skipBtn = default!;
++
++    // Narration
++    private PanelContainer _narration = default!;
++    private Label _narrationBody = default!;
++    private Tween? _narrationTween;
++
++    // Note (modal)
++    private ColorRect _dim = default!;
++    private PanelContainer _note = default!;
++    private Label _noteTitle = default!;
++    private Label _noteBody = default!;
++    private Button _continueBtn = default!;
++    private Action? _onContinue;
++
++    // Highlights — re-resolved from the provider every 0.2s because DuelScene
++    // rebuilds the hand (new HandCard nodes) on every state change.
++    private Func<List<Control>>? _targetProvider;
++    private float _sinceResolve;
++    private readonly List<Control> _targets = new();
++    private readonly List<PanelContainer> _frames = new();
++    private readonly List<StyleBoxFlat> _frameStyles = new();
++
++    public bool IsNoteOpen => _note != null && _note.Visible;
++
++    public override void _Ready()
++    {
++        Name = "TutorialCoach";
++        SetAnchorsPreset(LayoutPreset.FullRect);
++        MouseFilter = MouseFilterEnum.Ignore;
++        ZIndex = 150;
++        _s = GetViewportRect().Size.Y / RefH;
++
++        // ── Prompt card ──
++        _prompt = MakeCard(out var promptBox, MouseFilterEnum.Stop);
++        _promptTitle = MakeLabel(ThemeTokens.GetHeaderFont(Px(PromptTitleSize)), PromptTitleSize, TitleColor, HorizontalAlignment.Left);
++        _promptBody = MakeLabel(ThemeTokens.GetButtonFont(Px(PromptBodySize)), PromptBodySize, BodyColor, HorizontalAlignment.Left);
++        promptBox.AddChild(_promptTitle);
++        promptBox.AddChild(_promptBody);
++        var footer = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
++        footer.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
++        _skipBtn = new Button { Text = "Skip tutorial", Flat = true, FocusMode = FocusModeEnum.None };
++        var skipFont = ThemeTokens.GetBodyFont(Px(SkipSize));
++        if (skipFont != null) _skipBtn.AddThemeFontOverride("font", skipFont);
++        _skipBtn.AddThemeFontSizeOverride("font_size", Px(SkipSize));
++        _skipBtn.AddThemeColorOverride("font_color", SkipColor);
++        _skipBtn.AddThemeColorOverride("font_hover_color", TitleColor);
++        _skipBtn.AddThemeColorOverride("font_pressed_color", TitleColor);
++        _skipBtn.Pressed += () => { GD.Print("[TutorialCoach] skip requested"); SkipRequested?.Invoke(); };
++        footer.AddChild(_skipBtn);
++        promptBox.AddChild(footer);
++        AddChild(_prompt);
++        _prompt.Visible = false;
++
++        // ── Narration card ──
++        _narration = MakeCard(out var narrBox, MouseFilterEnum.Ignore);
++        _narrationBody = MakeLabel(ThemeTokens.GetButtonFont(Px(NarrationSize)), NarrationSize, BodyColor, HorizontalAlignment.Left);
++        narrBox.AddChild(_narrationBody);
++        AddChild(_narration);
++        _narration.Visible = false;
++
++        // ── Modal note ──
++        _dim = new ColorRect { Color = DimColor, MouseFilter = MouseFilterEnum.Stop };
++        _dim.SetAnchorsPreset(LayoutPreset.FullRect);
++        AddChild(_dim);
++        _dim.Visible = false;
++
++        _note = MakeCard(out var noteBox, MouseFilterEnum.Stop);
++        _noteTitle = MakeLabel(ThemeTokens.GetHeaderFont(Px(NoteTitleSize)), NoteTitleSize, TitleColor, HorizontalAlignment.Center);
++        _noteBody = MakeLabel(ThemeTokens.GetButtonFont(Px(NoteBodySize)), NoteBodySize, BodyColor, HorizontalAlignment.Center);
++        noteBox.AddChild(_noteTitle);
++        noteBox.AddChild(_noteBody);
++        noteBox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6 * _s), MouseFilter = MouseFilterEnum.Ignore });
++        _continueBtn = new Button { Text = "Continue", FocusMode = FocusModeEnum.None };
++        _continueBtn.CustomMinimumSize = new Vector2(0, 84 * _s);
++        var btnFont = ThemeTokens.GetHeaderFont(Px(NoteButtonSize));
++        if (btnFont != null) _continueBtn.AddThemeFontOverride("font", btnFont);
++        _continueBtn.AddThemeFontSizeOverride("font_size", Px(NoteButtonSize));
++        _continueBtn.AddThemeColorOverride("font_color", new Color(0.16f, 0.12f, 0.03f));
++        _continueBtn.AddThemeColorOverride("font_hover_color", new Color(0.16f, 0.12f, 0.03f));
++        _continueBtn.AddThemeColorOverride("font_pressed_color", new Color(0.16f, 0.12f, 0.03f));
++        var btnStyle = new StyleBoxFlat
++        {
++            BgColor = new Color(0.89f, 0.70f, 0.24f),
++            CornerRadiusTopLeft = Px(6), CornerRadiusTopRight = Px(6),
++            CornerRadiusBottomLeft = Px(6), CornerRadiusBottomRight = Px(6),
++        };
++        _continueBtn.AddThemeStyleboxOverride("normal", btnStyle);
++        _continueBtn.AddThemeStyleboxOverride("hover", btnStyle);
++        _continueBtn.AddThemeStyleboxOverride("pressed", btnStyle);
++        _continueBtn.AddThemeStyleboxOverride("focus", btnStyle);
++        _continueBtn.Pressed += OnContinuePressed;
++        noteBox.AddChild(_continueBtn);
++        AddChild(_note);
++        _note.Visible = false;
++    }
++
++    private int Px(float refPx) => Mathf.Max(1, Mathf.RoundToInt(refPx * _s));
++
++    private PanelContainer MakeCard(out VBoxContainer box, MouseFilterEnum filter)
++    {
++        var style = new StyleBoxFlat
++        {
++            BgColor = CardBg,
++            BorderColor = CardBorder,
++            BorderWidthLeft = Px(3), BorderWidthRight = Px(3), BorderWidthTop = Px(3), BorderWidthBottom = Px(3),
++            CornerRadiusTopLeft = Px(8), CornerRadiusTopRight = Px(8),
++            CornerRadiusBottomLeft = Px(8), CornerRadiusBottomRight = Px(8),
++            ShadowColor = new Color(0, 0, 0, 0.7f),
++            ShadowSize = Px(16),
++            ShadowOffset = new Vector2(0, 6 * _s),
++            ContentMarginLeft = 26 * _s, ContentMarginRight = 26 * _s,
++            ContentMarginTop = 18 * _s, ContentMarginBottom = 16 * _s,
++        };
++        var panel = new PanelContainer { MouseFilter = filter };
++        panel.AddThemeStyleboxOverride("panel", style);
++        box = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
++        box.AddThemeConstantOverride("separation", Px(10));
++        panel.AddChild(box);
++        return panel;
++    }
++
++    private Label MakeLabel(Font? font, int refSize, Color color, HorizontalAlignment align)
++    {
++        var l = new Label
++        {
++            HorizontalAlignment = align,
++            VerticalAlignment = VerticalAlignment.Top,
++            AutowrapMode = TextServer.AutowrapMode.Word,
++            MouseFilter = MouseFilterEnum.Ignore,
++        };
++        if (font != null) l.AddThemeFontOverride("font", font);
++        l.AddThemeFontSizeOverride("font_size", Px(refSize));
++        l.AddThemeColorOverride("font_color", color);
++        l.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.8f));
++        l.AddThemeConstantOverride("shadow_offset_y", Px(2));
++        l.AddThemeConstantOverride("line_spacing", Px(4));
++        return l;
++    }
++
++    // ── Placement ──
++
++    private Rect2 ResolveAnchor()
++    {
++        var vp = GetViewportRect().Size;
++        Rect2? a = null;
++        try { a = AnchorProvider?.Invoke(); } catch (Exception ex) { GD.PrintErr($"[TutorialCoach] anchor provider threw: {ex.Message}"); }
++        if (a is Rect2 r && r.Size.X >= 320 * _s && r.Size.Y >= 120 * _s)
++            return r;
++        // Fallback: top-left block under the enemy strip
++        return new Rect2(24 * _s, 110 * _s, Mathf.Min(700 * _s, vp.X * 0.42f), 320 * _s);
++    }
++
++    private void PlaceCardInAnchor(PanelContainer card)
++    {
++        var anchor = ResolveAnchor();
++        float w = anchor.Size.X;
++        foreach (var child in card.GetChild(0).GetChildren())
++            if (child is Label l) l.CustomMinimumSize = new Vector2(w - 52 * _s, 0);
++        card.ResetSize();
++        card.Size = new Vector2(w, card.GetCombinedMinimumSize().Y);
++        card.Position = new Vector2(Mathf.Round(anchor.Position.X), Mathf.Round(anchor.Position.Y));
++    }
++
++    private void PlaceNote()
++    {
++        var vp = GetViewportRect().Size;
++        float w = Mathf.Min(NoteW * _s, vp.X * 0.8f);
++        foreach (var child in _note.GetChild(0).GetChildren())
++            if (child is Label l) l.CustomMinimumSize = new Vector2(w - 52 * _s, 0);
++        _note.ResetSize();
++        _note.Size = new Vector2(w, _note.GetCombinedMinimumSize().Y);
++        _note.Position = new Vector2(Mathf.Round(vp.X * 0.5f - w * 0.5f), Mathf.Round(vp.Y * 0.42f - _note.Size.Y * 0.5f));
++    }
++
++    // ── Public API ──
++
++    /// <summary>
++    /// Non-modal instruction with pulsing frames around the controls returned by
++    /// <paramref name="targets"/>. The provider is re-run periodically so frames
++    /// survive hand rebuilds.
++    /// </summary>
++    public void ShowPrompt(string title, string text, Func<List<Control>> targets, bool showSkip = true)
++    {
++        HideNarration();
++        _promptTitle.Text = title ?? "";
++        _promptTitle.Visible = !string.IsNullOrEmpty(title);
++        _promptBody.Text = text ?? "";
++        _skipBtn.Visible = showSkip;
++        _targetProvider = targets;
++        _sinceResolve = 999f;
++        ResolveTargetsIfDue(0f);
++        _prompt.Visible = true;
++        Callable.From(() => PlaceCardInAnchor(_prompt)).CallDeferred();
++        GD.Print($"[TutorialCoach] PROMPT '{title}': {text} ({_targets.Count} targets)");
++    }
++
++    public void HidePrompt()
++    {
++        _prompt.Visible = false;
++        _targetProvider = null;
++        SetTargets(new List<Control>());
++    }
++
++    private void ResolveTargetsIfDue(float delta)
++    {
++        _sinceResolve += delta;
++        if (_targetProvider == null || _sinceResolve < 0.2f) return;
++        _sinceResolve = 0f;
++        List<Control> fresh;
++        try { fresh = _targetProvider() ?? new List<Control>(); }
++        catch (Exception ex) { GD.PrintErr($"[TutorialCoach] target provider threw: {ex.Message}"); return; }
++        fresh.RemoveAll(c => c == null || !IsInstanceValid(c));
++        bool same = fresh.Count == _targets.Count;
++        for (int i = 0; same && i < fresh.Count; i++)
++            if (!ReferenceEquals(fresh[i], _targets[i])) same = false;
++        if (!same) SetTargets(fresh);
++    }
++
++    /// <summary>Modal consequence note. Blocks the board until Continue.</summary>
++    public void ShowNote(string title, string text, Action? onContinue)
++    {
++        HidePrompt();
++        HideNarration();
++        _onContinue = onContinue;
++        _noteTitle.Text = title ?? "";
++        _noteTitle.Visible = !string.IsNullOrEmpty(title);
++        _noteBody.Text = text ?? "";
++        _dim.Visible = true;
++        _note.Visible = true;
++        MoveChild(_dim, GetChildCount() - 1);
++        MoveChild(_note, GetChildCount() - 1);
++        Callable.From(PlaceNote).CallDeferred();
++        GD.Print($"[TutorialCoach] NOTE '{title}': {text}");
++    }
++
++    /// <summary>Programmatic Continue (headless, or skip while a note is open).</summary>
++    public void DismissNote()
++    {
++        if (!_note.Visible) return;
++        OnContinuePressed();
++    }
++
++    private void OnContinuePressed()
++    {
++        _dim.Visible = false;
++        _note.Visible = false;
++        var cb = _onContinue;
++        _onContinue = null;
++        cb?.Invoke();
++    }
++
++    /// <summary>Non-modal one-liner during the opponent's scripted turn. Fades on its own.</summary>
++    public void ShowNarration(string text, float holdSeconds = 3.2f)
++    {
++        _narrationTween?.Kill();
++        _narrationBody.Text = text ?? "";
++        _narration.Modulate = Colors.White;
++        _narration.Visible = true;
++        Callable.From(() => PlaceCardInAnchor(_narration)).CallDeferred();
++        _narrationTween = CreateTween();
++        _narrationTween.TweenInterval(holdSeconds);
++        _narrationTween.TweenProperty(_narration, "modulate:a", 0f, 0.5f);
++        _narrationTween.TweenCallback(Callable.From(() => { _narration.Visible = false; }));
++        GD.Print($"[TutorialCoach] NARRATION: {text}");
++    }
++
++    public void HideNarration()
++    {
++        _narrationTween?.Kill();
++        _narration.Visible = false;
++    }
++
++    public void HideAll()
++    {
++        HidePrompt();
++        HideNarration();
++        _dim.Visible = false;
++        _note.Visible = false;
++        _onContinue = null;
++    }
++
++    // ── Highlight frames ──
++
++    private void SetTargets(List<Control> targets)
++    {
++        foreach (var f in _frames) if (IsInstanceValid(f)) f.QueueFree();
++        _frames.Clear();
++        _frameStyles.Clear();
++        _targets.Clear();
++        if (targets == null) return;
++        foreach (var t in targets)
++        {
++            if (t == null || !IsInstanceValid(t)) continue;
++            _targets.Add(t);
++            var style = new StyleBoxFlat
++            {
++                BgColor = new Color(0, 0, 0, 0),
++                BorderColor = FramePeak,
++                BorderWidthLeft = Px(FrameThickness), BorderWidthRight = Px(FrameThickness),
++                BorderWidthTop = Px(FrameThickness), BorderWidthBottom = Px(FrameThickness),
++                CornerRadiusTopLeft = Px(6), CornerRadiusTopRight = Px(6),
++                CornerRadiusBottomLeft = Px(6), CornerRadiusBottomRight = Px(6),
++                ShadowColor = new Color(0.98f, 0.80f, 0.30f, 0.35f),
++                ShadowSize = Px(10),
++            };
++            var frame = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore, ZIndex = 5 };
++            frame.AddThemeStyleboxOverride("panel", style);
++            AddChild(frame);
++            _frames.Add(frame);
++            _frameStyles.Add(style);
++        }
++        UpdateFrames(0f);
++    }
++
++    public override void _Process(double delta)
++    {
++        ResolveTargetsIfDue((float)delta);
++        if (_frames.Count == 0) return;
++        _t += (float)delta;
++        UpdateFrames(_t);
++    }
++
++    private void UpdateFrames(float t)
++    {
++        // Triangle pulse, 0.9s period
++        float k = Mathf.Abs(((t / 0.9f) % 1f) * 2f - 1f);
++        var col = FrameTrough.Lerp(FramePeak, k);
++        float m = FrameMargin * _s;
++        for (int i = 0; i < _frames.Count; i++)
++        {
++            var target = i < _targets.Count ? _targets[i] : null;
++            var frame = _frames[i];
++            if (target == null || !IsInstanceValid(target) || !target.IsInsideTree() || !IsInstanceValid(frame))
++            {
++                if (IsInstanceValid(frame)) frame.Visible = false;
++                continue;
++            }
++            var r = target.GetGlobalRect();
++            if (r.Size.X <= 0 || r.Size.Y <= 0) { frame.Visible = false; continue; }
++            frame.Visible = true;
++            frame.Position = new Vector2(r.Position.X - m, r.Position.Y - m);
++            frame.Size = new Vector2(r.Size.X + 2 * m, r.Size.Y + 2 * m);
++            _frameStyles[i].BorderColor = col;
++        }
++    }
++
++    public override void _ExitTree()
++    {
++        _narrationTween?.Kill();
++        SkipRequested = null;
++    }
++}
+diff --git a/client/scripts/TutorialPopup.cs b/client/scripts/TutorialPopup.cs
+index 97395a7..057c343 100644
+--- a/client/scripts/TutorialPopup.cs
++++ b/client/scripts/TutorialPopup.cs
+@@ -51,6 +51,7 @@ public partial class TutorialPopup : Control, ITutorialPresenter
+         _wasSkipped = false;
+ 
+         Name = $"TutorialPopup_{content.PopupId}";
++        Visible = true; // FABLE-002: a dismissed popup hides itself; re-show on next content
+         AnchorLeft = 0;
+         AnchorRight = 1;
+         AnchorTop = 0;
+@@ -270,6 +271,11 @@ public partial class TutorialPopup : Control, ITutorialPresenter
+ 
+     private void OnDismissed()
+     {
++        // FABLE-002: the dim overlay (MouseFilter.Stop) used to stay on screen after
++        // Continue, blocking every tap on the board until the next popup replaced it —
++        // a soft-lock at every "now do X" gate. Hide first, then notify.
++        RemoveAllHighlightFrames();
++        Visible = false;
+         Dismissed?.Invoke();
+     }
+ 
+@@ -374,6 +380,8 @@ public partial class TutorialPopup : Control, ITutorialPresenter
+     /// <summary>Dismiss the popup programmatically. Fires the Dismissed event.</summary>
+     public void Dismiss()
+     {
++        RemoveAllHighlightFrames();
++        Visible = false;
+         Dismissed?.Invoke();
+     }
+ }
+\ No newline at end of file
+diff --git a/client/scripts/TutorialRunner.cs b/client/scripts/TutorialRunner.cs
+index aaeeb9c..d59d9ab 100644
+--- a/client/scripts/TutorialRunner.cs
++++ b/client/scripts/TutorialRunner.cs
+@@ -57,6 +57,9 @@ public partial class TutorialRunner : Node
+     private int _opponentActionIndex;
+     private bool _awaitingDismiss;
+     private TutorialPopup? _popup;
++    // FABLE-002: the human-facing presenter (prompt before, note after, narration during)
++    private TutorialCoach? _coach;
++    private bool _skipped;
+     private int _prevAttackCount; // player's AttackCountThisTurn from previous frame
+     private int _prevSummonCount; // number of occupied player lanes from previous frame
+     private int _prevTurnNumber;
+@@ -119,6 +122,14 @@ public partial class TutorialRunner : Node
+         // reads the correct decks and artifacts when building GameConfig
+         SetupEncounter();
+ 
++        // FABLE-002: the coach presents prompts, notes and narration for everyone.
++        // Headless capture runs use it too, so the PNGs show exactly what a player
++        // sees (prompt card + highlight frames, then the note), auto-advanced.
++        _coach = new TutorialCoach();
++        _coach.AnchorProvider = PromptAnchor;
++        _coach.SkipRequested += SkipTutorial;
++        _duelScene.AddChild(_coach);
++
+         // Create action timer for opponent scripted plays and headless auto-play
+         _actionTimer = new Godot.Timer();
+         _actionTimer.OneShot = true;
+@@ -173,32 +184,45 @@ public partial class TutorialRunner : Node
+     {
+         if (_script == null) return;
+ 
+-        // Build encounter def for campaign context
++        // Build encounter def for campaign context.
++        // FABLE-002: a script that ships its own decks (the headless capture scripts)
++        // replaces the encounter wholesale, as before. A script with EMPTY decks —
++        // the guided first duel — keeps the player's real deck, chosen class, relics
++        // and the real campaign encounter (portrait, dialogue, rewards, node clear).
++        // It only scripts hands and the opponent's plays.
+         var deck = _script.PlayerDeck.ToList();
+         var oppDeck = _script.OpponentDeck.ToList();
+ 
+-        CampaignContext.PlayerDeckIds = deck;
+-        CampaignContext.CurrentEncounter = new EncounterDef
++        if (deck.Count > 0 && oppDeck.Count > 0)
+         {
+-            Id = _script.TutorialId,
+-            Name = _script.Title,
+-            IsTutorial = true,
+-            Deck = oppDeck,
+-            Portrait = "",
+-            DialogueIntro = [],
+-            DialogueOutro = [],
+-            ShardReward = 0,
+-            DigChargeReward = 0
+-        };
+-
+-        CampaignContext.DebugSeed = 42;
++            CampaignContext.PlayerDeckIds = deck;
++            CampaignContext.CurrentEncounter = new EncounterDef
++            {
++                Id = _script.TutorialId,
++                Name = _script.Title,
++                IsTutorial = true,
++                Deck = oppDeck,
++                Portrait = "",
++                DialogueIntro = [],
++                DialogueOutro = [],
++                ShardReward = 0,
++                DigChargeReward = 0
++            };
++            CampaignContext.DebugSeed = 42;
++            GD.Print($"[TutorialRunner] Setup encounter: player deck size={deck.Count}, opponent deck size={oppDeck.Count}");
++        }
++        else
++        {
++            GD.Print($"[TutorialRunner] Setup encounter: keeping campaign deck/encounter ({CampaignContext.CurrentEncounter?.Id ?? "none"})");
++        }
+ 
+-        // Set artifact IDs and class for the player's artifacts
+-        CampaignContext.TutorialPlayerArtifactIds = _script.Artifacts.ToArray();
+-        CampaignContext.TutorialPlayerClass = _script.Class;
++        // Set artifact IDs and class for the player's artifacts — only when the script names them
++        if (_script.Artifacts.Count > 0)
++            CampaignContext.TutorialPlayerArtifactIds = _script.Artifacts.ToArray();
++        if (!string.IsNullOrEmpty(_script.Class))
++            CampaignContext.TutorialPlayerClass = _script.Class;
+ 
+-        GD.Print($"[TutorialRunner] Setup encounter: player deck size={deck.Count}, opponent deck size={oppDeck.Count}");
+-        GD.Print($"[TutorialRunner] Artifacts: [{string.Join(", ", _script.Artifacts)}], class={_script.Class}");
++        GD.Print($"[TutorialRunner] Artifacts: [{string.Join(", ", _script.Artifacts)}], class={(string.IsNullOrEmpty(_script.Class) ? "(player's choice)" : _script.Class)}");
+     }
+ 
+     /// <summary>
+@@ -252,6 +276,10 @@ public partial class TutorialRunner : Node
+         // Apply first-turn overrides
+         ApplyTurnOverrides();
+ 
++        // FABLE-002: coach sits above everything DuelScene built in _Ready
++        if (_coach != null && GodotObject.IsInstanceValid(_coach))
++            _duelScene.MoveChild(_coach, _duelScene.GetChildCount() - 1);
++
+         // Set first beat
+         _currentBeatIndex = 0;
+         EnterBeat();
+@@ -367,6 +395,13 @@ public partial class TutorialRunner : Node
+             _handOverriddenThisTurn = false;
+             _attunementOverriddenThisTurn = false;
+ 
++            // FABLE-002: tell the player whose turn it is while the script plays it out
++            if (_coach != null)
++            {
++                _coach.HidePrompt();
++                _coach.ShowNarration($"{OpponentName}'s turn. Watch the board.", 2.0f);
++            }
++
+             // Apply opponent hand override if specified
+             ApplyTurnOverrides();
+ 
+@@ -407,6 +442,13 @@ public partial class TutorialRunner : Node
+             ApplyActionRestrictions(beat.RestrictActionsTo);
+         }
+ 
++        // FABLE-002: the instruction, BEFORE the action, with live highlights
++        if (_coach != null && !string.IsNullOrEmpty(beat.Prompt))
++        {
++            var highlightIds = beat.Highlight ?? new List<string>();
++            _coach.ShowPrompt(beat.PromptTitle ?? "", beat.Prompt!, () => ResolveHighlights(highlightIds), showSkip: true);
++        }
++
+         // In headless mode, auto-play after a short delay
+         if (_isHeadless && _headlessTimer != null)
+         {
+@@ -492,12 +534,30 @@ public partial class TutorialRunner : Node
+ 
+     private void OnBeatMatched(TutorialBeat beat, GameState state)
+     {
++        _coach?.HidePrompt();
++
+         // Show popup if one exists
+         if (!string.IsNullOrEmpty(beat.Popup))
+         {
+             _state = RunnerState.ShowingPopup;
+             _awaitingDismiss = true;
+ 
++            if (_coach != null)
++            {
++                // FABLE-002: consequence note, modal, one Continue
++                _coach.ShowNote(beat.NoteTitle ?? "", beat.Popup!, OnPopupDismissed);
++
++                // Headless: capture the note, then auto-Continue after 2s
++                if (_isHeadless && _headlessTimer != null)
++                {
++                    _headlessTimer.OneShot = true;
++                    _headlessTimer.Timeout -= OnHeadlessTimerTimeout;
++                    _headlessTimer.Timeout += AutoDismissPopup;
++                    _headlessTimer.Start(2.0f);
++                }
++                return;
++            }
++
+             ShowPopup(beat.Popup, beat.Highlight);
+ 
+             // Headless mode: auto-dismiss the popup after a short delay so
+@@ -528,6 +588,16 @@ public partial class TutorialRunner : Node
+ 
+         if (_state != RunnerState.ShowingPopup) return;
+ 
++        // FABLE-002: coach note — capture it while visible, then Continue (deferred:
++        // OnPopupDismissed advances the script and must not run inside the timer callback).
++        var coach = _coach;
++        if (coach != null && GodotObject.IsInstanceValid(coach) && coach.IsNoteOpen)
++        {
++            CaptureCurrentBeat("_note");
++            Callable.From(() => coach.DismissNote()).CallDeferred();
++            return;
++        }
++
+         // IMPORTANT: Use CallDeferred to avoid Godot crash (propagate_notification)
+         // when removing the popup from the scene tree during a timer callback.
+         // OnPopupDismissed handles capture + advance after the dismiss.
+@@ -560,30 +630,7 @@ public partial class TutorialRunner : Node
+         };
+ 
+         // Resolve highlight string IDs to actual Control nodes from the live layout
+-        var resolvedHighlights = new List<Control>();
+-        if (highlights is { Count: > 0 })
+-        {
+-            // "all_creatures_highlight" is a magic ID — we handle it first, expanding
+-            // to all owned player slots, then treat the rest as individual IDs
+-            bool expandAllCreatures = highlights.Contains("all_creatures_highlight");
+-            foreach (var id in highlights)
+-            {
+-                if (id == "all_creatures_highlight")
+-                    continue; // handled below
+-                var ctrl = ResolveHighlight(id);
+-                if (ctrl != null)
+-                    resolvedHighlights.Add(ctrl);
+-            }
+-            if (expandAllCreatures && _duelScene.TutorialPlayerSlots is { Count: 5 })
+-            {
+-                // Add all player lane slots as separate highlights
+-                foreach (var slot in _duelScene.TutorialPlayerSlots)
+-                {
+-                    if (slot != null && GodotObject.IsInstanceValid(slot) && !resolvedHighlights.Contains(slot))
+-                        resolvedHighlights.Add(slot);
+-                }
+-            }
+-        }
++        var resolvedHighlights = ResolveHighlights(highlights);
+ 
+         _popup.HighlightMargins = new Vector2(8, 8);
+ 
+@@ -594,6 +641,107 @@ public partial class TutorialRunner : Node
+         GD.Print($"[TutorialRunner] Popup shown: \"{text}\" ({resolvedHighlights.Count} highlights resolved)");
+     }
+ 
++    /// <summary>Resolve a list of highlight IDs (with the all_creatures_highlight expansion).</summary>
++    private List<Control> ResolveHighlights(List<string>? highlights)
++    {
++        var resolved = new List<Control>();
++        if (highlights is not { Count: > 0 }) return resolved;
++
++        // "all_creatures_highlight" is a magic ID — we handle it first, expanding
++        // to all owned player slots, then treat the rest as individual IDs
++        bool expandAllCreatures = highlights.Contains("all_creatures_highlight");
++        foreach (var id in highlights)
++        {
++            if (id == "all_creatures_highlight")
++                continue; // handled below
++            var ctrl = ResolveHighlight(id);
++            if (ctrl != null)
++                resolved.Add(ctrl);
++        }
++        if (expandAllCreatures && _duelScene.TutorialPlayerSlots is { Count: 5 })
++        {
++            foreach (var slot in _duelScene.TutorialPlayerSlots)
++            {
++                if (slot != null && GodotObject.IsInstanceValid(slot) && !resolved.Contains(slot))
++                    resolved.Add(slot);
++            }
++        }
++        return resolved;
++    }
++
++    /// <summary>Display name of the scripted opponent.</summary>
++    private string OpponentName => CampaignContext.CurrentEncounter?.Name ?? "Your opponent";
++
++    /// <summary>
++    /// FABLE-002: where the coach's prompt card sits — the union of the enemy's three
++    /// leftmost lane slots (global rect). The guided script never plays into enemy
++    /// lanes 0-2, so the card is big, readable and covers nothing that matters.
++    /// </summary>
++    private Rect2? PromptAnchor()
++    {
++        var slots = _duelScene.TutorialEnemySlots;
++        if (slots == null || slots.Count < 3) return null;
++        Rect2? acc = null;
++        for (int i = 0; i < 3; i++)
++        {
++            var s = slots[i];
++            if (s == null || !GodotObject.IsInstanceValid(s) || !s.IsInsideTree()) continue;
++            var r = s.GetGlobalRect();
++            if (r.Size.X <= 0 || r.Size.Y <= 0) continue;
++            acc = acc is Rect2 a ? a.Merge(r) : r;
++        }
++        return acc;
++    }
++
++    /// <summary>The instruction currently on screen (for DenyPopup's "follow the glow").</summary>
++    public string CurrentInstruction =>
++        _state == RunnerState.PlayerTurn && CurrentBeat is { } b && !string.IsNullOrEmpty(b.Prompt)
++            ? b.Prompt! : "Do what the instruction card asks.";
++
++    /// <summary>
++    /// FABLE-002: honour restrict_actions_to for summons. SUMMON_CREATURE / SUMMON_LANE_ANY /
++    /// ANY allow any lane; SUMMON_LANE_n allows only lane n. An empty list allows everything.
++    /// A beat that lists only non-summon actions (e.g. ["ATTACK_LANE_3"]) forbids summoning.
++    /// </summary>
++    public bool IsSummonAllowed(int laneIndex)
++    {
++        if (_state != RunnerState.PlayerTurn) return true;
++        var beat = CurrentBeat;
++        if (beat?.RestrictActionsTo is not { Count: > 0 } r) return true;
++        if (r.Contains("ANY") || r.Contains("SUMMON_CREATURE") || r.Contains("SUMMON_LANE_ANY")) return true;
++        if (r.Contains($"SUMMON_LANE_{laneIndex}")) return true;
++        // Specific summon lanes were listed and this is not one of them — or the list
++        // names only other actions (END_TURN, ATTACK_LANE_3...) — either way, no.
++        return false;
++    }
++
++    /// <summary>FABLE-002: honour restrict_actions_to for attacks (ATTACK_ANY / ATTACK_LANE_n).</summary>
++    public bool IsAttackAllowed(int sourceLane)
++    {
++        if (_state != RunnerState.PlayerTurn) return true;
++        var beat = CurrentBeat;
++        if (beat?.RestrictActionsTo is not { Count: > 0 } r) return true;
++        if (r.Contains("ANY") || r.Contains("ATTACK_ANY")) return true;
++        if (r.Contains($"ATTACK_LANE_{sourceLane}")) return true;
++        return false;
++    }
++
++    /// <summary>
++    /// FABLE-002: the player tapped "Skip tutorial". Hand the duel back to the
++    /// normal flow immediately: restrictions off, coach gone, bot back in charge.
++    /// </summary>
++    public void SkipTutorial()
++    {
++        if (_state == RunnerState.Finished || _skipped) return;
++        _skipped = true;
++        GD.Print("[TutorialRunner] Tutorial SKIPPED by player");
++        _actionTimer?.Stop();
++        _headlessTimer?.Stop();
++        _awaitingDismiss = false;
++        _coach?.HideAll();
++        EndTutorial();
++    }
++
+     /// <summary>
+     /// Resolve a highlight string ID to the actual Godot Control node,
+     /// using the live duel layout (post-BORDER-1 positions).
+@@ -699,8 +847,9 @@ public partial class TutorialRunner : Node
+     {
+         _awaitingDismiss = false;
+ 
+-        // Capture screenshot at this beat boundary
+-        CaptureCurrentBeat();
++        // Capture screenshot at this beat boundary (headless gate runs only)
++        if (_isHeadless)
++            CaptureCurrentBeat();
+ 
+         if (_state == RunnerState.ShowingPopup)
+         {
+@@ -781,6 +930,10 @@ public partial class TutorialRunner : Node
+         var action = turn.OpponentActions[_opponentActionIndex];
+         GD.Print($"[TutorialRunner] Opponent action: {action.Action}");
+ 
++        // FABLE-002: narrate what the opponent is doing
++        if (_coach != null && !string.IsNullOrEmpty(action.Label))
++            _coach.ShowNarration(action.Label!);
++
+         try
+         {
+             ExecuteScriptedAction(action);
+@@ -853,6 +1006,10 @@ public partial class TutorialRunner : Node
+ 
+         GD.Print($"[TutorialRunner] Headless auto-play: beat '{beat.Id}' ({beat.TriggerEvent})");
+ 
++        // FABLE-002: capture the instruction card + highlight frames before acting on them
++        if (_coach != null && !string.IsNullOrEmpty(beat.Prompt))
++            CaptureCurrentBeat("_prompt");
++
+         switch (beat.TriggerEvent)
+         {
+             case "SUMMON_CREATURE":
+@@ -1042,14 +1199,14 @@ public partial class TutorialRunner : Node
+ 
+     // ── Capture ──
+ 
+-    private void CaptureCurrentBeat()
++    private void CaptureCurrentBeat(string suffix = "")
+     {
+         if (_gsm.State == null) return;
+ 
+         var beat = CurrentBeat;
+         string beatId = beat?.Id ?? "unknown";
+         string turnStr = _gsm.State.TurnNumber.ToString();
+-        string filename = $"{_tutorialCapturePrefix}{_script?.TutorialId ?? "unknown"}_t{turnStr}_{beatId}";
++        string filename = $"{_tutorialCapturePrefix}{_script?.TutorialId ?? "unknown"}_t{turnStr}_{beatId}{suffix}";
+ 
+         try
+         {
+@@ -1103,6 +1260,7 @@ public partial class TutorialRunner : Node
+         _duelInitialized = false;
+ 
+         ClearActionRestrictions();
++        _coach?.HideAll();
+ 
+         // Capture the final state as the gate-named capture (tutorial_warrior_intro.png)
+         if (_isHeadless)
+diff --git a/client/scripts/TutorialScriptData.cs b/client/scripts/TutorialScriptData.cs
+index 5da1691..84d33a8 100644
+--- a/client/scripts/TutorialScriptData.cs
++++ b/client/scripts/TutorialScriptData.cs
+@@ -70,6 +70,22 @@ public class TutorialBeat
+     [JsonPropertyName("condition")]
+     public BeatCondition? Condition { get; set; }
+ 
++    /// <summary>FABLE-002: short heading for the instruction card, e.g. "SUMMON".</summary>
++    [JsonPropertyName("prompt_title")]
++    public string? PromptTitle { get; set; }
++
++    /// <summary>
++    /// FABLE-002: the instruction shown BEFORE the player acts ("Tap the Student, then
++    /// tap the glowing lane"). Non-modal, sits beside the board with the highlights.
++    /// </summary>
++    [JsonPropertyName("prompt")]
++    public string? Prompt { get; set; }
++
++    /// <summary>FABLE-002: short heading for the consequence note, e.g. "SWIFT".</summary>
++    [JsonPropertyName("note_title")]
++    public string? NoteTitle { get; set; }
++
++    /// <summary>The consequence note shown AFTER the player acts (modal, Continue).</summary>
+     [JsonPropertyName("popup")]
+     public string? Popup { get; set; }
+ 
+diff --git a/client/scripts/settings/SettingsScene.cs b/client/scripts/settings/SettingsScene.cs
+index fba787b..5c80845 100644
+--- a/client/scripts/settings/SettingsScene.cs
++++ b/client/scripts/settings/SettingsScene.cs
+@@ -221,8 +221,15 @@ public partial class SettingsScene : Control
+         replayTutorialBtn.Pressed += () =>
+         {
+             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+-            CampaignContext.TutorialScriptId = "battlemage_intro";
+-            var profile = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null;
++            // FABLE-002: replay the guided first duel on the real Wayfarer encounter
++            CampaignContext.TutorialScriptId = "first_duel";
++            CampaignContext.TutorialHeadless = false;
++            if (CampaignContext.EncounterIndex.Count == 0)
++                CampaignContext.LoadEncounters();
++            if (CampaignContext.EncounterIndex.TryGetValue("r1_duel_wayfarer", out var wayfarer))
++                CampaignContext.CurrentEncounter = wayfarer;
++            var profile = CampaignContext.ActiveProfile
++                ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
+             if (profile != null)
+                 profile.TutorialDone = false;
+             GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+diff --git a/content/tutorial/scripts/first_duel.json b/content/tutorial/scripts/first_duel.json
+new file mode 100644
+index 0000000..1091fd8
+--- /dev/null
++++ b/content/tutorial/scripts/first_duel.json
+@@ -0,0 +1,196 @@
++{
++  "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
++  "tutorial_id": "first_duel",
++  "title": "The Wayfarer",
++  "class": "",
++  "description": "Guided first duel. Keeps the player's chosen class, relics, deck and the real Wayfarer encounter; scripts only the hands and the opponent's plays so every instruction is always true.",
++  "artifacts": [],
++  "player_deck": [],
++  "opponent_deck": [],
++  "turns": [
++    {
++      "turn_number": 1,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_student_of_embers",
++        "tut_c_verdant_initiate",
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t1_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_3"],
++          "restrict_actions_to": ["SUMMON_LANE_3"],
++          "prompt_title": "SUMMON A CREATURE",
++          "prompt": "Your hand is at the bottom. Cards cost Attunement — the number in the card's top corner — and you have 1. Tap the STUDENT OF EMBERS, then tap the glowing lane on your side of the field.",
++          "note_title": "SWIFT",
++          "popup": "Summoned. Most creatures must rest the turn they arrive — but the Student has SWIFT, so it can attack right away."
++        },
++        {
++          "id": "t1_attack",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "ATTACK",
++          "prompt": "Creatures attack straight across their own lane. Tap your Student, then tap the enemy lane directly opposite. That lane is empty, so the blow lands on the Wayfarer.",
++          "note_title": "VIGOR",
++          "popup": "2 damage. The Wayfarer's Vigor — the number beside their name — dropped from 25 to 23. Bring it to 0 and the duel is yours."
++        },
++        {
++          "id": "t1_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "Your Student has attacked and you have no Attunement left. Tap END TURN.",
++          "note_title": "THE ENEMY MOVES",
++          "popup": "The Wayfarer takes a turn now. Watch what they do."
++        }
++      ]
++    },
++    {
++      "turn_number": 1,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "SUMMON",
++          "card_id": "tut_opponent_token",
++          "lane": 4,
++          "label": "The Wayfarer summons a Thorn Sprout across from your empty lane.",
++          "delay_ms": 1400
++        },
++        {
++          "action": "END_TURN",
++          "delay_ms": 1800
++        }
++      ]
++    },
++    {
++      "turn_number": 2,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_verdant_initiate",
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t2_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_4"],
++          "restrict_actions_to": ["SUMMON_LANE_4"],
++          "prompt_title": "ATTUNEMENT GROWS",
++          "prompt": "Each turn your Attunement refills and grows by one — you have 2 now. Tap the VERDANT INITIATE (cost 2), then tap the glowing lane facing the Thorn Sprout.",
++          "note_title": "GUARD",
++          "popup": "The Initiate has GUARD: enemy attacks aimed at your empty lanes are pulled onto it instead. It has no SWIFT, so it rests this turn."
++        },
++        {
++          "id": "t2_attack",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "ATTACK AGAIN",
++          "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits the Wayfarer again.",
++          "note_title": "ONCE PER TURN",
++          "popup": "Vigor 23 → 21. Every creature attacks once per turn, and only into the lane straight ahead of it."
++        },
++        {
++          "id": "t2_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "Nothing left to do. Tap END TURN and watch the Sprout."
++        }
++      ]
++    },
++    {
++      "turn_number": 2,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "ATTACK",
++          "lane": 4,
++          "target_lane": 4,
++          "label": "The Thorn Sprout attacks your Initiate — and breaks on its Guard.",
++          "delay_ms": 1400
++        },
++        {
++          "action": "SUMMON",
++          "card_id": "tut_opponent_token",
++          "lane": 3,
++          "label": "A second Sprout appears, this time facing your Student.",
++          "delay_ms": 2000
++        },
++        {
++          "action": "END_TURN",
++          "delay_ms": 1800
++        }
++      ]
++    },
++    {
++      "turn_number": 3,
++      "type": "player",
++      "player_hand_override": [
++        "tut_c_iron_apprentice",
++        "tut_c_student_of_embers"
++      ],
++      "player_beats": [
++        {
++          "id": "t3_summon",
++          "trigger_event": "SUMMON_CREATURE",
++          "highlight": ["hand_card_0", "lane_2"],
++          "restrict_actions_to": ["SUMMON_LANE_2"],
++          "prompt_title": "THREE ATTUNEMENT",
++          "prompt": "You have 3 Attunement — enough for the IRON APPRENTICE. Tap it, then tap the glowing lane."
++        },
++        {
++          "id": "t3_attack_face",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_4", "enemy_lane_4"],
++          "restrict_actions_to": ["ATTACK_LANE_4"],
++          "prompt_title": "PRESS THE ADVANTAGE",
++          "prompt": "The Sprout that hit your Initiate is gone, so the lane across from it is open. Tap the Initiate, then tap that empty enemy lane.",
++          "note_title": "OPEN LANES",
++          "popup": "Another 2 damage — Vigor 21 → 19. An open lane is an open road to the enemy's Vigor. Keep them open."
++        },
++        {
++          "id": "t3_attack_trade",
++          "trigger_event": "ATTACK_WITH_CREATURE",
++          "highlight": ["lane_3", "enemy_lane_3"],
++          "restrict_actions_to": ["ATTACK_LANE_3"],
++          "prompt_title": "FIGHT A CREATURE",
++          "prompt": "A Sprout now blocks your Student's lane. Tap the Student, then tap the Sprout. When creatures fight, BOTH deal their Attack to the other at the same time.",
++          "note_title": "EVERY FIGHT CUTS BOTH WAYS",
++          "popup": "The Sprout is destroyed. Check whether your Student survived — a creature dies when damage reaches its Vigor. Trade wisely."
++        },
++        {
++          "id": "t3_end",
++          "trigger_event": "END_TURN",
++          "highlight": ["end_turn_button"],
++          "restrict_actions_to": ["END_TURN"],
++          "prompt_title": "END TURN",
++          "prompt": "That is everything you need. Tap END TURN — from here the duel is yours to win.",
++          "note_title": "YOU KNOW THE BASICS",
++          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor; blocked lanes trade blows. Long-press any card to read it. Now finish the Wayfarer."
++        }
++      ]
++    },
++    {
++      "turn_number": 3,
++      "type": "opponent",
++      "opponent_hand_override": ["tut_opponent_token"],
++      "opponent_actions": [
++        {
++          "action": "END_TURN",
++          "label": "The Wayfarer hesitates... and passes. The rest is up to you.",
++          "delay_ms": 1600
++        }
++      ]
++    }
++  ]
++}
+diff --git a/schema/tutorial_script.schema.json b/schema/tutorial_script.schema.json
+index b4e7aed..4a8b78c 100644
+--- a/schema/tutorial_script.schema.json
++++ b/schema/tutorial_script.schema.json
+@@ -13,7 +13,10 @@
+   ],
+   "additionalProperties": false,
+   "properties": {
+-    "$schema": { "type": "string", "description": "Self-reference to schema." },
++    "$schema": {
++      "type": "string",
++      "description": "Self-reference to schema."
++    },
+     "tutorial_id": {
+       "type": "string",
+       "pattern": "^[a-z]+_[a-z0-9_]+$",
+@@ -27,7 +30,7 @@
+     },
+     "class": {
+       "type": "string",
+-      "description": "The class this tutorial teaches (e.g. 'warrior')."
++      "description": "The class this tutorial teaches (e.g. 'warrior'). Empty string = the player's chosen class."
+     },
+     "description": {
+       "type": "string",
+@@ -36,40 +39,49 @@
+     },
+     "artifacts": {
+       "type": "array",
+-      "minItems": 1,
++      "minItems": 0,
+       "maxItems": 3,
+       "items": {
+         "type": "string",
+         "description": "Artifact definition ID for one of this class's slots."
+       },
+-      "description": "Artifact def IDs for the player's class loadout, in slot order."
++      "description": "Artifact def IDs for the player's class loadout, in slot order. Empty = keep the player's chosen class loadout (guided first duel)."
+     },
+     "player_deck": {
+       "type": "array",
+-      "minItems": 10,
++      "minItems": 0,
+       "maxItems": 30,
+-      "items": { "type": "string" },
+-      "description": "Full deck list for the player (card def IDs, in shuffle order). The deck is dealt deterministically (no shuffle) so the starting hand is known."
++      "items": {
++        "type": "string"
++      },
++      "description": "Full deck list for the player (card def IDs, in shuffle order). The deck is dealt deterministically (no shuffle) so the starting hand is known. Empty = keep the real campaign deck/encounter."
+     },
+     "opponent_deck": {
+       "type": "array",
+-      "minItems": 10,
++      "minItems": 0,
+       "maxItems": 30,
+-      "items": { "type": "string" },
+-      "description": "Full deck list for the opponent. Not shuffled — deterministic order."
++      "items": {
++        "type": "string"
++      },
++      "description": "Full deck list for the opponent. Not shuffled — deterministic order. Empty = keep the real campaign deck/encounter."
+     },
+     "turns": {
+       "type": "array",
+       "minItems": 3,
+       "maxItems": 10,
+-      "items": { "$ref": "#/$defs/turn_script" },
++      "items": {
++        "$ref": "#/$defs/turn_script"
++      },
+       "description": "Scripts for each turn. Opponent turns are fully deterministic. Player turns contain conditional beats that resolve based on the player's action."
+     }
+   },
+   "$defs": {
+     "turn_script": {
+       "type": "object",
+-      "required": ["turn_number", "type"],
++      "required": [
++        "turn_number",
++        "type"
++      ],
+       "additionalProperties": false,
+       "properties": {
+         "turn_number": {
+@@ -79,17 +91,24 @@
+         },
+         "type": {
+           "type": "string",
+-          "enum": ["player", "opponent"],
++          "enum": [
++            "player",
++            "opponent"
++          ],
+           "description": "Which player acts this turn."
+         },
+         "player_hand_override": {
+           "type": "array",
+-          "items": { "type": "string" },
++          "items": {
++            "type": "string"
++          },
+           "description": "If set, override the player's hand to these exact card def IDs (in order). Used to guarantee the player has the right cards for the tutorial beat."
+         },
+         "opponent_hand_override": {
+           "type": "array",
+-          "items": { "type": "string" },
++          "items": {
++            "type": "string"
++          },
+           "description": "If set, override the opponent's hand to these exact card def IDs."
+         },
+         "player_attunement_override": {
+@@ -100,23 +119,38 @@
+         },
+         "player_beats": {
+           "type": "array",
+-          "items": { "$ref": "#/$defs/tutorial_beat" },
++          "items": {
++            "$ref": "#/$defs/tutorial_beat"
++          },
+           "description": "Sequential beats the player must complete this turn. Beats resolve in order; each must be satisfied before the next activates. At most one popup fires per beat."
+         },
+         "opponent_actions": {
+           "type": "array",
+-          "items": { "$ref": "#/$defs/scripted_action" },
++          "items": {
++            "$ref": "#/$defs/scripted_action"
++          },
+           "description": "Deterministic scripted actions for the opponent's turn. These execute in order with no player input."
+         }
+       },
+       "anyOf": [
+-        { "required": ["player_beats"] },
+-        { "required": ["opponent_actions"] }
++        {
++          "required": [
++            "player_beats"
++          ]
++        },
++        {
++          "required": [
++            "opponent_actions"
++          ]
++        }
+       ]
+     },
+     "tutorial_beat": {
+       "type": "object",
+-      "required": ["id", "trigger_event"],
++      "required": [
++        "id",
++        "trigger_event"
++      ],
+       "additionalProperties": false,
+       "properties": {
+         "id": {
+@@ -150,9 +184,42 @@
+           "type": "array",
+           "items": {
+             "type": "string",
+-            "enum": ["SUMMON_CREATURE", "SUMMON_LANE_ANY", "SUMMON_LANE_0", "SUMMON_LANE_1", "SUMMON_LANE_2", "SUMMON_LANE_3", "SUMMON_LANE_4", "ATTACK_ANY", "ATTACK_LANE_0", "ATTACK_LANE_1", "ATTACK_LANE_2", "ATTACK_LANE_3", "ATTACK_LANE_4", "PLAY_SPELL", "END_TURN", "NO_ATTACK", "ANY"]
+-            },
++            "enum": [
++              "SUMMON_CREATURE",
++              "SUMMON_LANE_ANY",
++              "SUMMON_LANE_0",
++              "SUMMON_LANE_1",
++              "SUMMON_LANE_2",
++              "SUMMON_LANE_3",
++              "SUMMON_LANE_4",
++              "ATTACK_ANY",
++              "ATTACK_LANE_0",
++              "ATTACK_LANE_1",
++              "ATTACK_LANE_2",
++              "ATTACK_LANE_3",
++              "ATTACK_LANE_4",
++              "PLAY_SPELL",
++              "END_TURN",
++              "NO_ATTACK",
++              "ANY"
++            ]
++          },
+           "description": "If set, restricts the player's valid actions to only these types during this beat. Used to force the teaching moment."
++        },
++        "prompt_title": {
++          "type": "string",
++          "maxLength": 40,
++          "description": "FABLE-002: short heading for the instruction card shown BEFORE the action."
++        },
++        "prompt": {
++          "type": "string",
++          "maxLength": 300,
++          "description": "FABLE-002: the instruction shown BEFORE the player acts (non-modal, beside the board, with highlights). Tells the player exactly what to tap."
++        },
++        "note_title": {
++          "type": "string",
++          "maxLength": 40,
++          "description": "FABLE-002: short heading for the consequence note (the 'popup') shown AFTER the action."
+         }
+       }
+     },
+@@ -196,12 +263,20 @@
+     },
+     "scripted_action": {
+       "type": "object",
+-      "required": ["action"],
++      "required": [
++        "action"
++      ],
+       "additionalProperties": false,
+       "properties": {
+         "action": {
+           "type": "string",
+-          "enum": ["SUMMON", "ATTACK", "PLAY_SPELL", "END_TURN", "NO_OP"],
++          "enum": [
++            "SUMMON",
++            "ATTACK",
++            "PLAY_SPELL",
++            "END_TURN",
++            "NO_OP"
++          ],
+           "description": "The action the opponent takes deterministically."
+         },
+         "card_id": {
+@@ -235,4 +310,4 @@
+       }
+     }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/tools/tutorial_script_sim.py b/tools/tutorial_script_sim.py
+new file mode 100644
+index 0000000..2130477
+--- /dev/null
++++ b/tools/tutorial_script_sim.py
+@@ -0,0 +1,279 @@
++#!/usr/bin/env python3
++"""
++tutorial_script_sim.py — Prove a guided tutorial script is PLAYABLE before Godot
++ever runs it.
++
++validate_tutorial_script.py checks shape (schema, card ids, lengths). This walks
++the script with a small model of the duel rules and checks that every beat the
++player is told to perform is actually legal at that moment, and that every
++scripted opponent action is legal too:
++
++  - Attunement: P0 starts turn 1 with 1, both players gain +1 max per own turn
++    (cap 10) and refill. player_attunement_override respected.
++  - Summon: needs empty own lane, cost <= attunement. Creatures are exhausted on
++    arrival unless SWIFT. Creatures ready at the start of their owner's turn.
++  - Attack: attacker must be ready and not have attacked; target lane = source
++    lane (no REACH modelled); empty target lane => face damage unless a GUARD
++    creature redirects; combat is simultaneous.
++  - Beats: SUMMON_CREATURE / ATTACK_WITH_CREATURE / END_TURN / NO_ATTACK_END_TURN,
++    restricted by restrict_actions_to (SUMMON_LANE_n / ATTACK_LANE_n / END_TURN).
++    The sim performs exactly what the prompt's highlights ask (hand_card_i +
++    lane_j / lane_j + enemy_lane_j), i.e. the path the player is guided down.
++  - The prompt/note copy is checked for the Vigor numbers it quotes ("25 to 23",
++    "23 → 21") against the simulated Vigor after the action.
++
++Exit 0 = every beat and opponent action is legal and the quoted numbers match.
++Exit 1 with a plain description otherwise.
++
++Usage: python3 tools/tutorial_script_sim.py content/tutorial/scripts/first_duel.json
++"""
++import glob
++import json
++import re
++import sys
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent.parent
++
++
++def load_cards():
++    cards = {}
++    for f in glob.glob(str(ROOT / "client" / "content" / "cards" / "*.json")):
++        d = json.load(open(f))
++        items = d if isinstance(d, list) else d.get("cards", [])
++        for c in items:
++            if "id" in c:
++                cards[c["id"]] = c
++    return cards
++
++
++class Creature:
++    def __init__(self, cid, card, owner):
++        self.id = cid
++        self.name = card.get("name", cid)
++        self.attack = card.get("attack") or 0
++        self.vigor = card.get("vigor") or 0
++        self.keywords = set(card.get("keywords") or [])
++        self.owner = owner
++        self.damage = 0
++        self.exhausted = "SWIFT" not in self.keywords
++        self.attacked = False
++
++    @property
++    def alive(self):
++        return self.damage < self.vigor
++
++    def __repr__(self):
++        return f"{self.name}({self.attack}/{self.vigor - self.damage})"
++
++
++class Player:
++    def __init__(self, idx):
++        self.idx = idx
++        self.vigor = 25
++        self.attune = 0
++        self.attune_max = 0
++        self.lanes = [None] * 5
++        self.hand = []  # list of card ids
++
++
++class Sim:
++    def __init__(self, cards):
++        self.cards = cards
++        self.p = [Player(0), Player(1)]
++        self.turn = 1
++        self.errors = []
++        self.log = []
++        # P0's first attune step
++        self.p[0].attune_max = 1
++        self.p[0].attune = 1
++
++    def fail(self, msg):
++        self.errors.append(msg)
++        self.log.append("  !! " + msg)
++
++    def start_turn(self, idx):
++        pl = self.p[idx]
++        for c in pl.lanes:
++            if c:
++                c.exhausted = False
++                c.attacked = False
++        # attune (P0 turn 1 already handled at init)
++        if not (idx == 0 and self.turn == 1):
++            pl.attune_max = min(pl.attune_max + 1, 10)
++            pl.attune = pl.attune_max
++
++    def summon(self, idx, cid, lane, who):
++        pl = self.p[idx]
++        card = self.cards.get(cid)
++        if card is None:
++            self.fail(f"{who}: unknown card {cid}"); return False
++        if cid not in pl.hand:
++            self.fail(f"{who}: {cid} is not in P{idx}'s hand {pl.hand}"); return False
++        cost = card.get("cost", 0)
++        if cost > pl.attune:
++            self.fail(f"{who}: {card['name']} costs {cost}, P{idx} has {pl.attune} attunement"); return False
++        if not (0 <= lane <= 4):
++            self.fail(f"{who}: lane {lane} out of range"); return False
++        if pl.lanes[lane] is not None:
++            self.fail(f"{who}: P{idx} lane {lane} already holds {pl.lanes[lane]}"); return False
++        pl.attune -= cost
++        pl.hand.remove(cid)
++        pl.lanes[lane] = Creature(cid, card, idx)
++        self.log.append(f"  P{idx} summons {pl.lanes[lane]} into lane {lane} (attune left {pl.attune})")
++        return True
++
++    def attack(self, idx, src, tgt, who):
++        pl, op = self.p[idx], self.p[1 - idx]
++        a = pl.lanes[src] if 0 <= src <= 4 else None
++        if a is None:
++            self.fail(f"{who}: P{idx} has no creature in lane {src}"); return False
++        if a.exhausted:
++            self.fail(f"{who}: {a} in lane {src} is exhausted (summoned this turn, no SWIFT)"); return False
++        if a.attacked:
++            self.fail(f"{who}: {a} in lane {src} already attacked this turn"); return False
++        if tgt != src:
++            self.fail(f"{who}: target lane {tgt} != source lane {src} (no REACH)"); return False
++        a.attacked = True
++        d = op.lanes[tgt]
++        if d is None:
++            guard = next((i for i, c in enumerate(op.lanes) if c and "GUARD" in c.keywords), None)
++            if guard is not None:
++                d = op.lanes[guard]
++                self.log.append(f"  P{idx} {a} attacks lane {tgt}: empty, redirected to GUARD {d} in lane {guard}")
++                tgt = guard
++        if d is None:
++            op.vigor -= a.attack
++            self.log.append(f"  P{idx} {a} hits face for {a.attack}: P{1-idx} vigor {op.vigor}")
++        else:
++            d.damage += a.attack
++            a.damage += d.attack
++            self.log.append(f"  P{idx} {a} fights {d}: defender {'dies' if not d.alive else 'survives'}, attacker {'dies' if not a.alive else 'survives'}")
++            if not d.alive:
++                op.lanes[tgt] = None
++            if not a.alive:
++                pl.lanes[src] = None
++        return True
++
++    def end_turn(self, idx):
++        self.log.append(f"  P{idx} ends turn")
++        nxt = 1 - idx
++        if nxt == 0:
++            self.turn += 1
++        self.start_turn(nxt)
++
++
++def parse_highlight(hl, prefix):
++    for h in hl or []:
++        if h.startswith(prefix):
++            try:
++                return int(h[len(prefix):])
++            except ValueError:
++                pass
++    return None
++
++
++def check_quoted_vigor(text, before, after, beat_id, sim):
++    """Find 'A to B' / 'A → B' / 'A -> B' pairs and compare with the sim."""
++    if not text:
++        return
++    for m in re.finditer(r"(\d+)\s*(?:to|→|->)\s*(\d+)", text):
++        a, b = int(m.group(1)), int(m.group(2))
++        if (a, b) != (before, after):
++            sim.fail(f"beat {beat_id}: copy says Vigor '{a} to {b}' but the sim went {before} to {after}")
++
++
++def run(script_path):
++    cards = load_cards()
++    script = json.load(open(script_path))
++    sim = Sim(cards)
++    p0, p1 = sim.p
++    turns = script["turns"]
++
++    for ti, turn in enumerate(turns):
++        kind = turn["type"]
++        idx = 0 if kind == "player" else 1
++        pl = sim.p[idx]
++        sim.log.append(f"— script turn {ti+1}: {kind} (duel turn {sim.turn}, P{idx} attune {pl.attune}/{pl.attune_max})")
++        hand_key = "player_hand_override" if idx == 0 else "opponent_hand_override"
++        if turn.get(hand_key):
++            pl.hand = list(turn[hand_key])
++            sim.log.append(f"  hand override P{idx}: {pl.hand}")
++        if idx == 0 and turn.get("player_attunement_override") is not None:
++            pl.attune = turn["player_attunement_override"]
++            pl.attune_max = max(pl.attune_max, pl.attune)
++
++        if kind == "player":
++            ended = False
++            for beat in turn.get("player_beats", []):
++                bid = beat["id"]
++                trig = beat["trigger_event"]
++                hl = beat.get("highlight") or []
++                restrict = beat.get("restrict_actions_to") or []
++                if not beat.get("prompt"):
++                    sim.fail(f"beat {bid}: no 'prompt' — the player would get no instruction before acting")
++                if trig == "SUMMON_CREATURE":
++                    hand_i = parse_highlight(hl, "hand_card_")
++                    lane = parse_highlight(hl, "lane_")
++                    if hand_i is None or lane is None:
++                        sim.fail(f"beat {bid}: SUMMON beat must highlight hand_card_i and lane_j"); continue
++                    if hand_i >= len(pl.hand):
++                        sim.fail(f"beat {bid}: hand_card_{hand_i} but hand has {len(pl.hand)} cards"); continue
++                    allowed = {f"SUMMON_LANE_{lane}", "SUMMON_CREATURE", "SUMMON_LANE_ANY", "ANY"}
++                    if restrict and not (set(restrict) & allowed):
++                        sim.fail(f"beat {bid}: highlights lane {lane} but restrict_actions_to {restrict} forbids it")
++                    cid = pl.hand[hand_i]
++                    sim.summon(0, cid, lane, f"beat {bid}")
++                elif trig == "ATTACK_WITH_CREATURE":
++                    src = parse_highlight(hl, "lane_")
++                    tgt = parse_highlight(hl, "enemy_lane_")
++                    if src is None or tgt is None:
++                        sim.fail(f"beat {bid}: ATTACK beat must highlight lane_j and enemy_lane_j"); continue
++                    allowed = {f"ATTACK_LANE_{src}", "ATTACK_ANY", "ANY"}
++                    if restrict and not (set(restrict) & allowed):
++                        sim.fail(f"beat {bid}: highlights attacker lane {src} but restrict_actions_to {restrict} forbids it")
++                    before = p1.vigor
++                    sim.attack(0, src, tgt, f"beat {bid}")
++                    check_quoted_vigor(beat.get("popup", ""), before, p1.vigor, bid, sim)
++                elif trig in ("END_TURN", "NO_ATTACK_END_TURN"):
++                    if restrict and "END_TURN" not in restrict and "ANY" not in restrict:
++                        sim.fail(f"beat {bid}: END_TURN beat but restrict_actions_to {restrict} disables End Turn")
++                    sim.end_turn(0)
++                    ended = True
++                else:
++                    sim.fail(f"beat {bid}: trigger {trig} not modelled")
++            if not ended:
++                sim.fail(f"script turn {ti+1}: player turn has no END_TURN beat — the runner would leave the player stranded")
++        else:
++            ended = False
++            for ai, act in enumerate(turn.get("opponent_actions", [])):
++                who = f"opp turn {ti+1} action {ai+1} ({act['action']})"
++                if act["action"] == "SUMMON":
++                    sim.summon(1, act["card_id"], act["lane"], who)
++                elif act["action"] == "ATTACK":
++                    sim.attack(1, act["lane"], act.get("target_lane", act["lane"]), who)
++                elif act["action"] == "END_TURN":
++                    sim.end_turn(1)
++                    ended = True
++                elif act["action"] == "NO_OP":
++                    pass
++                else:
++                    sim.fail(f"{who}: not modelled")
++            if not ended:
++                sim.fail(f"script turn {ti+1}: opponent turn never ends — bot is suspended, the duel would hang")
++
++    print("\n".join(sim.log))
++    print()
++    print(f"final: P0 vigor {p0.vigor}, P1 vigor {p1.vigor}, P0 lanes {p0.lanes}, P1 lanes {p1.lanes}")
++    if sim.errors:
++        print(f"\nTUTORIAL SIM FAILED ({len(sim.errors)} problem{'s' if len(sim.errors) != 1 else ''}):")
++        for e in sim.errors:
++            print("  -", e)
++        return 1
++    print("\nTUTORIAL SIM PASSED — every guided action is legal when the player is asked to do it")
++    return 0
++
++
++if __name__ == "__main__":
++    path = sys.argv[1] if len(sys.argv) > 1 else str(ROOT / "content" / "tutorial" / "scripts" / "first_duel.json")
++    sys.exit(run(path))
