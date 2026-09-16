@@ -47,7 +47,7 @@ public partial class DenyPopup : Control
     private static readonly Color BodyColor = new Color(0.91f, 0.86f, 0.78f);            // parchment
     private static readonly Color HintColor = new Color(0.72f, 0.66f, 0.54f);
 
-    private PanelContainer _panel = default!;
+    private Panel _panel = default!;
     private StyleBoxFlat _style = default!;
     private Label _title = default!;
     private Label _body = default!;
@@ -84,26 +84,20 @@ public partial class DenyPopup : Control
             ShadowColor = new Color(0, 0, 0, 0.7f),
             ShadowSize = Mathf.RoundToInt(18 * _s),
             ShadowOffset = new Vector2(0, 6 * _s),
-            ContentMarginLeft = PadX * _s,
-            ContentMarginRight = PadX * _s,
-            ContentMarginTop = PadY * _s,
-            ContentMarginBottom = PadY * _s,
         };
 
-        _panel = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
+        // FABLE-003: plain Panel, labels laid out by hand (UiText) so the panel is
+        // exactly as tall as its three lines — no container min-size games.
+        _panel = new Panel { MouseFilter = MouseFilterEnum.Ignore };
         _panel.AddThemeStyleboxOverride("panel", _style);
         AddChild(_panel);
-
-        var vbox = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-        vbox.AddThemeConstantOverride("separation", Mathf.RoundToInt(8 * _s));
-        _panel.AddChild(vbox);
 
         _title = MakeLabel(ThemeTokens.GetHeaderFont(Mathf.RoundToInt(TitleSize * _s)), TitleSize, TitleSoft);
         _body = MakeLabel(ThemeTokens.GetButtonFont(Mathf.RoundToInt(BodySize * _s)), BodySize, BodyColor);
         _hint = MakeLabel(ThemeTokens.GetBodyFont(Mathf.RoundToInt(HintSize * _s)), HintSize, HintColor);
-        vbox.AddChild(_title);
-        vbox.AddChild(_body);
-        vbox.AddChild(_hint);
+        _panel.AddChild(_title);
+        _panel.AddChild(_body);
+        _panel.AddChild(_hint);
     }
 
     private Label MakeLabel(Font? font, int refSize, Color color)
@@ -114,7 +108,6 @@ public partial class DenyPopup : Control
             VerticalAlignment = VerticalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
             MouseFilter = MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2((PanelW - 2 * PadX) * _s, 0),
         };
         if (font != null) l.AddThemeFontOverride("font", font);
         l.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(refSize * _s));
@@ -145,6 +138,7 @@ public partial class DenyPopup : Control
         // Size to content, then centre over the lane band (upper-middle of the
         // screen — never over the hand, which is where the player is looking
         // when they get refused and where the next tap is going).
+        Place();
         Callable.From(Place).CallDeferred();
 
         _tween = CreateTween();
@@ -160,12 +154,23 @@ public partial class DenyPopup : Control
     private void Place()
     {
         var vp = GetViewportRect().Size;
-        _panel.ResetSize();
-        var size = _panel.GetCombinedMinimumSize();
+        float w = Mathf.Round(Mathf.Min(PanelW * _s, vp.X * 0.7f));
+        float padX = PadX * _s, gap = 8 * _s;
+        float innerW = w - 2 * padX;
+        float y = PadY * _s;
+        float th = UiText.Fit(_title, padX, y, innerW);
+        if (th > 0) y += th + gap;
+        float bh = UiText.Fit(_body, padX, y, innerW);
+        if (bh > 0) y += bh + gap;
+        float hh = UiText.Fit(_hint, padX, y, innerW);
+        if (hh > 0) y += hh;
+        y += PadY * _s;
+        var size = new Vector2(w, Mathf.Round(y));
         _panel.Size = size;
         _panel.Position = new Vector2(
             Mathf.Round(vp.X * 0.5f - size.X * 0.5f),
             Mathf.Round(vp.Y * 0.40f - size.Y * 0.5f));
+        GD.Print($"[DENY] panel {size.X:0}x{size.Y:0}");
     }
 
     /// <summary>Hide immediately (e.g. when the player does something valid).</summary>

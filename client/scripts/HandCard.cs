@@ -191,13 +191,17 @@ public partial class HandCard : PanelContainer
             }
             AddThemeStyleboxOverride("panel", _selectedStyle);
             ZIndex = 10;
+            // FABLE-003: a selected card stays exactly where it rests in the hand.
+            // It used to lift 24px and scale 1.08 (pivot bottom-centre, so it grew
+            // upward) — straight into the player lane row, on top of the glowing
+            // lane the player was about to tap. Now: gold frame + brighten, nothing
+            // moves. The lanes glow; that is where the eye should go.
             var tween = CreateTween();
-            float lift = 24f * (GetViewportRect().Size.Y / 1080f);
-            tween.TweenProperty(this, "position:y", -lift, 0.12f)
+            tween.SetParallel(true);
+            tween.TweenProperty(this, "position", _arcPosition, 0.1f)
                 .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
-            tween.Parallel();
-            tween.TweenProperty(this, "scale", new Vector2(1.08f, 1.08f), 0.12f);
-            tween.Parallel();
+            tween.TweenProperty(this, "rotation", _storedRotation, 0.1f);
+            tween.TweenProperty(this, "scale", Vector2.One, 0.1f);
             tween.TweenProperty(this, "modulate", new Color(1.15f, 1.1f, 1.0f, 1), 0.12f);
         }
         else
@@ -213,8 +217,12 @@ public partial class HandCard : PanelContainer
             };
             AddThemeStyleboxOverride("panel", cardStyle);
             var tween = CreateTween();
-            tween.TweenProperty(this, "position:y", 0f, 0.1f)
+            // FABLE-003: return to the card's ARC position, not y=0 (which dropped the
+            // card to the top of the hand container, off its fan).
+            tween.TweenProperty(this, "position", _arcPosition, 0.1f)
                 .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
+            tween.Parallel();
+            tween.TweenProperty(this, "rotation", _storedRotation, 0.1f);
             tween.Parallel();
             tween.TweenProperty(this, "scale", Vector2.One, 0.1f);
             tween.Parallel();
@@ -246,6 +254,10 @@ public partial class HandCard : PanelContainer
 
     private void OnHoverEntered()
     {
+        // FABLE-003: on a touchscreen "hover" is just the finger landing — the
+        // 1.3x enlarge + 40px lift fired on every tap and shoved the card into
+        // the lane row. Hover preview is a mouse feature; skip it on touch.
+        if (DisplayServer.IsTouchscreenAvailable()) return;
         if (_isHovered) return;
         _isHovered = true;
         ZIndex = 10;

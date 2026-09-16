@@ -673,16 +673,17 @@ public partial class TutorialRunner : Node
     private string OpponentName => CampaignContext.CurrentEncounter?.Name ?? "Your opponent";
 
     /// <summary>
-    /// FABLE-002: where the coach's prompt card sits — the union of the enemy's three
+    /// FABLE-002/003: where the coach's prompt card sits — the union of the enemy's two
     /// leftmost lane slots (global rect). The guided script never plays into enemy
-    /// lanes 0-2, so the card is big, readable and covers nothing that matters.
+    /// lanes 0-2, so the card covers nothing that matters; the coach sizes the card's
+    /// HEIGHT to its text, so it only ever takes the top of that area.
     /// </summary>
     private Rect2? PromptAnchor()
     {
         var slots = _duelScene.TutorialEnemySlots;
-        if (slots == null || slots.Count < 3) return null;
+        if (slots == null || slots.Count < 2) return null;
         Rect2? acc = null;
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
             var s = slots[i];
             if (s == null || !GodotObject.IsInstanceValid(s) || !s.IsInsideTree()) continue;

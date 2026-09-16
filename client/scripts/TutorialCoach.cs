@@ -56,20 +56,26 @@ public partial class TutorialCoach : Control
     private float _s = 1f;
     private float _t;
 
+    // Layout constants (reference px)
+    private const float PadX = 26f;
+    private const float PadTop = 18f;
+    private const float PadBottom = 16f;
+    private const float Gap = 10f;
+
     // Prompt
-    private PanelContainer _prompt = default!;
+    private Panel _prompt = default!;
     private Label _promptTitle = default!;
     private Label _promptBody = default!;
     private Button _skipBtn = default!;
 
     // Narration
-    private PanelContainer _narration = default!;
+    private Panel _narration = default!;
     private Label _narrationBody = default!;
     private Tween? _narrationTween;
 
     // Note (modal)
     private ColorRect _dim = default!;
-    private PanelContainer _note = default!;
+    private Panel _note = default!;
     private Label _noteTitle = default!;
     private Label _noteBody = default!;
     private Button _continueBtn = default!;
@@ -93,14 +99,12 @@ public partial class TutorialCoach : Control
         ZIndex = 150;
         _s = GetViewportRect().Size.Y / RefH;
 
-        // ── Prompt card ──
-        _prompt = MakeCard(out var promptBox, MouseFilterEnum.Stop);
+        // ── Prompt card (plain Panel, children laid out by hand — see UiText) ──
+        _prompt = MakeCard(MouseFilterEnum.Stop);
         _promptTitle = MakeLabel(ThemeTokens.GetHeaderFont(Px(PromptTitleSize)), PromptTitleSize, TitleColor, HorizontalAlignment.Left);
         _promptBody = MakeLabel(ThemeTokens.GetButtonFont(Px(PromptBodySize)), PromptBodySize, BodyColor, HorizontalAlignment.Left);
-        promptBox.AddChild(_promptTitle);
-        promptBox.AddChild(_promptBody);
-        var footer = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-        footer.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        _prompt.AddChild(_promptTitle);
+        _prompt.AddChild(_promptBody);
         _skipBtn = new Button { Text = "Skip tutorial", Flat = true, FocusMode = FocusModeEnum.None };
         var skipFont = ThemeTokens.GetBodyFont(Px(SkipSize));
         if (skipFont != null) _skipBtn.AddThemeFontOverride("font", skipFont);
@@ -109,15 +113,14 @@ public partial class TutorialCoach : Control
         _skipBtn.AddThemeColorOverride("font_hover_color", TitleColor);
         _skipBtn.AddThemeColorOverride("font_pressed_color", TitleColor);
         _skipBtn.Pressed += () => { GD.Print("[TutorialCoach] skip requested"); SkipRequested?.Invoke(); };
-        footer.AddChild(_skipBtn);
-        promptBox.AddChild(footer);
+        _prompt.AddChild(_skipBtn);
         AddChild(_prompt);
         _prompt.Visible = false;
 
         // ── Narration card ──
-        _narration = MakeCard(out var narrBox, MouseFilterEnum.Ignore);
+        _narration = MakeCard(MouseFilterEnum.Ignore);
         _narrationBody = MakeLabel(ThemeTokens.GetButtonFont(Px(NarrationSize)), NarrationSize, BodyColor, HorizontalAlignment.Left);
-        narrBox.AddChild(_narrationBody);
+        _narration.AddChild(_narrationBody);
         AddChild(_narration);
         _narration.Visible = false;
 
@@ -127,14 +130,12 @@ public partial class TutorialCoach : Control
         AddChild(_dim);
         _dim.Visible = false;
 
-        _note = MakeCard(out var noteBox, MouseFilterEnum.Stop);
+        _note = MakeCard(MouseFilterEnum.Stop);
         _noteTitle = MakeLabel(ThemeTokens.GetHeaderFont(Px(NoteTitleSize)), NoteTitleSize, TitleColor, HorizontalAlignment.Center);
         _noteBody = MakeLabel(ThemeTokens.GetButtonFont(Px(NoteBodySize)), NoteBodySize, BodyColor, HorizontalAlignment.Center);
-        noteBox.AddChild(_noteTitle);
-        noteBox.AddChild(_noteBody);
-        noteBox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6 * _s), MouseFilter = MouseFilterEnum.Ignore });
+        _note.AddChild(_noteTitle);
+        _note.AddChild(_noteBody);
         _continueBtn = new Button { Text = "Continue", FocusMode = FocusModeEnum.None };
-        _continueBtn.CustomMinimumSize = new Vector2(0, 84 * _s);
         var btnFont = ThemeTokens.GetHeaderFont(Px(NoteButtonSize));
         if (btnFont != null) _continueBtn.AddThemeFontOverride("font", btnFont);
         _continueBtn.AddThemeFontSizeOverride("font_size", Px(NoteButtonSize));
@@ -152,14 +153,14 @@ public partial class TutorialCoach : Control
         _continueBtn.AddThemeStyleboxOverride("pressed", btnStyle);
         _continueBtn.AddThemeStyleboxOverride("focus", btnStyle);
         _continueBtn.Pressed += OnContinuePressed;
-        noteBox.AddChild(_continueBtn);
+        _note.AddChild(_continueBtn);
         AddChild(_note);
         _note.Visible = false;
     }
 
     private int Px(float refPx) => Mathf.Max(1, Mathf.RoundToInt(refPx * _s));
 
-    private PanelContainer MakeCard(out VBoxContainer box, MouseFilterEnum filter)
+    private Panel MakeCard(MouseFilterEnum filter)
     {
         var style = new StyleBoxFlat
         {
@@ -171,14 +172,9 @@ public partial class TutorialCoach : Control
             ShadowColor = new Color(0, 0, 0, 0.7f),
             ShadowSize = Px(16),
             ShadowOffset = new Vector2(0, 6 * _s),
-            ContentMarginLeft = 26 * _s, ContentMarginRight = 26 * _s,
-            ContentMarginTop = 18 * _s, ContentMarginBottom = 16 * _s,
         };
-        var panel = new PanelContainer { MouseFilter = filter };
+        var panel = new Panel { MouseFilter = filter };
         panel.AddThemeStyleboxOverride("panel", style);
-        box = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-        box.AddThemeConstantOverride("separation", Px(10));
-        panel.AddChild(box);
         return panel;
     }
 
@@ -210,28 +206,67 @@ public partial class TutorialCoach : Control
         if (a is Rect2 r && r.Size.X >= 320 * _s && r.Size.Y >= 120 * _s)
             return r;
         // Fallback: top-left block under the enemy strip
-        return new Rect2(24 * _s, 110 * _s, Mathf.Min(700 * _s, vp.X * 0.42f), 320 * _s);
+        return new Rect2(24 * _s, 110 * _s, Mathf.Min(560 * _s, vp.X * 0.36f), 320 * _s);
     }
 
-    private void PlaceCardInAnchor(PanelContainer card)
+    /// <summary>Prompt card: title / body / skip link, exactly as tall as that content.</summary>
+    private void LayoutPrompt()
     {
         var anchor = ResolveAnchor();
-        float w = anchor.Size.X;
-        foreach (var child in card.GetChild(0).GetChildren())
-            if (child is Label l) l.CustomMinimumSize = new Vector2(w - 52 * _s, 0);
-        card.ResetSize();
-        card.Size = new Vector2(w, card.GetCombinedMinimumSize().Y);
-        card.Position = new Vector2(Mathf.Round(anchor.Position.X), Mathf.Round(anchor.Position.Y));
+        float w = Mathf.Round(anchor.Size.X);
+        float padX = PadX * _s, gap = Gap * _s;
+        float innerW = w - 2 * padX;
+        float y = PadTop * _s;
+
+        float th = UiText.Fit(_promptTitle, padX, y, innerW);
+        if (th > 0) y += th + gap;
+        float bh = UiText.Fit(_promptBody, padX, y, innerW);
+        if (bh > 0) y += bh + gap * 0.6f;
+        if (_skipBtn.Visible)
+        {
+            var bs = _skipBtn.GetCombinedMinimumSize();
+            _skipBtn.Size = bs;
+            _skipBtn.Position = new Vector2(w - padX - bs.X, y);
+            y += bs.Y;
+        }
+        y += PadBottom * _s;
+
+        _prompt.Size = new Vector2(w, Mathf.Round(y));
+        _prompt.Position = new Vector2(Mathf.Round(anchor.Position.X), Mathf.Round(anchor.Position.Y));
     }
 
-    private void PlaceNote()
+    /// <summary>Narration: one body line block, same anchor, as tall as the text.</summary>
+    private void LayoutNarration()
+    {
+        var anchor = ResolveAnchor();
+        float w = Mathf.Round(anchor.Size.X);
+        float padX = PadX * _s;
+        float y = PadTop * _s;
+        y += UiText.Fit(_narrationBody, padX, y, w - 2 * padX);
+        y += PadBottom * _s;
+        _narration.Size = new Vector2(w, Mathf.Round(y));
+        _narration.Position = new Vector2(Mathf.Round(anchor.Position.X), Mathf.Round(anchor.Position.Y));
+    }
+
+    /// <summary>Modal note: centred, width capped, height from content + Continue.</summary>
+    private void LayoutNote()
     {
         var vp = GetViewportRect().Size;
-        float w = Mathf.Min(NoteW * _s, vp.X * 0.8f);
-        foreach (var child in _note.GetChild(0).GetChildren())
-            if (child is Label l) l.CustomMinimumSize = new Vector2(w - 52 * _s, 0);
-        _note.ResetSize();
-        _note.Size = new Vector2(w, _note.GetCombinedMinimumSize().Y);
+        float w = Mathf.Round(Mathf.Min(NoteW * _s, vp.X * 0.8f));
+        float padX = PadX * _s, gap = Gap * _s;
+        float innerW = w - 2 * padX;
+        float y = PadTop * _s;
+
+        float th = UiText.Fit(_noteTitle, padX, y, innerW);
+        if (th > 0) y += th + gap;
+        float bh = UiText.Fit(_noteBody, padX, y, innerW);
+        if (bh > 0) y += bh + gap * 1.6f;
+        float btnH = Mathf.Round(84 * _s);
+        _continueBtn.Position = new Vector2(padX, y);
+        _continueBtn.Size = new Vector2(innerW, btnH);
+        y += btnH + PadBottom * _s;
+
+        _note.Size = new Vector2(w, Mathf.Round(y));
         _note.Position = new Vector2(Mathf.Round(vp.X * 0.5f - w * 0.5f), Mathf.Round(vp.Y * 0.42f - _note.Size.Y * 0.5f));
     }
 
@@ -253,8 +288,9 @@ public partial class TutorialCoach : Control
         _sinceResolve = 999f;
         ResolveTargetsIfDue(0f);
         _prompt.Visible = true;
-        Callable.From(() => PlaceCardInAnchor(_prompt)).CallDeferred();
-        GD.Print($"[TutorialCoach] PROMPT '{title}': {text} ({_targets.Count} targets)");
+        LayoutPrompt();
+        Callable.From(LayoutPrompt).CallDeferred(); // once more after the anchor slots settle
+        GD.Print($"[TutorialCoach] PROMPT '{title}': {text} ({_targets.Count} targets) card={_prompt.Size.X:0}x{_prompt.Size.Y:0}");
     }
 
     public void HidePrompt()
@@ -292,8 +328,9 @@ public partial class TutorialCoach : Control
         _note.Visible = true;
         MoveChild(_dim, GetChildCount() - 1);
         MoveChild(_note, GetChildCount() - 1);
-        Callable.From(PlaceNote).CallDeferred();
-        GD.Print($"[TutorialCoach] NOTE '{title}': {text}");
+        LayoutNote();
+        Callable.From(LayoutNote).CallDeferred();
+        GD.Print($"[TutorialCoach] NOTE '{title}': {text} card={_note.Size.X:0}x{_note.Size.Y:0}");
     }
 
     /// <summary>Programmatic Continue (headless, or skip while a note is open).</summary>
@@ -319,7 +356,8 @@ public partial class TutorialCoach : Control
         _narrationBody.Text = text ?? "";
         _narration.Modulate = Colors.White;
         _narration.Visible = true;
-        Callable.From(() => PlaceCardInAnchor(_narration)).CallDeferred();
+        LayoutNarration();
+        Callable.From(LayoutNarration).CallDeferred();
         _narrationTween = CreateTween();
         _narrationTween.TweenInterval(holdSeconds);
         _narrationTween.TweenProperty(_narration, "modulate:a", 0f, 0.5f);
@@ -378,6 +416,8 @@ public partial class TutorialCoach : Control
     public override void _Process(double delta)
     {
         ResolveTargetsIfDue((float)delta);
+        // Keep the prompt card glued to its anchor (lanes can shift on re-layout).
+        if (_prompt.Visible && _sinceResolve == 0f) LayoutPrompt();
         if (_frames.Count == 0) return;
         _t += (float)delta;
         UpdateFrames(_t);
