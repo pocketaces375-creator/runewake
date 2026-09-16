@@ -31,25 +31,12 @@ public partial class BotController : Node
     public bool IsThinking { get; private set; }
 
     /// <summary>
-    /// FABLE-002: True while <see cref="Suspend"/> is in effect (the TutorialRunner
-    /// drives the opponent). Suspend() sets IsThinking=true so the bot never reacts
-    /// to StateChanged — but that same flag is what DuelScene uses to refuse player
-    /// input as "opponent is acting", which locked the player out of every guided
-    /// tutorial. Input gates must check <c>IsThinking &amp;&amp; !IsSuspended</c>.
-    /// </summary>
-    public bool IsSuspended { get; private set; }
-
-    /// <summary>True when the bot is genuinely mid-turn (not merely suspended).</summary>
-    public bool IsActing => IsThinking && !IsSuspended;
-
-    /// <summary>
     /// Suspends the bot's turn processing. Stops any pending timer and prevents
     /// the bot from reacting to StateChanged. Call Resume() to re-enable.
     /// </summary>
     public void Suspend()
     {
         IsThinking = true;
-        IsSuspended = true;
         _pendingAction = false;
         _timer?.Stop();
     }
@@ -60,21 +47,11 @@ public partial class BotController : Node
     public void Resume()
     {
         IsThinking = false;
-        IsSuspended = false;
-        // If it is already this bot's turn (e.g. tutorial skipped mid-opponent-turn),
-        // nothing will fire StateChanged for us — start the turn now.
-        if (_gsm != null && _gsm.State != null && !_gsm.IsGameOver
-            && _gsm.CurrentPlayerIndex == _playerIndex && _timer != null)
-        {
-            GD.Print($"[BotController] Resume() during P{_playerIndex}'s own turn — starting bot turn");
-            StartBotTurn();
-        }
     }
 
     public void ForceIdle(string why)
     {
         IsThinking = false;
-        IsSuspended = false;
         _pendingAction = false;
         _timer?.Stop();
         GD.Print($"[BOT] ForceIdle: {why}");

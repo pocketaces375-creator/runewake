@@ -13,10 +13,7 @@
   ],
   "additionalProperties": false,
   "properties": {
-    "$schema": {
-      "type": "string",
-      "description": "Self-reference to schema."
-    },
+    "$schema": { "type": "string", "description": "Self-reference to schema." },
     "tutorial_id": {
       "type": "string",
       "pattern": "^[a-z]+_[a-z0-9_]+$",
@@ -30,7 +27,7 @@
     },
     "class": {
       "type": "string",
-      "description": "The class this tutorial teaches (e.g. 'warrior'). Empty string = the player's chosen class."
+      "description": "The class this tutorial teaches (e.g. 'warrior')."
     },
     "description": {
       "type": "string",
@@ -39,49 +36,40 @@
     },
     "artifacts": {
       "type": "array",
-      "minItems": 0,
+      "minItems": 1,
       "maxItems": 3,
       "items": {
         "type": "string",
         "description": "Artifact definition ID for one of this class's slots."
       },
-      "description": "Artifact def IDs for the player's class loadout, in slot order. Empty = keep the player's chosen class loadout (guided first duel)."
+      "description": "Artifact def IDs for the player's class loadout, in slot order."
     },
     "player_deck": {
       "type": "array",
-      "minItems": 0,
+      "minItems": 10,
       "maxItems": 30,
-      "items": {
-        "type": "string"
-      },
-      "description": "Full deck list for the player (card def IDs, in shuffle order). The deck is dealt deterministically (no shuffle) so the starting hand is known. Empty = keep the real campaign deck/encounter."
+      "items": { "type": "string" },
+      "description": "Full deck list for the player (card def IDs, in shuffle order). The deck is dealt deterministically (no shuffle) so the starting hand is known."
     },
     "opponent_deck": {
       "type": "array",
-      "minItems": 0,
+      "minItems": 10,
       "maxItems": 30,
-      "items": {
-        "type": "string"
-      },
-      "description": "Full deck list for the opponent. Not shuffled — deterministic order. Empty = keep the real campaign deck/encounter."
+      "items": { "type": "string" },
+      "description": "Full deck list for the opponent. Not shuffled — deterministic order."
     },
     "turns": {
       "type": "array",
       "minItems": 3,
       "maxItems": 10,
-      "items": {
-        "$ref": "#/$defs/turn_script"
-      },
+      "items": { "$ref": "#/$defs/turn_script" },
       "description": "Scripts for each turn. Opponent turns are fully deterministic. Player turns contain conditional beats that resolve based on the player's action."
     }
   },
   "$defs": {
     "turn_script": {
       "type": "object",
-      "required": [
-        "turn_number",
-        "type"
-      ],
+      "required": ["turn_number", "type"],
       "additionalProperties": false,
       "properties": {
         "turn_number": {
@@ -91,24 +79,17 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "player",
-            "opponent"
-          ],
+          "enum": ["player", "opponent"],
           "description": "Which player acts this turn."
         },
         "player_hand_override": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
+          "items": { "type": "string" },
           "description": "If set, override the player's hand to these exact card def IDs (in order). Used to guarantee the player has the right cards for the tutorial beat."
         },
         "opponent_hand_override": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
+          "items": { "type": "string" },
           "description": "If set, override the opponent's hand to these exact card def IDs."
         },
         "player_attunement_override": {
@@ -119,38 +100,23 @@
         },
         "player_beats": {
           "type": "array",
-          "items": {
-            "$ref": "#/$defs/tutorial_beat"
-          },
+          "items": { "$ref": "#/$defs/tutorial_beat" },
           "description": "Sequential beats the player must complete this turn. Beats resolve in order; each must be satisfied before the next activates. At most one popup fires per beat."
         },
         "opponent_actions": {
           "type": "array",
-          "items": {
-            "$ref": "#/$defs/scripted_action"
-          },
+          "items": { "$ref": "#/$defs/scripted_action" },
           "description": "Deterministic scripted actions for the opponent's turn. These execute in order with no player input."
         }
       },
       "anyOf": [
-        {
-          "required": [
-            "player_beats"
-          ]
-        },
-        {
-          "required": [
-            "opponent_actions"
-          ]
-        }
+        { "required": ["player_beats"] },
+        { "required": ["opponent_actions"] }
       ]
     },
     "tutorial_beat": {
       "type": "object",
-      "required": [
-        "id",
-        "trigger_event"
-      ],
+      "required": ["id", "trigger_event"],
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -184,42 +150,9 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "SUMMON_CREATURE",
-              "SUMMON_LANE_ANY",
-              "SUMMON_LANE_0",
-              "SUMMON_LANE_1",
-              "SUMMON_LANE_2",
-              "SUMMON_LANE_3",
-              "SUMMON_LANE_4",
-              "ATTACK_ANY",
-              "ATTACK_LANE_0",
-              "ATTACK_LANE_1",
-              "ATTACK_LANE_2",
-              "ATTACK_LANE_3",
-              "ATTACK_LANE_4",
-              "PLAY_SPELL",
-              "END_TURN",
-              "NO_ATTACK",
-              "ANY"
-            ]
-          },
+            "enum": ["SUMMON_CREATURE", "SUMMON_LANE_ANY", "SUMMON_LANE_0", "SUMMON_LANE_1", "SUMMON_LANE_2", "SUMMON_LANE_3", "SUMMON_LANE_4", "ATTACK_ANY", "ATTACK_LANE_0", "ATTACK_LANE_1", "ATTACK_LANE_2", "ATTACK_LANE_3", "ATTACK_LANE_4", "PLAY_SPELL", "END_TURN", "NO_ATTACK", "ANY"]
+            },
           "description": "If set, restricts the player's valid actions to only these types during this beat. Used to force the teaching moment."
-        },
-        "prompt_title": {
-          "type": "string",
-          "maxLength": 40,
-          "description": "FABLE-002: short heading for the instruction card shown BEFORE the action."
-        },
-        "prompt": {
-          "type": "string",
-          "maxLength": 300,
-          "description": "FABLE-002: the instruction shown BEFORE the player acts (non-modal, beside the board, with highlights). Tells the player exactly what to tap."
-        },
-        "note_title": {
-          "type": "string",
-          "maxLength": 40,
-          "description": "FABLE-002: short heading for the consequence note (the 'popup') shown AFTER the action."
         }
       }
     },
@@ -263,20 +196,12 @@
     },
     "scripted_action": {
       "type": "object",
-      "required": [
-        "action"
-      ],
+      "required": ["action"],
       "additionalProperties": false,
       "properties": {
         "action": {
           "type": "string",
-          "enum": [
-            "SUMMON",
-            "ATTACK",
-            "PLAY_SPELL",
-            "END_TURN",
-            "NO_OP"
-          ],
+          "enum": ["SUMMON", "ATTACK", "PLAY_SPELL", "END_TURN", "NO_OP"],
           "description": "The action the opponent takes deterministically."
         },
         "card_id": {
