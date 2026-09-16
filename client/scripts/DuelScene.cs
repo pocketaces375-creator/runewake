@@ -2033,17 +2033,17 @@ public partial class DuelScene : Control
         float safeMargin = vh - safeAreaBottom;
         float bottomGap = Mathf.Max(6f, Mathf.Min(safeMargin + 8f, 20f));
         // B2: Shrink hand if it would be pushed up, rather than moving the hand into lanes
-        float chipBottom = vh + Mathf.Abs(vh - (732f * scale)) + _handCardHeight;
+        float top = 732f * scale;
+        float chipBottom = top + _handCardHeight;
         if (chipBottom > safeAreaBottom - 8f * scale)
         {
-            float shrink = chipBottom - (safeAreaBottom - 8f * scale);
-            _handCardHeight = Mathf.Max(100f, _handCardHeight - shrink);
-            GD.Print($"[SAFEAREA] Shrunk hand to {_handCardHeight:F0}px (safe bottom {safeAreaBottom:F0})");
+            float neededShrink = chipBottom - (safeAreaBottom - 8f * scale);
+            _handCardHeight = Mathf.Max(100f, _handCardHeight - neededShrink);
+            GD.Print($"[SAFEAREA] Shrunk hand to {_handCardHeight:F0}px (bottom {top + _handCardHeight:F0} <= safe {safeAreaBottom:F0})");
         }
         // B1: Hand resting centre-card top at exactly viewport 732 * scale
-        float desiredTop = 732f * scale;
-        _handArea.OffsetTop = -(vh - desiredTop);
-        GD.Print($"[HAND] resting centre top={desiredTop:F0} handCardH={_handCardHeight:F0} OffsetTop={_handArea.OffsetTop:F0}");
+        _handArea.OffsetTop = -(vh - top);
+        GD.Print($"[HAND] resting centre top={top:F0} handCardH={_handCardHeight:F0} OffsetTop={_handArea.OffsetTop:F0}");
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
         float marginLeft = 476f * scale;
