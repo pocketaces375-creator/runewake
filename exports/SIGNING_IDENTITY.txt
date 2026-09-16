@@ -1,4 +1,4 @@
 # Shipping identity — do not edit manually
-cert_sha256=b5:1e:11:17:33:43:9f:1b:e3:b9:83:38:d2:14:62:83:e0:ab:2a:83:84:b7:13:42:95:5a:05:9d:a5:53:8c:4f
+cert_sha256=b51e111733439f1be3b98338d2146283e0ab2a8384b71342955a059da5538c4f
 package_name=com.runewake.buriedage
-last_version_code=30
+last_version_code=17
