@@ -173,36 +173,6 @@ else
     report PASS "All class portraits exceed 100KB — genuine art"
 fi
 
-# ─── CHECK 8: Visual gate (vision model reviews every screen) ─────────────
-echo ""
-echo "[8/8] Visual gate"
-TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
-if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
-  for _envf in "${HOME:-/home/fictive}/.hermes/.env" /home/fictive/.hermes/.env; do
-    if [[ -f "${_envf}" ]]; then
-      _k=$(grep -m1 '^OPENROUTER_API_KEY=' "${_envf}" 2>/dev/null | cut -d= -f2- | tr -d '"' | tr -d "'")
-      if [[ -n "${_k}" ]]; then export OPENROUTER_API_KEY="${_k}"; break; fi
-    fi
-  done
-fi
-if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
-    # Run visual gate in a subshell so Godot crash cannot kill this process
-    VISUAL_OK=false
-    bash "$TOOLS_DIR/regen_captures.sh" 2>&1 || true
-    if python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
-        VISUAL_OK=true
-    fi
-    if [ "$VISUAL_OK" = true ]; then
-        report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
-    else
-        report FAIL "visual_gate: a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
-    fi
-else
-    report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
-fi
-
-# ─── CHECK 9: Baked textures present in APK ─────────────────────────────────
-echo ""
 # ─── GATE 10: SIGNING_CERT ─────────────────
 APKSIGNER="/home/fictive/Android/Sdk/build-tools/34.0.0/apksigner"
 AAPT="/home/fictive/Android/Sdk/build-tools/34.0.0/aapt"
@@ -244,7 +214,37 @@ else
 fi
 
 echo ""
-echo "[9/9] Baked textures in APK"
+echo "# ─── CHECK 8: Visual gate (vision model reviews every screen) ─────────────
+echo ""
+echo "[8/8] Visual gate"
+TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
+  for _envf in "${HOME:-/home/fictive}/.hermes/.env" /home/fictive/.hermes/.env; do
+    if [[ -f "${_envf}" ]]; then
+      _k=$(grep -m1 '^OPENROUTER_API_KEY=' "${_envf}" 2>/dev/null | cut -d= -f2- | tr -d '"' | tr -d "'")
+      if [[ -n "${_k}" ]]; then export OPENROUTER_API_KEY="${_k}"; break; fi
+    fi
+  done
+fi
+if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
+    # Run visual gate in a subshell so Godot crash cannot kill this process
+    VISUAL_OK=false
+    bash "$TOOLS_DIR/regen_captures.sh" 2>&1 || true
+    if python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
+        VISUAL_OK=true
+    fi
+    if [ "$VISUAL_OK" = true ]; then
+        report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
+    else
+        report FAIL "visual_gate: a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
+    fi
+else
+    report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
+fi
+
+# ─── CHECK 9: Baked textures present in APK ─────────────────────────────────
+echo ""
+[9/9] Baked textures in APK"
 # The APK stores .import files under assets/content/art/cards_baked/ and
 # the actual .ctex textures under assets/.godot/imported/ (named by source
 # filename, not directory). Cross-reference: count cards_baked .import files
