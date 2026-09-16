@@ -223,24 +223,60 @@ else
     report FAIL "Baked textures missing from APK ($TOTAL_CTEX total .ctex, $CARDS_BAKED_IMPORTS .import)"
 fi
 
-# ─── GATE 10: UX gate ──────────────────────────────────────────────────
+# ─── GATE 10: UX gate ───────────────────────
 echo ""
 echo "[10/10] UX gate"
 STAMP_FILE="$PROJECT_ROOT/artifacts/ux_gate.stamp"
 if [ "${SKIP_UX_GATE:-false}" = "true" ]; then
     echo "  ⏭️ Skipped (--skip-ux-gate)"
 elif [ ! -f "$STAMP_FILE" ]; then
-    report FAIL "artifacts/ux_gate.stamp not found — run tools/ux_gate.sh first"
+    report FAIL "UX gate: stamp not found"
 else
     STAMP_CONTENT=$(cat "$STAMP_FILE")
     HEAD=$(cd "$PROJECT_ROOT" && git rev-parse HEAD)
     if [ "$STAMP_CONTENT" != "$HEAD" ]; then
-        report FAIL "UX gate stamp is stale — run tools/ux_gate.sh"
+        report FAIL "UX gate stamp is stale"
     elif timeout 300 xvfb-run -a "$GODOT_BIN" --path client -- "--uxwalk" 2>&1 | grep -q "FAIL"; then
         report FAIL "UX walkthrough failed"
     else
         report PASS "UX gate: stamp matches HEAD + walkthrough OK"
     fi
+fi
+
+# ─── GATE 11: SIGNING_CERT ─────────────────
+APKSIGNER="/home/fictive/Android/Sdk/build-tools/34.0.0/apksigner"
+AAPT="/home/fictive/Android/Sdk/build-tools/34.0.0/aapt"
+IDENTITY="$PROJECT_ROOT/exports/SIGNING_IDENTITY.txt"
+CERT_FP=$(grep "^cert_sha256=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "")
+PKG_NAME=$(grep "^package_name=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "")
+LAST_VER=$(grep "^last_version_code=" "$IDENTITY" | cut -d= -f2 2>/dev/null || echo "0")
+ACTUAL_CERT=$("$APKSIGNER" verify --print-certs "$APK" 2>/dev/null | grep "SHA-256" | head -1 | sed 's/.* //')
+if [ -z "$ACTUAL_CERT" ]; then
+    report FAIL "SIGNING_CERT — could not read cert"
+elif [ "$ACTUAL_CERT" != "$CERT_FP" ]; then
+    report FAIL "SIGNING_CERT — got $ACTUAL_CERT, expected $CERT_FP"
+else
+    report PASS "SIGNING_CERT — fingerprint matches"
+fi
+
+# ─── GATE 12: PACKAGE_NAME ─────────────────
+ACTUAL_PKG=$("$AAPT" dump badging "$APK" 2>/dev/null | grep "^package:" | sed "s/.*name='//;s/'.*//")
+if [ -z "$ACTUAL_PKG" ]; then
+    report FAIL "PACKAGE_NAME — could not read"
+elif [ "$ACTUAL_PKG" != "$PKG_NAME" ]; then
+    report FAIL "PACKAGE_NAME — got $ACTUAL_PKG, expected $PKG_NAME"
+else
+    report PASS "PACKAGE_NAME — $ACTUAL_PKG"
+fi
+
+# ─── GATE 13: VERSION_CODE ────────────────
+ACTUAL_VER=$("$AAPT" dump badging "$APK" 2>/dev/null | grep "^package:" | sed "s/.*versionCode='//;s/'.*//")
+if [ -z "$ACTUAL_VER" ]; then
+    report FAIL "VERSION_CODE — could not read"
+elif [ "$ACTUAL_VER" -le "$LAST_VER" ] 2>/dev/null; then
+    report FAIL "VERSION_CODE — $ACTUAL_VER <= last shipped $LAST_VER"
+else
+    report PASS "VERSION_CODE — $ACTUAL_VER > $LAST_VER"
 fi
 
 # ─── Summary ───────────────────────────────────────────────────────────────
