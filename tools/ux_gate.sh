@@ -38,8 +38,8 @@ else
 fi
 
 # Condition 3: FAIL count
-FAIL_COUNT=$(grep -c "FAIL s" "${CAPTURES}/uxwalk.log" 2>/dev/null || echo "0")
-PASS_COUNT=$(grep -c "PASS s" "${CAPTURES}/uxwalk.log" 2>/dev/null || echo "0")
+FAIL_COUNT=$(grep -c "FAIL s" "${CAPTURES}/uxwalk.log" 2>/dev/null || true)
+PASS_COUNT=$(grep -c "PASS s" "${CAPTURES}/uxwalk.log" 2>/dev/null || true)
 if [ "$FAIL_COUNT" -eq 0 ]; then
     echo "  3/4: $PASS_COUNT pass, 0 fail"
 else
