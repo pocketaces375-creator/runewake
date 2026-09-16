@@ -20,8 +20,8 @@ echo ""
 echo "SIGNING CERTIFICATE"
 BADGING=$("$AAPT" dump badging "$APK" 2>/dev/null)
 
-PKG=$(echo "$BADGING" | head -1 | awk -F"'" '{print $2}')
-VER=$(echo "$BADGING" | head -1 | awk -F"'" '{print $4}')
+PKG=$(echo "$BADGING" | head -1 | grep -oP "package: name='\K[^']+")
+VER=$(echo "$BADGING" | head -1 | grep -oP "versionCode='\K[^']+")
 CERT=$("$APKSIGNER" verify --print-certs "$APK" 2>/dev/null | grep "SHA-256" | head -1 | sed 's/.* //')
 
 if [ -z "$CERT" ]; then
