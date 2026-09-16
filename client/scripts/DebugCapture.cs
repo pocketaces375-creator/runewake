@@ -841,6 +841,37 @@ public partial class DebugCapture : Node
         CampaignContext.AutoCaptureScreenshot = true;
         CampaignContext.DebugSeed = 42;
 
+        // FABLE-002 BUGFIX: Headless tutorial capture needs a campaign encounter
+        // because TutorialRunner.SetupEncounter uses the script's empty player_deck
+        // to mean "keep the real campaign encounter". Without one, InitializeTestGame()
+        // is called and RenderHud crashes on null _enemyNameLabel.
+        // Create a minimal encounter so the campaign init path works.
+        if (CampaignContext.CurrentEncounter == null)
+        {
+            CampaignContext.CurrentEncounter = new EncounterDef
+            {
+                Id = "tutorial_capture",
+                Name = "The Wayfarer",
+                IsTutorial = true,
+                Deck = new List<string> { "tut_opponent_token" },
+                Portrait = "",
+                DialogueIntro = [],
+                DialogueOutro = [],
+                ShardReward = 0,
+                DigChargeReward = 0
+            };
+            CampaignContext.PlayerDeckIds = new List<string>
+            {
+                "tut_c_student_of_embers", "tut_c_student_of_embers",
+                "tut_c_verdant_initiate",
+                "tut_c_iron_apprentice",
+                "tut_c_student_of_embers", "tut_c_student_of_embers",
+                "tut_c_verdant_initiate",
+                "tut_c_iron_apprentice"
+            };
+            GD.Print($"[DebugCapture] Created dummy campaign encounter for headless tutorial ({scriptId})");
+        }
+
         // Set _active = true to keep the main loop processing while the
         // tutorial runs headless (TutorialRunner drives the flow via timers).
         _active = true;
