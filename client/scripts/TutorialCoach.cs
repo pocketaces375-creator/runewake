@@ -35,6 +35,7 @@ public partial class TutorialCoach : Control
     private const float RefH = 1080f;
     private const int PromptTitleSize = 27;
     private const int PromptBodySize = 27;
+    private const int PromptMeterSize = 25;
     private const int SkipSize = 21;
     private const int NarrationSize = 27;
     private const int NoteTitleSize = 34;
@@ -49,6 +50,7 @@ public partial class TutorialCoach : Control
     private static readonly Color TitleColor = new Color(0.90f, 0.75f, 0.35f);
     private static readonly Color BodyColor = new Color(0.91f, 0.86f, 0.78f);
     private static readonly Color SkipColor = new Color(0.62f, 0.56f, 0.46f);
+    private static readonly Color MeterColor = new Color(0.89f, 0.70f, 0.24f);
     private static readonly Color DimColor = new Color(0f, 0f, 0f, 0.55f);
     private static readonly Color FramePeak = new Color(0.98f, 0.80f, 0.30f, 0.95f);
     private static readonly Color FrameTrough = new Color(0.98f, 0.80f, 0.30f, 0.30f);
@@ -66,7 +68,17 @@ public partial class TutorialCoach : Control
     private Panel _prompt = default!;
     private Label _promptTitle = default!;
     private Label _promptBody = default!;
+    private Label _promptMeter = default!;
     private Button _skipBtn = default!;
+
+    /// <summary>
+    /// FABLE-004: a live readout line at the foot of the prompt card, re-read every frame.
+    /// Return null to hide it. The runner uses it for Attunement, so the number the copy
+    /// talks about is visible and stays correct while the player spends it — including when
+    /// a card changes Attunement rather than just costing it.
+    /// </summary>
+    public Func<string?>? MeterProvider { get; set; }
+    private string _meterText = "";
 
     // Narration
     private Panel _narration = default!;
@@ -103,8 +115,11 @@ public partial class TutorialCoach : Control
         _prompt = MakeCard(MouseFilterEnum.Stop);
         _promptTitle = MakeLabel(ThemeTokens.GetHeaderFont(Px(PromptTitleSize)), PromptTitleSize, TitleColor, HorizontalAlignment.Left);
         _promptBody = MakeLabel(ThemeTokens.GetButtonFont(Px(PromptBodySize)), PromptBodySize, BodyColor, HorizontalAlignment.Left);
+        _promptMeter = MakeLabel(ThemeTokens.GetHeaderFont(Px(PromptMeterSize)), PromptMeterSize, MeterColor, HorizontalAlignment.Left);
         _prompt.AddChild(_promptTitle);
         _prompt.AddChild(_promptBody);
+        _prompt.AddChild(_promptMeter);
+        _promptMeter.Visible = false;
         _skipBtn = new Button { Text = "Skip tutorial", Flat = true, FocusMode = FocusModeEnum.None };
         var skipFont = ThemeTokens.GetBodyFont(Px(SkipSize));
         if (skipFont != null) _skipBtn.AddThemeFontOverride("font", skipFont);
@@ -222,6 +237,8 @@ public partial class TutorialCoach : Control
         if (th > 0) y += th + gap;
         float bh = UiText.Fit(_promptBody, padX, y, innerW);
         if (bh > 0) y += bh + gap * 0.6f;
+        float mh = UiText.Fit(_promptMeter, padX, y, innerW);
+        if (mh > 0) y += mh + gap * 0.6f;
         if (_skipBtn.Visible)
         {
             var bs = _skipBtn.GetCombinedMinimumSize();
@@ -287,6 +304,8 @@ public partial class TutorialCoach : Control
         _targetProvider = targets;
         _sinceResolve = 999f;
         ResolveTargetsIfDue(0f);
+        _meterText = "";
+        RefreshMeter();
         _prompt.Visible = true;
         LayoutPrompt();
         Callable.From(LayoutPrompt).CallDeferred(); // once more after the anchor slots settle
@@ -413,11 +432,30 @@ public partial class TutorialCoach : Control
         UpdateFrames(0f);
     }
 
+    /// <summary>
+    /// Pull the live meter line. Returns true when the text changed, so the caller knows
+    /// the card has to be re-measured — the line is one of the things that sets its height.
+    /// </summary>
+    private bool RefreshMeter()
+    {
+        string next = "";
+        if (MeterProvider != null)
+        {
+            try { next = MeterProvider() ?? ""; }
+            catch (Exception ex) { GD.PrintErr($"[TutorialCoach] meter provider threw: {ex.Message}"); next = ""; }
+        }
+        if (next == _meterText) return false;
+        _meterText = next;
+        _promptMeter.Text = next;
+        _promptMeter.Visible = !string.IsNullOrEmpty(next);
+        return true;
+    }
+
     public override void _Process(double delta)
     {
         ResolveTargetsIfDue((float)delta);
         // Keep the prompt card glued to its anchor (lanes can shift on re-layout).
-        if (_prompt.Visible && _sinceResolve == 0f) LayoutPrompt();
+        if (_prompt.Visible && (RefreshMeter() || _sinceResolve == 0f)) LayoutPrompt();
         if (_frames.Count == 0) return;
         _t += (float)delta;
         UpdateFrames(_t);
@@ -451,5 +489,10 @@ public partial class TutorialCoach : Control
     {
         _narrationTween?.Kill();
         SkipRequested = null;
+        // FABLE-004: the meter closure holds the runner. Drop it with the rest of the
+        // outward references so a freed runner cannot be called back into.
+        MeterProvider = null;
+        AnchorProvider = null;
+        _targetProvider = null;
     }
 }

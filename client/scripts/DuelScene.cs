@@ -75,6 +75,8 @@ public partial class DuelScene : Control
     private Label _playerShrineBarrowLabel = default!;
     private Label _playerShrineVigorLabel = default!;
     private Label _playerShrineAttuneLabel = default!;
+    /// <summary>FABLE-004: the ATTUNE row in the player HUD — a tutorial highlight target.</summary>
+    private PanelContainer? _playerAttunePanel;
     private readonly ArtifactCardPlate[] _playerArtifactPlates = new ArtifactCardPlate[2];
     private PanelContainer _enemyDeckBarrowPanel = default!;
     private PanelContainer _playerDeckBarrowPanelContainer = default!;
@@ -140,6 +142,7 @@ public partial class DuelScene : Control
     internal List<LaneSlot> TutorialPlayerSlots => _playerSlots;
     internal List<LaneSlot> TutorialEnemySlots => _enemySlots;
     internal Button? TutorialEndTurnButton => _endTurnButton;
+    internal Control? TutorialAttunePanel => _playerAttunePanel;
     internal ArtifactCardPlate[] TutorialPlayerArtifactPlates => _playerArtifactPlates;
     internal ArtifactCardPlate[] TutorialEnemyArtifactPlates => _enemyArtifactPlates;
 
@@ -1785,6 +1788,9 @@ public partial class DuelScene : Control
         patp.AddThemeStyleboxOverride("panel", pats);
         patp.Position = new Vector2(colX, pAttuneY);
         AddChild(patp);
+        // FABLE-004: the tutorial rings this panel ("attunement_meter" highlight id) so a
+        // player being told what a card costs can see where their Attunement is counted.
+        _playerAttunePanel = patp;
         var path = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore,
             SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
         patp.AddChild(path);
@@ -2119,9 +2125,20 @@ public partial class DuelScene : Control
         GD.Print("[DUEL] TASK-UI3b: Altar field built");
     }
 
+    // FABLE-004: the two lane rows are a squared grid.
+    //
+    // The slots used to sit on a shallow "altar arc": each lane nudged a few px off the row
+    // baseline and tilted up to 4°. On an empty board that reads as five crooked rectangles
+    // rather than a curve, and beside the square coach and refusal panels the mismatch is
+    // the first thing the eye lands on. Both multipliers are 0, so every slot sits on its
+    // row baseline, axis-aligned. The per-lane amplitudes in PopulateLanes are kept intact —
+    // set these back to 1f to restore the original arc exactly.
+    private const float LaneArcBow = 0f;
+    private const float LaneArcTilt = 0f;
+
     /// <summary>
-    /// TASK-UI3b: Create 5 lane slot instances for each side, positioned on facing arcs
-    /// inside the altar ellipse. Outer slots get vertical offset + rotation for arc curvature.
+    /// TASK-UI3b: Create 5 lane slot instances for each side, on two rows inside the altar
+    /// ellipse. FABLE-004: the per-lane bow and tilt are scaled by LaneArcBow/LaneArcTilt.
     /// </summary>
     private void PopulateLanes()
     {
@@ -2154,8 +2171,8 @@ public partial class DuelScene : Control
             float xCenter = centerX + (i - 2) * pitch;
             float x = xCenter - slotW / 2f;
 
-            // ── Enemy slot (top arc, slight bowing) ──
-            float enemyYOffset = i switch { 0 or 4 => 10f, 1 or 3 => 5f, _ => 0f } * scale;
+            // ── Enemy slot (top row) ──
+            float enemyYOffset = (i switch { 0 or 4 => 10f, 1 or 3 => 5f, _ => 0f }) * LaneArcBow * scale;
             float enemyY = enemyBaseY + enemyYOffset;
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
@@ -2172,12 +2189,12 @@ public partial class DuelScene : Control
             enemySlot.Size = new Vector2(slotW, slotH);
             enemySlot.Position = new Vector2(x, enemyY);
             enemySlot.PivotOffset = new Vector2(slotW / 2f, slotH / 2f);
-            enemySlot.Rotation = i switch { 0 => Mathf.DegToRad(4f), 1 => Mathf.DegToRad(2f), 3 => Mathf.DegToRad(-2f), 4 => Mathf.DegToRad(-4f), _ => 0f };
+            enemySlot.Rotation = Mathf.DegToRad((i switch { 0 => 4f, 1 => 2f, 3 => -2f, 4 => -4f, _ => 0f }) * LaneArcTilt);
             _enemySlots.Add(enemySlot);
 
-            // ── Player slot (bottom arc, bowing upward) ──
+            // ── Player slot (bottom row) ──
             // CARD-POLISH-1: amplitude reduced to 8 so bigger slots fit without overlap
-            float playerYOffset = i switch { 0 or 4 => 13f, 1 or 3 => 7f, _ => 0f } * scale;
+            float playerYOffset = (i switch { 0 or 4 => 13f, 1 or 3 => 7f, _ => 0f }) * LaneArcBow * scale;
             float playerY = playerBaseY - playerYOffset;
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
@@ -2193,7 +2210,7 @@ public partial class DuelScene : Control
             playerSlot.Size = new Vector2(slotW, slotH);
             playerSlot.Position = new Vector2(x, playerY);
             playerSlot.PivotOffset = new Vector2(slotW / 2f, slotH / 2f);
-            playerSlot.Rotation = i switch { 0 => Mathf.DegToRad(-4f), 1 => Mathf.DegToRad(-2f), 3 => Mathf.DegToRad(2f), 4 => Mathf.DegToRad(4f), _ => 0f };
+            playerSlot.Rotation = Mathf.DegToRad((i switch { 0 => -4f, 1 => -2f, 3 => 2f, 4 => 4f, _ => 0f }) * LaneArcTilt);
             _playerSlots.Add(playerSlot);
         }
 

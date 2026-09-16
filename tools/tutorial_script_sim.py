@@ -173,6 +173,31 @@ def parse_highlight(hl, prefix):
     return None
 
 
+KNOWN_TOKENS = {"card", "cost", "attune", "attune_max", "opponent"}
+TOKEN_RE = re.compile(r"\{([a-z_]+)\}")
+
+
+def render_tokens(text, ctx, beat_id, sim, where):
+    """
+    FABLE-004: coach copy carries {tokens} filled from the live duel. The sim knows the
+    same numbers, so it renders the sentence the player will actually read — and fails on
+    a token the runner cannot fill, or on {card}/{cost} with no hand card to resolve from.
+    """
+    if not text:
+        return text or ""
+    for m in TOKEN_RE.finditer(text):
+        tok = m.group(1)
+        if tok not in KNOWN_TOKENS:
+            sim.fail(f"beat {beat_id}: {where} uses unknown token {{{tok}}} — the runner will leave it on screen")
+        elif tok in ("card", "cost") and ctx.get("card") is None:
+            sim.fail(f"beat {beat_id}: {where} uses {{{tok}}} but the beat highlights no hand_card_N to resolve it from")
+    out = text
+    for tok in KNOWN_TOKENS:
+        v = ctx.get(tok)
+        out = out.replace("{" + tok + "}", "?" if v is None else str(v))
+    return out
+
+
 def check_quoted_vigor(text, before, after, beat_id, sim):
     """Find 'A to B' / 'A → B' / 'A -> B' pairs and compare with the sim."""
     if not text:
@@ -212,6 +237,21 @@ def run(script_path):
                 restrict = beat.get("restrict_actions_to") or []
                 if not beat.get("prompt"):
                     sim.fail(f"beat {bid}: no 'prompt' — the player would get no instruction before acting")
+
+                # FABLE-004: render the prompt the way the runner will, from the state the
+                # player is actually looking at, and log the finished sentence.
+                hand_i0 = parse_highlight(hl, "hand_card_")
+                hc = cards.get(pl.hand[hand_i0]) if (hand_i0 is not None and hand_i0 < len(pl.hand)) else None
+                ctx = {
+                    "card": hc.get("name") if hc else None,
+                    "cost": hc.get("cost", 0) if hc else None,
+                    "attune": pl.attune,
+                    "attune_max": pl.attune_max,
+                    "opponent": script.get("title") or "the opponent",
+                }
+                sim.log.append(f'  [{bid}] prompt: "{render_tokens(beat.get("prompt"), ctx, bid, sim, "prompt")}"')
+                before_vigor = p1.vigor
+
                 if trig == "SUMMON_CREATURE":
                     hand_i = parse_highlight(hl, "hand_card_")
                     lane = parse_highlight(hl, "lane_")
@@ -232,9 +272,7 @@ def run(script_path):
                     allowed = {f"ATTACK_LANE_{src}", "ATTACK_ANY", "ANY"}
                     if restrict and not (set(restrict) & allowed):
                         sim.fail(f"beat {bid}: highlights attacker lane {src} but restrict_actions_to {restrict} forbids it")
-                    before = p1.vigor
                     sim.attack(0, src, tgt, f"beat {bid}")
-                    check_quoted_vigor(beat.get("popup", ""), before, p1.vigor, bid, sim)
                 elif trig in ("END_TURN", "NO_ATTACK_END_TURN"):
                     if restrict and "END_TURN" not in restrict and "ANY" not in restrict:
                         sim.fail(f"beat {bid}: END_TURN beat but restrict_actions_to {restrict} disables End Turn")
@@ -242,6 +280,14 @@ def run(script_path):
                     ended = True
                 else:
                     sim.fail(f"beat {bid}: trigger {trig} not modelled")
+
+                # The note lands after the action, so its numbers come from the state the
+                # action left behind — that is what the quoted-Vigor check compares against.
+                if beat.get("popup"):
+                    ctx_after = dict(ctx, attune=pl.attune, attune_max=pl.attune_max)
+                    shown = render_tokens(beat["popup"], ctx_after, bid, sim, "popup")
+                    sim.log.append(f'  [{bid}] note:   "{shown}"')
+                    check_quoted_vigor(shown, before_vigor, p1.vigor, bid, sim)
             if not ended:
                 sim.fail(f"script turn {ti+1}: player turn has no END_TURN beat — the runner would leave the player stranded")
         else:

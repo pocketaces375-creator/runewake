@@ -334,6 +334,18 @@ public partial class HandCard : PanelContainer
         // Check for release first — hides slab or cancels timer
         if (IsReleaseEvent(@event))
         {
+            // FABLE-004: one finger lift must be one release. Godot delivers the touch
+            // release AND an emulated mouse release for the same lift, and Pressed is
+            // emitted from here — so every tap fired OnHandCardPressed twice and the
+            // second fire deselected the card the first one had just selected. The press
+            // above was already guarded; the release was not.
+            if (!_tap.AcceptRelease(@event))
+            {
+                GD.Print($"[INPUT] hand release card={CardName} ignored (duplicate touch/mouse pair)");
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+
             if (_isLongPressing)
             {
                 // Hold-duration release — hide slab, no Pressed

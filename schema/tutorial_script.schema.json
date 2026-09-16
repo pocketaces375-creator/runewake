@@ -169,13 +169,13 @@
         "popup": {
           "type": "string",
           "maxLength": 200,
-          "description": "The one-line popup text shown after the player acts. Explains the consequence and the rule. Max ONE popup per beat."
+          "description": "The one-line popup text shown after the player acts. Explains the consequence and the rule. Max ONE popup per beat. Supports the same {tokens} as 'prompt'."
         },
         "highlight": {
           "type": "array",
           "items": {
             "type": "string",
-            "description": "UI element key to highlight (e.g. 'hand_card_0', 'artifact_sword', 'end_turn_button', 'lane_2')."
+            "description": "UI element key to highlight (e.g. 'hand_card_0', 'lane_2', 'enemy_lane_2', 'end_turn_button', 'attunement_meter', 'artifact_sword'). 'attunement_meter' also switches on the coach's live ATTUNEMENT readout line."
           },
           "maxItems": 3,
           "description": "UI elements to highlight before the player acts (guides attention)."
@@ -214,7 +214,7 @@
         "prompt": {
           "type": "string",
           "maxLength": 300,
-          "description": "FABLE-002: the instruction shown BEFORE the player acts (non-modal, beside the board, with highlights). Tells the player exactly what to tap."
+          "description": "FABLE-002: the instruction shown BEFORE the player acts (non-modal, beside the board, with highlights). Tells the player exactly what to tap. May contain {card} {cost} {attune} {attune_max} {opponent} tokens, filled from the live duel when the prompt is shown. {card}/{cost} resolve from the beat's hand_card_N highlight."
         },
         "note_title": {
           "type": "string",

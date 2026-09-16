@@ -21,6 +21,7 @@ public sealed class TapGuard
     private const ulong WindowMs = 250;
 
     private ulong _lastPressMs;
+    private ulong _lastReleaseMs;
 
     /// <summary>True when this event is a press that should be acted on.</summary>
     public bool Accept(InputEvent @event)
@@ -37,6 +38,37 @@ public sealed class TapGuard
             return false;
 
         _lastPressMs = now;
+        return true;
+    }
+
+    /// <summary>
+    /// FABLE-004: the same collapse for the finger coming back up.
+    ///
+    /// A lift is delivered twice as well — InputEventScreenTouch(pressed:false) and the
+    /// emulated InputEventMouseButton(pressed:false). A handler that only guards the press
+    /// but acts on the release still fires twice per tap. That is what made hand cards
+    /// impossible to select: the first release selected the card, the second one hit the
+    /// tap-again-to-deselect branch and undid it, leaving a "Deselected." toast and a board
+    /// that looked like it wanted to work.
+    ///
+    /// The press and release windows are tracked separately, so the guard does not care
+    /// whether the driver interleaves the pair as press/press/release/release or
+    /// press/release/press/release.
+    /// </summary>
+    public bool AcceptRelease(InputEvent @event)
+    {
+        bool release =
+            (@event is InputEventMouseButton mouse && !mouse.Pressed && mouse.ButtonIndex == MouseButton.Left)
+            || (@event is InputEventScreenTouch touch && !touch.Pressed);
+
+        if (!release)
+            return false;
+
+        ulong now = Time.GetTicksMsec();
+        if (_lastReleaseMs != 0 && now - _lastReleaseMs < WindowMs)
+            return false;
+
+        _lastReleaseMs = now;
         return true;
     }
 }

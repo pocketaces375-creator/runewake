@@ -127,6 +127,7 @@ public partial class TutorialRunner : Node
         // sees (prompt card + highlight frames, then the note), auto-advanced.
         _coach = new TutorialCoach();
         _coach.AnchorProvider = PromptAnchor;
+        _coach.MeterProvider = AttunementMeterLine;
         _coach.SkipRequested += SkipTutorial;
         _duelScene.AddChild(_coach);
 
@@ -442,11 +443,16 @@ public partial class TutorialRunner : Node
             ApplyActionRestrictions(beat.RestrictActionsTo);
         }
 
+        // FABLE-004: the live Attunement line rides along on beats that ring the meter.
+        _showAttuneMeter = beat.Highlight is { Count: > 0 }
+            && beat.Highlight.Any(h => h == AttuneMeterId || h == "attune_meter");
+
         // FABLE-002: the instruction, BEFORE the action, with live highlights
         if (_coach != null && !string.IsNullOrEmpty(beat.Prompt))
         {
             var highlightIds = beat.Highlight ?? new List<string>();
-            _coach.ShowPrompt(beat.PromptTitle ?? "", beat.Prompt!, () => ResolveHighlights(highlightIds), showSkip: true);
+            _coach.ShowPrompt(beat.PromptTitle ?? "", FillTokens(beat.Prompt, beat),
+                () => ResolveHighlights(highlightIds), showSkip: true);
         }
 
         // In headless mode, auto-play after a short delay
@@ -545,7 +551,7 @@ public partial class TutorialRunner : Node
             if (_coach != null)
             {
                 // FABLE-002: consequence note, modal, one Continue
-                _coach.ShowNote(beat.NoteTitle ?? "", beat.Popup!, OnPopupDismissed);
+                _coach.ShowNote(beat.NoteTitle ?? "", FillTokens(beat.Popup, beat), OnPopupDismissed);
 
                 // Headless: capture the note, then auto-Continue after 2s
                 if (_isHeadless && _headlessTimer != null)
@@ -639,6 +645,99 @@ public partial class TutorialRunner : Node
         _popup.Show(content);
 
         GD.Print($"[TutorialRunner] Popup shown: \"{text}\" ({resolvedHighlights.Count} highlights resolved)");
+    }
+
+    // ── FABLE-004: Attunement, said out loud ──
+
+    /// <summary>The player's ATTUNE row in the HUD, as a highlight id.</summary>
+    private const string AttuneMeterId = "attunement_meter";
+
+    /// <summary>Set in EnterBeat: does this beat ring the meter and want the live line?</summary>
+    private bool _showAttuneMeter;
+
+    /// <summary>
+    /// The live line under the prompt. Null hides it, so it only appears on beats that
+    /// ring the meter — the ones where the player is about to spend Attunement.
+    /// </summary>
+    private int _meterAttune = -1;
+    private int _meterAttuneMax = -1;
+    private string? _meterCache;
+
+    private string? AttunementMeterLine()
+    {
+        if (!_showAttuneMeter || _gsm == null || !_gsm.IsInitialized || _gsm.State == null) return null;
+        var hud = _gsm.GetPlayerHud(0);
+        // The coach asks every frame; only build the string when the numbers move.
+        if (_meterCache == null || hud.Attunement != _meterAttune || hud.AttunementMax != _meterAttuneMax)
+        {
+            _meterAttune = hud.Attunement;
+            _meterAttuneMax = hud.AttunementMax;
+            _meterCache = $"ATTUNEMENT  {_meterAttune} of {_meterAttuneMax} available";
+        }
+        return _meterCache;
+    }
+
+    /// <summary>
+    /// Fill {tokens} in coach copy from the live duel.
+    ///
+    /// Tutorial copy that quotes a number has to be true at the instant it is read, not at
+    /// the instant it was written. "costs {cost}, you have {attune}" stays honest when a
+    /// card changes Attunement instead of just spending it, and it cannot drift out of sync
+    /// with the script the way a hand-typed "you have 1" does.
+    ///
+    ///   {card} {cost}        the card the beat's hand_card_N highlight points at
+    ///   {attune} {attune_max}  the player's Attunement right now
+    ///   {opponent}           the opponent's name
+    ///
+    /// An unknown token is left in place and logged rather than silently blanked, so a typo
+    /// shows up as a visible "{atune}" in a capture instead of a hole in a sentence.
+    /// </summary>
+    private string FillTokens(string? text, TutorialBeat? beat)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains('{')) return text ?? "";
+
+        string cardName = "", cardCost = "";
+        if (beat?.Highlight is { Count: > 0 })
+        {
+            foreach (var id in beat.Highlight)
+            {
+                if (!id.StartsWith("hand_card_") || !int.TryParse(id.AsSpan("hand_card_".Length), out int hi))
+                    continue;
+                var hand = _duelScene.TutorialHandCards;
+                if (hi >= 0 && hi < hand.Count && hand[hi] != null && GodotObject.IsInstanceValid(hand[hi]))
+                {
+                    cardName = hand[hi].CardName;
+                    cardCost = hand[hi].CardCost.ToString();
+                }
+                else if (text.Contains("{card}") || text.Contains("{cost}"))
+                {
+                    // Better a loud log than a sentence with a hole where the card name was.
+                    GD.PrintErr($"[TutorialRunner] beat '{beat?.Id}': copy wants {{card}}/{{cost}} but " +
+                        $"'{id}' resolves to nothing (hand has {hand.Count} cards)");
+                }
+                break;
+            }
+        }
+
+        string attune = "", attuneMax = "";
+        if (_gsm != null && _gsm.IsInitialized && _gsm.State != null)
+        {
+            var hud = _gsm.GetPlayerHud(0);
+            attune = hud.Attunement.ToString();
+            attuneMax = hud.AttunementMax.ToString();
+        }
+
+        var sb = text!
+            .Replace("{card}", cardName)
+            .Replace("{cost}", cardCost)
+            .Replace("{attune_max}", attuneMax)
+            .Replace("{attune}", attune)
+            .Replace("{opponent}", OpponentName);
+
+        if (sb.Contains('{'))
+            GD.PrintErr($"[TutorialRunner] beat '{beat?.Id}': unresolved token in copy: \"{sb}\"");
+
+        return sb;
     }
 
     /// <summary>Resolve a list of highlight IDs (with the all_creatures_highlight expansion).</summary>
@@ -775,6 +874,16 @@ public partial class TutorialRunner : Node
             var slots = _duelScene.TutorialEnemySlots;
             if (enemyLaneIdx >= 0 && enemyLaneIdx < slots.Count && slots[enemyLaneIdx] != null && GodotObject.IsInstanceValid(slots[enemyLaneIdx]))
                 return slots[enemyLaneIdx];
+            return null;
+        }
+
+        // FABLE-004: the player's ATTUNE row in the HUD
+        if (id == AttuneMeterId || id == "attune_meter")
+        {
+            var meter = _duelScene.TutorialAttunePanel;
+            if (meter != null && GodotObject.IsInstanceValid(meter))
+                return meter;
+            GD.PrintErr($"[TutorialRunner] Highlight '{id}': attunement meter not available");
             return null;
         }
 
@@ -1261,7 +1370,14 @@ public partial class TutorialRunner : Node
         _duelInitialized = false;
 
         ClearActionRestrictions();
-        _coach?.HideAll();
+        _showAttuneMeter = false;
+        if (_coach != null)
+        {
+            _coach.HideAll();
+            // FABLE-004: the coach outlives this runner (it is a DuelScene child). Drop the
+            // callbacks that point back here so nothing calls into a finished tutorial.
+            _coach.MeterProvider = null;
+        }
 
         // Capture the final state as the gate-named capture (tutorial_warrior_intro.png)
         if (_isHeadless)

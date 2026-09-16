@@ -21,39 +21,57 @@
         {
           "id": "t1_summon",
           "trigger_event": "SUMMON_CREATURE",
-          "highlight": ["hand_card_0", "lane_3"],
-          "restrict_actions_to": ["SUMMON_LANE_3"],
+          "highlight": [
+            "hand_card_0",
+            "lane_3",
+            "attunement_meter"
+          ],
+          "restrict_actions_to": [
+            "SUMMON_LANE_3"
+          ],
           "prompt_title": "SUMMON A CREATURE",
-          "prompt": "Your hand is at the bottom. Cards cost Attunement — the number in the card's top corner — and you have 1. Tap the STUDENT OF EMBERS, then tap the glowing lane on your side of the field.",
+          "prompt": "Your hand is along the bottom. {card} costs {cost} Attunement — the number on the card — and you have {attune} available, counted in the ringed ATTUNE row. Tap the card, then tap the glowing lane on your side of the field.",
           "note_title": "SWIFT",
           "popup": "Summoned. Most creatures must rest the turn they arrive — but the Student has SWIFT, so it can attack right away."
         },
         {
           "id": "t1_attack",
           "trigger_event": "ATTACK_WITH_CREATURE",
-          "highlight": ["lane_3", "enemy_lane_3"],
-          "restrict_actions_to": ["ATTACK_LANE_3"],
+          "highlight": [
+            "lane_3",
+            "enemy_lane_3"
+          ],
+          "restrict_actions_to": [
+            "ATTACK_LANE_3"
+          ],
           "prompt_title": "ATTACK",
-          "prompt": "Creatures attack straight across their own lane. Tap your Student, then tap the enemy lane directly opposite. That lane is empty, so the blow lands on the Wayfarer.",
+          "prompt": "Creatures attack straight across their own lane. Tap your Student, then tap the enemy lane directly opposite. That lane is empty, so the blow lands on {opponent} instead.",
           "note_title": "VIGOR",
-          "popup": "2 damage. The Wayfarer's Vigor — the number beside their name — dropped from 25 to 23. Bring it to 0 and the duel is yours."
+          "popup": "2 damage. {opponent}'s Vigor — the number beside their name — dropped from 25 to 23. Bring it to 0 and the duel is yours."
         },
         {
           "id": "t1_end",
           "trigger_event": "END_TURN",
-          "highlight": ["end_turn_button"],
-          "restrict_actions_to": ["END_TURN"],
+          "highlight": [
+            "end_turn_button",
+            "attunement_meter"
+          ],
+          "restrict_actions_to": [
+            "END_TURN"
+          ],
           "prompt_title": "END TURN",
-          "prompt": "Your Student has attacked and you have no Attunement left. Tap END TURN.",
+          "prompt": "Your Student has attacked and your Attunement is spent — {attune} of {attune_max} left. Tap END TURN.",
           "note_title": "THE ENEMY MOVES",
-          "popup": "The Wayfarer takes a turn now. Watch what they do."
+          "popup": "{opponent} takes a turn now. Watch what they do."
         }
       ]
     },
     {
       "turn_number": 1,
       "type": "opponent",
-      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_hand_override": [
+        "tut_opponent_token"
+      ],
       "opponent_actions": [
         {
           "action": "SUMMON",
@@ -80,28 +98,43 @@
         {
           "id": "t2_summon",
           "trigger_event": "SUMMON_CREATURE",
-          "highlight": ["hand_card_0", "lane_4"],
-          "restrict_actions_to": ["SUMMON_LANE_4"],
+          "highlight": [
+            "hand_card_0",
+            "lane_4",
+            "attunement_meter"
+          ],
+          "restrict_actions_to": [
+            "SUMMON_LANE_4"
+          ],
           "prompt_title": "ATTUNEMENT GROWS",
-          "prompt": "Each turn your Attunement refills and grows by one — you have 2 now. Tap the VERDANT INITIATE (cost 2), then tap the glowing lane facing the Thorn Sprout.",
+          "prompt": "Attunement refills every turn and grows by one — you now have {attune} of {attune_max}. {card} costs {cost}. Tap it, then tap the glowing lane facing the Thorn Sprout.",
           "note_title": "GUARD",
           "popup": "The Initiate has GUARD: enemy attacks aimed at your empty lanes are pulled onto it instead. It has no SWIFT, so it rests this turn."
         },
         {
           "id": "t2_attack",
           "trigger_event": "ATTACK_WITH_CREATURE",
-          "highlight": ["lane_3", "enemy_lane_3"],
-          "restrict_actions_to": ["ATTACK_LANE_3"],
+          "highlight": [
+            "lane_3",
+            "enemy_lane_3"
+          ],
+          "restrict_actions_to": [
+            "ATTACK_LANE_3"
+          ],
           "prompt_title": "ATTACK AGAIN",
-          "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits the Wayfarer again.",
+          "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits {opponent} again.",
           "note_title": "ONCE PER TURN",
-          "popup": "Vigor 23 → 21. Every creature attacks once per turn, and only into the lane straight ahead of it."
+          "popup": "{opponent}'s Vigor 23 → 21. Every creature attacks once per turn, and only into the lane straight ahead of it."
         },
         {
           "id": "t2_end",
           "trigger_event": "END_TURN",
-          "highlight": ["end_turn_button"],
-          "restrict_actions_to": ["END_TURN"],
+          "highlight": [
+            "end_turn_button"
+          ],
+          "restrict_actions_to": [
+            "END_TURN"
+          ],
           "prompt_title": "END TURN",
           "prompt": "Nothing left to do. Tap END TURN and watch the Sprout."
         }
@@ -110,7 +143,9 @@
     {
       "turn_number": 2,
       "type": "opponent",
-      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_hand_override": [
+        "tut_opponent_token"
+      ],
       "opponent_actions": [
         {
           "action": "ATTACK",
@@ -143,26 +178,42 @@
         {
           "id": "t3_summon",
           "trigger_event": "SUMMON_CREATURE",
-          "highlight": ["hand_card_0", "lane_2"],
-          "restrict_actions_to": ["SUMMON_LANE_2"],
+          "highlight": [
+            "hand_card_0",
+            "lane_2",
+            "attunement_meter"
+          ],
+          "restrict_actions_to": [
+            "SUMMON_LANE_2"
+          ],
           "prompt_title": "THREE ATTUNEMENT",
-          "prompt": "You have 3 Attunement — enough for the IRON APPRENTICE. Tap it, then tap the glowing lane."
+          "prompt": "Attunement is {attune} of {attune_max} now — enough for {card} at {cost}. Tap the card, then tap the glowing lane. Spend it every turn; it does not carry over."
         },
         {
           "id": "t3_attack_face",
           "trigger_event": "ATTACK_WITH_CREATURE",
-          "highlight": ["lane_4", "enemy_lane_4"],
-          "restrict_actions_to": ["ATTACK_LANE_4"],
+          "highlight": [
+            "lane_4",
+            "enemy_lane_4"
+          ],
+          "restrict_actions_to": [
+            "ATTACK_LANE_4"
+          ],
           "prompt_title": "PRESS THE ADVANTAGE",
           "prompt": "The Sprout that hit your Initiate is gone, so the lane across from it is open. Tap the Initiate, then tap that empty enemy lane.",
           "note_title": "OPEN LANES",
-          "popup": "Another 2 damage — Vigor 21 → 19. An open lane is an open road to the enemy's Vigor. Keep them open."
+          "popup": "Another 2 damage — {opponent}'s Vigor 21 → 19. An open lane is an open road to the enemy's Vigor. Keep them open."
         },
         {
           "id": "t3_attack_trade",
           "trigger_event": "ATTACK_WITH_CREATURE",
-          "highlight": ["lane_3", "enemy_lane_3"],
-          "restrict_actions_to": ["ATTACK_LANE_3"],
+          "highlight": [
+            "lane_3",
+            "enemy_lane_3"
+          ],
+          "restrict_actions_to": [
+            "ATTACK_LANE_3"
+          ],
           "prompt_title": "FIGHT A CREATURE",
           "prompt": "A Sprout now blocks your Student's lane. Tap the Student, then tap the Sprout. When creatures fight, BOTH deal their Attack to the other at the same time.",
           "note_title": "EVERY FIGHT CUTS BOTH WAYS",
@@ -171,19 +222,25 @@
         {
           "id": "t3_end",
           "trigger_event": "END_TURN",
-          "highlight": ["end_turn_button"],
-          "restrict_actions_to": ["END_TURN"],
+          "highlight": [
+            "end_turn_button"
+          ],
+          "restrict_actions_to": [
+            "END_TURN"
+          ],
           "prompt_title": "END TURN",
           "prompt": "That is everything you need. Tap END TURN — from here the duel is yours to win.",
           "note_title": "YOU KNOW THE BASICS",
-          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor; blocked lanes trade blows. Long-press any card to read it. Now finish the Wayfarer."
+          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor; blocked lanes trade blows. Long-press any card to read it. Now finish {opponent}."
         }
       ]
     },
     {
       "turn_number": 3,
       "type": "opponent",
-      "opponent_hand_override": ["tut_opponent_token"],
+      "opponent_hand_override": [
+        "tut_opponent_token"
+      ],
       "opponent_actions": [
         {
           "action": "END_TURN",
