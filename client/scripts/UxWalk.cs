@@ -282,7 +282,10 @@ public partial class UxWalk : Node
             foreach (var f in _fails) GD.PrintErr(f);
         Snap();
         var qt = new Godot.Timer { OneShot = true, WaitTime = 0.1f };
-        qt.Timeout += () => GetTree().Quit(_fail > 0 ? 1 : 0);
+        qt.Timeout += () => {
+            if (_fail > 0) GetTree().Quit(1);
+            else { GetTree().Quit(0); GD.Print("[UXWALK] Process exit 0"); }
+        };
         AddChild(qt); qt.Start();
     }
 
