@@ -221,8 +221,15 @@ public partial class SettingsScene : Control
         replayTutorialBtn.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            CampaignContext.TutorialScriptId = "battlemage_intro";
-            var profile = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null;
+            // FABLE-002: replay the guided first duel on the real Wayfarer encounter
+            CampaignContext.TutorialScriptId = "first_duel";
+            CampaignContext.TutorialHeadless = false;
+            if (CampaignContext.EncounterIndex.Count == 0)
+                CampaignContext.LoadEncounters();
+            if (CampaignContext.EncounterIndex.TryGetValue("r1_duel_wayfarer", out var wayfarer))
+                CampaignContext.CurrentEncounter = wayfarer;
+            var profile = CampaignContext.ActiveProfile
+                ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
             if (profile != null)
                 profile.TutorialDone = false;
             GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");

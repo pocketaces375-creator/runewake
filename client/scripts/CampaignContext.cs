@@ -230,6 +230,9 @@ public static class CampaignContext
     /// <summary>Tutorial script mode: set by DebugCapture for --tutorial CLI arg. Non-null = use TutorialRunner.</summary>
     public static string? TutorialScriptId { get; set; }
 
+    /// <summary>FABLE-002: true only for the headless --tutorial capture run (auto-play, auto-dismiss, quit at end). A human never sees headless.</summary>
+    public static bool TutorialHeadless { get; set; }
+
     /// <summary>Artifact def IDs for the player in tutorial script mode (set by TutorialRunner).</summary>
     public static string[] TutorialPlayerArtifactIds { get; set; } = System.Array.Empty<string>();
 
