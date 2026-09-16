@@ -164,6 +164,55 @@ def main():
     if all_ok:
         pass_rule("COLUMN_STACK", f"{len(sorted_nodes)} nodes, no overlap")
 
+    # ── RULE 8: CARD_FITS_SLOT ──
+    card_plates = meta.get("card_plates", [])
+    all_ok = True
+    if not card_plates:
+        pass_rule("CARD_FITS_SLOT", "no plate data to check (skip)")
+    else:
+        for pc in card_plates:
+            px, py = pc.get("x", 0), pc.get("y", 0)
+            pw, ph = pc.get("w", 0), pc.get("h", 0)
+            slot_found = False
+            for (sx, sy, sx2, sy2) in lane_slots:
+                if sx <= px <= sx2 and sy <= py <= sy2:
+                    slot_found = True
+                    if pw > (sx2 - sx) + 2 or ph > (sy2 - sy) + 2:
+                        fail("CARD_FITS_SLOT", f"plate ({px:.0f},{py:.0f} {pw:.0f}x{ph:.0f}) > slot")
+                        all_ok = False
+                    break
+            if not slot_found:
+                fail("CARD_FITS_SLOT", f"plate ({px:.0f},{py:.0f}) not in any slot")
+                all_ok = False
+    if all_ok:
+        pass_rule("CARD_FITS_SLOT", f"{len(card_plates)} plates within slots")
+
+    # ── RULE 9: ROWS_DISJOINT ──
+    all_ok = True
+    enemy_lanes = [(x, y, x2, y2) for (x, y, x2, y2) in lane_slots if y + (y2-y)/2 < 300 * (vh/1080)]
+    player_lanes = [(x, y, x2, y2) for (x, y, x2, y2) in lane_slots if y + (y2-y)/2 >= 300 * (vh/1080)]
+    if enemy_lanes and player_lanes:
+        enemy_bottom = max(y2 for (_, _, _, y2) in enemy_lanes)
+        player_top = min(y for (_, y, _, _) in player_lanes)
+        if enemy_bottom >= player_top:
+            fail("ROWS_DISJOINT", f"enemy bottom ({enemy_bottom:.0f}) >= player top ({player_top:.0f})")
+            all_ok = False
+    if all_ok:
+        gap = player_top - enemy_bottom if enemy_lanes and player_lanes else 0
+        pass_rule("ROWS_DISJOINT", f"gap {gap:.0f}px between rows" if enemy_lanes and player_lanes else "no data")
+
+    # ── RULE 10: HAND_OFF_FIELD ──
+    all_ok = True
+    if hand_cards and player_lanes:
+        player_bottom = max(y2 for (_, _, _, y2) in player_lanes)
+        for hc in hand_cards:
+            top = hc.get("y", 0)
+            if top < player_bottom:
+                fail("HAND_OFF_FIELD", f"hand top ({top:.0f}) < player bottom ({player_bottom:.0f})")
+                all_ok = False
+    if all_ok:
+        pass_rule("HAND_OFF_FIELD", f"{len(hand_cards)} hand cards clear" if hand_cards else "no data")
+
     # ── SUMMARY ──
     total = 10
     passed = total - len(FAILURES)
