@@ -3,7 +3,7 @@
 # Usage: tools/export_and_verify.sh [--debug|--release] [--skip-deliver]
 set -euo pipefail
 
-MODE="${1:-debug}"
+MODE="${1:-release}"
 SKIP_DELIVER=false
 SKIP_UX_GATE=false
 if [ "$MODE" = "--skip-deliver" ]; then
@@ -117,15 +117,9 @@ fi
 # ─── Step 4: Godot export ─────────────────────────────────────────────────
 echo ""
 echo "── Godot export ──"
-if [ "$MODE" = "release" ]; then
-    PRESET="Android Release"
-    OUTFILE="Runewake-release.apk"
-    EXPORT_FLAG="--export-release"
-else
-    PRESET="Android"
-    OUTFILE="Runewake.apk"
-    EXPORT_FLAG="--export-debug"
-fi
+PRESET="Android Release"
+OUTFILE="Runewake.apk"
+EXPORT_FLAG="--export-release"
 
 cd "$CLIENT_DIR"
 
