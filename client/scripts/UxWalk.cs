@@ -46,7 +46,57 @@ public partial class UxWalk : Node
         var hand = _gsm.GetHand(0);
         int att = _gsm.GetPlayerHud(0).Attunement;
         var card = hand.FirstOrDefault(h => h.Cost <= att);
-        if (string.IsNullOrEmpty(card.CardDefId)) { Fail("no affordable card"); Snap(); SnapSkipped(3); SnapSkipped(4); SnapSkipped(5); SnapSkipped(6); Next(Step07); return; }
+        if (string.IsNullOrEmpty(card.CardDefId))
+        {
+            GD.Print($"{T} B1: no affordable card at att={att} — checking banner");
+            // Check banner is visible
+            var banner = _d.FindChild("NoPlayableBg", true, false) as ColorRect;
+            Check("banner visible when no cards", banner != null && banner.Visible);
+            Snap(); SnapSkipped(3); SnapSkipped(4); SnapSkipped(5); SnapSkipped(6);
+            // End turn and retry on turn 2 with attunement 2
+            _d.UxEndTurn();
+            var t = new Godot.Timer { OneShot = true, WaitTime = 6f };
+            t.Timeout += () =>
+            {
+                GD.Print($"{T} B1: turn 2 retry");
+                var hand2 = _gsm.GetHand(0);
+                int att2 = _gsm.GetPlayerHud(0).Attunement;
+                var card2 = hand2.FirstOrDefault(h => h.Cost <= att2);
+                if (string.IsNullOrEmpty(card2.CardDefId))
+                    Fail($"still no affordable card on turn 2 att={att2}");
+                else
+                {
+                    Check("affordable on turn 2", true);
+                    // Check banner cleared
+                    var banner2 = _d.FindChild("NoPlayableBg", true, false) as ColorRect;
+                    Check("banner cleared when affordable", banner2 == null || !banner2.Visible);
+                    // Select the card
+                    var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == card2.CardDefId);
+                    if (hc == null) { Fail("hand card node not found t2"); Snap(); Next(Step10); return; }
+                    _d.UxSelectCard(hc);
+                    _selId = card2.CardDefId;
+                    Snap();
+                    // Skip to placing on turn 2
+                    var t2 = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
+                    t2.Timeout += () =>
+                    {
+                        _d.UxTapLane(4, true);
+                        var t3 = new Godot.Timer { OneShot = true, WaitTime = 0.5f };
+                        t3.Timeout += () =>
+                        {
+                            var l4 = _gsm.GetLanes(0)[4];
+                            Check($"lane4=={_selId}", l4.CardDefId == _selId);
+                            Snap();
+                            Next(Step09);
+                        };
+                        AddChild(t3); t3.Start();
+                    };
+                    AddChild(t2); t2.Start();
+                }
+            };
+            AddChild(t); t.Start();
+            return;
+        }
         var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == card.CardDefId);
         if (hc == null) { Fail("hand card node not found"); Snap(); Next(Step07); return; }
         _d.UxSelectCard(hc);
