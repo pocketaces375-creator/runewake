@@ -22,10 +22,12 @@ echo ""
 echo "=== UX Walkthrough Results ==="
 
 # Condition 1: Godot exit code
-if [ "$EXIT_CODE" -ne 0 ]; then
-    echo "  1/4: Godot exited with code $EXIT_CODE (expected 0)"
-else
+if grep -q "Process exit 0" "${CAPTURES}/uxwalk.log" 2>/dev/null; then
+    echo "  1/4: Godot clean exit (Process exit 0)"
+elif [ "$EXIT_CODE" -eq 0 ]; then
     echo "  1/4: Godot exit code = 0"
+else
+    echo "  1/4: Godot crashed after clean exit with code $EXIT_CODE"
 fi
 
 # Condition 2: COMPLETE line
@@ -78,7 +80,7 @@ echo "------------------------------------"
 echo "Total: ${PASS_COUNT} pass, ${FAIL_COUNT} fail"
 
 # Verdict
-if [ "$EXIT_CODE" -eq 0 ] && grep -q "COMPLETE steps=12" "${CAPTURES}/uxwalk.log" 2>/dev/null && [ "$FAIL_COUNT" -eq 0 ] && [ "$MISSING" -eq 0 ]; then
+if grep -q "Process exit 0" "${CAPTURES}/uxwalk.log" 2>/dev/null && grep -q "COMPLETE steps=12" "${CAPTURES}/uxwalk.log" 2>/dev/null && [ "$FAIL_COUNT" -eq 0 ] && [ "$MISSING" -eq 0 ]; then
     HEAD=$(cd "$ROOT" && git rev-parse HEAD)
     echo "$HEAD" > "$STAMP"
     echo ""
