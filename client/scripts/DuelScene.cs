@@ -2010,36 +2010,40 @@ public partial class DuelScene : Control
         float scale = viewportHeight / reference;
         float vw = GetViewportRect().Size.X;
 
-        // BOARD-MATCH-1: Hand cards distinctly larger than board cards
-        // Board = 292px tall, Hand = 340px tall at design scale
-        _handCardHeight = Mathf.Max(140f, 320f * scale);
-        // DUELRES-1: Board cards ~200px wide at 1080, 7% band ~14px
-        _boardCardHeight = Mathf.Max(70f, 330f * scale);
+        // TASK-ONE-SIZE-1: Board=300, Hand=280 at 1080 (R2: board=330, hand=300)
+        _handCardHeight = Mathf.Max(140f, 280f * scale);
+        _boardCardHeight = Mathf.Max(70f, 300f * scale);
 
         // R2 variant: increase card sizes by ~10% for wider art share
         if (CampaignContext.R2CardScale)
         {
-            _handCardHeight = Mathf.Max(140f, 280f * scale);
-                    _boardCardHeight = Mathf.Max(70f, 280f * scale);
+            _handCardHeight = Mathf.Max(140f, 300f * scale);
+            _boardCardHeight = Mathf.Max(70f, 330f * scale);
         }
 
-        // BOARD-MATCH-1: Hand tray bottom-edge tucked into frame
-        // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
+        // B2: If safe area clips the hand, shrink HandCardH instead of moving hand up
         var safeArea = DisplayServer.GetDisplaySafeArea();
         float vh = GetViewportRect().Size.Y;
         if (CampaignContext.DebugSafeAreaMode)
         {
-            // Simulate Android-style safe-area inset: bottom 48px, top 32px
             float simulatedSafeBottom = vh - 48f;
             safeArea = new Rect2I(0, 32, (int)safeArea.Size.X, (int)(simulatedSafeBottom - 32f));
         }
         float safeAreaBottom = safeArea.Position.Y + safeArea.Size.Y;
-        // Chips are at the bottom edge of hand cards. Hand bottom must be <= safeAreaBottom - 8.
-        // Current: hand bottom = vh + OffsetTop + handCardHeight = 6px from vh bottom = tucked in
-        // Required: gap = (safe area bottom margin) + 8px margin, minimum 6px for normal tuck
         float safeMargin = vh - safeAreaBottom;
-        float bottomGap = Mathf.Max(6f, safeMargin + 8f) + 34f;
-        _handArea.OffsetTop = -(_handCardHeight + 54f * scale + bottomGap); // 732 ref
+        float bottomGap = Mathf.Max(6f, Mathf.Min(safeMargin + 8f, 20f));
+        // B2: Shrink hand if it would be pushed up, rather than moving the hand into lanes
+        float chipBottom = vh + Mathf.Abs(vh - (732f * scale)) + _handCardHeight;
+        if (chipBottom > safeAreaBottom - 8f * scale)
+        {
+            float shrink = chipBottom - (safeAreaBottom - 8f * scale);
+            _handCardHeight = Mathf.Max(100f, _handCardHeight - shrink);
+            GD.Print($"[SAFEAREA] Shrunk hand to {_handCardHeight:F0}px (safe bottom {safeAreaBottom:F0})");
+        }
+        // B1: Hand resting centre-card top at exactly viewport 732 * scale
+        float desiredTop = 732f * scale;
+        _handArea.OffsetTop = -(vh - desiredTop);
+        GD.Print($"[HAND] resting centre top={desiredTop:F0} handCardH={_handCardHeight:F0} OffsetTop={_handArea.OffsetTop:F0}");
 
         // BOARD-MATCH-1: Hand centered, wider margin to allow center alignment
         float marginLeft = 476f * scale;
@@ -2089,19 +2093,18 @@ public partial class DuelScene : Control
         float vh = GetViewportRect().Size.Y;
         // DUELRES-1: Design resolution 2316×1080. Reference = 1080.
         float scale = vh / 1080f;
-        float slotH = 300f * scale;
+        float slotH = _boardCardHeight;
         float slotW = slotH * (104f / 152f);
 
         // R2 variant: increase slot sizes
         if (CampaignContext.R2CardScale)
         {
-            slotH = 300f * scale;
             slotW = slotH * (104f / 152f);
         }
 
-        // TASK-DUEL-LAYOUT-TABLE-1: Lane band 476..1841, pitch 290
+        // TASK-ONE-SIZE-1: Lane band 416..1885, pitch 316, gap 111
         float laneLeft = 416f * scale;
-        float pitch = 290f * scale;
+        float pitch = 316f * scale;
         float centerX = laneLeft + 2f * pitch;
 
         // DUELRES-1: Board slots at design scale, spread rows
@@ -2161,22 +2164,11 @@ public partial class DuelScene : Control
         float firstSlotX = centerX + (0 - 2) * pitch;
         GD.Print($"[LANES] enemy y={enemyBaseY + boardTopOffset}, player y={playerBaseY + boardTopOffset}, pitch={pitch:F0}, x0={firstSlotX:F0}");
 
-        // BOARD-MATCH-1: Hand anchored to viewport bottom, tighter tuck
-        // BOARD-DEVICE-1: Hand stat chips must stay inside safe area with >= 8px margin
+        // BOARD-MATCH-1: Hand anchored to viewport bottom (hand card sizing done in ScaleCardSizes)
         float vhPop = GetViewportRect().Size.Y;
-        float scalePop = vhPop / 1080f;
-        float handCardHPop = Mathf.Max(140f, 320f * scalePop); // Hand larger than board cards
-        var saPop = DisplayServer.GetDisplaySafeArea();
-        if (CampaignContext.DebugSafeAreaMode)
-        {
-            float simSafeBottomPop = vhPop - 48f;
-            saPop = new Rect2I(0, 32, (int)saPop.Size.X, (int)(simSafeBottomPop - 32f));
-        }
-        float saBottomPop = saPop.Position.Y + saPop.Size.Y;
-        float safeMarginPop = vhPop - saBottomPop;
-        float bottomGapPop = Mathf.Max(6f, safeMarginPop + 8f);
-        float handTopPop = vhPop - handCardHPop - bottomGapPop;
-        GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={handCardHPop:F0}, viewport={vhPop:F0}, safe-area-bottom-margin={safeMarginPop:F0}");
+        GD.Print($"[LANES] pitch={pitch:F0} slotH={slotH:F0} slotW={slotW:F0}");
+        float handTopPop = vhPop - _handCardHeight - 6f;
+        GD.Print($"[DUEL] Hand position: hand top={handTopPop:F0}, card height={_handCardHeight:F0}, viewport={vhPop:F0}");
 
         // [VERIFY] Band layout — DUELRES-1: enemy 100..412, player 448..740, gap 13px at design
         bool verifyFailed = false;
@@ -2213,9 +2205,9 @@ public partial class DuelScene : Control
         }
         // Hand top never enters player row band
         // BOARD-MATCH-1: Player band bottom ≈740. Hand top at 734 is clear by ~7px from card bottoms.
-        if (handTopPop < 730f * scalePop)
+        if (handTopPop < 730f * scale)
         {
-            GD.PrintErr($"[VERIFY] Hand top {handTopPop} enters player row band (band bottom = {740f * scalePop:F0})");
+            GD.PrintErr($"[VERIFY] Hand top {handTopPop} enters player row band (band bottom = {740f * scale:F0})");
             verifyFailed = true;
         }
         // Min horizontal gap between adjacent board cards
