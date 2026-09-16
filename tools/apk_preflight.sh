@@ -193,7 +193,9 @@ fi
 
 echo ""
 echo "PACKAGE NAME"
-ACTUAL_PKG=$("$AAPT" dump badging "$APK" 2>/dev/null | grep "^package:" | sed "s/.*name='//;s/'.*//")
+# FABLE-003-BUGFIX: greedy .*name=' matched the LAST name=' (compileSdkVersionCodename)
+# instead of the first (package: name=), returning '14' instead of the package name.
+ACTUAL_PKG=$("$AAPT" dump badging "$APK" 2>/dev/null | grep -oP "package: name='\K[^']+")
 if [ -z "$ACTUAL_PKG" ]; then
     report FAIL "PACKAGE_NAME — could not read"
 elif [ "$ACTUAL_PKG" != "$PKG_NAME" ]; then
