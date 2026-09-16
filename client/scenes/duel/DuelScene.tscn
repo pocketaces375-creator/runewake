@@ -78,25 +78,25 @@ theme_override_constants/separation = 12
 [node name="PlayerVigorLabel" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Vigor:"
 
 [node name="PlayerVigorValue" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "25"
 
 [node name="PlayerAttuneLabel" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "Attune:"
 
 [node name="PlayerAttuneValue" type="Label" parent="PlayerHUD/PlayerHudRow"]
 size_flags_horizontal = 0
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "0"
 
 [node name="HandArea" type="MarginContainer" parent="."]
