@@ -2457,6 +2457,7 @@ public partial class DuelScene : Control
                 _enemyDeckBarrowPanel.Visible = false;
             if (_playerDeckBarrowPanelContainer != null)
                 _playerDeckBarrowPanelContainer.Visible = false;
+            StandDownDuelChrome();
             BuildGameOverOverlay();
             _gameOverOverlay!.Show();
             // Bring to top so it captures all input
@@ -5486,6 +5487,40 @@ private void ShowGameOverOverlay(int winnerIndex)
     }
 
     /// <summary>
+    /// FABLE-005: put the duel's transient affordances away before the end-of-duel screen
+    /// goes up.
+    ///
+    /// Raising the overlay's z-index is enough to draw over these, but none of them mean
+    /// anything once the duel is decided, and several are modal or tappable — a coach
+    /// prompt, an open rules slab or a refusal panel hanging over VICTORY is noise at best
+    /// and a second thing competing for the tap at worst. A selected hand card is the
+    /// clearest case: it keeps the z-index 10 it was given while selected.
+    /// </summary>
+    private void StandDownDuelChrome()
+    {
+        _deny?.HideNow();
+        HideRulesSlab();
+        _tutorialPopup?.Hide();
+        // The coach is a child of this scene, added by TutorialRunner.
+        GetNodeOrNull<Control>("TutorialCoach")?.Hide();
+
+        foreach (var card in _handCards)
+        {
+            if (card == null || !IsInstanceValid(card)) continue;
+            card.ZIndex = 0;
+            card.MouseFilter = Control.MouseFilterEnum.Ignore;
+        }
+        if (_enemyHandRow != null) _enemyHandRow.ZIndex = 0;
+    }
+
+    /// <summary>
+    /// FABLE-005: above every z-index used anywhere in the duel. The end-of-duel screen is
+    /// the last thing standing; nothing from the duel may draw over it or steal its taps.
+    /// Highest in-duel value today is the deny panel at 200.
+    /// </summary>
+    private const int GameOverZIndex = 1000;
+
+    /// <summary>
     /// Build the end-of-duel screen — full-screen overlay in the game's serif/stone language.
     /// Handles victory and defeat: encounter name, turns taken, reward summary, action buttons.
     /// Uses ThemeTokens for all colors, fonts, and border treatments.
@@ -5495,13 +5530,22 @@ private void ShowGameOverOverlay(int winnerIndex)
     {
         _gameOverOverlay = new Control { Name = "GameOverOverlay" };
         _gameOverOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        _gameOverOverlay.MouseFilter = Control.MouseFilterEnum.Pass;
+        // FABLE-005: this overlay was left at the default z-index 0 and relied on
+        // MoveChild-to-last to sit on top. Tree order only breaks ties BETWEEN equal
+        // z-indexes — a higher z-index always wins, so every piece of duel chrome that
+        // sets one (hand cards at 1/10, the enemy hand row at 50, deck counts at 99/100,
+        // the rules slab at 100, the coach at 150, the deny panel at 200) drew over the
+        // end-of-duel screen and took the taps meant for Continue.
+        _gameOverOverlay.ZIndex = GameOverZIndex;
+        _gameOverOverlay.MouseFilter = Control.MouseFilterEnum.Stop;
 
-        // Semi-transparent dark panel dimming the board
+        // Semi-transparent dark panel dimming the board. Stop, not Ignore: the duel is
+        // over, so nothing behind this should be tappable. The panel and its buttons are
+        // added after it, so they are still picked first.
         var dim = new ColorRect();
         dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         dim.Color = new Color(BgDark.R, BgDark.G, BgDark.B, 0.85f);
-        dim.MouseFilter = Control.MouseFilterEnum.Ignore;
+        dim.MouseFilter = Control.MouseFilterEnum.Stop;
         _gameOverOverlay.AddChild(dim);
 
         // Determine winner: player is index 0
