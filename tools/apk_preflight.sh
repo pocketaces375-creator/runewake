@@ -216,7 +216,7 @@ else
 fi
 
 echo ""
-echo "# ─── CHECK 8: Visual gate (vision model reviews every screen) ─────────────
+echo "# ─── CHECK 8: Visual gate (vision model reviews every screen) ─────────────"
 echo ""
 echo "[8/8] Visual gate"
 TOOLS_DIR="$(cd "$(dirname "$0")" && pwd)"
