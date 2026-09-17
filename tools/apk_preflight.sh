@@ -246,7 +246,7 @@ fi
 
 # ─── CHECK 9: Baked textures present in APK ─────────────────────────────────
 echo ""
-[9/9] Baked textures in APK"
+echo "[9/9] Baked textures in APK"
 # The APK stores .import files under assets/content/art/cards_baked/ and
 # the actual .ctex textures under assets/.godot/imported/ (named by source
 # filename, not directory). Cross-reference: count cards_baked .import files
