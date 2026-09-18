@@ -347,9 +347,9 @@ public static class CampaignContext
             string mapped = ClassIdMigration.ApplyMigration(classId);
 
             if (!string.IsNullOrEmpty(variant) && (variant == "m" || variant == "f"))
-                return $"res://content/art/classes/{mapped}_{variant}.png";
+                return $"res://content/art/classes/{mapped}_{variant}.webp";
 
-            return $"res://content/art/classes/{mapped}.png";
+            return $"res://content/art/classes/{mapped}.webp";
         }
 
         /// <summary>

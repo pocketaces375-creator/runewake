@@ -713,9 +713,9 @@ public partial class ChooseYourPathScene : Control
         };
         // Use variant portrait path if available, with fallback
         string variant = index < _classVariants.Length ? _classVariants[index] : "m";
-        string artPath = $"res://content/art/classes/{cls.Id}_{variant}.png";
+        string artPath = $"res://content/art/classes/{cls.Id}_{variant}.webp";
         if (!ResourceLoader.Exists(artPath))
-            artPath = $"res://content/art/classes/{cls.Id}.png";
+            artPath = $"res://content/art/classes/{cls.Id}.webp";
         if (ResourceLoader.Exists(artPath))
         {
             var tex = ResourceLoader.Load<Texture2D>(artPath);
@@ -975,9 +975,9 @@ public partial class ChooseYourPathScene : Control
         {
             var artRect = _panelPortraits[classIdx];
             var cls = _classes[classIdx];
-            string artPath = $"res://content/art/classes/{cls.Id}_{variant}.png";
+            string artPath = $"res://content/art/classes/{cls.Id}_{variant}.webp";
             if (!ResourceLoader.Exists(artPath))
-                artPath = $"res://content/art/classes/{cls.Id}.png";
+                artPath = $"res://content/art/classes/{cls.Id}.webp";
             if (ResourceLoader.Exists(artPath))
             {
                 var tex = ResourceLoader.Load<Texture2D>(artPath);
