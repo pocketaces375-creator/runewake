@@ -1,0 +1,447 @@
+Godot Engine v4.3.stable.mono.official.77dcf97d8 - https://godotengine.org
+Vulkan 1.4.318 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 20.1.2, 256 bits)
+
+[DebugCapture] Constructor called
+[DebugCapture] _EnterTree called
+[CrashReporter] Global hooks installed.
+[CrashReporter] Autoload ready.
+[DebugCapture] _Ready called
+[DebugCapture] Cmdline args: --uxwalk
+[DebugCapture] UX walkthrough enabled: --uxwalk
+[DebugCapture] Setting up test encounter with deck of 30 cards
+[DebugCapture] Registered test_long_name_wrapper for two-line name wrap verification
+[DebugCapture] Set DebugSeed=42, AutoCaptureScreenshot=true
+[AudioManager] Buses ensured: Master → Music, SFX, Ambient
+[AudioManager] Loaded 4 music, 15 sfx, 1 ambient entries
+[AudioManager] initialized
+[SETTING ASSERT] ✅ All 4 critical display settings verified.
+[RUNE-WHEEL] rune_wheel.png not found — wheel disabled
+[TITLE-ATMO] shafts+shimmer+40 motes+vignette (reduce_motion=False, hero=yes)
+[CampaignContext] 2 profiles loaded (v2 format)
+[CampaignContext] 2 decks loaded
+Loaded 29 cards from verdant
+Loaded 28 cards from ember
+Loaded 29 cards from tide
+Loaded 28 cards from hollow
+Loaded 28 cards from dawn
+Loaded 4 cards from tutorial_pack
+Loaded 14 artifacts from launch_artifacts.json
+Loaded 5 artifacts from 5 variant file(s)
+[ContentValidation] DIG SITE 'region_01_dig' headline reward 'relic:r1_amber_shard' — not in relic index (may be intentional)
+[ContentValidation] DIG SITE 'region_02_dig' headline reward 'relic:region_02_relic' — not in relic index (may be intentional)
+[ContentValidation] DIG SITE 'region_03_dig' headline reward 'relic:region_03_relic' — not in relic index (may be intentional)
+[ContentValidation] DIG SITE 'region_04_dig' headline reward 'relic:region_04_relic' — not in relic index (may be intentional)
+[ContentValidation] All content IDs resolve correctly.
+[Main] No Supabase config found — sync disabled.
+[SyncManager] Not configured — startup sync skipped.
+[CrashReporter] No pending reports to upload.
+[Main] Duel navigation mode (TutorialScriptId=null)
+[HAND] resting centre top=732 handCardH=280 OffsetTop=-348
+[DUEL] viewport height 1080 → hand 280px, board 300px
+[ATMOSPHERE] TASK-UI3d: Atmosphere overlay ready
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_tr.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_bl.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_corner_br.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_top.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_bottom.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_left.png
+[ROOTBOUND] Loaded res://content/art/border/rootbound_edge_right.png
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[DUEL] CORNERS: Enemy relics top-right, nameplate+deck/barrow stacked below
+[DUEL] WORLD-POLISH-1: Populated 5 enemy + 5 player arc slots
+[LANES] enemy y=100, player y=416, pitch=316, x0=416
+[LANES] pitch=316 slotH=300 slotW=205
+[DUEL] Hand position: hand top=794, card height=280, viewport=1080
+[VERIFY] Player slot at screen Y 416-716 outside band 435-740
+[VERIFY] Player slot at screen Y 416-716 outside band 435-740
+[VERIFY] Player slot at screen Y 416-716 outside band 435-740
+[VERIFY] Player slot at screen Y 416-716 outside band 435-740
+[VERIFY] Player slot at screen Y 416-716 outside band 435-740
+[DUEL] TASK-UI3b: Altar field built
+[DUEL] Loaded 14 artifact definitions
+[DUEL] Overrode bloomweaver name for long-name auto-fit test
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ENEMYHAND] n=6
+[ENEMYHAND] n=6 spread=24 centre_bottom=0 outer_bottom=-15
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[DUEL-INIT] P0 artifacts=artf_warrior_shield,artf_warrior_sword P1 artifacts=artf_druid_book_of_familiar,artf_druid_elemental_bond P0 class=warrior P1 class=druid
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[DUEL] BREATHE-FIX: Player relics bottom-left, side HUD handles name/deck/barrow
+[DUEL] CORNERS: Player relics bottom-left, nameplate+deck/barrow stacked above
+[RELICS] player_y=688 bottom=926 endturn_top=916
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ROOTBOUND] Setup cardWidth=156 cardHeight=238 bandPx=11
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[DUEL] CORNERS: Enemy relics top-right, nameplate+deck/barrow stacked below
+[DUEL] BREATHE: Side HUD built
+[DUEL] TASK-UI4-ARSENAL: Both arsenal groups built (player bottom-left, enemy upper-right)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1448)
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=6
+[ENEMYHAND] n=6 spread=24 centre_bottom=0 outer_bottom=-15
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[DuelScene] Bot mulliganed 2 card(s)
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=6
+[ENEMYHAND] n=6 spread=24 centre_bottom=0 outer_bottom=-15
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[AudioManager] scene 'DuelScene' -> music 'thorn_reach'
+[AudioManager] Audio file not found: res://content/audio/music/thorn_reach.ogg
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=6
+[ENEMYHAND] n=6 spread=24 centre_bottom=0 outer_bottom=-15
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[UxWalk] Starting UX walkthrough...
+[UXWALK] Starting UX walkthrough, captures → /home/fictive/runewake/client/../artifacts/captures
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=6
+[ENEMYHAND] n=6 spread=24 centre_bottom=0 outer_bottom=-15
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[UXWALK] BEGIN s01
+[UXWALK] PASS s01 player att>0
+[UXWALK] PASS s01 player vig>0
+[UXWALK] PASS s01 player deck>0
+[UXWALK] PASS s01 enemy att>=0
+[UXWALK] PASS s01 enemy vig>0
+[UXWALK] Captured s01 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s01.png
+[UXWALK] BEGIN s02
+[UXWALK] B1: no affordable card at att=1 — checking banner
+[UXWALK] PASS s02 banner visible when no cards
+[UXWALK] Captured s02 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s02.png
+[UXWALK] Captured s03 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s03.png
+[UXWALK] Captured s04 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s04.png
+[UXWALK] Captured s05 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s05.png
+[UXWALK] Captured s06 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s06.png
+=== Before TryEndTurn (Turn 1, P0) ===
+  P0 (Vigor=25, Attune=1/1):
+    Lane[0] empty
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+  P1 (Vigor=25, Attune=0/0):
+    Lane[0] empty
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+=== After TryEndTurn (Turn 1, P1) ===
+  P0 (Vigor=25, Attune=1/1):
+    Lane[0] empty
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+  P1 (Vigor=25, Attune=1/1):
+    Lane[0] tok_familiar A=1 V=3 Exh=True Atk=False Sum=False
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=7
+[ENEMYHAND] n=7 spread=28 centre_bottom=0 outer_bottom=-21
+ERROR: Resource file not found: res://content/art/cards_baked/tok_familiar.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/tok_familiar.webp
+[LANESLOT] No art for tok_familiar — NoArtLabel shown
+[MISSING_ART] tok_familiar
+[BOARD] side=1 lane=0 card=tok_familiar
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=1 hand=[4, 3, 2, 2]
+[BotController] Turn 1: StateChanged → P1 turn detected, starting bot turn
+[BotController] Turn 1: P1 turn STARTING (ThinkDelay=1.5s)
+[BotController] Bot chose EndTurnAction — calling TryEndTurn()
+=== Before TryEndTurn (Turn 1, P1) ===
+  P0 (Vigor=25, Attune=1/1):
+    Lane[0] empty
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+  P1 (Vigor=25, Attune=1/1):
+    Lane[0] tok_familiar A=1 V=3 Exh=True Atk=False Sum=False
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+=== After TryEndTurn (Turn 2, P0) ===
+  P0 (Vigor=25, Attune=2/2):
+    Lane[0] empty
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+  P1 (Vigor=25, Attune=1/1):
+    Lane[0] tok_familiar A=1 V=3 Exh=True Atk=False Sum=False
+    Lane[1] empty
+    Lane[2] empty
+    Lane[3] empty
+    Lane[4] empty
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=7
+[ENEMYHAND] n=7 spread=28 centre_bottom=0 outer_bottom=-21
+ERROR: Resource file not found: res://content/art/cards_baked/tok_familiar.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/tok_familiar.webp
+[LANESLOT] No art for tok_familiar — NoArtLabel shown
+[MISSING_ART] tok_familiar
+[BOARD] side=1 lane=0 card=tok_familiar
+[HAND] 4 cards, R=900, spread=20.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[BOT] IsThinking -> false turn=2
+[UXWALK] B1: turn 2 retry
+[UXWALK] PASS s02 affordable on turn 2
+[UXWALK] PASS s02 banner cleared when affordable
+[DUEL_TRACE] OnHandCardPressed: card=Wildfire Adept state=Idle selectedId=
+[INPUT] select emb_u_wildfire_adept
+[INPUT_TRACE] SelectCardForPlay: state=SelectingLane cardId='emb_u_wildfire_adept'
+[UXWALK] Captured s02 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s02.png
+[DUEL_TRACE] OnLaneTapped: lane=4 isEmpty=True inputState=SelectingLane
+[INPUT] OnLaneTapped lane=4 isEmpty=True selected=emb_u_wildfire_adept
+[INPUT_TRACE] SelectTargetLane: ACCEPTED cardId='emb_u_wildfire_adept' lane=4
+[DUEL_TRACE] OnPlayCardRequested: cardId=emb_u_wildfire_adept lane=4
+[ARTPLATE] SetArt id='artf_druid_book_of_familiar' webp=True png=False
+[ARTPLATE] SetArt id='artf_druid_elemental_bond' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_shield' webp=True png=False
+[ARTPLATE] SetArt id='artf_warrior_sword' webp=True png=False
+[ENEMYHAND] n=7
+[ENEMYHAND] n=7 spread=28 centre_bottom=0 outer_bottom=-21
+ERROR: Resource file not found: res://content/art/cards_baked/tok_familiar.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/tok_familiar.webp
+[LANESLOT] No art for tok_familiar — NoArtLabel shown
+[MISSING_ART] tok_familiar
+[BOARD] side=1 lane=0 card=tok_familiar
+[LANESLOT] emb_u_wildfire_adept art via TextureRect, tex=(350, 512)
+[BOARD] side=0 lane=4 card=emb_u_wildfire_adept
+[HAND] 3 cards, R=900, spread=15.0deg, pivotY=1040, avail=1265
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_r_bloomweaver art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] vrd_c_root_warden art via TextureRect, tex=(350, 512)
+ERROR: Resource file not found: res://content/art/cards_baked/.webp (expected type: )
+   at: _load (core/io/resource_loader.cpp:288)
+[BAKE] load failed: res://content/art/cards_baked/.webp
+[HANDCARD] dwn_r_sealing_light art via TextureRect, tex=(350, 512)
+[TURN] no affordable cards att=0 hand=[4, 3, 2]
+[DUEL_TRACE] OnPlayCardRequested SUCCESS: card=emb_u_wildfire_adept placed in lane 4
+[UXWALK] PASS s02 lane4==emb_u_wildfire_adept
+[UXWALK] Captured s02 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s02.png
+[UXWALK] BEGIN s09
+[UXWALK] s09: board state check
+[UXWALK] PASS s09 player has creatures on board
+[UXWALK] PASS s09 player vigor positive
+[UXWALK] PASS s09 enemy vigor positive
+[UXWALK] Captured s09 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s09.png
+[UXWALK] BEGIN s10
+[BOARD] side=0 lane=4 card=emb_u_wildfire_adept tex=ok
+[BOARD] side=1 lane=0 card=tok_familiar tex=ok
+[UXWALK] Captured s10 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s10.png
+[UXWALK] BEGIN s11
+[UXWALK] Captured s11 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s11.png
+[UXWALK] BEGIN s12
+[UXWALK] COMPLETE steps=12 pass=12 fail=0
+
+[UXWALK] === WALKTHROUGH DONE === 12 pass, 0 fail
+[UXWALK] Captured s12 → /home/fictive/runewake/client/../artifacts/captures/uxwalk_s12.png
+[UXWALK] Process exit 0
+
+================================================================
+handle_crash: Program crashed with signal 11
+Engine version: Godot Engine v4.3.stable.mono.official (77dcf97d82cbfe4e4615475fa52ca03da645dbd8)
+Dumping the backtrace. Please include this when reporting the bug to the project developer.
+[1] /usr/lib/dotnet/shared/Microsoft.NETCore.App/8.0.31/libcoreclr.so(+0x60822c) [0x7c7be1a0822c] (??:0)
+[2] /usr/lib/dotnet/shared/Microsoft.NETCore.App/8.0.31/libcoreclr.so(+0x607865) [0x7c7be1a07865] (??:0)
+[3] /lib/x86_64-linux-gnu/libc.so.6(+0x45330) [0x7c7cd9245330] (??:0)
+[4] /home/fictive/.local/bin/godot() [0x4ac49f2] (??:0)
+[5] /home/fictive/.local/bin/godot() [0xb8f132] (??:0)
+[6] /home/fictive/.local/bin/godot() [0x4323a02] (??:0)
+[7] /home/fictive/.local/bin/godot() [0x514f19] (??:0)
+[8] /home/fictive/.local/bin/godot() [0x5150e8] (??:0)
+[9] /home/fictive/.local/bin/godot() [0x335738d] (??:0)
+[10] /home/fictive/.local/bin/godot() [0x3360efe] (??:0)
+[11] /home/fictive/.local/bin/godot() [0x54f320] (??:0)
+[12] /home/fictive/.local/bin/godot() [0x42027c] (??:0)
+[13] /lib/x86_64-linux-gnu/libc.so.6(+0x2a1ca) [0x7c7cd922a1ca] (??:0)
+[14] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x8b) [0x7c7cd922a28b] (??:0)
+[15] /home/fictive/.local/bin/godot() [0x43e4da] (??:0)
+-- END OF BACKTRACE --
+================================================================
+Aborted (core dumped)

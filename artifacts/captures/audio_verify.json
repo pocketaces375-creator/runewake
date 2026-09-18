@@ -5,18 +5,11 @@
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 2
+      "callCount": 1
     },
     {
       "id": "wind_reach",
       "type": "ambient",
-      "streamNonNull": true,
-      "enteredPlaying": true,
-      "callCount": 1
-    },
-    {
-      "id": "ambient_reach",
-      "type": "music",
       "streamNonNull": true,
       "enteredPlaying": true,
       "callCount": 1
@@ -29,6 +22,13 @@
       "callCount": 1
     },
     {
+      "id": "victory",
+      "type": "sfx",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 3
+    },
+    {
       "id": "metal_clink",
       "type": "sfx",
       "streamNonNull": true,
@@ -36,15 +36,18 @@
       "callCount": 1
     },
     {
-      "id": "card_play",
+      "id": "hit_heavy",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
-      "callCount": 2
+      "callCount": 1
     }
   ],
   "manifestEventIds": [
     "music:ambient_reach",
+    "music:hall_of_runes",
+    "music:thorn_reach",
+    "music:stones_and_dust",
     "sfx:card_play",
     "sfx:card_draw",
     "sfx:card_shuffle",
@@ -63,21 +66,24 @@
     "ambient:wind_reach"
   ],
   "unhookedEventIds": [
+    "music:ambient_reach",
+    "music:hall_of_runes",
+    "music:stones_and_dust",
+    "music:thorn_reach",
+    "sfx:card_play",
     "sfx:click",
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
     "sfx:defeat",
-    "sfx:hit_heavy",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
-    "sfx:unlock",
-    "sfx:victory"
+    "sfx:unlock"
   ],
-  "musicExercised": true,
+  "musicExercised": false,
   "sfxExercised": true,
-  "totalMusicCalls": 1,
-  "totalSfxCalls": 6,
+  "totalMusicCalls": 0,
+  "totalSfxCalls": 7,
   "totalAmbientCalls": 1
 }
