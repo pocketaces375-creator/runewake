@@ -50,3 +50,8 @@ FOREMAN_HALT
 # per-lane foreman logs (never tracked)
 tools/foreman_lane*.log
 tools/burn_guard.log
+
+# Art working files (moved to ~/runewake_art_archive)
+client/content/art/**/raw/
+client/content/art/**/nano_*/
+client/content/art/**/flux_*/

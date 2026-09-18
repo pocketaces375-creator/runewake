@@ -1,0 +1,197 @@
+# fable-006-007-menu-music-fixes.patch
+
+Applies on top of current `main` (`cf58e46`). 12 files, +1129 / −57.
+Contains binary files (three .ogg), so it is a `git diff --binary` patch — apply
+it with plain `git apply`, not `patch`.
+
+sha256 `bfd7727b29c6f84965def7c6035d7e6f0fb2add58f437d403fa3501bd510ade0`
+
+Verified by applying to a clean `git archive` of `cf58e46`: applies with no
+errors, and the three .ogg files round-trip byte-identical (matching sha256).
+
+---
+
+## FABLE-006 — the two layout bugs
+
+**The highlight frame now hugs the card.** It was placed at
+`target.GetGlobalRect()`, and `GetGlobalRect()` ignores rotation. Hand cards sit
+on a fan — up to about 10° each — so the gold frame was both the wrong shape and
+visibly offset from the card it was pointing at. It now takes the target's full
+global transform, so it is a true outline at any angle. (The same blindness to
+rotation is why the lane frames never quite fit before FABLE-004 squared the
+board.) Frames are plain `Panel`s now rather than `PanelContainer`s — they have
+no children and are positioned by hand, so a container's layout pass could only
+fight them.
+
+**The victory panel stops overlapping itself.** Two causes, both in the same
+family:
+
+1. The Rewards block was a plain `Panel` wrapping a `VBoxContainer`. A `Panel` is
+   not a container — it does not measure its children — so the entire rewards
+   block reported **zero height**, and the buttons were laid out straight after
+   the divider, on top of it. That is why "Turns taken" and "Shards" were behind
+   `Fight Again`. It is a `PanelContainer` now. The outer panel already had a
+   comment recording this exact lesson; the inner one was missed.
+2. An autowrap `Label` reports a **one-line** minimum height, because it is
+   entitled to wrap to whatever width it is given. The headline wraps to two
+   lines and the outro flavour to three, so the panel asked for roughly 95px less
+   than it draws and `panelVBox` squeezed everything below them. The wrapped
+   labels now get their real measured height pinned, via the same `UiText`
+   measurement added in FABLE-003.
+
+---
+
+## FABLE-007 — the score
+
+`tools/build_music.py` writes the whole soundtrack from scratch: numpy
+oscillators, Karplus-Strong plucked strings for the oud, additive flute with
+breath noise for the ney, pitch-swept membrane percussion, a detuned drone, and a
+Schroeder reverb. No samples, no recordings, nothing third-party — public domain
+by construction, the same way `ambient_reach.ogg` was made. Rebuild any time with
+`python3 tools/build_music.py` (needs numpy; ffmpeg you already have).
+
+One motif carries all three tracks so the game sounds like one place. It is
+stated in **D Hijaz** (D Eb F# G A Bb C) over harmony in **D Dorian** — the
+ornate mode on top of the plain one is where "Arabian nights" meets the modal,
+cadence-free feel of the old RuneScape tracks.
+
+| track | where | length | size |
+|---|---|---|---|
+| `hall_of_runes` | title, menu, map | 84.7s | 1.01 MB |
+| `thorn_reach` | duel, arena | 68.6s | 0.68 MB |
+| `stones_and_dust` | everything else | 68.6s | 0.46 MB |
+
+**2.1 MB for the lot.** Each is rendered longer than its loop and the overflow
+folded back onto the head, so reverb tails wrap and there is no seam.
+
+Two AudioManager bugs fixed on the way, both of which would have spoiled it:
+
+- **Streams are forced to `Loop`.** Whether an ogg loops is a per-file `.import`
+  param that Godot regenerates per machine. A fresh checkout could have played
+  the title theme once and then sat in silence.
+- **`CrossfadeMusic` no longer restarts a track that is already playing.** It had
+  no same-id guard, so menu → map → menu reset the music to bar one every time —
+  the opposite of "casually playing in the background".
+
+Scene-to-track mapping lives in `AudioManager` itself, watching `CurrentScene`,
+rather than a line of wiring in each of a dozen scenes. A screen nobody thought
+about gets the quiet bed instead of silence, and a new scene needs no audio code.
+
+---
+
+## FABLE-007 — the title screen
+
+**Deliberately not a video.** `client/content/art` is already 201 MB of a 205 MB
+APK — you are over Google Play's limit before adding anything — and a looping
+decoder is the most expensive thing you can leave running while somebody reads a
+menu. So the painting stays a painting and the motion is generated:
+
+- a slow push-in, 1.02 → 1.075 over 48s, drifting sideways on a 37s cycle
+- god-rays raked across the hall, four bands at incommensurate speeds
+- caustic shimmer on the flooded floor, bottom third only
+- forty drifting dust motes
+- a vignette breathing on a 90s cycle
+
+None of those cycles share a common multiple, so it never lands on a seam — it is
+endless rather than looped. **Zero asset bytes.** Honours `ReduceMotion`.
+
+The dust is forty real sprites, not forty iterations in a fragment shader. On a
+fill-rate-bound phone that distinction is the whole performance budget.
+
+`MenuButtons` replaces the flat brown rectangles with carved plates — warm stone
+face, bronze keyline lifting to gold under the finger, dropped shadow so they sit
+on the wall rather than in it, and a press that sinks rather than leaps. The menu
+assembles itself on entry and the wordmark breathes on a 9s cycle.
+
+---
+
+## What the review caught
+
+I had the whole diff read line-by-line by a second reviewer with no context from
+me. Seven problems, one of them fatal, all fixed in the last commit:
+
+1. **The entire atmosphere would have rendered nothing.** `SetAnchorsPreset` was
+   called from `_Ready` — already inside the tree — where `set_anchor` preserves
+   the node's *current* rect, which for a freshly-`new`'d node is 0×0. Correct
+   anchors, zero size, all three shader rects zero with it.
+   `SetAnchorsAndOffsetsPreset` instead.
+2. `DuelScene._Ready` started `ambient_reach` while the new watcher crossfaded to
+   `thorn_reach` on the same frame — both played at once, every duel.
+3. `CrossfadeMusic` claimed the track id only in its completion callback, so the
+   new same-id guard read a stale value for the whole 1.6s fade; a second scene
+   change inside that window could strand a player at −80 dB.
+4. `MenuButtons` tweened `position:y` on buttons inside containers, which rewrite
+   position on every sort, and cached a "rest" value any re-sort would invalidate.
+   Tint-only now, on `self_modulate` so it cannot fight the entrance fade.
+5. The shafts' brightness pulse ignored `ReduceMotion`.
+6. Motes drew over the vignette.
+7. The hero drift exposed bare background at scale 1.0 — hence the permanent 2%
+   overscan.
+
+---
+
+## Apply
+
+```bash
+cd /home/fictive/runewake
+git status --porcelain          # must be empty
+git apply --check fable-006-007-menu-music-fixes.patch   # must print nothing
+git apply fable-006-007-menu-music-fixes.patch
+git add -A && git commit -m "FABLE-006/007: layout fixes, score, animated title screen"
+```
+
+If `--check` prints anything, paste it back verbatim; don't hand-fix.
+
+## Verify
+
+1. `dotnet build client/Runewake.Client.csproj -c Debug` — paste raw errors if any.
+   **Three new files** (`TitleAtmosphere.cs`, `MenuButtons.cs`, `build_music.py`)
+   and three inline GLSL shaders that I could not compile here. If a shader fails
+   it logs at runtime rather than at build, so also check the log in step 3 for
+   any line containing `shader`.
+
+2. Godot will generate `.import` files for the three new .ogg on first open. That
+   is expected; commit them.
+
+3. Title screen, first thing to look at:
+   ```bash
+   rm -f artifacts/captures/title_test*.png
+   timeout 240 xvfb-run -a "$GODOT_BIN" --path client -- --capture=title_test 2>&1 | tee /tmp/title.log
+   grep -iE "\[TITLE-ATMO\]|\[AudioManager\] scene|shader|error" /tmp/title.log
+   ```
+   - `[TITLE-ATMO] shafts+shimmer+40 motes+vignette (reduce_motion=False, hero=yes)`
+   - `[AudioManager] scene 'Main' -> music 'hall_of_runes'`
+   - **No line mentioning a shader error.**
+   Post `title_test.png`. A still will not show the motion, but it will show the
+   light shafts, the vignette and the new button plates — if the buttons still
+   look like flat brown rectangles, the styling did not take.
+
+4. `bash tools/ux_gate.sh`.
+
+5. On the phone, in this order:
+   - **Title**: light should move across the hall, dust should drift upward,
+     buttons should warm under the finger and sink when pressed. Music starts.
+   - **Enter a duel**: music should *crossfade* to the duel track, not restart
+     and not double up.
+   - **Back to the map**: the title theme should come back — and if you then go
+     menu → map → menu it must NOT restart from the beginning each time.
+   - **Tutorial**: the gold frame should sit squarely on the hand card, following
+     its angle on the fan.
+   - **Win a duel with cards in hand**: nothing on the victory panel should
+     overlap; "Turns taken" and the Rewards block should be clearly above the
+     buttons.
+
+## What I could not check
+
+No dotnet, no Godot and no speakers here. The C# was balance-checked, symbol
+cross-referenced and independently reviewed. The music I verified by rendering
+spectrograms and reading them as images — which is how I found that my first pass
+had plucked notes decaying in 0.15s (they were clicks, not notes, and two of the
+three tracks were drum-and-drone with no tune). The numbers I can stand behind:
+no clipping after decode, every loop seam smaller than the worst interior
+transient, and melodic content across the full length of all three.
+
+The three GLSL shaders are the least verified thing in this patch. They are short
+and use nothing exotic, but if one fails to compile you will get a runtime error
+and a missing layer rather than a build failure — which is why step 3 greps for
+it specifically.
