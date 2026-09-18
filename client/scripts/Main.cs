@@ -142,6 +142,13 @@ public partial class Main : Control
             GD.Print("[RUNE-WHEEL] rune_wheel.png not found — wheel disabled");
         }
 
+        // ——— FABLE-007: the screen comes alive ———
+        // Light shafts, caustics on the flooded floor, drifting dust, a breathing
+        // vignette and a slow push-in on the painting. Added here so it sits in
+        // front of the art and the rune wheels, and behind every piece of UI
+        // built below. Costs no asset bytes — see TitleAtmosphere.
+        TitleAtmosphere.Attach(this, heroArt);
+
         // ——— Dark scrim behind title text for readability ———
         var scrim = new ColorRect
         {
@@ -165,6 +172,7 @@ public partial class Main : Control
         ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitleScreen);
         title.Modulate = Color.FromHtml("#D4B84C"); // gold
         AddChild(title);
+        MenuButtons.BreatheTitle(title);
 
         // ——— Subtitle "The Buried Age" (smaller Cinzel, warm beige #C8B88A) ———
         var subtitle = new Label
@@ -194,39 +202,10 @@ public partial class Main : Control
         AddChild(_statusLabel);
 
         // ——— Stone-styled buttons (Play, Decks, Settings) ———
-        var stoneNormal = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#3A3530"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 16,
-            ContentMarginRight = 16, ContentMarginBottom = 16
-        };
-        var stoneHover = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#4A4540"),
-            BorderColor = Color.FromHtml("#C9A84C"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 16,
-            ContentMarginRight = 16, ContentMarginBottom = 16
-        };
-        var stonePressed = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A2520"),
-            BorderColor = Color.FromHtml("#A08838"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 16,
-            ContentMarginRight = 16, ContentMarginBottom = 16
-        };
+        // FABLE-007: carved plates rather than flat rectangles — see MenuButtons.
+        var stoneNormal = MenuButtons.Normal();
+        var stoneHover = MenuButtons.Hover();
+        var stonePressed = MenuButtons.Pressed();
 
         Button MakeStoneButton(string text)
         {
@@ -247,6 +226,7 @@ public partial class Main : Control
             var labelFont = ThemeTokens.GetButtonFont(ThemeTokens.FontButtonPrimary);
             if (labelFont != null)
                 btn.AddThemeFontOverride("font", labelFont);
+            MenuButtons.Animate(btn);
             return btn;
         }
 
@@ -306,6 +286,17 @@ public partial class Main : Control
         newAccountBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         newAccountBtn.Pressed += OnOpenAccountsCarousel;
         buttonStack.AddChild(newAccountBtn);
+
+        // FABLE-007: the menu assembles itself — title, subtitle, then each plate
+        // in turn — instead of snapping into existence all at once.
+        // The wordmark is left out on purpose: BreatheTitle already owns its
+        // modulate on a loop, and two tweens driving the same property is a
+        // flicker, not an entrance.
+        MenuButtons.RevealStagger(new Control[]
+        {
+            subtitle, decksButton, reliquaryButton,
+            settingsButton, arenaButton, newAccountBtn,
+        });
 
         // Rune Page button (hidden — accessible from Decks/Settings screens)
         _runeButton = new Button { Visible = false, Disabled = false };

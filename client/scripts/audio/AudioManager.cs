@@ -201,6 +201,11 @@ public partial class AudioManager : Node
             return;
         }
 
+        // FABLE-007: music must loop. Whether it does is a per-file .import param
+        // that Godot regenerates on each machine, so a fresh checkout can silently
+        // play the title theme once and then sit in silence. Set it on the stream.
+        if (stream is AudioStreamOggVorbis oggLoop) oggLoop.Loop = true;
+
         // Stop current music gracefully
         if (_musicPlayer!.Playing)
             StopMusic(fadeInSec > 0 ? 0.2f : 0.0f);
@@ -244,6 +249,56 @@ public partial class AudioManager : Node
     }
 
     /// <summary>Cross-fade from current track to a new one.</summary>
+    // ════════════════════════════════════════════════════════════════════
+    //  FABLE-007: Scene music
+    // ════════════════════════════════════════════════════════════════════
+    //
+    // One place decides what plays where, rather than a line of wiring in every
+    // scene's _Ready. AudioManager is an autoload, so it outlives every scene
+    // change and can simply watch which scene is current. A screen nobody
+    // thought about still gets the quiet bed instead of silence, and adding a
+    // scene later needs no audio code at all.
+    //
+    // Keyed by the scene's ROOT NODE NAME, which matches the script name for
+    // every scene in this project.
+
+    public const string TrackTitle = "hall_of_runes";
+    public const string TrackDuel = "thorn_reach";
+    public const string TrackQuiet = "stones_and_dust";
+
+    private static readonly Dictionary<string, string> SceneTracks = new()
+    {
+        { "Main", TrackTitle },
+        { "AccountsCarouselScene", TrackTitle },
+        { "MapScene", TrackTitle },
+        { "ChooseYourPathScene", TrackTitle },
+        { "DuelScene", TrackDuel },
+        { "ArenaScene", TrackDuel },
+        // Everything else — deck, shop, reliquary, forge, rune page, dig,
+        // settings — falls through to the quiet bed.
+    };
+
+    private string _lastSceneName = "";
+
+    /// <summary>True to stop the scene watcher touching music (capture/soak runs).</summary>
+    public bool SceneMusicEnabled { get; set; } = true;
+
+    public override void _Process(double delta)
+    {
+        if (!SceneMusicEnabled) return;
+        var tree = GetTree();
+        var scene = tree?.CurrentScene;
+        if (scene == null || !IsInstanceValid(scene)) return;
+
+        string name = scene.Name.ToString();
+        if (name == _lastSceneName) return;
+        _lastSceneName = name;
+
+        string id = SceneTracks.TryGetValue(name, out var mapped) ? mapped : TrackQuiet;
+        GD.Print($"[AudioManager] scene '{name}' -> music '{id}'");
+        CrossfadeMusic(id, 1.6f);
+    }
+
     public void CrossfadeMusic(string id, float sec = 1.0f)
     {
         if (!_musicMap.TryGetValue(id, out var entry))
@@ -252,8 +307,18 @@ public partial class AudioManager : Node
             return;
         }
 
+        // FABLE-007: already playing this? Leave it alone. Without this guard the
+        // music restarted on every screen change that asked for the same track,
+        // which is the opposite of "casually playing in the background".
+        if (_currentMusicId == id && _musicPlayer != null && _musicPlayer.Playing)
+            return;
+
         var stream = LoadStream(entry.path);
         if (stream == null) return;
+        // FABLE-007: music must loop. Whether it does is a per-file .import param
+        // that Godot regenerates on each machine, so a fresh checkout can silently
+        // play the title theme once and then sit in silence. Set it on the stream.
+        if (stream is AudioStreamOggVorbis oggLoop) oggLoop.Loop = true;
 
         // If nothing is playing, just play
         if (_musicPlayer == null || !_musicPlayer.Playing)
@@ -268,6 +333,13 @@ public partial class AudioManager : Node
 
         // Fade out current
         _musicFadeTween.TweenProperty(_musicPlayer, "volume_db", -80.0f, sec);
+
+        // Claim the id NOW, not in the completion callback. The guard above reads
+        // this: leaving it stale for the whole 1.6s fade meant a second scene
+        // change inside the fade would start ANOTHER crossfade, kill the tween
+        // mid-flight, and leave the swap callback unrun with a player stuck at
+        // -80 dB.
+        _currentMusicId = id;
 
         // Set up the second player
         _musicPlayer2!.Stream = stream;

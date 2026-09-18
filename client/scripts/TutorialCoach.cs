@@ -98,7 +98,7 @@ public partial class TutorialCoach : Control
     private Func<List<Control>>? _targetProvider;
     private float _sinceResolve;
     private readonly List<Control> _targets = new();
-    private readonly List<PanelContainer> _frames = new();
+    private readonly List<Panel> _frames = new();
     private readonly List<StyleBoxFlat> _frameStyles = new();
 
     public bool IsNoteOpen => _note != null && _note.Visible;
@@ -423,7 +423,9 @@ public partial class TutorialCoach : Control
                 ShadowColor = new Color(0.98f, 0.80f, 0.30f, 0.35f),
                 ShadowSize = Px(10),
             };
-            var frame = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore, ZIndex = 5 };
+            // Panel, not PanelContainer: the frame has no children and its rect is set by
+            // hand every frame, so a container's own layout pass can only fight us.
+            var frame = new Panel { MouseFilter = MouseFilterEnum.Ignore, ZIndex = 5 };
             frame.AddThemeStyleboxOverride("panel", style);
             AddChild(frame);
             _frames.Add(frame);
@@ -476,11 +478,27 @@ public partial class TutorialCoach : Control
                 if (IsInstanceValid(frame)) frame.Visible = false;
                 continue;
             }
-            var r = target.GetGlobalRect();
-            if (r.Size.X <= 0 || r.Size.Y <= 0) { frame.Visible = false; continue; }
+            var size = target.Size;
+            if (size.X <= 0 || size.Y <= 0) { frame.Visible = false; continue; }
+
+            // FABLE-006: hug the card, not the area around it.
+            //
+            // This used to place an axis-aligned box at target.GetGlobalRect(), and
+            // GetGlobalRect() ignores rotation. Hand cards sit on a fan — each one is
+            // rotated up to ~10° — so the frame was both the wrong shape and visibly
+            // offset from the card it was pointing at. Take the target's full global
+            // transform instead: the frame inherits its rotation and scale, and is
+            // positioned by mapping the target's own local (-m, -m) corner through it,
+            // so it stays a true outline at any angle.
+            // The target's transform expressed in this coach's own space, so the frame is
+            // correct wherever the coach happens to be parented.
+            var rel = GetGlobalTransform().AffineInverse() * target.GetGlobalTransform();
             frame.Visible = true;
-            frame.Position = new Vector2(r.Position.X - m, r.Position.Y - m);
-            frame.Size = new Vector2(r.Size.X + 2 * m, r.Size.Y + 2 * m);
+            frame.Rotation = rel.Rotation;
+            frame.Scale = rel.Scale;
+            frame.PivotOffset = Vector2.Zero;   // rotate about the top-left we just mapped
+            frame.Position = rel * new Vector2(-m, -m);
+            frame.Size = new Vector2(size.X + 2 * m, size.Y + 2 * m);
             _frameStyles[i].BorderColor = col;
         }
     }

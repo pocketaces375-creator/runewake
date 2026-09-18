@@ -15,6 +15,23 @@ original authors are listed below for provenance).
 - Date: 2026-08-29
 - URL: N/A
 
+
+### hall_of_runes.ogg / thorn_reach.ogg / stones_and_dust.ogg — "One theme, three moods"
+- Source: Synthesised from first principles by `tools/build_music.py` — numpy
+  oscillators, Karplus-Strong plucked strings (oud), additive flute with breath
+  noise (ney), pitch-swept membrane percussion (frame drum), detuned sine drone,
+  and a Schroeder reverb. No samples, no recordings, no third-party material.
+- Music: one motif in D Hijaz (D Eb F# G A Bb C) over harmony in D Dorian.
+  `hall_of_runes` = title/menu/map, `thorn_reach` = duel, `stones_and_dust` =
+  deck/shop/reliquary and any screen not otherwise mapped.
+- Loops: each track is rendered longer than its loop and the overflow folded back
+  onto the head, so the reverb tail wraps and there is no seam. Rebuild at any
+  time with `python3 tools/build_music.py`.
+- Author: N/A (procedural generation)
+- License: Public Domain (CC0 equivalent — no creative work by a human author)
+- Date: 2026-09-18
+- URL: N/A
+
 ---
 
 ## Sound Effects

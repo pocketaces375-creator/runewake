@@ -634,7 +634,9 @@ public partial class DuelScene : Control
         // ═══ TASK-AUDIO-HOOK-1: Start ambient + music on duel screen entry ═══
         var audio = GetNode<AudioManager>("/root/AudioManager");
         audio.PlayAmbient("wind_reach");
-        audio.PlayMusic("ambient_reach");
+        // FABLE-007: the duel's track is chosen by AudioManager's scene watcher
+        // (DuelScene -> thorn_reach). Starting ambient_reach here as well meant
+        // both played over each other for the length of the crossfade.
         _prevHandSize = _gsm?.GetHand(0).Count ?? 0;
 
         // ═══ CAPTURE HOOK: auto-dismiss mulligan, wait, capture ═══
@@ -5594,6 +5596,10 @@ private void ShowGameOverOverlay(int winnerIndex)
         panelVBox.AddThemeConstantOverride("separation", 6);
         panel.AddChild(panelVBox);
 
+        // FABLE-006: every autowrap Label in this panel, so its real wrapped height can
+        // be pinned once the width is known — see FitWrappedLabels at the end.
+        var wrapLabels = new System.Collections.Generic.List<Label>();
+
         // Top spacer
         panelVBox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
 
@@ -5660,6 +5666,7 @@ private void ShowGameOverOverlay(int winnerIndex)
         ApplyHeaderFont(headlineLabel, FontSectionHeader);
         headlineLabel.Modulate = TextPrimary;
         panelVBox.AddChild(headlineLabel);
+        wrapLabels.Add(headlineLabel);
 
         // ── Flavor text (DialogueOutro) ──
         string flavor = playerWon && encounter?.DialogueOutro is { Count: > 0 }
@@ -5681,6 +5688,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             ApplyBodyFont(flavorLabel, FontSecondary);
             flavorLabel.Modulate = TextSecondary;
             panelVBox.AddChild(flavorLabel);
+            wrapLabels.Add(flavorLabel);
         }
 
         // ── Divider line ──
@@ -5705,7 +5713,12 @@ private void ShowGameOverOverlay(int winnerIndex)
             // ── TASK-REWARD-SCREEN-1: Rewards section with animated counters ──
             panelVBox.AddChild(MakeDivider());
 
-            var rewardPanel = new Panel();
+            // FABLE-006: PanelContainer, not Panel. A plain Panel is not a container —
+            // it neither lays out nor measures its children, so rewardGrid contributed
+            // ZERO height to panelVBox. The buttons were therefore placed straight after
+            // the divider and the reward rows drew on top of them. Same lesson the outer
+            // panel already learned; this one was missed.
+            var rewardPanel = new PanelContainer();
             rewardPanel.CustomMinimumSize = new Vector2(360, 0);
             var rewardStyle = StyleWornBorder(
                 borderColor: BorderSubtle,
@@ -5891,6 +5904,31 @@ private void ShowGameOverOverlay(int winnerIndex)
         _gameOverOverlay.AddChild(container);
 
         AddChild(_gameOverOverlay);
+
+        // FABLE-006: an autowrap Label reports a ONE-LINE minimum height, because it is
+        // entitled to wrap to whatever width it is given. So the headline ("You defeated
+        // The Wayfarer", two lines) and the outro flavour (three lines) asked for far
+        // less height than they draw. CenterContainer sizes the panel to that minimum,
+        // panelVBox then had to squeeze everything below them, and the text drew straight
+        // over the buttons. Measure the wrapped text and pin the height it really needs.
+        //
+        // Runs now so the first frame is right, and again deferred once the panel has its
+        // true width. The measuring width is deliberately a little narrower than the real
+        // inner width: erring narrow over-estimates height, which is the harmless
+        // direction — too tall merely looks roomy, too short overlaps.
+        void FitWrappedLabels()
+        {
+            float w = panel.Size.X > 0 ? panel.Size.X : 640f;
+            float inner = Mathf.Max(80f, w - 32f);
+            foreach (var l in wrapLabels)
+            {
+                if (l == null || !IsInstanceValid(l)) continue;
+                float h = UiText.MeasureHeight(l, inner);
+                if (h > 0) l.CustomMinimumSize = new Vector2(l.CustomMinimumSize.X, Mathf.Ceil(h));
+            }
+        }
+        FitWrappedLabels();
+        Callable.From(FitWrappedLabels).CallDeferred();
 
         // ═══ TASK-JUICE-1: Victory/defeat light effects ═══
         if (playerWon)
