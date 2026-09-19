@@ -549,25 +549,51 @@ public partial class DuelScene : Control
             // Campaign mode: enemy uses encounter deck, player uses saved deck
             _encounterName = encounter.Name;
 
+            // One seed for the whole duel, so the opponent's relics replay with it.
+            ulong duelSeed = CampaignContext.DebugSeed ?? (ulong)GD.Randi();
+
+            // Player 0: tutorial artifacts if set, else DefaultLoadoutFor(ChosenClass)
+            string[] p0Artifacts = CampaignContext.TutorialPlayerArtifactIds.Length > 0
+                ? CampaignContext.TutorialPlayerArtifactIds
+                : ArtifactRegistry.DefaultLoadoutFor(CampaignContext.ChosenClass);
+            string p0Class = CampaignContext.TutorialPlayerClass.Length > 0
+                ? CampaignContext.TutorialPlayerClass
+                : CampaignContext.ChosenClass;
+
+            // Player 1: content's explicit artifacts win. Otherwise ask for a loadout
+            // that is deliberately NOT the player's — the old path picked a class from
+            // encounterId.GetHashCode() % 7 and took each class's one fixed pair, so a
+            // seventh of all duels were exact relic mirrors, and a battlemage player
+            // always mirrored because battlemage owns exactly one artifact per slot.
+            // The player must be able to see, at a glance, that the enemy brought a
+            // different kit. (Also: GetHashCode is randomised per process in .NET, so
+            // "stable pick" re-rolled on every app launch and broke seeded replay.)
+            string[] p1Artifacts;
+            string p1Class;
+            if (encounter.Artifacts is { Count: > 0 })
+            {
+                p1Artifacts = encounter.Artifacts.ToArray();
+                p1Class = encounter.Class ?? PickClassForEncounter(encounter.Id);
+            }
+            else
+            {
+                var opponent = ArtifactRegistry.OpponentLoadout(
+                    encounter.Class, p0Class, p0Artifacts, encounter.Id, duelSeed);
+                p1Class = opponent.ClassId;
+                p1Artifacts = opponent.Artifacts;
+            }
+
             var config = new GameConfig
             {
-                Seed = CampaignContext.DebugSeed ?? (ulong)GD.Randi(),
+                Seed = duelSeed,
                 ContentVersion = 1,
                 Player0DeckIds = CampaignContext.PlayerDeckIds,
                 Player1DeckIds = encounter.Deck,
                 RunePage = CampaignContext.CurrentRunePage,
-                // Player 0: tutorial artifacts if set, else DefaultLoadoutFor(ChosenClass)
-                Player0ArtifactIds = CampaignContext.TutorialPlayerArtifactIds.Length > 0
-                    ? CampaignContext.TutorialPlayerArtifactIds
-                    : ArtifactRegistry.DefaultLoadoutFor(CampaignContext.ChosenClass),
-                Player0Class = CampaignContext.TutorialPlayerClass.Length > 0
-                    ? CampaignContext.TutorialPlayerClass
-                    : CampaignContext.ChosenClass,
-                // Player 1 (encounter): explicit artifacts, else DefaultLoadoutFor(encounter.Class), else hash-based stable pick
-                Player1ArtifactIds = encounter.Artifacts is { Count: > 0 }
-                    ? encounter.Artifacts.ToArray()
-                    : ArtifactRegistry.DefaultLoadoutFor(encounter.Class ?? PickClassForEncounter(encounter.Id)),
-                Player1Class = encounter.Class ?? PickClassForEncounter(encounter.Id),
+                Player0ArtifactIds = p0Artifacts,
+                Player0Class = p0Class,
+                Player1ArtifactIds = p1Artifacts,
+                Player1Class = p1Class,
                 MatchConfig = null,
                 OpeningRule = encounter.OpeningRule
             };
@@ -5482,10 +5508,78 @@ private void ShowGameOverOverlay(int winnerIndex)
         backToTitle.CustomMinimumSize = new Vector2(130, 40);
         backToTitle.Pressed += () =>
         {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/Main.tscn");
+            // Was "res://scenes/Main.tscn", which does not exist — the real scene is
+            // scenes/main/Main.tscn, so this button has always been a no-op.
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+            LeaveDuelFor(MainMenuScenePath, "Back to Title pressed");
         };
         btnHBox.AddChild(backToTitle);
+    }
+
+    /// <summary>The real path of the title scene. "res://scenes/Main.tscn" does not exist.</summary>
+    private const string MainMenuScenePath = "res://scenes/main/Main.tscn";
+
+    /// <summary>
+    /// FABLE-009: leave the duel for another scene, loudly and unconditionally.
+    ///
+    /// Trikzos reported pressing Continue on the victory screen and having the
+    /// button visibly react while the screen never changed. A Button that depresses
+    /// has already emitted Pressed, so input was never the problem — something
+    /// inside the handler stopped it reaching the navigation, and nothing said so.
+    /// Three ways that happens, all closed here:
+    ///
+    ///   throw    an unhandled exception in a C# signal handler is swallowed by
+    ///            Godot, the rest of the lambda never runs, and the player is
+    ///            stuck on a dead screen. Bookkeeping now runs in a try/catch and
+    ///            can never cost the player the exit.
+    ///   silence  ChangeSceneToFile RETURNS an Error. Nobody checked it. If the
+    ///            target scene fails to load, the call is a no-op and the only
+    ///            evidence is a log line nobody is reading on a phone. Now it is
+    ///            checked, reported, and falls back to the main menu.
+    ///   teardown the timer is parented to the ROOT, not to this scene or the
+    ///            overlay, both of which are about to be freed, and runs with
+    ///            ProcessModeEnum.Always so a paused tree cannot strand it. This
+    ///            file already used a root-parented timer for its capture flow
+    ///            test, with the comment "to avoid thread/callback nesting issues".
+    /// </summary>
+    private void LeaveDuelFor(string scenePath, string why, System.Action? before = null)
+    {
+        GD.Print($"[DUEL-EXIT] {why} → {scenePath}");
+
+        if (before != null)
+        {
+            try
+            {
+                before();
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[DUEL-EXIT] bookkeeping threw, leaving anyway: {ex}");
+            }
+        }
+
+        // Captured now: `this` may be disposed by the time the callback runs.
+        var tree = GetTree();
+        var nav = new Godot.Timer
+        {
+            OneShot = true,
+            WaitTime = 0.05f,
+            ProcessMode = Node.ProcessModeEnum.Always,
+        };
+        nav.Timeout += () =>
+        {
+            var err = tree.ChangeSceneToFile(scenePath);
+            if (err != Error.Ok)
+            {
+                GD.PrintErr($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') failed: {err} — falling back to the title screen");
+                var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
+                if (fallback != Error.Ok)
+                    GD.PrintErr($"[DUEL-EXIT] fallback to '{MainMenuScenePath}' ALSO failed: {fallback}");
+            }
+            nav.QueueFree();
+        };
+        tree.Root.AddChild(nav);
+        nav.Start();
     }
 
     /// <summary>
@@ -5871,11 +5965,13 @@ private void ShowGameOverOverlay(int winnerIndex)
         string currentSeed = CampaignContext.DebugSeed?.ToString() ?? "";
         fightAgainBtn.Pressed += () =>
         {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            // Retry preserves the same seed (for deterministic replay)
-            if (!string.IsNullOrEmpty(currentSeed))
-                CampaignContext.DebugSeed = ulong.Parse(currentSeed);
-            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+            LeaveDuelFor("res://scenes/duel/DuelScene.tscn", "Fight Again pressed", () =>
+            {
+                // Retry preserves the same seed (for deterministic replay)
+                if (!string.IsNullOrEmpty(currentSeed))
+                    CampaignContext.DebugSeed = ulong.Parse(currentSeed);
+            });
         };
         btnHBox.AddChild(fightAgainBtn);
 
@@ -5883,11 +5979,18 @@ private void ShowGameOverOverlay(int winnerIndex)
         var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
         continueBtn.Pressed += () =>
         {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            // Mark node cleared (already done in OnGameOver for campaign, but ensure it's done)
-            if (playerWon && CampaignContext.CurrentNodeId != null)
-                CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+            // A duel reached from the Arena has no campaign map to go back to, and
+            // sending the player there would strand them on an empty region.
+            string target = CampaignContext.IsArenaDuel
+                ? "res://scenes/arena/ArenaScene.tscn"
+                : "res://scenes/map/MapScene.tscn";
+            LeaveDuelFor(target, "Continue pressed", () =>
+            {
+                // Mark node cleared (already done in OnGameOver for campaign, but ensure it's done)
+                if (playerWon && CampaignContext.CurrentNodeId != null)
+                    CampaignContext.Progression?.MarkNodeCleared(CampaignContext.CurrentNodeId);
+            });
         };
         btnHBox.AddChild(continueBtn);
 
@@ -6903,12 +7006,18 @@ private void ShowGameOverOverlay(int winnerIndex)
         };
     }
 
-    /// <summary>Helper: stable class pick for encounters without a class field (ensures 2 relics).</summary>
+    /// <summary>
+    /// Stable class pick for encounters without a class field.
+    ///
+    /// This used string.GetHashCode(), which .NET randomises per process — so the
+    /// "stable" pick actually changed on every app launch and a seeded replay did
+    /// not reproduce the opponent. ArtifactRegistry.StableHash is FNV-1a and gives
+    /// the same answer in every process and every build.
+    /// </summary>
     private static string PickClassForEncounter(string encounterId)
     {
         string[] classes = ["battlemage", "warrior", "rogue", "paladin", "necromancer", "astrologist", "druid"];
-        int hash = encounterId.GetHashCode();
-        int idx = (hash & 0x7FFFFFFF) % classes.Length;
-        return classes[idx];
+        ulong hash = ArtifactRegistry.StableHash(encounterId ?? string.Empty);
+        return classes[(int)(hash % (ulong)classes.Length)];
     }
 }
