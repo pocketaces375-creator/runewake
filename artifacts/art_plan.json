@@ -1,0 +1,945 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "asset_id": "artf_astrologist_constellation_starlight",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "starlight",
+      "name": "Constellation Starlight",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 686364181,
+      "axes": {
+        "subject": "a sextant of blued steel",
+        "material": "blued steel",
+        "age": "half-swallowed by corrosion",
+        "light": "a single low candle to one side",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "lying in shallow still water",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a sextant of blued steel with fittings of blued steel, half-swallowed by corrosion, lying in shallow still water. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. Lighting: a single low candle to one side. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_astrologist_eclipse_sphere",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "orb",
+      "name": "Eclipse Sphere",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1635246408,
+      "axes": {
+        "subject": "a cracked glass globe with a storm sealed inside",
+        "material": "meteoric iron",
+        "age": "salvaged and crudely repaired",
+        "light": "overcast north light, almost shadowless",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "half-buried in cold ash",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A cracked glass globe with a storm sealed inside with fittings of meteoric iron, salvaged and crudely repaired, half-buried in cold ash, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. overcast north light, almost shadowless, macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_astrologist_lunar_lens",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "orb",
+      "name": "Lunar Lens",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 775419822,
+      "axes": {
+        "subject": "a nested orrery",
+        "material": "tarnished brass",
+        "age": "buried for a century and only just cleaned",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "propped against an unseen edge",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "A nested orrery of tarnished brass, buried for a century and only just cleaned, propped against an unseen edge, the object alone at the centre of the frame, empty unlit background falling to black. Heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. overcast north light, almost shadowless, shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_astrologist_meteor_shower",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "starlight",
+      "name": "Meteor Shower",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1423752050,
+      "axes": {
+        "subject": "a lens ground from clear amber",
+        "material": "meteoric iron",
+        "age": "burnt along one side",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "lying in shallow still water",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "A lens ground from clear amber with fittings of meteoric iron, burnt along one side, lying in shallow still water, the object alone at the centre of the frame, empty unlit background falling to black. Egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. cold daylight through a high slot window, shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_astrologist_orb",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "orb",
+      "name": "Seer's Orb",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1312665512,
+      "axes": {
+        "subject": "a nested orrery",
+        "material": "hammered copper gone green",
+        "age": "buried for a century and only just cleaned",
+        "light": "overcast north light, almost shadowless",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "set on a scarred workbench of black oak",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "A nested orrery of hammered copper gone green, buried for a century and only just cleaned, set on a scarred workbench of black oak, the object alone at the centre of the frame, empty unlit background falling to black. Ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. overcast north light, almost shadowless, macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_astrologist_twin_stars",
+      "kind": "artifact_tile",
+      "class": "astrologist",
+      "slot_pool": "starlight",
+      "name": "Twin Stars",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 761086739,
+      "axes": {
+        "subject": "a sextant of blued steel",
+        "material": "weathered oak and hide",
+        "age": "salvaged and crudely repaired",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "Paint a sextant of blued steel with fittings of weathered oak and hide, salvaged and crudely repaired, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: abyssal blue #0E2436 with teal #1F6F72 and pale foam #C9DCD8. Lighting: backlit, the rim burning and the front in shade. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_battlemage_aura",
+      "kind": "artifact_tile",
+      "class": "battlemage",
+      "slot_pool": "aura",
+      "name": "Aura",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1948582397,
+      "axes": {
+        "subject": "a hovering lattice of hot wire",
+        "material": "hammered copper gone green",
+        "age": "long-used, the edges worn smooth",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "gouache with visible paper tooth and flat massed shapes"
+      },
+      "prompt": "Paint a hovering lattice of hot wire with fittings of hammered copper gone green, long-used, the edges worn smooth, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as gouache with visible paper tooth and flat massed shapes. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: soot black #14100E with molten orange #C4501B and ash grey #6E655C. Lighting: backlit, the rim burning and the front in shade. shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_battlemage_wand",
+      "kind": "artifact_tile",
+      "class": "battlemage",
+      "slot_pool": "wand",
+      "name": "Wand",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 349837244,
+      "axes": {
+        "subject": "a jointed brass pointer with a spark gap",
+        "material": "cracked horn",
+        "age": "long-used, the edges worn smooth",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "A jointed brass pointer with a spark gap with fittings of cracked horn, long-used, the edges worn smooth, laid on rumpled undyed linen, the object alone at the centre of the frame, empty unlit background falling to black. Egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. soot black #14100E with molten orange #C4501B and ash grey #6E655C. backlit, the rim burning and the front in shade, shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_druid_book_of_familiar",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "book",
+      "name": "Book of Familiar",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1941343495,
+      "axes": {
+        "subject": "a book grown through with living moss",
+        "material": "blackened silver",
+        "age": "scoured by salt",
+        "light": "a shaft of moonlight across the upper third",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "Paint a book grown through with living moss of blackened silver, scoured by salt, floating unsupported, a few inches above its own shadow. The object alone at the centre of the frame, empty unlit background falling to black. Render it as ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: a shaft of moonlight across the upper third. shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_druid_elemental_bond",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "totem",
+      "name": "Elemental Bond",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1005664167,
+      "axes": {
+        "subject": "a toad-shaped bog-stone weeping fen water",
+        "material": "bone and waxed cord",
+        "age": "buried for a century and only just cleaned",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "grisaille underpainting with a single glazed accent colour"
+      },
+      "prompt": "Paint a toad-shaped bog-stone weeping fen water with fittings of bone and waxed cord, buried for a century and only just cleaned, floating unsupported, a few inches above its own shadow. The object alone at the centre of the frame, empty unlit background falling to black. Render it as grisaille underpainting with a single glazed accent colour. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: museum lighting from the upper left. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_druid_grimoire_of_thorns",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "book",
+      "name": "Grimoire of Thorns",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1824190269,
+      "axes": {
+        "subject": "a chained iron-cornered grimoire",
+        "material": "bone and waxed cord",
+        "age": "scoured by salt",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "Paint a chained iron-cornered grimoire with fittings of bone and waxed cord, scoured by salt, laid on rumpled undyed linen. The object alone at the centre of the frame, empty unlit background falling to black. Render it as heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: museum lighting from the upper left. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_druid_grove_link",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "totem",
+      "name": "Grove Link",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 28689052,
+      "axes": {
+        "subject": "a serpent coil of braided root",
+        "material": "tarnished brass",
+        "age": "burnt along one side",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "set on a scarred workbench of black oak",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "A serpent coil of braided root of tarnished brass, burnt along one side, set on a scarred workbench of black oak, the object alone at the centre of the frame, empty unlit background falling to black. Heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. museum lighting from the upper left, shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_druid_mossheart_totem",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "totem",
+      "name": "Mossheart Totem",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 526981564,
+      "axes": {
+        "subject": "a moth-wing fan of pressed frost",
+        "material": "fired clay and glaze",
+        "age": "cracked and mended with visible staples",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A moth-wing fan of pressed frost of fired clay and glaze, cracked and mended with visible staples, floating unsupported, a few inches above its own shadow, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. backlit, the rim burning and the front in shade, shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_druid_rootbound_crook",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "book",
+      "name": "Rootbound Crook",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 25074883,
+      "axes": {
+        "subject": "a wax tablet diptych",
+        "material": "tarnished brass",
+        "age": "long-used, the edges worn smooth",
+        "light": "a shaft of moonlight across the upper third",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "set on a scarred workbench of black oak",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a wax tablet diptych with fittings of tarnished brass, long-used, the edges worn smooth, set on a scarred workbench of black oak. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: a shaft of moonlight across the upper third. shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_druid_seedbook",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "book",
+      "name": "Seedbook",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1818690172,
+      "axes": {
+        "subject": "a wax tablet diptych",
+        "material": "hammered copper gone green",
+        "age": "salvaged and crudely repaired",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A wax tablet diptych with fittings of hammered copper gone green, salvaged and crudely repaired, laid on rumpled undyed linen, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. cold daylight through a high slot window, shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_druid_sunhollow_idol",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "totem",
+      "name": "Sunhollow Idol",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1465133204,
+      "axes": {
+        "subject": "a serpent coil of braided root",
+        "material": "meteoric iron",
+        "age": "buried for a century and only just cleaned",
+        "light": "a shaft of moonlight across the upper third",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "gouache with visible paper tooth and flat massed shapes"
+      },
+      "prompt": "A serpent coil of braided root of meteoric iron, buried for a century and only just cleaned, laid on rumpled undyed linen, the object alone at the centre of the frame, empty unlit background falling to black. Gouache with visible paper tooth and flat massed shapes. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. a shaft of moonlight across the upper third, macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_druid_thornwake_stave",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "book",
+      "name": "Thornwake Stave",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 471933257,
+      "axes": {
+        "subject": "a scroll case of carved antler",
+        "material": "cold-forged bronze",
+        "age": "salvaged and crudely repaired",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a scroll case of carved antler with fittings of cold-forged bronze, salvaged and crudely repaired, floating unsupported, a few inches above its own shadow. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: backlit, the rim burning and the front in shade. shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_druid_wild_pact",
+      "kind": "artifact_tile",
+      "class": "druid",
+      "slot_pool": "totem",
+      "name": "Wild Pact",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 2018714045,
+      "axes": {
+        "subject": "a corvid skull strung with river pearls",
+        "material": "cold-forged bronze",
+        "age": "long-used, the edges worn smooth",
+        "light": "firelight from below, throwing the top into shadow",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "half-buried in cold ash",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "Paint a corvid skull strung with river pearls with fittings of cold-forged bronze, long-used, the edges worn smooth, half-buried in cold ash. The object alone at the centre of the frame, empty unlit background falling to black. Render it as heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: deep moss #1E2E1C with emerald #2F6B3A and wet bark brown #4A3626. Lighting: firelight from below, throwing the top into shadow. shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_necromancer_blood_chalice",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "ritual_piece",
+      "name": "Blood Chalice",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 359869441,
+      "axes": {
+        "subject": "a knotted fetish of knuckle-bones and horsehair",
+        "material": "tarnished brass",
+        "age": "long-used, the edges worn smooth",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "gouache with visible paper tooth and flat massed shapes"
+      },
+      "prompt": "Paint a knotted fetish of knuckle-bones and horsehair with fittings of tarnished brass, long-used, the edges worn smooth, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as gouache with visible paper tooth and flat massed shapes. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: overcast north light, almost shadowless. shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_necromancer_grinning_skull",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "skull",
+      "name": "Grinning Skull",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 26879851,
+      "axes": {
+        "subject": "a horned beast skull",
+        "material": "meteoric iron",
+        "age": "half-swallowed by corrosion",
+        "light": "a single low candle to one side",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a horned beast skull with fittings of meteoric iron, half-swallowed by corrosion, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: a single low candle to one side. shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_necromancer_plague_idol",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "ritual_piece",
+      "name": "Plague Idol",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1652541330,
+      "axes": {
+        "subject": "a censer trailing green smoke",
+        "material": "cold-forged bronze",
+        "age": "salvaged and crudely repaired",
+        "light": "a single low candle to one side",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "half-buried in cold ash",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "A censer trailing green smoke of cold-forged bronze, salvaged and crudely repaired, half-buried in cold ash, the object alone at the centre of the frame, empty unlit background falling to black. Ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. a single low candle to one side, shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_necromancer_ritual_piece",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "phylactery",
+      "name": "Ritual Fetish",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1427092019,
+      "axes": {
+        "subject": "a wax-sealed reliquary jar",
+        "material": "weathered oak and hide",
+        "age": "buried for a century and only just cleaned",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a wax-sealed reliquary jar with fittings of weathered oak and hide, buried for a century and only just cleaned, floating unsupported, a few inches above its own shadow. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: backlit, the rim burning and the front in shade. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_necromancer_skull",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "grimoire",
+      "name": "Skull",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 87553966,
+      "axes": {
+        "subject": "a rolled vellum necrology in a lead tube",
+        "material": "cold-forged bronze",
+        "age": "salvaged and crudely repaired",
+        "light": "cold daylight through a high slot window",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "half-buried in cold ash",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "A rolled vellum necrology in a lead tube with fittings of cold-forged bronze, salvaged and crudely repaired, half-buried in cold ash, the object alone at the centre of the frame, empty unlit background falling to black. Thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. cold daylight through a high slot window, macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_necromancer_whispering_skull",
+      "kind": "artifact_tile",
+      "class": "necromancer",
+      "slot_pool": "skull",
+      "name": "Whispering Skull",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 438660353,
+      "axes": {
+        "subject": "a horned beast skull",
+        "material": "weathered oak and hide",
+        "age": "long-used, the edges worn smooth",
+        "light": "firelight from below, throwing the top into shadow",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "propped against an unseen edge",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a horned beast skull with fittings of weathered oak and hide, long-used, the edges worn smooth, propped against an unseen edge. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: firelight from below, throwing the top into shadow. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_paladin_banner",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "banner",
+      "name": "Banner of Sunspire",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 991961935,
+      "axes": {
+        "subject": "a hanging heraldic tapestry",
+        "material": "blued steel",
+        "age": "freshly made and unmarked",
+        "light": "firelight from below, throwing the top into shadow",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a hanging heraldic tapestry of blued steel, freshly made and unmarked, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: firelight from below, throwing the top into shadow. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_paladin_dawnbreaker_maul",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "hammer",
+      "name": "Dawnbreaker Maul",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1768196313,
+      "axes": {
+        "subject": "a long-handled war-maul",
+        "material": "cold-forged bronze",
+        "age": "salvaged and crudely repaired",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "half-buried in cold ash",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "Paint a long-handled war-maul of cold-forged bronze, salvaged and crudely repaired, half-buried in cold ash. The object alone at the centre of the frame, empty unlit background falling to black. Render it as ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: overcast north light, almost shadowless. shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_paladin_hammer",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "hammer",
+      "name": "Hammer",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1644595111,
+      "axes": {
+        "subject": "a ceremonial mace with a flanged head",
+        "material": "blackened silver",
+        "age": "scoured by salt",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "half-buried in cold ash",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a ceremonial mace with a flanged head of blackened silver, scoured by salt, half-buried in cold ash. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: overcast north light, almost shadowless. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_paladin_judgement_maul",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "hammer",
+      "name": "Judgement Maul",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1725000386,
+      "axes": {
+        "subject": "a smith's sledge with a burnt haft",
+        "material": "bone and waxed cord",
+        "age": "long-used, the edges worn smooth",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "half-buried in cold ash",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A smith's sledge with a burnt haft of bone and waxed cord, long-used, the edges worn smooth, half-buried in cold ash, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. overcast north light, almost shadowless, shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_paladin_oathkeepers_weight",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "hammer",
+      "name": "Oathkeeper's Weight",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1330327481,
+      "axes": {
+        "subject": "a smith's sledge with a burnt haft",
+        "material": "blackened silver",
+        "age": "burnt along one side",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "lying in shallow still water",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "Paint a smith's sledge with a burnt haft of blackened silver, burnt along one side, lying in shallow still water. The object alone at the centre of the frame, empty unlit background falling to black. Render it as egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: cold daylight through a high slot window. shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_paladin_rallying_standard",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "banner",
+      "name": "Rallying Standard",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1657595739,
+      "axes": {
+        "subject": "a torn cavalry pennant",
+        "material": "bone and waxed cord",
+        "age": "burnt along one side",
+        "light": "museum lighting from the upper left",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "half-buried in cold ash",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a torn cavalry pennant of bone and waxed cord, burnt along one side, half-buried in cold ash. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: museum lighting from the upper left. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_paladin_sanctum_pennant",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "banner",
+      "name": "Sanctum Pennant",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1876791739,
+      "axes": {
+        "subject": "a bronze vexillum with a cast beast crest",
+        "material": "meteoric iron",
+        "age": "salvaged and crudely repaired",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "Paint a bronze vexillum with a cast beast crest with fittings of meteoric iron, salvaged and crudely repaired, floating unsupported, a few inches above its own shadow. The object alone at the centre of the frame, empty unlit background falling to black. Render it as heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: cold daylight through a high slot window. shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_paladin_sunspire_sigil",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "banner",
+      "name": "Sunspire Sigil",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 195127099,
+      "axes": {
+        "subject": "a weathered war flag on a broken spear",
+        "material": "weathered oak and hide",
+        "age": "salvaged and crudely repaired",
+        "light": "a single low candle to one side",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "lying in shallow still water",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "Paint a weathered war flag on a broken spear of weathered oak and hide, salvaged and crudely repaired, lying in shallow still water. The object alone at the centre of the frame, empty unlit background falling to black. Render it as ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: a single low candle to one side. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_paladin_vigil_standard",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "banner",
+      "name": "Vigil Standard",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 875653640,
+      "axes": {
+        "subject": "a bronze vexillum with a cast beast crest",
+        "material": "pitted wrought iron",
+        "age": "burnt along one side",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "set on a scarred workbench of black oak",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "A bronze vexillum with a cast beast crest with fittings of pitted wrought iron, burnt along one side, set on a scarred workbench of black oak, the object alone at the centre of the frame, empty unlit background falling to black. Egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. museum lighting from the upper left, shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_paladin_wardens_hammer",
+      "kind": "artifact_tile",
+      "class": "paladin",
+      "slot_pool": "hammer",
+      "name": "Warden's Hammer",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1755522528,
+      "axes": {
+        "subject": "a stonemason's pick worn to a nub",
+        "material": "weathered oak and hide",
+        "age": "scoured by salt",
+        "light": "overcast north light, almost shadowless",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "propped against an unseen edge",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A stonemason's pick worn to a nub with fittings of weathered oak and hide, scoured by salt, propped against an unseen edge, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. overcast north light, almost shadowless, macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_rogue_dagger_dusk",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Duskfang",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 227393636,
+      "axes": {
+        "subject": "a push-dagger with a knuckle guard",
+        "material": "blued steel",
+        "age": "buried for a century and only just cleaned",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "A push-dagger with a knuckle guard of blued steel, buried for a century and only just cleaned, laid on rumpled undyed linen, the object alone at the centre of the frame, empty unlit background falling to black. Woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. overcast north light, almost shadowless, shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_rogue_dagger_whisper",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Whisperfang",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1533219969,
+      "axes": {
+        "subject": "a glass shard bound in leather cord",
+        "material": "weathered oak and hide",
+        "age": "freshly made and unmarked",
+        "light": "a single low candle to one side",
+        "camera": "macro at f/2, the near edge sharp and the far edge falling away",
+        "ground": "lying in shallow still water",
+        "treatment": "gouache with visible paper tooth and flat massed shapes"
+      },
+      "prompt": "Paint a glass shard bound in leather cord with fittings of weathered oak and hide, freshly made and unmarked, lying in shallow still water. The object alone at the centre of the frame, empty unlit background falling to black. Render it as gouache with visible paper tooth and flat massed shapes. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: a single low candle to one side. macro at f/2, the near edge sharp and the far edge falling away."
+    },
+    {
+      "asset_id": "artf_rogue_gloomblade",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Gloomblade",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 2083181664,
+      "axes": {
+        "subject": "a black-bladed parrying knife",
+        "material": "bone and waxed cord",
+        "age": "burnt along one side",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "A black-bladed parrying knife of bone and waxed cord, burnt along one side, resting on a bare slab of dark stone, the object alone at the centre of the frame, empty unlit background falling to black. Egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. museum lighting from the upper left, shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_rogue_lockpick",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Lockpick",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 844108824,
+      "axes": {
+        "subject": "a curved gutting hook",
+        "material": "fired clay and glaze",
+        "age": "freshly made and unmarked",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "floating unsupported, a few inches above its own shadow",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "A curved gutting hook of fired clay and glaze, freshly made and unmarked, floating unsupported, a few inches above its own shadow, the object alone at the centre of the frame, empty unlit background falling to black. Egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. cold daylight through a high slot window, shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_rogue_poisoners_kiss",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Poisoner's Kiss",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1009414621,
+      "axes": {
+        "subject": "a push-dagger with a knuckle guard",
+        "material": "cold-forged bronze",
+        "age": "half-swallowed by corrosion",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "set on a scarred workbench of black oak",
+        "treatment": "ink and wash with drybrush texture over the darks"
+      },
+      "prompt": "Paint a push-dagger with a knuckle guard of cold-forged bronze, half-swallowed by corrosion, set on a scarred workbench of black oak. The object alone at the centre of the frame, empty unlit background falling to black. Render it as ink and wash with drybrush texture over the darks. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. Lighting: cold daylight through a high slot window. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_rogue_shadowfang",
+      "kind": "artifact_tile",
+      "class": "rogue",
+      "slot_pool": "dagger",
+      "name": "Shadowfang",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1423946036,
+      "axes": {
+        "subject": "a push-dagger with a knuckle guard",
+        "material": "bone and waxed cord",
+        "age": "buried for a century and only just cleaned",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "A push-dagger with a knuckle guard of bone and waxed cord, buried for a century and only just cleaned, resting on a bare slab of dark stone, the object alone at the centre of the frame, empty unlit background falling to black. Thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. bone white #D8CEBB with murky violet #3A2B45 and sickly green #6E7F4A. cold daylight through a high slot window, shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_warrior_duelists_edge",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "sword",
+      "name": "Duelist's Edge",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 748312063,
+      "axes": {
+        "subject": "a slender duelling estoc",
+        "material": "tarnished brass",
+        "age": "burnt along one side",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "propped against an unseen edge",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "Paint a slender duelling estoc of tarnished brass, burnt along one side, propped against an unseen edge. The object alone at the centre of the frame, empty unlit background falling to black. Render it as egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: overcast north light, almost shadowless. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_warrior_executioners_blade",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "sword",
+      "name": "Executioner's Blade",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 429864001,
+      "axes": {
+        "subject": "a slender duelling estoc",
+        "material": "weathered oak and hide",
+        "age": "burnt along one side",
+        "light": "backlit, the rim burning and the front in shade",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "laid on rumpled undyed linen",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a slender duelling estoc of weathered oak and hide, burnt along one side, laid on rumpled undyed linen. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: backlit, the rim burning and the front in shade. shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_warrior_fixture_blade",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "sword",
+      "name": "Fixture Blade",
+      "generator": "flux",
+      "dialect": "prose",
+      "seed": 1974246806,
+      "axes": {
+        "subject": "a broken-tipped longsword",
+        "material": "tarnished brass",
+        "age": "long-used, the edges worn smooth",
+        "light": "cold daylight through a high slot window",
+        "camera": "shot on a 35mm lens at f/8, the object small in a wide dark frame",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "grisaille underpainting with a single glazed accent colour"
+      },
+      "prompt": "A broken-tipped longsword of tarnished brass, long-used, the edges worn smooth, resting on a bare slab of dark stone, the object alone at the centre of the frame, empty unlit background falling to black. Grisaille underpainting with a single glazed accent colour. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. cold daylight through a high slot window, shot on a 35mm lens at f/8, the object small in a wide dark frame."
+    },
+    {
+      "asset_id": "artf_warrior_shield",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "shield",
+      "name": "Shield",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 43762075,
+      "axes": {
+        "subject": "a spiked buckler the size of a dinner plate",
+        "material": "fired clay and glaze",
+        "age": "long-used, the edges worn smooth",
+        "light": "firelight from below, throwing the top into shadow",
+        "camera": "shot on an 85mm lens at f/4, centred, eye-level",
+        "ground": "propped against an unseen edge",
+        "treatment": "heavy impasto oil, the paint standing off the panel"
+      },
+      "prompt": "Paint a spiked buckler the size of a dinner plate of fired clay and glaze, long-used, the edges worn smooth, propped against an unseen edge. The object alone at the centre of the frame, empty unlit background falling to black. Render it as heavy impasto oil, the paint standing off the panel. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: firelight from below, throwing the top into shadow. shot on an 85mm lens at f/4, centred, eye-level."
+    },
+    {
+      "asset_id": "artf_warrior_spiked_buckler",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "shield",
+      "name": "Spiked Buckler",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 2040000301,
+      "axes": {
+        "subject": "a tower shield of riveted planks",
+        "material": "bone and waxed cord",
+        "age": "scoured by salt",
+        "light": "museum lighting from the upper left",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "woodcut-influenced hard contour with a restricted four-value palette"
+      },
+      "prompt": "Paint a tower shield of riveted planks of bone and waxed cord, scoured by salt, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as woodcut-influenced hard contour with a restricted four-value palette. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: museum lighting from the upper left. shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    },
+    {
+      "asset_id": "artf_warrior_sword",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "sword",
+      "name": "Sword",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 871455827,
+      "axes": {
+        "subject": "a slender duelling estoc",
+        "material": "blackened silver",
+        "age": "cracked and mended with visible staples",
+        "light": "a shaft of moonlight across the upper third",
+        "camera": "shot on a 50mm lens at f/2.8, three-quarter view, slightly above",
+        "ground": "lying in shallow still water",
+        "treatment": "thin oil glazes over a warm underpainting, edges melting into shadow"
+      },
+      "prompt": "Paint a slender duelling estoc of blackened silver, cracked and mended with visible staples, lying in shallow still water. The object alone at the centre of the frame, empty unlit background falling to black. Render it as thin oil glazes over a warm underpainting, edges melting into shadow. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: a shaft of moonlight across the upper third. shot on a 50mm lens at f/2.8, three-quarter view, slightly above."
+    },
+    {
+      "asset_id": "artf_warrior_tower_shield",
+      "kind": "artifact_tile",
+      "class": "warrior",
+      "slot_pool": "shield",
+      "name": "Tower Shield",
+      "generator": "gemini-image",
+      "dialect": "instruction",
+      "seed": 1232053973,
+      "axes": {
+        "subject": "a tower shield of riveted planks",
+        "material": "fired clay and glaze",
+        "age": "scoured by salt",
+        "light": "overcast north light, almost shadowless",
+        "camera": "shot on a 135mm lens at f/5.6, tight crop, dead-on",
+        "ground": "resting on a bare slab of dark stone",
+        "treatment": "egg tempera on gessoed panel, fine crosshatched modelling"
+      },
+      "prompt": "Paint a tower shield of riveted planks of fired clay and glaze, scoured by salt, resting on a bare slab of dark stone. The object alone at the centre of the frame, empty unlit background falling to black. Render it as egg tempera on gessoed panel, fine crosshatched modelling. Dark fantasy, dramatic rim light, medieval woodcut influence, painterly edges. Palette: warm gold #C8A04A with pale cream #EFE3C6 and amber #8A5A1E. Lighting: overcast north light, almost shadowless. shot on a 135mm lens at f/5.6, tight crop, dead-on."
+    }
+  ]
+}

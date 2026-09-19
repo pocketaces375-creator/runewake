@@ -173,8 +173,12 @@ def parse_highlight(hl, prefix):
     return None
 
 
-KNOWN_TOKENS = {"card", "cost", "attune", "attune_max", "opponent"}
-TOKEN_RE = re.compile(r"\{([a-z_]+)\}")
+# FABLE-011: artifact_1 / artifact_2 name the player's OWN two Artifacts, so the
+# copy never has to assume a class. The old pattern was [a-z_]+, which does not
+# match a digit — {artifact_1} slipped through unchecked and the sim would not
+# have caught the runner leaving it on screen.
+KNOWN_TOKENS = {"card", "cost", "attune", "attune_max", "opponent", "artifact_1", "artifact_2"}
+TOKEN_RE = re.compile(r"\{([a-z0-9_]+)\}")
 
 
 def render_tokens(text, ctx, beat_id, sim, where):

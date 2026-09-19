@@ -202,4 +202,80 @@ public class OpponentLoadoutTests
                         ArtifactRegistry.StableHash("r1_duel_thornbark"));
         Assert.Equal(14695981039346656037UL, ArtifactRegistry.StableHash(""));
     }
+
+    [Fact]
+    public void EveryClassLoadout_ContainsOnlyThatClassesArtifacts()
+    {
+        // FABLE-011, from a real screenshot: the tutorial put a Warrior's Sword
+        // and Shield in a Battlemage's hands because the script hard-coded them.
+        // An Artifact belongs to a class; nothing may hand a player or an
+        // opponent a kit that is not theirs. This pins BOTH sides.
+        try
+        {
+            LoadAllArtifacts();
+            foreach (var cls in AllClasses())
+            {
+                var pair = ArtifactRegistry.DefaultLoadoutFor(cls);
+                Assert.Equal(2, pair.Length);
+                foreach (var id in pair)
+                {
+                    var def = ArtifactRegistry.Get(id);
+                    Assert.NotNull(def);
+                    Assert.Equal(cls, def!.Class);
+                }
+            }
+        }
+        finally { ArtifactRegistry.Clear(); }
+    }
+
+    [Fact]
+    public void OpponentArtifacts_AlwaysMatch_TheClassTheyAreServedWith()
+    {
+        // The opponent's plates and the opponent's class name are shown side by
+        // side in the duel HUD. If OpponentLoadout ever returned a class that
+        // disagrees with its artifacts, the player would read a Necromancer
+        // carrying a paladin's hammer.
+        try
+        {
+            LoadAllArtifacts();
+            foreach (var playerClass in AllClasses())
+            {
+                var player = ArtifactRegistry.DefaultLoadoutFor(playerClass);
+                foreach (var encounterId in new[] { "r1_duel_wayfarer", "r1_duel_thornbark", "r2_n04" })
+                    for (ulong seed = 0; seed < 24; seed++)
+                    {
+                        var (cls, arts) = ArtifactRegistry.OpponentLoadout(
+                            null, playerClass, player, encounterId, seed);
+                        foreach (var id in arts)
+                        {
+                            var def = ArtifactRegistry.Get(id);
+                            Assert.NotNull(def);
+                            Assert.Equal(cls, def!.Class);
+                        }
+                    }
+            }
+        }
+        finally { ArtifactRegistry.Clear(); }
+    }
+
+    [Fact]
+    public void TutorialScript_DoesNotHardCode_AClassOrItsArtifacts()
+    {
+        // The guided first duel must run with whatever class the player chose.
+        // A non-empty "class" or "artifacts" here is the exact bug that shipped:
+        // Warrior gear on a Battlemage, with the coach naming a sword.
+        var scriptPath = Path.Combine(ContentRoot, "tutorial", "scripts", "first_duel.json");
+        Assert.True(File.Exists(scriptPath), $"tutorial script not found at {scriptPath}");
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(scriptPath));
+        var root = doc.RootElement;
+
+        Assert.True(string.IsNullOrEmpty(root.GetProperty("class").GetString()),
+            "first_duel.json pins a class — the tutorial must use the player's own");
+        Assert.Empty(root.GetProperty("artifacts").EnumerateArray());
+
+        // And the copy must ask for the names rather than spelling them out.
+        string all = File.ReadAllText(scriptPath);
+        foreach (var banned in new[] { "the Sword and the Shield", "Sword and Shield" })
+            Assert.DoesNotContain(banned, all, System.StringComparison.OrdinalIgnoreCase);
+    }
 }

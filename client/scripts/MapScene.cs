@@ -97,6 +97,7 @@ public partial class MapScene : Control
         BuildMap();
         BuildInfoPanel();
         UpdateAllLockStates();
+        SelectNextChallenge();
 
         // ═══ MAP CAPTURE HOOK (--capture-map): select first unlocked node, capture, quit ═══
         if (CampaignContext.CaptureMapScreenshot)
@@ -930,6 +931,34 @@ public partial class MapScene : Control
     private bool IsNodeUnlocked(MapNode node)
     {
         return MapUnlockEvaluator.IsUnlocked(node, CampaignContext.Progression.ClearedNodes);
+    }
+
+    /// <summary>
+    /// FABLE-011: arrive on the map with the next fight already chosen.
+    ///
+    /// Winning a duel and pressing Continue used to drop the player on an
+    /// unselected map with no indication of where to go next — Trikzos's words
+    /// were that it "didn't link me in to the next challenge". The capture hook
+    /// below has always done exactly this selection so screenshots would show a
+    /// highlighted node; a real player never got it. Same rule, run for everyone:
+    /// the first node that is unlocked and not yet cleared.
+    ///
+    /// Selection only. It does not start the duel — choosing when to fight is
+    /// the map's whole job, and skipping it would take a decision away from the
+    /// player rather than saving them one.
+    /// </summary>
+    private void SelectNextChallenge()
+    {
+        if (_region == null || _selectedNodeId != null) return;
+        foreach (var mapNode in _region.Nodes)
+        {
+            if (CampaignContext.Progression.IsNodeCleared(mapNode.Id)) continue;
+            if (!IsNodeUnlocked(mapNode)) continue;
+            GD.Print($"[MapScene] next challenge: {mapNode.Id}");
+            OnNodeSelected(mapNode.Id);
+            return;
+        }
+        GD.Print("[MapScene] no unlocked, uncleared node to pre-select");
     }
 
     private void OnNodeSelected(string nodeId)

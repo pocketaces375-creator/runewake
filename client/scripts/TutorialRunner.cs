@@ -727,11 +727,41 @@ public partial class TutorialRunner : Node
             attuneMax = hud.AttunementMax.ToString();
         }
 
+        // FABLE-011: the player's OWN two Artifacts, by name.
+        //
+        // The tutorial used to name them in the copy — "the Sword and the
+        // Shield" — with the script forcing the Warrior pair to match. That put
+        // a Warrior's kit in a Battlemage's hands: the plates on screen read
+        // Wand and Aura while the coach talked about a sword. An Artifact
+        // belongs to a class and the tutorial has no business overriding that,
+        // so the script now keeps whatever class the player chose and the copy
+        // asks for the names instead of assuming them.
+        string art1 = "your first Artifact", art2 = "your second";
+        var owned = _gsm?.State?.Players[0].ArtifactSlots;
+        if (owned != null)
+        {
+            var names = new List<string>();
+            foreach (var slot in owned)
+            {
+                var id = slot?.Occupant?.CardDefId;
+                if (string.IsNullOrEmpty(id)) continue;
+                var def = ArtifactRegistry.Get(id!);
+                if (def != null && !string.IsNullOrEmpty(def.Name)) names.Add(def.Name);
+            }
+            if (names.Count > 0) art1 = names[0];
+            if (names.Count > 1) art2 = names[1];
+            if (names.Count < 2 && (text.Contains("{artifact_1}") || text.Contains("{artifact_2}")))
+                GD.PrintErr($"[TutorialRunner] beat '{beat?.Id}': copy names Artifacts but the player "
+                            + $"has {names.Count} — check the class loadout");
+        }
+
         var sb = text!
             .Replace("{card}", cardName)
             .Replace("{cost}", cardCost)
             .Replace("{attune_max}", attuneMax)
             .Replace("{attune}", attune)
+            .Replace("{artifact_1}", art1)
+            .Replace("{artifact_2}", art2)
             .Replace("{opponent}", OpponentName);
 
         if (sb.Contains('{'))

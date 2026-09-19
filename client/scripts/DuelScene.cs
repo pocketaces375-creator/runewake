@@ -5573,11 +5573,31 @@ private void ShowGameOverOverlay(int winnerIndex)
         {
             if (fired || !IsInstanceValid(btn)) return;
             fired = true;
-            GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
-            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
-            btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
-            btn.Disabled = true;
-            activate();
+            // FABLE-011: the WHOLE body is guarded. Round three of this bug ended
+            // with the label reading "Continuing…" and the duel still on screen,
+            // which proves the handler ran and then died somewhere with nothing
+            // to show for it — a C# exception inside a Godot signal handler is
+            // swallowed by the engine and the rest of the lambda never runs. On a
+            // phone with no logcat that is indistinguishable from a dead button.
+            // Now any throw paints itself on the panel and un-latches, so the
+            // player can try again and we get the type and message back.
+            try
+            {
+                GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
+                GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+                btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
+                // Deliberately NOT setting btn.Disabled — changing a Button's
+                // disabled state from inside its own press is a needless extra
+                // thing to go wrong, and `fired` already prevents a double fire.
+                activate();
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[DUEL-EXIT] '{label}' threw: {ex}");
+                ShowExitError($"{label} failed: {ex.GetType().Name} — {ex.Message}");
+                fired = false;
+                if (IsInstanceValid(btn)) btn.Text = label;
+            }
         }
 
         btn.Pressed += () => Fire("Pressed");
@@ -5628,31 +5648,90 @@ private void ShowGameOverOverlay(int winnerIndex)
             }
         }
 
-        // Captured now: `this` may be disposed by the time the callback runs.
         var tree = GetTree();
-        var nav = new Godot.Timer
+
+        // FABLE-011: load the scene EXPLICITLY, then swap to the loaded resource.
+        //
+        // ChangeSceneToFile hides the load inside itself and returns Ok long
+        // before the scene is actually built, so "returned Ok and nothing
+        // happened" — exactly what round three produced — tells you nothing at
+        // all. Loading first splits that into two answers we can act on: either
+        // the PackedScene came back null (the scene is the problem) or it did
+        // not (the swap is the problem).
+        //
+        // The one-shot Timer that used to carry this is gone. It was a second
+        // thing that had to work before anything could happen, and it could not
+        // be proven to have fired. ChangeSceneToPacked already defers internally.
+        PackedScene? packed = null;
+        try
+        {
+            packed = ResourceLoader.Load<PackedScene>(scenePath);
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
+        }
+
+        Error err;
+        if (packed != null)
+        {
+            err = tree.ChangeSceneToPacked(packed);
+            GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
+        }
+        else
+        {
+            GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
+            err = tree.ChangeSceneToFile(scenePath);
+            GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
+        }
+
+        if (err != Error.Ok)
+        {
+            GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
+            var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
+            if (fallback != Error.Ok)
+            {
+                GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
+                ShowExitError($"Could not open {scenePath.GetFile()} ({err}).");
+            }
+            return;
+        }
+
+        StartExitWatchdog(scenePath);
+    }
+
+    /// <summary>
+    /// The last place this bug can hide: the call returned Ok and the swap still
+    /// never happened. Nothing downstream reports that, so after a moment we ask
+    /// the tree whether we are still the scene on screen, and if we are, we say so
+    /// where the player can read it.
+    /// </summary>
+    private void StartExitWatchdog(string scenePath)
+    {
+        var tree = GetTree();
+        var watchdog = new Godot.Timer
         {
             OneShot = true,
-            WaitTime = 0.05f,
+            WaitTime = 1.5f,
             ProcessMode = Node.ProcessModeEnum.Always,
         };
-        nav.Timeout += () =>
+        watchdog.Timeout += () =>
         {
-            var err = tree.ChangeSceneToFile(scenePath);
-            if (err != Error.Ok)
+            bool stillHere = IsInstanceValid(this) && tree.CurrentScene == this;
+            if (stillHere)
             {
-                GD.PrintErr($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') failed: {err} — falling back to the title screen");
-                var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
-                if (fallback != Error.Ok)
-                {
-                    GD.PrintErr($"[DUEL-EXIT] fallback to '{MainMenuScenePath}' ALSO failed: {fallback}");
-                    if (IsInstanceValid(this)) ShowExitError($"Could not open {scenePath} ({err}).");
-                }
+                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: still in DuelScene 1.5s after a successful "
+                            + $"scene-change call to '{scenePath}'. The swap was accepted and never happened.");
+                ShowExitError($"Still here 1.5s after loading {scenePath.GetFile()} — tell Fable \"watchdog fired\".");
             }
-            nav.QueueFree();
+            else
+            {
+                GD.Print("[DUEL-EXIT] watchdog: scene changed, all good");
+            }
+            if (GodotObject.IsInstanceValid(watchdog)) watchdog.QueueFree();
         };
-        tree.Root.AddChild(nav);
-        nav.Start();
+        tree.Root.AddChild(watchdog);
+        watchdog.Start();
     }
 
     /// <summary>

@@ -2,12 +2,9 @@
   "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
   "tutorial_id": "first_duel",
   "title": "The Wayfarer",
-  "class": "warrior",
+  "class": "",
   "description": "Guided first duel. Keeps the player's chosen class, relics, deck and the real Wayfarer encounter; scripts only the hands and the opponent's plays so every instruction is always true.",
-  "artifacts": [
-    "artf_warrior_sword",
-    "artf_warrior_shield"
-  ],
+  "artifacts": [],
   "player_deck": [],
   "opponent_deck": [],
   "turns": [
@@ -66,7 +63,7 @@
           "prompt_title": "END TURN",
           "prompt": "Your Student has attacked and your Attunement is spent — {attune} of {attune_max} left. Tap END TURN.",
           "note_title": "YOUR ARTIFACTS",
-          "popup": "The two plates beside your board are your Artifacts — the Sword and the Shield. Never drawn, never paid for, never destroyed. They change your rules for the whole duel."
+          "popup": "The two plates beside your board are your Artifacts — {artifact_1} and {artifact_2}. Never drawn, never paid for, never destroyed. They change your rules for the whole duel."
         }
       ]
     },
@@ -128,8 +125,8 @@
           ],
           "prompt_title": "ATTACK AGAIN",
           "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits {opponent} again.",
-          "note_title": "THE SWORD",
-          "popup": "{opponent}'s Vigor 23 → 21. The Sword lit as you swung: your FIRST attacker each turn gets +1 Attack. You paid nothing for it — an Artifact simply applies, every turn."
+          "note_title": "ARTIFACTS ARE ALWAYS ON",
+          "popup": "{opponent}'s Vigor 23 → 21. Your Artifacts are working already: they apply every turn, for free, for the rest of the duel. Long-press {artifact_1} to read exactly what it does."
         },
         {
           "id": "t2_end",
@@ -222,8 +219,8 @@
           ],
           "prompt_title": "FIGHT A CREATURE",
           "prompt": "A Sprout now blocks your Student's lane. Tap the Student, then tap the Sprout. When creatures fight, BOTH deal their Attack to the other at the same time.",
-          "note_title": "THE SHIELD",
-          "popup": "The Sprout is destroyed — a creature dies when damage reaches its Vigor. Now the Shield: any creature that did NOT attack ends the turn with +1 Vigor. Swing, or hold the line."
+          "note_title": "TWO PLANS",
+          "popup": "The Sprout is destroyed — a creature dies when damage reaches its Vigor. Your two Artifacts reward opposite plans: one pays you for attacking, the other for holding back. Read both."
         },
         {
           "id": "t3_end",
@@ -239,7 +236,7 @@
           "prompt_title": "END TURN",
           "prompt": "That is everything you need. Tap END TURN — from here the duel is yours to win.",
           "note_title": "YOU KNOW THE BASICS",
-          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor. And your Artifacts are always on — the Sword pays you for swinging, the Shield for holding back. {opponent} has two too."
+          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor. And {artifact_1} and {artifact_2} are always on. {opponent} carries two of their own — different ones."
         }
       ]
     },
