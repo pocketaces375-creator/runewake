@@ -171,6 +171,8 @@ if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
     "settings_test_wide:2999:1080"
   )
 
+  CAPTURE_RUN_STARTED=$(date +%s)
+
   for mode_entry in "${MODES[@]}"; do
     mode_name="${mode_entry%%:*}"
     rest="${mode_entry#*:}"
@@ -186,6 +188,35 @@ if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
   # Restore project.godot
   sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "${PROJECT_DIR}/client/project.godot"
   sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "${PROJECT_DIR}/client/project.godot"
+
+  # ── Every mode was asked for; every mode must have produced a file ──
+  # The rm -f above means a capture that crashes or times out leaves a HOLE
+  # rather than the previous run's picture. This check is what turns that
+  # hole into a stopped task instead of a silent pass. Without it, the
+  # screens below get gated, committed and reviewed as if they were current
+  # — which is exactly how a five-day-old title screen was signed off.
+  MISSING_CAPS=()
+  EXPECT_CSV=""
+  for mode_entry in "${MODES[@]}"; do
+    m="${mode_entry%%:*}"
+    EXPECT_CSV+="${m},"
+    [[ -f "${CAPTURE_DIR}/${m}.png" ]] || MISSING_CAPS+=("${m}")
+  done
+  EXPECT_CSV="${EXPECT_CSV%,}"
+  if [[ "${#MISSING_CAPS[@]}" -gt 0 ]]; then
+    fail "captures did not render: ${MISSING_CAPS[*]} — those screens have no current picture, so nothing downstream can honestly judge them"
+  fi
+  ok "all ${#MODES[@]} captures rendered"
+
+  # ── Stamp them, so each PNG can later prove which code drew it ──
+  if [[ -f "${PROJECT_DIR}/tools/capture_stamp.py" ]]; then
+    if python3 "${PROJECT_DIR}/tools/capture_stamp.py" --record \
+         --run-started "${CAPTURE_RUN_STARTED}" --expect "${EXPECT_CSV}"; then
+      ok "captures stamped (artifacts/captures/CAPTURE_STAMP.json)"
+    else
+      fail "capture_stamp rejected this run's captures — see the reason above"
+    fi
+  fi
 
   # Extract layout check failures from capture log and print them
   if [[ -f "${CAPTURE_LOG}" ]]; then

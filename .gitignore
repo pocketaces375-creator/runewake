@@ -28,8 +28,15 @@ venv/
 # Screenshots (generated during testing)
 screenshots/
 
-# Capture artifacts (force-add individual files for commits)
-artifacts/captures/
+# Capture artifacts (force-add individual files for commits).
+# Written as a contents glob rather than a bare directory so the negation
+# below can take effect — git will not re-include a file whose parent
+# DIRECTORY is excluded, but will if the exclusion is on the entries.
+artifacts/captures/*
+# CAPTURE_STAMP.json must be committed: it is the record of which code
+# rendered the captures, and it is worthless if it only exists on the
+# machine that made it. See tools/capture_stamp.py.
+!artifacts/captures/CAPTURE_STAMP.json
 
 # Foreman logs (auto-generated)
 tools/foreman_cron.log

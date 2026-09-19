@@ -231,14 +231,26 @@ fi
 if [ -f "$TOOLS_DIR/regen_captures.sh" ] && [ -f "$TOOLS_DIR/visual_gate.py" ]; then
     # Run visual gate in a subshell so Godot crash cannot kill this process
     VISUAL_OK=false
-    bash "$TOOLS_DIR/regen_captures.sh" 2>&1 || true
-    if python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
+    # A failed capture run used to be swallowed by `|| true` here, which left
+    # the previous run's PNGs on disk and pointed the vision model at
+    # screenshots of older code. A build cannot be judged against pictures of
+    # a different build, so this is now fatal to the check.
+    CAPTURE_RC=0
+    VISUAL_FAIL=""
+    bash "$TOOLS_DIR/regen_captures.sh" 2>&1 || CAPTURE_RC=$?
+    if [ "$CAPTURE_RC" -ne 0 ]; then
+        VISUAL_FAIL="captures could not be regenerated (exit $CAPTURE_RC) — the gate has nothing current to look at. Not shipping."
+    elif [ -f "$TOOLS_DIR/capture_stamp.py" ] && ! python3 "$TOOLS_DIR/capture_stamp.py" --verify 2>&1; then
+        VISUAL_FAIL="captures are not fresh renders of this tree (see capture_stamp output above). Not shipping."
+    elif python3 "$TOOLS_DIR/visual_gate.py" 2>&1; then
         VISUAL_OK=true
+    else
+        VISUAL_FAIL="a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
     fi
     if [ "$VISUAL_OK" = true ]; then
         report PASS "visual_gate: a vision model reviewed every checked screen and found nothing wrong"
     else
-        report FAIL "visual_gate: a vision model found a real visual defect — see artifacts/VISUAL_GATE.json. Not shipping."
+        report FAIL "visual_gate: ${VISUAL_FAIL}"
     fi
 else
     report FAIL "visual_gate not installed (tools/regen_captures.sh or tools/visual_gate.py missing)"
@@ -284,4 +296,9 @@ if [ "$FAIL" -gt 0 ]; then
 fi
 
 
-0
+# A bare `0` used to sit here. Under `set -euo pipefail` (line 5) bash tries
+# to RUN it, fails with "0: command not found", and the script exits 127 —
+# even after printing "0 failed". tools/export_and_verify.sh gates on this
+# script's exit status, so a clean preflight has never once been able to
+# report success. One word, and the gate works again.
+exit 0
