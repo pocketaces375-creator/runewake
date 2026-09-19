@@ -141,97 +141,31 @@ if echo "${CHANGED_FILES}" | grep -qE '^(client/|engine/)'; then
   ok "Asset import complete"
 
   # Capture run log for layout failure extraction
-  CAPTURE_LOG="${PROJECT_DIR}/capture_run.log"
-  : > "${CAPTURE_LOG}"
+    CAPTURE_LOG="${PROJECT_DIR}/capture_run.log"
 
-  # Define capture modes
-  MODES=(
-    "map_test:2316:1080"
-    "map_test_wide:2999:1080"
-    "map_test_r2:2316:1080"
-    "map_test_r2_wide:2999:1080"
-    "duel_test:2316:1080"
-    "duel_test_wide:2999:1080"
-    "duel_test_safe:2316:1080"
-    "duel_test_r2:2316:1080"
-    "choose_path:2316:1080"
-    "choose_path_wide:2999:1080"
-    "victory_overlay:2316:1080"
-    "victory_overlay_wide:2999:1080"
-    "defeat_overlay:2316:1080"
-    "defeat_overlay_wide:2999:1080"
-    "reliquary_test:2316:1080"
-    "reliquary_test_wide:2999:1080"
-    "reliquary_test_all:2316:1080"
-    "reliquary_test_all_wide:2999:1080"
-    "slots_test:2316:1080"
-    "title_test:2316:1080"
-    "title_test_wide:2999:1080"
-    "settings_test:2316:1080"
-    "settings_test_wide:2999:1080"
-  )
+    # Use the shared capture runner instead of the inlined loop — it validates
+    # PNG dimensions (FABLE-008) and stamps the results, so the inlined copy
+    # was a duplicate that could silently produce wrong-size captures.
+    # TASK-CAPTURE-RES-1: regen_captures.sh calls capture_stamp.py --record
+    # internally, so the stamp block below (which was the second stamp) is
+    # dropped — stamping twice would overwrite the first with a second pointer
+    # to the same files, which is harmless but wasteful.
+    bash "${PROJECT_DIR}/tools/regen_captures.sh" 2>&1 | tee "${CAPTURE_LOG}"
 
-  CAPTURE_RUN_STARTED=$(date +%s)
-
-  for mode_entry in "${MODES[@]}"; do
-    mode_name="${mode_entry%%:*}"
-    rest="${mode_entry#*:}"
-    width="${rest%%:*}"
-    height="${rest#*:}"
-
-    echo "  Capturing ${mode_name} (${width}x${height})"
-    sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=${width}|" "${PROJECT_DIR}/client/project.godot"
-    sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=${height}|" "${PROJECT_DIR}/client/project.godot"
-    timeout 600 xvfb-run -a "${GODOT_BIN}" --path "${PROJECT_DIR}/client" -- "--capture=${mode_name}" 2>&1 | tee -a "${CAPTURE_LOG}" || true
-  done
-
-  # Restore project.godot
-  sed -i "s|^window/size/viewport_width=.*|window/size/viewport_width=2316|" "${PROJECT_DIR}/client/project.godot"
-  sed -i "s|^window/size/viewport_height=.*|window/size/viewport_height=1080|" "${PROJECT_DIR}/client/project.godot"
-
-  # ── Every mode was asked for; every mode must have produced a file ──
-  # The rm -f above means a capture that crashes or times out leaves a HOLE
-  # rather than the previous run's picture. This check is what turns that
-  # hole into a stopped task instead of a silent pass. Without it, the
-  # screens below get gated, committed and reviewed as if they were current
-  # — which is exactly how a five-day-old title screen was signed off.
-  MISSING_CAPS=()
-  EXPECT_CSV=""
-  for mode_entry in "${MODES[@]}"; do
-    m="${mode_entry%%:*}"
-    EXPECT_CSV+="${m},"
-    [[ -f "${CAPTURE_DIR}/${m}.png" ]] || MISSING_CAPS+=("${m}")
-  done
-  EXPECT_CSV="${EXPECT_CSV%,}"
-  if [[ "${#MISSING_CAPS[@]}" -gt 0 ]]; then
-    fail "captures did not render: ${MISSING_CAPS[*]} — those screens have no current picture, so nothing downstream can honestly judge them"
-  fi
-  ok "all ${#MODES[@]} captures rendered"
-
-  # ── Stamp them, so each PNG can later prove which code drew it ──
-  if [[ -f "${PROJECT_DIR}/tools/capture_stamp.py" ]]; then
-    if python3 "${PROJECT_DIR}/tools/capture_stamp.py" --record \
-         --run-started "${CAPTURE_RUN_STARTED}" --expect "${EXPECT_CSV}"; then
-      ok "captures stamped (artifacts/captures/CAPTURE_STAMP.json)"
-    else
-      fail "capture_stamp rejected this run's captures — see the reason above"
+    # Extract layout check failures from capture log and print them
+    if [[ -f "${CAPTURE_LOG}" ]]; then
+      LAYOUT_FAILS=$(grep -E '\[VERIFY\] FAIL:' "${CAPTURE_LOG}" || true)
+      LAYOUT_COUNT=$(echo "${LAYOUT_FAILS}" | grep -c 'FAIL' 2>/dev/null || echo 0)
+      if [[ "${LAYOUT_COUNT}" -gt 0 ]]; then
+        echo "  [VERIFY] ${LAYOUT_COUNT} check(s) failed:"
+        echo "${LAYOUT_FAILS}" | sed 's/.*\[VERIFY\] FAIL: /    - /'
+        SUMMARY=$(grep -E '\[VERIFY\] === [0-9]+ check\(s\) failed ===' "${CAPTURE_LOG}" | tail -1)
+        echo "  ${SUMMARY}"
+      fi
+      rm -f "${CAPTURE_LOG}"
     fi
-  fi
 
-  # Extract layout check failures from capture log and print them
-  if [[ -f "${CAPTURE_LOG}" ]]; then
-    LAYOUT_FAILS=$(grep -E '\[VERIFY\] FAIL:' "${CAPTURE_LOG}" || true)
-    LAYOUT_COUNT=$(echo "${LAYOUT_FAILS}" | grep -c 'FAIL' 2>/dev/null || echo 0)
-    if [[ "${LAYOUT_COUNT}" -gt 0 ]]; then
-      echo "  [VERIFY] ${LAYOUT_COUNT} check(s) failed:"
-      echo "${LAYOUT_FAILS}" | sed 's/.*\[VERIFY\] FAIL: /    - /'
-      SUMMARY=$(grep -E '\[VERIFY\] === [0-9]+ check\(s\) failed ===' "${CAPTURE_LOG}" | tail -1)
-      echo "  ${SUMMARY}"
-    fi
-    rm -f "${CAPTURE_LOG}"
-  fi
-
-  CAPTURES_REGENERATED=1
+    CAPTURES_REGENERATED=1
 else
   echo "  No client/engine changes — skipping capture regen"
 fi
