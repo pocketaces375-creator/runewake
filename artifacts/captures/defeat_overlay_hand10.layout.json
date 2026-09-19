@@ -1254,6 +1254,16 @@
       "font_size": 16
     },
     {
+      "path": "DuelScene/@HBoxContainer@89/@PanelContainer@98/ArtPlateE0/@Label@95",
+      "class": "Label",
+      "x": 2751,
+      "y": 223,
+      "w": 60,
+      "h": 14,
+      "mouse_filter": 2,
+      "font_size": 10
+    },
+    {
       "path": "DuelScene/@HBoxContainer@89/@PanelContainer@98/ArtPlateE0/@ColorRect@97",
       "class": "ColorRect",
       "x": 2667,
@@ -1414,7 +1424,17 @@
       "w": 114,
       "h": 45,
       "mouse_filter": 2,
-      "font_size": 16
+      "font_size": 14
+    },
+    {
+      "path": "DuelScene/@HBoxContainer@89/@PanelContainer@107/ArtPlateE1/@Label@104",
+      "class": "Label",
+      "x": 2911,
+      "y": 223,
+      "w": 60,
+      "h": 14,
+      "mouse_filter": 2,
+      "font_size": 10
     },
     {
       "path": "DuelScene/@HBoxContainer@89/@PanelContainer@107/ArtPlateE1/@ColorRect@106",

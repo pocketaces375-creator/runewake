@@ -1,0 +1,1036 @@
+{
+  "captures": {
+    "accept_b_hand_corner_5x.png": {
+      "bytes": 852,
+      "captured_at": 1789084475.475,
+      "height": 80,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 66.9, distinct 0.06",
+      "sha256": "633c5483643a32c8d3657e4f9aae7077b0676d506504b0149be3c1bd71df9365",
+      "width": 80
+    },
+    "accept_b_hand_corner_tl_5x.png": {
+      "bytes": 1092,
+      "captured_at": 1789083885.01,
+      "height": 80,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 73.3, distinct 0.16",
+      "sha256": "34e25a10df0c39409019d8f4eb4e719985c8022f4fe924c8e9ffa6e1008e758b",
+      "width": 80
+    },
+    "accept_c_board_corner_5x.png": {
+      "bytes": 987,
+      "captured_at": 1789084475.475,
+      "height": 70,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 64.0, distinct 0.17",
+      "sha256": "bc8e6e72730015a0b080414985e09bf8516e6d49a9476af57d6afeb245d9dc39",
+      "width": 70
+    },
+    "accept_c_board_corner_tl_5x.png": {
+      "bytes": 1006,
+      "captured_at": 1789083885.011,
+      "height": 70,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 53.0, distinct 0.21",
+      "sha256": "7fd804e5a27ce1b3f63fb72415d0179b0c27d5600fafbc66ad0f99f82f71ccb3",
+      "width": 70
+    },
+    "accept_d_hand_card_true.png": {
+      "bytes": 113392,
+      "captured_at": 1789092920.548,
+      "duplicate_of": [
+        "accept_h_hand_true.png"
+      ],
+      "height": 340,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.2, distinct 0.56",
+      "sha256": "fdb01068497fef6eaf37074d50cc7c18a895988e571309d8378684b9e9813e91",
+      "width": 233
+    },
+    "accept_d_name_band_5x.png": {
+      "bytes": 10001,
+      "captured_at": 1789084475.479,
+      "height": 305,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 35.9, distinct 0.10",
+      "sha256": "f3bec9176db8111da1a0ba60f03bbe3681f40b610bfe839d7bd8983d56775ecb",
+      "width": 1005
+    },
+    "accept_e_board_card_true.png": {
+      "bytes": 89789,
+      "captured_at": 1789092920.557,
+      "height": 292,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 62.0, distinct 0.63",
+      "sha256": "391a1e6c7e74a9604cfe124841500b3442be162927dda2992e162f85fe92aac4",
+      "width": 200
+    },
+    "accept_e_bottom_5x.png": {
+      "bytes": 13680,
+      "captured_at": 1789084475.483,
+      "height": 270,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.1, distinct 0.22",
+      "sha256": "1fcbb2030bf2c057eaf7392683fb7278d6aa5ed29d6072b7173aa0a16223b60c",
+      "width": 1005
+    },
+    "accept_e_bottom_strip_5x.png": {
+      "bytes": 14703,
+      "captured_at": 1789083885.019,
+      "height": 270,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 40.5, distinct 0.25",
+      "sha256": "acc8beabff15c182127e451cca6353fa62bf68f9a2537bf11b167730f1e709d1",
+      "width": 1005
+    },
+    "accept_f_corner_4x.png": {
+      "bytes": 1398,
+      "captured_at": 1789092920.558,
+      "height": 80,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 57.3, distinct 0.15",
+      "sha256": "bf5b95abe9f7f19e3186bfca1fb13cec379cdb05bc13b56fca05dc9e82b99536",
+      "width": 80
+    },
+    "accept_g_name_plate_4x.png": {
+      "bytes": 9442,
+      "captured_at": 1789092920.56,
+      "height": 200,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 38.6, distinct 0.18",
+      "sha256": "ffe707c4cecc643c6ce337b8b6c6ba41ccff8d37fb152000e559b1f5e4843e0f",
+      "width": 676
+    },
+    "accept_h_hand_card_true.png": {
+      "bytes": 118042,
+      "captured_at": 1789083885.032,
+      "height": 340,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.1, distinct 0.59",
+      "sha256": "62203dc452d123c50a00955b5088afd337016fdddfb44b406c61a1249a0b5dd0",
+      "width": 233
+    },
+    "accept_h_hand_true.png": {
+      "bytes": 113392,
+      "captured_at": 1789084475.497,
+      "duplicate_of": [
+        "accept_d_hand_card_true.png"
+      ],
+      "height": 340,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.2, distinct 0.56",
+      "sha256": "fdb01068497fef6eaf37074d50cc7c18a895988e571309d8378684b9e9813e91",
+      "width": 233
+    },
+    "choose_path.png": {
+      "bytes": 1262406,
+      "captured_at": 1789786971.854,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 32.7, distinct 0.11",
+      "sha256": "d09b6630d4aa79c97b75f1448cbea841d062f0b25dcb699d793c84da5a91407d",
+      "width": 2316
+    },
+    "choose_path_wide.png": {
+      "bytes": 1626641,
+      "captured_at": 1789786976.041,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 29.7, distinct 0.10",
+      "sha256": "059d0aaf5d6a4f625fe29d1c1ffb4c743fc2688191fc4561d7e9417956588d78",
+      "width": 2999
+    },
+    "defeat_overlay_hand10.png": {
+      "bytes": 1772676,
+      "captured_at": 1789786998.674,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 8.0, distinct 0.10",
+      "sha256": "4ee3dfd89c48f56be80c3f6b5bb4839fd3996b116453a4c5970935c393361b84",
+      "width": 2999
+    },
+    "duel_breathe_strip.png": {
+      "bytes": 512929,
+      "captured_at": 1789362168.082,
+      "duplicate_of": [
+        "enemy_hand_strip.png"
+      ],
+      "height": 200,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 52.6, distinct 0.58",
+      "sha256": "16fd69868ae028c5a306ee5bf7c38c49a88627ee9074fe9152f1c6e408e9bd2c",
+      "width": 2316
+    },
+    "duel_test_hand10.png": {
+      "bytes": 3440692,
+      "captured_at": 1789786967.721,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 36.5, distinct 0.67",
+      "sha256": "c8525a0ae71eaf18068415433fda31e71deffdedac3d60bbb426363dab1501d2",
+      "width": 2316
+    },
+    "duel_test_hand4.png": {
+      "bytes": 3282497,
+      "captured_at": 1789455602.377,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 45.5, distinct 0.68",
+      "sha256": "86153a81758d8ec117ca703daac6a5825842c5d9fe6a34da39a8cdc54807f243",
+      "width": 2316
+    },
+    "duel_test_safe.png": {
+      "bytes": 3683111,
+      "captured_at": 1789786962.061,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.75",
+      "sha256": "6ec200eaabb783ed29d52883a46f26d56b1a677b3c20b49ce35d982162402e5f",
+      "width": 2316
+    },
+    "enemy_hand_strip.png": {
+      "bytes": 512929,
+      "captured_at": 1789348781.443,
+      "duplicate_of": [
+        "duel_breathe_strip.png"
+      ],
+      "height": 200,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 52.6, distinct 0.58",
+      "sha256": "16fd69868ae028c5a306ee5bf7c38c49a88627ee9074fe9152f1c6e408e9bd2c",
+      "width": 2316
+    },
+    "map_test.png": {
+      "bytes": 3207151,
+      "captured_at": 1789786928.215,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 31.1, distinct 0.61",
+      "sha256": "888f6f7b954b33f67891d6950a82dd197d173db4fa4b1654b7436fc8de97107a",
+      "width": 2316
+    },
+    "map_test_r2.png": {
+      "bytes": 3225629,
+      "captured_at": 1789786939.279,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 31.0, distinct 0.61",
+      "sha256": "28dcd9825ed277a86e67a4e0e94ac0512e37d0c896ef638e6ffee26dc4db13af",
+      "width": 2316
+    },
+    "map_test_r2_wide.png": {
+      "bytes": 3779380,
+      "captured_at": 1789786944.998,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 30.8, distinct 0.63",
+      "sha256": "e22be0bfc73cdba8aa86aee442996dd9eaa8735dc796371bd078d1c519496544",
+      "width": 2999
+    },
+    "map_test_wide.png": {
+      "bytes": 3763825,
+      "captured_at": 1789786933.86,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 31.0, distinct 0.62",
+      "sha256": "825307a4c77c1263ec4dba84ffc19059eb12f48b1f4feb6a5c6c3710813c0b4e",
+      "width": 2999
+    },
+    "reliquary_test.png": {
+      "bytes": 421620,
+      "captured_at": 1789787001.61,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 14.7, distinct 0.10",
+      "sha256": "de1bad1581b254756a5f5745f238169e391c97270218fb16ae43cf164c8f1f14",
+      "width": 2316
+    },
+    "reliquary_test_all.png": {
+      "bytes": 443606,
+      "captured_at": 1789787007.554,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 16.8, distinct 0.09",
+      "sha256": "6cb9a459f26ea9973568a8ca9fca485b62dd707f59cf7db0bf57f50fae04e426",
+      "width": 2316
+    },
+    "reliquary_test_all_wide.png": {
+      "bytes": 481501,
+      "captured_at": 1789787010.594,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 15.5, distinct 0.08",
+      "sha256": "98efdac946fca755dc3415cd59d6994152cb6a5d28c0c37cd6593fe8b24b78eb",
+      "width": 2999
+    },
+    "reliquary_test_wide.png": {
+      "bytes": 716476,
+      "captured_at": 1789787004.528,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 16.4, distinct 0.14",
+      "sha256": "374c5244b8f430ed28ee7794e7164a1d4484b4a4687e27dcca2a825e4f0c7e4f",
+      "width": 2999
+    },
+    "settings_test.png": {
+      "bytes": 61537,
+      "captured_at": 1789787024.776,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 12.2, distinct 0.03",
+      "sha256": "74edfd820486c74a9326a8c8a3d92626eaba654a5b22aa305ccfa287890c3cde",
+      "width": 2316
+    },
+    "settings_test_wide.png": {
+      "bytes": 64399,
+      "captured_at": 1789787027.698,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 10.6, distinct 0.02",
+      "sha256": "1eddbad6c567ee6b4da038c1b671c0c2458c58075b31de089a516581eada2777",
+      "width": 2999
+    },
+    "shot_board.png": {
+      "bytes": 113141,
+      "captured_at": 1789168422.201,
+      "height": 292,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 60.3, distinct 0.74",
+      "sha256": "ca2691a67e0260a8f79f1c66eadaec173a746d865d8373fc9ea0a16fe0872f06",
+      "width": 200
+    },
+    "shot_board_card_1.png": {
+      "bytes": 66221,
+      "captured_at": 1789096167.231,
+      "height": 292,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 83.7, distinct 0.42",
+      "sha256": "6edfb17b0867c409874cee4eac53cfc9655818f6315953bc3f42ca15117ae656",
+      "width": 200
+    },
+    "shot_comparison.png": {
+      "bytes": 474617,
+      "captured_at": 1789158276.984,
+      "height": 680,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.9, distinct 0.51",
+      "sha256": "af4fe670d48e36d0f8ed30cf001dd3c08f7f6a25af6cbe7b9dc8c611d4d119df",
+      "width": 756
+    },
+    "shot_comparison_bake.png": {
+      "bytes": 945287,
+      "captured_at": 1789168422.356,
+      "height": 680,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 35.9, distinct 0.64",
+      "sha256": "41904ba336cab8838d25725e850c7d09c3f4fd47c6db4e118723c5c5c16644ff",
+      "width": 895
+    },
+    "shot_corner.png": {
+      "bytes": 4761,
+      "captured_at": 1789158276.493,
+      "height": 160,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 72.0, distinct 0.13",
+      "sha256": "a4c6edd11faf7f68ae3685d77005ee6c0ad904708cffaceba119ce9af7212a56",
+      "width": 160
+    },
+    "shot_duel_full_half.png": {
+      "bytes": 744162,
+      "captured_at": 1789096167.352,
+      "height": 540,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 65.0, distinct 0.64",
+      "sha256": "25423d236e5a0b5aca5bd7c3b0d590332729be7559b55328d979496d3f057ab7",
+      "width": 1158
+    },
+    "shot_duel_wide_half.png": {
+      "bytes": 761527,
+      "captured_at": 1789096167.544,
+      "height": 432,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 61.8, distinct 0.68",
+      "sha256": "7fbf61fe505106ce3adf908f3887147443e7f244fa7f3b9b3f24cede66cdc56a",
+      "width": 1199
+    },
+    "shot_full.png": {
+      "bytes": 892163,
+      "captured_at": 1789168422.483,
+      "height": 540,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.5, distinct 0.75",
+      "sha256": "e3584a34cad41413cfa9c81b7e4d2fb8941173aaa6a278aeaea31234bf0b0de3",
+      "width": 1158
+    },
+    "shot_hand.png": {
+      "bytes": 157524,
+      "captured_at": 1789168422.188,
+      "height": 340,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 37.5, distinct 0.72",
+      "sha256": "abfc8f972b2811439c9d89ff6f349284b967158bcf0d4c1bb1b4bf61b98e0d8c",
+      "width": 233
+    },
+    "shot_hand_card_Root.png": {
+      "bytes": 64907,
+      "captured_at": 1789096167.222,
+      "height": 340,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 89.0, distinct 0.30",
+      "sha256": "26b0b027371554f931d6503c76e7db791ed5d71d5b78ae66a2069f55976fdae9",
+      "width": 233
+    },
+    "shot_name_plate_close.png": {
+      "bytes": 29631,
+      "captured_at": 1789096167.55,
+      "height": 270,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 59.4, distinct 0.29",
+      "sha256": "4fe0e4ce27fe0f70de3f07d14f5e55a46eadbcb9d5c14bcae6784059c7d070ec",
+      "width": 507
+    },
+    "shot_wide.png": {
+      "bytes": 1368493,
+      "captured_at": 1789168422.748,
+      "height": 540,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.7, distinct 0.76",
+      "sha256": "846b7a70ace40a38769544fe54d8df369f67d3d7a9c24cfb32b540474ae41db2",
+      "width": 1499
+    },
+    "slots_test.png": {
+      "bytes": 7377,
+      "captured_at": 1789787013.309,
+      "duplicate_of": [
+        "slots_test_deleted.png",
+        "slots_test_filled.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": false,
+      "real_detail": "near-flat frame (stddev 0.0 < 6.0)",
+      "sha256": "d77889afa67ccd386b26b81f6593880b87b67f04794337e170e423289f6b48bd",
+      "width": 2316
+    },
+    "slots_test_deleted.png": {
+      "bytes": 7377,
+      "captured_at": 1789787013.502,
+      "duplicate_of": [
+        "slots_test.png",
+        "slots_test_filled.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": false,
+      "real_detail": "near-flat frame (stddev 0.0 < 6.0)",
+      "sha256": "d77889afa67ccd386b26b81f6593880b87b67f04794337e170e423289f6b48bd",
+      "width": 2316
+    },
+    "slots_test_filled.png": {
+      "bytes": 7377,
+      "captured_at": 1789787013.401,
+      "duplicate_of": [
+        "slots_test.png",
+        "slots_test_deleted.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": false,
+      "real_detail": "near-flat frame (stddev 0.0 < 6.0)",
+      "sha256": "d77889afa67ccd386b26b81f6593880b87b67f04794337e170e423289f6b48bd",
+      "width": 2316
+    },
+    "step5_corner_bl_16px_6x.png": {
+      "bytes": 1153,
+      "captured_at": 1789083768.811,
+      "height": 96,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 10.8, distinct 0.04",
+      "sha256": "5a593b4cf0abc3584b0e231173da030d0eb4073753babc3223201979e69a7007",
+      "width": 96
+    },
+    "step5_corner_br_16px_6x.png": {
+      "bytes": 1133,
+      "captured_at": 1789083768.811,
+      "height": 96,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 7.1, distinct 0.03",
+      "sha256": "c68060a60406a71cdadd3a5c927f232fb0189025b9b2520d67673da632da83d8",
+      "width": 96
+    },
+    "step5_corner_tl_16px_6x.png": {
+      "bytes": 1212,
+      "captured_at": 1789083768.81,
+      "height": 96,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 11.2, distinct 0.05",
+      "sha256": "b4f32cb84a08160bcbfd1411620caf1eab7ad543e16a1c02ec0404e6c89cf440",
+      "width": 96
+    },
+    "step5_corner_tr_16px_6x.png": {
+      "bytes": 1119,
+      "captured_at": 1789083768.81,
+      "height": 96,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 6.9, distinct 0.03",
+      "sha256": "7792b21da9eb04b06d77b3622a2f4c34a556899842474a428858bb90220d06f2",
+      "width": 96
+    },
+    "step5_edge_top_16px_6x.png": {
+      "bytes": 8964,
+      "captured_at": 1789083768.813,
+      "height": 96,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 14.9, distinct 0.08",
+      "sha256": "3b77ea05c02ca4dc4313d0abe39e33e9290e5d04ddd821a7913f3b0c1279fd2d",
+      "width": 1182
+    },
+    "title_test.png": {
+      "bytes": 2129484,
+      "captured_at": 1789787017.586,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 29.2, distinct 0.39",
+      "sha256": "6f72e6cef0b01d16827e3f5a896eefc39d557d06f00b8d385c29bd1920fa59a5",
+      "width": 2316
+    },
+    "title_test_wide.png": {
+      "bytes": 2442907,
+      "captured_at": 1789787021.844,
+      "height": 1080,
+      "one_off": false,
+      "real": true,
+      "real_detail": "stddev 29.7, distinct 0.39",
+      "sha256": "353311e23dc7f2261c8e1b915e4656382725b7853c4400a2daac475051c41bb4",
+      "width": 2999
+    },
+    "tutorial_first_duel.png": {
+      "bytes": 3078979,
+      "captured_at": 1789576781.935,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.2, distinct 0.73",
+      "sha256": "54d246a80a75a219a006634404977646ccb7a6399fa8bdf14efe05ee9e77a510",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_attack.png": {
+      "bytes": 3072767,
+      "captured_at": 1789576742.017,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_attack_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.8, distinct 0.66",
+      "sha256": "70406726f9ec0ed1cc1ecfe17db55c2395f6f25861616bb8a7e6443b2918f73d",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_attack_note.png": {
+      "bytes": 3072767,
+      "captured_at": 1789576741.451,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_attack.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.8, distinct 0.66",
+      "sha256": "70406726f9ec0ed1cc1ecfe17db55c2395f6f25861616bb8a7e6443b2918f73d",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_attack_prompt.png": {
+      "bytes": 3186960,
+      "captured_at": 1789576738.972,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.4, distinct 0.70",
+      "sha256": "59aab9faa03977d1f89adf055be9f23879c817cc4dd1b4f248aa7b539e4506b7",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_end.png": {
+      "bytes": 3108353,
+      "captured_at": 1789576746.495,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_end_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 48.1, distinct 0.67",
+      "sha256": "2b2536b7efe8c2b65bf1da38b1abf59e24538e1dce8e2a96715a264bf0fc7bed",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_end_note.png": {
+      "bytes": 3108353,
+      "captured_at": 1789576745.916,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_end.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 48.1, distinct 0.67",
+      "sha256": "2b2536b7efe8c2b65bf1da38b1abf59e24538e1dce8e2a96715a264bf0fc7bed",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_end_prompt.png": {
+      "bytes": 3212758,
+      "captured_at": 1789576743.373,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.1, distinct 0.70",
+      "sha256": "5df56c10d9a0afc516a748b99446968e59d001e69510c7602821945d6d3eff2d",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_summon.png": {
+      "bytes": 3076379,
+      "captured_at": 1789576737.602,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_summon_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.9, distinct 0.66",
+      "sha256": "7e8d41dd454486e8a03f33cfdd4c52ea4f82b601869ad114fc10c3ccae6194f5",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_summon_note.png": {
+      "bytes": 3076379,
+      "captured_at": 1789576737.019,
+      "duplicate_of": [
+        "tutorial_first_duel_t1_t1_summon.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.9, distinct 0.66",
+      "sha256": "7e8d41dd454486e8a03f33cfdd4c52ea4f82b601869ad114fc10c3ccae6194f5",
+      "width": 2316
+    },
+    "tutorial_first_duel_t1_t1_summon_prompt.png": {
+      "bytes": 3160132,
+      "captured_at": 1789576734.473,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 45.3, distinct 0.69",
+      "sha256": "433ed0b5b5f81cb8243b9dac35badb5c0daa784178ae143e213b1cc7c2470ad6",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_attack.png": {
+      "bytes": 3064666,
+      "captured_at": 1789576758.664,
+      "duplicate_of": [
+        "tutorial_first_duel_t2_t2_attack_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.1, distinct 0.66",
+      "sha256": "6f1c52585d26092908d8d06b4fda490d023dc8a737c8ab4ff0e48483f204514c",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_attack_note.png": {
+      "bytes": 3064666,
+      "captured_at": 1789576758.12,
+      "duplicate_of": [
+        "tutorial_first_duel_t2_t2_attack.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.1, distinct 0.66",
+      "sha256": "6f1c52585d26092908d8d06b4fda490d023dc8a737c8ab4ff0e48483f204514c",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_attack_prompt.png": {
+      "bytes": 3071934,
+      "captured_at": 1789576755.621,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.7, distinct 0.69",
+      "sha256": "cdcefb887132638241897441e04b8bddb41365b0de35f29e62ae11dd5e4fb794",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_end_prompt.png": {
+      "bytes": 3241368,
+      "captured_at": 1789576759.985,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.70",
+      "sha256": "8c3e1d58559655637121d89fc83e622c2563d016d7c2f845b5f4cdcf677ba1db",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_summon.png": {
+      "bytes": 2992452,
+      "captured_at": 1789576754.295,
+      "duplicate_of": [
+        "tutorial_first_duel_t2_t2_summon_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.1, distinct 0.66",
+      "sha256": "968eaafebe7ded0ce416dd2550298a69f5fa532dda55041946c063ed14d0e378",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_summon_note.png": {
+      "bytes": 2992452,
+      "captured_at": 1789576753.749,
+      "duplicate_of": [
+        "tutorial_first_duel_t2_t2_summon.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.1, distinct 0.66",
+      "sha256": "968eaafebe7ded0ce416dd2550298a69f5fa532dda55041946c063ed14d0e378",
+      "width": 2316
+    },
+    "tutorial_first_duel_t2_t2_summon_prompt.png": {
+      "bytes": 3195041,
+      "captured_at": 1789576751.276,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 45.4, distinct 0.70",
+      "sha256": "fcf387259d522b1716423ee66dbd1bdd027209bad71e9c9a57c84b8fed84891c",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_face.png": {
+      "bytes": 2981593,
+      "captured_at": 1789576771.061,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_attack_face_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.3, distinct 0.66",
+      "sha256": "fe8da97604a7fa763aca7915380b7447cd507a947a421a3386c47bceb9924acb",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_face_note.png": {
+      "bytes": 2981593,
+      "captured_at": 1789576770.529,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_attack_face.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.3, distinct 0.66",
+      "sha256": "fe8da97604a7fa763aca7915380b7447cd507a947a421a3386c47bceb9924acb",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_face_prompt.png": {
+      "bytes": 2986002,
+      "captured_at": 1789576768.028,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 45.9, distinct 0.70",
+      "sha256": "f2d07d37a54a69b8ef9541deec5d8d9f0d31681a153322623dfaa524c3efa1e7",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_trade.png": {
+      "bytes": 2979921,
+      "captured_at": 1789576775.328,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_attack_trade_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.2, distinct 0.66",
+      "sha256": "a5397f0ae21cd54440db3515e171c96aad5b4e2a6417f2042b5b503c45539a9e",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_trade_note.png": {
+      "bytes": 2979921,
+      "captured_at": 1789576774.797,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_attack_trade.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 47.2, distinct 0.66",
+      "sha256": "a5397f0ae21cd54440db3515e171c96aad5b4e2a6417f2042b5b503c45539a9e",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_attack_trade_prompt.png": {
+      "bytes": 3084530,
+      "captured_at": 1789576772.339,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.69",
+      "sha256": "da8c686006ed73d64fa7df69a7f144ff40d43c4993346cd37631956a6fe85005",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_end.png": {
+      "bytes": 2935552,
+      "captured_at": 1789576779.622,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_end_note.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 48.1, distinct 0.66",
+      "sha256": "0707276406a91c9a8cac9eac728af8be4edddef089549ac713ccd0722cf6cdc5",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_end_note.png": {
+      "bytes": 2935552,
+      "captured_at": 1789576779.1,
+      "duplicate_of": [
+        "tutorial_first_duel_t3_t3_end.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 48.1, distinct 0.66",
+      "sha256": "0707276406a91c9a8cac9eac728af8be4edddef089549ac713ccd0722cf6cdc5",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_end_prompt.png": {
+      "bytes": 3113144,
+      "captured_at": 1789576776.613,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.69",
+      "sha256": "6c3dd73b9dde1a6b21c7ae22a12e27e4f1e58c7dd3f75f5956fb210541c77581",
+      "width": 2316
+    },
+    "tutorial_first_duel_t3_t3_summon_prompt.png": {
+      "bytes": 3106954,
+      "captured_at": 1789576766.724,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.5, distinct 0.70",
+      "sha256": "02620e93936f361302176563d7078fcf2f7973078045206d60653f0f6f55f7d5",
+      "width": 2316
+    },
+    "uxwalk_s01.png": {
+      "bytes": 3410820,
+      "captured_at": 1789775702.624,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "7f966ae1c34d9f78b5a8ca1da69911c9b5a9418ca4a933b0d63fba1d172db3d3",
+      "width": 2316
+    },
+    "uxwalk_s02.png": {
+      "bytes": 3367074,
+      "captured_at": 1789775702.64,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.4, distinct 0.73",
+      "sha256": "dfbaa23bbd44f3cbfa8fc3fc69012f8a339e52590ca80600c1e85650643e3a50",
+      "width": 2316
+    },
+    "uxwalk_s03.png": {
+      "bytes": 3410837,
+      "captured_at": 1789775702.657,
+      "duplicate_of": [
+        "uxwalk_s04.png",
+        "uxwalk_s05.png",
+        "uxwalk_s06.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "width": 2316
+    },
+    "uxwalk_s04.png": {
+      "bytes": 3410837,
+      "captured_at": 1789775702.673,
+      "duplicate_of": [
+        "uxwalk_s03.png",
+        "uxwalk_s05.png",
+        "uxwalk_s06.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "width": 2316
+    },
+    "uxwalk_s05.png": {
+      "bytes": 3410837,
+      "captured_at": 1789775702.688,
+      "duplicate_of": [
+        "uxwalk_s03.png",
+        "uxwalk_s04.png",
+        "uxwalk_s06.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "width": 2316
+    },
+    "uxwalk_s06.png": {
+      "bytes": 3410837,
+      "captured_at": 1789775702.705,
+      "duplicate_of": [
+        "uxwalk_s03.png",
+        "uxwalk_s04.png",
+        "uxwalk_s05.png"
+      ],
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "width": 2316
+    },
+    "uxwalk_s07.png": {
+      "bytes": 3369472,
+      "captured_at": 1789507920.258,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.4, distinct 0.72",
+      "sha256": "fa08d39dce31fe1a633ab98153c66c355e04cccf0f7403c7d6ee77da8785b1c0",
+      "width": 2316
+    },
+    "uxwalk_s08.png": {
+      "bytes": 3374930,
+      "captured_at": 1789507922.559,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.6, distinct 0.73",
+      "sha256": "260dd2e9907f3bb50a2045727c598e5262a1de1349c338a78a92ac76aec8f4b1",
+      "width": 2316
+    },
+    "uxwalk_s09.png": {
+      "bytes": 3375444,
+      "captured_at": 1789775702.721,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.72",
+      "sha256": "fc673d74b1764da59e04ce8d1367e9578009d08125bcd8c69641c43b3fa347e0",
+      "width": 2316
+    },
+    "uxwalk_s10.png": {
+      "bytes": 3372436,
+      "captured_at": 1789775702.737,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.4, distinct 0.72",
+      "sha256": "7556e496c183ab710e75cd0cabfad03b79f4477115e247d9ffac4c131acba699",
+      "width": 2316
+    },
+    "uxwalk_s11.png": {
+      "bytes": 3365888,
+      "captured_at": 1789775702.753,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.73",
+      "sha256": "b725a20c39190edf93d7320c866c58b78317e11445c86c22e9c20eaf38215b10",
+      "width": 2316
+    },
+    "uxwalk_s12.png": {
+      "bytes": 3370633,
+      "captured_at": 1789775702.769,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 46.3, distinct 0.72",
+      "sha256": "ea1342d09af69a4cfbd9e803a9b4cb1c4370a1ae9a0ecda363b81aa2720b9848",
+      "width": 2316
+    },
+    "victory_overlay_hand10.png": {
+      "bytes": 1732986,
+      "captured_at": 1789786987.306,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 9.1, distinct 0.10",
+      "sha256": "668bff76d09abf29aa2e551c03daedc1260241b94c3a9e3f12c1d31a54183537",
+      "width": 2999
+    }
+  },
+  "fingerprint": "f2c6c1339146",
+  "head": "46841f0ba7cdda4f736fbbc853485e0e81fd8568",
+  "pil_available": true,
+  "recorded_at": 1789787037.954,
+  "recorded_at_iso": "2026-09-18T23:03:57-0400",
+  "render_dirs": [
+    "client",
+    "engine",
+    "content"
+  ]
+}
