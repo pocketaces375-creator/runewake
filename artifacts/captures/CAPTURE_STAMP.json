@@ -138,9 +138,9 @@
     },
     "choose_path.png": {
       "bytes": 1262406,
-      "captured_at": 1789786971.854,
+      "captured_at": 1789787703.13,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 32.7, distinct 0.11",
       "sha256": "d09b6630d4aa79c97b75f1448cbea841d062f0b25dcb699d793c84da5a91407d",
@@ -148,9 +148,9 @@
     },
     "choose_path_wide.png": {
       "bytes": 1626641,
-      "captured_at": 1789786976.041,
+      "captured_at": 1789787703.134,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 29.7, distinct 0.10",
       "sha256": "059d0aaf5d6a4f625fe29d1c1ffb4c743fc2688191fc4561d7e9417956588d78",
@@ -158,7 +158,7 @@
     },
     "defeat_overlay_hand10.png": {
       "bytes": 1772676,
-      "captured_at": 1789786998.674,
+      "captured_at": 1789787721.138,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -179,9 +179,19 @@
       "sha256": "16fd69868ae028c5a306ee5bf7c38c49a88627ee9074fe9152f1c6e408e9bd2c",
       "width": 2316
     },
+    "duel_test.png": {
+      "bytes": 3545645,
+      "captured_at": 1789787703.153,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 45.5, distinct 0.73",
+      "sha256": "d4ebd65eb8f4c30341aa7f71827ed3355302be297cf88042b9b30aa3b3368ba6",
+      "width": 2316
+    },
     "duel_test_hand10.png": {
       "bytes": 3440692,
-      "captured_at": 1789786967.721,
+      "captured_at": 1789787703.166,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -199,11 +209,21 @@
       "sha256": "86153a81758d8ec117ca703daac6a5825842c5d9fe6a34da39a8cdc54807f243",
       "width": 2316
     },
+    "duel_test_r2.png": {
+      "bytes": 3786016,
+      "captured_at": 1789787703.18,
+      "height": 1080,
+      "one_off": true,
+      "real": true,
+      "real_detail": "stddev 39.0, distinct 0.72",
+      "sha256": "945f9646d586d987fd2b1914459afce36f5abf873aa2ee93d139a5f610be6769",
+      "width": 2316
+    },
     "duel_test_safe.png": {
       "bytes": 3683111,
-      "captured_at": 1789786962.061,
+      "captured_at": 1789787703.2,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 46.3, distinct 0.75",
       "sha256": "6ec200eaabb783ed29d52883a46f26d56b1a677b3c20b49ce35d982162402e5f",
@@ -224,9 +244,9 @@
     },
     "map_test.png": {
       "bytes": 3207151,
-      "captured_at": 1789786928.215,
+      "captured_at": 1789787703.211,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 31.1, distinct 0.61",
       "sha256": "888f6f7b954b33f67891d6950a82dd197d173db4fa4b1654b7436fc8de97107a",
@@ -234,9 +254,9 @@
     },
     "map_test_r2.png": {
       "bytes": 3225629,
-      "captured_at": 1789786939.279,
+      "captured_at": 1789787703.22,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 31.0, distinct 0.61",
       "sha256": "28dcd9825ed277a86e67a4e0e94ac0512e37d0c896ef638e6ffee26dc4db13af",
@@ -244,9 +264,9 @@
     },
     "map_test_r2_wide.png": {
       "bytes": 3779380,
-      "captured_at": 1789786944.998,
+      "captured_at": 1789787703.228,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 30.8, distinct 0.63",
       "sha256": "e22be0bfc73cdba8aa86aee442996dd9eaa8735dc796371bd078d1c519496544",
@@ -254,9 +274,9 @@
     },
     "map_test_wide.png": {
       "bytes": 3763825,
-      "captured_at": 1789786933.86,
+      "captured_at": 1789787703.236,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 31.0, distinct 0.62",
       "sha256": "825307a4c77c1263ec4dba84ffc19059eb12f48b1f4feb6a5c6c3710813c0b4e",
@@ -264,9 +284,9 @@
     },
     "reliquary_test.png": {
       "bytes": 421620,
-      "captured_at": 1789787001.61,
+      "captured_at": 1789787724.068,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 14.7, distinct 0.10",
       "sha256": "de1bad1581b254756a5f5745f238169e391c97270218fb16ae43cf164c8f1f14",
@@ -274,9 +294,9 @@
     },
     "reliquary_test_all.png": {
       "bytes": 443606,
-      "captured_at": 1789787007.554,
+      "captured_at": 1789787730.057,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 16.8, distinct 0.09",
       "sha256": "6cb9a459f26ea9973568a8ca9fca485b62dd707f59cf7db0bf57f50fae04e426",
@@ -284,9 +304,9 @@
     },
     "reliquary_test_all_wide.png": {
       "bytes": 481501,
-      "captured_at": 1789787010.594,
+      "captured_at": 1789787733.137,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 15.5, distinct 0.08",
       "sha256": "98efdac946fca755dc3415cd59d6994152cb6a5d28c0c37cd6593fe8b24b78eb",
@@ -294,9 +314,9 @@
     },
     "reliquary_test_wide.png": {
       "bytes": 716476,
-      "captured_at": 1789787004.528,
+      "captured_at": 1789787726.993,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 16.4, distinct 0.14",
       "sha256": "374c5244b8f430ed28ee7794e7164a1d4484b4a4687e27dcca2a825e4f0c7e4f",
@@ -304,9 +324,9 @@
     },
     "settings_test.png": {
       "bytes": 61537,
-      "captured_at": 1789787024.776,
+      "captured_at": 1789787747.193,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 12.2, distinct 0.03",
       "sha256": "74edfd820486c74a9326a8c8a3d92626eaba654a5b22aa305ccfa287890c3cde",
@@ -314,9 +334,9 @@
     },
     "settings_test_wide.png": {
       "bytes": 64399,
-      "captured_at": 1789787027.698,
+      "captured_at": 1789787750.137,
       "height": 1080,
-      "one_off": false,
+      "one_off": true,
       "real": true,
       "real_detail": "stddev 10.6, distinct 0.02",
       "sha256": "1eddbad6c567ee6b4da038c1b671c0c2458c58075b31de089a516581eada2777",
@@ -444,7 +464,7 @@
     },
     "slots_test.png": {
       "bytes": 7377,
-      "captured_at": 1789787013.309,
+      "captured_at": 1789787735.679,
       "duplicate_of": [
         "slots_test_deleted.png",
         "slots_test_filled.png"
@@ -458,7 +478,7 @@
     },
     "slots_test_deleted.png": {
       "bytes": 7377,
-      "captured_at": 1789787013.502,
+      "captured_at": 1789787735.875,
       "duplicate_of": [
         "slots_test.png",
         "slots_test_filled.png"
@@ -472,7 +492,7 @@
     },
     "slots_test_filled.png": {
       "bytes": 7377,
-      "captured_at": 1789787013.401,
+      "captured_at": 1789787735.774,
       "duplicate_of": [
         "slots_test.png",
         "slots_test_deleted.png"
@@ -535,24 +555,24 @@
       "width": 1182
     },
     "title_test.png": {
-      "bytes": 2129484,
-      "captured_at": 1789787017.586,
+      "bytes": 2302203,
+      "captured_at": 1789794073.271,
       "height": 1080,
       "one_off": false,
       "real": true,
-      "real_detail": "stddev 29.2, distinct 0.39",
-      "sha256": "6f72e6cef0b01d16827e3f5a896eefc39d557d06f00b8d385c29bd1920fa59a5",
+      "real_detail": "stddev 29.9, distinct 0.40",
+      "sha256": "04c7cdfc0b68f9f6daf7df8611f5642755e1b11730406f903d55022dce9d121d",
       "width": 2316
     },
     "title_test_wide.png": {
-      "bytes": 2442907,
-      "captured_at": 1789787021.844,
+      "bytes": 2301962,
+      "captured_at": 1789794084.671,
       "height": 1080,
       "one_off": false,
       "real": true,
-      "real_detail": "stddev 29.7, distinct 0.39",
-      "sha256": "353311e23dc7f2261c8e1b915e4656382725b7853c4400a2daac475051c41bb4",
-      "width": 2999
+      "real_detail": "stddev 29.9, distinct 0.40",
+      "sha256": "67f93cd640e6e4627552e37c09ed19c30158589ea44af26e7020e17b57c4df3b",
+      "width": 2316
     },
     "tutorial_first_duel.png": {
       "bytes": 3078979,
@@ -1014,7 +1034,7 @@
     },
     "victory_overlay_hand10.png": {
       "bytes": 1732986,
-      "captured_at": 1789786987.306,
+      "captured_at": 1789787709.768,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -1023,11 +1043,11 @@
       "width": 2999
     }
   },
-  "fingerprint": "f2c6c1339146",
-  "head": "46841f0ba7cdda4f736fbbc853485e0e81fd8568",
+  "fingerprint": "0892dabf5c93",
+  "head": "316a036e50791298b05d9863aa76584f75b3d4ae",
   "pil_available": true,
-  "recorded_at": 1789787037.954,
-  "recorded_at_iso": "2026-09-18T23:03:57-0400",
+  "recorded_at": 1789794091.512,
+  "recorded_at_iso": "2026-09-19T01:01:31-0400",
   "render_dirs": [
     "client",
     "engine",
