@@ -109,7 +109,7 @@ fi
 
 # ── Step 5: Diff check for client/engine changes ──
 # A1: Find newest commit NOT part of this task (works whether or not pushed)
-BASE_SHA=$(git log --format='%H %s' -100 | grep -vE "^[0-9a-f]+ ${TASK_ID}[: ]" | head -1 | cut -d' ' -f1)
+BASE_SHA=$(git log --format='%H %s' -100 | grep -vE "^[0-9a-f]+ ${TASK_ID}[: ]" | head -1 | cut -d' ' -f1 || echo "")
 if [[ -z "${BASE_SHA}" ]]; then
   # A2: if BASE_SHA is empty, treat as changed — never silently skip
   BASE_SHA=$(git rev-parse HEAD~1 2>/dev/null || echo "")
