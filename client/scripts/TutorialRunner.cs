@@ -887,6 +887,27 @@ public partial class TutorialRunner : Node
             return null;
         }
 
+        // FABLE-010: the Artifact plates.
+        //   "player_artifact_0" / "_1"   one plate
+        //   "player_artifacts"           the first plate (the coach frames one thing)
+        //   "enemy_artifacts"            the opponent's first plate
+        // Artifacts are the game's flagship mechanic and the tutorial never once
+        // pointed at them, so there was no highlight id for them either.
+        if (id.StartsWith("player_artifact") || id.StartsWith("enemy_artifact"))
+        {
+            bool mine = id.StartsWith("player_");
+            var plates = mine ? _duelScene.TutorialPlayerArtifactPlates
+                              : _duelScene.TutorialEnemyArtifactPlates;
+            int idx = 0;
+            int us = id.LastIndexOf('_');
+            if (us >= 0 && int.TryParse(id.AsSpan(us + 1), out int parsed)) idx = parsed;
+            if (plates != null && idx >= 0 && idx < plates.Length
+                && plates[idx] != null && GodotObject.IsInstanceValid(plates[idx]))
+                return plates[idx];
+            GD.PrintErr($"[TutorialRunner] Highlight '{id}': artifact plate {idx} not available");
+            return null;
+        }
+
         // End Turn button
         if (id == "end_turn_button")
         {

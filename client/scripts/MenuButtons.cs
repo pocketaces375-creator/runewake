@@ -29,35 +29,103 @@ public static class MenuButtons
     private const int PadX = 18;
     private const int PadY = 16;
 
-    private static StyleBoxFlat Plate(Color face, Color edge, int border, int shadow, int lift)
+    private const int TexSize = 72;      // nine-patch source
+    private const int TexMargin = 22;    // corner size kept unstretched
+
+    /// <summary>
+    /// FABLE-010: draw the plate rather than describe it.
+    ///
+    /// StyleBoxFlat can do a flat fill, one border colour and a drop shadow, and
+    /// that is the whole vocabulary — so a "carved" plate made from one is really
+    /// a rounded rectangle with a line round it. Cut stone reads as carved
+    /// because of what happens in the first few pixels inside the edge: light
+    /// catching along the top lip, shadow pooling along the bottom, the face
+    /// falling off as it recedes. That needs a gradient and two inner bevels,
+    /// which means a texture.
+    ///
+    /// So this paints a nine-patch by hand — 72x72, corners fixed, middle
+    /// stretched — and hands it to a StyleBoxTexture. Generated at startup from
+    /// a few hundred lines of arithmetic: no new asset bytes, and no shader that
+    /// can quietly fail to compile the way FABLE-007's did.
+    /// </summary>
+    private static ImageTexture PlateTexture(Color faceTop, Color faceBottom, Color rim, float rimWidth)
     {
-        return new StyleBoxFlat
+        int n = TexSize;
+        var img = Image.CreateEmpty(n, n, false, Image.Format.Rgba8);
+        float half = n / 2f, radius = 13f;
+        var rng = new RandomNumberGenerator { Seed = 7717 };
+
+        for (int y = 0; y < n; y++)
         {
-            BgColor = face,
-            BorderColor = edge,
-            BorderWidthLeft = border,
-            BorderWidthRight = border,
-            BorderWidthTop = border,
-            BorderWidthBottom = border,
-            CornerRadiusTopLeft = Radius,
-            CornerRadiusTopRight = Radius,
-            CornerRadiusBottomLeft = Radius,
-            CornerRadiusBottomRight = Radius,
+            for (int x = 0; x < n; x++)
+            {
+                // Distance inside a rounded rectangle: positive inwards.
+                float qx = Mathf.Max(Mathf.Abs(x + 0.5f - half) - (half - radius), 0f);
+                float qy = Mathf.Max(Mathf.Abs(y + 0.5f - half) - (half - radius), 0f);
+                float inside = radius - Mathf.Sqrt(qx * qx + qy * qy);
+
+                if (inside <= -1f)
+                {
+                    img.SetPixel(x, y, new Color(0, 0, 0, 0));
+                    continue;
+                }
+
+                float t = Mathf.Clamp(y / (float)(n - 1), 0f, 1f);
+                var c = faceTop.Lerp(faceBottom, t * t * 0.85f + t * 0.15f);
+
+                // Stone grain — just enough to stop the face reading as plastic.
+                float grain = (rng.Randf() - 0.5f) * 0.022f;
+                c = new Color(c.R + grain, c.G + grain, c.B + grain, 1f);
+
+                // Light along the top lip, shadow pooling at the bottom.
+                bool upper = y < n / 2;
+                float lip = Mathf.Clamp((4.5f - inside) / 4.5f, 0f, 1f);
+                if (inside < 4.5f && inside > 0f)
+                {
+                    if (upper) c = c.Lerp(new Color(0.62f, 0.55f, 0.40f), lip * 0.45f);
+                    else c = c.Lerp(new Color(0.05f, 0.04f, 0.03f), lip * 0.55f);
+                }
+
+                // The keyline itself.
+                if (inside < rimWidth)
+                {
+                    float k = Mathf.Clamp(inside / rimWidth, 0f, 1f);
+                    c = c.Lerp(rim, 1f - k * 0.35f);
+                }
+
+                float alpha = Mathf.Clamp(inside + 1f, 0f, 1f);   // one soft pixel of AA
+                img.SetPixel(x, y, new Color(c.R, c.G, c.B, alpha));
+            }
+        }
+        return ImageTexture.CreateFromImage(img);
+    }
+
+    private static StyleBox Plate(Color faceTop, Color faceBottom, Color rim, float rimWidth)
+    {
+        var box = new StyleBoxTexture
+        {
+            Texture = PlateTexture(faceTop, faceBottom, rim, rimWidth),
             ContentMarginLeft = PadX,
             ContentMarginRight = PadX,
             ContentMarginTop = PadY,
             ContentMarginBottom = PadY,
-            ShadowColor = new Color(0f, 0f, 0f, 0.55f),
-            ShadowSize = shadow,
-            ShadowOffset = new Vector2(0, lift),
         };
+        box.SetTextureMargin(Side.Left, TexMargin);
+        box.SetTextureMargin(Side.Right, TexMargin);
+        box.SetTextureMargin(Side.Top, TexMargin);
+        box.SetTextureMargin(Side.Bottom, TexMargin);
+        return box;
     }
 
-    public static StyleBoxFlat Normal() => Plate(FaceNormal, EdgeNormal, 2, 10, 4);
-    public static StyleBoxFlat Hover() => Plate(FaceHover, EdgeHover, 2, 14, 5);
+    public static StyleBox Normal() =>
+        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#221D19"), EdgeNormal, 2.6f);
 
-    /// <summary>Pressed: shadow almost gone and no offset, so the plate sinks in.</summary>
-    public static StyleBoxFlat Pressed() => Plate(FacePressed, EdgePressed, 2, 3, 1);
+    public static StyleBox Hover() =>
+        Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.2f);
+
+    /// <summary>Pressed: the face darkens and the lip loses its light, so it sinks.</summary>
+    public static StyleBox Pressed() =>
+        Plate(Color.FromHtml("#1E1A16"), Color.FromHtml("#2C2621"), EdgePressed, 2.6f);
 
     /// <summary>
     /// Give a button its hover/press feel.

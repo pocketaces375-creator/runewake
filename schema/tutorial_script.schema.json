@@ -175,7 +175,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "description": "UI element key to highlight (e.g. 'hand_card_0', 'lane_2', 'enemy_lane_2', 'end_turn_button', 'attunement_meter', 'artifact_sword'). 'attunement_meter' also switches on the coach's live ATTUNEMENT readout line."
+            "description": "UI element key to highlight (e.g. 'hand_card_0', 'lane_2', 'enemy_lane_2', 'end_turn_button', 'attunement_meter', 'player_artifact_0', 'player_artifact_1', 'enemy_artifact_0'). 'attunement_meter' also switches on the coach's live ATTUNEMENT readout line. player_artifact_N / enemy_artifact_N frame an Artifact plate — FABLE-010."
           },
           "maxItems": 3,
           "description": "UI elements to highlight before the player acts (guides attention)."

@@ -2,9 +2,12 @@
   "$schema": "https://runewake.game/schema/tutorial_script.schema.json",
   "tutorial_id": "first_duel",
   "title": "The Wayfarer",
-  "class": "",
+  "class": "warrior",
   "description": "Guided first duel. Keeps the player's chosen class, relics, deck and the real Wayfarer encounter; scripts only the hands and the opponent's plays so every instruction is always true.",
-  "artifacts": [],
+  "artifacts": [
+    "artf_warrior_sword",
+    "artf_warrior_shield"
+  ],
   "player_deck": [],
   "opponent_deck": [],
   "turns": [
@@ -54,15 +57,16 @@
           "trigger_event": "END_TURN",
           "highlight": [
             "end_turn_button",
-            "attunement_meter"
+            "player_artifact_0",
+            "player_artifact_1"
           ],
           "restrict_actions_to": [
             "END_TURN"
           ],
           "prompt_title": "END TURN",
           "prompt": "Your Student has attacked and your Attunement is spent — {attune} of {attune_max} left. Tap END TURN.",
-          "note_title": "THE ENEMY MOVES",
-          "popup": "{opponent} takes a turn now. Watch what they do."
+          "note_title": "YOUR ARTIFACTS",
+          "popup": "The two plates beside your board are your Artifacts — the Sword and the Shield. Never drawn, never paid for, never destroyed. They change your rules for the whole duel."
         }
       ]
     },
@@ -116,15 +120,16 @@
           "trigger_event": "ATTACK_WITH_CREATURE",
           "highlight": [
             "lane_3",
-            "enemy_lane_3"
+            "enemy_lane_3",
+            "player_artifact_0"
           ],
           "restrict_actions_to": [
             "ATTACK_LANE_3"
           ],
           "prompt_title": "ATTACK AGAIN",
           "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits {opponent} again.",
-          "note_title": "ONCE PER TURN",
-          "popup": "{opponent}'s Vigor 23 → 21. Every creature attacks once per turn, and only into the lane straight ahead of it."
+          "note_title": "THE SWORD",
+          "popup": "{opponent}'s Vigor 23 → 21. The Sword lit as you swung: your FIRST attacker each turn gets +1 Attack. You paid nothing for it — an Artifact simply applies, every turn."
         },
         {
           "id": "t2_end",
@@ -209,21 +214,24 @@
           "trigger_event": "ATTACK_WITH_CREATURE",
           "highlight": [
             "lane_3",
-            "enemy_lane_3"
+            "enemy_lane_3",
+            "player_artifact_1"
           ],
           "restrict_actions_to": [
             "ATTACK_LANE_3"
           ],
           "prompt_title": "FIGHT A CREATURE",
           "prompt": "A Sprout now blocks your Student's lane. Tap the Student, then tap the Sprout. When creatures fight, BOTH deal their Attack to the other at the same time.",
-          "note_title": "EVERY FIGHT CUTS BOTH WAYS",
-          "popup": "The Sprout is destroyed. Check whether your Student survived — a creature dies when damage reaches its Vigor. Trade wisely."
+          "note_title": "THE SHIELD",
+          "popup": "The Sprout is destroyed — a creature dies when damage reaches its Vigor. Now the Shield: any creature that did NOT attack ends the turn with +1 Vigor. Swing, or hold the line."
         },
         {
           "id": "t3_end",
           "trigger_event": "END_TURN",
           "highlight": [
-            "end_turn_button"
+            "end_turn_button",
+            "player_artifact_0",
+            "player_artifact_1"
           ],
           "restrict_actions_to": [
             "END_TURN"
@@ -231,7 +239,7 @@
           "prompt_title": "END TURN",
           "prompt": "That is everything you need. Tap END TURN — from here the duel is yours to win.",
           "note_title": "YOU KNOW THE BASICS",
-          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor; blocked lanes trade blows. Long-press any card to read it. Now finish {opponent}."
+          "popup": "Summon with Attunement. Attack straight across. Open lanes hit Vigor. And your Artifacts are always on — the Sword pays you for swinging, the Shield for holding back. {opponent} has two too."
         }
       ]
     },

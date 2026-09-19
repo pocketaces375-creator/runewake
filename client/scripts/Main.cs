@@ -149,12 +149,17 @@ public partial class Main : Control
         // built below. Costs no asset bytes — see TitleAtmosphere.
         TitleAtmosphere.Attach(this, heroArt);
 
-        // ——— Dark scrim behind title text for readability ———
-        var scrim = new ColorRect
+        // ——— Soft pool of shade behind the title, for readability ———
+        // FABLE-010: this was a hard-edged ColorRect — a black bar ruled straight
+        // across the columns, and the first thing your eye found on the screen.
+        // Same job, done with a radial gradient that has no edge to notice.
+        var scrim = new TextureRect
         {
-            Color = new Color(0.05f, 0.03f, 0.01f, 0.55f),  // very dark brown, 55% opaque
-            AnchorLeft = 0.15f, AnchorRight = 0.85f,
-            AnchorTop = 0.06f, AnchorBottom = 0.30f,
+            Texture = TitleAtmosphere.MakeTitleShadeTexture(),
+            StretchMode = TextureRect.StretchModeEnum.Scale,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            AnchorLeft = 0.04f, AnchorRight = 0.96f,
+            AnchorTop = 0.00f, AnchorBottom = 0.40f,
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(scrim);

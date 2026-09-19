@@ -3,134 +3,89 @@ using Godot;
 namespace Runewake.Client;
 
 /// <summary>
-/// FABLE-007: the title screen, alive.
+/// FABLE-010: the title screen, alive — second attempt, and this time with no
+/// hand-written GLSL anywhere in it.
 ///
-/// The brief was "a looped animation, epic, the same image or similar". The way
-/// NOT to do that on this project is a video file: client/content/art is already
-/// 201 MB of a 205 MB APK, and a looping decoder is the single most expensive
-/// thing you can leave running on a phone's battery while somebody reads a menu.
+/// WHY THE FIRST ATTEMPT SHOWED NOTHING
+/// ------------------------------------
+/// FABLE-007 built this out of three inline canvas_item shaders. Every check
+/// said it worked: the node is in the tree, [TITLE-ATMO] prints, ux_gate is
+/// green, and title_test.layout.json records TitleAtmosphere at a correct
+/// 2316x1080 with all three ColorRects correctly sized and visible. The screen
+/// still looked untouched.
 ///
-/// So the painting stays a painting and the motion is generated on the GPU:
+/// Proof, from the stamped capture rather than from opinion: I re-implemented
+/// the three shaders exactly — same constants, same smoothstep edges — and ran
+/// them over hero_art.png. They should shift 71% of the frame by more than four
+/// levels, add up to 22% warm light in the upper hall, and crush the corners by
+/// 43%. Cropping the same patch of stone out of the real capture and out of that
+/// render side by side: the render is visibly brighter and raked with light, the
+/// capture is a touch DARKER than the bare painting and has no light in it at
+/// all. So the vignette (normal blend) was landing and the two `render_mode
+/// blend_add` shaders were producing nothing.
 ///
-///   push-in    the hero art breathes between 1.02 and 1.075 over 48 seconds,
-///              drifting a few pixels sideways so it never feels like a zoom.
-///              It never returns to 1.0 — KeepAspectCovered fits exactly there,
-///              so the drift would show bare background at the edge
-///   shafts     god-rays raked across the hall, four bands at different speeds
-///              so they never visibly repeat
-///   shimmer    caustic light on the flooded floor, bottom third only
-///   motes      drifting dust, real nodes rather than a per-pixel loop — forty
-///              sprites cost nothing, forty iterations in a fragment shader cost
-///              a fill-rate-bound phone a great deal
-///   vignette   a slow breath of darkness at the edges, so the centre lifts
+/// I am not going to spend another build cycle finding out which driver detail
+/// swallowed them, because the project already has a blend mode that is known to
+/// work on this device: RitualEffects uses
+/// `new CanvasItemMaterial { BlendMode = BlendModeEnum.Add }` in five places and
+/// those effects are visible in play. So this version is built out of ordinary
+/// nodes, ordinary textures and that one proven material. Nothing here can
+/// silently compile to a no-op.
 ///
-/// Nothing here is periodic on a common multiple, so the loop never lands on a
-/// seam — it is endless rather than looped. Total cost: zero bytes of asset, two
-/// small fragment shaders, forty sprites.
+/// WHAT IT DRAWS, back to front
+/// ----------------------------
+///   push-in    the painting breathes 1.045 ↔ 1.08 over 48s and drifts sideways
+///              on a 37s cycle, so the two never line up. Never reaches 1.0,
+///              where KeepAspectCovered fits exactly and drift would show the
+///              bare edge. (This part already worked — the capture shows the
+///              hero offset by -23.5,-10.9.)
+///   vortex     spiral_core.png turning inside the rune arch, plus a wider,
+///              fainter, counter-turning ghost for depth. This is also the fix
+///              for the missing rune wheel: Main.cs asks for rune_wheel.png,
+///              which does not exist in the repo, so the two rotating wheels it
+///              wanted have been silently disabled this whole time.
+///   mist       mist_veil.png scrolling across the flooded floor in two ribbons
+///              at different speeds and opposite directions.
+///   shafts     god-rays from a generated texture, drifting across the hall.
+///   motes      forty drifting dust sprites, as before.
+///   vignette   a generated radial darkening, normal blend.
 ///
-/// Honours CampaignContext.ReduceMotion: everything holds still, at a slightly
-/// lower intensity, and the push-in does not run.
+/// spiral_core.png and mist_veil.png are already in the repo and already in the
+/// APK. Nothing referenced them. This costs zero new asset bytes.
+///
+/// Honours CampaignContext.ReduceMotion: everything holds still at a lower
+/// intensity and the push-in does not run.
 /// </summary>
 public partial class TitleAtmosphere : Control
 {
     private const int MoteCount = 40;
 
+    // Where the painted rune circle sits in the 1536x864 source image.
+    private const float WheelSrcX = 722f;
+    private const float WheelSrcY = 350f;
+    private const float SrcW = 1536f;
+    private const float SrcH = 864f;
+
     private TextureRect? _hero;
-    private ColorRect _shafts = default!;
-    private ColorRect _shimmer = default!;
-    private ColorRect _vignette = default!;
-    private Node2D _moteLayer = default!;
+    private Node2D _fxLayer = default!;
+    private Sprite2D? _vortexNear, _vortexFar;
+    private Node2D? _mistLow, _mistMid;
+    private Sprite2D? _shaftA, _shaftB;
     private readonly Sprite2D[] _motes = new Sprite2D[MoteCount];
     private readonly float[] _moteSpeed = new float[MoteCount];
     private readonly float[] _motePhase = new float[MoteCount];
     private readonly float[] _moteDrift = new float[MoteCount];
     private float _t;
     private bool _reduced;
-
-    // ── Shaders ──────────────────────────────────────────────────────────────
-
-    private const string ShaftShader = @"
-shader_type canvas_item;
-render_mode blend_add;
-
-uniform vec4 ray_color : source_color = vec4(1.0, 0.93, 0.74, 1.0);
-uniform float intensity : hint_range(0.0, 1.0) = 0.30;
-uniform float speed : hint_range(0.0, 2.0) = 1.0;
-uniform float tilt : hint_range(-1.0, 1.0) = 0.42;
-
-void fragment() {
-    vec2 uv = UV;
-    float ca = cos(tilt);
-    float sa = sin(tilt);
-    float px = uv.x * ca - uv.y * sa;
-    float t = TIME * 0.02 * speed;
-
-    // Four bands, deliberately incommensurate widths and speeds so the pattern
-    // never returns to where it started.
-    float acc = 0.0;
-    acc += smoothstep(0.62, 1.0, sin(px *  7.0 + t * 1.00)) * 0.50;
-    acc += smoothstep(0.66, 1.0, sin(px * 11.3 - t * 1.37 + 1.7)) * 0.32;
-    acc += smoothstep(0.70, 1.0, sin(px * 17.9 + t * 0.61 + 4.1)) * 0.20;
-    acc += smoothstep(0.74, 1.0, sin(px * 26.4 - t * 2.11 + 2.3)) * 0.12;
-
-    // Rays come from above and die out before the floor; they also fade at the
-    // left and right edges so the effect has no visible boundary.
-    float vert = smoothstep(0.95, 0.10, uv.y);
-    float edge = smoothstep(0.0, 0.30, uv.x) * smoothstep(1.0, 0.70, uv.x);
-    float breathe = 0.85 + 0.15 * sin(TIME * 0.11 * speed);
-
-    COLOR = vec4(ray_color.rgb, acc * vert * edge * breathe * intensity);
-}
-";
-
-    private const string ShimmerShader = @"
-shader_type canvas_item;
-render_mode blend_add;
-
-uniform vec4 water_color : source_color = vec4(0.72, 0.88, 1.0, 1.0);
-uniform float intensity : hint_range(0.0, 1.0) = 0.22;
-uniform float speed : hint_range(0.0, 2.0) = 1.0;
-
-void fragment() {
-    vec2 uv = UV;
-    float t = TIME * 0.35 * speed;
-
-    // Crossed travelling waves read as caustics on a wet floor.
-    float a = sin(uv.x * 26.0 + t * 1.00 + sin(uv.y * 13.0 - t * 0.7) * 1.6);
-    float b = sin(uv.x * 17.0 - t * 1.31 + sin(uv.y *  9.0 + t * 0.5) * 1.2);
-    float c = smoothstep(0.55, 1.0, a * 0.5 + b * 0.5 + 0.5);
-
-    // Strongest at the bottom edge, gone by the top of this band.
-    float depth = smoothstep(0.0, 0.85, uv.y);
-
-    COLOR = vec4(water_color.rgb, c * depth * intensity);
-}
-";
-
-    private const string VignetteShader = @"
-shader_type canvas_item;
-
-uniform float strength : hint_range(0.0, 1.0) = 0.42;
-uniform float breathe : hint_range(0.0, 1.0) = 1.0;
-
-void fragment() {
-    vec2 d = UV - vec2(0.5);
-    d.y *= 1.12;
-    float r = length(d) * 1.42;
-    float v = smoothstep(0.42, 1.0, r);
-    float pulse = 1.0 + 0.10 * sin(TIME * 0.07) * breathe;
-    COLOR = vec4(0.02, 0.02, 0.03, v * strength * pulse);
-}
-";
+    private float _vpW, _vpH;
 
     // ── Construction ─────────────────────────────────────────────────────────
 
     /// <summary>
     /// Build the atmosphere as the next child of <paramref name="parent"/>.
-    ///
-    /// Call this AFTER the background layers (hero art, rune wheels) and BEFORE
-    /// any UI — draw order is child order, so that puts the light in front of the
-    /// painting and behind the buttons, which is where it belongs.
+    /// Call AFTER the background layers and BEFORE any UI — draw order is child
+    /// order, so that is what puts the light in front of the painting and behind
+    /// the buttons.
     /// </summary>
     public static TitleAtmosphere Attach(Node parent, TextureRect? hero)
     {
@@ -142,62 +97,209 @@ void fragment() {
     public override void _Ready()
     {
         Name = "TitleAtmosphere";
-        // AndOffsets, not SetAnchorsPreset. _Ready runs when we are ALREADY in the
-        // tree, and set_anchor with keep_offset=false preserves the current rect —
-        // which for a freshly-new'd node is 0x0. The anchors would have been right
-        // and the size would have stayed zero, taking all three shader rects with
-        // it and rendering the entire effect invisible.
+        // AndOffsets, not SetAnchorsPreset: _Ready runs when we are ALREADY in
+        // the tree, and a freshly-new'd node has a 0x0 rect.
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
         _reduced = CampaignContext.ReduceMotion;
 
-        _shafts = MakeShaderRect(ShaftShader);
-        _shafts.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        SetParam(_shafts, "intensity", _reduced ? 0.16f : 0.30f);
-        SetParam(_shafts, "speed", _reduced ? 0.0f : 1.0f);
-        AddChild(_shafts);
+        var vp = GetViewportRect().Size;
+        _vpW = vp.X > 0 ? vp.X : 2316f;
+        _vpH = vp.Y > 0 ? vp.Y : 1080f;
 
-        _shimmer = MakeShaderRect(ShimmerShader);
-        _shimmer.AnchorLeft = 0f; _shimmer.AnchorRight = 1f;
-        _shimmer.AnchorTop = 0.62f; _shimmer.AnchorBottom = 1f;
-        _shimmer.OffsetLeft = _shimmer.OffsetRight = _shimmer.OffsetTop = _shimmer.OffsetBottom = 0f;
-        SetParam(_shimmer, "intensity", _reduced ? 0.10f : 0.22f);
-        SetParam(_shimmer, "speed", _reduced ? 0.0f : 1.0f);
-        AddChild(_shimmer);
+        // One Node2D holds every sprite. Node2D children draw in child order and
+        // ignore Control layout entirely, which is what we want for free-floating
+        // light — no container can resize or reposition them behind our back.
+        _fxLayer = new Node2D { Name = "Fx" };
+        AddChild(_fxLayer);
 
-        _moteLayer = new Node2D { Name = "Motes" };
-        AddChild(_moteLayer);
+        BuildVortex();
+        BuildMist();
+        BuildShafts();
         BuildMotes();
-
-        _vignette = MakeShaderRect(VignetteShader);
-        _vignette.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        SetParam(_vignette, "strength", 0.42f);
-        SetParam(_vignette, "breathe", _reduced ? 0.0f : 1.0f);
-        AddChild(_vignette);
+        BuildVignette();
 
         if (!_reduced) StartPushIn();
 
-        GD.Print($"[TITLE-ATMO] shafts+shimmer+{MoteCount} motes+vignette "
-                 + $"(reduce_motion={_reduced}, hero={(_hero != null ? "yes" : "none")})");
+        GD.Print($"[TITLE-ATMO] v2 nodes-only: vortex={(_vortexNear != null)} "
+                 + $"mist={(_mistLow != null)} shafts={(_shaftA != null)} motes={MoteCount} "
+                 + $"(reduce_motion={_reduced}, hero={(_hero != null ? "yes" : "none")}, "
+                 + $"viewport={_vpW:F0}x{_vpH:F0})");
     }
 
-    private static ColorRect MakeShaderRect(string code)
+    /// <summary>The proven additive material — see the class comment.</summary>
+    private static CanvasItemMaterial Additive() =>
+        new() { BlendMode = CanvasItemMaterial.BlendModeEnum.Add };
+
+    private static Texture2D? TryLoad(string path)
     {
-        var mat = new ShaderMaterial { Shader = new Shader { Code = code } };
-        return new ColorRect
+        if (!ResourceLoader.Exists(path))
         {
-            Color = new Color(1, 1, 1, 1),
-            MouseFilter = MouseFilterEnum.Ignore,
-            Material = mat,
-        };
+            GD.PrintErr($"[TITLE-ATMO] missing texture {path} — that layer is skipped");
+            return null;
+        }
+        return ResourceLoader.Load<Texture2D>(path);
     }
 
-    private static void SetParam(CanvasItem node, string name, float value)
+    /// <summary>
+    /// Where the painted rune circle lands on screen, given KeepAspectCovered.
+    /// Same arithmetic Main.cs uses to place the (missing) rune wheel.
+    /// </summary>
+    private Vector2 ArchCentre()
     {
-        if (node.Material is ShaderMaterial m) m.SetShaderParameter(name, value);
+        float scale = Mathf.Max(_vpW / SrcW, _vpH / SrcH);
+        float offX = (SrcW * scale - _vpW) / 2f;
+        float offY = (SrcH * scale - _vpH) / 2f;
+        return new Vector2(WheelSrcX * scale - offX, WheelSrcY * scale - offY);
     }
 
-    // ── Dust ─────────────────────────────────────────────────────────────────
+    // ── Layers ───────────────────────────────────────────────────────────────
+
+    private void BuildVortex()
+    {
+        var tex = TryLoad("res://content/art/title/layers/spiral_core.png");
+        if (tex == null) return;
+
+        var centre = ArchCentre();
+        float texW = tex.GetWidth();
+
+        // Wide, faint, slow, counter-turning — reads as depth behind the arch.
+        _vortexFar = new Sprite2D
+        {
+            Texture = tex,
+            Centered = true,
+            Position = centre,
+            Scale = Vector2.One * (_vpW * 0.62f / texW),
+            Modulate = new Color(0.52f, 0.80f, 0.84f, _reduced ? 0.10f : 0.20f),
+            Material = Additive(),
+        };
+        _fxLayer.AddChild(_vortexFar);
+
+        // Tight, brighter, the actual eye of the portal.
+        _vortexNear = new Sprite2D
+        {
+            Texture = tex,
+            Centered = true,
+            Position = centre,
+            Scale = Vector2.One * (_vpW * 0.34f / texW),
+            Modulate = new Color(0.70f, 0.93f, 0.95f, _reduced ? 0.22f : 0.42f),
+            Material = Additive(),
+        };
+        _fxLayer.AddChild(_vortexNear);
+    }
+
+    /// <summary>
+    /// A scrolling ribbon. THREE copies, mirrored in the middle: normal, flipped,
+    /// normal. _Process slides the strip left and wraps it every 2 screens.
+    ///
+    /// Two copies is the obvious build and it is wrong twice over. The strip only
+    /// spans 2 screens, so by the time it has travelled 2 screens the tail has
+    /// left a gap; and wrapping after ONE screen would snap the mirrored copy
+    /// into the place of the unmirrored one, which is a visible jump because they
+    /// are different pictures. With three, the screen is covered for the whole
+    /// travel and the copy showing at the wrap point is identical to the copy
+    /// showing at the start, so the reset is invisible.
+    ///
+    /// Also deliberately not a looping Tween: a Tween that targets an absolute
+    /// position has nothing left to travel on its second lap.
+    /// </summary>
+    private Node2D? MakeScrollBand(Texture2D? tex, float centreY, float height,
+                                   float alpha, Color tint)
+    {
+        if (tex == null) return null;
+        var band = new Node2D();
+        float sx = _vpW / tex.GetWidth();
+        float sy = height / tex.GetHeight();
+        for (int i = 0; i < 3; i++)
+        {
+            var s = new Sprite2D
+            {
+                Texture = tex,
+                Centered = true,
+                Position = new Vector2(_vpW * (0.5f + i), centreY),
+                Scale = new Vector2(i == 1 ? -sx : sx, sy),   // mirror only the middle
+                Modulate = new Color(tint.R, tint.G, tint.B, alpha),
+                Material = Additive(),
+            };
+            band.AddChild(s);
+        }
+        _fxLayer.AddChild(band);
+        return band;
+    }
+
+    private void BuildMist()
+    {
+        var tex = TryLoad("res://content/art/title/layers/mist_veil.png");
+        if (tex == null) return;
+        var cool = new Color(0.78f, 0.86f, 0.92f);
+        _mistLow = MakeScrollBand(tex, _vpH * 0.84f, _vpH * 0.46f, _reduced ? 0.14f : 0.26f, cool);
+        _mistMid = MakeScrollBand(tex, _vpH * 0.62f, _vpH * 0.34f, _reduced ? 0.08f : 0.15f, cool);
+    }
+
+    /// <summary>
+    /// God-rays as a generated texture rather than a fragment shader. Small —
+    /// 256x128, stretched over the hall — because it is all soft gradients and
+    /// nobody can see the resolution once it is blurred across 2316px.
+    /// </summary>
+    private static ImageTexture MakeShaftTexture(int w = 256, int h = 128)
+    {
+        var img = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        for (int y = 0; y < h; y++)
+        {
+            float v = (float)y / (h - 1);
+            float vert = Mathf.Clamp(1f - v * 1.15f, 0f, 1f);       // dies before the floor
+            vert *= vert;
+            for (int x = 0; x < w; x++)
+            {
+                float u = (float)x / (w - 1);
+                float px = u * 0.913f - v * 0.408f;                  // the same 0.42rad rake
+                float acc = 0f;
+                acc += Band(Mathf.Sin(px * 7.0f), 0.62f) * 0.50f;
+                acc += Band(Mathf.Sin(px * 11.3f + 1.7f), 0.66f) * 0.32f;
+                acc += Band(Mathf.Sin(px * 17.9f + 4.1f), 0.70f) * 0.20f;
+                acc += Band(Mathf.Sin(px * 26.4f + 2.3f), 0.74f) * 0.12f;
+                float edge = Mathf.Clamp(u / 0.22f, 0f, 1f) * Mathf.Clamp((1f - u) / 0.22f, 0f, 1f);
+                float a = Mathf.Clamp(acc * vert * edge, 0f, 1f);
+                img.SetPixel(x, y, new Color(1f, 0.94f, 0.78f, a));
+            }
+        }
+        return ImageTexture.CreateFromImage(img);
+    }
+
+    private static float Band(float s, float edge)
+    {
+        float t = Mathf.Clamp((s - edge) / (1f - edge), 0f, 1f);
+        return t * t * (3f - 2f * t);
+    }
+
+    private void BuildShafts()
+    {
+        var tex = MakeShaftTexture();
+        float w = _vpW * 1.35f, h = _vpH * 0.95f;
+
+        _shaftA = new Sprite2D
+        {
+            Texture = tex,
+            Centered = true,
+            Position = new Vector2(_vpW * 0.5f, _vpH * 0.42f),
+            Scale = new Vector2(w / tex.GetWidth(), h / tex.GetHeight()),
+            Modulate = new Color(1f, 1f, 1f, _reduced ? 0.30f : 0.55f),
+            Material = Additive(),
+        };
+        _fxLayer.AddChild(_shaftA);
+
+        // A second pass at a different scale and speed so the rake never repeats.
+        _shaftB = new Sprite2D
+        {
+            Texture = tex,
+            Centered = true,
+            Position = new Vector2(_vpW * 0.5f, _vpH * 0.38f),
+            Scale = new Vector2(-w * 0.8f / tex.GetWidth(), h * 1.05f / tex.GetHeight()),
+            Modulate = new Color(1f, 0.96f, 0.86f, _reduced ? 0.16f : 0.30f),
+            Material = Additive(),
+        };
+        _fxLayer.AddChild(_shaftB);
+    }
 
     /// <summary>A soft round dot, generated rather than shipped.</summary>
     private static ImageTexture MakeDotTexture(int size = 24)
@@ -210,7 +312,7 @@ void fragment() {
             {
                 float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;
                 float a = Mathf.Clamp(1f - d, 0f, 1f);
-                a = a * a * a;                     // soft falloff, no hard rim
+                a = a * a * a;
                 img.SetPixel(x, y, new Color(1f, 0.97f, 0.88f, a));
             }
         }
@@ -220,26 +322,83 @@ void fragment() {
     private void BuildMotes()
     {
         var tex = MakeDotTexture();
-        var rng = new RandomNumberGenerator();
-        rng.Seed = 20260918;
-        var vp = GetViewportRect().Size;
+        var rng = new RandomNumberGenerator { Seed = 20260919 };
         for (int i = 0; i < MoteCount; i++)
         {
-            float scale = rng.RandfRange(0.10f, 0.42f);
+            float scale = rng.RandfRange(0.14f, 0.55f);
             var s = new Sprite2D
             {
                 Texture = tex,
-                Position = new Vector2(rng.RandfRange(0, vp.X), rng.RandfRange(0, vp.Y)),
+                Centered = true,
+                Position = new Vector2(rng.RandfRange(0, _vpW), rng.RandfRange(0, _vpH)),
                 Scale = new Vector2(scale, scale),
-                // Nearer motes are brighter; the small ones read as distance.
-                Modulate = new Color(1f, 0.98f, 0.90f, rng.RandfRange(0.10f, 0.42f) * (_reduced ? 0.6f : 1f)),
+                Modulate = new Color(1f, 0.98f, 0.90f,
+                                     rng.RandfRange(0.18f, 0.60f) * (_reduced ? 0.6f : 1f)),
+                Material = Additive(),
             };
-            _moteLayer.AddChild(s);
+            _fxLayer.AddChild(s);
             _motes[i] = s;
-            _moteSpeed[i] = rng.RandfRange(4f, 15f) * scale;   // big = near = faster
+            _moteSpeed[i] = rng.RandfRange(5f, 18f) * scale;
             _motePhase[i] = rng.RandfRange(0f, Mathf.Tau);
             _moteDrift[i] = rng.RandfRange(6f, 22f);
         }
+    }
+
+    /// <summary>
+    /// Radial darkening as a generated texture on a normal-blend TextureRect.
+    /// Small and stretched — it is one smooth gradient.
+    /// </summary>
+    private static ImageTexture MakeVignetteTexture(int w = 128, int h = 72)
+    {
+        var img = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        for (int y = 0; y < h; y++)
+        {
+            float v = (float)y / (h - 1) - 0.5f;
+            for (int x = 0; x < w; x++)
+            {
+                float u = (float)x / (w - 1) - 0.5f;
+                float r = Mathf.Sqrt(u * u + (v * 1.12f) * (v * 1.12f)) * 1.42f;
+                float t = Mathf.Clamp((r - 0.40f) / 0.60f, 0f, 1f);
+                img.SetPixel(x, y, new Color(0.02f, 0.02f, 0.03f, t * t * (3f - 2f * t) * 0.62f));
+            }
+        }
+        return ImageTexture.CreateFromImage(img);
+    }
+
+    /// <summary>
+    /// The shade behind the wordmark: an elliptical pool that fades to nothing
+    /// at every edge, so there is no bar ruled across the architecture. Public
+    /// because Main.cs builds the title block itself.
+    /// </summary>
+    public static ImageTexture MakeTitleShadeTexture(int w = 160, int h = 80)
+    {
+        var img = Image.CreateEmpty(w, h, false, Image.Format.Rgba8);
+        for (int y = 0; y < h; y++)
+        {
+            float v = ((float)y / (h - 1) - 0.42f) * 2.05f;
+            for (int x = 0; x < w; x++)
+            {
+                float u = ((float)x / (w - 1) - 0.5f) * 2.35f;
+                float r = Mathf.Sqrt(u * u + v * v);
+                float t = Mathf.Clamp(1f - r, 0f, 1f);
+                t = t * t * (3f - 2f * t);
+                img.SetPixel(x, y, new Color(0.04f, 0.03f, 0.02f, t * 0.72f));
+            }
+        }
+        return ImageTexture.CreateFromImage(img);
+    }
+
+    private void BuildVignette()
+    {
+        var rect = new TextureRect
+        {
+            Texture = MakeVignetteTexture(),
+            StretchMode = TextureRect.StretchModeEnum.Scale,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(rect);
+        rect.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
     }
 
     // ── Motion ───────────────────────────────────────────────────────────────
@@ -247,58 +406,90 @@ void fragment() {
     private void StartPushIn()
     {
         if (_hero == null || !IsInstanceValid(_hero)) return;
-        // Deferred: the hero's rect is only real after the first layout pass, and
-        // scaling about the wrong pivot shows the background sliding off-centre.
         Callable.From(() =>
         {
             if (_hero == null || !IsInstanceValid(_hero)) return;
             _hero.PivotOffset = _hero.Size / 2f;
-            // A permanent 2% overscan. KeepAspectCovered fits the viewport EXACTLY
-            // at scale 1.0, so drifting sideways from there would show bare
-            // background at the edge. 2% of 2316px is ~23px of margin each side —
-            // comfortably more than the 9px the drift ever uses.
-            _hero.Scale = new Vector2(1.02f, 1.02f);
-            var tw = CreateTween().SetLoops();
-            tw.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-            tw.TweenProperty(_hero, "scale", new Vector2(1.075f, 1.075f), 24.0f);
-            tw.TweenProperty(_hero, "scale", new Vector2(1.02f, 1.02f), 24.0f);
+            // A permanent overscan: KeepAspectCovered fits the viewport EXACTLY
+            // at 1.0, so drifting from there would show bare background.
+            _hero.Scale = new Vector2(1.045f, 1.045f);
+            var zoom = CreateTween().SetLoops();
+            zoom.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+            zoom.TweenProperty(_hero, "scale", new Vector2(1.08f, 1.08f), 24.0f);
+            zoom.TweenProperty(_hero, "scale", new Vector2(1.045f, 1.045f), 24.0f);
 
             var drift = CreateTween().SetLoops();
             drift.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
             float x0 = _hero.Position.X;
-            // 37s against the 48s zoom, so the two never line up.
-            drift.TweenProperty(_hero, "position:x", x0 - 9f, 18.5f);
-            drift.TweenProperty(_hero, "position:x", x0 + 9f, 18.5f);
+            drift.TweenProperty(_hero, "position:x", x0 - 11f, 18.5f);
+            drift.TweenProperty(_hero, "position:x", x0 + 11f, 18.5f);
         }).CallDeferred();
+    }
+
+    private static void Scroll(Node2D? band, float speed, float width, float delta)
+    {
+        if (band == null || !IsInstanceValid(band)) return;
+        float x = band.Position.X + speed * delta;
+        float span = width * 2f;
+        // Keep it in (-span, 0] so the mirrored pair always covers the screen.
+        while (x <= -span) x += span;
+        while (x > 0f) x -= span;
+        band.Position = new Vector2(x, band.Position.Y);
     }
 
     public override void _Process(double delta)
     {
         if (_reduced) return;
-        _t += (float)delta;
-        var vp = GetViewportRect().Size;
-        if (vp.Y <= 0) return;
+        float dt = (float)delta;
+        _t += dt;
+
+        if (_vortexNear != null && IsInstanceValid(_vortexNear))
+        {
+            _vortexNear.Rotation += 0.045f * dt;                       // ~140s a turn
+            float pulse = 0.42f + 0.10f * Mathf.Sin(_t * 0.23f);
+            var c = _vortexNear.Modulate; c.A = pulse; _vortexNear.Modulate = c;
+        }
+        if (_vortexFar != null && IsInstanceValid(_vortexFar))
+        {
+            _vortexFar.Rotation -= 0.021f * dt;                        // counter, slower
+            float pulse = 0.20f + 0.05f * Mathf.Sin(_t * 0.17f + 1.3f);
+            var c = _vortexFar.Modulate; c.A = pulse; _vortexFar.Modulate = c;
+        }
+
+        Scroll(_mistLow, -14f, _vpW, dt);
+        Scroll(_mistMid, 9f, _vpW, dt);
+
+        if (_shaftA != null && IsInstanceValid(_shaftA))
+        {
+            _shaftA.Position = new Vector2(
+                _vpW * 0.5f + Mathf.Sin(_t * 0.045f) * _vpW * 0.055f, _shaftA.Position.Y);
+            var c = _shaftA.Modulate; c.A = 0.55f + 0.10f * Mathf.Sin(_t * 0.11f); _shaftA.Modulate = c;
+        }
+        if (_shaftB != null && IsInstanceValid(_shaftB))
+        {
+            _shaftB.Position = new Vector2(
+                _vpW * 0.5f + Mathf.Sin(_t * 0.031f + 2.1f) * _vpW * 0.075f, _shaftB.Position.Y);
+            var c = _shaftB.Modulate; c.A = 0.30f + 0.08f * Mathf.Sin(_t * 0.07f + 0.9f); _shaftB.Modulate = c;
+        }
 
         for (int i = 0; i < MoteCount; i++)
         {
             var s = _motes[i];
             if (s == null || !IsInstanceValid(s)) continue;
             var p = s.Position;
-            p.Y -= _moteSpeed[i] * (float)delta;                       // dust rises in the light
-            p.X += Mathf.Sin(_t * 0.19f + _motePhase[i]) * _moteDrift[i] * (float)delta;
+            p.Y -= _moteSpeed[i] * dt;                                  // dust rises in the light
+            p.X += Mathf.Sin(_t * 0.19f + _motePhase[i]) * _moteDrift[i] * dt;
             if (p.Y < -20f)
             {
-                p.Y = vp.Y + 20f;                                      // wrap, never respawn visibly
-                p.X = (float)GD.RandRange(0.0, (double)vp.X);
+                p.Y = _vpH + 20f;
+                p.X = (float)GD.RandRange(0.0, (double)_vpW);
             }
-            if (p.X < -20f) p.X = vp.X + 20f;
-            else if (p.X > vp.X + 20f) p.X = -20f;
+            if (p.X < -20f) p.X = _vpW + 20f;
+            else if (p.X > _vpW + 20f) p.X = -20f;
             s.Position = p;
 
-            // Slow twinkle, each mote on its own clock.
             var c = s.Modulate;
-            float baseA = 0.26f;
-            c.A = baseA + 0.16f * Mathf.Sin(_t * (0.5f + i * 0.037f) + _motePhase[i]);
+            c.A = 0.34f + 0.20f * Mathf.Sin(_t * (0.5f + i * 0.037f) + _motePhase[i]);
             s.Modulate = c;
         }
     }

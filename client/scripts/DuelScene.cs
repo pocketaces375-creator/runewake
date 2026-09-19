@@ -5542,6 +5542,76 @@ private void ShowGameOverOverlay(int winnerIndex)
     ///            file already used a root-parented timer for its capture flow
     ///            test, with the comment "to avoid thread/callback nesting issues".
     /// </summary>
+    /// <summary>
+    /// FABLE-010: arm an end-of-duel button so it cannot fail quietly.
+    ///
+    /// Round two of the Continue bug. Trikzos reports the button still lights up
+    /// under the finger and nothing happens. The lighting up is the HOVER
+    /// stylebox, which only tells us the touch-DOWN arrived; it says nothing
+    /// about whether BaseButton ever emitted Pressed on the release. FABLE-009
+    /// hardened everything downstream of Pressed, so if the press itself is not
+    /// landing, none of that work can run.
+    ///
+    /// Two things, therefore:
+    ///
+    ///   a second way in — a release inside the button also activates it, so a
+    ///   swallowed or unpaired mouse-up cannot strand the player. A latch makes
+    ///   sure the two routes together still fire exactly once.
+    ///
+    ///   proof on the glass — the label changes the instant the handler runs.
+    ///   Trikzos is testing on a phone with no logcat, so "did the press land?"
+    ///   has been unanswerable for two rounds. Now the screen answers it: if the
+    ///   button reads "Continuing…" the press landed and the navigation is at
+    ///   fault; if it never changes, the press never happened. Either way the
+    ///   next report is one word long instead of a guess.
+    /// </summary>
+    private void ArmEndOfDuelButton(Button btn, string label, System.Action activate)
+    {
+        bool fired = false;
+
+        void Fire(string via)
+        {
+            if (fired || !IsInstanceValid(btn)) return;
+            fired = true;
+            GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+            btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
+            btn.Disabled = true;
+            activate();
+        }
+
+        btn.Pressed += () => Fire("Pressed");
+        btn.GuiInput += (InputEvent e) =>
+        {
+            if (e is InputEventScreenTouch { Pressed: false })
+                Fire("touch release");
+            else if (e is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left })
+                Fire("mouse release");
+        };
+    }
+
+    /// <summary>
+    /// Put a failure where the player can see it. A navigation that fails only
+    /// into the log is indistinguishable, on a phone, from a dead button.
+    /// </summary>
+    private void ShowExitError(string message)
+    {
+        if (_gameOverOverlay == null || !IsInstanceValid(_gameOverOverlay)) return;
+        var line = new Label
+        {
+            Text = message,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        line.AddThemeColorOverride("font_color", new Color(0.95f, 0.45f, 0.38f));
+        line.SetAnchorsPreset(Control.LayoutPreset.CenterBottom);
+        line.AnchorLeft = 0.15f; line.AnchorRight = 0.85f;
+        line.AnchorTop = 0.88f; line.AnchorBottom = 0.96f;
+        line.OffsetLeft = line.OffsetRight = line.OffsetTop = line.OffsetBottom = 0;
+        _gameOverOverlay.AddChild(line);
+    }
+
     private void LeaveDuelFor(string scenePath, string why, System.Action? before = null)
     {
         GD.Print($"[DUEL-EXIT] {why} → {scenePath}");
@@ -5574,7 +5644,10 @@ private void ShowGameOverOverlay(int winnerIndex)
                 GD.PrintErr($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') failed: {err} — falling back to the title screen");
                 var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
                 if (fallback != Error.Ok)
+                {
                     GD.PrintErr($"[DUEL-EXIT] fallback to '{MainMenuScenePath}' ALSO failed: {fallback}");
+                    if (IsInstanceValid(this)) ShowExitError($"Could not open {scenePath} ({err}).");
+                }
             }
             nav.QueueFree();
         };
@@ -5963,23 +6036,21 @@ private void ShowGameOverOverlay(int winnerIndex)
             ? CampaignContext.DebugSeed.Value.ToString("X")
             : "";
         string currentSeed = CampaignContext.DebugSeed?.ToString() ?? "";
-        fightAgainBtn.Pressed += () =>
+        ArmEndOfDuelButton(fightAgainBtn, "Fight Again", () =>
         {
-            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
             LeaveDuelFor("res://scenes/duel/DuelScene.tscn", "Fight Again pressed", () =>
             {
                 // Retry preserves the same seed (for deterministic replay)
                 if (!string.IsNullOrEmpty(currentSeed))
                     CampaignContext.DebugSeed = ulong.Parse(currentSeed);
             });
-        };
+        });
         btnHBox.AddChild(fightAgainBtn);
 
         // "Continue" / "Return to Map"
         var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
-        continueBtn.Pressed += () =>
+        ArmEndOfDuelButton(continueBtn, playerWon ? "Continue" : "Return to Map", () =>
         {
-            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
             // A duel reached from the Arena has no campaign map to go back to, and
             // sending the player there would strand them on an empty region.
             string target = CampaignContext.IsArenaDuel
@@ -5991,7 +6062,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 if (playerWon && CampaignContext.CurrentNodeId != null)
                     CampaignContext.Progression?.MarkNodeCleared(CampaignContext.CurrentNodeId);
             });
-        };
+        });
         btnHBox.AddChild(continueBtn);
 
         panelVBox.AddChild(btnHBox);
