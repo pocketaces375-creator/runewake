@@ -221,13 +221,19 @@ fi
 [ "$MODE" = "debug" ] && { PRESET="Android Debug"; EXPORT_FLAG="--export-debug"; OUTFILE="Runewake-debug.apk"; }
 
 echo ""; echo "── Import pass ──"
-timeout 600 xvfb-run -a godot --headless --import --path "$CLIENT_DIR" 2>&1 | tail -3
+cd "$CLIENT_DIR"
+timeout 600 xvfb-run -a godot --headless --import --path . 2>&1 | tail -3
 
 echo ""; echo "── Godot export (${PRESET}) ──"
 mkdir -p "$EXPORT_DIR"
 APK="$EXPORT_DIR/$OUTFILE"
 rm -f "$APK"                      # a failed export must not leave a stale APK
-(cd "$CLIENT_DIR" && xvfb-run -a godot --export-release "Android Release" "exports/$OUTFILE" 2>&1 | tail -8)
+if godot --headless "$EXPORT_FLAG" "$PRESET" "exports/$OUTFILE" 2>&1 | tail -8; then
+  echo "  ✅ Export complete: $OUTFILE"
+else
+  echo "  ❌ Export failed"
+  exit 1
+fi
 
 if [ ! -f "$APK" ]; then
   echo ""; echo "  ❌ the export produced no file — nothing to hand over."; exit 1
