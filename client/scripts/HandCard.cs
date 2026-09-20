@@ -19,6 +19,12 @@ public partial class HandCard : PanelContainer
     private Label _noArtLabel;
     private bool _isHovered;
     private bool _selected;
+
+    /// <summary>
+    /// How far a selected card rises, in px. Deliberately small: there are only
+    /// 3px between the player lane row and the top of the hand. See SetSelected.
+    /// </summary>
+    private const float SelectLift = 10f;
     private Vector2 _arcPosition;
     private float _storedRotation;
 
@@ -191,14 +197,25 @@ public partial class HandCard : PanelContainer
             }
             AddThemeStyleboxOverride("panel", _selectedStyle);
             ZIndex = 10;
-            // FABLE-003: a selected card stays exactly where it rests in the hand.
-            // It used to lift 24px and scale 1.08 (pivot bottom-centre, so it grew
-            // upward) — straight into the player lane row, on top of the glowing
-            // lane the player was about to tap. Now: gold frame + brighten, nothing
-            // moves. The lanes glow; that is where the eye should go.
+            // FABLE-012: a small, measured lift.
+            //
+            // FABLE-003 removed the lift entirely and it went too far — a gold
+            // frame alone does not read as "this is the one I picked up".
+            // But the original was 24px of travel PLUS a 1.08 scale about a
+            // bottom-centre pivot, which on a 340px card is another ~27px of
+            // growth upward: about 50px in total. There are exactly 3px between
+            // the bottom of the player lane row (671) and the top of the hand
+            // (674) — measured from duel_test.layout.json, not guessed — so that
+            // buried the very lane the player was about to tap.
+            //
+            // So: 10px of travel and NO scale. The card clears its neighbours
+            // enough to be obvious, overlaps the lane row by 7px at the extreme
+            // bottom edge of a ~200px slot, and the brighten plus the gold frame
+            // do the rest. If this ever needs to feel stronger, add shadow or
+            // contrast — do not add travel. The gap is 3px.
             var tween = CreateTween();
             tween.SetParallel(true);
-            tween.TweenProperty(this, "position", _arcPosition, 0.1f)
+            tween.TweenProperty(this, "position", _arcPosition + new Vector2(0, -SelectLift), 0.1f)
                 .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Quad);
             tween.TweenProperty(this, "rotation", _storedRotation, 0.1f);
             tween.TweenProperty(this, "scale", Vector2.One, 0.1f);

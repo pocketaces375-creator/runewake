@@ -2470,12 +2470,38 @@ public partial class DuelScene : Control
         bool isGameOver = _gsm.IsGameOver;
         if (isGameOver)
         {
-            // Destroy and rebuild each time (encounter data can change)
-            if (_gameOverOverlay != null)
-            {
-                _gameOverOverlay.QueueFree();
-                _gameOverOverlay = null;
-            }
+            // FABLE-012 — THE Continue bug, finally.
+            //
+            // This used to read "Destroy and rebuild each time (encounter data
+            // can change)" and did exactly that: free the overlay and build a
+            // new one on EVERY state change. OnStateChanged is raised from eight
+            // places in GameStateManager, and after the duel ends the reward
+            // counters animate for a second or two right where the player is
+            // reaching for Continue.
+            //
+            // So the sequence was: finger down on Continue → a state event fires
+            // → that very Button is freed and an identical new one built → the
+            // finger lifts onto a button that never saw a press. BaseButton
+            // emits `pressed` on RELEASE, matched against its own press, so the
+            // signal never came. Nothing was broken downstream; the button the
+            // player pressed no longer existed by the time they let go.
+            //
+            // It also explains the symptoms changing between builds: whether the
+            // tap survived depended on whether a state event happened to land in
+            // the few hundred milliseconds the finger was down. Once it read
+            // "Continuing…", the next time it stayed stuck dark — a freshly
+            // built button under a finger, drawing its pressed state, waiting
+            // for a release that belonged to a node that had been deleted.
+            //
+            // So the overlay is built ONCE. Encounter data cannot change after the
+            // duel is over, which is what the old comment was worried about.
+            //
+            // Standing the chrome down, on the other hand, still has to run every
+            // time: RenderHand() frees and rebuilds every hand card on each render,
+            // and a brand-new card arrives with its normal z-index and a Stop mouse
+            // filter — the FABLE-005 bug — so the new ones need neutralising again.
+            // Hiding the HUD is idempotent and free, so it rides along.
+            //
             // The overlay only dims the board; the HUD is a sibling and kept
             // drawing over it, which is how a clipped turn banner showed through.
             _turnIndicatorLabel.Visible = false;
@@ -2486,11 +2512,28 @@ public partial class DuelScene : Control
             if (_playerDeckBarrowPanelContainer != null)
                 _playerDeckBarrowPanelContainer.Visible = false;
             StandDownDuelChrome();
-            BuildGameOverOverlay();
-            _gameOverOverlay!.Show();
-            // Bring to top so it captures all input
-            if (_gameOverOverlay.GetParent() != null)
+
+            if (_gameOverOverlay == null)
+            {
+                BuildGameOverOverlay();
+                _gameOverOverlay!.Show();
+            }
+
+            // Keep it last so it still owns input after RenderHand() has added
+            // fresh cards behind it. MoveChild reorders the SAME node — it does
+            // not free or replace it — so a press in flight is undisturbed.
+            if (_gameOverOverlay.GetParent() == this
+                && GetChild(GetChildCount() - 1) != _gameOverOverlay)
+            {
                 MoveChild(_gameOverOverlay, GetChildCount() - 1);
+            }
+        }
+        else if (!isGameOver && _gameOverOverlay != null)
+        {
+            // The duel resumed (a retry reusing this scene). Now it is correct to
+            // tear the overlay down — nobody is reaching for its buttons.
+            _gameOverOverlay.QueueFree();
+            _gameOverOverlay = null;
         }
 
         // Tutorial gate: detect summon (t05)
@@ -6130,17 +6173,27 @@ private void ShowGameOverOverlay(int winnerIndex)
         var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
         ArmEndOfDuelButton(continueBtn, playerWon ? "Continue" : "Return to Map", () =>
         {
-            // A duel reached from the Arena has no campaign map to go back to, and
-            // sending the player there would strand them on an empty region.
-            string target = CampaignContext.IsArenaDuel
-                ? "res://scenes/arena/ArenaScene.tscn"
-                : "res://scenes/map/MapScene.tscn";
-            LeaveDuelFor(target, "Continue pressed", () =>
+            // An Arena duel has no campaign map behind it; sending the player
+            // there would strand them on an empty region.
+            if (CampaignContext.IsArenaDuel)
             {
-                // Mark node cleared (already done in OnGameOver for campaign, but ensure it's done)
-                if (playerWon && CampaignContext.CurrentNodeId != null)
-                    CampaignContext.Progression?.MarkNodeCleared(CampaignContext.CurrentNodeId);
-            });
+                LeaveDuelFor("res://scenes/arena/ArenaScene.tscn", "Continue pressed (arena)");
+                return;
+            }
+
+            // FABLE-012: a win rolls straight into the next challenge. Losing
+            // still goes back to the map — repeating a fight you just lost,
+            // without a chance to change your deck, is a punishment not a loop.
+            if (!playerWon)
+            {
+                LeaveDuelFor(CampaignRun.MapScenePath, "Return to Map pressed");
+                return;
+            }
+
+            var (step, scene, what) = CampaignRun.AdvanceAfterVictory();
+            if (step == CampaignRun.Step.NextDuel)
+                continueBtn.Text = "Next: " + what;
+            LeaveDuelFor(scene, $"Continue pressed → {step} ({what})");
         });
         btnHBox.AddChild(continueBtn);
 
