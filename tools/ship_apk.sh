@@ -227,7 +227,7 @@ echo ""; echo "── Godot export (${PRESET}) ──"
 mkdir -p "$EXPORT_DIR"
 APK="$EXPORT_DIR/$OUTFILE"
 rm -f "$APK"                      # a failed export must not leave a stale APK
-( cd "$CLIENT_DIR" && godot --headless "$EXPORT_FLAG" "$PRESET" "exports/$OUTFILE" 2>&1 | tail -8 )
+(cd "$CLIENT_DIR" && xvfb-run -a godot --export-release "Android Release" "exports/$OUTFILE" 2>&1 | tail -8)
 
 if [ ! -f "$APK" ]; then
   echo ""; echo "  ❌ the export produced no file — nothing to hand over."; exit 1
