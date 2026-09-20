@@ -447,6 +447,33 @@ def cmd_verify(args):
     return 0
 
 
+def cmd_list_current(args):
+    """The capture names the last run actually produced.
+
+    artifacts/captures/ also holds 44 layout files from modes nothing
+    regenerates — old tutorial beats, uxwalk frames, hand4/hand10 variants.
+    Anything judging "the captures" needs to know which ones are current, or it
+    ends up failing a task over a screenshot from a build that no longer exists.
+    """
+    stamp = load_stamp()
+    if stamp:
+        names = sorted(n[:-4] for n, v in stamp.get("captures", {}).items()
+                       if not v.get("one_off"))
+        if names:
+            print("\n".join(names))
+            return 0
+    # No stamp yet: fall back to the runner's own MODES list so this still
+    # answers correctly on a fresh clone.
+    runner = REPO / "tools" / "regen_captures.sh"
+    if runner.exists():
+        import re as _re
+        modes = _re.findall(r'"([a-z0-9_]+):\d+:\d+"', runner.read_text())
+        if modes:
+            print("\n".join(sorted(set(modes))))
+            return 0
+    return 1
+
+
 def cmd_status(args):
     stamp = load_stamp()
     current = tree_fingerprint()
@@ -475,6 +502,8 @@ def main():
     g.add_argument("--verify", action="store_true", help="fail unless captures are fresh")
     g.add_argument("--status", action="store_true", help="print a verdict table")
     g.add_argument("--fingerprint", action="store_true", help="print the tree fingerprint")
+    g.add_argument("--list-current", action="store_true",
+                   help="print the capture names the last run produced, one per line")
     ap.add_argument("--run-started", type=float, default=None,
                     help="unix timestamp the capture run began; refuses to stamp older files")
     ap.add_argument("--expect", default=None,
@@ -486,6 +515,8 @@ def main():
     if args.fingerprint:
         print(tree_fingerprint())
         return 0
+    if args.list_current:
+        return cmd_list_current(args)
     if args.record:
         return cmd_record(args)
     if args.verify:

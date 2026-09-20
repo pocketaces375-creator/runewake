@@ -228,8 +228,31 @@ echo ""
 echo "── Step 6b: label_fit (text inside its card) ──"
 if [[ -f "${PROJECT_DIR}/tools/label_fit.py" ]]; then
   LF_BLOCK=0
+  # TASK-GATE-UNJAM-1: judge only the captures THIS pipeline can regenerate.
+  #
+  # This used to glob every *.layout.json in the directory. 67 of them exist;
+  # the runner produces 23. The other 44 are orphans — old tutorial beats,
+  # uxwalk frames, hand4/hand10 variants — that no command refreshes. One of
+  # them, duel_test_hand4, has carried a 4.1px spill since 2026-09-18, and
+  # because ANY spill calls fail(), finish_task.sh could not exit 0 for ANY
+  # task, no matter what the task changed or how correct it was.
+  #
+  # That is why work keeps getting hand-committed around the gate, which is
+  # exactly how FABLE-006/007 shipped unverified. A gate that cannot pass is
+  # not a gate, it is a detour sign.
+  #
+  # capture_stamp.py --list-current names what the last run actually produced
+  # (falling back to the runner's own MODES list on a fresh clone), so there is
+  # no fourth copy of that list to drift.
+  CURRENT_CAPS=$(python3 "${PROJECT_DIR}/tools/capture_stamp.py" --list-current 2>/dev/null || true)
+  LF_SKIPPED=0
   shopt -s nullglob
   for lay in "${PROJECT_DIR}"/artifacts/captures/*.layout.json; do
+    lay_name=$(basename "$lay" .layout.json)
+    if [[ -n "${CURRENT_CAPS}" ]] && ! grep -qx "${lay_name}" <<< "${CURRENT_CAPS}"; then
+      LF_SKIPPED=$((LF_SKIPPED + 1))
+      continue
+    fi
     LF_OUT=$(python3 "${PROJECT_DIR}/tools/label_fit.py" "$lay" 2>&1) || true
     if echo "$LF_OUT" | grep -q "SPILL"; then
       echo "  $(basename "$lay"):"
@@ -240,6 +263,9 @@ if [[ -f "${PROJECT_DIR}/tools/label_fit.py" ]]; then
     fi
   done
   shopt -u nullglob
+  if [[ "${LF_SKIPPED}" -gt 0 ]]; then
+    echo "  (skipped ${LF_SKIPPED} orphan layout(s) no capture mode regenerates — see TASK-GATE-UNJAM-1)"
+  fi
   if [[ "$LF_BLOCK" -ne 0 ]]; then
     fail "label_fit: text renders outside its card. Fix the screen; do not mark the task done."
   else

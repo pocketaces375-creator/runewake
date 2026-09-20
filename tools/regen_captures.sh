@@ -44,6 +44,13 @@ MODES=(
   "duel_test_wide:2999:1080"
   "duel_test_safe:2316:1080"
   "duel_test_r2:2316:1080"
+  # TASK-GATE-UNJAM-1: DebugCapture has supported --capture=duel_test_hand4
+  # all along, but no runner ever called it, so its layout.json sat frozen
+  # from 2026-09-18 — and label_fit judged that frozen copy on every task.
+  # A 4.1px spill in it made finish_task.sh unable to pass for ANY work.
+  # Running it means the check is against current code, where it either
+  # clears or is a real defect worth blocking on.
+  "duel_test_hand4:2316:1080"
   "choose_path:2316:1080"
   "choose_path_wide:2999:1080"
   "victory_overlay:2316:1080"
