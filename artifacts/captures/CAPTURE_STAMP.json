@@ -138,7 +138,7 @@
     },
     "choose_path.png": {
       "bytes": 1262406,
-      "captured_at": 1789827862.367,
+      "captured_at": 1789839303.428,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -148,7 +148,7 @@
     },
     "choose_path_wide.png": {
       "bytes": 1626641,
-      "captured_at": 1789827866.633,
+      "captured_at": 1789839303.431,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -158,7 +158,7 @@
     },
     "defeat_overlay_hand10.png": {
       "bytes": 1772676,
-      "captured_at": 1789827889.395,
+      "captured_at": 1789839107.357,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -181,7 +181,7 @@
     },
     "duel_test.png": {
       "bytes": 3545645,
-      "captured_at": 1789827902.56,
+      "captured_at": 1789839303.445,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -191,7 +191,7 @@
     },
     "duel_test_hand10.png": {
       "bytes": 3440692,
-      "captured_at": 1789827858.247,
+      "captured_at": 1789839303.452,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -211,7 +211,7 @@
     },
     "duel_test_r2.png": {
       "bytes": 3786016,
-      "captured_at": 1789827902.569,
+      "captured_at": 1789839303.461,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -221,7 +221,7 @@
     },
     "duel_test_safe.png": {
       "bytes": 3683111,
-      "captured_at": 1789827902.583,
+      "captured_at": 1789839303.474,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -244,7 +244,7 @@
     },
     "map_test.png": {
       "bytes": 3207151,
-      "captured_at": 1789827902.587,
+      "captured_at": 1789839303.478,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -254,7 +254,7 @@
     },
     "map_test_r2.png": {
       "bytes": 3225629,
-      "captured_at": 1789827902.591,
+      "captured_at": 1789839303.483,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -264,7 +264,7 @@
     },
     "map_test_r2_wide.png": {
       "bytes": 3779380,
-      "captured_at": 1789827902.595,
+      "captured_at": 1789839303.487,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -274,7 +274,7 @@
     },
     "map_test_wide.png": {
       "bytes": 3763825,
-      "captured_at": 1789827902.6,
+      "captured_at": 1789839303.491,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -284,7 +284,7 @@
     },
     "reliquary_test.png": {
       "bytes": 421620,
-      "captured_at": 1789827892.378,
+      "captured_at": 1789839110.365,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -294,7 +294,7 @@
     },
     "reliquary_test_all.png": {
       "bytes": 443606,
-      "captured_at": 1789827898.428,
+      "captured_at": 1789839115.582,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -304,7 +304,7 @@
     },
     "reliquary_test_all_wide.png": {
       "bytes": 481501,
-      "captured_at": 1789827901.543,
+      "captured_at": 1789839118.734,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -314,7 +314,7 @@
     },
     "reliquary_test_wide.png": {
       "bytes": 716476,
-      "captured_at": 1789827895.336,
+      "captured_at": 1789839113.396,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -324,7 +324,7 @@
     },
     "settings_test.png": {
       "bytes": 61537,
-      "captured_at": 1789827915.974,
+      "captured_at": 1789839133.428,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -334,7 +334,7 @@
     },
     "settings_test_wide.png": {
       "bytes": 64399,
-      "captured_at": 1789827918.855,
+      "captured_at": 1789839136.425,
       "height": 1080,
       "one_off": false,
       "real": true,
@@ -464,7 +464,7 @@
     },
     "slots_test.png": {
       "bytes": 7377,
-      "captured_at": 1789827904.234,
+      "captured_at": 1789839121.508,
       "duplicate_of": [
         "slots_test_deleted.png",
         "slots_test_filled.png"
@@ -478,7 +478,7 @@
     },
     "slots_test_deleted.png": {
       "bytes": 7377,
-      "captured_at": 1789827904.421,
+      "captured_at": 1789839121.704,
       "duplicate_of": [
         "slots_test.png",
         "slots_test_filled.png"
@@ -492,7 +492,7 @@
     },
     "slots_test_filled.png": {
       "bytes": 7377,
-      "captured_at": 1789827904.327,
+      "captured_at": 1789839121.603,
       "duplicate_of": [
         "slots_test.png",
         "slots_test_deleted.png"
@@ -555,24 +555,24 @@
       "width": 1182
     },
     "title_test.png": {
-      "bytes": 2301661,
-      "captured_at": 1789827908.592,
+      "bytes": 2302203,
+      "captured_at": 1789839303.496,
       "height": 1080,
       "one_off": false,
       "real": true,
-      "real_detail": "stddev 29.7, distinct 0.40",
-      "sha256": "ac77e351b95001c519022d51f0881e29c53f7ef80769c287100a4d0d43266001",
+      "real_detail": "stddev 29.9, distinct 0.40",
+      "sha256": "04c7cdfc0b68f9f6daf7df8611f5642755e1b11730406f903d55022dce9d121d",
       "width": 2316
     },
     "title_test_wide.png": {
-      "bytes": 2696050,
-      "captured_at": 1789827912.985,
+      "bytes": 2301962,
+      "captured_at": 1789839303.5,
       "height": 1080,
       "one_off": false,
       "real": true,
-      "real_detail": "stddev 28.8, distinct 0.41",
-      "sha256": "e50ad66f8395b9c69043f8c3cb3c6cce060bdbd974352ce649234b556e2c526d",
-      "width": 2999
+      "real_detail": "stddev 29.9, distinct 0.40",
+      "sha256": "67f93cd640e6e4627552e37c09ed19c30158589ea44af26e7020e17b57c4df3b",
+      "width": 2316
     },
     "tutorial_first_duel.png": {
       "bytes": 3078979,
@@ -893,28 +893,28 @@
       "width": 2316
     },
     "uxwalk_s01.png": {
-      "bytes": 3410820,
-      "captured_at": 1789775702.624,
+      "bytes": 3427982,
+      "captured_at": 1789911145.323,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.6, distinct 0.73",
-      "sha256": "7f966ae1c34d9f78b5a8ca1da69911c9b5a9418ca4a933b0d63fba1d172db3d3",
+      "real_detail": "stddev 46.7, distinct 0.73",
+      "sha256": "5495ff3ca81c676991c5a717e79f366fb8cdaa0630898dddef46c2a486f79a49",
       "width": 2316
     },
     "uxwalk_s02.png": {
-      "bytes": 3367074,
-      "captured_at": 1789775702.64,
+      "bytes": 3437313,
+      "captured_at": 1789911157.053,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.4, distinct 0.73",
-      "sha256": "dfbaa23bbd44f3cbfa8fc3fc69012f8a339e52590ca80600c1e85650643e3a50",
+      "real_detail": "stddev 46.8, distinct 0.74",
+      "sha256": "d629155a9b67af71b61b85bbb573ab34f86e12640f39f60d8fdc3c7d27f55977",
       "width": 2316
     },
     "uxwalk_s03.png": {
-      "bytes": 3410837,
-      "captured_at": 1789775702.657,
+      "bytes": 3427988,
+      "captured_at": 1789911146.908,
       "duplicate_of": [
         "uxwalk_s04.png",
         "uxwalk_s05.png",
@@ -923,13 +923,13 @@
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.6, distinct 0.73",
-      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "real_detail": "stddev 46.7, distinct 0.73",
+      "sha256": "52478306bdd348060db2ac64fae72d0188bfbe28af71eb0285c2f506b2ff2a2c",
       "width": 2316
     },
     "uxwalk_s04.png": {
-      "bytes": 3410837,
-      "captured_at": 1789775702.673,
+      "bytes": 3427988,
+      "captured_at": 1789911147.597,
       "duplicate_of": [
         "uxwalk_s03.png",
         "uxwalk_s05.png",
@@ -938,13 +938,13 @@
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.6, distinct 0.73",
-      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "real_detail": "stddev 46.7, distinct 0.73",
+      "sha256": "52478306bdd348060db2ac64fae72d0188bfbe28af71eb0285c2f506b2ff2a2c",
       "width": 2316
     },
     "uxwalk_s05.png": {
-      "bytes": 3410837,
-      "captured_at": 1789775702.688,
+      "bytes": 3427988,
+      "captured_at": 1789911148.286,
       "duplicate_of": [
         "uxwalk_s03.png",
         "uxwalk_s04.png",
@@ -953,13 +953,13 @@
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.6, distinct 0.73",
-      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "real_detail": "stddev 46.7, distinct 0.73",
+      "sha256": "52478306bdd348060db2ac64fae72d0188bfbe28af71eb0285c2f506b2ff2a2c",
       "width": 2316
     },
     "uxwalk_s06.png": {
-      "bytes": 3410837,
-      "captured_at": 1789775702.705,
+      "bytes": 3427988,
+      "captured_at": 1789911148.975,
       "duplicate_of": [
         "uxwalk_s03.png",
         "uxwalk_s04.png",
@@ -968,8 +968,8 @@
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.6, distinct 0.73",
-      "sha256": "5269212414e0903b5d2091d4e9683f6327f047a88b8fea9bba5ed630be693551",
+      "real_detail": "stddev 46.7, distinct 0.73",
+      "sha256": "52478306bdd348060db2ac64fae72d0188bfbe28af71eb0285c2f506b2ff2a2c",
       "width": 2316
     },
     "uxwalk_s07.png": {
@@ -993,48 +993,48 @@
       "width": 2316
     },
     "uxwalk_s09.png": {
-      "bytes": 3375444,
-      "captured_at": 1789775702.721,
+      "bytes": 3444562,
+      "captured_at": 1789911157.95,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.3, distinct 0.72",
-      "sha256": "fc673d74b1764da59e04ce8d1367e9578009d08125bcd8c69641c43b3fa347e0",
+      "real_detail": "stddev 46.6, distinct 0.74",
+      "sha256": "55032fc29904add91d5df0812013b43a785b0e5ab53cbbdaee8b56b49039f914",
       "width": 2316
     },
     "uxwalk_s10.png": {
-      "bytes": 3372436,
-      "captured_at": 1789775702.737,
+      "bytes": 3438546,
+      "captured_at": 1789911158.833,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.4, distinct 0.72",
-      "sha256": "7556e496c183ab710e75cd0cabfad03b79f4477115e247d9ffac4c131acba699",
+      "real_detail": "stddev 46.8, distinct 0.74",
+      "sha256": "3eb30368e609b7f5f21fad5fcfbf10d8e1eb8a7b85d2034f8cf60593edf0b9e4",
       "width": 2316
     },
     "uxwalk_s11.png": {
-      "bytes": 3365888,
-      "captured_at": 1789775702.753,
+      "bytes": 3433853,
+      "captured_at": 1789911159.731,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.3, distinct 0.73",
-      "sha256": "b725a20c39190edf93d7320c866c58b78317e11445c86c22e9c20eaf38215b10",
+      "real_detail": "stddev 46.7, distinct 0.74",
+      "sha256": "ecc33a3124171ceec46f0e3502f25d93435ee109bddfb7985078578737957fc9",
       "width": 2316
     },
     "uxwalk_s12.png": {
-      "bytes": 3370633,
-      "captured_at": 1789775702.769,
+      "bytes": 3438445,
+      "captured_at": 1789911160.621,
       "height": 1080,
       "one_off": true,
       "real": true,
-      "real_detail": "stddev 46.3, distinct 0.72",
-      "sha256": "ea1342d09af69a4cfbd9e803a9b4cb1c4370a1ae9a0ecda363b81aa2720b9848",
+      "real_detail": "stddev 46.7, distinct 0.74",
+      "sha256": "6ba78a3a171e1c56412df6f54b8ca5f49aa206d77aee7be349dda7cbdec65c21",
       "width": 2316
     },
     "victory_overlay_hand10.png": {
       "bytes": 1732986,
-      "captured_at": 1789827902.605,
+      "captured_at": 1789839303.505,
       "height": 1080,
       "one_off": true,
       "real": true,
@@ -1043,11 +1043,11 @@
       "width": 2999
     }
   },
-  "fingerprint": "98b2ea37df15",
-  "head": "fc48542cb70b8c0ffaa4cb775839ded61cfb4f11",
+  "fingerprint": "15aa29cbefed",
+  "head": "bd86e5975edd653136484d861a669c7a87940015",
   "pil_available": true,
-  "recorded_at": 1789827920.068,
-  "recorded_at_iso": "2026-09-19T10:25:20-0400",
+  "recorded_at": 1789911187.612,
+  "recorded_at_iso": "2026-09-20T09:33:07-0400",
   "render_dirs": [
     "client",
     "engine",
