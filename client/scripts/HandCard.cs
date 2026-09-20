@@ -35,8 +35,20 @@ public partial class HandCard : PanelContainer
     private float _cardWidth;
     private float _cardHeight;
 
-    /// <summary>Card's unique identifier from the engine.</summary>
+    /// <summary>
+    /// The card DEFINITION id from the engine. Deliberately not unique: two
+    /// copies of Ember Sprite in hand carry the same CardId, because to the
+    /// rules engine they are the same card. Use HandIndex to tell them apart.
+    /// </summary>
     public string CardId { get; private set; } = "";
+
+    /// <summary>
+    /// FABLE-016: this card's position in the hand, 0-based. Set by
+    /// DuelScene.RenderHand; -1 means it has never been rendered. This is the
+    /// only thing that distinguishes one copy of a card from another on
+    /// screen — selecting by CardId alone lifted every copy at once.
+    /// </summary>
+    public int HandIndex { get; set; } = -1;
     public string CardName { get; private set; } = "";
     public int CardCost { get; private set; }
     public Strata CardStrata { get; private set; }

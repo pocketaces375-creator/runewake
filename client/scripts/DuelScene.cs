@@ -57,6 +57,13 @@ public partial class DuelScene : Control
     private readonly List<LaneSlot> _playerSlots = new(5);
     private readonly List<HandCard> _handCards = new();
 
+    /// <summary>
+    /// FABLE-016: which position in hand the player actually tapped. The rules
+    /// engine identifies a card by its definition id and cannot tell two copies
+    /// apart; the hand can and must. -1 = nothing selected.
+    /// </summary>
+    private int _selectedHandIndex = -1;
+
     // Card sizes computed from viewport height (FIX 3a)
     private float _handCardHeight = 180f;
     private float _boardCardHeight = 200f;
@@ -3187,6 +3194,7 @@ public partial class DuelScene : Control
             card.StoreArcTransform(new Vector2(cx - cardWidth / 2f, cy - cardHeight / 2f), a);
 
             card.ScaleTo(cardHeight);
+            card.HandIndex = idx;   // FABLE-016 — the only thing that tells two copies apart
             card.SetCard(info.CardDefId, info.Name, info.Cost, info.Strata);
             card.SetAttunementAvailable(currentAttune);
 
@@ -3415,11 +3423,24 @@ public partial class DuelScene : Control
         GD.Print($"[DUEL_TRACE] OnHandCardPressed: card={card.CardName} state={_input.State} selectedId={_input.SelectedCardId}");
         GD.Print($"[INPUT] select {card.CardId}");
 
-        // Tap-again-to-deselect: if this card is already selected, cancel
+        // FABLE-016: identify the card by WHERE IT IS IN HAND, not by what it
+        // is. InputController.SelectedCardId is a card DEFINITION id, because
+        // that is what the rules engine plays — two copies of Ember Sprite are
+        // the same card to it, and rightly so. The hand is not the rules
+        // engine. Trikzos: "the raise raises all cards that share a name with
+        // the card, we only want it to effect the selected card."
+        //
+        // Same mix-up made tap-again-to-deselect misfire: tapping the SECOND
+        // copy while the first was selected read as "tapped the selected card"
+        // and cancelled, instead of moving the selection across.
+
+        // Tap-again-to-deselect: only if this is the very card already selected
         if (_input.State == InputController.InputState.SelectingLane
-            && _input.SelectedCardId == card.CardId)
+            && _input.SelectedCardId == card.CardId
+            && _selectedHandIndex == card.HandIndex)
         {
             _input.CancelSelection();
+            _selectedHandIndex = -1;
             ShowToast("Deselected.", Color.FromHtml("#8A7A3A"));
             UpdateSelectionVisuals();
             return;
@@ -3430,6 +3451,7 @@ public partial class DuelScene : Control
             // Cancel attacker selection and start playing this card instead
             _input.CancelSelection();
             _input.SelectCardForPlay(card.CardId);
+            _selectedHandIndex = card.HandIndex;
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
@@ -3440,6 +3462,7 @@ public partial class DuelScene : Control
             // Already in lane-selection mode — switch to this card
             _input.CancelSelection();
             _input.SelectCardForPlay(card.CardId);
+            _selectedHandIndex = card.HandIndex;
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
@@ -3449,6 +3472,7 @@ public partial class DuelScene : Control
         {
             // Idle — enter lane-selection mode (tap-to-summon), no detail popup
             _input.SelectCardForPlay(card.CardId);
+            _selectedHandIndex = card.HandIndex;
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
                 Moss);
             UpdatePlayHighlights();
@@ -3683,9 +3707,31 @@ public partial class DuelScene : Control
         string? selectedId = _input.State == InputController.InputState.SelectingLane
             ? _input.SelectedCardId : null;
 
+        // FABLE-016: exactly ONE card lifts. Matching on CardId alone lifted
+        // every copy of the card in hand, because CardId is the definition id.
+        //
+        // The hand index is the tiebreak, and it survives a re-render: the
+        // cards are freed and rebuilt on every state change, but position N in
+        // the hand is still position N. If the index has gone stale anyway —
+        // something selected a card without going through OnHandCardPressed,
+        // which the tutorial and the smoke tests can do — fall back to the
+        // first copy. That is the old behaviour minus the duplicate lift, so
+        // the worst case here is no worse than what it replaces.
+        if (selectedId == null) _selectedHandIndex = -1;
+
+        HandCard? target = null;
+        if (selectedId != null)
+        {
+            foreach (var hc in _handCards)
+                if (hc.CardId == selectedId && hc.HandIndex == _selectedHandIndex) { target = hc; break; }
+            if (target == null)
+                foreach (var hc in _handCards)
+                    if (hc.CardId == selectedId) { target = hc; break; }
+        }
+
         foreach (var hc in _handCards)
         {
-            bool isSelected = selectedId != null && hc.CardId == selectedId;
+            bool isSelected = hc == target;
             if (isSelected)
             {
                 hc.SetSelected(true);
@@ -5675,6 +5721,137 @@ private void ShowGameOverOverlay(int winnerIndex)
         _gameOverOverlay.AddChild(line);
     }
 
+    /// <summary>
+    /// FABLE-015 — the check that should have existed five rounds ago.
+    ///
+    /// The end-of-duel buttons have now been broken three separate ways:
+    /// covered by something opaque (FABLE-005), freed between the touch-down
+    /// and the touch-up so BaseButton never paired the press (FABLE-012), and
+    /// throwing inside the handler where Godot swallows it (FABLE-011). Every
+    /// one of them shipped, and every one of them survived the automated
+    /// checks, because soak mode does not press these buttons — it calls
+    /// ChangeSceneToFile itself on a timer. loop_smoke has been simulating the
+    /// OUTCOME of the button and never the button, so "loop smoke passed" has
+    /// never once meant "Continue works".
+    ///
+    /// This does not fix that — soak still drives the loop the way it always
+    /// has, because changing the trajectory of a green blocking check blind is
+    /// a bad trade. What it does is make the button state legible from a log
+    /// line, so the defeat_overlay and victory_overlay capture runs answer the
+    /// question directly. Read-only; it prints and nothing else.
+    ///
+    /// "Above" follows Godot's own picking rule rather than tree order alone:
+    /// z-index wins outright, and only ties are broken by position in the tree.
+    /// </summary>
+    private void AuditEndOfDuelButtons(params Button?[] buttons)
+    {
+        try
+        {
+            // Every Control in this scene that could swallow a touch.
+            var blockers = new System.Collections.Generic.List<Control>();
+            void Collect(Node n)
+            {
+                if (n is Control c && c != this) blockers.Add(c);
+                foreach (var kid in n.GetChildren()) Collect(kid);
+            }
+            Collect(this);
+
+            foreach (var btn in buttons)
+            {
+                if (btn == null || !IsInstanceValid(btn))
+                {
+                    GD.Print("[BTN-AUDIT] NOT REACHABLE — button was freed before the audit ran");
+                    continue;
+                }
+
+                string who = string.IsNullOrEmpty(btn.Text) ? btn.Name.ToString() : btn.Text;
+                var rect = btn.GetGlobalRect();
+                var centre = rect.Position + rect.Size / 2f;
+
+                if (!btn.IsVisibleInTree())
+                { GD.Print($"[BTN-AUDIT] '{who}' NOT REACHABLE — not visible in tree"); continue; }
+                if (btn.Disabled)
+                { GD.Print($"[BTN-AUDIT] '{who}' NOT REACHABLE — disabled"); continue; }
+                if (rect.Size.X < 1f || rect.Size.Y < 1f)
+                { GD.Print($"[BTN-AUDIT] '{who}' NOT REACHABLE — zero size {rect.Size}"); continue; }
+                if (btn.MouseFilter != Control.MouseFilterEnum.Stop)
+                { GD.Print($"[BTN-AUDIT] '{who}' NOT REACHABLE — MouseFilter is {btn.MouseFilter}, not Stop"); continue; }
+
+                var btnPath = PathFromScene(btn);
+                int btnZ = EffectiveZ(btn);
+                var covering = new System.Collections.Generic.List<string>();
+                foreach (var c in blockers)
+                {
+                    if (c == btn || !IsInstanceValid(c)) continue;
+                    if (c.MouseFilter != Control.MouseFilterEnum.Stop) continue;
+                    if (!c.IsVisibleInTree()) continue;
+                    if (!c.GetGlobalRect().HasPoint(centre)) continue;
+                    var cPath = PathFromScene(c);
+                    // An ancestor or a descendant of the button is part of the
+                    // button's own stack, not something covering it.
+                    if (IsPrefix(cPath, btnPath) || IsPrefix(btnPath, cPath)) continue;
+                    if (DrawsAbove(EffectiveZ(c), cPath, btnZ, btnPath))
+                        covering.Add($"'{c.Name}' ({c.GetType().Name}) z={EffectiveZ(c)}");
+                }
+
+                if (covering.Count == 0)
+                    GD.Print($"[BTN-AUDIT] '{who}' REACHABLE at {centre} size {rect.Size} z={EffectiveZ(btn)}");
+                else
+                    GD.Print($"[BTN-AUDIT] '{who}' BLOCKED BY {string.Join(", ", covering)}");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            // An audit that crashes the game it is auditing would be a poor joke.
+            GD.PrintErr($"[BTN-AUDIT] audit itself threw, ignoring: {ex.GetType().Name} — {ex.Message}");
+        }
+    }
+
+    /// <summary>Z as Godot resolves it: relative z-indexes accumulate up the chain.</summary>
+    private int EffectiveZ(CanvasItem item)
+    {
+        int z = 0;
+        for (CanvasItem? cur = item; cur != null && cur != this; cur = cur.GetParent() as CanvasItem)
+        {
+            z += cur.ZIndex;
+            if (!cur.ZAsRelative) break;
+        }
+        return z;
+    }
+
+    /// <summary>Tree path from this scene down to <paramref name="item"/>, as child indices.</summary>
+    private System.Collections.Generic.List<int> PathFromScene(Node item)
+    {
+        var path = new System.Collections.Generic.List<int>();
+        for (Node? cur = item; cur != null && cur != this; cur = cur.GetParent())
+            path.Insert(0, cur.GetIndex());
+        return path;
+    }
+
+    /// <summary>Is <paramref name="shorter"/> a prefix of <paramref name="longer"/>? (ancestry test)</summary>
+    private static bool IsPrefix(System.Collections.Generic.List<int> shorter,
+                                 System.Collections.Generic.List<int> longer)
+    {
+        if (shorter.Count > longer.Count) return false;
+        for (int i = 0; i < shorter.Count; i++)
+            if (shorter[i] != longer[i]) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Does a draw over b? Higher z-index wins regardless of where either sits
+    /// in the tree; equal z-index falls back to tree order, where later draws
+    /// later and therefore on top.
+    /// </summary>
+    private static bool DrawsAbove(int za, System.Collections.Generic.List<int> pa,
+                                   int zb, System.Collections.Generic.List<int> pb)
+    {
+        if (za != zb) return za > zb;
+        for (int i = 0; i < System.Math.Min(pa.Count, pb.Count); i++)
+            if (pa[i] != pb[i]) return pa[i] > pb[i];
+        return pa.Count > pb.Count;
+    }
+
     private void LeaveDuelFor(string scenePath, string why, System.Action? before = null)
     {
         GD.Print($"[DUEL-EXIT] {why} → {scenePath}");
@@ -5996,151 +6173,10 @@ private void ShowGameOverOverlay(int winnerIndex)
         turnLabel.Modulate = TextMuted;
         panelVBox.AddChild(turnLabel);
 
-        // ── Reward summary panel (victory only) ──
-        if (playerWon && encounter != null)
-        {
-            // ── TASK-REWARD-SCREEN-1: Rewards section with animated counters ──
-            panelVBox.AddChild(MakeDivider());
-
-            // FABLE-006: PanelContainer, not Panel. A plain Panel is not a container —
-            // it neither lays out nor measures its children, so rewardGrid contributed
-            // ZERO height to panelVBox. The buttons were therefore placed straight after
-            // the divider and the reward rows drew on top of them. Same lesson the outer
-            // panel already learned; this one was missed.
-            var rewardPanel = new PanelContainer();
-            rewardPanel.CustomMinimumSize = new Vector2(360, 0);
-            var rewardStyle = StyleWornBorder(
-                borderColor: BorderSubtle,
-                width: 1,
-                radius: RadiusMedium,
-                bgColor: CardFace
-            );
-            rewardPanel.AddThemeStyleboxOverride("panel", rewardStyle);
-
-            var rewardGrid = new VBoxContainer();
-            rewardGrid.AddThemeConstantOverride("separation", 4);
-
-            // ── Rewards section header ──
-            var rewardHeader = new Label
-            {
-                Text = "— Rewards —",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            };
-            ApplyBodyFont(rewardHeader, FontSecondary);
-            rewardHeader.Modulate = Gold;
-            rewardGrid.AddChild(rewardHeader);
-
-            int rewardIdx = 0;
-
-            // Shards — animated counter
-            if (encounter.ShardReward > 0)
-            {
-                var (shardRow, shardVal) = MakeAnimatedRewardRow("● Shards", encounter.ShardReward, Gold, rewardIdx);
-                rewardGrid.AddChild(shardRow);
-                _rewardCounters.Add(new AnimatedRewardCounter { ValueLabel = shardVal, TargetValue = encounter.ShardReward, Index = rewardIdx });
-                rewardIdx++;
-            }
-
-            // Dig charges — animated counter
-            if (encounter.DigChargeReward > 0)
-            {
-                var (digRow, digVal) = MakeAnimatedRewardRow("◇ Dig Charges", encounter.DigChargeReward, Moss, rewardIdx);
-                rewardGrid.AddChild(digRow);
-                _rewardCounters.Add(new AnimatedRewardCounter { ValueLabel = digVal, TargetValue = encounter.DigChargeReward, Index = rewardIdx });
-                rewardIdx++;
-            }
-
-            // Fragments
-            if (!string.IsNullOrEmpty(encounter.FragmentReward))
-            {
-                var fragRow = MakeRewardRow("◆ Fragments", $"+{encounter.FragmentReward}", Amber);
-                rewardGrid.AddChild(fragRow);
-            }
-
-            // Granted card
-            if (!string.IsNullOrEmpty(_grantedCardName))
-            {
-                var cardRow = MakeRewardRow("♠ New Card", _grantedCardName, Gold);
-                rewardGrid.AddChild(cardRow);
-            }
-
-            rewardPanel.AddChild(rewardGrid);
-            panelVBox.AddChild(rewardPanel);
-
-            // ── TASK-DROPS-UI-1: Drop reveal area (hidden initially, shown by StartDropReveal) ──
-            if (_dropRevealCards.Count > 0)
-            {
-                panelVBox.AddChild(MakeDivider());
-
-                var dropHeader = new Label
-                {
-                    Text = "— Drops —",
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-                };
-                ApplyBodyFont(dropHeader, FontSecondary);
-                dropHeader.Modulate = Moss;
-                dropHeader.Visible = false; // hidden until reveal starts
-                panelVBox.AddChild(dropHeader);
-                _dropTitleLabel = dropHeader;
-
-                var dropCtr = new CenterContainer
-                {
-                    Name = "DropRevealArea",
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    CustomMinimumSize = new Vector2(0, 340),
-                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-                    Visible = false,
-                };
-                panelVBox.AddChild(dropCtr);
-                _dropRevealContainer = dropCtr;
-            }
-        }
-        else if (!playerWon && encounter != null)
-        {
-            // ── TASK-REWARD-SCREEN-1: Defeat — show what was lost (forfeited rewards) ──
-            bool hasRewards = encounter.ShardReward > 0 || encounter.DigChargeReward > 0
-                              || !string.IsNullOrEmpty(encounter.FragmentReward)
-                              || !string.IsNullOrEmpty(_grantedCardName)
-                              || _dropRevealCards.Count > 0;
-            if (hasRewards)
-            {
-                panelVBox.AddChild(MakeDivider());
-
-                var forfeitLabel = new Label
-                {
-                    Text = "— Rewards forfeited —",
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-                };
-                ApplyBodyFont(forfeitLabel, FontSecondary);
-                forfeitLabel.Modulate = Ember;
-                panelVBox.AddChild(forfeitLabel);
-
-                if (encounter.ShardReward > 0)
-                {
-                    panelVBox.AddChild(MakeRewardRow("● Shards", $"+{encounter.ShardReward}", TextMuted));
-                }
-                if (encounter.DigChargeReward > 0)
-                {
-                    panelVBox.AddChild(MakeRewardRow("◇ Dig Charges", $"+{encounter.DigChargeReward}", TextMuted));
-                }
-                if (!string.IsNullOrEmpty(encounter.FragmentReward))
-                {
-                    panelVBox.AddChild(MakeRewardRow("◆ Fragments", $"+{encounter.FragmentReward}", TextMuted));
-                }
-                if (_dropRevealCards.Count > 0)
-                {
-                    int dropCount = _dropRevealCards.Count;
-                    panelVBox.AddChild(MakeRewardRow("♠ Card Drops", $"{dropCount} card{(dropCount != 1 ? "s" : "")}", TextMuted));
-                }
-            }
-        }
-
+        // ── FABLE-016: rewards used to be stacked here, above the buttons.
+        // They now live in the Spoils panel pinned to the right edge, built at
+        // the end of this method so nothing it contains can grow into the
+        // button row. Nothing between the turn count and the buttons any more.
         // ── Divider line ──
         panelVBox.AddChild(MakeDivider());
 
@@ -6209,6 +6245,12 @@ private void ShowGameOverOverlay(int winnerIndex)
         container.AddChild(panel);
         _gameOverOverlay.AddChild(container);
 
+        // FABLE-016: the Spoils panel, pinned to the right edge. Added AFTER
+        // the centre panel so that at equal z-index it draws above the dim —
+        // and it shares no container with the buttons, so it cannot push them
+        // down or hang over them however much it holds.
+        _gameOverOverlay.AddChild(BuildSpoilsPanel(playerWon, encounter));
+
         AddChild(_gameOverOverlay);
 
         // FABLE-006: an autowrap Label reports a ONE-LINE minimum height, because it is
@@ -6267,6 +6309,10 @@ private void ShowGameOverOverlay(int winnerIndex)
         var audio = GetNode<AudioManager>("/root/AudioManager");
         audio.PlaySfx(playerWon ? "victory" : "defeat");
 
+        // FABLE-015: prove, on the frame after layout settles, that these two
+        // buttons can actually be touched. See AuditEndOfDuelButtons.
+        Callable.From(() => AuditEndOfDuelButtons(fightAgainBtn, continueBtn)).CallDeferred();
+
         // ═══ SOAK MODE: auto-press Continue/Return to Map after overlay shows ═══
         if (CampaignContext.SoakActive)
         {
@@ -6308,6 +6354,250 @@ private void ShowGameOverOverlay(int winnerIndex)
             soakTimer.Start();
         }
         // ═══ END SOAK AUTO-CONTINUE ═══
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // FABLE-016 — the Spoils panel
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Trikzos: "we also need the reward cards/essence to be a thing. That
+    // should pop up on one of the sides at the end, very aesthetic little
+    // window that says what rewards you got for beating the enemy" — and then,
+    // on where it sits today: "current location if I recall correctly blocks
+    // the continue/return to map/try again screen."
+    //
+    // He is describing a real structural fault, not just a preference. Every
+    // reward was stacked INSIDE the centre panel's VBox, above the buttons:
+    // a 360px reward panel, a divider, a drops header, and a drop reveal area
+    // asking for 340px that then holds a 377px card — a CenterContainer does
+    // not clip, so that card hangs ~48px out of its slot and into the button
+    // row, and the plate and its tap area are both MouseFilter.Stop. The code
+    // already knew: RevealNextDrop's own comment for tearing the reveal down
+    // reads "let Continue button work".
+    //
+    // So the rewards move out of the buttons' way entirely, to a panel pinned
+    // against the right edge, vertically centred, which shares no layout with
+    // the centre panel and cannot push or cover anything in it. The centre
+    // panel is now headline, turns, flavour, buttons — nothing that grows.
+    //
+    // The reward rows, the animated counters and the whole drop-reveal
+    // sequence are reparented, not rewritten: StartDropReveal and friends drive
+    // _dropRevealContainer and _dropTitleLabel wherever they happen to live, so
+    // moving them is a layout change and not a behaviour change. Deliberately
+    // so — this file is 6500 lines and I cannot compile it here.
+    private const float SpoilsWidth = 420f;
+    private const float SpoilsEdgeMargin = 48f;
+    private const float SpoilsSlideFrom = 72f;
+
+    /// <summary>
+    /// Build the side panel listing what the fight paid — or, on a loss, what
+    /// it would have paid. Anchored to the right edge, centred vertically,
+    /// laid out independently of the centre panel and its buttons.
+    /// </summary>
+    private Control BuildSpoilsPanel(bool playerWon, EncounterDef? encounter)
+    {
+        // This panel now owns all three of these. Anything left over from an
+        // earlier build points at freed nodes; clear before repopulating.
+        _rewardCounters.Clear();
+        _dropRevealContainer = null;
+        _dropTitleLabel = null;
+
+        var spoils = new PanelContainer { Name = "SpoilsPanel" };
+
+        // Explicit anchors rather than SetAnchorsPreset: the preset call
+        // rewrites offsets to preserve the control's CURRENT rect, which for a
+        // node that has never been laid out is not what we want.
+        spoils.AnchorLeft = 1f; spoils.AnchorRight = 1f;
+        spoils.AnchorTop = 0.5f; spoils.AnchorBottom = 0.5f;
+        spoils.GrowHorizontal = Control.GrowDirection.Begin;
+        spoils.GrowVertical = Control.GrowDirection.Both;
+        spoils.OffsetLeft = -(SpoilsEdgeMargin + SpoilsWidth);
+        spoils.OffsetRight = -SpoilsEdgeMargin;
+        spoils.OffsetTop = 0f; spoils.OffsetBottom = 0f;
+        spoils.CustomMinimumSize = new Vector2(SpoilsWidth, 0);
+        // Ignore, not Stop: this panel must never be a second thing competing
+        // for a tap meant for a button. The one child that does want input —
+        // the drop reveal's tap area — sets Stop on itself, and it now lives
+        // over here on the right where there is nothing to steal from.
+        spoils.MouseFilter = Control.MouseFilterEnum.Ignore;
+        spoils.AddThemeStyleboxOverride("panel", StyleWornBorder(
+            borderColor: playerWon ? Gold : BorderSubtle,
+            width: 2,
+            radius: RadiusMedium,
+            bgColor: CardFace));
+
+        var pad = new MarginContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        foreach (var side in new[] { "margin_left", "margin_right", "margin_top", "margin_bottom" })
+            pad.AddThemeConstantOverride(side, 18);
+        spoils.AddChild(pad);
+
+        var col = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        col.AddThemeConstantOverride("separation", 6);
+        pad.AddChild(col);
+
+        var header = new Label
+        {
+            Text = playerWon ? "SPOILS" : "FORFEITED",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        ApplyHeaderFont(header, FontLargeBody);
+        header.Modulate = playerWon ? Gold : Ember;
+        col.AddChild(header);
+
+        if (!playerWon)
+        {
+            var sub = new Label
+            {
+                Text = "what a win would have paid",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            ApplyBodyFont(sub, FontSecondary);
+            sub.Modulate = TextMuted;
+            col.AddChild(sub);
+        }
+
+        col.AddChild(MakeDivider());
+
+        // ── What the fight pays ──
+        int rewardIdx = 0;
+        bool anyRow = false;
+        if (encounter != null)
+        {
+            if (encounter.ShardReward > 0)
+            {
+                if (playerWon)
+                {
+                    var (row, val) = MakeAnimatedRewardRow("● Shards", encounter.ShardReward, Gold, rewardIdx);
+                    col.AddChild(row);
+                    _rewardCounters.Add(new AnimatedRewardCounter
+                    { ValueLabel = val, TargetValue = encounter.ShardReward, Index = rewardIdx });
+                    rewardIdx++;
+                }
+                else
+                {
+                    // FABLE-015: no plus sign on this side of the screen. The
+                    // defeat list used to read "Rewards forfeited" and then
+                    // "Shards +30", which says he was paid for losing.
+                    col.AddChild(MakeRewardRow("● Shards", $"{encounter.ShardReward}", TextMuted));
+                }
+                anyRow = true;
+            }
+
+            if (encounter.DigChargeReward > 0)
+            {
+                if (playerWon)
+                {
+                    var (row, val) = MakeAnimatedRewardRow("◇ Dig Charges", encounter.DigChargeReward, Moss, rewardIdx);
+                    col.AddChild(row);
+                    _rewardCounters.Add(new AnimatedRewardCounter
+                    { ValueLabel = val, TargetValue = encounter.DigChargeReward, Index = rewardIdx });
+                    rewardIdx++;
+                }
+                else
+                {
+                    col.AddChild(MakeRewardRow("◇ Dig Charges", $"{encounter.DigChargeReward}", TextMuted));
+                }
+                anyRow = true;
+            }
+
+            if (!string.IsNullOrEmpty(encounter.FragmentReward))
+            {
+                col.AddChild(MakeRewardRow("◆ Fragments",
+                    playerWon ? $"+{encounter.FragmentReward}" : $"{encounter.FragmentReward}",
+                    playerWon ? Amber : TextMuted));
+                anyRow = true;
+            }
+        }
+
+        if (!string.IsNullOrEmpty(_grantedCardName))
+        {
+            col.AddChild(MakeRewardRow("♠ New Card", _grantedCardName,
+                playerWon ? Gold : TextMuted));
+            anyRow = true;
+        }
+
+        // ── Card drops ──
+        if (_dropRevealCards.Count > 0)
+        {
+            if (playerWon)
+            {
+                col.AddChild(MakeDivider());
+
+                var dropHeader = new Label
+                {
+                    Text = "— Drops —",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                };
+                ApplyBodyFont(dropHeader, FontSecondary);
+                dropHeader.Modulate = Moss;
+                dropHeader.Visible = false;   // StartDropReveal shows it
+                col.AddChild(dropHeader);
+                _dropTitleLabel = dropHeader;
+
+                // Tall enough for the 377px plate the reveal actually builds,
+                // plus its ribbon and tap hint. The old slot asked for 340 and
+                // the overflow is what landed on the buttons.
+                var dropCtr = new CenterContainer
+                {
+                    Name = "DropRevealArea",
+                    MouseFilter = Control.MouseFilterEnum.Ignore,
+                    CustomMinimumSize = new Vector2(0, 450),
+                };
+                col.AddChild(dropCtr);
+                _dropRevealContainer = dropCtr;
+            }
+            else
+            {
+                int n = _dropRevealCards.Count;
+                col.AddChild(MakeRewardRow("♠ Card Drops",
+                    $"{n} card{(n != 1 ? "s" : "")}", TextMuted));
+            }
+            anyRow = true;
+        }
+
+        if (!anyRow)
+        {
+            var none = new Label
+            {
+                Text = playerWon ? "Nothing but the win." : "Nothing at stake.",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                MouseFilter = Control.MouseFilterEnum.Ignore,
+            };
+            ApplyBodyFont(none, FontBody);
+            none.Modulate = TextMuted;
+            col.AddChild(none);
+        }
+
+        // ── Slide in from the edge ──
+        if (CampaignContext.ReduceMotion)
+        {
+            spoils.Modulate = Colors.White;
+        }
+        else
+        {
+            spoils.Modulate = new Color(1, 1, 1, 0);
+            spoils.OffsetLeft -= SpoilsSlideFrom;
+            spoils.OffsetRight -= SpoilsSlideFrom;
+            // Deferred: a tween started before the node is in the tree has
+            // nothing to run on.
+            Callable.From(() =>
+            {
+                if (!IsInstanceValid(spoils) || !spoils.IsInsideTree()) return;
+                var t = spoils.CreateTween();
+                t.SetParallel();
+                t.TweenProperty(spoils, "modulate:a", 1.0f, 0.35f).SetEase(Tween.EaseType.Out);
+                t.TweenProperty(spoils, "offset_left", -(SpoilsEdgeMargin + SpoilsWidth), 0.35f)
+                    .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
+                t.TweenProperty(spoils, "offset_right", -SpoilsEdgeMargin, 0.35f)
+                    .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
+            }).CallDeferred();
+        }
+
+        return spoils;
     }
 
     /// <summary>Create a thin gold divider line.</summary>
