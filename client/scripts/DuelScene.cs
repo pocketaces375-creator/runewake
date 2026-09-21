@@ -5654,22 +5654,52 @@ private void ShowGameOverOverlay(int winnerIndex)
     ///   fault; if it never changes, the press never happened. Either way the
     ///   next report is one word long instead of a guess.
     /// </summary>
+    /// <summary>
+    /// FABLE-019: set the moment ANY end-of-duel button commits to leaving.
+    /// Scene-wide, not per-button, and never reset once the swap has been
+    /// requested. See the comment in Fire for why this exists.
+    /// </summary>
+    private bool _exitCommitted;
+
+    /// <summary>FABLE-019: true once ChangeSceneToPacked has been called and accepted.</summary>
+    private bool _swapRequested;
+
     private void ArmEndOfDuelButton(Button btn, string label, System.Action activate)
     {
         bool fired = false;
 
         void Fire(string via)
         {
-            if (fired || !IsInstanceValid(btn)) return;
+            // FABLE-019 — THE CONTINUE BUG, REPRODUCED IN A RUNNING BUILD.
+            //
+            // Fable got Godot 4.3 running headless and drove this exact path:
+            // map arms the Wayfarer, victory, Continue fired the way a phone
+            // fires it (the touch/mouse-release route, then Pressed). The log:
+            //
+            //   'Continue' activated via touch release
+            //   next duel: r1_n02 -> Thornbark
+            //   ChangeSceneToPacked -> Ok
+            //   ERROR: Parameter "data.tree" is null.
+            //   'Continue' threw: NullReferenceException
+            //   'Continue' activated via Pressed          ← ran AGAIN
+            //   cleared r1_n02                            ← Thornbark, never played
+            //   next duel: r1_n04 -> The Root-Binder
+            //   ERROR: Parameter "data.tree" is null.
+            //
+            // In Godot 4.3, ChangeSceneToPacked REMOVES the outgoing scene from
+            // the tree immediately. The watchdog then called GetTree() on it,
+            // got null, and threw. That throw landed here, the catch un-latched
+            // `fired` (the FABLE-011 "let them try again" rule) — and the second
+            // route into this handler ran the whole Continue again: cleared the
+            // NEXT fight without playing it and crashed on the dead tree.
+            //
+            // So: one scene-wide latch, set before anything happens, and once a
+            // swap has been requested nothing re-arms it. Re-arming is only
+            // allowed when we are still on screen and no swap was requested —
+            // the one case where "try again" means something.
+            if (fired || _exitCommitted || !IsInstanceValid(btn)) return;
             fired = true;
-            // FABLE-011: the WHOLE body is guarded. Round three of this bug ended
-            // with the label reading "Continuing…" and the duel still on screen,
-            // which proves the handler ran and then died somewhere with nothing
-            // to show for it — a C# exception inside a Godot signal handler is
-            // swallowed by the engine and the rest of the lambda never runs. On a
-            // phone with no logcat that is indistinguishable from a dead button.
-            // Now any throw paints itself on the panel and un-latches, so the
-            // player can try again and we get the type and message back.
+            _exitCommitted = true;
             try
             {
                 GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
@@ -5677,14 +5707,22 @@ private void ShowGameOverOverlay(int winnerIndex)
                 btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
                 // Deliberately NOT setting btn.Disabled — changing a Button's
                 // disabled state from inside its own press is a needless extra
-                // thing to go wrong, and `fired` already prevents a double fire.
+                // thing to go wrong, and the latch already prevents a double fire.
                 activate();
             }
             catch (System.Exception ex)
             {
                 GD.PrintErr($"[DUEL-EXIT] '{label}' threw: {ex}");
+                if (_swapRequested || !IsInsideTree())
+                {
+                    // We are already leaving. Re-arming here is what turned one
+                    // tap into two Continues. Log it and stay committed.
+                    GD.PrintErr("[DUEL-EXIT] …after the swap was requested — staying committed, not re-arming");
+                    return;
+                }
                 ShowExitError($"{label} failed: {ex.GetType().Name} — {ex.Message}");
                 fired = false;
+                _exitCommitted = false;
                 if (IsInstanceValid(btn)) btn.Text = label;
             }
         }
@@ -5807,6 +5845,16 @@ private void ShowGameOverOverlay(int winnerIndex)
         }
     }
 
+    private async System.Threading.Tasks.Task AuditAfterLayout(Button a, Button b)
+    {
+        var tree = GetTree();
+        if (tree == null) return;
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        if (!IsInsideTree()) return;   // already left — nothing to audit
+        AuditEndOfDuelButtons(a, b);
+    }
+
     /// <summary>Z as Godot resolves it: relative z-indexes accumulate up the chain.</summary>
     private int EffectiveZ(CanvasItem item)
     {
@@ -5868,90 +5916,162 @@ private void ShowGameOverOverlay(int winnerIndex)
             }
         }
 
+        // FABLE-019: capture the tree NOW, while this scene is still in it.
+        // After ChangeSceneToPacked this node is out of the tree and GetTree()
+        // returns null — which is exactly the crash that doubled every Continue.
         var tree = GetTree();
-
-        // FABLE-011: load the scene EXPLICITLY, then swap to the loaded resource.
-        //
-        // ChangeSceneToFile hides the load inside itself and returns Ok long
-        // before the scene is actually built, so "returned Ok and nothing
-        // happened" — exactly what round three produced — tells you nothing at
-        // all. Loading first splits that into two answers we can act on: either
-        // the PackedScene came back null (the scene is the problem) or it did
-        // not (the swap is the problem).
-        //
-        // The one-shot Timer that used to carry this is gone. It was a second
-        // thing that had to work before anything could happen, and it could not
-        // be proven to have fired. ChangeSceneToPacked already defers internally.
-        PackedScene? packed = null;
-        try
+        if (tree == null)
         {
-            packed = ResourceLoader.Load<PackedScene>(scenePath);
-        }
-        catch (System.Exception ex)
-        {
-            GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
-        }
-
-        Error err;
-        if (packed != null)
-        {
-            err = tree.ChangeSceneToPacked(packed);
-            GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
-        }
-        else
-        {
-            GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
-            err = tree.ChangeSceneToFile(scenePath);
-            GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
-        }
-
-        if (err != Error.Ok)
-        {
-            GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
-            var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
-            if (fallback != Error.Ok)
-            {
-                GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
-                ShowExitError($"Could not open {scenePath.GetFile()} ({err}).");
-            }
+            GD.PrintErr("[DUEL-EXIT] LeaveDuelFor called with no tree (already leaving) — ignored");
             return;
         }
-
-        StartExitWatchdog(scenePath);
+        _ = SwapAfterOneFrame(tree, scenePath, GetInstanceId());
     }
 
     /// <summary>
-    /// The last place this bug can hide: the call returned Ok and the swap still
-    /// never happened. Nothing downstream reports that, so after a moment we ask
-    /// the tree whether we are still the scene on screen, and if we are, we say so
-    /// where the player can read it.
+    /// FABLE-019. Let one frame draw first, so the button's "Continuing…" is
+    /// actually on screen while a phone builds the next duel (on device that
+    /// build can take a second or more, and the old code swapped in the same
+    /// frame it changed the label, so the label never showed). Then swap, then
+    /// watch — using only the tree, never `this`, which is out of the tree the
+    /// instant the swap is accepted.
+    ///
+    /// Two process_frame waits, not RenderingServer.FramePostDraw: headless runs
+    /// never draw, and a post-draw wait would hang every automated test forever.
     /// </summary>
-    private void StartExitWatchdog(string scenePath)
+    private async System.Threading.Tasks.Task SwapAfterOneFrame(SceneTree tree, string scenePath, ulong oldSceneId)
     {
-        var tree = GetTree();
+        try
+        {
+            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+
+            // FABLE-011: load EXPLICITLY, then swap to the loaded resource, so a
+            // null PackedScene (the scene is the problem) and a failed swap (the
+            // swap is the problem) are two different, readable answers.
+            PackedScene? packed = null;
+            try
+            {
+                packed = ResourceLoader.Load<PackedScene>(scenePath);
+            }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
+            }
+
+            Error err;
+            if (packed != null)
+            {
+                err = tree.ChangeSceneToPacked(packed);
+                GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
+            }
+            else
+            {
+                GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
+                err = tree.ChangeSceneToFile(scenePath);
+                GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
+            }
+
+            if (err != Error.Ok)
+            {
+                GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
+                var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
+                if (fallback != Error.Ok)
+                {
+                    GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
+                    ShowRootNotice(tree, $"Could not open {scenePath.GetFile()} ({err}) or the title ({fallback}). Tell Fable.");
+                    return;
+                }
+                scenePath = MainMenuScenePath;
+            }
+
+            // From this line on, THIS NODE IS OUT OF THE TREE. Touch nothing
+            // that needs it: no GetTree(), no GetNode(), no overlay.
+            _swapRequested = true;
+            StartExitWatchdog(tree, scenePath, oldSceneId);
+        }
+        catch (System.Exception ex)
+        {
+            GD.PrintErr($"[DUEL-EXIT] swap threw: {ex}");
+            ShowRootNotice(tree, $"Could not leave the duel: {ex.GetType().Name} — {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// FABLE-019: the watchdog that FABLE-011 meant to write. That one called
+    /// GetTree() on the outgoing scene (null in Godot 4.3 once the swap is
+    /// accepted) and crashed every single time, which is why its "tell Fable
+    /// watchdog fired" line has never once been seen. This one takes the tree as
+    /// an argument, compares scene INSTANCE ids rather than `this`, and reports
+    /// through a root-level layer that exists whatever scene is (or isn't) up.
+    ///
+    /// 4 s, not 1.5: a phone can legitimately spend over a second building a
+    /// duel, and a false "stuck" would send us chasing a bug that isn't there.
+    /// </summary>
+    private static void StartExitWatchdog(SceneTree tree, string scenePath, ulong oldSceneId)
+    {
         var watchdog = new Godot.Timer
         {
+            Name = "DuelExitWatchdog",
             OneShot = true,
-            WaitTime = 1.5f,
+            WaitTime = 4.0f,
             ProcessMode = Node.ProcessModeEnum.Always,
         };
         watchdog.Timeout += () =>
         {
-            bool stillHere = IsInstanceValid(this) && tree.CurrentScene == this;
-            if (stillHere)
+            var cur = tree.CurrentScene;
+            if (cur == null || cur.GetInstanceId() == oldSceneId)
             {
-                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: still in DuelScene 1.5s after a successful "
-                            + $"scene-change call to '{scenePath}'. The swap was accepted and never happened.");
-                ShowExitError($"Still here 1.5s after loading {scenePath.GetFile()} — tell Fable \"watchdog fired\".");
+                string what = cur == null ? "no scene at all" : "the old duel";
+                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: 4 s after the swap to '{scenePath}' the tree shows {what}.");
+                ShowRootNotice(tree, $"Still waiting on {scenePath.GetFile()} after 4 s ({what}). Tell Fable: \"watchdog: {what}\".");
             }
             else
             {
-                GD.Print("[DUEL-EXIT] watchdog: scene changed, all good");
+                GD.Print($"[DUEL-EXIT] watchdog: now on {cur.Name} — all good");
             }
             if (GodotObject.IsInstanceValid(watchdog)) watchdog.QueueFree();
         };
-        tree.Root.AddChild(watchdog);
-        watchdog.Start();
+        // Deferred: the root is mid-flush during a scene change.
+        Callable.From(() =>
+        {
+            tree.Root.AddChild(watchdog);
+            watchdog.Start();
+        }).CallDeferred();
+    }
+
+    /// <summary>
+    /// FABLE-019: a message that survives the duel scene leaving. Lives on a
+    /// CanvasLayer under the root, so it draws over whatever is — or is not —
+    /// on screen, and removes itself after 15 s.
+    /// </summary>
+    private static void ShowRootNotice(SceneTree tree, string message)
+    {
+        var layer = new CanvasLayer { Layer = 128, Name = "DuelExitNotice" };
+        var label = new Label
+        {
+            Text = message,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            AnchorLeft = 0.08f, AnchorRight = 0.92f, AnchorTop = 0.84f, AnchorBottom = 0.97f,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        label.AddThemeFontSizeOverride("font_size", 30);
+        label.AddThemeColorOverride("font_color", new Color(1.0f, 0.62f, 0.52f));
+        label.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.05f, 0.04f, 0.92f),
+            BorderColor = new Color(0.66f, 0.23f, 0.16f),
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            ContentMarginLeft = 16, ContentMarginRight = 16, ContentMarginTop = 10, ContentMarginBottom = 10,
+        });
+        layer.AddChild(label);
+        Callable.From(() =>
+        {
+            tree.Root.AddChild(layer);
+            tree.CreateTimer(15.0).Timeout += () => { if (GodotObject.IsInstanceValid(layer)) layer.QueueFree(); };
+        }).CallDeferred();
     }
 
     /// <summary>
@@ -6311,7 +6431,11 @@ private void ShowGameOverOverlay(int winnerIndex)
 
         // FABLE-015: prove, on the frame after layout settles, that these two
         // buttons can actually be touched. See AuditEndOfDuelButtons.
-        Callable.From(() => AuditEndOfDuelButtons(fightAgainBtn, continueBtn)).CallDeferred();
+        // FABLE-019: after TWO frames, not one deferred call. The first real run
+        // of this audit reported Continue at y=1344 on a 1080-tall screen: it
+        // measured before the containers had laid out. Positions were wrong,
+        // the verdict happened to be right.
+        _ = AuditAfterLayout(fightAgainBtn, continueBtn);
 
         // ═══ SOAK MODE: auto-press Continue/Return to Map after overlay shows ═══
         if (CampaignContext.SoakActive)

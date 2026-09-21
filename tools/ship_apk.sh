@@ -171,6 +171,13 @@ blocking "engine tests" bash -c \
 blocking "UX walkthrough" bash -c \
   "cd '$REPO_ROOT' && timeout 300 xvfb-run -a \"\${GODOT_BIN:-\$HOME/.local/bin/godot}\" --path client -- --uxwalk 2>&1 | grep -qE 'WALKTHROUGH DONE|0 fail'"
 
+# FABLE-019: a file the code loads but the export filter drops exists on the
+# build machine — so every capture and test sees it — and is missing on the
+# phone. That is how the title animation lost its vortex and mist for three
+# rounds. Deterministic and never flaky, so it blocks.
+[ -f "$REPO_ROOT/tools/export_exclusion_check.py" ] && \
+  blocking "every asset the code loads ships in the APK" python3 "$REPO_ROOT/tools/export_exclusion_check.py"
+
 # The two that speak directly to "can he actually play it".
 [ -x "$REPO_ROOT/tools/input_smoke.sh" ] && \
   blocking "input smoke (a card can be tapped)" bash "$REPO_ROOT/tools/input_smoke.sh"
@@ -188,6 +195,14 @@ blocking "UX walkthrough" bash -c \
 # real check and runs against the live project by hand.
 advisory "supabase config baked in (accounts + cloud save)" bash -c \
   "test -s '$CLIENT_DIR/supabase_config.json' && python3 -c \"import json,sys; c=json.load(open('$CLIENT_DIR/supabase_config.json')); sys.exit(0 if c.get('url','').startswith('https://') and 'YOUR-PROJECT' not in c['url'] and c.get('anon_key','').startswith('eyJ') and not c['anon_key'].startswith('eyJ...') else 1)\""
+# FABLE-019: the first accounts build shipped with permissions/internet=false,
+# so every request died on the phone ("No connection") while the smoke test —
+# run from a desktop — passed all 21 checks. A manifest setting no desktop run
+# can see. Advisory: no network is not unplayable, but it is the headline
+# feature of the build, so it goes on the label in capitals if it happens.
+[ -f "$REPO_ROOT/tools/android_manifest_check.py" ] && \
+  advisory "Android preset requests INTERNET (accounts need it)" python3 "$REPO_ROOT/tools/android_manifest_check.py"
+
 # FABLE-015. Advisory on purpose, and only on purpose for now: a check that has
 # never once been green must not be the thing that withholds a build. The
 # moment it passes, TASK-BTN-REACH-1 moves this line up into the blocking

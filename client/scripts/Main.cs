@@ -711,7 +711,7 @@ public partial class Main : Control
         syncManager.StatusChanged += status =>
         {
             if (_accountChip != null && IsInstanceValid(_accountChip))
-                _accountChip.Text = status.Length > 44 ? status.Substring(0, 43) + "…" : status;
+                _accountChip.Text = status.Length > 64 ? status.Substring(0, 63) + "…" : status;   // FABLE-019: room for the reason; full text in the panel
         };
         _accountChip.Text = syncManager.Status;
         syncManager.ConflictDetected += () => AccountPanel.Open(this, syncManager);

@@ -124,7 +124,7 @@ public class SupabaseAuth
 
         var body = JsonSerializer.Serialize(new { email }, JsonOpts);
         var (status, json) = await Send(HttpMethod.Put, "/auth/v1/user", body, session.AccessToken).ConfigureAwait(false);
-        if (status == 0) return AuthResult.Fail("No connection");
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
         // Supabase answers with the user object, new_email pending. No session change yet.
         return AuthResult.Success(session);
@@ -153,7 +153,7 @@ public class SupabaseAuth
         if (!LooksLikeEmail(email)) return AuthResult.Fail("That doesn't look like an email address");
         var body = JsonSerializer.Serialize(new { email, create_user = false }, JsonOpts);
         var (status, json) = await Send(HttpMethod.Post, "/auth/v1/otp", body, null).ConfigureAwait(false);
-        if (status == 0) return AuthResult.Fail("No connection");
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
         return new AuthResult { Ok = true, Status = status };
     }
@@ -181,7 +181,7 @@ public class SupabaseAuth
         if (!IsConfigured) return AuthResult.Fail("Accounts not configured");
 
         var (status, json) = await Send(HttpMethod.Post, path, body, bearer).ConfigureAwait(false);
-        if (status == 0) return AuthResult.Fail("No connection");
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
 
         TokenResponse? tok;
@@ -221,11 +221,23 @@ public class SupabaseAuth
             var text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
             return ((int)resp.StatusCode, text);
         }
-        catch
+        catch (Exception ex)
         {
-            return (0, string.Empty);
+            // FABLE-019: status 0 = never got an answer. Carry WHY in the body,
+            // so the player-facing "No connection" can say what actually
+            // failed. The first APK with accounts said only "No connection";
+            // the cause (no INTERNET permission in the manifest) was
+            // invisible from the phone. The innermost exception is the one
+            // that names the real fault (SocketException, AuthenticationException…).
+            var inner = ex;
+            while (inner.InnerException != null) inner = inner.InnerException;
+            return (0, inner.GetType().Name + ": " + inner.Message);
         }
     }
+
+    /// <summary>"No connection" plus the underlying reason, when there is one.</summary>
+    internal static string NoConnection(string detail)
+        => string.IsNullOrEmpty(detail) ? "No connection" : "No connection — " + detail;
 
     /// <summary>Turn a GoTrue error body into something a player can read.</summary>
     internal static string Describe(string json, int status)

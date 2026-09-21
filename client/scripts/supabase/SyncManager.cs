@@ -213,7 +213,7 @@ public partial class SyncManager : Node
         {
             var r = await _auth.Refresh(Session).ConfigureAwait(false);
             if (r.Ok) { AdoptSession(r.Session!); return true; }
-            if (r.Status == 0) { SetStatus("No connection"); return false; }
+            if (r.Status == 0) { SetStatus(r.Error); return false; }   // FABLE-019: carries the reason
 
             // The server rejected the refresh token outright: the session is
             // dead. For a GUEST we can just make a new guest — but their save
@@ -233,7 +233,7 @@ public partial class SyncManager : Node
         var a = await _auth.SignInAnonymously().ConfigureAwait(false);
         if (!a.Ok)
         {
-            SetStatus(a.Status == 0 ? "No connection" : a.Error);
+            SetStatus(a.Error);   // FABLE-019: "No connection — <reason>" when status 0
             RecordError(a.Error);
             return false;
         }

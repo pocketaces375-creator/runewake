@@ -83,7 +83,8 @@ public class AccountsTests
         {
             var fake = new FakeSupabase { Offline = true };
             var res = await new SupabaseAuth(Cfg, new HttpClient(fake)).SignInAnonymously();
-            AssertTrue(!res.Ok && res.Error == "No connection" && res.Status == 0, "offline → 'No connection', status 0");
+            AssertTrue(!res.Ok && res.Status == 0 && res.Error.StartsWith("No connection"), "offline → 'No connection…', status 0");
+            AssertTrue(res.Error.Contains("HttpRequestException") && res.Error.Contains("no route to host"), "…and it carries the real reason (FABLE-019)");
         }
         {
             var res = await new SupabaseAuth(new SupabaseConfig(), new HttpClient(new FakeSupabase())).SignInAnonymously();

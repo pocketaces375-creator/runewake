@@ -1,0 +1,944 @@
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 9d35dda..bb3bcf0 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -27,3 +27,4 @@ The following directories have been allowed for tool access:
+ 3. **A task is done when tools/finish_task.sh exits 0.** Chat-session work must end by running it too — a report in the group without a finish_task.sh run is not done.
+ 4. **Every patch ends with an APK that is worth opening.** Run `bash tools/ship_apk.sh --note "<what to look at>"` after every patch and post the link together with `artifacts/SHIP_REPORT.md`. The script sorts checks into two tiers and that distinction is the whole point. BLOCKING — the build, engine tests, campaign loop, tutorial script, UX walkthrough, input smoke, loop smoke, and intact-zip / valid-signature / landscape — predict a build that cannot be played; if one is red, report what broke INSTEAD of delivering, because a dud costs Trikzos more than no build does. ADVISORY — label_fit, capture freshness, the visual gate, art file sizes — is cosmetic or tooling and never withholds a playable build; it goes on the label instead. `--anyway` forces an override build and stamps it as one. Two opposite failures to avoid repeating: between 2026-09-18 and 2026-09-20 he got no build at all, because `export_and_verify.sh` exits on the first red check and every red check was cosmetic — a Continue-button bug then survived four rounds untested because nobody could press the button. Shipping regardless is the mirror-image mistake: it moves the wasted trip onto the one person on this project who cannot be replaced. Shipping and marking done are separate decisions — `finish_task.sh` stays strict about "done", this decides "is it worth his thumb". A blocking check that was already red before the work, and is not what stands between him and a playable build, goes in `tools/ship_known_failures.json` with a reason, an owning task and an expiry date; it then reports loudly on every run instead of withholding. The build, the engine tests, input smoke, loop smoke and the three install-critical APK facts are unwaivable and `ship_apk.sh` refuses to run if that file tries — those checks ARE the promise, and waiving one would make the promise a lie.5. **A check that simulates the outcome of a control has not tested the control.** Soak mode navigates the end-of-duel screen by calling `ChangeSceneToFile` on a timer, so `loop_smoke` has only ever proved that the scene *after* Continue loads. It has never once pressed Continue. Three separate button bugs shipped green underneath it: covered by an opaque node (FABLE-005), freed between touch-down and touch-up so `BaseButton` never paired the press (FABLE-012), and throwing inside the handler where Godot swallows the exception (FABLE-011). When a check stands in for a player action, write down what it does NOT cover, and treat "the test drives the code the handler calls" as untested until something drives the handler.
+ 6. **Diagnose which build the report came from before diagnosing the report.** On 2026-09-20 Trikzos reported three faults — dead defeat buttons, a freeze, a still-static title screen — all of which had already been fixed in the repo. His APK was from 2026-09-18 and predated every fix; the build pipeline had been withholding since. Before debugging a device report, establish the APK's commit. `artifacts/SHIP_REPORT.md` now carries it, which is most of why `ship_apk.sh` exists.
++7. **A capture proves the code runs on the build machine — not that it runs on the phone.** Three rounds of title captures showed a turning vortex while Trikzos's phone showed a still picture: both layer PNGs sat in `content/art/title/layers/`, which `export_presets.cfg` excluded from the APK. The first accounts build passed 21/21 smoke checks from a desktop while every request on the phone failed: the Android preset had `permissions/internet=false`. Anything that differs between the project folder and the APK — the export filter, the manifest, permissions, signing — is invisible to every capture and every desktop test. `tools/export_exclusion_check.py` (blocking) and `tools/android_manifest_check.py` (advisory) now check the two that bit us; when a device report contradicts a capture, suspect the export before the code.
+diff --git a/client/export_presets.cfg b/client/export_presets.cfg
+index a6eec69..86a26d7 100644
+--- a/client/export_presets.cfg
++++ b/client/export_presets.cfg
+@@ -7,7 +7,7 @@ dedicated_server=false
+ custom_features=""
+ export_filter="all_resources"
+ include_filter="*.json"
+-exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,*raw/*,*nano_v7/*,*flux_v5/*,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*,content/art/title/layers/*"
++exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,*raw/*,*nano_v7/*,*flux_v5/*,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*"
+ export_path="exports/Runewake.x86_64"
+ encryption_include_filters=""
+ encryption_exclude_filters=""
+@@ -34,7 +34,7 @@ dedicated_server=false
+ custom_features=""
+ export_filter="all_resources"
+ include_filter="*.json"
+-exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,*raw/*,*nano_v7/*,*flux_v5/*,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*,content/art/title/layers/*"
++exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,*raw/*,*nano_v7/*,*flux_v5/*,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*"
+ export_path="exports/Runewake.apk"
+ encryption_include_filters=""
+ encryption_exclude_filters=""
+@@ -54,8 +54,8 @@ version/code=30
+ version/name="0.1"
+ package/unique_name="com.runewake.game"
+ package/name="Runewake"
+-permissions/access_network_state=false
+-permissions/internet=false
++permissions/access_network_state=true
++permissions/internet=true
+ permissions/write_external_storage=false
+ permissions/read_external_storage=false
+ screen/immersive_mode=true
+@@ -82,7 +82,7 @@ dedicated_server=false
+ custom_features=""
+ export_filter="all_resources"
+ include_filter="*.json"
+-exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*,content/art/title/layers/*"
++exclude_filter="*.a,*.pdb,extension_api.json,*.import.md5,content/art/classes/raw/*,content/art/classes/nano_v7/*,content/art/classes/flux_v5/*,content/art/artifacts/raw/*,content/art/frame/basalt_unused/*,content/art/pocketed/*,content/art/border/legacy/*"
+ export_path="exports/Runewake-release.apk"
+ encryption_include_filters=""
+ encryption_exclude_filters=""
+@@ -102,8 +102,8 @@ version/code=32
+ version/name="1.0.1-fable005"
+ package/unique_name="com.runewake.buriedage"
+ package/name="Runewake: The Buried Age"
+-permissions/access_network_state=false
+-permissions/internet=false
++permissions/access_network_state=true
++permissions/internet=true
+ permissions/write_external_storage=false
+ permissions/read_external_storage=false
+ screen/immersive_mode=true
+diff --git a/client/scripts/CardPlate.cs b/client/scripts/CardPlate.cs
+index 3cd4fc6..ca18b23 100644
+--- a/client/scripts/CardPlate.cs
++++ b/client/scripts/CardPlate.cs
+@@ -4,8 +4,9 @@ using System.Collections.Generic;
+ namespace Runewake.Client;
+ 
+ /// <summary>
+-/// CardPlate — ONE baked card texture + TWO dynamic stat numerals.
+-/// Everything else (frame, art, name, cost, badge shapes) is baked.
++/// CardPlate — ONE baked card texture + three code-drawn gems (attack,
++/// vigor, cost). FABLE-019: the gems replaced the baked badge chips, which
++/// were too small to read on the board. Frame, art and name stay baked.
+ /// </summary>
+ public partial class CardPlate : Control
+ {
+@@ -44,12 +45,37 @@ public partial class CardPlate : Control
+     private bool _hasB;
+     private int _cost = 0;
+     private int _attuneAvailable = 0;
+-    private Control? _pipDock;
+-    private ColorRect? _pipGradient;
++    // FABLE-019: code-drawn gems that replace the tiny baked badges. See Gem().
++    private Panel? _atkGem, _vigGem, _costGem;
++    private Label? _costNum;
+ 
+     private static readonly Color CREAM = new Color(0.941f, 0.894f, 0.816f);
+-    private static readonly Color RED_TINT = new Color(0.941f, 0.800f, 0.750f);
+-    private static readonly Color GREEN_TINT = new Color(0.750f, 0.941f, 0.800f);
++    // FABLE-019: these used to be near-cream pastels that were invisible on the
++    // old 20px chips. On the gems they must read at a glance: reduced = hot
++    // coral, raised = bright leaf. The black outline carries them on either fill.
++    private static readonly Color RED_TINT = new Color(1.00f, 0.55f, 0.48f);
++    private static readonly Color GREEN_TINT = new Color(0.66f, 1.00f, 0.55f);
++    private static readonly Color GEM_RIM = new Color(0.79f, 0.66f, 0.30f);       // gold #C9A84C
++    private static readonly Color ATK_FILL = new Color(0.47f, 0.11f, 0.08f);      // deep ember
++    private static readonly Color VIG_FILL = new Color(0.12f, 0.35f, 0.16f);      // deep moss
++    private static readonly Color COST_FILL = new Color(0.10f, 0.08f, 0.06f);     // near-black stone
++    private static readonly Color COST_READY = new Color(1.00f, 0.82f, 0.36f);    // lit gold
++    private static readonly Color COST_SHORT = new Color(0.62f, 0.52f, 0.38f);    // dull brass
++
++    /// <summary>
++    /// FABLE-019: gem diameter as a fraction of card WIDTH.
++    ///
++    /// Trikzos: "strength and vigor need to be way more visible. I can't see
++    /// just about any of them on the field." Measured on a rendered board: the
++    /// baked badges were 13.5% x 5.3% of the card (about 28 x 14 px on a
++    /// 205 px board card) with a numeral clamped to 9–20 px. The gems are 30%
++    /// of the width — about 62 px on the same card, numeral ~38 px — and the
++    /// cost gem 26%. They sit on the corners and are allowed to overhang the
++    /// frame a little, the way card games generally present stats, so they do
++    /// not eat the art or the name.
++    /// </summary>
++    private const float StatGemFrac = 0.30f;
++    private const float CostGemFrac = 0.26f;
+ 
+     public void Setup(string cardId, int? attack, int? vigor,
+         float cardWidth, float cardHeight, int cost = 0, bool isArtifact = false,
+@@ -58,9 +84,13 @@ public partial class CardPlate : Control
+         Position = Vector2.Zero;
+         Size = new Vector2(cardWidth, cardHeight);
+         _baseAtk = attack ?? -1; _baseVig = vigor ?? -1;
+-        _hasB = attack.HasValue && vigor.HasValue;
+         _atkR = RectOf(cardId, "attack_badge");
+         _vigR = RectOf(cardId, "vigor_badge");
++        // FABLE-019: a card has stats to show only if its bake HAS stat badges.
++        // Relics and spells carry Attack/Vigor = 0 in the registry; their badge
++        // rects are 0,0,0,0. The old chips were zero-size on them and so
++        // invisible; the new gems must check explicitly or every relic shows 0/0.
++        _hasB = attack.HasValue && vigor.HasValue && _atkR.Z > 0f && _vigR.Z > 0f;
+ 
+         if (_baked == null)
+         {
+@@ -73,19 +103,12 @@ public partial class CardPlate : Control
+             };
+             AddChild(_baked);
+ 
+-            // Cost-pip dock
+-            _pipDock = new Control { MouseFilter = Control.MouseFilterEnum.Ignore, Name = "PipDock" };
+-            AddChild(_pipDock);
+-            _pipGradient = new ColorRect
+-            {
+-                MouseFilter = Control.MouseFilterEnum.Ignore,
+-                Color = new Color(0.082f, 0.074f, 0.059f, 0.85f),
+-                Name = "PipGradient"
+-            };
+-            _pipDock.AddChild(_pipGradient);
+-
+-            _atkNum = MkNum(); AddChild(_atkNum);
+-            _vigNum = MkNum(); AddChild(_vigNum);
++            // FABLE-019: gems, not a baked chip plus a floating label. The old
++            // cost-pip dock is gone: its pips were 7px * (cardHeight/1080), about
++            // 2px on a board card, i.e. invisible.
++            (_atkGem, _atkNum) = Gem("AttackGem", ATK_FILL); AddChild(_atkGem);
++            (_vigGem, _vigNum) = Gem("VigorGem", VIG_FILL); AddChild(_vigGem);
++            (_costGem, _costNum) = Gem("CostGem", COST_FILL); AddChild(_costGem);
+         }
+ 
+         string ip = $"res://content/art/cards_baked/{cardId}.webp";
+@@ -95,74 +118,46 @@ public partial class CardPlate : Control
+         else
+             GD.PrintErr($"[BAKE] load failed: {ip}");
+ 
+-        float fs = 0;
++        // ── FABLE-019: stat gems ──
++        // Centred on the corners of the name band, overhanging the frame a
++        // touch. Centres are fixed fractions of the card rather than the baked
++        // badge rects, which are 0,0,0,0 on non-creatures and sit too far in on
++        // creatures for a gem this size (they would cover the name).
++        float statD = Mathf.Round(cardWidth * StatGemFrac);
++        float costD = Mathf.Round(cardWidth * CostGemFrac);
+         if (_hasB)
+         {
+-            float ax = _atkR.X * cardWidth, ay = _atkR.Y * cardHeight;
+-            _atkNum.Position = new Vector2(ax, ay);
+-            _atkNum.Size = new Vector2(_atkR.Z * cardWidth, _atkR.W * cardHeight);
+-            float vx = _vigR.X * cardWidth, vy = _vigR.Y * cardHeight;
+-            _vigNum.Position = new Vector2(vx, vy);
+-            _vigNum.Size = new Vector2(_vigR.Z * cardWidth, _vigR.W * cardHeight);
+-            fs = Mathf.Clamp(Mathf.RoundToInt(_atkR.W * cardHeight * 0.55f), 9, 20);
++            PlaceGem(_atkGem!, _atkNum!, statD, new Vector2(cardWidth * 0.13f, cardHeight * 0.925f));
++            PlaceGem(_vigGem!, _vigNum!, statD, new Vector2(cardWidth * 0.87f, cardHeight * 0.925f));
++            _atkNum!.Text = attack!.Value.ToString();
++            _vigNum!.Text = vigor!.Value.ToString();
+         }
+-        _atkNum.Visible = _hasB;
+-        _vigNum.Visible = _hasB;
++        _atkGem!.Visible = _hasB;
++        _vigGem!.Visible = _hasB;
+ 
+-        if (_hasB)
++        // ── FABLE-019: cost gem ── over the baked cost circle (top-right),
++        // big enough to cover it. Colour tracks affordability (SetAttunementAvailable).
++        _cost = cost;
++        _costGem!.Visible = cost > 0;
++        if (cost > 0)
+         {
+-            _atkNum.Text = attack!.Value.ToString();
+-            _vigNum.Text = vigor!.Value.ToString();
+-            _atkNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
+-            _vigNum.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(fs));
++            PlaceGem(_costGem, _costNum!, costD, new Vector2(cardWidth * 0.86f, cardHeight * 0.085f));
++            _costNum!.Text = cost.ToString();
++            RecolourCost();
+         }
+-        // A1: Cost-pip dock — N diamonds on gradient pill, top-left
+-        _cost = cost;
+-        RebuildCostPips(cardWidth, cardHeight);
+     }
+ 
+     public void SetAttunementAvailable(int available)
+     {
+         _attuneAvailable = available;
+-        if (_pipDock != null) RebuildCostPips(Size.X, Size.Y);
++        RecolourCost();
+     }
+ 
+-    private void RebuildCostPips(float cardWidth, float cardHeight)
++    /// <summary>Lit gold numeral when affordable, dull brass when not.</summary>
++    private void RecolourCost()
+     {
+-        if (_pipDock == null) return;
+-        // Remove old pips
+-        foreach (var child in _pipDock.GetChildren())
+-        {
+-            if (child is ColorRect cr && cr.Name.ToString().StartsWith("Pip_"))
+-                cr.QueueFree();
+-        }
+-        if (_cost <= 0) { _pipDock.Visible = false; return; }
+-        _pipDock.Visible = true;
+-        float scale = cardHeight / 1080f;
+-        float pipS = 7f * scale;
+-        float gap = 3f * scale;
+-        float totalW = _cost * pipS + (_cost - 1) * gap;
+-        float dockW = totalW + 12f * scale;
+-        float dockH = pipS + 10f * scale;
+-        _pipGradient!.Size = new Vector2(dockW, dockH);
+-        float dockX = 6f * scale;
+-        float dockY = 6f * scale;
+-        _pipDock.Position = new Vector2(dockX, dockY);
+-        _pipGradient.Position = Vector2.Zero;
+-        for (int i = 0; i < _cost; i++)
+-        {
+-            var pip = new ColorRect
+-            {
+-                Name = $"Pip_{i}",
+-                MouseFilter = Control.MouseFilterEnum.Ignore,
+-                CustomMinimumSize = new Vector2(pipS, pipS),
+-                Size = new Vector2(pipS, pipS),
+-                Color = i < _attuneAvailable ? Color.FromHtml("#E3B23C") : Color.FromHtml("#6B5636"),
+-            };
+-            pip.Position = new Vector2(6f * scale + i * (pipS + gap), (dockH - pipS) / 2f);
+-            pip.Rotation = Mathf.DegToRad(45f);
+-            _pipDock.AddChild(pip);
+-        }
++        if (_costNum == null || _cost <= 0) return;
++        _costNum.AddThemeColorOverride("font_color", _cost <= _attuneAvailable ? COST_READY : COST_SHORT);
+     }
+ 
+     public void SetStatValues(int? attack, int? vigor)
+@@ -184,13 +179,85 @@ public partial class CardPlate : Control
+         }
+     }
+ 
+-    private static Label MkNum()
++    private static Font? _numeralFont;
++
++    /// <summary>
++    /// FABLE-019: Inter at weight 800 for numerals. The display serif (Cinzel)
++    /// draws "1" as a capital I — fine in a title, wrong on a stat you read in
++    /// a glance mid-fight. Inter has plain lining figures. Falls back to the
++    /// button font if the file is missing, so a missing asset costs style, not
++    /// numbers.
++    /// </summary>
++    private static Font? NumeralFont()
++    {
++        if (_numeralFont != null) return _numeralFont;
++        try
++        {
++            var inter = ResourceLoader.Exists(ThemeTokens.FontInter) ? GD.Load<FontFile>(ThemeTokens.FontInter) : null;
++            if (inter != null)
++            {
++                var v = new FontVariation { BaseFont = inter };
++                var ts = TextServerManager.GetPrimaryInterface();
++                v.VariationOpentype = new Godot.Collections.Dictionary { { ts.NameToTag("wght"), 800 } };
++                _numeralFont = v;
++                return _numeralFont;
++            }
++        }
++        catch (System.Exception ex)
++        {
++            GD.PrintErr($"[CardPlate] numeral font: {ex.Message} — falling back");
++        }
++        _numeralFont = ThemeTokens.GetButtonFont(32);
++        return _numeralFont;
++    }
++
++    /// <summary>A round gem: filled disc, gold rim, drop shadow, one big numeral.</summary>
++    private static (Panel gem, Label num) Gem(string name, Color fill)
+     {
+-        var l = new Label { MouseFilter = MouseFilterEnum.Ignore, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+-        l.AddThemeColorOverride("font_color", CREAM);
+-        l.AddThemeConstantOverride("outline_size", 1);
+-        l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
+-        return l;
++        var gem = new Panel { Name = name, MouseFilter = MouseFilterEnum.Ignore };
++        var style = new StyleBoxFlat
++        {
++            BgColor = fill,
++            BorderColor = GEM_RIM,
++            ShadowColor = new Color(0, 0, 0, 0.55f),
++            AntiAliasing = true,
++        };
++        gem.AddThemeStyleboxOverride("panel", style);
++
++        var num = new Label
++        {
++            Name = "Num",
++            MouseFilter = MouseFilterEnum.Ignore,
++            HorizontalAlignment = HorizontalAlignment.Center,
++            VerticalAlignment = VerticalAlignment.Center,
++        };
++        num.AddThemeColorOverride("font_color", CREAM);
++        num.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.95f));
++        var font = NumeralFont();
++        if (font != null) num.AddThemeFontOverride("font", font);
++        gem.AddChild(num);
++        return (gem, num);
++    }
++
++    /// <summary>Size and centre a gem; everything scales with its diameter.</summary>
++    private static void PlaceGem(Panel gem, Label num, float d, Vector2 centre)
++    {
++        gem.Size = new Vector2(d, d);
++        gem.Position = centre - new Vector2(d, d) / 2f;
++        if (gem.GetThemeStylebox("panel") is StyleBoxFlat st)
++        {
++            int r = Mathf.RoundToInt(d / 2f);
++            st.CornerRadiusTopLeft = st.CornerRadiusTopRight = st.CornerRadiusBottomLeft = st.CornerRadiusBottomRight = r;
++            int rim = Mathf.Max(2, Mathf.RoundToInt(d * 0.075f));
++            st.BorderWidthLeft = st.BorderWidthTop = st.BorderWidthRight = st.BorderWidthBottom = rim;
++            st.ShadowSize = Mathf.Max(2, Mathf.RoundToInt(d * 0.08f));
++            st.ShadowOffset = new Vector2(0, Mathf.Max(1, d * 0.04f));
++            st.CornerDetail = 16;
++        }
++        num.Position = Vector2.Zero;
++        num.Size = new Vector2(d, d);
++        num.AddThemeFontSizeOverride("font_size", Mathf.Max(12, Mathf.RoundToInt(d * 0.62f)));
++        num.AddThemeConstantOverride("outline_size", Mathf.Max(3, Mathf.RoundToInt(d * 0.09f)));
+     }
+ 
+     public Label? GetNameLabel() => null;
+diff --git a/client/scripts/DuelScene.cs b/client/scripts/DuelScene.cs
+index 60680dc..b7ee6b0 100644
+--- a/client/scripts/DuelScene.cs
++++ b/client/scripts/DuelScene.cs
+@@ -5654,22 +5654,52 @@ private void ShowGameOverOverlay(int winnerIndex)
+     ///   fault; if it never changes, the press never happened. Either way the
+     ///   next report is one word long instead of a guess.
+     /// </summary>
++    /// <summary>
++    /// FABLE-019: set the moment ANY end-of-duel button commits to leaving.
++    /// Scene-wide, not per-button, and never reset once the swap has been
++    /// requested. See the comment in Fire for why this exists.
++    /// </summary>
++    private bool _exitCommitted;
++
++    /// <summary>FABLE-019: true once ChangeSceneToPacked has been called and accepted.</summary>
++    private bool _swapRequested;
++
+     private void ArmEndOfDuelButton(Button btn, string label, System.Action activate)
+     {
+         bool fired = false;
+ 
+         void Fire(string via)
+         {
+-            if (fired || !IsInstanceValid(btn)) return;
++            // FABLE-019 — THE CONTINUE BUG, REPRODUCED IN A RUNNING BUILD.
++            //
++            // Fable got Godot 4.3 running headless and drove this exact path:
++            // map arms the Wayfarer, victory, Continue fired the way a phone
++            // fires it (the touch/mouse-release route, then Pressed). The log:
++            //
++            //   'Continue' activated via touch release
++            //   next duel: r1_n02 -> Thornbark
++            //   ChangeSceneToPacked -> Ok
++            //   ERROR: Parameter "data.tree" is null.
++            //   'Continue' threw: NullReferenceException
++            //   'Continue' activated via Pressed          ← ran AGAIN
++            //   cleared r1_n02                            ← Thornbark, never played
++            //   next duel: r1_n04 -> The Root-Binder
++            //   ERROR: Parameter "data.tree" is null.
++            //
++            // In Godot 4.3, ChangeSceneToPacked REMOVES the outgoing scene from
++            // the tree immediately. The watchdog then called GetTree() on it,
++            // got null, and threw. That throw landed here, the catch un-latched
++            // `fired` (the FABLE-011 "let them try again" rule) — and the second
++            // route into this handler ran the whole Continue again: cleared the
++            // NEXT fight without playing it and crashed on the dead tree.
++            //
++            // So: one scene-wide latch, set before anything happens, and once a
++            // swap has been requested nothing re-arms it. Re-arming is only
++            // allowed when we are still on screen and no swap was requested —
++            // the one case where "try again" means something.
++            if (fired || _exitCommitted || !IsInstanceValid(btn)) return;
+             fired = true;
+-            // FABLE-011: the WHOLE body is guarded. Round three of this bug ended
+-            // with the label reading "Continuing…" and the duel still on screen,
+-            // which proves the handler ran and then died somewhere with nothing
+-            // to show for it — a C# exception inside a Godot signal handler is
+-            // swallowed by the engine and the rest of the lambda never runs. On a
+-            // phone with no logcat that is indistinguishable from a dead button.
+-            // Now any throw paints itself on the panel and un-latches, so the
+-            // player can try again and we get the type and message back.
++            _exitCommitted = true;
+             try
+             {
+                 GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
+@@ -5677,14 +5707,22 @@ private void ShowGameOverOverlay(int winnerIndex)
+                 btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
+                 // Deliberately NOT setting btn.Disabled — changing a Button's
+                 // disabled state from inside its own press is a needless extra
+-                // thing to go wrong, and `fired` already prevents a double fire.
++                // thing to go wrong, and the latch already prevents a double fire.
+                 activate();
+             }
+             catch (System.Exception ex)
+             {
+                 GD.PrintErr($"[DUEL-EXIT] '{label}' threw: {ex}");
++                if (_swapRequested || !IsInsideTree())
++                {
++                    // We are already leaving. Re-arming here is what turned one
++                    // tap into two Continues. Log it and stay committed.
++                    GD.PrintErr("[DUEL-EXIT] …after the swap was requested — staying committed, not re-arming");
++                    return;
++                }
+                 ShowExitError($"{label} failed: {ex.GetType().Name} — {ex.Message}");
+                 fired = false;
++                _exitCommitted = false;
+                 if (IsInstanceValid(btn)) btn.Text = label;
+             }
+         }
+@@ -5807,6 +5845,16 @@ private void ShowGameOverOverlay(int winnerIndex)
+         }
+     }
+ 
++    private async System.Threading.Tasks.Task AuditAfterLayout(Button a, Button b)
++    {
++        var tree = GetTree();
++        if (tree == null) return;
++        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
++        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
++        if (!IsInsideTree()) return;   // already left — nothing to audit
++        AuditEndOfDuelButtons(a, b);
++    }
++
+     /// <summary>Z as Godot resolves it: relative z-indexes accumulate up the chain.</summary>
+     private int EffectiveZ(CanvasItem item)
+     {
+@@ -5868,90 +5916,162 @@ private void ShowGameOverOverlay(int winnerIndex)
+             }
+         }
+ 
++        // FABLE-019: capture the tree NOW, while this scene is still in it.
++        // After ChangeSceneToPacked this node is out of the tree and GetTree()
++        // returns null — which is exactly the crash that doubled every Continue.
+         var tree = GetTree();
+-
+-        // FABLE-011: load the scene EXPLICITLY, then swap to the loaded resource.
+-        //
+-        // ChangeSceneToFile hides the load inside itself and returns Ok long
+-        // before the scene is actually built, so "returned Ok and nothing
+-        // happened" — exactly what round three produced — tells you nothing at
+-        // all. Loading first splits that into two answers we can act on: either
+-        // the PackedScene came back null (the scene is the problem) or it did
+-        // not (the swap is the problem).
+-        //
+-        // The one-shot Timer that used to carry this is gone. It was a second
+-        // thing that had to work before anything could happen, and it could not
+-        // be proven to have fired. ChangeSceneToPacked already defers internally.
+-        PackedScene? packed = null;
+-        try
+-        {
+-            packed = ResourceLoader.Load<PackedScene>(scenePath);
+-        }
+-        catch (System.Exception ex)
++        if (tree == null)
+         {
+-            GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
++            GD.PrintErr("[DUEL-EXIT] LeaveDuelFor called with no tree (already leaving) — ignored");
++            return;
+         }
++        _ = SwapAfterOneFrame(tree, scenePath, GetInstanceId());
++    }
+ 
+-        Error err;
+-        if (packed != null)
+-        {
+-            err = tree.ChangeSceneToPacked(packed);
+-            GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
+-        }
+-        else
++    /// <summary>
++    /// FABLE-019. Let one frame draw first, so the button's "Continuing…" is
++    /// actually on screen while a phone builds the next duel (on device that
++    /// build can take a second or more, and the old code swapped in the same
++    /// frame it changed the label, so the label never showed). Then swap, then
++    /// watch — using only the tree, never `this`, which is out of the tree the
++    /// instant the swap is accepted.
++    ///
++    /// Two process_frame waits, not RenderingServer.FramePostDraw: headless runs
++    /// never draw, and a post-draw wait would hang every automated test forever.
++    /// </summary>
++    private async System.Threading.Tasks.Task SwapAfterOneFrame(SceneTree tree, string scenePath, ulong oldSceneId)
++    {
++        try
+         {
+-            GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
+-            err = tree.ChangeSceneToFile(scenePath);
+-            GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
+-        }
++            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
++            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+ 
+-        if (err != Error.Ok)
+-        {
+-            GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
+-            var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
+-            if (fallback != Error.Ok)
++            // FABLE-011: load EXPLICITLY, then swap to the loaded resource, so a
++            // null PackedScene (the scene is the problem) and a failed swap (the
++            // swap is the problem) are two different, readable answers.
++            PackedScene? packed = null;
++            try
+             {
+-                GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
+-                ShowExitError($"Could not open {scenePath.GetFile()} ({err}).");
++                packed = ResourceLoader.Load<PackedScene>(scenePath);
++            }
++            catch (System.Exception ex)
++            {
++                GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
+             }
+-            return;
+-        }
+ 
+-        StartExitWatchdog(scenePath);
++            Error err;
++            if (packed != null)
++            {
++                err = tree.ChangeSceneToPacked(packed);
++                GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
++            }
++            else
++            {
++                GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
++                err = tree.ChangeSceneToFile(scenePath);
++                GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
++            }
++
++            if (err != Error.Ok)
++            {
++                GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
++                var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
++                if (fallback != Error.Ok)
++                {
++                    GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
++                    ShowRootNotice(tree, $"Could not open {scenePath.GetFile()} ({err}) or the title ({fallback}). Tell Fable.");
++                    return;
++                }
++                scenePath = MainMenuScenePath;
++            }
++
++            // From this line on, THIS NODE IS OUT OF THE TREE. Touch nothing
++            // that needs it: no GetTree(), no GetNode(), no overlay.
++            _swapRequested = true;
++            StartExitWatchdog(tree, scenePath, oldSceneId);
++        }
++        catch (System.Exception ex)
++        {
++            GD.PrintErr($"[DUEL-EXIT] swap threw: {ex}");
++            ShowRootNotice(tree, $"Could not leave the duel: {ex.GetType().Name} — {ex.Message}");
++        }
+     }
+ 
+     /// <summary>
+-    /// The last place this bug can hide: the call returned Ok and the swap still
+-    /// never happened. Nothing downstream reports that, so after a moment we ask
+-    /// the tree whether we are still the scene on screen, and if we are, we say so
+-    /// where the player can read it.
++    /// FABLE-019: the watchdog that FABLE-011 meant to write. That one called
++    /// GetTree() on the outgoing scene (null in Godot 4.3 once the swap is
++    /// accepted) and crashed every single time, which is why its "tell Fable
++    /// watchdog fired" line has never once been seen. This one takes the tree as
++    /// an argument, compares scene INSTANCE ids rather than `this`, and reports
++    /// through a root-level layer that exists whatever scene is (or isn't) up.
++    ///
++    /// 4 s, not 1.5: a phone can legitimately spend over a second building a
++    /// duel, and a false "stuck" would send us chasing a bug that isn't there.
+     /// </summary>
+-    private void StartExitWatchdog(string scenePath)
++    private static void StartExitWatchdog(SceneTree tree, string scenePath, ulong oldSceneId)
+     {
+-        var tree = GetTree();
+         var watchdog = new Godot.Timer
+         {
++            Name = "DuelExitWatchdog",
+             OneShot = true,
+-            WaitTime = 1.5f,
++            WaitTime = 4.0f,
+             ProcessMode = Node.ProcessModeEnum.Always,
+         };
+         watchdog.Timeout += () =>
+         {
+-            bool stillHere = IsInstanceValid(this) && tree.CurrentScene == this;
+-            if (stillHere)
++            var cur = tree.CurrentScene;
++            if (cur == null || cur.GetInstanceId() == oldSceneId)
+             {
+-                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: still in DuelScene 1.5s after a successful "
+-                            + $"scene-change call to '{scenePath}'. The swap was accepted and never happened.");
+-                ShowExitError($"Still here 1.5s after loading {scenePath.GetFile()} — tell Fable \"watchdog fired\".");
++                string what = cur == null ? "no scene at all" : "the old duel";
++                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: 4 s after the swap to '{scenePath}' the tree shows {what}.");
++                ShowRootNotice(tree, $"Still waiting on {scenePath.GetFile()} after 4 s ({what}). Tell Fable: \"watchdog: {what}\".");
+             }
+             else
+             {
+-                GD.Print("[DUEL-EXIT] watchdog: scene changed, all good");
++                GD.Print($"[DUEL-EXIT] watchdog: now on {cur.Name} — all good");
+             }
+             if (GodotObject.IsInstanceValid(watchdog)) watchdog.QueueFree();
+         };
+-        tree.Root.AddChild(watchdog);
+-        watchdog.Start();
++        // Deferred: the root is mid-flush during a scene change.
++        Callable.From(() =>
++        {
++            tree.Root.AddChild(watchdog);
++            watchdog.Start();
++        }).CallDeferred();
++    }
++
++    /// <summary>
++    /// FABLE-019: a message that survives the duel scene leaving. Lives on a
++    /// CanvasLayer under the root, so it draws over whatever is — or is not —
++    /// on screen, and removes itself after 15 s.
++    /// </summary>
++    private static void ShowRootNotice(SceneTree tree, string message)
++    {
++        var layer = new CanvasLayer { Layer = 128, Name = "DuelExitNotice" };
++        var label = new Label
++        {
++            Text = message,
++            HorizontalAlignment = HorizontalAlignment.Center,
++            VerticalAlignment = VerticalAlignment.Center,
++            AutowrapMode = TextServer.AutowrapMode.WordSmart,
++            AnchorLeft = 0.08f, AnchorRight = 0.92f, AnchorTop = 0.84f, AnchorBottom = 0.97f,
++            MouseFilter = Control.MouseFilterEnum.Ignore,
++        };
++        label.AddThemeFontSizeOverride("font_size", 30);
++        label.AddThemeColorOverride("font_color", new Color(1.0f, 0.62f, 0.52f));
++        label.AddThemeStyleboxOverride("normal", new StyleBoxFlat
++        {
++            BgColor = new Color(0.08f, 0.05f, 0.04f, 0.92f),
++            BorderColor = new Color(0.66f, 0.23f, 0.16f),
++            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
++            ContentMarginLeft = 16, ContentMarginRight = 16, ContentMarginTop = 10, ContentMarginBottom = 10,
++        });
++        layer.AddChild(label);
++        Callable.From(() =>
++        {
++            tree.Root.AddChild(layer);
++            tree.CreateTimer(15.0).Timeout += () => { if (GodotObject.IsInstanceValid(layer)) layer.QueueFree(); };
++        }).CallDeferred();
+     }
+ 
+     /// <summary>
+@@ -6311,7 +6431,11 @@ private void ShowGameOverOverlay(int winnerIndex)
+ 
+         // FABLE-015: prove, on the frame after layout settles, that these two
+         // buttons can actually be touched. See AuditEndOfDuelButtons.
+-        Callable.From(() => AuditEndOfDuelButtons(fightAgainBtn, continueBtn)).CallDeferred();
++        // FABLE-019: after TWO frames, not one deferred call. The first real run
++        // of this audit reported Continue at y=1344 on a 1080-tall screen: it
++        // measured before the containers had laid out. Positions were wrong,
++        // the verdict happened to be right.
++        _ = AuditAfterLayout(fightAgainBtn, continueBtn);
+ 
+         // ═══ SOAK MODE: auto-press Continue/Return to Map after overlay shows ═══
+         if (CampaignContext.SoakActive)
+diff --git a/client/scripts/Main.cs b/client/scripts/Main.cs
+index 2ac7732..84fff3a 100644
+--- a/client/scripts/Main.cs
++++ b/client/scripts/Main.cs
+@@ -711,7 +711,7 @@ public partial class Main : Control
+         syncManager.StatusChanged += status =>
+         {
+             if (_accountChip != null && IsInstanceValid(_accountChip))
+-                _accountChip.Text = status.Length > 44 ? status.Substring(0, 43) + "…" : status;
++                _accountChip.Text = status.Length > 64 ? status.Substring(0, 63) + "…" : status;   // FABLE-019: room for the reason; full text in the panel
+         };
+         _accountChip.Text = syncManager.Status;
+         syncManager.ConflictDetected += () => AccountPanel.Open(this, syncManager);
+diff --git a/client/scripts/supabase/SyncManager.cs b/client/scripts/supabase/SyncManager.cs
+index 33ad9e9..3e4abbb 100644
+--- a/client/scripts/supabase/SyncManager.cs
++++ b/client/scripts/supabase/SyncManager.cs
+@@ -213,7 +213,7 @@ public partial class SyncManager : Node
+         {
+             var r = await _auth.Refresh(Session).ConfigureAwait(false);
+             if (r.Ok) { AdoptSession(r.Session!); return true; }
+-            if (r.Status == 0) { SetStatus("No connection"); return false; }
++            if (r.Status == 0) { SetStatus(r.Error); return false; }   // FABLE-019: carries the reason
+ 
+             // The server rejected the refresh token outright: the session is
+             // dead. For a GUEST we can just make a new guest — but their save
+@@ -233,7 +233,7 @@ public partial class SyncManager : Node
+         var a = await _auth.SignInAnonymously().ConfigureAwait(false);
+         if (!a.Ok)
+         {
+-            SetStatus(a.Status == 0 ? "No connection" : a.Error);
++            SetStatus(a.Error);   // FABLE-019: "No connection — <reason>" when status 0
+             RecordError(a.Error);
+             return false;
+         }
+diff --git a/engine/Supabase/SupabaseAuth.cs b/engine/Supabase/SupabaseAuth.cs
+index e6fb3ad..b5b71e6 100644
+--- a/engine/Supabase/SupabaseAuth.cs
++++ b/engine/Supabase/SupabaseAuth.cs
+@@ -124,7 +124,7 @@ public class SupabaseAuth
+ 
+         var body = JsonSerializer.Serialize(new { email }, JsonOpts);
+         var (status, json) = await Send(HttpMethod.Put, "/auth/v1/user", body, session.AccessToken).ConfigureAwait(false);
+-        if (status == 0) return AuthResult.Fail("No connection");
++        if (status == 0) return AuthResult.Fail(NoConnection(json));
+         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+         // Supabase answers with the user object, new_email pending. No session change yet.
+         return AuthResult.Success(session);
+@@ -153,7 +153,7 @@ public class SupabaseAuth
+         if (!LooksLikeEmail(email)) return AuthResult.Fail("That doesn't look like an email address");
+         var body = JsonSerializer.Serialize(new { email, create_user = false }, JsonOpts);
+         var (status, json) = await Send(HttpMethod.Post, "/auth/v1/otp", body, null).ConfigureAwait(false);
+-        if (status == 0) return AuthResult.Fail("No connection");
++        if (status == 0) return AuthResult.Fail(NoConnection(json));
+         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+         return new AuthResult { Ok = true, Status = status };
+     }
+@@ -181,7 +181,7 @@ public class SupabaseAuth
+         if (!IsConfigured) return AuthResult.Fail("Accounts not configured");
+ 
+         var (status, json) = await Send(HttpMethod.Post, path, body, bearer).ConfigureAwait(false);
+-        if (status == 0) return AuthResult.Fail("No connection");
++        if (status == 0) return AuthResult.Fail(NoConnection(json));
+         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+ 
+         TokenResponse? tok;
+@@ -221,12 +221,24 @@ public class SupabaseAuth
+             var text = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
+             return ((int)resp.StatusCode, text);
+         }
+-        catch
++        catch (Exception ex)
+         {
+-            return (0, string.Empty);
++            // FABLE-019: status 0 = never got an answer. Carry WHY in the body,
++            // so the player-facing "No connection" can say what actually
++            // failed. The first APK with accounts said only "No connection";
++            // the cause (no INTERNET permission in the manifest) was
++            // invisible from the phone. The innermost exception is the one
++            // that names the real fault (SocketException, AuthenticationException…).
++            var inner = ex;
++            while (inner.InnerException != null) inner = inner.InnerException;
++            return (0, inner.GetType().Name + ": " + inner.Message);
+         }
+     }
+ 
++    /// <summary>"No connection" plus the underlying reason, when there is one.</summary>
++    internal static string NoConnection(string detail)
++        => string.IsNullOrEmpty(detail) ? "No connection" : "No connection — " + detail;
++
+     /// <summary>Turn a GoTrue error body into something a player can read.</summary>
+     internal static string Describe(string json, int status)
+     {
+diff --git a/tests/Supabase/AccountsTests.cs b/tests/Supabase/AccountsTests.cs
+index 55ea444..c604430 100644
+--- a/tests/Supabase/AccountsTests.cs
++++ b/tests/Supabase/AccountsTests.cs
+@@ -83,7 +83,8 @@ public class AccountsTests
+         {
+             var fake = new FakeSupabase { Offline = true };
+             var res = await new SupabaseAuth(Cfg, new HttpClient(fake)).SignInAnonymously();
+-            AssertTrue(!res.Ok && res.Error == "No connection" && res.Status == 0, "offline → 'No connection', status 0");
++            AssertTrue(!res.Ok && res.Status == 0 && res.Error.StartsWith("No connection"), "offline → 'No connection…', status 0");
++            AssertTrue(res.Error.Contains("HttpRequestException") && res.Error.Contains("no route to host"), "…and it carries the real reason (FABLE-019)");
+         }
+         {
+             var res = await new SupabaseAuth(new SupabaseConfig(), new HttpClient(new FakeSupabase())).SignInAnonymously();
+diff --git a/tools/android_manifest_check.py b/tools/android_manifest_check.py
+new file mode 100755
+index 0000000..5608486
+--- /dev/null
++++ b/tools/android_manifest_check.py
+@@ -0,0 +1,34 @@
++#!/usr/bin/env python3
++"""
++tools/android_manifest_check.py — FABLE-019
++
++Android permissions that the game needs, read from client/export_presets.cfg
++(Godot writes them into the APK manifest at export). A desktop run can never
++see these: the first accounts build shipped with permissions/internet=false,
++and the Supabase smoke test passed 21/21 from Hermes's machine while every
++request on the phone died with "No connection".
++
++Exit 0 when the "Android Release" preset requests everything listed.
++"""
++import configparser, os, sys
++
++REQUIRED = {
++    "permissions/internet": "accounts + cloud save (Supabase) — without it every request fails on the phone",
++}
++
++ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
++cp = configparser.ConfigParser(interpolation=None, strict=False)
++cp.read(os.path.join(ROOT, "client", "export_presets.cfg"))
++
++preset = next((s for s in cp.sections() if cp.get(s, "name", fallback="").strip('"') == "Android Release"), None)
++if preset is None:
++    print("✗ no 'Android Release' preset in client/export_presets.cfg"); sys.exit(1)
++opts = f"{preset}.options"
++bad = 0
++for key, why in REQUIRED.items():
++    val = cp.get(opts, key, fallback="(missing)").strip()
++    if val == "true":
++        print(f"✓ {key}=true")
++    else:
++        print(f"✗ {key}={val} — {why}"); bad += 1
++sys.exit(1 if bad else 0)
+diff --git a/tools/export_exclusion_check.py b/tools/export_exclusion_check.py
+new file mode 100755
+index 0000000..49a9825
+--- /dev/null
++++ b/tools/export_exclusion_check.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/env python3
++"""
++tools/export_exclusion_check.py — FABLE-019
++
++Find every res:// file the CODE references that the Android export will NOT
++ship. Such a file exists on the build machine (so every headless capture and
++every test sees it) and is missing on the phone (so the feature silently
++doesn't happen). That is exactly how the title animation lost its vortex and
++mist for three rounds: both PNGs sat in content/art/title/layers/, which
++export_presets.cfg excludes.
++
++Godot's include/exclude filters are comma-separated fnmatch globs matched
++against the res-relative path.  Exit 1 if anything referenced is excluded.
++"""
++import fnmatch, os, re, sys, configparser
++
++ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
++CLIENT = os.path.join(ROOT, "client")
++
++def presets():
++    cp = configparser.ConfigParser(interpolation=None, strict=False)
++    cp.read(os.path.join(CLIENT, "export_presets.cfg"))
++    out = []
++    for sec in cp.sections():
++        if re.fullmatch(r"preset\.\d+", sec):
++            name = cp.get(sec, "name", fallback=sec).strip('"')
++            exc = cp.get(sec, "exclude_filter", fallback='""').strip('"')
++            out.append((name, [g.strip() for g in exc.split(",") if g.strip()]))
++    return out
++
++REF = re.compile(r'"res://([^"]+?\.(?:png|jpg|jpeg|webp|svg|ogg|wav|mp3|ttf|otf|json|tscn|tres|gdshader|shader))"')
++
++def references():
++    refs = {}
++    for dirpath, _, files in os.walk(os.path.join(CLIENT, "scripts")):
++        for f in files:
++            if not f.endswith(".cs"): continue
++            p = os.path.join(dirpath, f)
++            for i, line in enumerate(open(p, encoding="utf-8", errors="replace"), 1):
++                s = line.strip()
++                if s.startswith("//") or s.startswith("///") or s.startswith("*"): continue
++                for m in REF.finditer(line):
++                    refs.setdefault(m.group(1), []).append(f"{os.path.relpath(p, ROOT)}:{i}")
++    return refs
++
++def main():
++    refs = references()
++    bad = 0
++    for name, globs in presets():
++        hits = []
++        for path, where in sorted(refs.items()):
++            g = next((g for g in globs if fnmatch.fnmatch(path, g)), None)
++            if g and os.path.exists(os.path.join(CLIENT, path)):
++                hits.append((path, g, where))
++        if hits:
++            print(f"✗ preset '{name}': {len(hits)} file(s) the code loads are EXCLUDED from the APK")
++            for path, g, where in hits:
++                print(f"    res://{path}\n        excluded by '{g}'\n        loaded at {where[0]}" + (f" (+{len(where)-1} more)" if len(where) > 1 else ""))
++            bad += len(hits)
++        else:
++            print(f"✓ preset '{name}': every existing file the code references ships ({len(refs)} references checked)")
++    sys.exit(1 if bad else 0)
++
++if __name__ == "__main__":
++    main()
+diff --git a/tools/ship_apk.sh b/tools/ship_apk.sh
+index 3a00097..d1f3082 100755
+--- a/tools/ship_apk.sh
++++ b/tools/ship_apk.sh
+@@ -171,6 +171,13 @@ blocking "engine tests" bash -c \
+ blocking "UX walkthrough" bash -c \
+   "cd '$REPO_ROOT' && timeout 300 xvfb-run -a \"\${GODOT_BIN:-\$HOME/.local/bin/godot}\" --path client -- --uxwalk 2>&1 | grep -qE 'WALKTHROUGH DONE|0 fail'"
+ 
++# FABLE-019: a file the code loads but the export filter drops exists on the
++# build machine — so every capture and test sees it — and is missing on the
++# phone. That is how the title animation lost its vortex and mist for three
++# rounds. Deterministic and never flaky, so it blocks.
++[ -f "$REPO_ROOT/tools/export_exclusion_check.py" ] && \
++  blocking "every asset the code loads ships in the APK" python3 "$REPO_ROOT/tools/export_exclusion_check.py"
++
+ # The two that speak directly to "can he actually play it".
+ [ -x "$REPO_ROOT/tools/input_smoke.sh" ] && \
+   blocking "input smoke (a card can be tapped)" bash "$REPO_ROOT/tools/input_smoke.sh"
+@@ -188,6 +195,14 @@ blocking "UX walkthrough" bash -c \
+ # real check and runs against the live project by hand.
+ advisory "supabase config baked in (accounts + cloud save)" bash -c \
+   "test -s '$CLIENT_DIR/supabase_config.json' && python3 -c \"import json,sys; c=json.load(open('$CLIENT_DIR/supabase_config.json')); sys.exit(0 if c.get('url','').startswith('https://') and 'YOUR-PROJECT' not in c['url'] and c.get('anon_key','').startswith('eyJ') and not c['anon_key'].startswith('eyJ...') else 1)\""
++# FABLE-019: the first accounts build shipped with permissions/internet=false,
++# so every request died on the phone ("No connection") while the smoke test —
++# run from a desktop — passed all 21 checks. A manifest setting no desktop run
++# can see. Advisory: no network is not unplayable, but it is the headline
++# feature of the build, so it goes on the label in capitals if it happens.
++[ -f "$REPO_ROOT/tools/android_manifest_check.py" ] && \
++  advisory "Android preset requests INTERNET (accounts need it)" python3 "$REPO_ROOT/tools/android_manifest_check.py"
++
+ # FABLE-015. Advisory on purpose, and only on purpose for now: a check that has
+ # never once been green must not be the thing that withholds a build. The
+ # moment it passes, TASK-BTN-REACH-1 moves this line up into the blocking
