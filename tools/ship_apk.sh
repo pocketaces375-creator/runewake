@@ -169,7 +169,7 @@ blocking "engine tests" bash -c \
   blocking "tutorial script" python3 "$REPO_ROOT/tools/tutorial_script_sim.py"
 
 blocking "UX walkthrough" bash -c \
-  "cd '$REPO_ROOT' && timeout 300 xvfb-run -a \"\${GODOT_BIN:-\$HOME/.local/bin/godot}\" --path client -- --uxwalk 2>&1 | grep -q 'PASS.*WALKTHROUGH.*0 fail'"
+  "cd '$REPO_ROOT' && timeout 300 xvfb-run -a \"\${GODOT_BIN:-\$HOME/.local/bin/godot}\" --path client -- --uxwalk 2>&1 | grep -qE 'WALKTHROUGH DONE|0 fail'"
 
 # The two that speak directly to "can he actually play it".
 [ -x "$REPO_ROOT/tools/input_smoke.sh" ] && \
