@@ -245,6 +245,21 @@ echo ""; echo "── Import pass ──"
 cd "$CLIENT_DIR"
 timeout 600 xvfb-run -a godot --headless --import --path . 2>&1 | tail -3
 
+echo ""; echo "── Clean & refresh Android build template ──"
+ANDROID_SOURCE_ZIP="/home/fictive/.local/share/godot/export_templates/4.3.stable.mono/android_source.zip"
+rm -rf "$CLIENT_DIR/android/build"
+mkdir -p "$CLIENT_DIR/android/build"
+if unzip -q -o "$ANDROID_SOURCE_ZIP" -d "$CLIENT_DIR/android/build" 2>/dev/null; then
+    echo "  ✅ Android build template extracted"
+    BUILD_GRADLE="$CLIENT_DIR/android/build/build.gradle"
+    if grep -q 'ignoreAssetsPattern' "$BUILD_GRADLE" 2>/dev/null; then
+        sed -i 's|ignoreAssetsPattern "|ignoreAssetsPattern "!*.a:!*.pdb:|' "$BUILD_GRADLE"
+        echo "  ✅ Patched ignoreAssetsPattern to exclude *.a and *.pdb"
+    fi
+else
+    echo "  ⚠️ No Android source zip at $ANDROID_SOURCE_ZIP — export may fail"
+fi
+
 echo ""; echo "── Godot export (${PRESET}) ──"
 mkdir -p "$EXPORT_DIR"
 APK="$EXPORT_DIR/$OUTFILE"
