@@ -139,6 +139,13 @@ public class SaveManager
             LastError ??= "Save failed (see log)";
             GD.PrintErr("[SaveManager] Save failed");
         }
+        else
+        {
+            // FABLE-018: every local save is a candidate for the cloud. The
+            // SyncManager coalesces bursts and pushes once things go quiet.
+            // Best-effort, never throws, no-op when accounts are off.
+            try { CampaignContext.SyncManager?.NotifySaved(); } catch { /* never let sync break a save */ }
+        }
         return ok;
     }
 

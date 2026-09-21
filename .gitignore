@@ -62,3 +62,7 @@ tools/burn_guard.log
 client/content/art/**/raw/
 client/content/art/**/nano_*/
 client/content/art/**/flux_*/
+
+# FABLE-018: real Supabase config lives only on the build machine.
+# client/supabase_config.example.json IS committed; the real one never is.
+client/supabase_config.json

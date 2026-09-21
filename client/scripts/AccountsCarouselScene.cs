@@ -557,7 +557,7 @@ public partial class AccountsCarouselScene : Control
         CampaignContext.PortraitVariant = account.PortraitVariant;
 
         // Navigate back to title screen
-        GetTree().ChangeSceneToFile("res://scenes/main/MainScene.tscn");
+        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
     }
 
     private void OnNewAccount()
@@ -606,7 +606,7 @@ public partial class AccountsCarouselScene : Control
     private void OnBack()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/main/MainScene.tscn");
+        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
     }
 
     // ═══════════════════════════════════════════════════

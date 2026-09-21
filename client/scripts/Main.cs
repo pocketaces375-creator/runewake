@@ -16,6 +16,7 @@ namespace Runewake.Client;
 public partial class Main : Control
 {
     private Label _statusLabel = default!;
+    private Button _accountChip = default!;   // FABLE-018
     private Label _saveWarningLabel = default!;
     private Button _decksButton = default!;
     private Button _runeButton = default!;
@@ -205,6 +206,33 @@ public partial class Main : Control
         _statusLabel.AddThemeFontSizeOverride("font_size", 12);
         _statusLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.4f);
         AddChild(_statusLabel);
+
+        // ——— FABLE-018: account chip, top-right ———
+        // Reads "Guest 3F2A · Backed up" / "adam@… · Backed up" / "No
+        // connection", live, and opens the Account panel. Deliberately a quiet
+        // text button in the corner: the first-launch experience must not
+        // acquire a sign-in wall — the player is already signed in, they just
+        // don't know it yet.
+        _accountChip = new Button
+        {
+            Text = "Account",
+            Flat = true,
+            AnchorLeft = 0.72f, AnchorRight = 0.985f,
+            AnchorTop = 0.015f, AnchorBottom = 0.07f,
+            OffsetLeft = 0, OffsetRight = 0, OffsetTop = 0, OffsetBottom = 0,
+            Alignment = HorizontalAlignment.Right,
+            ClipText = true,
+        };
+        _accountChip.AddThemeFontSizeOverride("font_size", ThemeTokens.FontLargeBody);
+        _accountChip.AddThemeColorOverride("font_color", Color.FromHtml("#B8A88A"));
+        _accountChip.AddThemeColorOverride("font_hover_color", Color.FromHtml("#E8DCC8"));
+        _accountChip.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#C9A84C"));
+        _accountChip.Pressed += () =>
+        {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            if (CampaignContext.SyncManager != null) AccountPanel.Open(this, CampaignContext.SyncManager);
+        };
+        AddChild(_accountChip);
 
         // ——— Stone-styled buttons (Play, Decks, Settings) ———
         // FABLE-007: carved plates rather than flat rectangles — see MenuButtons.
@@ -670,11 +698,33 @@ public partial class Main : Control
         _forgeButton.Disabled = false;
 
         // Initialize Supabase sync (offline-first — no-op when not configured)
-        var supabaseConfig = LoadSupabaseConfig();
-        var syncManager = new SyncManager();
+        // FABLE-018: config is baked into the APK (res://supabase_config.json,
+        // gitignored) with a user:// override for dev. Anonymous sign-in on
+        // first launch, whole-progression cloud save, email linking from the
+        // Account panel. All best-effort: no config or no network changes
+        // nothing about play.
+        var supabaseConfig = SyncManager.LoadConfig();
+        var syncManager = new SyncManager { Name = "SyncManager" };
         AddChild(syncManager);
         syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
         CampaignContext.SyncManager = syncManager;
+        syncManager.StatusChanged += status =>
+        {
+            if (_accountChip != null && IsInstanceValid(_accountChip))
+                _accountChip.Text = status.Length > 44 ? status.Substring(0, 43) + "…" : status;
+        };
+        _accountChip.Text = syncManager.Status;
+        syncManager.ConflictDetected += () => AccountPanel.Open(this, syncManager);
+        syncManager.CloudSaveApplied += () =>
+        {
+            // The cloud save was written under us. Only reload if we are still
+            // the title screen — mid-duel, the next launch will pick it up.
+            if (GetTree().CurrentScene == this)
+            {
+                GD.Print("[Main] cloud save applied — reloading title");
+                GetTree().ReloadCurrentScene();
+            }
+        };
         _ = syncManager.RunStartupSync(); // fire and forget
 
         // Load and apply settings
@@ -719,9 +769,10 @@ public partial class Main : Control
         CampaignContext.Telemetry = telemetry;
 
         // Upload any pending crash reports (fire-and-forget, no-op if not configured)
-        const string supabaseUrl = "https://placeholder.supabase.co";
-        const string supabaseKey = "placeholder-anon-key";
-        CrashReporter.UploadPendingReports(supabaseUrl, supabaseKey);
+        // FABLE-018: was a hard-coded placeholder URL, so this never once
+        // delivered a report. Uses the real config now; no-op when unset.
+        if (supabaseConfig.IsConfigured)
+            CrashReporter.UploadPendingReports(supabaseConfig.Url, supabaseConfig.AnonKey);
 
         // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)
@@ -940,35 +991,6 @@ public partial class Main : Control
                 GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
             }
         }
-    }
-
-    /// <summary>
-    /// Load Supabase config from user://supabase_config.json.
-    /// Returns empty config (IsConfigured=false) if file missing or unreadable.
-    /// </summary>
-    private static SupabaseConfig LoadSupabaseConfig()
-    {
-        const string path = "user://supabase_config.json";
-        try
-        {
-            if (Godot.FileAccess.FileExists(path))
-            {
-                string json = Godot.FileAccess.GetFileAsString(path);
-                var config = System.Text.Json.JsonSerializer.Deserialize<SupabaseConfig>(json);
-                if (config != null)
-                {
-                    GD.Print($"[Main] Loaded Supabase config (url={config.Url})");
-                    return config;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"[Main] Failed to load Supabase config: {ex.Message}");
-        }
-
-        GD.Print("[Main] No Supabase config found — sync disabled.");
-        return new SupabaseConfig();
     }
 
     /// <summary>

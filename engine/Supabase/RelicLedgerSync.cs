@@ -46,10 +46,19 @@ public class RelicLedgerSync
 
     // ——— Headers ———
 
+    /// <summary>
+    /// FABLE-018: the signed-in user's JWT. With Row Level Security on
+    /// relic_instances, requests carrying only the anon key can neither read
+    /// nor write a single row; the user's token is what unlocks THEIR rows.
+    /// Set by SyncManager after sign-in / refresh. Null falls back to the anon
+    /// key, which is correct for the pre-auth RPC and harmless elsewhere.
+    /// </summary>
+    public string? AccessToken { get; set; }
+
     private void ApplyHeaders(HttpRequestMessage req)
     {
         req.Headers.Add("apikey", _config.AnonKey);
-        req.Headers.Add("Authorization", $"Bearer {_config.AnonKey}");
+        req.Headers.Add("Authorization", $"Bearer {AccessToken ?? _config.AnonKey}");
     }
 
     // ——— Account identity ———
@@ -112,7 +121,7 @@ public class RelicLedgerSync
                     rows.Add(new
                     {
                         relic_instance_id = r.RelicInstanceId,
-                        account_id = accountId,
+                        user_id = accountId,
                         card_id = r.CardId,
                         acquirer_name = r.AcquirerName,
                         acquired_at = r.AcquiredAt,
@@ -144,7 +153,7 @@ public class RelicLedgerSync
     // ——— Relic fetch ———
 
     /// <summary>
-    /// GET /rest/v1/relic_instances?account_id=eq.{accountId}
+    /// GET /rest/v1/relic_instances?user_id=eq.{accountId}
     /// Deserializes rows into LostRelicInstance list.
     /// Returns empty list on any failure.
     /// </summary>
@@ -155,7 +164,7 @@ public class RelicLedgerSync
 
         try
         {
-            var url = $"{_config.Url}/rest/v1/relic_instances?account_id=eq.{accountId}";
+            var url = $"{_config.Url}/rest/v1/relic_instances?user_id=eq.{accountId}";
             var req = new HttpRequestMessage(HttpMethod.Get, url);
             ApplyHeaders(req);
             req.Headers.Add("Accept", "application/json");

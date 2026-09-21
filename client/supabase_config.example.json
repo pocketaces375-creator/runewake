@@ -1,0 +1,5 @@
+{
+  "_comment": "Copy to client/supabase_config.json on the BUILD machine (gitignored). Supabase dashboard → Project Settings → API. The anon key is safe to ship: Row Level Security protects the data, this key only names the project.",
+  "url": "https://YOUR-PROJECT-REF.supabase.co",
+  "anon_key": "eyJ...your anon/public key..."
+}

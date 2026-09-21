@@ -1,3 +1,5 @@
+> **Superseded (FABLE-018).** The deployable schema is `supabase/schema.sql`; the design is `docs/ACCOUNTS.md`. This file is kept for history — the `relics`/`match_records` tables below were never deployed.
+
 # Supabase Schema — Relic Ledger (P7-02)
 
 ## Tables

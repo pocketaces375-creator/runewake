@@ -182,6 +182,12 @@ blocking "UX walkthrough" bash -c \
   advisory "captures fresh" python3 "$REPO_ROOT/tools/capture_stamp.py" --verify
 [ -f "$REPO_ROOT/tools/art_check.py" ] && \
   advisory "art_check" python3 "$REPO_ROOT/tools/art_check.py" gate "$CLIENT_DIR/content/art"
+# FABLE-018. A build without client/supabase_config.json plays fine but has no
+# accounts and no cloud save — which is worth a line on the label, not a
+# withheld build. The dedicated smoke test (tools/supabase_smoke.py) is the
+# real check and runs against the live project by hand.
+advisory "supabase config baked in (accounts + cloud save)" bash -c \
+  "test -s '$CLIENT_DIR/supabase_config.json' && python3 -c \"import json,sys; c=json.load(open('$CLIENT_DIR/supabase_config.json')); sys.exit(0 if c.get('url','').startswith('https://') and 'YOUR-PROJECT' not in c['url'] and c.get('anon_key','').startswith('eyJ') and not c['anon_key'].startswith('eyJ...') else 1)\""
 # FABLE-015. Advisory on purpose, and only on purpose for now: a check that has
 # never once been green must not be the thing that withholds a build. The
 # moment it passes, TASK-BTN-REACH-1 moves this line up into the blocking
