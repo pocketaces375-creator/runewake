@@ -1238,12 +1238,13 @@ public partial class Main : Control
 
         var slotStyle = new StyleBoxFlat
         {
+            // FABLE-019c: smoked glass over the hall, not an opaque slab (see MenuButtons).
             BgColor = hasActiveProfile
-                ? Color.FromHtml("#3A3530")
-                : Color.FromHtml("#2A2520"),
+                ? new Color(0.20f, 0.17f, 0.14f, 0.66f)
+                : new Color(0.13f, 0.11f, 0.09f, 0.62f),
             BorderColor = hasActiveProfile
-                ? Color.FromHtml("#6A6048")
-                : Color.FromHtml("#4A4038"),
+                ? new Color(0.62f, 0.52f, 0.28f, 0.9f)
+                : new Color(0.45f, 0.38f, 0.24f, 0.8f),
             BorderWidthLeft = 2, BorderWidthTop = 2,
             BorderWidthRight = 2, BorderWidthBottom = 2,
             CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,

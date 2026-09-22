@@ -338,7 +338,7 @@ public partial class TitleAtmosphere : Control
             };
             _fxLayer.AddChild(s);
             _motes[i] = s;
-            _moteSpeed[i] = rng.RandfRange(5f, 18f) * scale;
+            _moteSpeed[i] = rng.RandfRange(16f, 48f) * scale;          // FABLE-019c: 3x
             _motePhase[i] = rng.RandfRange(0f, Mathf.Tau);
             _moteDrift[i] = rng.RandfRange(6f, 22f);
         }
@@ -412,17 +412,17 @@ public partial class TitleAtmosphere : Control
             _hero.PivotOffset = _hero.Size / 2f;
             // A permanent overscan: KeepAspectCovered fits the viewport EXACTLY
             // at 1.0, so drifting from there would show bare background.
-            _hero.Scale = new Vector2(1.045f, 1.045f);
+            _hero.Scale = new Vector2(1.045f, 1.045f);   // FABLE-019c: 9s legs, 1.045–1.11 (was 24s, to 1.08: invisible)
             var zoom = CreateTween().SetLoops();
             zoom.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-            zoom.TweenProperty(_hero, "scale", new Vector2(1.08f, 1.08f), 24.0f);
-            zoom.TweenProperty(_hero, "scale", new Vector2(1.045f, 1.045f), 24.0f);
+            zoom.TweenProperty(_hero, "scale", new Vector2(1.11f, 1.11f), 9.0f);
+            zoom.TweenProperty(_hero, "scale", new Vector2(1.045f, 1.045f), 9.0f);
 
             var drift = CreateTween().SetLoops();
             drift.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
             float x0 = _hero.Position.X;
-            drift.TweenProperty(_hero, "position:x", x0 - 11f, 18.5f);
-            drift.TweenProperty(_hero, "position:x", x0 + 11f, 18.5f);
+            drift.TweenProperty(_hero, "position:x", x0 - 18f, 7.0f);
+            drift.TweenProperty(_hero, "position:x", x0 + 18f, 7.0f);
         }).CallDeferred();
     }
 
@@ -445,31 +445,31 @@ public partial class TitleAtmosphere : Control
 
         if (_vortexNear != null && IsInstanceValid(_vortexNear))
         {
-            _vortexNear.Rotation += 0.045f * dt;                       // ~140s a turn
-            float pulse = 0.42f + 0.10f * Mathf.Sin(_t * 0.23f);
+            _vortexNear.Rotation += 0.32f * dt;                        // FABLE-019c: ~20s a turn (was 140s: invisible)
+            float pulse = 0.46f + 0.16f * Mathf.Sin(_t * 0.9f);        // 7s breath
             var c = _vortexNear.Modulate; c.A = pulse; _vortexNear.Modulate = c;
         }
         if (_vortexFar != null && IsInstanceValid(_vortexFar))
         {
-            _vortexFar.Rotation -= 0.021f * dt;                        // counter, slower
-            float pulse = 0.20f + 0.05f * Mathf.Sin(_t * 0.17f + 1.3f);
+            _vortexFar.Rotation -= 0.15f * dt;                         // counter, slower (~42s)
+            float pulse = 0.22f + 0.08f * Mathf.Sin(_t * 0.6f + 1.3f);
             var c = _vortexFar.Modulate; c.A = pulse; _vortexFar.Modulate = c;
         }
 
-        Scroll(_mistLow, -14f, _vpW, dt);
-        Scroll(_mistMid, 9f, _vpW, dt);
+        Scroll(_mistLow, -0.026f * _vpW, _vpW, dt);   // FABLE-019c: ~60px/s on a 2316 viewport (was 14)
+        Scroll(_mistMid, 0.016f * _vpW, _vpW, dt);
 
         if (_shaftA != null && IsInstanceValid(_shaftA))
         {
             _shaftA.Position = new Vector2(
-                _vpW * 0.5f + Mathf.Sin(_t * 0.045f) * _vpW * 0.055f, _shaftA.Position.Y);
-            var c = _shaftA.Modulate; c.A = 0.55f + 0.10f * Mathf.Sin(_t * 0.11f); _shaftA.Modulate = c;
+                _vpW * 0.5f + Mathf.Sin(_t * 0.21f) * _vpW * 0.055f, _shaftA.Position.Y);
+            var c = _shaftA.Modulate; c.A = 0.55f + 0.16f * Mathf.Sin(_t * 0.5f); _shaftA.Modulate = c;
         }
         if (_shaftB != null && IsInstanceValid(_shaftB))
         {
             _shaftB.Position = new Vector2(
-                _vpW * 0.5f + Mathf.Sin(_t * 0.031f + 2.1f) * _vpW * 0.075f, _shaftB.Position.Y);
-            var c = _shaftB.Modulate; c.A = 0.30f + 0.08f * Mathf.Sin(_t * 0.07f + 0.9f); _shaftB.Modulate = c;
+                _vpW * 0.5f + Mathf.Sin(_t * 0.14f + 2.1f) * _vpW * 0.075f, _shaftB.Position.Y);
+            var c = _shaftB.Modulate; c.A = 0.30f + 0.12f * Mathf.Sin(_t * 0.33f + 0.9f); _shaftB.Modulate = c;
         }
 
         for (int i = 0; i < MoteCount; i++)
@@ -478,7 +478,7 @@ public partial class TitleAtmosphere : Control
             if (s == null || !IsInstanceValid(s)) continue;
             var p = s.Position;
             p.Y -= _moteSpeed[i] * dt;                                  // dust rises in the light
-            p.X += Mathf.Sin(_t * 0.19f + _motePhase[i]) * _moteDrift[i] * dt;
+            p.X += Mathf.Sin(_t * 0.6f + _motePhase[i]) * _moteDrift[i] * 2f * dt;
             if (p.Y < -20f)
             {
                 p.Y = _vpH + 20f;
@@ -489,7 +489,7 @@ public partial class TitleAtmosphere : Control
             s.Position = p;
 
             var c = s.Modulate;
-            c.A = 0.34f + 0.20f * Mathf.Sin(_t * (0.5f + i * 0.037f) + _motePhase[i]);
+            c.A = 0.40f + 0.28f * Mathf.Sin(_t * (1.2f + i * 0.07f) + _motePhase[i]);
             s.Modulate = c;
         }
     }

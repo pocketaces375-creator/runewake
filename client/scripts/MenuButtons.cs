@@ -48,7 +48,10 @@ public static class MenuButtons
     /// a few hundred lines of arithmetic: no new asset bytes, and no shader that
     /// can quietly fail to compile the way FABLE-007's did.
     /// </summary>
-    private static ImageTexture PlateTexture(Color faceTop, Color faceBottom, Color rim, float rimWidth)
+    // FABLE-019c: the plates were opaque slabs sitting ON the hall. Now they are
+    // smoked glass: the vortex and the mist read through the face, the keyline
+    // and lip stay solid, so the menu belongs to the scene instead of covering it.
+    private static ImageTexture PlateTexture(Color faceTop, Color faceBottom, Color rim, float rimWidth, float faceAlpha)
     {
         int n = TexSize;
         var img = Image.CreateEmpty(n, n, false, Image.Format.Rgba8);
@@ -82,7 +85,7 @@ public static class MenuButtons
                 float lip = Mathf.Clamp((4.5f - inside) / 4.5f, 0f, 1f);
                 if (inside < 4.5f && inside > 0f)
                 {
-                    if (upper) c = c.Lerp(new Color(0.62f, 0.55f, 0.40f), lip * 0.45f);
+                    if (upper) c = c.Lerp(new Color(0.80f, 0.70f, 0.46f), lip * 0.55f);
                     else c = c.Lerp(new Color(0.05f, 0.04f, 0.03f), lip * 0.55f);
                 }
 
@@ -94,17 +97,20 @@ public static class MenuButtons
                 }
 
                 float alpha = Mathf.Clamp(inside + 1f, 0f, 1f);   // one soft pixel of AA
+                // Face is glass; the rim and the lip are solid stone/gold.
+                float solid = Mathf.Clamp((rimWidth + 3.5f - inside) / 3.5f, 0f, 1f);
+                alpha *= Mathf.Lerp(faceAlpha, 1f, solid);
                 img.SetPixel(x, y, new Color(c.R, c.G, c.B, alpha));
             }
         }
         return ImageTexture.CreateFromImage(img);
     }
 
-    private static StyleBox Plate(Color faceTop, Color faceBottom, Color rim, float rimWidth)
+    private static StyleBox Plate(Color faceTop, Color faceBottom, Color rim, float rimWidth, float faceAlpha)
     {
         var box = new StyleBoxTexture
         {
-            Texture = PlateTexture(faceTop, faceBottom, rim, rimWidth),
+            Texture = PlateTexture(faceTop, faceBottom, rim, rimWidth, faceAlpha),
             ContentMarginLeft = PadX,
             ContentMarginRight = PadX,
             ContentMarginTop = PadY,
@@ -118,14 +124,14 @@ public static class MenuButtons
     }
 
     public static StyleBox Normal() =>
-        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#221D19"), EdgeNormal, 2.6f);
+        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.4f, 0.70f);
 
     public static StyleBox Hover() =>
-        Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.2f);
+        Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.0f, 0.80f);
 
     /// <summary>Pressed: the face darkens and the lip loses its light, so it sinks.</summary>
     public static StyleBox Pressed() =>
-        Plate(Color.FromHtml("#1E1A16"), Color.FromHtml("#2C2621"), EdgePressed, 2.6f);
+        Plate(Color.FromHtml("#1E1A16"), Color.FromHtml("#2C2621"), EdgePressed, 2.4f, 0.90f);
 
     /// <summary>
     /// Give a button its hover/press feel.
@@ -201,7 +207,7 @@ public static class MenuButtons
         if (title == null || CampaignContext.ReduceMotion) return;
         var t = title.CreateTween().SetLoops();
         t.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-        t.TweenProperty(title, "modulate", new Color(1.13f, 1.08f, 0.94f), 4.5f);
-        t.TweenProperty(title, "modulate", Colors.White, 4.5f);
+        t.TweenProperty(title, "modulate", new Color(1.22f, 1.14f, 0.92f), 2.6f);   // FABLE-019c: visible breath
+        t.TweenProperty(title, "modulate", Colors.White, 2.6f);
     }
 }

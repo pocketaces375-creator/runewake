@@ -30,6 +30,33 @@ public partial class ChooseYourPathScene : Control
     private Control _carouselSection;
     private readonly List<Control> _panelNodes = new();
     private readonly List<TextureRect> _panelPortraits = new(); // art TextureRect per panel for runtime swap
+    private readonly List<Label> _panelNames = new();            // FABLE-019c: the big class name on each portrait
+
+    /// <summary>
+    /// FABLE-019c. Neighbour panels are RESIZED, not scaled (panel.Size shrinks,
+    /// Scale stays 1), so a fixed pixel font would overflow the small ones. Size
+    /// the name to the panel: ~9% of its height, then shrink until the word fits
+    /// 92% of its width (NECROMANCER, ASTROLOGIST). Called on build and on every
+    /// carousel pass.
+    /// </summary>
+    private static void FitClassName(Label l, float panelW, float panelH)
+    {
+        int size = Mathf.Clamp(Mathf.RoundToInt(panelH * 0.09f), 14, 64);
+        float maxW = panelW * 0.92f;
+        Font? f = null;
+        while (size > 14)
+        {
+            f = GetCardNameFont(size);
+            if (f == null || f.GetStringSize(l.Text, HorizontalAlignment.Left, -1, size).X <= maxW) break;
+            size -= 2;
+        }
+        if (f != null) l.AddThemeFontOverride("font", f);
+        l.AddThemeFontSizeOverride("font_size", size);
+        l.AddThemeConstantOverride("outline_size", Mathf.Max(2, size / 9));
+        float toggle = 52f;   // the ♂/♀ row is a fixed 52px on every panel
+        l.OffsetTop = -(toggle + size * 1.5f);
+        l.OffsetBottom = -toggle;
+    }
 
     // Relic flavour lines — one per class, shown on each carousel panel
     private static readonly Dictionary<string, string> RelicFlavors = new()
@@ -541,6 +568,7 @@ public partial class ChooseYourPathScene : Control
 
             panel.Position = new Vector2(xPos, yPos);
             panel.Size = new Vector2(panelW, panelH);
+            if (i < _panelNames.Count) FitClassName(_panelNames[i], panelW, panelH);
             panel.Scale = Vector2.One;
 
             panel.Modulate = new Color(bright, bright, bright, 1f);
@@ -731,6 +759,50 @@ public partial class ChooseYourPathScene : Control
         mainLayout.AddChild(artRect);
         _panelPortraits.Add(artRect); // store for runtime texture swap
 
+        // ── FABLE-019c: the class NAME, large, over the foot of the portrait ──
+        // Trikzos: "say what the class is in a large nice font". It was a 15px
+        // line under the art. Now: a smoked band fading up from the bottom of
+        // the portrait, and the name across it in the game's display serif at
+        // ~9% of the panel height, gold with a dark edge, so it reads from the
+        // dimmed neighbours too. Sits above the ♂/♀ row (52px), not on it.
+        {
+            var grad = new Gradient();
+            grad.SetColor(0, new Color(0, 0, 0, 0f));
+            grad.SetColor(1, new Color(0, 0, 0, 0.82f));
+            var band = new TextureRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                Texture = new GradientTexture2D { Gradient = grad, FillFrom = new Vector2(0, 0), FillTo = new Vector2(0, 1), Width = 4, Height = 64 },
+                StretchMode = TextureRect.StretchModeEnum.Scale,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            };
+            band.SetAnchorsPreset(LayoutPreset.BottomWide);
+            band.AnchorTop = 0.68f;   // top 32% of the portrait stays clear
+            band.OffsetTop = 0f;
+            band.OffsetBottom = 0f;
+            artRect.AddChild(band);
+
+            var bigName = new Label
+            {
+                Name = "ClassName",
+                Text = cls.Name.ToUpperInvariant(),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                MouseFilter = MouseFilterEnum.Ignore,
+                AutowrapMode = TextServer.AutowrapMode.Off,
+                ClipText = false,
+            };
+            bigName.AddThemeColorOverride("font_color", Gold);
+            bigName.AddThemeColorOverride("font_outline_color", new Color(0.05f, 0.03f, 0.02f, 0.95f));
+            bigName.AddThemeConstantOverride("shadow_offset_y", 3);
+            bigName.AddThemeConstantOverride("shadow_offset_x", 0);
+            bigName.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.6f));
+            bigName.SetAnchorsPreset(LayoutPreset.BottomWide);
+            artRect.AddChild(bigName);
+            _panelNames.Add(bigName);
+            FitClassName(bigName, _panelFullW, _panelFullH);
+        }
+
         // ── Gender toggle — overlaid on the bottom of the portrait area ──
         // This is a sibling of mainLayout (not inside it), so it causes no layout shift.
         var toggleRow = new HBoxContainer
@@ -823,18 +895,7 @@ public partial class ChooseYourPathScene : Control
         vbox.AddThemeConstantOverride("separation", 1);
         textBlock.AddChild(vbox);
 
-        // Class name — font scales with panel size
-        var nameLabel = new Label
-        {
-            Text = cls.Name,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(nameLabel, FontBody);
-        nameLabel.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
-        nameLabel.AddThemeConstantOverride("outline_size", 1);
-        nameLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-        vbox.AddChild(nameLabel);
+        // FABLE-019c: the class name moved onto the portrait (see above).
 
         // Relic flavour — one line about the class's two relics
         string relicText = RelicFlavors.TryGetValue(cls.Id, out var flavor) ? flavor : "";
