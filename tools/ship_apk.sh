@@ -177,6 +177,8 @@ blocking "UX walkthrough" bash -c \
 # rounds. Deterministic and never flaky, so it blocks.
 [ -f "$REPO_ROOT/tools/export_exclusion_check.py" ] && \
   blocking "every asset the code loads ships in the APK" python3 "$REPO_ROOT/tools/export_exclusion_check.py"
+[ -f "$REPO_ROOT/tools/network_transport_check.py" ] && \
+  blocking "no .NET HTTPS in game code (aborts on Android)" python3 "$REPO_ROOT/tools/network_transport_check.py"
 
 # The two that speak directly to "can he actually play it".
 [ -x "$REPO_ROOT/tools/input_smoke.sh" ] && \

@@ -34,7 +34,7 @@ public partial class TelemetryService : Node
         _config = config;
         _accountId = accountId;
         if (config.IsConfigured)
-            _sync = new RelicLedgerSync(config);
+            _sync = new RelicLedgerSync(config, Http.Create(10));   // FABLE-019b: Godot TLS (see GodotHttpHandler)
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public partial class TelemetryService : Node
 
             var body = System.Text.Json.JsonSerializer.Serialize(rows);
             var url = $"{_config!.Url}/rest/v1/telemetry_events";
-            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            using var http = Http.Create(5);   // FABLE-019b: Godot TLS — .NET HTTPS aborts on Android
             var req = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(body, Encoding.UTF8, "application/json")

@@ -98,9 +98,10 @@ public partial class SyncManager : Node
     {
         _config = config;
         _save = save;
-        _auth = new SupabaseAuth(config);
-        _cloud = new CloudSaveSync(config);
-        _relics = new RelicLedgerSync(config);
+        // FABLE-019b: Godot's TLS, never .NET's — .NET HTTPS aborts the app on Android. See GodotHttpHandler.
+        _auth = new SupabaseAuth(config, Http.Create(15));
+        _cloud = new CloudSaveSync(config, Http.Create(20));
+        _relics = new RelicLedgerSync(config, Http.Create(10));
         _deviceId = ReadOrCreateDeviceId();
         _meta = ReadMeta();
         Session = ReadSession();
