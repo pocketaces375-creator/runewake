@@ -50,13 +50,20 @@ public partial class CardPlate : Control
     private Label? _costNum;
 
     private static readonly Color CREAM = new Color(0.941f, 0.894f, 0.816f);
-    // Buff/debuff tints. Saturated enough to read on the chip; the outline carries them.
-    private static readonly Color RED_TINT = new Color(1.00f, 0.55f, 0.48f);
-    private static readonly Color GREEN_TINT = new Color(0.66f, 1.00f, 0.55f);
+    // FABLE-019d: numerals are BLACK on the red/green chips (Trikzos: "contrast
+    // with the white and the little box … maybe we make them black"). A changed
+    // value is the exception: bright, with a coloured edge, so a buff/debuff
+    // still jumps out against the black baseline.
+    private static readonly Color INK = new Color(0.06f, 0.04f, 0.03f);
+    private static readonly Color INK_EDGE = new Color(1f, 0.96f, 0.86f, 0.35f);
+    private static readonly Color RED_TINT = new Color(1.00f, 0.93f, 0.90f);
+    private static readonly Color GREEN_TINT = new Color(0.92f, 1.00f, 0.88f);
+    private static readonly Color RED_EDGE = new Color(0.45f, 0.02f, 0.02f, 0.95f);
+    private static readonly Color GREEN_EDGE = new Color(0.02f, 0.30f, 0.05f, 0.95f);
     // FABLE-019c: the baked chips' own colours, sampled from the bake
     // (cinder_runner: attack 175,58,48 · vigor 76,139,77 · cost disc 74,59,21).
-    private static readonly Color ATK_FILL = new Color(0.72f, 0.22f, 0.18f);
-    private static readonly Color VIG_FILL = new Color(0.29f, 0.56f, 0.30f);
+    private static readonly Color ATK_FILL = new Color(0.78f, 0.26f, 0.20f);
+    private static readonly Color VIG_FILL = new Color(0.34f, 0.62f, 0.34f);
     private static readonly Color CHIP_EDGE = new Color(0.08f, 0.05f, 0.04f, 0.9f);
     private static readonly Color COST_FILL = new Color(0.29f, 0.23f, 0.08f);
     private static readonly Color COST_RIM_READY = new Color(0.98f, 0.85f, 0.45f);  // the bake's gold ring
@@ -102,8 +109,8 @@ public partial class CardPlate : Control
                 Position = Vector2.Zero, Size = new Vector2(cardWidth, cardHeight)
             };
             AddChild(_baked);
-            (_atkGem, _atkNum) = Chip("AttackChip", ATK_FILL); AddChild(_atkGem);
-            (_vigGem, _vigNum) = Chip("VigorChip", VIG_FILL); AddChild(_vigGem);
+            (_atkGem, _atkNum) = Chip("AttackChip", ATK_FILL, ink: true); AddChild(_atkGem);
+            (_vigGem, _vigNum) = Chip("VigorChip", VIG_FILL, ink: true); AddChild(_vigGem);
             (_costGem, _costNum) = Chip("CostDisc", COST_FILL); AddChild(_costGem);
         }
 
@@ -160,24 +167,31 @@ public partial class CardPlate : Control
     public void SetStatValues(int? attack, int? vigor)
     {
         if (!_hasB || _atkNum == null || _vigNum == null) return;
-        if (attack.HasValue)
+        if (attack.HasValue) { _atkNum.Text = attack.Value.ToString(); Tint(_atkNum, attack.Value, _baseAtk); }
+        if (vigor.HasValue) { _vigNum.Text = vigor.Value.ToString(); Tint(_vigNum, vigor.Value, _baseVig); }
+    }
+
+    private static void Tint(Label num, int value, int baseline)
+    {
+        if (baseline >= 0 && value < baseline)
         {
-            _atkNum.Text = attack.Value.ToString();
-            if (_baseAtk >= 0 && attack.Value < _baseAtk) _atkNum.AddThemeColorOverride("font_color", RED_TINT);
-            else if (_baseAtk >= 0 && attack.Value > _baseAtk) _atkNum.AddThemeColorOverride("font_color", GREEN_TINT);
-            else _atkNum.AddThemeColorOverride("font_color", CREAM);
+            num.AddThemeColorOverride("font_color", RED_TINT);
+            num.AddThemeColorOverride("font_outline_color", RED_EDGE);
         }
-        if (vigor.HasValue)
+        else if (baseline >= 0 && value > baseline)
         {
-            _vigNum.Text = vigor.Value.ToString();
-            if (_baseVig >= 0 && vigor.Value < _baseVig) _vigNum.AddThemeColorOverride("font_color", RED_TINT);
-            else if (_baseVig >= 0 && vigor.Value > _baseVig) _vigNum.AddThemeColorOverride("font_color", GREEN_TINT);
-            else _vigNum.AddThemeColorOverride("font_color", CREAM);
+            num.AddThemeColorOverride("font_color", GREEN_TINT);
+            num.AddThemeColorOverride("font_outline_color", GREEN_EDGE);
+        }
+        else
+        {
+            num.AddThemeColorOverride("font_color", INK);
+            num.AddThemeColorOverride("font_outline_color", INK_EDGE);
         }
     }
 
     /// <summary>A baked-style chip: filled rounded rectangle (or disc), thin dark edge, one numeral in the card's own serif.</summary>
-    private static (Panel chip, Label num) Chip(string name, Color fill)
+    private static (Panel chip, Label num) Chip(string name, Color fill, bool ink = false)
     {
         var chip = new Panel { Name = name, MouseFilter = MouseFilterEnum.Ignore };
         chip.AddThemeStyleboxOverride("panel", new StyleBoxFlat
@@ -194,8 +208,8 @@ public partial class CardPlate : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        num.AddThemeColorOverride("font_color", CREAM);
-        num.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.85f));
+        num.AddThemeColorOverride("font_color", ink ? INK : CREAM);
+        num.AddThemeColorOverride("font_outline_color", ink ? INK_EDGE : new Color(0, 0, 0, 0.85f));
         chip.AddChild(num);
         return (chip, num);
     }

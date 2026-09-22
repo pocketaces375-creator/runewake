@@ -5702,7 +5702,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             _exitCommitted = true;
             try
             {
-                GD.Print($"[DUEL-EXIT] '{label}' activated via {via}");
+                ExitTrace($"'{label}' activated via {via}");
                 GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
                 btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
                 // Deliberately NOT setting btn.Disabled — changing a Button's
@@ -5712,7 +5712,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"[DUEL-EXIT] '{label}' threw: {ex}");
+                ExitTrace($"'{label}' threw: {ex}");
                 if (_swapRequested || !IsInsideTree())
                 {
                     // We are already leaving. Re-arming here is what turned one
@@ -5902,7 +5902,7 @@ private void ShowGameOverOverlay(int winnerIndex)
 
     private void LeaveDuelFor(string scenePath, string why, System.Action? before = null)
     {
-        GD.Print($"[DUEL-EXIT] {why} → {scenePath}");
+        ExitTrace($"{why} → {scenePath.GetFile()}");
 
         if (before != null)
         {
@@ -5912,7 +5912,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"[DUEL-EXIT] bookkeeping threw, leaving anyway: {ex}");
+                ExitTrace($"bookkeeping threw, leaving anyway: {ex}");
             }
         }
 
@@ -5922,30 +5922,61 @@ private void ShowGameOverOverlay(int winnerIndex)
         var tree = GetTree();
         if (tree == null)
         {
-            GD.PrintErr("[DUEL-EXIT] LeaveDuelFor called with no tree (already leaving) — ignored");
+            ExitTrace("LeaveDuelFor called with no tree (already leaving) — ignored");
             return;
         }
-        _ = SwapAfterOneFrame(tree, scenePath, GetInstanceId());
+        SwapAfterOneFrame(tree, scenePath, GetInstanceId());
     }
 
     /// <summary>
-    /// FABLE-019. Let one frame draw first, so the button's "Continuing…" is
-    /// actually on screen while a phone builds the next duel (on device that
-    /// build can take a second or more, and the old code swapped in the same
-    /// frame it changed the label, so the label never showed). Then swap, then
-    /// watch — using only the tree, never `this`, which is out of the tree the
-    /// instant the swap is accepted.
+    /// FABLE-019d. The FABLE-019 version of this was a C# async method that
+    /// awaited two process_frame signals. In the sandbox that always resumed;
+    /// on Trikzos's phone the button said "Next: Thornbark" and nothing else
+    /// ever happened — no swap, no watchdog. Everything after the first await
+    /// depended on the .NET continuation being pumped back onto the main
+    /// thread, and that is the one part of the path this sandbox cannot vouch
+    /// for on an Android release build. So: no async. Two SceneTreeTimers
+    /// (0 s = next frame, process-always so a paused tree cannot strand them)
+    /// chained by plain callbacks, then the swap, then a SceneTreeTimer
+    /// watchdog. Every step is written to user://duel_exit_trace.txt as well as
+    /// the log, and the title screen's Diag panel shows that file — so the
+    /// next time this stalls, the phone itself says which step it reached.
     ///
-    /// Two process_frame waits, not RenderingServer.FramePostDraw: headless runs
-    /// never draw, and a post-draw wait would hang every automated test forever.
+    /// The one-frame wait is kept so the button's new label is drawn before a
+    /// phone spends a second building the next duel.
     /// </summary>
-    private async System.Threading.Tasks.Task SwapAfterOneFrame(SceneTree tree, string scenePath, ulong oldSceneId)
+    private void SwapAfterOneFrame(SceneTree tree, string scenePath, ulong oldSceneId)
+    {
+        ExitTrace($"swap scheduled → {scenePath.GetFile()}");
+        try
+        {
+            var t1 = tree.CreateTimer(0.0, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+            t1.Timeout += () =>
+            {
+                try
+                {
+                    var t2 = tree.CreateTimer(0.0, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+                    t2.Timeout += () => DoSwap(tree, scenePath, oldSceneId);
+                }
+                catch (System.Exception ex)
+                {
+                    ExitTrace($"second frame timer threw: {ex}");
+                    DoSwap(tree, scenePath, oldSceneId);
+                }
+            };
+        }
+        catch (System.Exception ex)
+        {
+            ExitTrace($"frame timer threw: {ex} — swapping now");
+            DoSwap(tree, scenePath, oldSceneId);
+        }
+    }
+
+    private void DoSwap(SceneTree tree, string scenePath, ulong oldSceneId)
     {
         try
         {
-            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-            await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-
+            ExitTrace("frames drawn — loading scene");
             // FABLE-011: load EXPLICITLY, then swap to the loaded resource, so a
             // null PackedScene (the scene is the problem) and a failed swap (the
             // swap is the problem) are two different, readable answers.
@@ -5956,29 +5987,29 @@ private void ShowGameOverOverlay(int winnerIndex)
             }
             catch (System.Exception ex)
             {
-                GD.PrintErr($"[DUEL-EXIT] loading '{scenePath}' threw: {ex}");
+                ExitTrace($"loading '{scenePath}' threw: {ex}");
             }
 
             Error err;
             if (packed != null)
             {
                 err = tree.ChangeSceneToPacked(packed);
-                GD.Print($"[DUEL-EXIT] ChangeSceneToPacked('{scenePath}') -> {err}");
+                ExitTrace($"ChangeSceneToPacked('{scenePath.GetFile()}') -> {err}");
             }
             else
             {
-                GD.PrintErr($"[DUEL-EXIT] '{scenePath}' did not load as a PackedScene — trying by path");
+                ExitTrace($"'{scenePath}' did not load as a PackedScene — trying by path");
                 err = tree.ChangeSceneToFile(scenePath);
-                GD.Print($"[DUEL-EXIT] ChangeSceneToFile('{scenePath}') -> {err}");
+                ExitTrace($"ChangeSceneToFile('{scenePath.GetFile()}') -> {err}");
             }
 
             if (err != Error.Ok)
             {
-                GD.PrintErr($"[DUEL-EXIT] scene change failed ({err}) — falling back to the title screen");
+                ExitTrace($"scene change failed ({err}) — falling back to the title screen");
                 var fallback = tree.ChangeSceneToFile(MainMenuScenePath);
                 if (fallback != Error.Ok)
                 {
-                    GD.PrintErr($"[DUEL-EXIT] fallback ALSO failed: {fallback}");
+                    ExitTrace($"fallback ALSO failed: {fallback}");
                     ShowRootNotice(tree, $"Could not open {scenePath.GetFile()} ({err}) or the title ({fallback}). Tell Fable.");
                     return;
                 }
@@ -5992,52 +6023,66 @@ private void ShowGameOverOverlay(int winnerIndex)
         }
         catch (System.Exception ex)
         {
-            GD.PrintErr($"[DUEL-EXIT] swap threw: {ex}");
+            ExitTrace($"swap threw: {ex}");
             ShowRootNotice(tree, $"Could not leave the duel: {ex.GetType().Name} — {ex.Message}");
         }
     }
 
     /// <summary>
-    /// FABLE-019: the watchdog that FABLE-011 meant to write. That one called
-    /// GetTree() on the outgoing scene (null in Godot 4.3 once the swap is
-    /// accepted) and crashed every single time, which is why its "tell Fable
-    /// watchdog fired" line has never once been seen. This one takes the tree as
-    /// an argument, compares scene INSTANCE ids rather than `this`, and reports
-    /// through a root-level layer that exists whatever scene is (or isn't) up.
+    /// FABLE-019d: the watchdog as a SceneTreeTimer (process-always), not a Timer
+    /// node added to the root on a deferred call. Compares scene INSTANCE ids,
+    /// never `this`, and reports through a root-level layer.
     ///
     /// 4 s, not 1.5: a phone can legitimately spend over a second building a
     /// duel, and a false "stuck" would send us chasing a bug that isn't there.
     /// </summary>
     private static void StartExitWatchdog(SceneTree tree, string scenePath, ulong oldSceneId)
     {
-        var watchdog = new Godot.Timer
+        try
         {
-            Name = "DuelExitWatchdog",
-            OneShot = true,
-            WaitTime = 4.0f,
-            ProcessMode = Node.ProcessModeEnum.Always,
-        };
-        watchdog.Timeout += () =>
-        {
-            var cur = tree.CurrentScene;
-            if (cur == null || cur.GetInstanceId() == oldSceneId)
+            var watchdog = tree.CreateTimer(4.0, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+            watchdog.Timeout += () =>
             {
-                string what = cur == null ? "no scene at all" : "the old duel";
-                GD.PrintErr($"[DUEL-EXIT] WATCHDOG: 4 s after the swap to '{scenePath}' the tree shows {what}.");
-                ShowRootNotice(tree, $"Still waiting on {scenePath.GetFile()} after 4 s ({what}). Tell Fable: \"watchdog: {what}\".");
-            }
-            else
-            {
-                GD.Print($"[DUEL-EXIT] watchdog: now on {cur.Name} — all good");
-            }
-            if (GodotObject.IsInstanceValid(watchdog)) watchdog.QueueFree();
-        };
-        // Deferred: the root is mid-flush during a scene change.
-        Callable.From(() =>
+                var cur = tree.CurrentScene;
+                if (cur == null || cur.GetInstanceId() == oldSceneId)
+                {
+                    string what = cur == null ? "no scene at all" : "the old duel";
+                    ExitTrace($"WATCHDOG: 4 s after the swap to '{scenePath.GetFile()}' the tree shows {what}.");
+                    ShowRootNotice(tree, $"Still waiting on {scenePath.GetFile()} after 4 s ({what}). Tell Fable: \"watchdog: {what}\".");
+                }
+                else
+                {
+                    ExitTrace($"watchdog: now on {cur.Name} — all good");
+                }
+            };
+        }
+        catch (System.Exception ex)
         {
-            tree.Root.AddChild(watchdog);
-            watchdog.Start();
-        }).CallDeferred();
+            ExitTrace($"watchdog could not start: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// FABLE-019d: every step of leaving a duel, in the log AND in
+    /// user://duel_exit_trace.txt (last ~60 lines kept). The title screen's
+    /// Diag panel prints the file, so a stall on a phone can be read without
+    /// a cable. Never throws.
+    /// </summary>
+    public const string ExitTracePath = "user://duel_exit_trace.txt";
+    private static void ExitTrace(string line)
+    {
+        GD.Print("[DUEL-EXIT] " + line);
+        try
+        {
+            string stamp = System.DateTime.Now.ToString("HH:mm:ss.fff");
+            string existing = Godot.FileAccess.FileExists(ExitTracePath) ? Godot.FileAccess.GetFileAsString(ExitTracePath) : "";
+            var lines = new System.Collections.Generic.List<string>(existing.Split('\n', System.StringSplitOptions.RemoveEmptyEntries));
+            lines.Add($"{stamp} {line}");
+            if (lines.Count > 60) lines.RemoveRange(0, lines.Count - 60);
+            using var f = Godot.FileAccess.Open(ExitTracePath, Godot.FileAccess.ModeFlags.Write);
+            f?.StoreString(string.Join("\n", lines) + "\n");
+        }
+        catch { /* the trace must never be the thing that breaks leaving */ }
     }
 
     /// <summary>

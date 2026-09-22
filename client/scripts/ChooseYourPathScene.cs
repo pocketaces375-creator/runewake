@@ -31,17 +31,28 @@ public partial class ChooseYourPathScene : Control
     private readonly List<Control> _panelNodes = new();
     private readonly List<TextureRect> _panelPortraits = new(); // art TextureRect per panel for runtime swap
     private readonly List<Label> _panelNames = new();            // FABLE-019c: the big class name on each portrait
+    private Label? _descLabel;                                    // FABLE-019d: selected class blurb + origin, under the carousel
+
+    private void RefreshDescription()
+    {
+        if (_descLabel == null || _classes.Count == 0) return;
+        var cls = _classes[Mathf.Clamp(_selectedIdx, 0, _classes.Count - 1)];
+        string relic = RelicFlavors.TryGetValue(cls.Id, out var flavor) ? flavor : "";
+        _descLabel.Text = cls.Blurb
+            + (string.IsNullOrEmpty(relic) ? "" : "\n" + relic)
+            + (string.IsNullOrEmpty(cls.Town) ? "" : "\nOrigin · " + cls.Town);
+    }
 
     /// <summary>
     /// FABLE-019c. Neighbour panels are RESIZED, not scaled (panel.Size shrinks,
     /// Scale stays 1), so a fixed pixel font would overflow the small ones. Size
-    /// the name to the panel: ~9% of its height, then shrink until the word fits
+    /// the name to the panel: ~6% of its height, then shrink until the word fits
     /// 92% of its width (NECROMANCER, ASTROLOGIST). Called on build and on every
     /// carousel pass.
     /// </summary>
     private static void FitClassName(Label l, float panelW, float panelH)
     {
-        int size = Mathf.Clamp(Mathf.RoundToInt(panelH * 0.09f), 14, 64);
+        int size = Mathf.Clamp(Mathf.RoundToInt(panelH * 0.062f), 14, 44);   // FABLE-019d: was 9% — "a little bit too big"
         float maxW = panelW * 0.92f;
         Font? f = null;
         while (size > 14)
@@ -387,8 +398,29 @@ public partial class ChooseYourPathScene : Control
         beginWrap.AddThemeConstantOverride("separation", 0);
         beginWrap.SizeFlagsVertical = (SizeFlags)0; // Shrink
         // Minimum height: button (46) + margin above (24) + margin below (12)
-        beginWrap.CustomMinimumSize = new Vector2(0, MinButtonHeight + 36f);
+        beginWrap.CustomMinimumSize = new Vector2(0, MinButtonHeight + 36f + 96f);   // FABLE-019d: + the description
         _mainVBox.AddChild(beginWrap);
+
+        // FABLE-019d: the selected class, described once, at a size you can read.
+        _descLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            MouseFilter = MouseFilterEnum.Ignore,
+            SizeFlagsHorizontal = (SizeFlags)3,
+        };
+        ApplyBodyFont(_descLabel, 26);
+        _descLabel.AddThemeColorOverride("font_color", Color.FromHtml("#DCCFAF"));
+        _descLabel.AddThemeConstantOverride("outline_size", 2);
+        _descLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.7f));
+        var descMargin = new MarginContainer { MouseFilter = MouseFilterEnum.Ignore };
+        descMargin.AddThemeConstantOverride("margin_left", (int)(_viewportW * 0.18f));
+        descMargin.AddThemeConstantOverride("margin_right", (int)(_viewportW * 0.18f));
+        descMargin.AddThemeConstantOverride("margin_top", 4);
+        descMargin.AddThemeConstantOverride("margin_bottom", 8);
+        descMargin.AddChild(_descLabel);
+        beginWrap.AddChild(descMargin);
+        RefreshDescription();
 
         // Spacer above the button for clearance
         var spacer = new ColorRect
@@ -518,6 +550,7 @@ public partial class ChooseYourPathScene : Control
     {
         int total = _panelNodes.Count;
         if (total == 0) return;
+        RefreshDescription();
 
         // Recompute layout constants from current viewport
         float targetH = _viewportH * 0.60f;
@@ -768,7 +801,7 @@ public partial class ChooseYourPathScene : Control
         {
             var grad = new Gradient();
             grad.SetColor(0, new Color(0, 0, 0, 0f));
-            grad.SetColor(1, new Color(0, 0, 0, 0.82f));
+            grad.SetColor(1, new Color(0, 0, 0, 0.70f));
             var band = new TextureRect
             {
                 MouseFilter = MouseFilterEnum.Ignore,
@@ -777,7 +810,7 @@ public partial class ChooseYourPathScene : Control
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             };
             band.SetAnchorsPreset(LayoutPreset.BottomWide);
-            band.AnchorTop = 0.68f;   // top 32% of the portrait stays clear
+            band.AnchorTop = 0.76f;   // FABLE-019d: only the bottom quarter is shaded — the art stays the art
             band.OffsetTop = 0f;
             band.OffsetBottom = 0f;
             artRect.AddChild(band);
@@ -873,73 +906,11 @@ public partial class ChooseYourPathScene : Control
         femaleBtn.Pressed += () => ToggleToVariant(capturedIdx, "f");
         toggleRow.AddChild(femaleBtn);
 
-        // ── Text block — sits below the portrait, sized to its content ──
-        float margin = Mathf.Max(6f, _panelFullW * TextMarginRatio);
-        var textBlock = new MarginContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsVertical = (SizeFlags)3, // Fill | Expand — text must NOT be clipped
-            SizeFlagsHorizontal = (SizeFlags)3
-        };
-        textBlock.SizeFlagsStretchRatio = 0.10f; // portrait gets the overwhelming share
-        textBlock.AddThemeConstantOverride("margin_left", (int)margin);
-        textBlock.AddThemeConstantOverride("margin_right", (int)margin);
-        textBlock.AddThemeConstantOverride("margin_top", 2);
-        textBlock.AddThemeConstantOverride("margin_bottom", 2);
-        mainLayout.AddChild(textBlock);
-
-        var vbox = new VBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        vbox.AddThemeConstantOverride("separation", 1);
-        textBlock.AddChild(vbox);
-
-        // FABLE-019c: the class name moved onto the portrait (see above).
-
-        // Relic flavour — one line about the class's two relics
-        string relicText = RelicFlavors.TryGetValue(cls.Id, out var flavor) ? flavor : "";
-        if (!string.IsNullOrEmpty(relicText))
-        {
-            var relicLabel = new Label
-            {
-                Text = relicText,
-                AutowrapMode = TextServer.AutowrapMode.Word,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(relicLabel, FontTiny);
-            relicLabel.AddThemeColorOverride("font_color", Color.FromHtml("#B8A88A"));
-            relicLabel.AddThemeConstantOverride("outline_size", 1);
-            relicLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
-            vbox.AddChild(relicLabel);
-        }
-
-        // Blurb
-        var blurbLabel = new Label
-        {
-            Text = cls.Blurb,
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyBodyFont(blurbLabel, FontTiny);
-        blurbLabel.AddThemeColorOverride("font_color", Color.FromHtml("#DCCFAF"));
-        blurbLabel.AddThemeConstantOverride("outline_size", 1);
-        blurbLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
-        vbox.AddChild(blurbLabel);
-
-        // Origin
-        var originLabel = new Label
-        {
-            Text = $"Origin · {cls.Town}",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyBodyFont(originLabel, FontTiny);
-        originLabel.AddThemeColorOverride("font_color", Color.FromHtml("#C8B88A"));
-        originLabel.AddThemeConstantOverride("outline_size", 1);
-        originLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.4f));
-        vbox.AddChild(originLabel);
+        // FABLE-019d: no text under the card. The tiny blurb/relic/origin lines
+        // were unreadable on a phone (Trikzos: "the words under those cards I
+        // can't see"). The portrait fills the panel; the SELECTED class's blurb
+        // and origin are shown once, readable, under the carousel (see
+        // _descLabel / RefreshDescription).
 
         return panel;
     }

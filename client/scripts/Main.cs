@@ -22,6 +22,9 @@ public partial class Main : Control
     private Button _runeButton = default!;
     private Button _forgeButton = default!;
     private Button _diagButton = default!;
+    // FABLE-019d: title-menu button metrics (the global MinButtonHeight/FontButtonPrimary are 120/44).
+    private const int TitleButtonHeight = 84;
+    private const int TitleButtonFont = 34;
     private Control? _slotPickerContainer;
     private Control? _diagPanel;
     private bool _loading;
@@ -246,9 +249,11 @@ public partial class Main : Control
             {
                 Text = text,
                 AnchorLeft = 0.40f, AnchorRight = 0.60f,
- CustomMinimumSize = new Vector2(0, ThemeTokens.MinButtonHeight),
- };
-            btn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
+                // FABLE-019d: 84px, not the global 120 — the title menu was
+                // hiding most of the hall ("I can hardly see anything").
+                CustomMinimumSize = new Vector2(0, TitleButtonHeight),
+            };
+            btn.AddThemeFontSizeOverride("font_size", TitleButtonFont);
             btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
             btn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
             btn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
@@ -256,7 +261,7 @@ public partial class Main : Control
             btn.AddThemeStyleboxOverride("hover", stoneHover);
             btn.AddThemeStyleboxOverride("pressed", stonePressed);
             btn.AddThemeStyleboxOverride("disabled", stoneNormal);
-            var labelFont = ThemeTokens.GetButtonFont(ThemeTokens.FontButtonPrimary);
+            var labelFont = ThemeTokens.GetButtonFont(TitleButtonFont);
             if (labelFont != null)
                 btn.AddThemeFontOverride("font", labelFont);
             MenuButtons.Animate(btn);
@@ -269,10 +274,12 @@ public partial class Main : Control
         // ═══ Button stack (VBox with 2×2 grid + full-width Create New Account) ═══
         var buttonStack = new VBoxContainer
         {
-            AnchorLeft = 0.22f, AnchorRight = 0.78f,
-            AnchorTop = 0.56f, AnchorBottom = 0.96f,
+            // FABLE-019d: 44% of the width (was 56%), starting lower, so the
+            // arch and the pillars stay in view around the menu.
+            AnchorLeft = 0.28f, AnchorRight = 0.72f,
+            AnchorTop = 0.60f, AnchorBottom = 0.955f,
         };
-        buttonStack.AddThemeConstantOverride("separation", 16);
+        buttonStack.AddThemeConstantOverride("separation", 10);
         AddChild(buttonStack);
 
         // 2×2 grid: Decks, Reliquary, Settings, Duel Arena
@@ -280,8 +287,8 @@ public partial class Main : Control
         {
             Columns = 2,
         };
-        buttonGrid.AddThemeConstantOverride("h_separation", 16);
-        buttonGrid.AddThemeConstantOverride("v_separation", 16);
+        buttonGrid.AddThemeConstantOverride("h_separation", 10);
+        buttonGrid.AddThemeConstantOverride("v_separation", 10);
         buttonStack.AddChild(buttonGrid);
 
         var decksButton = MakeStoneButton("Decks");
@@ -1108,6 +1115,37 @@ public partial class Main : Control
             vbox.AddChild(loadErrLabel);
         }
 
+        // FABLE-019d: the last duel exit, step by step, from the phone itself.
+        // Written by DuelScene.ExitTrace. When Continue stalls, this is the
+        // screenshot to send: it says which step was the last one reached.
+        {
+            string trace = "";
+            try
+            {
+                if (Godot.FileAccess.FileExists(DuelScene.ExitTracePath))
+                    trace = Godot.FileAccess.GetFileAsString(DuelScene.ExitTracePath).Trim();
+            }
+            catch (System.Exception ex) { trace = "(could not read: " + ex.Message + ")"; }
+            vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 12) });
+            var traceTitle = new Label
+            {
+                Text = "Last duel exit (newest at the bottom)",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+            };
+            traceTitle.AddThemeFontSizeOverride("font_size", 14);
+            vbox.AddChild(traceTitle);
+            var traceLabel = new Label
+            {
+                Text = string.IsNullOrEmpty(trace) ? "(no duel exit recorded yet)" : trace,
+                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart
+            };
+            traceLabel.AddThemeFontSizeOverride("font_size", 12);
+            traceLabel.Modulate = new Color(0.85f, 0.85f, 0.8f);
+            vbox.AddChild(traceLabel);
+        }
+
         // Error details
         if (error != null)
         {
@@ -1217,8 +1255,9 @@ public partial class Main : Control
         // Single campaign panel — centered, fills ~25% viewport height
         _slotPickerContainer = new Control
         {
-            AnchorLeft = 0.34f, AnchorRight = 0.66f,
-            AnchorTop = 0.32f, AnchorBottom = 0.54f,
+            // FABLE-019d: narrower and shorter, clear of the vortex's eye.
+            AnchorLeft = 0.37f, AnchorRight = 0.63f,
+            AnchorTop = 0.36f, AnchorBottom = 0.56f,
             MouseFilter = MouseFilterEnum.Stop
         };
         AddChild(_slotPickerContainer);
@@ -1233,7 +1272,7 @@ public partial class Main : Control
             SizeFlagsHorizontal = Control.SizeFlags.Fill,
             SizeFlagsVertical = Control.SizeFlags.Fill,
             MouseFilter = MouseFilterEnum.Stop,
-            CustomMinimumSize = new Vector2(0, 180)
+            CustomMinimumSize = new Vector2(0, 150)
         };
 
         var slotStyle = new StyleBoxFlat

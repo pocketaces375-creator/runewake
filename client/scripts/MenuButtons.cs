@@ -124,7 +124,7 @@ public static class MenuButtons
     }
 
     public static StyleBox Normal() =>
-        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.4f, 0.70f);
+        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.2f, 0.58f);   // FABLE-019d: a little more glass
 
     public static StyleBox Hover() =>
         Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.0f, 0.80f);
