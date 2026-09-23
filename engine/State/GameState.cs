@@ -95,6 +95,9 @@ public sealed class GameState
     /// </summary>
     public bool[] OpeningRuleLifted { get; set; } = new bool[2];
 
+    /// <summary>FABLE-021: boss rules in force (Engine.BossRules). Owned by OpeningRuleOwner.</summary>
+    public List<string> BossRules { get; set; } = new();
+
     /// <summary>
     /// True once the first player (P0) has had their turn-one draw skipped.
     /// Ensures the skip fires exactly once, for P0 only.
@@ -155,6 +158,18 @@ public sealed class GameState
         {
             state.Players[p].MaxVigor = startingVigor;
             state.Players[p].Vigor = startingVigor;
+        }
+
+        // FABLE-020: per-encounter difficulty (world depth, Tower floors, raid pools).
+        if (config.Player1StartingVigor is int v1 && v1 > 0)
+        {
+            state.Players[1].MaxVigor = v1;
+            state.Players[1].Vigor = v1;
+        }
+        if (config.Player1BonusAttunement > 0)
+        {
+            state.Players[1].AttunementMax += config.Player1BonusAttunement;
+            state.Players[1].Attunement += config.Player1BonusAttunement;
         }
 
         for (int p = 0; p < 2; p++)
@@ -322,6 +337,14 @@ public sealed class GameState
             Engine.OpeningRuleHandler.ApplyRule(state, config.OpeningRule);
         }
 
+        // ——— FABLE-021: boss rules ———
+        if (config.BossRules is { Count: > 0 })
+        {
+            state.OpeningRuleOwner = config.OpeningRuleOwner;
+            state.BossRules = new List<string>(config.BossRules);
+            Engine.BossRules.ApplyAtStart(state);
+        }
+
         return state;
     }
 
@@ -357,6 +380,7 @@ public sealed class GameState
         OpeningRule = other.OpeningRule;
         OpeningRuleOwner = other.OpeningRuleOwner;
         OpeningRuleLifted = (bool[])other.OpeningRuleLifted.Clone();
+        BossRules = new List<string>(other.BossRules);
         HasSkippedFirstDraw = other.HasSkippedFirstDraw;
         StartingVigor20 = other.StartingVigor20;
         InvokeMode = other.InvokeMode;

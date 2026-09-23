@@ -93,6 +93,21 @@ public class EncounterDef
     [JsonPropertyName("opening_rule")]
     public string? OpeningRule { get; set; }
 
+    /// <summary>
+    /// FABLE-021: rules the boss bends for the whole fight — see Engine.BossRules.
+    /// e.g. ["extra_draw", "regen:2", "crumble:8:2", "challenger_vigor:20"].
+    /// </summary>
+    [JsonPropertyName("boss_rules")]
+    public List<string>? BossRules { get; set; }
+
+    /// <summary>FABLE-020: the encounter's starting Vigor (null = normal). Used by generated zones and the Tower.</summary>
+    [JsonPropertyName("enemy_vigor")]
+    public int? EnemyVigor { get; set; }
+
+    /// <summary>FABLE-020: extra Attunement the encounter starts with (0 = normal).</summary>
+    [JsonPropertyName("enemy_attunement")]
+    public int EnemyBonusAttunement { get; set; }
+
     /// <summary>Drop table: card_id + probability entries, rolled on victory.</summary>
     [JsonPropertyName("drops")]
     public List<DropEntry> Drops { get; set; } = new();

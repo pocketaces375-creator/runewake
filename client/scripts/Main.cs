@@ -711,28 +711,44 @@ public partial class Main : Control
         // Account panel. All best-effort: no config or no network changes
         // nothing about play.
         var supabaseConfig = SyncManager.LoadConfig();
-        var syncManager = new SyncManager { Name = "SyncManager" };
-        AddChild(syncManager);
-        syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
-        CampaignContext.SyncManager = syncManager;
-        syncManager.StatusChanged += status =>
+        // FABLE-019e: ONE SyncManager for the whole run, parented to the root.
+        // It used to be a child of this title screen, so it was freed the
+        // moment a duel started — every save after that (the end of every
+        // fight) scheduled a cloud push on a dead node and threw
+        // ObjectDisposedException from inside a deferred call, right in the
+        // middle of the scene change. Reproduced in the sandbox with real
+        // saves and accounts on. Now it outlives every scene; coming back to
+        // the title re-uses it instead of creating a second one.
+        var syncManager = CampaignContext.SyncManager;
+        bool freshSync = syncManager == null || !IsInstanceValid(syncManager);
+        if (freshSync)
         {
+            syncManager = new SyncManager { Name = "SyncManager" };
+            syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
+            CampaignContext.SyncManager = syncManager;
+            var sm = syncManager;
+            // The root is busy adding THIS scene during _Ready: add next frame.
+            Callable.From(() => { if (IsInstanceValid(sm) && sm.GetParent() == null) GetTree().Root.AddChild(sm); }).CallDeferred();
+        }
+        syncManager!.StatusChanged += status =>
+        {
+            if (!IsInstanceValid(this)) return;
             if (_accountChip != null && IsInstanceValid(_accountChip))
                 _accountChip.Text = status.Length > 64 ? status.Substring(0, 63) + "…" : status;   // FABLE-019: room for the reason; full text in the panel
         };
         _accountChip.Text = syncManager.Status;
-        syncManager.ConflictDetected += () => AccountPanel.Open(this, syncManager);
+        syncManager.ConflictDetected += () => { if (IsInstanceValid(this)) AccountPanel.Open(this, syncManager); };
         syncManager.CloudSaveApplied += () =>
         {
             // The cloud save was written under us. Only reload if we are still
             // the title screen — mid-duel, the next launch will pick it up.
-            if (GetTree().CurrentScene == this)
+            if (IsInstanceValid(this) && IsInsideTree() && GetTree().CurrentScene == this)
             {
                 GD.Print("[Main] cloud save applied — reloading title");
                 GetTree().ReloadCurrentScene();
             }
         };
-        _ = syncManager.RunStartupSync(); // fire and forget
+        if (freshSync) _ = syncManager.RunStartupSync(); // fire and forget, once per launch
 
         // Load and apply settings
         CampaignContext.Settings = CampaignContext.SaveManager!.LoadSettings();
@@ -770,10 +786,14 @@ public partial class Main : Control
         }
 
         // Initialize telemetry service
-        var telemetry = new TelemetryService();
-        AddChild(telemetry);
-        telemetry.Initialize(supabaseConfig, null); // accountId resolved lazily by SyncManager
-        CampaignContext.Telemetry = telemetry;
+        // FABLE-019e: same as SyncManager — one instance, on the root, for the run.
+        if (CampaignContext.Telemetry == null || !IsInstanceValid(CampaignContext.Telemetry))
+        {
+            var telemetry = new TelemetryService { Name = "TelemetryService" };
+            telemetry.Initialize(supabaseConfig, null); // accountId resolved lazily by SyncManager
+            CampaignContext.Telemetry = telemetry;
+            Callable.From(() => { if (IsInstanceValid(telemetry) && telemetry.GetParent() == null) GetTree().Root.AddChild(telemetry); }).CallDeferred();
+        }
 
         // Upload any pending crash reports (fire-and-forget, no-op if not configured)
         // FABLE-018: was a hard-coded placeholder URL, so this never once

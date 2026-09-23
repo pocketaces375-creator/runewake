@@ -59,6 +59,7 @@ public partial class BotController : Node
     /// </summary>
     public void Resume()
     {
+        if (_detached) return;
         IsThinking = false;
         IsSuspended = false;
         // If it is already this bot's turn (e.g. tutorial skipped mid-opponent-turn),
@@ -71,8 +72,24 @@ public partial class BotController : Node
         }
     }
 
+    /// <summary>
+    /// FABLE-020: stop driving this board for good (co-op: the expedition plays
+    /// the enemy's turns deterministically). Unlike Suspend, nothing re-arms it.
+    /// </summary>
+    public void Detach()
+    {
+        _detached = true;
+        _timer?.Stop();
+        _pendingAction = false;
+        IsThinking = false;
+        IsSuspended = true;
+        if (_gsm != null) _gsm.StateChanged -= OnStateChanged;
+    }
+    private bool _detached;
+
     public void ForceIdle(string why)
     {
+        if (_detached) return;
         IsThinking = false;
         IsSuspended = false;
         _pendingAction = false;

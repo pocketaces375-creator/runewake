@@ -1,0 +1,636 @@
+{
+  "//": "FABLE-020 — the shared endless world. See engine/World/*.cs. NEVER change 'version' or 'seed' casually: every blip id and every discovery hangs off them.",
+  "version": 1,
+  "seed": 5932181436553759557,
+  "hub_name": "The Crossroads of Seals",
+  "starting_chain_end": "region_01",
+  "lore_chance": 0.01,
+  "biomes": [
+    {
+      "id": "elvenwood",
+      "name": "The Elvenwood",
+      "strata": "VERDANT",
+      "strata2": "DAWN",
+      "base_difficulty": 0.2,
+      "pages_min": 5,
+      "pages_max": 7,
+      "blips_min": 45,
+      "blips_max": 60,
+      "classes": [
+        "druid",
+        "paladin"
+      ],
+      "gateways": [
+        {
+          "to": "moonwell",
+          "chance": 0.004
+        }
+      ],
+      "place_adjectives": [
+        "Whispering",
+        "Silverbark",
+        "Mossbound",
+        "Dappled",
+        "Hushed",
+        "Thornlit",
+        "Evergreen",
+        "Lantern",
+        "Starleaf",
+        "Hollowed",
+        "Songbright",
+        "Tangled",
+        "Amber",
+        "Veiled",
+        "Rootdeep",
+        "Gilded",
+        "Misty",
+        "Wildbloom"
+      ],
+      "place_nouns": [
+        "Glade",
+        "Hollow",
+        "Canopy",
+        "Ring",
+        "Bower",
+        "Thicket",
+        "Grove",
+        "Stream",
+        "Clearing",
+        "Arbor",
+        "Brook",
+        "Dell",
+        "Copse",
+        "Terrace",
+        "Spring",
+        "Bough",
+        "Fernway",
+        "Rootway"
+      ],
+      "foes": [
+        "Thornstalker",
+        "Grove Sentinel",
+        "Bark-Warden",
+        "Wood Wight",
+        "Briar Hound",
+        "Leafblade",
+        "Canopy Archer",
+        "Moss Troll",
+        "Seed-Keeper",
+        "Sap Lurker"
+      ],
+      "foe_titles": [
+        "Elder",
+        "Wild",
+        "Old-Growth",
+        "Moonlit",
+        "Thorn-Crowned",
+        "Sleepless"
+      ],
+      "warden_names": [
+        "Ilsereth of the Long Bough",
+        "The Verdant Gatekeeper",
+        "Warden Fennmire",
+        "The Antlered Watcher",
+        "Old Mother Briar"
+      ],
+      "boss_names": [
+        "The Heartwood King",
+        "Sylvara, Voice of the Deep Grove",
+        "The Thousand-Ring Oak",
+        "The Green Sovereign"
+      ],
+      "lore": [
+        "Carved into a birch at eye height: a map of this very glade, drawn before the glade existed.",
+        "A circle of mushrooms, and in the middle, a child's shoe grown through with moss. No footprints lead in or out.",
+        "The trees here lean away from the east. The elves who lived here said the east was where the seal breathed out."
+      ]
+    },
+    {
+      "id": "deepdelve",
+      "name": "The Deepdelve Mines",
+      "strata": "EMBER",
+      "strata2": "HOLLOW",
+      "base_difficulty": 0.25,
+      "pages_min": 5,
+      "pages_max": 7,
+      "blips_min": 45,
+      "blips_max": 60,
+      "classes": [
+        "warrior",
+        "necromancer"
+      ],
+      "gateways": [
+        {
+          "to": "lost_forge",
+          "chance": 0.005
+        }
+      ],
+      "place_adjectives": [
+        "Collapsed",
+        "Glittering",
+        "Sulfur",
+        "Ironvein",
+        "Echoing",
+        "Flooded",
+        "Smouldering",
+        "Lamplit",
+        "Forgotten",
+        "Cinder",
+        "Basalt",
+        "Rusted",
+        "Gemmed",
+        "Narrow",
+        "Ashen",
+        "Deep"
+      ],
+      "place_nouns": [
+        "Shaft",
+        "Gallery",
+        "Seam",
+        "Cavern",
+        "Drift",
+        "Adit",
+        "Stope",
+        "Crosscut",
+        "Vault",
+        "Chute",
+        "Lode",
+        "Hall",
+        "Rail",
+        "Sump",
+        "Bellows",
+        "Undercroft"
+      ],
+      "foes": [
+        "Tunnel Brute",
+        "Slag Golem",
+        "Lamp Wraith",
+        "Pick-Sworn",
+        "Cave Maw",
+        "Ember Delver",
+        "Rockhound",
+        "Deep Warden",
+        "Chain Ghoul",
+        "Soot Imp"
+      ],
+      "foe_titles": [
+        "Deep-Sworn",
+        "Forge-Scarred",
+        "Hollow-Eyed",
+        "Iron",
+        "Blackened",
+        "Oathless"
+      ],
+      "warden_names": [
+        "Foreman Grutch",
+        "The Shaft-Keeper",
+        "Brask Ironhand",
+        "The Lantern Widow",
+        "Old Collapse"
+      ],
+      "boss_names": [
+        "The Magma Thane",
+        "Deepking Harrowdel",
+        "The Anvil That Walks",
+        "Grimmoth, Eater of Seams"
+      ],
+      "lore": [
+        "A miner's tally scratched into the rock: 1,000 days. Beneath it, in a different hand: 'he never came back up. neither will this seam.'",
+        "The rail here runs straight into solid stone, as if the tunnel closed behind the last cart.",
+        "Soot handprints on the ceiling, far too high to reach. Hundreds of them. All the same size."
+      ]
+    },
+    {
+      "id": "saltglass",
+      "name": "The Saltglass Coast",
+      "strata": "TIDE",
+      "strata2": "DAWN",
+      "base_difficulty": 0.22,
+      "pages_min": 5,
+      "pages_max": 7,
+      "blips_min": 40,
+      "blips_max": 58,
+      "classes": [
+        "battlemage",
+        "astrologist"
+      ],
+      "gateways": [
+        {
+          "to": "drowned_observatory",
+          "chance": 0.004
+        }
+      ],
+      "place_adjectives": [
+        "Wavecut",
+        "Pearl",
+        "Stormwashed",
+        "Brackish",
+        "Glassy",
+        "Tidal",
+        "Gull",
+        "Barnacled",
+        "Sunken",
+        "Driftwood",
+        "Shimmering",
+        "Foamed",
+        "Coral",
+        "Windward"
+      ],
+      "place_nouns": [
+        "Cove",
+        "Strand",
+        "Reef",
+        "Jetty",
+        "Shoal",
+        "Lagoon",
+        "Beacon",
+        "Wreck",
+        "Inlet",
+        "Spit",
+        "Harbor",
+        "Sandbar",
+        "Grotto",
+        "Breakwater"
+      ],
+      "foes": [
+        "Reef Raider",
+        "Tide Caller",
+        "Salt Revenant",
+        "Kelp Horror",
+        "Wave Duelist",
+        "Brine Witch",
+        "Shell Knight",
+        "Gull Harrier",
+        "Undertow"
+      ],
+      "foe_titles": [
+        "Drowned",
+        "Storm-Born",
+        "Saltworn",
+        "Pearl-Eyed",
+        "Tidebound"
+      ],
+      "warden_names": [
+        "Captain Veyl of the Last Ship",
+        "The Lighthouse Keeper",
+        "Marra Deepwater",
+        "The Tideglass Oracle"
+      ],
+      "boss_names": [
+        "The Leviathan's Voice",
+        "Queen Ossaria of the Reef",
+        "The Maelstrom Sage"
+      ],
+      "lore": [
+        "A bottle with a letter inside, sealed with wax stamped in the shape of a key. The letter is blank.",
+        "The lighthouse lens is cracked in a perfect spiral, as though something inside turned once and stopped.",
+        "Every shell on this beach is the same shell."
+      ]
+    },
+    {
+      "id": "barrowmarch",
+      "name": "The Barrow-Marches",
+      "strata": "HOLLOW",
+      "strata2": "TIDE",
+      "base_difficulty": 0.28,
+      "pages_min": 5,
+      "pages_max": 7,
+      "blips_min": 42,
+      "blips_max": 58,
+      "classes": [
+        "necromancer",
+        "rogue"
+      ],
+      "gateways": [],
+      "place_adjectives": [
+        "Fogbound",
+        "Sunken",
+        "Mourning",
+        "Crooked",
+        "Lichlit",
+        "Weeping",
+        "Pale",
+        "Candle",
+        "Silent",
+        "Grave",
+        "Reedy",
+        "Bleak",
+        "Cairn",
+        "Hollow"
+      ],
+      "place_nouns": [
+        "Barrow",
+        "Mire",
+        "Causeway",
+        "Cairn",
+        "Fen",
+        "Chapel",
+        "Bog",
+        "Tomb",
+        "Gibbet",
+        "Wold",
+        "Crypt",
+        "Standing Stones",
+        "Ferry"
+      ],
+      "foes": [
+        "Barrow Wight",
+        "Bog Hag",
+        "Grave Robber",
+        "Mire Stalker",
+        "Bell Ringer",
+        "Bone Piper",
+        "Fen Lantern",
+        "Crypt Knight"
+      ],
+      "foe_titles": [
+        "Restless",
+        "Pale",
+        "Unburied",
+        "Grave-Sworn",
+        "Hollow"
+      ],
+      "warden_names": [
+        "The Ferryman of the March",
+        "Abbess Morrow",
+        "The Cairn-Lord",
+        "Sexton Grey"
+      ],
+      "boss_names": [
+        "The Barrow Queen",
+        "Mordrath, Who Was Buried Twice",
+        "The Mire That Remembers"
+      ],
+      "lore": [
+        "A cairn with a stone missing from its top. Every other cairn in sight is missing the same stone.",
+        "The ferryman's ledger has one line per crossing. The last line is today's date.",
+        "Candles float on the bog, lit, and do not drift with the wind."
+      ]
+    },
+    {
+      "id": "sunscar",
+      "name": "The Sunscar Reach",
+      "strata": "DAWN",
+      "strata2": "EMBER",
+      "base_difficulty": 0.3,
+      "pages_min": 5,
+      "pages_max": 7,
+      "blips_min": 40,
+      "blips_max": 56,
+      "classes": [
+        "paladin",
+        "warrior"
+      ],
+      "gateways": [],
+      "place_adjectives": [
+        "Sunbleached",
+        "Scorched",
+        "Golden",
+        "Mirage",
+        "Radiant",
+        "Cracked",
+        "Dune",
+        "Oath",
+        "Shimmering",
+        "High",
+        "Blazing",
+        "Salt"
+      ],
+      "place_nouns": [
+        "Mesa",
+        "Oasis",
+        "Spire",
+        "Waystation",
+        "Canyon",
+        "Temple",
+        "Caravan",
+        "Obelisk",
+        "Pass",
+        "Dune Sea",
+        "Sun Court",
+        "Ruins"
+      ],
+      "foes": [
+        "Dune Lancer",
+        "Sun Zealot",
+        "Glass Serpent",
+        "Caravan Raider",
+        "Oath Knight",
+        "Mirage Dancer",
+        "Scorpion Rider"
+      ],
+      "foe_titles": [
+        "Sunblind",
+        "Gilded",
+        "Oathbound",
+        "Scorched",
+        "Radiant"
+      ],
+      "warden_names": [
+        "The Obelisk Guardian",
+        "High Sentinel Aurel",
+        "The Mirage Queen",
+        "Warden Sabre"
+      ],
+      "boss_names": [
+        "The Sun-Eater",
+        "Aurelion the Unsetting",
+        "The Glass Pharaoh"
+      ],
+      "lore": [
+        "An obelisk with a shadow that points the wrong way.",
+        "A caravan's campfire, still warm, and the camp around it buried in sand to the tent-tops.",
+        "Glass footprints lead across the dune where the sand melted under someone walking."
+      ]
+    },
+    {
+      "id": "lost_forge",
+      "name": "The Ancient Lost Forge",
+      "hidden": true,
+      "strata": "EMBER",
+      "strata2": "DAWN",
+      "base_difficulty": 0.45,
+      "pages_min": 5,
+      "pages_max": 6,
+      "blips_min": 30,
+      "blips_max": 45,
+      "classes": [
+        "warrior",
+        "paladin"
+      ],
+      "gateways": [],
+      "place_adjectives": [
+        "First",
+        "Molten",
+        "Runed",
+        "Star-Iron",
+        "Unquenched",
+        "Titan",
+        "Sealed",
+        "Ancestral",
+        "Golden",
+        "Everburning"
+      ],
+      "place_nouns": [
+        "Anvil",
+        "Crucible",
+        "Quench-Pool",
+        "Bellows Hall",
+        "Mold",
+        "Hearth",
+        "Rune-Press",
+        "Foundry",
+        "Slag Throne",
+        "Ore Vault"
+      ],
+      "foes": [
+        "Forge Colossus",
+        "Rune Smith",
+        "Living Ingot",
+        "Hearth Guardian",
+        "Quench Spirit",
+        "Bellows Beast"
+      ],
+      "foe_titles": [
+        "Ancient",
+        "Star-Forged",
+        "Unquenched",
+        "First-Made"
+      ],
+      "warden_names": [
+        "The Keeper of the First Flame",
+        "Smith-Lord Harrun",
+        "The Crucible Sentinel"
+      ],
+      "boss_names": [
+        "The Maker Who Was Buried",
+        "The Forge Itself"
+      ],
+      "lore": [
+        "The first anvil. There is a dent in it the shape of a hand.",
+        "A mold for a key larger than any door in the world.",
+        "The quench-pool has not cooled. It never will. It remembers what was made here."
+      ]
+    },
+    {
+      "id": "moonwell",
+      "name": "The Moonwell Glades",
+      "hidden": true,
+      "strata": "VERDANT",
+      "strata2": "TIDE",
+      "base_difficulty": 0.42,
+      "pages_min": 5,
+      "pages_max": 6,
+      "blips_min": 30,
+      "blips_max": 45,
+      "classes": [
+        "druid",
+        "astrologist"
+      ],
+      "gateways": [],
+      "place_adjectives": [
+        "Moonlit",
+        "Silver",
+        "Dreaming",
+        "Starwater",
+        "Pale",
+        "Mirrored",
+        "Faerie",
+        "Night-Blooming"
+      ],
+      "place_nouns": [
+        "Well",
+        "Pool",
+        "Ring",
+        "Glade",
+        "Font",
+        "Mirror",
+        "Stair",
+        "Bower"
+      ],
+      "foes": [
+        "Moon Stag",
+        "Well Spirit",
+        "Dream Weaver",
+        "Silver Dryad",
+        "Night Hunter"
+      ],
+      "foe_titles": [
+        "Dreaming",
+        "Moon-Touched",
+        "Ageless"
+      ],
+      "warden_names": [
+        "The Well-Keeper",
+        "Lady of the Mirror Pool"
+      ],
+      "boss_names": [
+        "The Moon Beneath the Water"
+      ],
+      "lore": [
+        "The well reflects a sky with two moons.",
+        "Someone left a lantern at the water's edge. It burns with a cold, silver light."
+      ]
+    },
+    {
+      "id": "drowned_observatory",
+      "name": "The Drowned Observatory",
+      "hidden": true,
+      "strata": "TIDE",
+      "strata2": "HOLLOW",
+      "base_difficulty": 0.44,
+      "pages_min": 5,
+      "pages_max": 6,
+      "blips_min": 30,
+      "blips_max": 45,
+      "classes": [
+        "astrologist",
+        "battlemage"
+      ],
+      "gateways": [],
+      "place_adjectives": [
+        "Flooded",
+        "Star-Charted",
+        "Brass",
+        "Sunken",
+        "Orrery",
+        "Tidal",
+        "Silent",
+        "Clockwork"
+      ],
+      "place_nouns": [
+        "Dome",
+        "Lens Room",
+        "Orrery",
+        "Archive",
+        "Stair",
+        "Telescope",
+        "Map Hall",
+        "Bell Tower"
+      ],
+      "foes": [
+        "Drowned Astronomer",
+        "Brass Automaton",
+        "Star Leech",
+        "Tide Clock",
+        "Lens Wraith"
+      ],
+      "foe_titles": [
+        "Drowned",
+        "Star-Blind",
+        "Clockwound"
+      ],
+      "warden_names": [
+        "The Last Astronomer",
+        "The Orrery Guardian"
+      ],
+      "boss_names": [
+        "The Star That Fell Into the Sea"
+      ],
+      "lore": [
+        "The orrery still turns, underwater, a hand's breadth a year.",
+        "A star-chart with one star scratched out and a note: 'it fell. we buried it here.'"
+      ]
+    }
+  ]
+}
