@@ -29,7 +29,10 @@ Variety has to come from somewhere that behaves like an art director:
 The style never varies — oil painting, chiaroscuro, the stratum palette. Everything
 else can.
 
-USAGE (OPENROUTER_API_KEY in the environment; add --mock to run offline)
+USAGE — the OpenRouter key is read from the environment, or from ~/.hermes/.env (override with
+ART_ENV_FILE), so background runs work too. Add --mock to run offline (mock concepts can never be
+rendered for real). Candidate paintings go to ~/runewake_art_archive/art_director (ART_DIRECTOR_WORK),
+outside the repo, so a working-tree reset cannot delete them; commit pipeline/art_ledger.json after runs.
   art_director.py bootstrap [--vision]              put the existing card art in the ledger
   art_director.py plan <card_id…> | --stratum S | --missing | --worst N
   art_director.py render <card_id…> | --planned [--candidates 2] [--models flux,gemini]
@@ -62,7 +65,7 @@ from art_prompt import BANNED, PALETTES, stable_hash  # noqa: E402
 from card_art_prompt import SPINES, legacy_subjects, load_cards, palette_line, Draw  # noqa: E402
 
 LEDGER = REPO / "pipeline" / "art_ledger.json"
-WORK = REPO / "pipeline" / "work" / "art_director"
+WORK = Path(os.environ.get("ART_DIRECTOR_WORK", str(Path.home() / "runewake_art_archive" / "art_director")))
 ART = REPO / "client" / "content" / "art"
 API = "https://openrouter.ai/api/v1"
 
@@ -295,9 +298,22 @@ def uniqueness(led, cid, feats=None, concept=None):
 
 # ─────────────────────────────────── model calls ─────────────────────────────
 def _key():
+    """The key from the environment, else from the Hermes env file — a backgrounded shell often
+    drops exported variables, and a missing key must not silently turn into an HTTP 401."""
     k = os.environ.get("OPENROUTER_API_KEY", "")
     if not k:
-        sys.exit("FATAL: OPENROUTER_API_KEY not set (or run with --mock)")
+        env_file = Path(os.environ.get("ART_ENV_FILE", str(Path.home() / ".hermes" / ".env")))
+        try:
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                m = re.match(r"\s*(?:export\s+)?OPENROUTER_API_KEY\s*=\s*(.+?)\s*$", line)
+                if m:
+                    k = m.group(1).strip().strip('"').strip("'")
+        except OSError:
+            pass
+        if k:
+            os.environ["OPENROUTER_API_KEY"] = k
+    if not k:
+        sys.exit("FATAL: OPENROUTER_API_KEY not in the environment or ~/.hermes/.env (or run with --mock)")
     return k
 
 
@@ -473,13 +489,14 @@ def cmd_plan(a):
     led = load_ledger()
     legacy = legacy_subjects()
     for card in select_cards(a, load_cards(), led):
+        print(f"{card['id']:<28} asking the art director…")
         concept, novelty, prompt = plan_card(led, card, legacy, n=a.concepts, mock=a.mock)
         prev = led["cards"].get(card["id"], {})
-        led["cards"][card["id"]] = {"status": "planned", "strata": card["strata"], "concept": concept,
+        led["cards"][card["id"]] = {"status": "planned", "mock": bool(a.mock), "strata": card["strata"], "concept": concept,
                                     "prompt": prompt, "novelty": novelty, "replaces": prev.get("image_path"),
                                     "old_image": prev.get("image")}
         save_ledger(led)   # after every card: the next card must be different from this one too
-        print(f"{card['id']:<28} novelty {novelty:.2f}  {concept.get('subject_count')}, {concept.get('shot')}, "
+        print(f"{card['id']:<28} {'MOCK ' if a.mock else ''}novelty {novelty:.2f}  {concept.get('subject_count')}, {concept.get('shot')}, "
               f"{concept.get('viewpoint')}, {concept.get('placement')} — {concept.get('title', '')}")
     return 0
 
@@ -488,12 +505,17 @@ def cmd_render(a):
     led = load_ledger()
     models = [m.strip() for m in a.models.split(",") if m.strip()]
     if not a.mock:
+        _key()                        # before the import: gen_image_any reads the key when it loads
         import gen_image_any as gia   # noqa: E402
+        gia.KEY = os.environ["OPENROUTER_API_KEY"]
     WORK.mkdir(parents=True, exist_ok=True)
     for card in select_cards(a, load_cards(), led):
         e = led["cards"].get(card["id"])
         if not e or not e.get("prompt"):
-            print(f"{card['id']}: plan it first")
+            print(f"{card['id']}: plan it first", flush=True)
+            continue
+        if e.get("mock") and not a.mock:
+            print(f"{card['id']}: planned with --mock (placeholder concept) — run plan again without --mock first", flush=True)
             continue
         others = {k: v for k, v in led["cards"].items() if k != card["id"]}
         results = []
@@ -508,7 +530,7 @@ def cmd_render(a):
                 continue
             f = image_features(out)
             sim = max((image_similarity(f, o["image"]) for o in others.values() if o.get("image")), default=0)
-            results.append({"n": i + 1, "generator": gen, "path": str(out.relative_to(REPO)), "image": f,
+            results.append({"n": i + 1, "generator": gen, "path": str(out), "image": f,
                             "image_similarity": round(sim, 3)})
         results.sort(key=lambda r: r["image_similarity"])
         e["candidates"] = results
@@ -552,7 +574,7 @@ def cmd_sheet(a):
     WORK.mkdir(parents=True, exist_ok=True)
     out = WORK / "review.jpg"
     sheet.save(out, quality=85)
-    print(f"review sheet: {out.relative_to(REPO)}")
+    print(f"review sheet: {out}")
     return 0
 
 
@@ -609,6 +631,7 @@ def cmd_show(a):
 
 
 def main():
+    sys.stdout.reconfigure(line_buffering=True)   # progress shows up live in a background log
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mock", action="store_true", help="no API calls: fake concepts and paintings (for testing)")
     sub = ap.add_subparsers(dest="cmd", required=True)

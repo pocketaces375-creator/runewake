@@ -33,7 +33,7 @@ A longer word bank does not fix this. `tools/card_art_prompt.py` (FABLE-020) pro
 python3 tools/art_director.py bootstrap              # once: remember the existing art (free; --vision is better but uses the API)
 python3 tools/art_director.py plan --worst 6         # pitch concepts for the 6 least unique cards
 python3 tools/art_director.py render --planned       # 2 paintings each
-python3 tools/art_director.py sheet                  # → pipeline/work/art_director/review.jpg
+python3 tools/art_director.py sheet                  # → ~/runewake_art_archive/art_director/review.jpg
 python3 tools/art_director.py approve <card_id> <n>  # install the chosen one
 python3 tools/art_director.py score                  # uniqueness of every card vs all others
 ```
