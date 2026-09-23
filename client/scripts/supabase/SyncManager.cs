@@ -62,6 +62,8 @@ public partial class SyncManager : Node
     // ── state ─────────────────────────────────────────────────────────────
     public SupabaseSession? Session { get; private set; }
     public bool IsConfigured => _config.IsConfigured;
+    /// <summary>FABLE-020: the world / Tower / co-op clients reuse the same project config.</summary>
+    public SupabaseConfig Config => _config;
     public bool IsSignedIn => Session?.IsValid == true;
     public bool IsLinked => Session != null && !Session.IsAnonymous && !string.IsNullOrEmpty(Session.Email);
 

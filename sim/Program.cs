@@ -18,6 +18,12 @@ switch (command)
     case "validate-card":
         ValidateCardCommand(args);
         break;
+    case "world-soak":
+        Environment.Exit(WorldSoak.Run(args));
+        break;
+    case "tower-sim":
+        Environment.Exit(TowerSim.Run(args));
+        break;
     default:
         Console.Error.WriteLine($"Unknown command: {command}");
         PrintUsage();
@@ -32,6 +38,8 @@ static void PrintUsage()
     Console.WriteLine("                    [--compensation <0|1|2|3|4>]");
     Console.WriteLine("                    [--starting-vigor-20] [--invoke-mode] [--altar-mode]");
     Console.WriteLine("  Runewake.Sim validate-card <card-file>");
+    Console.WriteLine("  Runewake.Sim tower-sim [--root .] [--floor 1] [--games 10] [--raids 20]");
+    Console.WriteLine("  Runewake.Sim world-soak [--root .] [--pages 100] [--biome elvenwood] [--class all] [--games 4]");
     Console.WriteLine();
     Console.WriteLine("Commands:");
     Console.WriteLine("  run              Run a batch simulation between two bots");

@@ -36,6 +36,18 @@ public static class CampaignContext
     /// <summary>Current region shown on the map. Defaults to region_01; switches to region_02 after r1_n12 cleared.</summary>
     public static string CurrentRegionId { get; set; } = "region_01";
 
+    /// <summary>FABLE-020: the zone the "new zone" screen is announcing (set by CampaignRun.AdvanceAfterVictory).</summary>
+    public static MapRegion? PendingZone { get; set; }
+
+    /// <summary>FABLE-020: what the "new zone" screen shows when it isn't a campaign region (world pages/areas).</summary>
+    public static ZoneInfo? PendingZoneInfo { get; set; }
+
+    /// <summary>FABLE-020: set when a win has just opened the Crossroads; the zone screen offers the way in once.</summary>
+    public static bool CrossroadsJustOpened { get; set; }
+
+    /// <summary>FABLE-020: the world page the world map is showing this session (also saved as "wp|…").</summary>
+    public static Runewake.Engine.World.PageAddress? WorldPage { get; set; }
+
     /// <summary>
     /// Board skin ID for the current region (e.g. "default", "ember").
     /// Set by MapScene when loading a region; read by DuelScene to apply the correct tint.

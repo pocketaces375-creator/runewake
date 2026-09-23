@@ -49,7 +49,9 @@ public sealed class ReplayLog
 
 /// <summary>
 /// Polymorphic JSON converter for <see cref="GameAction"/> subclasses.
-/// Uses a "$type" discriminator: "end_turn", "play_card", "attack".
+/// Uses a "$type" discriminator: "end_turn", "play_card", "attack", "tap_artifact".
+/// (FABLE-020: tap_artifact was missing, so any replay — or co-op move — with
+/// an Artifact tap failed to serialize.)
 /// </summary>
 public class GameActionConverter : JsonConverter<GameAction>
 {
@@ -73,6 +75,7 @@ public class GameActionConverter : JsonConverter<GameAction>
             "end_turn" => JsonSerializer.Deserialize<EndTurnAction>(root.GetRawText(), cleanOpts),
             "play_card" => JsonSerializer.Deserialize<PlayCardAction>(root.GetRawText(), cleanOpts),
             "attack" => JsonSerializer.Deserialize<AttackAction>(root.GetRawText(), cleanOpts),
+            "tap_artifact" => JsonSerializer.Deserialize<TapArtifactAction>(root.GetRawText(), cleanOpts),
             _ => throw new JsonException($"Unknown action type: {typeName}")
         };
     }
@@ -88,6 +91,7 @@ public class GameActionConverter : JsonConverter<GameAction>
         int? laneIndex = null;
         int? sourceLane = null;
         int? targetLane = null;
+        int? slotIndex = null;
 
         switch (value)
         {
@@ -108,6 +112,11 @@ public class GameActionConverter : JsonConverter<GameAction>
                 sourceLane = a.SourceLane;
                 targetLane = a.TargetLane;
                 break;
+            case TapArtifactAction t:
+                typeName = "tap_artifact";
+                playerIndex = t.PlayerIndex;
+                slotIndex = t.SlotIndex;
+                break;
             default:
                 throw new JsonException($"Unknown action type: {value.GetType()}");
         }
@@ -119,6 +128,7 @@ public class GameActionConverter : JsonConverter<GameAction>
         if (laneIndex.HasValue) writer.WriteNumber("laneIndex", laneIndex.Value);
         if (sourceLane.HasValue) writer.WriteNumber("sourceLane", sourceLane.Value);
         if (targetLane.HasValue) writer.WriteNumber("targetLane", targetLane.Value);
+        if (slotIndex.HasValue) writer.WriteNumber("slotIndex", slotIndex.Value);
 
         writer.WriteEndObject();
     }

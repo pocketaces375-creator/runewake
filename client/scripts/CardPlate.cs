@@ -55,15 +55,15 @@ public partial class CardPlate : Control
     // value is the exception: bright, with a coloured edge, so a buff/debuff
     // still jumps out against the black baseline.
     private static readonly Color INK = new Color(0.06f, 0.04f, 0.03f);
-    private static readonly Color INK_EDGE = new Color(1f, 0.96f, 0.86f, 0.35f);
+    private static readonly Color INK_EDGE = new Color(0f, 0f, 0f, 0f);   // FABLE-019e: no halo — it blurred thin strokes
     private static readonly Color RED_TINT = new Color(1.00f, 0.93f, 0.90f);
     private static readonly Color GREEN_TINT = new Color(0.92f, 1.00f, 0.88f);
     private static readonly Color RED_EDGE = new Color(0.45f, 0.02f, 0.02f, 0.95f);
     private static readonly Color GREEN_EDGE = new Color(0.02f, 0.30f, 0.05f, 0.95f);
     // FABLE-019c: the baked chips' own colours, sampled from the bake
     // (cinder_runner: attack 175,58,48 · vigor 76,139,77 · cost disc 74,59,21).
-    private static readonly Color ATK_FILL = new Color(0.78f, 0.26f, 0.20f);
-    private static readonly Color VIG_FILL = new Color(0.34f, 0.62f, 0.34f);
+    private static readonly Color ATK_FILL = new Color(0.93f, 0.45f, 0.38f);   // FABLE-019e: lighter, so black numerals read (7:1+)
+    private static readonly Color VIG_FILL = new Color(0.55f, 0.82f, 0.48f);
     private static readonly Color CHIP_EDGE = new Color(0.08f, 0.05f, 0.04f, 0.9f);
     private static readonly Color COST_FILL = new Color(0.29f, 0.23f, 0.08f);
     private static readonly Color COST_RIM_READY = new Color(0.98f, 0.85f, 0.45f);  // the bake's gold ring
@@ -190,6 +190,23 @@ public partial class CardPlate : Control
         }
     }
 
+    private static Font? _heavy;
+    private static Font? HeavyNumerals()
+    {
+        if (_heavy != null) return _heavy;
+        try
+        {
+            var inter = ResourceLoader.Exists(ThemeTokens.FontInter) ? GD.Load<FontFile>(ThemeTokens.FontInter) : null;
+            if (inter == null) return null;
+            var v = new FontVariation { BaseFont = inter };
+            var ts = TextServerManager.GetPrimaryInterface();
+            v.VariationOpentype = new Godot.Collections.Dictionary { { ts.NameToTag("wght"), 850 } };
+            _heavy = v;
+        }
+        catch (System.Exception ex) { GD.PrintErr($"[CardPlate] heavy numerals: {ex.Message}"); }
+        return _heavy;
+    }
+
     /// <summary>A baked-style chip: filled rounded rectangle (or disc), thin dark edge, one numeral in the card's own serif.</summary>
     private static (Panel chip, Label num) Chip(string name, Color fill, bool ink = false)
     {
@@ -232,10 +249,14 @@ public partial class CardPlate : Control
         }
         num.Position = Vector2.Zero;
         num.Size = r.Size;
-        int fs = Mathf.Max(10, Mathf.RoundToInt(h * (disc ? 0.66f : 0.80f)));
-        num.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(fs));   // Cormorant Bold: the bake's own numeral face
+        // FABLE-019e: stat chips get a HEAVY sans (Inter 850) filling the chip —
+        // the thin serif read as grey on a phone even in black. The cost disc
+        // keeps the bake's serif in cream.
+        int fs = Mathf.Max(10, Mathf.RoundToInt(h * (disc ? 0.66f : 0.92f)));
+        var heavy = disc ? null : HeavyNumerals();
+        num.AddThemeFontOverride("font", heavy ?? ThemeTokens.GetButtonFont(fs));
         num.AddThemeFontSizeOverride("font_size", fs);
-        num.AddThemeConstantOverride("outline_size", Mathf.Max(1, Mathf.RoundToInt(fs * 0.08f)));
+        num.AddThemeConstantOverride("outline_size", disc ? Mathf.Max(1, Mathf.RoundToInt(fs * 0.08f)) : 0);
     }
 
     public Label? GetNameLabel() => null;

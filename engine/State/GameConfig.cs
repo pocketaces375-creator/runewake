@@ -55,4 +55,22 @@ public sealed class GameConfig
     /// The rule is resolved relative to this owner: the opponent is the challenger.
     /// </summary>
     public int OpeningRuleOwner { get; init; } = 1;
+
+    // ——— FABLE-020: difficulty levers the world generator and the Tower use ———
+
+    /// <summary>
+    /// Starting (and max) Vigor for player 1 (the encounter). Null = the normal
+    /// starting Vigor. Deep generated zones and Tower floors raise it; a raid
+    /// boss board starts at the shared pool's current value.
+    /// </summary>
+    public int? Player1StartingVigor { get; init; }
+
+    /// <summary>
+    /// Extra Attunement player 1 starts with (added to AttunementMax and
+    /// Attunement at match start). 0 = normal.
+    /// </summary>
+    public int Player1BonusAttunement { get; init; }
+
+    /// <summary>FABLE-021: boss rules for this fight, owned by OpeningRuleOwner (see Engine.BossRules).</summary>
+    public IReadOnlyList<string>? BossRules { get; init; }
 }

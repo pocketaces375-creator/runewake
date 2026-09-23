@@ -37,6 +37,26 @@ public partial class GameStateManager : Node
     /// <summary>Raised when the game ends, with the winner's index.</summary>
     public event Action<int>? GameOver;
 
+    /// <summary>
+    /// FABLE-020 (co-op / raids): when set, the player's moves go HERE instead of
+    /// straight into the engine — the expedition applies them to this player's
+    /// board and returns the board's new state (null = refused). The enemy's
+    /// turn then happens in the expedition, not in BotController.
+    /// </summary>
+    public Func<GameAction, GameState?>? ActionSink { get; set; }
+
+    /// <summary>FABLE-020: in co-op, this board ending doesn't end the fight — the expedition decides.</summary>
+    public bool DeferGameOver { get; set; }
+
+    /// <summary>FABLE-020: the expedition's result, announced through the normal game-over path.</summary>
+    public void RaiseGameOver(int winnerIndex) => GameOver?.Invoke(winnerIndex);
+
+    private GameState ApplyAction(GameAction action)
+    {
+        if (ActionSink == null) return DuelEngine.Apply(_state, action);
+        return ActionSink(action) ?? throw new InvalidOperationException("The expedition refused that move.");
+    }
+
     public override void _ExitTree()
     {
         // Clear event delegates so no freed subscriber is ever invoked during
@@ -173,7 +193,7 @@ public partial class GameStateManager : Node
 
         try
         {
-            _state = DuelEngine.Apply(_state, action);
+            _state = ApplyAction(action);
             StateChanged?.Invoke();
             CheckGameOver();
             return Success();
@@ -220,7 +240,7 @@ public partial class GameStateManager : Node
 
         try
         {
-            _state = DuelEngine.Apply(_state, action);
+            _state = ApplyAction(action);
             StateChanged?.Invoke();
             CheckGameOver();
             return Success();
@@ -316,7 +336,7 @@ public partial class GameStateManager : Node
             // Log exhaustion BEFORE the turn end
             LogExhaustState("Before TryEndTurn");
 
-            _state = DuelEngine.Apply(_state, action);
+            _state = ApplyAction(action);
 
             // Log exhaustion AFTER the turn end (should show refresh)
             LogExhaustState("After TryEndTurn");
@@ -341,7 +361,7 @@ public partial class GameStateManager : Node
 
     private void CheckGameOver()
     {
-        if (_state.IsGameOver)
+        if (_state.IsGameOver && !DeferGameOver)
         {
             GameOver?.Invoke(_state.WinnerIndex ?? -1);
         }

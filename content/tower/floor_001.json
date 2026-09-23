@@ -1,0 +1,1227 @@
+{
+  "floor": 1,
+  "version": 2,
+  "title": "The Rootgate",
+  "theme": "The Tower's first floor: a gatehouse the seal's roots grew through. Three wings — thorn, bone and flood — each held by a Keeper. The Keepers' three keys wake the Colossus.",
+  "strata": "VERDANT",
+  "strata2": "HOLLOW",
+  "board_skin": "default",
+  "intro": [
+    "The Tower has one hundred floors. No one living has seen the second.",
+    "This is the Rootgate. The roots that grew through it were planted to hold the seal shut. They held. Then they got hungry.",
+    "Three Keepers guard three keys. The keys wake the Colossus. The Colossus has never fallen."
+  ],
+  "unlock_threshold": 100,
+  "wings": [
+    {
+      "id": "courtyard",
+      "name": "The Courtyard",
+      "blurb": "The way in."
+    },
+    {
+      "id": "thorn",
+      "name": "The Thorn Galleries",
+      "blurb": "Verdant. Guardians that do not die easily."
+    },
+    {
+      "id": "ossuary",
+      "name": "The Ossuary Stair",
+      "blurb": "Hollow. Venom, and the dead that come back."
+    },
+    {
+      "id": "flooded",
+      "name": "The Flooded Vestibule",
+      "blurb": "Tide. Wards, echoes, and the long game."
+    },
+    {
+      "id": "crown",
+      "name": "The Heart of the Rootgate",
+      "blurb": "The Colossus. A raid for up to five."
+    }
+  ],
+  "places": [
+    {
+      "id": "c1",
+      "name": "The Rootgate Threshold",
+      "kind": "Duel",
+      "wing": "courtyard",
+      "x": 70,
+      "y": 300,
+      "next": [
+        "c3"
+      ],
+      "encounter": {
+        "id": "tower:1:c1",
+        "name": "The Rootgate Threshold",
+        "deck": [
+          "vrd_c_thorn_wall",
+          "vrd_r_bloomweaver",
+          "vrd_r_worldtree_custodian",
+          "vrd_u_sylvan_pulse",
+          "vrd_u_ironbark_guard",
+          "vrd_c_bark_sentinel",
+          "vrd_r_undergrowth_eruption",
+          "vrd_u_forest_stalker",
+          "vrd_u_greatwood_guardian",
+          "vrd_u_saphoof_charger",
+          "vrd_u_canopy_archer",
+          "vrd_r_deeproot_ancients",
+          "vrd_x_heartwood_relic",
+          "vrd_r_natures_renewal",
+          "vrd_c_warding_vine",
+          "vrd_c_vine_weaver",
+          "vrd_c_thornbark_defender",
+          "vrd_c_leaf_mender",
+          "hol_c_ossuary_guard",
+          "hol_u_soul_picker",
+          "hol_c_ghoul_scavenger",
+          "hol_c_stygian_hound",
+          "hol_u_barrow_revenant",
+          "hol_c_barrow_call",
+          "hol_r_hollow_herald",
+          "hol_r_curse_of_binding",
+          "hol_u_putrid_knight",
+          "tid_c_coral_diviner",
+          "dwn_u_fading_spark",
+          "tid_c_whirlpool_elemental"
+        ],
+        "enemy_vigor": 30,
+        "enemy_attunement": 0,
+        "class": "druid",
+        "dialogue_intro": [
+          "Roots as thick as a man's waist have split the Tower's first door.",
+          "Something wearing bark for skin steps out of the gap."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      },
+      "entry": true
+    },
+    {
+      "id": "c2",
+      "name": "The Fallen Portcullis",
+      "kind": "Event",
+      "wing": "courtyard",
+      "x": 90,
+      "y": 470,
+      "next": [
+        "c3"
+      ],
+      "event": {
+        "kind": "Shrine",
+        "text": "Under the fallen gate, a dry alcove. Rest here; nothing in the Tower will follow you in.",
+        "rewards": [
+          "shard:40"
+        ]
+      },
+      "entry": true
+    },
+    {
+      "id": "c3",
+      "name": "Hall of Broken Oaths",
+      "kind": "Elite",
+      "wing": "courtyard",
+      "x": 210,
+      "y": 330,
+      "next": [
+        "t1",
+        "o1",
+        "f1"
+      ],
+      "encounter": {
+        "id": "tower:1:c3",
+        "name": "Hall of Broken Oaths",
+        "deck": [
+          "dwn_u_blessing_of_dawn",
+          "dwn_c_warden_of_the_light",
+          "dwn_r_holy_edict",
+          "dwn_u_reckoning_strike",
+          "dwn_r_aurora_warden",
+          "dwn_m_last_dawn",
+          "dwn_c_dawnbreaker_charger",
+          "dwn_r_radiant_prophet",
+          "dwn_x_dawn_relic",
+          "dwn_r_archangel_of_order",
+          "dwn_x_radiant_shard",
+          "dwn_u_vigil_guardian",
+          "dwn_c_sunpearl_healer",
+          "dwn_u_steadfast_bulwark",
+          "dwn_r_gilded_seraph",
+          "dwn_c_daybreak_guard",
+          "dwn_c_oath_sworn_guard",
+          "dwn_u_morning_herald",
+          "vrd_c_vine_weaver",
+          "vrd_u_elder_treant",
+          "vrd_x_heartwood_relic",
+          "vrd_c_thornbark_defender",
+          "vrd_u_saphoof_charger",
+          "vrd_u_forest_stalker",
+          "vrd_c_warding_vine",
+          "vrd_u_sylvan_pulse",
+          "vrd_c_bark_sentinel",
+          "tid_c_saltthorn_scout",
+          "hol_r_black_tide",
+          "emb_u_cinderstorm_elemental"
+        ],
+        "enemy_vigor": 30,
+        "enemy_attunement": 0,
+        "class": "paladin",
+        "dialogue_intro": [
+          "Every Delver who came before swore an oath at this door.",
+          "Their oaths are still here. They have hardened into a knight."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "t1",
+      "name": "Gallery of Hanging Seeds",
+      "kind": "Duel",
+      "wing": "thorn",
+      "x": 330,
+      "y": 150,
+      "next": [
+        "t2",
+        "t3"
+      ],
+      "encounter": {
+        "id": "tower:1:t1",
+        "name": "Gallery of Hanging Seeds",
+        "deck": [
+          "vrd_u_bramble_heart",
+          "vrd_r_deeproot_ancients",
+          "vrd_c_warding_vine",
+          "vrd_c_leaf_mender",
+          "vrd_c_vine_weaver",
+          "vrd_x_heartwood_relic",
+          "vrd_r_undergrowth_eruption",
+          "vrd_u_forest_stalker",
+          "vrd_u_sylvan_pulse",
+          "vrd_r_natures_renewal",
+          "vrd_c_thorn_wall",
+          "vrd_u_greatwood_guardian",
+          "vrd_r_bloomweaver",
+          "vrd_u_canopy_archer",
+          "vrd_r_worldtree_custodian",
+          "vrd_u_elder_treant",
+          "vrd_u_ironbark_guard",
+          "vrd_u_saphoof_charger",
+          "dwn_r_gilded_seraph",
+          "dwn_m_last_dawn",
+          "dwn_u_morning_herald",
+          "dwn_r_radiant_prophet",
+          "dwn_r_aurora_warden",
+          "dwn_r_holy_edict",
+          "dwn_u_fading_spark",
+          "dwn_c_golden_retainer",
+          "dwn_u_reckoning_strike",
+          "tid_c_silt_reader",
+          "hol_c_wraith_bonebreaker",
+          "emb_r_phoenix_ash"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "druid",
+        "dialogue_intro": [
+          "Seed-pods the size of lanterns sway overhead. One of them is breathing."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "t2",
+      "name": "The Briar Loom",
+      "kind": "Duel",
+      "wing": "thorn",
+      "x": 440,
+      "y": 80,
+      "next": [
+        "t4"
+      ],
+      "encounter": {
+        "id": "tower:1:t2",
+        "name": "The Briar Loom",
+        "deck": [
+          "vrd_u_greatwood_guardian",
+          "vrd_r_bloomweaver",
+          "vrd_u_bramble_heart",
+          "vrd_u_elder_treant",
+          "vrd_c_vine_weaver",
+          "vrd_r_natures_renewal",
+          "vrd_c_warding_vine",
+          "vrd_c_bark_sentinel",
+          "vrd_r_deeproot_ancients",
+          "vrd_u_saphoof_charger",
+          "vrd_r_worldtree_custodian",
+          "vrd_c_leaf_mender",
+          "vrd_u_canopy_archer",
+          "vrd_r_undergrowth_eruption",
+          "vrd_u_forest_stalker",
+          "vrd_x_heartwood_relic",
+          "vrd_u_ironbark_guard",
+          "vrd_c_thornbark_defender",
+          "emb_x_the_last_ember",
+          "emb_c_ember_impaler",
+          "emb_c_smoldering_pike",
+          "emb_r_phoenix_ash",
+          "emb_u_scoria_prowler",
+          "emb_r_inferno_burst",
+          "emb_c_volcanic_boon",
+          "emb_u_burnout_mage",
+          "emb_c_forgeguard_berserker",
+          "tid_u_tidal_seer",
+          "tid_c_silt_reader",
+          "dwn_c_daybreak_guard"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "druid",
+        "dialogue_intro": [
+          "A loom weaves thorns into cloth. The weaver has not stopped in four hundred years."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "t3",
+      "name": "A Gardener's Last Page",
+      "kind": "Lore",
+      "wing": "thorn",
+      "x": 440,
+      "y": 200,
+      "next": [
+        "t4"
+      ],
+      "lore": "“We planted the Rootgate to hold the seal shut, and it held. We did not ask what the roots would drink once the seal stopped feeding them. Now they drink us.” — torn page, pinned to the wall with a thorn"
+    },
+    {
+      "id": "t4",
+      "name": "The Pruning Hall",
+      "kind": "Elite",
+      "wing": "thorn",
+      "x": 560,
+      "y": 130,
+      "next": [
+        "t5",
+        "t6"
+      ],
+      "encounter": {
+        "id": "tower:1:t4",
+        "name": "The Pruning Hall",
+        "deck": [
+          "vrd_u_sylvan_pulse",
+          "vrd_c_bark_sentinel",
+          "vrd_u_greatwood_guardian",
+          "vrd_r_worldtree_custodian",
+          "vrd_c_leaf_mender",
+          "vrd_u_forest_stalker",
+          "vrd_u_saphoof_charger",
+          "vrd_x_heartwood_relic",
+          "vrd_c_vine_weaver",
+          "vrd_u_canopy_archer",
+          "vrd_r_undergrowth_eruption",
+          "vrd_c_thornbark_defender",
+          "vrd_r_deeproot_ancients",
+          "vrd_c_warding_vine",
+          "vrd_u_elder_treant",
+          "vrd_u_bramble_heart",
+          "vrd_r_natures_renewal",
+          "vrd_u_ironbark_guard",
+          "dwn_c_oath_sworn_guard",
+          "dwn_r_aurora_warden",
+          "dwn_c_daybreak_guard",
+          "dwn_c_warden_of_the_light",
+          "dwn_r_holy_edict",
+          "dwn_x_dawn_relic",
+          "dwn_x_radiant_shard",
+          "dwn_m_last_dawn",
+          "dwn_u_steadfast_bulwark",
+          "hol_r_hollow_herald",
+          "tid_u_depth_charge",
+          "tid_r_flood_of_secrets"
+        ],
+        "enemy_vigor": 36,
+        "enemy_attunement": 1,
+        "class": "paladin",
+        "dialogue_intro": [
+          "Blades hang from the ceiling on vines, swinging slowly.",
+          "The Pruner wants to know which parts of you are dead wood."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "t5",
+      "name": "Dewglass Spring",
+      "kind": "Event",
+      "wing": "thorn",
+      "x": 660,
+      "y": 60,
+      "next": [
+        "t7"
+      ],
+      "event": {
+        "kind": "Merchant",
+        "text": "A root-merchant sells what the Tower gives it: shards, and seeds that remember being cards.",
+        "rewards": [
+          "shard:30"
+        ]
+      }
+    },
+    {
+      "id": "t6",
+      "name": "Canopy of Knives",
+      "kind": "Duel",
+      "wing": "thorn",
+      "x": 670,
+      "y": 190,
+      "next": [
+        "t7"
+      ],
+      "encounter": {
+        "id": "tower:1:t6",
+        "name": "Canopy of Knives",
+        "deck": [
+          "vrd_u_greatwood_guardian",
+          "vrd_c_warding_vine",
+          "vrd_u_saphoof_charger",
+          "vrd_u_ironbark_guard",
+          "vrd_u_elder_treant",
+          "vrd_r_bloomweaver",
+          "vrd_u_forest_stalker",
+          "vrd_c_thornbark_defender",
+          "vrd_x_heartwood_relic",
+          "vrd_u_bramble_heart",
+          "vrd_r_worldtree_custodian",
+          "vrd_c_leaf_mender",
+          "vrd_r_deeproot_ancients",
+          "vrd_c_vine_weaver",
+          "vrd_c_bark_sentinel",
+          "vrd_c_thorn_wall",
+          "vrd_r_natures_renewal",
+          "vrd_u_sylvan_pulse",
+          "tid_c_whirlpool_elemental",
+          "tid_c_sea_raider",
+          "tid_u_abyss_watcher",
+          "tid_r_deep_tides_diviner",
+          "tid_c_echoing_depth",
+          "tid_u_tidal_barrier",
+          "tid_r_echo_caller",
+          "tid_c_tide_reacher",
+          "tid_u_memory_tides",
+          "emb_u_burnout_mage",
+          "emb_c_ember_impaler",
+          "dwn_u_steadfast_bulwark"
+        ],
+        "enemy_vigor": 34,
+        "enemy_attunement": 1,
+        "class": "druid",
+        "dialogue_intro": [
+          "Leaves fall here like thrown blades."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "t7",
+      "name": "Thornmother Vessa",
+      "kind": "Keeper",
+      "wing": "thorn",
+      "x": 790,
+      "y": 130,
+      "next": [
+        "boss"
+      ],
+      "encounter": {
+        "id": "tower:1:t7",
+        "name": "Thornmother Vessa",
+        "deck": [
+          "vrd_r_worldtree_custodian",
+          "vrd_x_heartwood_relic",
+          "vrd_c_warding_vine",
+          "vrd_c_bark_sentinel",
+          "vrd_u_saphoof_charger",
+          "vrd_u_canopy_archer",
+          "vrd_u_elder_treant",
+          "vrd_u_forest_stalker",
+          "vrd_c_leaf_mender",
+          "vrd_u_ironbark_guard",
+          "vrd_c_thornbark_defender",
+          "vrd_u_sylvan_pulse",
+          "vrd_r_deeproot_ancients",
+          "vrd_r_natures_renewal",
+          "vrd_c_vine_weaver",
+          "vrd_r_undergrowth_eruption",
+          "vrd_u_greatwood_guardian",
+          "vrd_u_bramble_heart",
+          "dwn_x_dawn_relic",
+          "dwn_r_holy_edict",
+          "dwn_u_steadfast_bulwark",
+          "dwn_c_daybreak_guard",
+          "dwn_r_aurora_warden",
+          "dwn_c_warden_of_the_light",
+          "dwn_u_vigil_guardian",
+          "dwn_m_last_dawn",
+          "dwn_x_radiant_shard",
+          "hol_r_curse_of_binding",
+          "tid_u_tidal_barrier",
+          "tid_u_abyss_watcher"
+        ],
+        "enemy_vigor": 40,
+        "enemy_attunement": 1,
+        "class": "druid",
+        "dialogue_intro": [
+          "The Galleries' keeper sits on a throne grown out of the Tower wall.",
+          "“You are the first thing in a century I have not wanted to eat. Do not change my mind.”"
+        ],
+        "shard_reward": 160,
+        "dig_charge_reward": 1,
+        "drops": [],
+        "dialogue_outro": [
+          "Vessa's throne withers. A key of green bark falls from her hand.",
+          "“Take it. The Colossus is waiting for three of those.”"
+        ],
+        "boss_rules": [
+          "regen:2"
+        ]
+      }
+    },
+    {
+      "id": "o1",
+      "name": "The First Landing",
+      "kind": "Duel",
+      "wing": "ossuary",
+      "x": 330,
+      "y": 320,
+      "next": [
+        "o2"
+      ],
+      "encounter": {
+        "id": "tower:1:o1",
+        "name": "The First Landing",
+        "deck": [
+          "hol_c_dust_spinner",
+          "hol_r_black_tide",
+          "hol_c_stygian_hound",
+          "hol_u_soul_picker",
+          "hol_u_crypt_crawler",
+          "hol_u_barrow_revenant",
+          "hol_u_barrow_rite",
+          "hol_c_barrow_call",
+          "hol_c_ossuary_guard",
+          "hol_c_ghoul_scavenger",
+          "hol_r_death_drummer",
+          "hol_r_hollow_herald",
+          "hol_c_unearth_scavenger",
+          "hol_c_gravewrit_thrall",
+          "hol_u_putrid_knight",
+          "hol_r_curse_of_binding",
+          "hol_c_wraith_bonebreaker",
+          "hol_x_the_black_barrow",
+          "emb_u_burnout_mage",
+          "emb_r_magma_forger",
+          "emb_r_sharptongue_elder",
+          "emb_c_volcanic_boon",
+          "emb_u_cinderstorm_elemental",
+          "emb_c_firecrown_raider",
+          "emb_c_furnace_reaver",
+          "emb_u_cinder_venom",
+          "emb_r_phoenix_ash",
+          "vrd_r_undergrowth_eruption",
+          "dwn_c_golden_retainer",
+          "vrd_u_bramble_heart"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "necromancer",
+        "dialogue_intro": [
+          "The stair is built of bones laid like bricks. They shift as you climb."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "o2",
+      "name": "Chapel of Counted Teeth",
+      "kind": "Duel",
+      "wing": "ossuary",
+      "x": 440,
+      "y": 300,
+      "next": [
+        "o3",
+        "o4"
+      ],
+      "encounter": {
+        "id": "tower:1:o2",
+        "name": "Chapel of Counted Teeth",
+        "deck": [
+          "hol_u_putrid_knight",
+          "hol_r_black_tide",
+          "hol_r_wraith_stalker",
+          "hol_c_barrow_call",
+          "hol_u_barrow_rite",
+          "hol_r_hollow_herald",
+          "hol_c_gravewrit_thrall",
+          "hol_r_death_drummer",
+          "hol_x_the_black_barrow",
+          "hol_u_nightshade_priest",
+          "hol_c_unearth_scavenger",
+          "hol_c_dust_spinner",
+          "hol_c_wraith_bonebreaker",
+          "hol_r_curse_of_binding",
+          "hol_c_stygian_hound",
+          "hol_c_ossuary_guard",
+          "hol_u_crypt_crawler",
+          "hol_u_soul_picker",
+          "emb_u_burnout_mage",
+          "emb_c_forgeguard_berserker",
+          "emb_u_cinder_venom",
+          "emb_r_magma_forger",
+          "emb_r_inferno_burst",
+          "emb_r_sharptongue_elder",
+          "emb_c_volcanic_boon",
+          "emb_x_the_last_ember",
+          "emb_u_scoria_prowler",
+          "dwn_r_holy_edict",
+          "vrd_u_ironbark_guard",
+          "vrd_r_deeproot_ancients"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "necromancer",
+        "dialogue_intro": [
+          "A monk counts teeth into a bowl. He has reached a very large number.",
+          "He would like yours."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "o3",
+      "name": "The Reliquary Niche",
+      "kind": "Event",
+      "wing": "ossuary",
+      "x": 540,
+      "y": 250,
+      "next": [
+        "o5"
+      ],
+      "event": {
+        "kind": "Cache",
+        "text": "A sealed niche in the stair. Inside, wrapped in grave-cloth: something someone meant to come back for.",
+        "rewards": [
+          "dig_charge:1",
+          "shard:60"
+        ]
+      }
+    },
+    {
+      "id": "o4",
+      "name": "The Drummers' Gallery",
+      "kind": "Elite",
+      "wing": "ossuary",
+      "x": 550,
+      "y": 370,
+      "next": [
+        "o5",
+        "o6"
+      ],
+      "encounter": {
+        "id": "tower:1:o4",
+        "name": "The Drummers' Gallery",
+        "deck": [
+          "hol_r_curse_of_binding",
+          "hol_r_wraith_stalker",
+          "hol_r_hollow_herald",
+          "hol_c_dust_spinner",
+          "hol_u_putrid_knight",
+          "hol_u_barrow_revenant",
+          "hol_c_wraith_bonebreaker",
+          "hol_u_nightshade_priest",
+          "hol_r_black_tide",
+          "hol_x_the_black_barrow",
+          "hol_c_unearth_scavenger",
+          "hol_u_soul_picker",
+          "hol_r_death_drummer",
+          "hol_u_barrow_rite",
+          "hol_u_crypt_crawler",
+          "hol_c_ghoul_scavenger",
+          "hol_c_barrow_call",
+          "hol_c_stygian_hound",
+          "dwn_x_dawn_relic",
+          "dwn_x_radiant_shard",
+          "dwn_r_radiant_prophet",
+          "dwn_r_gilded_seraph",
+          "dwn_c_sunpearl_healer",
+          "dwn_r_holy_edict",
+          "dwn_c_daybreak_guard",
+          "dwn_u_reckoning_strike",
+          "dwn_c_oath_sworn_guard",
+          "vrd_c_warding_vine",
+          "vrd_u_ironbark_guard",
+          "tid_u_coral_guardian"
+        ],
+        "enemy_vigor": 36,
+        "enemy_attunement": 1,
+        "class": "necromancer",
+        "dialogue_intro": [
+          "Skeletal drummers beat a rhythm that makes your heart try to match it."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "o5",
+      "name": "Stair-Warden's Ledger",
+      "kind": "Lore",
+      "wing": "ossuary",
+      "x": 660,
+      "y": 300,
+      "next": [
+        "o7"
+      ],
+      "lore": "“Day 1: counted 11,204 steps. Day 40: counted 11,205. Day 90: stopped counting. The stair grows by one each time someone falls from it. I have not fallen. I have not fallen. I have not fallen.”"
+    },
+    {
+      "id": "o6",
+      "name": "The Weeping Ossuary",
+      "kind": "Duel",
+      "wing": "ossuary",
+      "x": 660,
+      "y": 400,
+      "next": [
+        "o7"
+      ],
+      "encounter": {
+        "id": "tower:1:o6",
+        "name": "The Weeping Ossuary",
+        "deck": [
+          "hol_r_death_drummer",
+          "hol_x_the_black_barrow",
+          "hol_r_wraith_stalker",
+          "hol_c_wraith_bonebreaker",
+          "hol_u_barrow_rite",
+          "hol_c_stygian_hound",
+          "hol_r_curse_of_binding",
+          "hol_c_barrow_call",
+          "hol_u_soul_picker",
+          "hol_c_dust_spinner",
+          "hol_r_hollow_herald",
+          "hol_c_ossuary_guard",
+          "hol_u_barrow_revenant",
+          "hol_c_gravewrit_thrall",
+          "hol_u_crypt_crawler",
+          "hol_c_unearth_scavenger",
+          "hol_c_ghoul_scavenger",
+          "hol_u_nightshade_priest",
+          "tid_u_tidal_seer",
+          "tid_u_depth_charge",
+          "tid_c_echoing_depth",
+          "tid_c_coral_diviner",
+          "tid_c_undertow_current",
+          "tid_c_whirlpool_elemental",
+          "tid_r_sunken_leviathan",
+          "tid_c_saltthorn_scout",
+          "tid_c_tide_oracle",
+          "dwn_c_warden_of_the_light",
+          "emb_c_firecrown_raider",
+          "vrd_u_elder_treant"
+        ],
+        "enemy_vigor": 34,
+        "enemy_attunement": 0,
+        "class": "necromancer",
+        "dialogue_intro": [
+          "The bones here are wet. They have been crying for a long time."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "o7",
+      "name": "The Bone-Abbot",
+      "kind": "Keeper",
+      "wing": "ossuary",
+      "x": 790,
+      "y": 330,
+      "next": [
+        "boss"
+      ],
+      "encounter": {
+        "id": "tower:1:o7",
+        "name": "The Bone-Abbot",
+        "deck": [
+          "hol_r_curse_of_binding",
+          "hol_c_wraith_bonebreaker",
+          "hol_r_wraith_stalker",
+          "hol_u_barrow_revenant",
+          "hol_u_barrow_rite",
+          "hol_u_nightshade_priest",
+          "hol_r_black_tide",
+          "hol_c_unearth_scavenger",
+          "hol_r_death_drummer",
+          "hol_u_putrid_knight",
+          "hol_r_hollow_herald",
+          "hol_c_stygian_hound",
+          "hol_u_crypt_crawler",
+          "hol_c_barrow_call",
+          "hol_c_dust_spinner",
+          "hol_x_the_black_barrow",
+          "hol_u_soul_picker",
+          "hol_c_ghoul_scavenger",
+          "emb_c_furnace_reaver",
+          "emb_x_the_last_ember",
+          "emb_c_firecrown_raider",
+          "emb_r_sharptongue_elder",
+          "emb_r_ember_warleader",
+          "emb_u_lava_serpent",
+          "emb_u_cinderstorm_elemental",
+          "emb_r_inferno_burst",
+          "emb_u_lava_caller",
+          "dwn_r_gilded_seraph",
+          "tid_u_tidal_barrier",
+          "dwn_c_sunpearl_healer"
+        ],
+        "enemy_vigor": 40,
+        "enemy_attunement": 1,
+        "class": "necromancer",
+        "dialogue_intro": [
+          "At the top of the stair, a figure in a mitre of vertebrae raises a crook.",
+          "“Every step you took was once a pilgrim. Kneel, and become a step.”"
+        ],
+        "shard_reward": 160,
+        "dig_charge_reward": 1,
+        "drops": [],
+        "dialogue_outro": [
+          "The Abbot collapses into a heap that is somehow still praying.",
+          "A key of white bone rolls to your feet."
+        ],
+        "boss_rules": [
+          "extra_draw"
+        ]
+      }
+    },
+    {
+      "id": "f1",
+      "name": "The Drowned Antechamber",
+      "kind": "Duel",
+      "wing": "flooded",
+      "x": 330,
+      "y": 470,
+      "next": [
+        "f2",
+        "f3"
+      ],
+      "encounter": {
+        "id": "tower:1:f1",
+        "name": "The Drowned Antechamber",
+        "deck": [
+          "tid_c_coral_diviner",
+          "tid_u_memory_tides",
+          "tid_c_tide_reacher",
+          "tid_c_whirlpool_elemental",
+          "tid_x_tidal_seal",
+          "tid_u_depth_charge",
+          "tid_c_silt_reader",
+          "tid_c_sea_raider",
+          "tid_c_tide_oracle",
+          "tid_u_abyss_watcher",
+          "tid_r_echo_caller",
+          "tid_c_echoing_depth",
+          "tid_u_tidal_barrier",
+          "tid_r_deep_tides_diviner",
+          "tid_r_sunken_leviathan",
+          "tid_r_flood_of_secrets",
+          "tid_u_tidal_seer",
+          "tid_r_hydrokinetic_adept",
+          "hol_u_putrid_knight",
+          "hol_r_wraith_stalker",
+          "hol_c_gravewrit_thrall",
+          "hol_c_ossuary_guard",
+          "hol_u_barrow_revenant",
+          "hol_u_barrow_rite",
+          "hol_u_nightshade_priest",
+          "hol_x_the_black_barrow",
+          "hol_r_black_tide",
+          "dwn_c_sunblade_recruit",
+          "vrd_c_thornbark_defender",
+          "dwn_u_morning_herald"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "battlemage",
+        "dialogue_intro": [
+          "Black water, knee-deep and cold. Something swims past your ankles."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "f2",
+      "name": "The Lamplighter's Skiff",
+      "kind": "Event",
+      "wing": "flooded",
+      "x": 440,
+      "y": 420,
+      "next": [
+        "f4"
+      ],
+      "event": {
+        "kind": "Shrine",
+        "text": "An old skiff with one lamp still burning. Sit in it a while. The water will not rise while the lamp is lit.",
+        "rewards": [
+          "shard:40"
+        ]
+      }
+    },
+    {
+      "id": "f3",
+      "name": "Gallery of Sunken Mirrors",
+      "kind": "Duel",
+      "wing": "flooded",
+      "x": 440,
+      "y": 540,
+      "next": [
+        "f4"
+      ],
+      "encounter": {
+        "id": "tower:1:f3",
+        "name": "Gallery of Sunken Mirrors",
+        "deck": [
+          "tid_c_tide_reacher",
+          "tid_c_coral_diviner",
+          "tid_c_whirlpool_elemental",
+          "tid_u_tidal_barrier",
+          "tid_r_echo_caller",
+          "tid_u_memory_tides",
+          "tid_u_abyss_watcher",
+          "tid_u_coral_guardian",
+          "tid_c_echoing_depth",
+          "tid_u_tidal_seer",
+          "tid_r_deep_tides_diviner",
+          "tid_r_hydrokinetic_adept",
+          "tid_c_silt_reader",
+          "tid_r_sunken_leviathan",
+          "tid_c_sea_raider",
+          "tid_r_flood_of_secrets",
+          "tid_x_tidal_seal",
+          "tid_u_depth_charge",
+          "dwn_m_last_dawn",
+          "dwn_u_reckoning_strike",
+          "dwn_u_vigil_guardian",
+          "dwn_u_morning_herald",
+          "dwn_c_dawnbreaker_charger",
+          "dwn_u_fading_spark",
+          "dwn_c_oath_sworn_guard",
+          "dwn_u_blessing_of_dawn",
+          "dwn_u_steadfast_bulwark",
+          "hol_r_black_tide",
+          "vrd_r_natures_renewal",
+          "emb_c_smoldering_pike"
+        ],
+        "enemy_vigor": 32,
+        "enemy_attunement": 0,
+        "class": "astrologist",
+        "dialogue_intro": [
+          "Every mirror shows the room as it was before the flood. One shows you, drowned."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "f4",
+      "name": "The Tide-Clock",
+      "kind": "Elite",
+      "wing": "flooded",
+      "x": 560,
+      "y": 480,
+      "next": [
+        "f5",
+        "f6"
+      ],
+      "encounter": {
+        "id": "tower:1:f4",
+        "name": "The Tide-Clock",
+        "deck": [
+          "tid_r_sunken_leviathan",
+          "tid_u_tidal_seer",
+          "tid_c_echoing_depth",
+          "tid_c_whirlpool_elemental",
+          "tid_u_abyss_watcher",
+          "tid_c_silt_reader",
+          "tid_u_coral_guardian",
+          "tid_r_flood_of_secrets",
+          "tid_u_tidal_barrier",
+          "tid_r_echo_caller",
+          "tid_u_depth_charge",
+          "tid_x_tidal_seal",
+          "tid_r_deep_tides_diviner",
+          "tid_c_saltthorn_scout",
+          "tid_c_coral_diviner",
+          "tid_c_sea_raider",
+          "tid_c_undertow_current",
+          "tid_c_tide_oracle",
+          "hol_u_putrid_knight",
+          "hol_u_soul_picker",
+          "hol_c_stygian_hound",
+          "hol_r_hollow_herald",
+          "hol_u_crypt_crawler",
+          "hol_u_barrow_revenant",
+          "hol_u_nightshade_priest",
+          "hol_r_curse_of_binding",
+          "hol_c_wraith_bonebreaker",
+          "dwn_c_sunpearl_healer",
+          "emb_c_ember_impaler",
+          "dwn_c_warden_of_the_light"
+        ],
+        "enemy_vigor": 36,
+        "enemy_attunement": 0,
+        "class": "battlemage",
+        "dialogue_intro": [
+          "A great clock ticks under the water. When it strikes, the tide in the room turns."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "f5",
+      "name": "Letters in a Bottle",
+      "kind": "Lore",
+      "wing": "flooded",
+      "x": 660,
+      "y": 430,
+      "next": [
+        "f7"
+      ],
+      "lore": "“My love — the Castellan has ordered the lower halls flooded so the roots cannot reach the seal from below. I am in the lower halls. Do not wait for me at the Rootgate. Wait for me at the top.”"
+    },
+    {
+      "id": "f6",
+      "name": "The Kelp Cathedral",
+      "kind": "Duel",
+      "wing": "flooded",
+      "x": 670,
+      "y": 540,
+      "next": [
+        "f7"
+      ],
+      "encounter": {
+        "id": "tower:1:f6",
+        "name": "The Kelp Cathedral",
+        "deck": [
+          "tid_r_hydrokinetic_adept",
+          "tid_c_tide_reacher",
+          "tid_u_depth_charge",
+          "tid_c_silt_reader",
+          "tid_r_echo_caller",
+          "tid_u_memory_tides",
+          "tid_u_abyss_watcher",
+          "tid_u_tidal_seer",
+          "tid_c_tide_oracle",
+          "tid_u_tidal_barrier",
+          "tid_r_flood_of_secrets",
+          "tid_c_sea_raider",
+          "tid_c_echoing_depth",
+          "tid_c_whirlpool_elemental",
+          "tid_u_coral_guardian",
+          "tid_x_tidal_seal",
+          "tid_c_saltthorn_scout",
+          "tid_r_deep_tides_diviner",
+          "vrd_c_warding_vine",
+          "vrd_c_thorn_wall",
+          "vrd_u_canopy_archer",
+          "vrd_u_saphoof_charger",
+          "vrd_u_greatwood_guardian",
+          "vrd_r_worldtree_custodian",
+          "vrd_c_thornbark_defender",
+          "vrd_x_heartwood_relic",
+          "vrd_r_natures_renewal",
+          "dwn_r_radiant_prophet",
+          "dwn_u_reckoning_strike",
+          "hol_u_soul_picker"
+        ],
+        "enemy_vigor": 34,
+        "enemy_attunement": 1,
+        "class": "astrologist",
+        "dialogue_intro": [
+          "Kelp has grown into pillars and arches. The congregation is still here."
+        ],
+        "shard_reward": 60,
+        "dig_charge_reward": 0,
+        "drops": []
+      }
+    },
+    {
+      "id": "f7",
+      "name": "Drowned Castellan Irem",
+      "kind": "Keeper",
+      "wing": "flooded",
+      "x": 790,
+      "y": 500,
+      "next": [
+        "boss"
+      ],
+      "encounter": {
+        "id": "tower:1:f7",
+        "name": "Drowned Castellan Irem",
+        "deck": [
+          "tid_u_abyss_watcher",
+          "tid_c_silt_reader",
+          "tid_c_coral_diviner",
+          "tid_r_flood_of_secrets",
+          "tid_r_sunken_leviathan",
+          "tid_u_depth_charge",
+          "tid_c_saltthorn_scout",
+          "tid_x_tidal_seal",
+          "tid_c_sea_raider",
+          "tid_c_whirlpool_elemental",
+          "tid_c_echoing_depth",
+          "tid_c_undertow_current",
+          "tid_u_tidal_barrier",
+          "tid_r_deep_tides_diviner",
+          "tid_u_coral_guardian",
+          "tid_c_tide_oracle",
+          "tid_u_tidal_seer",
+          "tid_r_echo_caller",
+          "hol_c_wraith_bonebreaker",
+          "hol_r_wraith_stalker",
+          "hol_r_death_drummer",
+          "hol_u_putrid_knight",
+          "hol_r_black_tide",
+          "hol_r_curse_of_binding",
+          "hol_c_barrow_call",
+          "hol_u_barrow_rite",
+          "hol_u_soul_picker",
+          "vrd_u_elder_treant",
+          "emb_c_forgeguard_berserker",
+          "dwn_c_sunpearl_healer"
+        ],
+        "enemy_vigor": 40,
+        "enemy_attunement": 1,
+        "class": "battlemage",
+        "dialogue_intro": [
+          "The Castellan who flooded these halls stands in the water up to his chest.",
+          "“I drowned my own people to keep the seal. What will YOU drown?”"
+        ],
+        "shard_reward": 160,
+        "dig_charge_reward": 1,
+        "drops": [],
+        "dialogue_outro": [
+          "Irem sinks, finally, without a sound.",
+          "A key of green-black coral floats up where he stood."
+        ],
+        "boss_rules": [
+          "crumble:14:1"
+        ]
+      }
+    },
+    {
+      "id": "boss",
+      "name": "The Rootbound Colossus",
+      "kind": "Boss",
+      "wing": "crown",
+      "x": 940,
+      "y": 310,
+      "next": [],
+      "encounter": {
+        "id": "tower:1:boss",
+        "name": "The Rootbound Colossus",
+        "deck": [
+          "vrd_u_saphoof_charger",
+          "vrd_r_worldtree_custodian",
+          "vrd_c_leaf_mender",
+          "vrd_c_vine_weaver",
+          "vrd_u_canopy_archer",
+          "vrd_c_thornbark_defender",
+          "vrd_u_ironbark_guard",
+          "vrd_u_sylvan_pulse",
+          "vrd_r_natures_renewal",
+          "vrd_x_heartwood_relic",
+          "vrd_c_bark_sentinel",
+          "vrd_c_warding_vine",
+          "vrd_u_elder_treant",
+          "vrd_u_greatwood_guardian",
+          "vrd_u_bramble_heart",
+          "vrd_r_deeproot_ancients",
+          "vrd_r_undergrowth_eruption",
+          "vrd_u_forest_stalker",
+          "hol_r_curse_of_binding",
+          "tid_r_deep_tides_diviner",
+          "hol_c_unearth_scavenger",
+          "tid_u_abyss_watcher",
+          "hol_r_hollow_herald",
+          "tid_r_echo_caller",
+          "hol_c_wraith_bonebreaker",
+          "tid_x_tidal_seal",
+          "tid_r_sunken_leviathan",
+          "dwn_x_radiant_shard",
+          "dwn_c_oath_sworn_guard",
+          "emb_u_cinderstorm_elemental"
+        ],
+        "enemy_vigor": 105,
+        "enemy_attunement": 1,
+        "class": "druid",
+        "dialogue_intro": [
+          "The three keys turn together. The floor of the Tower's heart splits open.",
+          "Something that was built to hold the seal shut stands up out of the roots — and it is very, very angry that you came.",
+          "RAID: every Delver fights their own Colossus. Every blow lands on the same one.",
+          "At the twenty-second round the Colossus brings the floor down. Finish it before then."
+        ],
+        "shard_reward": 600,
+        "dig_charge_reward": 1,
+        "drops": [],
+        "dialogue_outro": [
+          "The Colossus kneels. The roots let go of the stair.",
+          "Somewhere above, a door that has not opened in centuries groans."
+        ],
+        "opening_rule": "root_choked",
+        "boss_rules": [
+          "extra_draw",
+          "crumble:14:2"
+        ]
+      },
+      "requires": [
+        "t7",
+        "o7",
+        "f7"
+      ]
+    }
+  ],
+  "raid": {
+    "max_players": 5,
+    "shared_pool": 105,
+    "shared_pool_by_players": [
+      62,
+      76,
+      84,
+      94,
+      105
+    ],
+    "max_rounds": 22,
+    "class": "druid"
+  }
+}

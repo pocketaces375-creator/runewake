@@ -111,6 +111,10 @@ public static partial class DuelEngine
         else
             state.HasSkippedFirstDraw = true;
 
+        // 4.5 FABLE-021: boss rules (extra draws, regeneration, the floor crumbling)
+        if (state.BossRules.Count > 0 && !state.IsGameOver)
+            BossRules.OnTurnStart(state, nextPlayer, p => ExecuteDraw(p, state));
+
         // 5. Start triggers — Unearth processing + ON_TURN_START triggers + relic identification
         KeywordHandlers.ProcessUnearth(nextPlayer);
         TriggerBus.Fire(state, Trigger.ON_TURN_START, state.CurrentPlayerIndex);

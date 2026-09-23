@@ -174,7 +174,37 @@ public partial class DuelScene : Control
     private Control? _mulliganPanel;
     private readonly HashSet<int> _mulliganSelection = new();
 
+    /// <summary>
+    /// FABLE-019e: the scene you ARRIVE in after Continue/Return is traced too.
+    /// A black screen after a fight means the next scene started and stopped
+    /// half-built — an exception inside _Ready is logged by Godot and swallowed,
+    /// leaving nothing drawn. Now it is written to the exit trace AND painted on
+    /// screen, so a phone screenshot names the line.
+    /// </summary>
     public override void _Ready()
+    {
+        ExitTrace($"arrived: DuelScene _Ready begin (node={CampaignContext.CurrentNodeId}, enc={CampaignContext.CurrentEncounter?.Name})");
+        try
+        {
+            ReadyBody();
+            ExitTrace("arrived: DuelScene _Ready done");
+        }
+        catch (System.Exception ex)
+        {
+            ExitTrace($"DuelScene _Ready THREW: {ex}");
+            ShowRootNotice(GetTree(), $"The duel failed to load: {ex.GetType().Name} — {ex.Message}\n{FirstFrame(ex)}\nScreenshot this for Fable.");
+        }
+    }
+
+    internal static string FirstFrame(System.Exception ex)
+    {
+        var st = ex.StackTrace ?? "";
+        foreach (var line in st.Split('\n'))
+            if (line.Contains("Runewake")) return line.Trim();
+        return st.Split('\n')[0].Trim();
+    }
+
+    private void ReadyBody()
     {
         // Wire HUD nodes (TASK-UI3a: enemy HUD replaced by programmatic top bar)
         _playerVigorValue = GetNode<Label>("PlayerHUD/PlayerHudRow/PlayerVigorValue");
@@ -446,8 +476,8 @@ public partial class DuelScene : Control
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(noPlayBg);
-        noPlayBg.SetAnchorsPreset(Control.LayoutPreset.CenterTop);
-        noPlayBg.Position = new Vector2(0, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
+        // Centre it horizontally (setting Position after the CenterTop preset used to pin it to x=0).
+        noPlayBg.Position = new Vector2((GetViewportRect().Size.X - noPlayBg.Size.X) / 2f, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
         _noPlayLabel = new Label
         {
             Text = "",
@@ -455,6 +485,7 @@ public partial class DuelScene : Control
             VerticalAlignment = VerticalAlignment.Center,
             MouseFilter = MouseFilterEnum.Ignore
         };
+        _noPlayLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         _noPlayLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(22 * s));
         _noPlayLabel.AddThemeColorOverride("font_color", new Color(0.89f, 0.76f, 0.0f));
         noPlayBg.AddChild(_noPlayLabel);
@@ -602,10 +633,19 @@ public partial class DuelScene : Control
                 Player1ArtifactIds = p1Artifacts,
                 Player1Class = p1Class,
                 MatchConfig = null,
-                OpeningRule = encounter.OpeningRule
+                OpeningRule = encounter.OpeningRule,
+                // FABLE-020: generated-zone depth and Tower floors set these.
+                Player1StartingVigor = encounter.EnemyVigor,
+                Player1BonusAttunement = encounter.EnemyBonusAttunement,
+                BossRules = encounter.BossRules,
             };
             _gsm.Initialize(config);
             GD.Print($"[DUEL-INIT] P0 artifacts={string.Join(",", config.Player0ArtifactIds)} P1 artifacts={string.Join(",", config.Player1ArtifactIds)} P0 class={config.Player0Class} P1 class={config.Player1Class}");
+
+            // FABLE-020: a co-op expedition / raid: this board becomes one seat of
+            // it, the tabs appear, and the enemy's turns come from the expedition.
+            if (CoopSession.Current != null)
+                CoopOverlay.Attach(this, _gsm, _bot);
         }
         else
         {
@@ -6069,7 +6109,7 @@ private void ShowGameOverOverlay(int winnerIndex)
     /// a cable. Never throws.
     /// </summary>
     public const string ExitTracePath = "user://duel_exit_trace.txt";
-    private static void ExitTrace(string line)
+    public static void ExitTrace(string line)
     {
         GD.Print("[DUEL-EXIT] " + line);
         try
@@ -6090,7 +6130,7 @@ private void ShowGameOverOverlay(int winnerIndex)
     /// CanvasLayer under the root, so it draws over whatever is — or is not —
     /// on screen, and removes itself after 15 s.
     /// </summary>
-    private static void ShowRootNotice(SceneTree tree, string message)
+    public static void ShowRootNotice(SceneTree tree, string message)
     {
         var layer = new CanvasLayer { Layer = 128, Name = "DuelExitNotice" };
         var label = new Label
@@ -6387,13 +6427,17 @@ private void ShowGameOverOverlay(int winnerIndex)
             // without a chance to change your deck, is a punishment not a loop.
             if (!playerWon)
             {
-                LeaveDuelFor(CampaignRun.MapScenePath, "Return to Map pressed");
+                LeaveDuelFor(CampaignRun.MapPathFor(CampaignContext.CurrentNodeId), "Return to Map pressed");
                 return;
             }
 
             var (step, scene, what) = CampaignRun.AdvanceAfterVictory();
             if (step == CampaignRun.Step.NextDuel)
                 continueBtn.Text = "Next: " + what;
+            else if (step == CampaignRun.Step.NewZone)
+                continueBtn.Text = "New zone: " + what;
+            else if (scene == WorldService.WorldMapScenePath)
+                continueBtn.Text = "Back to the map";
             LeaveDuelFor(scene, $"Continue pressed → {step} ({what})");
         });
         btnHBox.AddChild(continueBtn);

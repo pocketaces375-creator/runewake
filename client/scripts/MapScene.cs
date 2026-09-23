@@ -89,6 +89,22 @@ public partial class MapScene : Control
 
     public override void _Ready()
     {
+        // FABLE-019e: traced, and a failure is painted on screen (see DuelScene._Ready).
+        DuelScene.ExitTrace("arrived: MapScene _Ready begin");
+        try
+        {
+            ReadyBody();
+            DuelScene.ExitTrace("arrived: MapScene _Ready done");
+        }
+        catch (System.Exception ex)
+        {
+            DuelScene.ExitTrace($"MapScene _Ready THREW: {ex}");
+            DuelScene.ShowRootNotice(GetTree(), $"The map failed to load: {ex.GetType().Name} — {ex.Message}\n{DuelScene.FirstFrame(ex)}\nScreenshot this for Fable.");
+        }
+    }
+
+    private void ReadyBody()
+    {
         _viewportHeight = GetViewportRect().Size.Y;
         EnsureCampaignContext();
         BuildBackground();
@@ -585,6 +601,23 @@ public partial class MapScene : Control
     {
         float btnW = 0.13f;
         float xL = 0.01f;
+
+        // FABLE-020: once the starting lands are done, the way into the endless world.
+        if (WorldService.Progress.CrossroadsOpen)
+        {
+            var crossBtn = new Button
+            {
+                Text = "The Crossroads",
+                AnchorLeft = xL, AnchorRight = xL + btnW,
+                AnchorTop = 0.655f, AnchorBottom = 0.717f
+            };
+            StyleButton(crossBtn, goldText: true);
+            crossBtn.Pressed += () => {
+                GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+                GetTree().ChangeSceneToFile(WorldService.CrossroadsScenePath);
+            };
+            AddChild(crossBtn);
+        }
 
         _forgeBtn = new Button
         {

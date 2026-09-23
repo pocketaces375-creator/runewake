@@ -29,15 +29,52 @@ public static class CampaignRun
         NextDuel,
         /// <summary>Nothing is unlocked and uncleared here — send them to the map.</summary>
         BackToMap,
+        /// <summary>
+        /// FABLE-020: this zone is finished and the next one's first duel is
+        /// armed. Show the "new zone" screen, which offers to continue.
+        /// </summary>
+        NewZone,
     }
 
     public const string DuelScenePath = "res://scenes/duel/DuelScene.tscn";
     public const string MapScenePath = "res://scenes/map/MapScene.tscn";
 
     /// <summary>The region graph the player is currently in, or null if unreadable.</summary>
-    public static MapRegion? LoadCurrentRegion()
+    public static MapRegion? LoadCurrentRegion() => LoadRegion(CampaignContext.GetRegionIdForMap());
+
+    private static Dictionary<string, string>? _nodeRegion;
+
+    /// <summary>Which region file a node id lives in (scans content/map once).</summary>
+    public static string? RegionOfNode(string nodeId)
     {
-        string regionId = CampaignContext.GetRegionIdForMap();
+        if (_nodeRegion == null)
+        {
+            _nodeRegion = new Dictionary<string, string>();
+            using var dir = DirAccess.Open("res://content/map");
+            if (dir != null)
+            {
+                foreach (var f in dir.GetFiles())
+                {
+                    var name = f.EndsWith(".remap") ? f[..^6] : f;
+                    if (!name.EndsWith(".json")) continue;
+                    var r = LoadRegion(name[..^5]);
+                    if (r == null) continue;
+                    foreach (var n in r.Nodes) _nodeRegion[n.Id] = r.Id;
+                }
+            }
+        }
+        return _nodeRegion.TryGetValue(nodeId, out var id) ? id : null;
+    }
+
+    /// <summary>FABLE-020: where "back to the map" goes for this node — the world map for world places.</summary>
+    public static string MapPathFor(string? nodeId) =>
+        WorldService.IsWorldBlip(nodeId) ? WorldService.WorldMapScenePath
+        : TowerScene.IsTowerNode(nodeId) ? TowerScene.ScenePath
+        : MapScenePath;
+
+    /// <summary>A region graph by id, or null if unreadable.</summary>
+    public static MapRegion? LoadRegion(string regionId)
+    {
         string json = Godot.FileAccess.GetFileAsString($"res://content/map/{regionId}.json");
         if (string.IsNullOrEmpty(json))
         {
@@ -83,6 +120,11 @@ public static class CampaignRun
         // 1. Bank the win. MarkNodeCleared is a HashSet.Add, so doing it twice
         //    is harmless — OnGameOver may already have done it.
         var justCleared = CampaignContext.CurrentNodeId;
+        // FABLE-020: the zone this fight belonged to. Not GetRegionIdForMap():
+        // OnGameOver has usually marked the node cleared already, and clearing a
+        // WardenBoss moves the region chain on, so by now that answers with the
+        // NEXT zone.
+        string? zoneBefore = string.IsNullOrEmpty(justCleared) ? null : RegionOfNode(justCleared!);
         if (!string.IsNullOrEmpty(justCleared))
         {
             CampaignContext.Progression?.MarkNodeCleared(justCleared!);
@@ -98,11 +140,34 @@ public static class CampaignRun
             GD.PrintErr($"[CampaignRun] save failed, continuing anyway: {ex.Message}");
         }
 
+        // FABLE-020: a fight in the shared endless world goes back to the world
+        // map (or announces the new page/area its guardian opened).
+        if (WorldService.IsWorldBlip(justCleared))
+            return WorldService.AfterWorldVictory(justCleared!);
+        if (TowerScene.IsTowerNode(justCleared))
+            return TowerScene.AfterTowerVictory(justCleared!);
+
+        // FABLE-020: the first time the authored starting chain is finished,
+        // the Crossroads — the way into the open world — opens.
+        bool crossroadsJustOpened = false;
+        if (!CampaignContext.Progression!.ClearedNodes.Contains("wx|crossroads") && WorldService.CrossroadsEarned())
+        {
+            WorldService.OpenCrossroads();
+            crossroadsJustOpened = true;
+            CampaignContext.CrossroadsJustOpened = true;
+            GD.Print("[CampaignRun] the Crossroads opened");
+        }
+
         // 2. Ask the region what is next.
         var region = LoadCurrentRegion();
         var next = FindNextDuelNode(region);
         if (next == null)
         {
+            if (crossroadsJustOpened)
+            {
+                CampaignContext.PendingZoneInfo = WorldService.CrossroadsAnnouncement();
+                return (Step.NewZone, ZoneTransitionScene.ScenePath, WorldService.Atlas.HubName);
+            }
             GD.Print("[CampaignRun] nothing unlocked and uncleared — back to the map");
             return (Step.BackToMap, MapScenePath, "no further duel available");
         }
@@ -124,6 +189,15 @@ public static class CampaignRun
         // A fresh duel must not inherit the last one's seed, or every fight in
         // the run plays out identically.
         CampaignContext.DebugSeed = null;
+
+        // FABLE-020: the win finished the zone — announce the new one first.
+        if (region != null && zoneBefore != null && region.Id != zoneBefore)
+        {
+            CampaignContext.CurrentRegionId = region.Id;
+            CampaignContext.PendingZone = region;
+            GD.Print($"[CampaignRun] zone complete: {zoneBefore} → {region.Id} ({region.Name}); first duel {next.Id} -> {encounter.Name}");
+            return (Step.NewZone, ZoneTransitionScene.ScenePath, region.Name);
+        }
 
         GD.Print($"[CampaignRun] next duel: {next.Id} -> {encounter.Name}");
         return (Step.NextDuel, DuelScenePath, encounter.Name);

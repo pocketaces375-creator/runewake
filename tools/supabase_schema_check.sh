@@ -27,3 +27,13 @@ if [ "$FAILS" -gt 0 ]; then echo "  ✗ $FAILS failure(s)"; echo "$OUT" | grep -
 MUSTZERO=$(echo "$OUT" | grep -E "must be 0" | grep -vcE " 0 " || true)
 if [ "$MUSTZERO" -gt 0 ]; then echo "  ✗ a 'must be 0' line was not 0"; exit 1; fi
 echo "  ✓ supabase/schema.sql: every RLS assertion holds"
+
+# FABLE-020: shared world, Tower, co-op (applied twice for idempotency).
+if [ -f "$ROOT/supabase/world_tower_coop.sql" ]; then
+  $P -d rw -f "$ROOT/supabase/world_tower_coop.sql" 2>&1 | grep -v NOTICE || true
+  $P -d rw -f "$ROOT/supabase/world_tower_coop.sql" 2>&1 | grep -v NOTICE || true
+  OUT2=$($P -d rw -tA -f "$ROOT/supabase/world_tower_coop_test.sql" 2>&1) || { echo "$OUT2" | tail -5; echo "  ✗ world/tower/coop checks failed"; exit 1; }
+  echo "$OUT2" | grep -E "OK:" | sed 's/^psql:[^:]*:[0-9]*: NOTICE:  //; s/^/  /'
+  echo "$OUT2" | grep -q "ALL FABLE-020 SUPABASE CHECKS PASSED" || { echo "  ✗ world/tower/coop checks did not finish"; exit 1; }
+  echo "  ✓ supabase/world_tower_coop.sql: every world/tower/co-op assertion holds"
+fi
