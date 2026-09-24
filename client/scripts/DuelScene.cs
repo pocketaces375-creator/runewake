@@ -4942,6 +4942,17 @@ public partial class DuelScene : Control
         if (_gsm == null || !_gsm.IsInitialized) return;
         if (_gsm.State.Players[0].HasMulliganed) return;
 
+        // FABLE-026: the mulligan screen is switched off (GameFeatures.Mulligan). Both players
+        // keep their opening hands and the duel starts straight away.
+        if (!GameFeatures.Mulligan)
+        {
+            _gsm.PerformMulligan(0, new List<int>());
+            if (!_gsm.State.Players[1].HasMulliganed)
+                _gsm.PerformMulligan(1, new List<int>());
+            Callable.From(OnStateChanged).CallDeferred();
+            return;
+        }
+
         _mulliganSelection.Clear();
         _mulliganPanel = BuildMulliganOverlay();
         AddChild(_mulliganPanel);
