@@ -32,7 +32,8 @@ else can.
 USAGE — the OpenRouter key is read from the environment, or from ~/.hermes/.env (override with
 ART_ENV_FILE), so background runs work too. Add --mock to run offline (mock concepts can never be
 rendered for real). Candidate paintings go to ~/runewake_art_archive/art_director (ART_DIRECTOR_WORK),
-outside the repo, so a working-tree reset cannot delete them; commit pipeline/art_ledger.json after runs.
+and the ledger to ~/runewake_art_archive/art_ledger.json (ART_LEDGER) — both outside the repo, so a
+working-tree reset cannot delete them. `export-ledger` copies the ledger to pipeline/art_ledger.json to commit.
   art_director.py bootstrap [--vision]              put the existing card art in the ledger
   art_director.py plan <card_id…> | --stratum S | --missing | --worst N
   art_director.py render <card_id…> | --planned [--candidates 2] [--models flux,gemini]
@@ -64,7 +65,9 @@ sys.path.insert(0, str(REPO / "pipeline"))
 from art_prompt import BANNED, PALETTES, stable_hash  # noqa: E402
 from card_art_prompt import SPINES, legacy_subjects, load_cards, palette_line, Draw  # noqa: E402
 
-LEDGER = REPO / "pipeline" / "art_ledger.json"
+# The ledger lives next to the paintings, outside the repo, so a working-tree reset between
+# commands cannot wipe it. `export-ledger` copies it into the repo when it should be committed.
+LEDGER = Path(os.environ.get("ART_LEDGER", str(Path.home() / "runewake_art_archive" / "art_ledger.json")))
 WORK = Path(os.environ.get("ART_DIRECTOR_WORK", str(Path.home() / "runewake_art_archive" / "art_director")))
 ART = REPO / "client" / "content" / "art"
 API = "https://openrouter.ai/api/v1"
@@ -317,27 +320,44 @@ def _key():
     return k
 
 
-def chat_json(model, system, user, image_path=None, temperature=1.0):
+def chat_json(model, system, user, image_path=None, temperature=1.0, tries=4):
+    """One JSON answer from a chat model. Every way a reply can come back empty — null content
+    (a reasoning model that spent its budget thinking, a provider abort, a refusal), no choices,
+    an error object, text that is not JSON — counts as a failed attempt and is retried. The last
+    two attempts drop response_format, which some providers answer with empty content."""
     content = user
     if image_path:
         import base64
         b64 = base64.b64encode(open(image_path, "rb").read()).decode()
         content = [{"type": "text", "text": user}, {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}]
-    payload = {"model": model, "temperature": temperature, "response_format": {"type": "json_object"},
-               "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}]}
-    req = urllib.request.Request(f"{API}/chat/completions", data=json.dumps(payload).encode(),
-                                 headers={"Authorization": f"Bearer {_key()}", "Content-Type": "application/json"})
-    for attempt in range(3):
+    last = "no attempt"
+    for attempt in range(tries):
+        payload = {"model": model, "temperature": temperature, "max_tokens": 16000,
+                   "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}]}
+        if attempt < tries - 2:
+            payload["response_format"] = {"type": "json_object"}
+        req = urllib.request.Request(f"{API}/chat/completions", data=json.dumps(payload).encode(),
+                                     headers={"Authorization": f"Bearer {_key()}", "Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=240) as r:
+            with urllib.request.urlopen(req, timeout=300) as r:
                 d = json.loads(r.read().decode())
-            text = d["choices"][0]["message"]["content"]
+            if d.get("error"):
+                raise ValueError(f"provider error: {str(d['error'])[:200]}")
+            choice = (d.get("choices") or [{}])[0]
+            text = (choice.get("message") or {}).get("content")
+            if isinstance(text, list):   # some providers return content parts
+                text = "".join(p.get("text", "") for p in text if isinstance(p, dict))
+            if not text or not text.strip():
+                raise ValueError(f"empty reply (finish_reason={choice.get('finish_reason')!r})")
             text = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.M).strip()
             return json.loads(text[text.index("{"): text.rindex("}") + 1])
-        except (urllib.error.URLError, KeyError, ValueError, IndexError) as e:
-            print(f"  [director] call failed ({e}); retry {attempt + 1}/3", file=sys.stderr)
-            time.sleep(3 * (attempt + 1))
-    raise RuntimeError("model call failed three times")
+        except KeyboardInterrupt:
+            raise
+        except Exception as e:   # noqa: BLE001 — any bad reply is one failed attempt, never a crash
+            last = f"{type(e).__name__}: {e}"
+            print(f"  [director] attempt {attempt + 1}/{tries} failed — {last}", file=sys.stderr, flush=True)
+            time.sleep(4 * (attempt + 1))
+    raise RuntimeError(f"model call failed {tries} times; last: {last}")
 
 
 def mock_concepts(card, n, rnd):
@@ -481,16 +501,22 @@ def cmd_bootstrap(a):
                                     "image_path": str(path.relative_to(REPO))}
         n += 1
     save_ledger(led)
-    print(f"art_director: {n} existing paintings added to {LEDGER.relative_to(REPO)} ({len(led['cards'])} cards in the ledger)")
+    print(f"art_director: {n} existing paintings added to {LEDGER} ({len(led['cards'])} cards in the ledger)")
     return 0
 
 
 def cmd_plan(a):
     led = load_ledger()
     legacy = legacy_subjects()
+    failed = []
     for card in select_cards(a, load_cards(), led):
         print(f"{card['id']:<28} asking the art director…")
-        concept, novelty, prompt = plan_card(led, card, legacy, n=a.concepts, mock=a.mock)
+        try:
+            concept, novelty, prompt = plan_card(led, card, legacy, n=a.concepts, mock=a.mock)
+        except Exception as e:   # noqa: BLE001 — one bad card must not stop the batch
+            failed.append(card["id"])
+            print(f"{card['id']:<28} FAILED — {e}")
+            continue
         prev = led["cards"].get(card["id"], {})
         led["cards"][card["id"]] = {"status": "planned", "mock": bool(a.mock), "strata": card["strata"], "concept": concept,
                                     "prompt": prompt, "novelty": novelty, "replaces": prev.get("image_path"),
@@ -498,6 +524,9 @@ def cmd_plan(a):
         save_ledger(led)   # after every card: the next card must be different from this one too
         print(f"{card['id']:<28} {'MOCK ' if a.mock else ''}novelty {novelty:.2f}  {concept.get('subject_count')}, {concept.get('shot')}, "
               f"{concept.get('viewpoint')}, {concept.get('placement')} — {concept.get('title', '')}")
+    if failed:
+        print(f"planned with {len(failed)} failure(s): {', '.join(failed)} — run plan again for just those ids")
+        return 2
     return 0
 
 
@@ -622,6 +651,13 @@ def cmd_score(a):
     return 0
 
 
+def cmd_export_ledger(a):
+    dest = REPO / "pipeline" / "art_ledger.json"
+    dest.write_text(LEDGER.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"copied {LEDGER} -> {dest.relative_to(REPO)}")
+    return 0
+
+
 def cmd_show(a):
     e = load_ledger()["cards"].get(a.card_id)
     if not e:
@@ -644,11 +680,12 @@ def main():
     ap_ = sub.add_parser("approve"); ap_.add_argument("card_id"); ap_.add_argument("candidate", type=int)
     sc = sub.add_parser("score"); sc.add_argument("--top", type=int, default=20)
     sh = sub.add_parser("show"); sh.add_argument("card_id")
+    sub.add_parser("export-ledger")
     a = ap.parse_args()
     for k in ("vision",):
         setattr(a, k, getattr(a, k, False))
     return {"bootstrap": cmd_bootstrap, "plan": cmd_plan, "render": cmd_render, "sheet": cmd_sheet,
-            "approve": cmd_approve, "score": cmd_score, "show": cmd_show}[a.cmd](a)
+            "approve": cmd_approve, "score": cmd_score, "show": cmd_show, "export-ledger": cmd_export_ledger}[a.cmd](a)
 
 
 if __name__ == "__main__":

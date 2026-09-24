@@ -25,7 +25,7 @@ A longer word bank does not fix this. `tools/card_art_prompt.py` (FABLE-020) pro
 5. **Approve.** Nothing ships until a person picks.
    - `sheet` builds a review image showing the old painting, the candidates and their scores.
    - `approve <id> <n>` installs the pick.
-6. **Remember.** `pipeline/art_ledger.json` keeps every concept and painting. Each new card makes the next one work harder to be different, so the art stays fresh at card 500 as well as card 50.
+6. **Remember.** The ledger (`~/runewake_art_archive/art_ledger.json`, outside the repo so resets cannot wipe it; `export-ledger` copies it to `pipeline/art_ledger.json` for committing) keeps every concept and painting. Each new card makes the next one work harder to be different, so the art stays fresh at card 500 as well as card 50.
 
 ## Commands
 
