@@ -2,6 +2,11 @@ using Runewake.Engine.Engine;
 using Runewake.Engine.State;
 using Runewake.Engine.Cards;
 
+// FABLE-023: this file used to live in sim/ (an EXE project). The Android build could not
+// load an EXE assembly as a library ("Could not load file or assembly 'Runewake.Sim'"), so
+// every duel with a bot opponent failed to open on the phone — the grey screen after the
+// tutorial. The bot now lives in the engine library; the namespace is unchanged so no
+// caller moves, and the client no longer references the Sim project at all.
 namespace Runewake.Sim;
 
 /// <summary>
@@ -154,7 +159,7 @@ public class GreedyBot : IGameBot
     }
 
     /// <summary>Legal attack target lanes for an attacker under lane-locked rules.</summary>
-    internal static IEnumerable<int> LegalTargets(CardInstance attacker, int sourceLane)
+    public static IEnumerable<int> LegalTargets(CardInstance attacker, int sourceLane)
     {
         if (attacker.EffectiveKeywords.Contains("REACH"))
         {

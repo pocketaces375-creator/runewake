@@ -13,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\engine\Runewake.Engine.csproj" />
     <ProjectReference Include="..\persistence\Runewake.Persistence.csproj" />
-    <ProjectReference Include="..\sim\Runewake.Sim.csproj" />
   </ItemGroup>
 
   <ItemGroup>
