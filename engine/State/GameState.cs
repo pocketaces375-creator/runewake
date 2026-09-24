@@ -171,6 +171,17 @@ public sealed class GameState
             state.Players[1].AttunementMax += config.Player1BonusAttunement;
             state.Players[1].Attunement += config.Player1BonusAttunement;
         }
+        // FABLE-030: the player's side (Shrine blessings).
+        if (config.Player0StartingVigor is int v0 && v0 > 0)
+        {
+            state.Players[0].MaxVigor = v0;
+            state.Players[0].Vigor = v0;
+        }
+        if (config.Player0BonusAttunement > 0)
+        {
+            state.Players[0].AttunementMax += config.Player0BonusAttunement;
+            state.Players[0].Attunement += config.Player0BonusAttunement;
+        }
 
         for (int p = 0; p < 2; p++)
         {

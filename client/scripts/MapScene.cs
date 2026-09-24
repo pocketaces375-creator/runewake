@@ -1048,10 +1048,16 @@ public partial class MapScene : Control
         if (!isLocked && !isCleared)
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("unlock");
 
-        _infoGoButton.Disabled = isCleared || isLocked || (!isDig && !hasEncounter);
+        // FABLE-030: Shrines and Merchants are places, not fights — they open their own screens.
+        bool isPlace = mapNode.Type is MapNodeType.Shrine or MapNodeType.Merchant;
+        _infoGoButton.Disabled = isLocked || (isCleared && !(mapNode.Type == MapNodeType.Merchant)) || (!isDig && !hasEncounter && !isPlace);
 
-        if (isCleared && isDuel)
+        if (isCleared && (isDuel || mapNode.Type == MapNodeType.Shrine))
             _infoGoButton.Text = "Done";
+        else if (mapNode.Type == MapNodeType.Shrine)
+            _infoGoButton.Text = "Rest";
+        else if (mapNode.Type == MapNodeType.Merchant)
+            _infoGoButton.Text = "Trade";
         else if (isDig)
             _infoGoButton.Text = "Dig";
         else if (isDuel)
@@ -1076,6 +1082,21 @@ public partial class MapScene : Control
         {
             CampaignContext.CurrentDigSiteId = mapNode.Encounter ?? "region_01_dig";
             GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
+            return;
+        }
+
+        // FABLE-030: the Shrine is its own screen; the Merchant opens the card shop and comes back here.
+        if (mapNode.Type == MapNodeType.Shrine)
+        {
+            GetTree().ChangeSceneToFile(ShrineScene.ScenePath);
+            return;
+        }
+        if (mapNode.Type == MapNodeType.Merchant)
+        {
+            CampaignContext.Progression.MarkNodeCleared(mapNode.Id);
+            try { CampaignContext.SaveManager?.Save(); } catch (System.Exception ex) { GD.PrintErr($"[MapScene] save failed: {ex.Message}"); }
+            CampaignContext.ShopReturnScenePath = CampaignRun.MapScenePath;
+            GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn");
             return;
         }
 

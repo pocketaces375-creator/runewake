@@ -71,6 +71,12 @@ public sealed class GameConfig
     /// </summary>
     public int Player1BonusAttunement { get; init; }
 
+    /// <summary>FABLE-030: the player's starting (and max) Vigor for this fight, e.g. a Shrine blessing. Null = normal.</summary>
+    public int? Player0StartingVigor { get; init; }
+
+    /// <summary>FABLE-030: extra Attunement the player starts with. 0 = normal.</summary>
+    public int Player0BonusAttunement { get; init; }
+
     /// <summary>FABLE-021: boss rules for this fight, owned by OpeningRuleOwner (see Engine.BossRules).</summary>
     public IReadOnlyList<string>? BossRules { get; init; }
 }

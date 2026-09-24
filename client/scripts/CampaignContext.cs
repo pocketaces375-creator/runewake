@@ -33,6 +33,9 @@ public static class CampaignContext
     /// <summary>The map node ID the player is entering (for reward routing).</summary>
     public static string? CurrentNodeId { get; set; }
 
+    /// <summary>FABLE-030: where the card shop's Back button goes (a Merchant on the map sends it back to the map). Null = the Reliquary.</summary>
+    public static string? ShopReturnScenePath { get; set; }
+
     /// <summary>Current region shown on the map. Defaults to region_01; switches to region_02 after r1_n12 cleared.</summary>
     public static string CurrentRegionId { get; set; } = "region_01";
 

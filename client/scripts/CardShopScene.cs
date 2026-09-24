@@ -132,7 +132,9 @@ public partial class CardShopScene : Control
         _backButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+            var back = CampaignContext.ShopReturnScenePath ?? "res://scenes/reliquary/ReliquaryScene.tscn";
+            CampaignContext.ShopReturnScenePath = null;
+            GetTree().ChangeSceneToFile(back);
         };
         AddChild(_backButton);
 

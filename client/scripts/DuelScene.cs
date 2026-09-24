@@ -621,6 +621,9 @@ public partial class DuelScene : Control
                 p1Artifacts = opponent.Artifacts;
             }
 
+            // FABLE-030: take (and spend) a Shrine blessing — campaign fights only, never a tutorial.
+            var blessing = (_isCampaignEncounter && !isTutorialEncounter) ? ShrineBlessing.Take(CampaignContext.Progression) : null;
+
             var config = new GameConfig
             {
                 Seed = duelSeed,
@@ -638,8 +641,13 @@ public partial class DuelScene : Control
                 Player1StartingVigor = encounter.EnemyVigor,
                 Player1BonusAttunement = encounter.EnemyBonusAttunement,
                 BossRules = encounter.BossRules,
+                // FABLE-030: a Shrine blessing is spent on the next fight (not tutorials).
+                Player0StartingVigor = blessing is { kind: "vigor" } bv ? 25 + bv.amount : null,
+                Player0BonusAttunement = blessing is { kind: "attune" } ba ? ba.amount : 0,
             };
             _gsm.Initialize(config);
+            if (blessing != null)
+                Callable.From(() => ShowToast(ShrineBlessing.Describe(blessing.Value), ThemeTokens.Gold)).CallDeferred();
             GD.Print($"[DUEL-INIT] P0 artifacts={string.Join(",", config.Player0ArtifactIds)} P1 artifacts={string.Join(",", config.Player1ArtifactIds)} P0 class={config.Player0Class} P1 class={config.Player1Class}");
 
             // FABLE-020: a co-op expedition / raid: this board becomes one seat of

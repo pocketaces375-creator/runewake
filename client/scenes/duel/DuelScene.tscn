@@ -48,8 +48,6 @@ text = "Turn 1"
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 74.0
-offset_bottom = -160.0
 mouse_filter = 2
 stretch_mode = 1
 

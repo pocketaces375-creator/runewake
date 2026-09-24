@@ -82,6 +82,20 @@ public partial class CardPlate : Control
     /// </summary>
     private const float ChipWScale = 1.75f;
     private const float ChipHScale = 1.8f;
+
+    /// <summary>
+    /// FABLE-030: where the Attack/Vigor chips sit. "corners" = attack bottom-left, vigor
+    /// bottom-right (the bake's own positions). "left" = both together at the bottom-left,
+    /// attack then vigor, which Trikzos asked to see. Static so a whole screen switches at once.
+    /// </summary>
+    public static string StatsLayout = "left";
+
+    /// <summary>
+    /// FABLE-030: the heavy numeral sat a touch low in its chip (its glyphs have no descenders,
+    /// so vertical centring by font metrics leaves them bottom-heavy). Lift by this share of the
+    /// chip height.
+    /// </summary>
+    private const float NumeralLift = 0.07f;
     private const float CostScale = 1.5f;
 
     public void Setup(string cardId, int? attack, int? vigor,
@@ -135,8 +149,25 @@ public partial class CardPlate : Control
             // chip's vertical centre, so the name above is not eaten.
             float cy = (_atkR.Y + _atkR.W / 2f) * cardHeight;
             PlaceChip(_atkGem!, _atkNum!, new Rect2(_atkR.X * cardWidth, cy - h / 2f, w, h), false);
-            float vRight = (_vigR.X + _vigR.Z) * cardWidth;
-            PlaceChip(_vigGem!, _vigNum!, new Rect2(vRight - w, cy - h / 2f, w, h), false);
+            if (StatsLayout == "left")
+            {
+                // Vigor sits right beside Attack, a small gap between them.
+                float gap = Mathf.Max(2f, h * 0.18f);
+                PlaceChip(_vigGem!, _vigNum!, new Rect2(_atkR.X * cardWidth + w + gap, cy - h / 2f, w, h), false);
+                // The bake still has its own green chip painted at the bottom-right: cover it with
+                // the name band's own near-black, slightly larger than the chip so no rim shows.
+                _vigCover ??= NewCover();
+                float bw = _vigR.Z * cardWidth * 1.35f, bh = _vigR.W * cardHeight * 1.5f;
+                _vigCover.Position = new Vector2((_vigR.X + _vigR.Z / 2f) * cardWidth - bw / 2f, cy - bh / 2f);
+                _vigCover.Size = new Vector2(bw, bh);
+                _vigCover.Visible = true;
+            }
+            else
+            {
+                float vRight = (_vigR.X + _vigR.Z) * cardWidth;
+                PlaceChip(_vigGem!, _vigNum!, new Rect2(vRight - w, cy - h / 2f, w, h), false);
+                if (_vigCover != null) _vigCover.Visible = false;
+            }
             _atkNum!.Text = attack!.Value.ToString();
             _vigNum!.Text = vigor!.Value.ToString();
         }
@@ -214,6 +245,21 @@ public partial class CardPlate : Control
     }
 
     /// <summary>A baked-style chip: filled rounded rectangle (or disc), thin dark edge, one numeral in the card's own serif.</summary>
+    private Panel? _vigCover;
+    private Panel NewCover()
+    {
+        var p = new Panel { Name = "VigorCover", MouseFilter = MouseFilterEnum.Ignore };
+        p.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.055f, 0.045f, 0.03f),   // the bake's name band (sampled: #0F0B06 … #110F09)
+            CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3,
+        });
+        // Under the chips (added after _baked), so a chip can still sit over it if they ever overlap.
+        AddChild(p);
+        MoveChild(p, 1);
+        return p;
+    }
+
     private static (Panel chip, Label num) Chip(string name, Color fill, bool ink = false)
     {
         var chip = new Panel { Name = name, MouseFilter = MouseFilterEnum.Ignore };
@@ -253,7 +299,7 @@ public partial class CardPlate : Control
             st.ShadowOffset = new Vector2(0, Mathf.Max(1, h * 0.03f));
             st.CornerDetail = disc ? 16 : 6;
         }
-        num.Position = Vector2.Zero;
+        num.Position = new Vector2(0, disc ? 0 : -r.Size.Y * NumeralLift);   // FABLE-030: lift the stat numeral
         num.Size = r.Size;
         // FABLE-019e: stat chips get a HEAVY sans (Inter 850) filling the chip —
         // the thin serif read as grey on a phone even in black. The cost disc
