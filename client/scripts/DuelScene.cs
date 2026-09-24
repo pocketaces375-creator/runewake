@@ -5954,6 +5954,7 @@ private void ShowGameOverOverlay(int winnerIndex)
     private void LeaveDuelFor(string scenePath, string why, System.Action? before = null)
     {
         ExitTrace($"{why} → {scenePath.GetFile()}");
+        StopEndTurnPulse();   // FABLE-029: never leave a looping tween behind
 
         if (before != null)
         {
@@ -6967,7 +6968,7 @@ private void ShowGameOverOverlay(int winnerIndex)
             if (target <= 0) continue;
 
             float delay = baseDelay + counter.Index * stagger;
-            var tween = GetTree().CreateTween();
+            var tween = label.CreateTween();   // FABLE-029: bound to the label, dies with it
             tween.SetParallel(false);
             var capturedLabel = label;
             tween.TweenMethod(
@@ -7066,6 +7067,14 @@ private void ShowGameOverOverlay(int winnerIndex)
             if (row != null) RebuildAttunePips(row, cur, max);
         }
 
+    private Tween? _endTurnPulse;
+    private void StopEndTurnPulse()
+    {
+        if (_endTurnPulse != null && _endTurnPulse.IsValid()) _endTurnPulse.Kill();
+        _endTurnPulse = null;
+        if (_endTurnButton != null && IsInstanceValid(_endTurnButton)) _endTurnButton.Modulate = Colors.White;
+    }
+
     // ── B1: No-playable-cards check + pulse ──
     private void CheckAffordableCards()
     {
@@ -7079,17 +7088,28 @@ private void ShowGameOverOverlay(int winnerIndex)
         {
             _noPlayLabel!.Text = "No playable cards — tap End Turn";
             _noPlayBanner!.Visible = true;
-            var pulseTween = GetTree().CreateTween();
-            pulseTween.TweenProperty(_endTurnButton, "modulate", new Color(1.2f, 1.0f, 0.6f), 0.4f);
-            pulseTween.TweenProperty(_endTurnButton, "modulate", Colors.White, 0.4f);
-            pulseTween.SetLoops(0);
+            // FABLE-029 — THE GREY SCREEN. This pulse used to be a scene-tree tween (GetTree, CreateTween) with
+            // SetLoops(0): a tween owned by the whole scene tree, looping forever, targeting the
+            // End Turn button. Leave the duel and the button is freed but the tween is not; every
+            // loop now aborts instantly ("Target object freed before starting"), so the loop takes
+            // zero time and never ends. Debug builds (the editor, the sandbox) detect that and kill
+            // it with "Infinite loop detected"; RELEASE builds have no such check, so the main loop
+            // spun forever right after the next scene's _Ready — a grey screen with music, on every
+            // phone, after every duel that ever showed this banner. The tween is now bound to the
+            // button (dies with it) and there is only ever one.
+            if (_endTurnPulse == null || !_endTurnPulse.IsValid())
+            {
+                _endTurnPulse = _endTurnButton!.CreateTween().SetLoops();
+                _endTurnPulse.TweenProperty(_endTurnButton, "modulate", new Color(1.2f, 1.0f, 0.6f), 0.4f);
+                _endTurnPulse.TweenProperty(_endTurnButton, "modulate", Colors.White, 0.4f);
+            }
             var costs = string.Join(", ", hand.Select(h => h.Cost.ToString()));
             GD.Print($"[TURN] no affordable cards att={currentAttune} hand=[{costs}]");
         }
         else if (_noPlayBanner.Visible)
         {
             _noPlayBanner.Visible = false;
-            _endTurnButton!.Modulate = Colors.White;
+            StopEndTurnPulse();
         }
     }
 
