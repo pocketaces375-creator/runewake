@@ -798,6 +798,8 @@ public partial class Main : Control
         // Upload any pending crash reports (fire-and-forget, no-op if not configured)
         // FABLE-018: was a hard-coded placeholder URL, so this never once
         // delivered a report. Uses the real config now; no-op when unset.
+        ShowStuckTraceIfAny();   // FABLE-025: if the last session got stuck, say where, on screen
+
         if (supabaseConfig.IsConfigured)
         {
             CrashReporter.QueueExitTrace();   // FABLE-022: send the last duel-exit trace too
@@ -1026,6 +1028,82 @@ public partial class Main : Control
     /// <summary>
     /// Run a diagnostic write+read-back test on the save database and display results.
     /// </summary>
+    /// <summary>
+    /// FABLE-025. Release builds have no Diag button, and the grey screen after a win could not be
+    /// seen from here. If the last recorded step of leaving a screen was not a clean arrival, the
+    /// title shows the last lines of user://duel_exit_trace.txt once, in words, so a screenshot
+    /// is enough to find the step that failed. Never throws; shows each stuck trace only once.
+    /// </summary>
+    private void ShowStuckTraceIfAny()
+    {
+        try
+        {
+            if (!Godot.FileAccess.FileExists(DuelScene.ExitTracePath)) return;
+            string trace = Godot.FileAccess.GetFileAsString(DuelScene.ExitTracePath).TrimEnd();
+            if (string.IsNullOrWhiteSpace(trace)) return;
+            var lines = trace.Split('\n');
+            string last = lines[^1];
+            bool clean = (last.Contains("all good") || last.Contains("_Ready done") || last.Contains("arrived: MapScene")
+                          || last.Contains("— running")) && !trace.Contains("FROZEN") && !trace.Contains("THREW") && !trace.Contains("EMPTY");
+            if (clean) return;
+            const string shownPath = "user://duel_exit_trace.shown";
+            string key = trace.Length + ":" + last;
+            if (Godot.FileAccess.FileExists(shownPath) && Godot.FileAccess.GetFileAsString(shownPath) == key) return;
+            using (var f = Godot.FileAccess.Open(shownPath, Godot.FileAccess.ModeFlags.Write)) f?.StoreString(key);
+
+            var tail = string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 12)));
+            // The engine's own errors from that session (file logging is on since FABLE-022).
+            try
+            {
+                string dir = ProjectSettings.GlobalizePath("user://logs");
+                var prev = System.IO.Directory.Exists(dir)
+                    ? System.IO.Directory.GetFiles(dir, "godot*.log").Where(f => System.IO.Path.GetFileName(f) != "godot.log")
+                        .OrderByDescending(System.IO.File.GetLastWriteTimeUtc).FirstOrDefault()
+                    : null;
+                if (prev != null)
+                {
+                    var errs = System.IO.File.ReadAllLines(prev)
+                        .Where(l => l.Contains("ERROR") || l.Contains("Exception") || l.Contains("   at ") || l.Contains("USER ERROR"))
+                        .TakeLast(8).ToList();
+                    if (errs.Count > 0) tail += "\n— errors logged that session —\n" + string.Join("\n", errs);
+                }
+            }
+            catch { /* the trace alone is still worth showing */ }
+            var layer = new CanvasLayer { Layer = 120, Name = "StuckTrace" };
+            var panel = new PanelContainer
+            {
+                AnchorLeft = 0.04f, AnchorRight = 0.96f, AnchorTop = 0.06f, AnchorBottom = 0.94f,
+            };
+            panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = new Color(0.06f, 0.04f, 0.03f, 0.97f), BorderColor = new Color(0.66f, 0.23f, 0.16f),
+                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                ContentMarginLeft = 24, ContentMarginRight = 24, ContentMarginTop = 16, ContentMarginBottom = 16,
+            });
+            var box = new VBoxContainer();
+            box.AddThemeConstantOverride("separation", 10);
+            panel.AddChild(box);
+            var head = new Label { Text = "Last time, the game got stuck. Screenshot this for Fable:" };
+            head.AddThemeFontSizeOverride("font_size", 30);
+            head.AddThemeColorOverride("font_color", new Color(1.0f, 0.62f, 0.52f));
+            box.AddChild(head);
+            var body = new Label { Text = tail, AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsVertical = Control.SizeFlags.ExpandFill };
+            body.AddThemeFontSizeOverride("font_size", 20);
+            body.AddThemeColorOverride("font_color", new Color(0.92f, 0.88f, 0.8f));
+            box.AddChild(body);
+            var ok = new Button { Text = "Close", CustomMinimumSize = new Vector2(260, 70), SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter };
+            ok.AddThemeFontSizeOverride("font_size", 30);
+            ok.Pressed += () => layer.QueueFree();
+            box.AddChild(ok);
+            layer.AddChild(panel);
+            Callable.From(() => { if (IsInstanceValid(this)) GetTree().Root.AddChild(layer); }).CallDeferred();
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[Main] could not show the stuck trace: {ex.Message}");
+        }
+    }
+
     private void OnDiagnosticsPressed()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");

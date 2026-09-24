@@ -42,6 +42,7 @@ public partial class ZoneTransitionScene : Control
         bool offerCrossroads = CampaignContext.CrossroadsJustOpened && info?.ContinuePath != WorldService.CrossroadsScenePath;
         CampaignContext.CrossroadsJustOpened = false;
 
+        DuelScene.ExitTrace($"zone step 1: read pending zone ({zoneName}, crossroads offer {offerCrossroads})");
         var bg = new ColorRect { Color = new Color(0.05f, 0.045f, 0.035f), MouseFilter = MouseFilterEnum.Ignore };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
@@ -60,6 +61,7 @@ public partial class ZoneTransitionScene : Control
         wash.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(wash);
 
+        DuelScene.ExitTrace($"zone step 2: background and colour wash built");
         var col = new VBoxContainer { Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
         col.SetAnchorsPreset(LayoutPreset.FullRect);
         col.AnchorLeft = 0.15f; col.AnchorRight = 0.85f;
@@ -92,6 +94,7 @@ public partial class ZoneTransitionScene : Control
         if (offerCrossroads)
             L($"{WorldService.Atlas.HubName} has opened — the endless world is waiting.", ThemeTokens.GetBodyFont(30), 30, ThemeTokens.Gold);
 
+        DuelScene.ExitTrace($"zone step 3: text built");
         var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         row.AddThemeConstantOverride("separation", 28);
         col.AddChild(row);
@@ -118,12 +121,14 @@ public partial class ZoneTransitionScene : Control
         Button? cross = offerCrossroads ? Btn("The Crossroads") : null;
         var map = Btn("View the map");
 
+        DuelScene.ExitTrace($"zone step 4: buttons built");
         bool left = false;
         void Leave(string path, string why)
         {
             if (left) return;
             left = true;
             DuelScene.ExitTrace($"zone transition: {why} → {path.GetFile()}");
+            DuelScene.StartHangCheck(path);
             GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
             var err = GetTree().ChangeSceneToFile(path);
             if (err != Error.Ok)
@@ -136,7 +141,9 @@ public partial class ZoneTransitionScene : Control
         if (cross != null) cross.Pressed += () => Leave(WorldService.CrossroadsScenePath, "The Crossroads");
         map.Pressed += () => Leave(info?.ContinuePath == WorldService.WorldMapScenePath ? WorldService.WorldMapScenePath : CampaignRun.MapScenePath, "View the map");
 
+        DuelScene.ExitTrace($"zone step 5: buttons wired");
         MenuButtons.BreatheTitle(title);
         MenuButtons.RevealStagger(cross != null ? new Control[] { title, go, cross, map } : new Control[] { title, go, map });
+        DuelScene.ExitTrace("zone step 6: animations started");
     }
 }

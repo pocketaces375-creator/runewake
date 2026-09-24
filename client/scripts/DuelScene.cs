@@ -5988,6 +5988,7 @@ private void ShowGameOverOverlay(int winnerIndex)
     private void SwapAfterOneFrame(SceneTree tree, string scenePath, ulong oldSceneId)
     {
         ExitTrace($"swap scheduled → {scenePath.GetFile()}");
+        StartHangCheck(scenePath);
         try
         {
             var t1 = tree.CreateTimer(0.0, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
@@ -6010,6 +6011,36 @@ private void ShowGameOverOverlay(int winnerIndex)
             ExitTrace($"frame timer threw: {ex} — swapping now");
             DoSwap(tree, scenePath, oldSceneId);
         }
+    }
+
+    /// <summary>
+    /// FABLE-025. The grey screen with music still playing looks like a main loop that stopped
+    /// inside the next scene's setup: nothing draws, no timer fires, no watchdog speaks. A plain
+    /// background thread is not stopped by that, so 8 s after the swap it writes to the trace how
+    /// many frames the game actually ran. "0 frames" means frozen; the line above it names the
+    /// last step that was reached. The title screen shows the trace on the next launch.
+    /// </summary>
+    private static System.Threading.Timer? _hangCheck;
+    internal static void StartHangCheck(string scenePath)
+    {
+        try
+        {
+            string path = ProjectSettings.GlobalizePath(ExitTracePath);
+            long start = System.Threading.Interlocked.Read(ref CrashReporter.Heartbeat);
+            _hangCheck?.Dispose();
+            _hangCheck = new System.Threading.Timer(_ =>
+            {
+                try
+                {
+                    long ran = System.Threading.Interlocked.Read(ref CrashReporter.Heartbeat) - start;
+                    string verdict = ran < 5 ? $"MAIN LOOP FROZEN — only {ran} frames in 8 s after leaving for {scenePath.GetFile()}"
+                                             : $"hang check: {ran} frames in 8 s after leaving for {scenePath.GetFile()} — running";
+                    System.IO.File.AppendAllText(path, $"{System.DateTime.Now:HH:mm:ss.fff} {verdict}\n");
+                }
+                catch { }
+            }, null, 8000, System.Threading.Timeout.Infinite);
+        }
+        catch { }
     }
 
     private void DoSwap(SceneTree tree, string scenePath, ulong oldSceneId)

@@ -40,6 +40,10 @@ public partial class CrashReporter : Node
 
     // ——— Singleton lifecycle ———
 
+    /// <summary>FABLE-025: counts main-loop frames, so a background thread can tell a frozen game from a slow one.</summary>
+    public static long Heartbeat;
+    public override void _Process(double delta) => System.Threading.Interlocked.Increment(ref Heartbeat);
+
     public override void _Ready()
     {
         _instance = this;
