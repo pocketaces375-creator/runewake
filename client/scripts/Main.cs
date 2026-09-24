@@ -1043,9 +1043,15 @@ public partial class Main : Control
             if (string.IsNullOrWhiteSpace(trace)) return;
             var lines = trace.Split('\n');
             string last = lines[^1];
-            bool clean = (last.Contains("all good") || last.Contains("_Ready done") || last.Contains("arrived: MapScene")
-                          || last.Contains("— running")) && !trace.Contains("FROZEN") && !trace.Contains("THREW") && !trace.Contains("EMPTY");
-            if (clean) return;
+            // FABLE-028: judge only what happened AFTER the last clean arrival. An old freeze higher
+            // up in the file (the trace keeps 60 lines) must not re-open this box on every launch.
+            var list = lines.ToList();
+            int lastProblem = list.FindLastIndex(l => l.Contains("FROZEN") || l.Contains("THREW") || l.Contains("EMPTY") || l.Contains("WATCHDOG:"));
+            int lastClean = list.FindLastIndex(l => l.Contains("all good") || l.Contains("_Ready done") || l.Contains("— running") || l.Contains("arrived: MapScene _Ready done"));
+            bool midTransition = last.Contains("swap scheduled") || last.Contains("loading scene") || last.Contains("ChangeScene")
+                                 || last.Contains("Continue pressed") || last.Contains("_Ready begin") || last.Contains("zone transition");
+            bool stuck = lastProblem > lastClean || midTransition;
+            if (!stuck) return;
             const string shownPath = "user://duel_exit_trace.shown";
             string key = trace.Length + ":" + last;
             if (Godot.FileAccess.FileExists(shownPath) && Godot.FileAccess.GetFileAsString(shownPath) == key) return;

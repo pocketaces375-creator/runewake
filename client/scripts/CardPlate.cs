@@ -114,12 +114,18 @@ public partial class CardPlate : Control
             (_costGem, _costNum) = Chip("CostDisc", COST_FILL); AddChild(_costGem);
         }
 
-        string ip = $"res://content/art/cards_baked/{cardId}.webp";
-        var tex = ResourceLoader.Load<Texture2D>(ip);
-        if (tex != null)
-            _baked.Texture = tex;
-        else
-            GD.PrintErr($"[BAKE] load failed: {ip}");
+        // FABLE-028: hand cards are set up once before their id is known. Loading
+        // "cards_baked/.webp" failed, printed three error lines, and did it for every
+        // card in every hand — noise that buried the real log on the phone.
+        if (!string.IsNullOrEmpty(cardId))
+        {
+            string ip = $"res://content/art/cards_baked/{cardId}.webp";
+            var tex = ResourceLoader.Exists(ip) ? ResourceLoader.Load<Texture2D>(ip) : null;
+            if (tex != null)
+                _baked.Texture = tex;
+            else
+                GD.PrintErr($"[BAKE] no baked art for {cardId}");
+        }
 
         if (_hasB)
         {
