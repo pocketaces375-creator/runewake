@@ -29,6 +29,11 @@ AudioManager="*res://scripts/audio/AudioManager.cs"
 
 endpoint=""
 
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/max_log_files=4
+
 [display]
 
 window/size/viewport_width=2316

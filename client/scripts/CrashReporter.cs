@@ -325,6 +325,99 @@ public partial class CrashReporter : Node
     // ——— Pending report upload ———
 
     /// <summary>
+    private static readonly HashSet<string> Columns = new()
+        { "app_version", "platform", "exception_type", "message", "stack_trace", "godot_version" };
+
+    internal static string OnlyTableColumns(string json)
+    {
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var keep = new Dictionary<string, object?>();
+            foreach (var p in doc.RootElement.EnumerateObject())
+                if (Columns.Contains(p.Name))
+                    keep[p.Name] = p.Value.ValueKind == System.Text.Json.JsonValueKind.String ? p.Value.GetString() : p.Value.GetRawText();
+            return System.Text.Json.JsonSerializer.Serialize(keep);
+        }
+        catch { return json; }
+    }
+
+    /// <summary>
+    /// FABLE-022: release builds have no Diag panel, so the duel exit trace never left the
+    /// phone. On startup, if user://duel_exit_trace.txt changed since it was last sent, queue
+    /// it as a crash report (exception_type "ExitTrace") together with the tail of the
+    /// previous session's Godot log. The next UploadPendingReports call sends it.
+    /// Read it with: select received_at, message, stack_trace from crash_reports
+    ///               where exception_type = 'ExitTrace' order by received_at desc limit 3;
+    /// Never throws.
+    /// </summary>
+    public static void QueueExitTrace()
+    {
+        try
+        {
+            const string tracePath = "user://duel_exit_trace.txt";
+            const string sentPath = "user://duel_exit_trace.sent";
+            if (!Godot.FileAccess.FileExists(tracePath)) return;
+            string trace = Godot.FileAccess.GetFileAsString(tracePath);
+            if (string.IsNullOrWhiteSpace(trace)) return;
+            string hash = Fnv(trace);
+            if (Godot.FileAccess.FileExists(sentPath) && Godot.FileAccess.GetFileAsString(sentPath).Trim() == hash) return;
+
+            var lines = trace.TrimEnd().Split('\n');
+            string appVersion = ProjectSettings.GetSetting("application/config/version", "dev").AsString();
+            string godotVersion = Godot.Engine.GetVersionInfo().TryGetValue("string", out var v) ? v.AsString() : "unknown";
+            string body = "── duel exit trace ──\n" + trace.TrimEnd() +
+                          "\n\n── previous session log (tail) ──\n" + PreviousLogTail(7000);
+            var report = new Dictionary<string, object?>
+            {
+                ["app_version"] = appVersion,
+                ["platform"] = OS.GetName() + " " + OS.GetModelName(),
+                ["exception_type"] = "ExitTrace",
+                ["message"] = lines[^1],
+                ["stack_trace"] = CrashReportBuilder.TruncateStackTrace(body, 12000),
+                ["godot_version"] = godotVersion,
+            };
+            string dir = ProjectSettings.GlobalizePath(CrashDir);
+            System.IO.Directory.CreateDirectory(dir);
+            CrashReportBuilder.WriteReportFile(System.IO.Path.Combine(dir, $"{DateTime.UtcNow:yyyyMMdd_HHmmss}_exittrace.json"),
+                                               CrashReportBuilder.SerializeReport(report));
+            using var f = Godot.FileAccess.Open(sentPath, Godot.FileAccess.ModeFlags.Write);
+            f?.StoreString(hash);
+            GD.Print("[CrashReporter] exit trace queued for upload");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[CrashReporter] could not queue exit trace: {ex.Message}");
+        }
+    }
+
+    /// <summary>The last part of the newest ROTATED Godot log (the session before this one).</summary>
+    private static string PreviousLogTail(int chars)
+    {
+        try
+        {
+            string dir = ProjectSettings.GlobalizePath("user://logs");
+            if (!System.IO.Directory.Exists(dir)) return "(no log directory — file logging off?)";
+            string? latest = null;
+            foreach (var f in System.IO.Directory.GetFiles(dir, "godot*.log"))
+            {
+                if (System.IO.Path.GetFileName(f) == "godot.log") continue;
+                if (latest == null || System.IO.File.GetLastWriteTimeUtc(f) > System.IO.File.GetLastWriteTimeUtc(latest)) latest = f;
+            }
+            if (latest == null) return "(no previous log)";
+            string text = System.IO.File.ReadAllText(latest);
+            return text.Length <= chars ? text : "…" + text[^chars..];
+        }
+        catch (Exception ex) { return $"(log unreadable: {ex.Message})"; }
+    }
+
+    private static string Fnv(string s)
+    {
+        ulong h = 14695981039346656037UL;
+        foreach (char c in s) { h ^= c; h *= 1099511628211UL; }
+        return h.ToString("x16");
+    }
+
     /// Upload all pending crash report JSON files to Supabase.
     /// Call once from Main._Ready() after save loading.
     /// Spawns one-shot HttpRequest children — fires and forgets.
@@ -377,6 +470,11 @@ public partial class CrashReporter : Node
             {
                 continue;
             }
+
+            // FABLE-022: the table has no "timestamp" column, and PostgREST rejects a whole row
+            // that names an unknown column (PGRST204) — so no app report ever arrived. Send only
+            // the real columns.
+            json = OnlyTableColumns(json);
 
             var http = new HttpRequest();
             http.UseThreads = true;

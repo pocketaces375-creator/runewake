@@ -799,7 +799,10 @@ public partial class Main : Control
         // FABLE-018: was a hard-coded placeholder URL, so this never once
         // delivered a report. Uses the real config now; no-op when unset.
         if (supabaseConfig.IsConfigured)
+        {
+            CrashReporter.QueueExitTrace();   // FABLE-022: send the last duel-exit trace too
             CrashReporter.UploadPendingReports(supabaseConfig.Url, supabaseConfig.AnonKey);
+        }
 
         // ═══ CAPTURE HOOK (gated): auto-navigate to appropriate screen ═══
         if (CampaignContext.AutoCaptureScreenshot)

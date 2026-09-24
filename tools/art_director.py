@@ -98,9 +98,10 @@ VOCAB = {
     "placement": ["centre", "left third", "right third", "top", "bottom", "cropped by the edge", "scattered"],
     "story_moment": ["before", "during", "after", "everyday", "ceremony"],
 }
-FREE = ["subjects", "setting", "time_weather", "light", "action", "mood", "twist"]
-WEIGHTS = {"shot": .12, "viewpoint": .09, "placement": .10, "subject_count": .09, "story_moment": .06,
-           "setting": .15, "time_weather": .06, "light": .06, "action": .10, "subjects": .10, "mood": .04, "twist": .03}
+FREE = ["subjects", "setting", "time_weather", "light", "action", "mood", "twist", "colour_key"]
+WEIGHTS = {"shot": .11, "viewpoint": .08, "placement": .09, "subject_count": .08, "story_moment": .05,
+           "setting": .13, "time_weather": .05, "light": .05, "action": .09, "subjects": .09, "mood": .04, "twist": .03,
+           "colour_key": .11}
 
 # What every card used to be (v3.0 prompts): the ledger starts by remembering it.
 LEGACY_SETTING = {
@@ -116,7 +117,7 @@ LEGACY_SETTING = {
 SPARKS = [
     # how many
     "two of them, at odds with each other", "a parent and its young", "a whole pack, warband or congregation",
-    "the subject absent — only its traces, tracks, shadow or leftovers", "the subject and its victim",
+    "the subject absent — only its traces, tracks, shadow or leftovers", "the subject and its quarry",
     "the subject and whoever made or commands it", "a crowd reacting to it", "the last one standing among many fallen",
     "a tiny subject in an enormous world", "the subject so huge only part of it fits",
     # where the camera is
@@ -130,7 +131,7 @@ SPARKS = [
     "an ambush", "a chase", "a rescue", "a betrayal", "a bargain being struck", "a homecoming",
     "the moment it is born, forged or summoned", "the morning after a great battle",
     # framing
-    "an extreme close-up on one telling detail — a hand, an eye, a tool, a wound", "framed by an arch, a window or a ribcage",
+    "an extreme close-up on one telling detail — a hand, an eye, a tool, a scar", "framed by an arch, a window or a ribcage",
     "a split composition: two halves that contrast", "a strong diagonal across the whole frame",
     "a silhouette against a blaze of light", "a deep foreground object with the subject far behind it",
     "the subject pushed to the very edge, the rest of the frame empty and meaningful",
@@ -164,6 +165,13 @@ Rules for the "prompt" field (it goes straight to an image model):
 - do not mention art style, painting, brushwork, colour palette or camera brands — those are added separately
 - never use negative wording (no, not, without, never, avoid): describe what IS there
 - no written words, letters or text inside the picture
+- keep it card-game safe: menace, danger and struggle are fine, but never describe blood, gore, wounds, corpses,
+  dead bodies, torture or killing blows — imply them (a shadow, an empty helmet, a broken blade)
+
+Colour: each stratum has signature colours, but they are ACCENTS, not the whole picture. Choose a "colour_key"
+for the painting — the dominant colours and light, e.g. "cold dawn greys with one warm lantern", "sunset amber
+over black water", "moonlit silver-blue with a violet glow". Vary it as boldly as the composition; cards of the
+same stratum must not all share one colour cast.
 
 Return ONLY JSON: {"concepts": [ {
   "title": short name, "pitch": one sentence,
@@ -175,6 +183,7 @@ Return ONLY JSON: {"concepts": [ {
   "story_moment": one of before|during|after|everyday|ceremony,
   "setting": where, "time_weather": when and what weather, "light": the light source,
   "action": what is happening, "mood": one or two words, "twist": the surprising element,
+  "colour_key": the dominant colours and light of the painting,
   "fit": 1-5 how clearly this reads as the card,
   "prompt": the image prompt
 } ] }"""
@@ -413,8 +422,21 @@ def finish_prompt(concept, card):
     # A negative clause summons what it names (FLUX has no negative channel): drop the clause.
     clauses = re.split(r"(?<=[.,;])\s+", text)
     text = " ".join(c for c in clauses if not BANNED.search(c)).strip().rstrip(".,;") or text
-    pal = palette_line(card["strata"], Draw(stable_hash(card["id"] + "|pal")))
-    return f"{text}. {pal}. {SPINE[0].upper()}{SPINE[1:]}."
+    accents = PALETTES.get(card["strata"], "").split(" with ")[-1]
+    key = (concept.get("colour_key") or "").strip().rstrip(".")
+    colour = (f"Colour: {key}, with accents of {accents}" if key
+              else palette_line(card["strata"], Draw(stable_hash(card["id"] + "|pal"))))
+    return f"{text}. {colour}. {SPINE[0].upper()}{SPINE[1:]}."
+
+
+VIOLENT = re.compile(r"\b(blood\w*|gore|gory|wound\w*|corpse\w*|dead body|bodies|carcass\w*|kill\w*|slain|slaughter\w*|"
+                     r"decapitat\w*|severed|entrails|guts|butcher\w*|impal\w*|stab\w*|mutilat\w*|dying|death blow)\b", re.I)
+
+
+def soften(prompt):
+    """The generator's safety filter refused the painting: drop every clause that names violence."""
+    clauses = re.split(r"(?<=[.,;])\s+", prompt)
+    return " ".join(c for c in clauses if not VIOLENT.search(c)).strip() or prompt
 
 
 def plan_card(led, card, legacy, n=5, mock=False, min_novelty=0.45, tries=3):
@@ -468,8 +490,18 @@ def select_cards(args, cards, led):
     if getattr(args, "missing", False):
         return [c for c in cards if not (ART / f"{c['id']}.webp").exists() and c["id"] not in led["cards"]]
     if getattr(args, "worst", 0):
+        # Least unique first, but spread across strata: five Tide cards in a row would share one
+        # palette and hide whether the compositions really differ.
         scored = sorted((uniqueness(led, c["id"]) or 100, c["id"]) for c in cards if c["id"] in led["cards"])
-        return [by_id[i] for _, i in scored[:args.worst]]
+        by_strata = collections.defaultdict(list)
+        for _, i in scored:
+            by_strata[by_id[i]["strata"]].append(i)
+        picked = []
+        while len(picked) < args.worst and any(by_strata.values()):
+            for st in sorted(by_strata, key=lambda k: uniqueness(led, by_strata[k][0]) if by_strata[k] else 999):
+                if by_strata[st] and len(picked) < args.worst:
+                    picked.append(by_strata[st].pop(0))
+        return [by_id[i] for i in picked]
     if getattr(args, "planned", False):
         return [by_id[i] for i, e in led["cards"].items() if e.get("status") == "planned" and i in by_id]
     sys.exit("say which cards: ids, --stratum, --missing, --worst N or --planned")
@@ -551,9 +583,16 @@ def cmd_render(a):
         for i in range(a.candidates):
             gen = models[i % len(models)]
             out = WORK / f"{card['id']}_{i + 1}.png"
-            ok = mock_paint(out, stable_hash(card["id"]) + i) if a.mock else (
-                gia.via_images(e["prompt"], str(out), GENERATORS[gen], 832, 1216) if gen == "flux"
-                else gia.via_chat(e["prompt"], str(out), GENERATORS.get(gen, gen), "2:3"))
+            def paint(prompt):
+                return (gia.via_images(prompt, str(out), GENERATORS[gen], 832, 1216) if gen == "flux"
+                        else gia.via_chat(prompt, str(out), GENERATORS.get(gen, gen), "2:3"))
+            if a.mock:
+                ok = mock_paint(out, stable_hash(card["id"]) + i)
+            else:
+                ok = paint(e["prompt"])
+                if not ok and soften(e["prompt"]) != e["prompt"]:
+                    print(f"  {card['id']} candidate {i + 1} ({gen}) refused — retrying without the violent clauses")
+                    ok = paint(soften(e["prompt"]))
             if not ok:
                 print(f"  {card['id']} candidate {i + 1} ({gen}) failed")
                 continue
