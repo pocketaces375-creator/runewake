@@ -37,9 +37,10 @@ public partial class WorldMapScene : Control
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
     private static readonly Color Dim = new(0.62f, 0.58f, 0.50f);
 
-    public override void _Ready()
+    public override void _Ready() => SceneGuard.Build(this, "WorldMapScene", ReadyBody, WorldService.CrossroadsScenePath, "Back to the Crossroads");
+
+    private void ReadyBody()
     {
-        DuelScene.ExitTrace("arrived: WorldMapScene");
         var vp = GetViewportRect().Size;
         _mapRect = new Rect2(40, 130, vp.X - 40 - 480, vp.Y - 130 - 120);
         _progress = WorldService.Progress;

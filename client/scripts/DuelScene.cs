@@ -6090,9 +6090,16 @@ private void ShowGameOverOverlay(int winnerIndex)
                     ExitTrace($"WATCHDOG: 4 s after the swap to '{scenePath.GetFile()}' the tree shows {what}.");
                     ShowRootNotice(tree, $"Still waiting on {scenePath.GetFile()} after 4 s ({what}). Tell Fable: \"watchdog: {what}\".");
                 }
+                else if (cur.GetChildCount() == 0)
+                {
+                    // FABLE-024: the swap happened but the scene built nothing — its _Ready threw
+                    // before it added a single node. That is the grey screen.
+                    ExitTrace($"WATCHDOG: {cur.Name} loaded but is EMPTY — its _Ready threw. See the lines above.");
+                    ShowRootNotice(tree, $"{cur.Name} loaded empty (its setup failed). Reopen the app, then tell Fable: \"empty {cur.Name}\".");
+                }
                 else
                 {
-                    ExitTrace($"watchdog: now on {cur.Name} — all good");
+                    ExitTrace($"watchdog: now on {cur.Name} — all good ({cur.GetChildCount()} nodes)");
                 }
             };
         }

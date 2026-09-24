@@ -44,9 +44,10 @@ public partial class TowerScene : Control
         return TowerFloorDef.FromJson(Godot.FileAccess.GetFileAsString($"res://content/tower/floor_{n:000}.json"));
     }
 
-    public override void _Ready()
+    public override void _Ready() => SceneGuard.Build(this, "TowerScene", ReadyBody, WorldService.CrossroadsScenePath, "Back to the Crossroads");
+
+    private void ReadyBody()
     {
-        DuelScene.ExitTrace("arrived: TowerScene");
         var vp = GetViewportRect().Size;
         _mapRect = new Rect2(40, 150, vp.X - 40 - 500, vp.Y - 150 - 60);
         _floor = LoadFloor(CurrentFloor);

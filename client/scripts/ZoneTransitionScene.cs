@@ -29,9 +29,10 @@ public partial class ZoneTransitionScene : Control
         _ => new Color(0.6f, 0.55f, 0.45f),
     };
 
-    public override void _Ready()
+    public override void _Ready() => SceneGuard.Build(this, "ZoneTransitionScene", ReadyBody, CampaignRun.MapScenePath, "Back to the map");
+
+    private void ReadyBody()
     {
-        DuelScene.ExitTrace("arrived: ZoneTransitionScene");
         // A world page/area (ZoneInfo) or a campaign region (PendingZone).
         var info = CampaignContext.PendingZoneInfo;
         CampaignContext.PendingZoneInfo = null;

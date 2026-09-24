@@ -13,9 +13,10 @@ public partial class CrossroadsScene : Control
 {
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
 
-    public override void _Ready()
+    public override void _Ready() => SceneGuard.Build(this, "CrossroadsScene", ReadyBody, CampaignRun.MapScenePath, "Back to the map");
+
+    private void ReadyBody()
     {
-        DuelScene.ExitTrace("arrived: CrossroadsScene");
         var vp = GetViewportRect().Size;
         var progress = WorldService.Progress;
         var atlas = WorldService.Atlas;
