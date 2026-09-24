@@ -1062,10 +1062,18 @@ public partial class Main : Control
                     : null;
                 if (prev != null)
                 {
-                    var errs = System.IO.File.ReadAllLines(prev)
-                        .Where(l => l.Contains("ERROR") || l.Contains("Exception") || l.Contains("   at ") || l.Contains("USER ERROR"))
-                        .TakeLast(8).ToList();
-                    if (errs.Count > 0) tail += "\n— errors logged that session —\n" + string.Join("\n", errs);
+                    // FABLE-027: the whole end of that session's log, not just error lines — the
+                    // freeze shows up as WHAT the game was doing, which is rarely an error. Repeated
+                    // lines are collapsed so a spam loop cannot push everything else off the screen.
+                    var all = System.IO.File.ReadAllLines(prev).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+                    var collapsed = new List<string>();
+                    foreach (var l in all.Skip(Math.Max(0, all.Count - 400)))
+                    {
+                        string t = l.Length > 180 ? l[..180] + "…" : l;
+                        if (collapsed.Count > 0 && collapsed[^1].StartsWith(t)) { collapsed[^1] = t + "  (repeated)"; continue; }
+                        collapsed.Add(t);
+                    }
+                    tail += "\n— that session's log, NEWEST FIRST —\n" + string.Join("\n", collapsed.TakeLast(45).Reverse());
                 }
             }
             catch { /* the trace alone is still worth showing */ }
@@ -1087,10 +1095,16 @@ public partial class Main : Control
             head.AddThemeFontSizeOverride("font_size", 30);
             head.AddThemeColorOverride("font_color", new Color(1.0f, 0.62f, 0.52f));
             box.AddChild(head);
-            var body = new Label { Text = tail, AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-            body.AddThemeFontSizeOverride("font_size", 20);
+            var scroll = new ScrollContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+            var body = new Label { Text = tail, AutowrapMode = TextServer.AutowrapMode.WordSmart, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+            body.AddThemeFontSizeOverride("font_size", 18);
             body.AddThemeColorOverride("font_color", new Color(0.92f, 0.88f, 0.8f));
-            box.AddChild(body);
+            scroll.AddChild(body);
+            box.AddChild(scroll);
+            var hintLbl = new Label { Text = "Scroll down — take a screenshot of each screenful." };
+            hintLbl.AddThemeFontSizeOverride("font_size", 18);
+            hintLbl.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.55f));
+            box.AddChild(hintLbl);
             var ok = new Button { Text = "Close", CustomMinimumSize = new Vector2(260, 70), SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter };
             ok.AddThemeFontSizeOverride("font_size", 30);
             ok.Pressed += () => layer.QueueFree();
