@@ -36,8 +36,9 @@ and the ledger to ~/runewake_art_archive/art_ledger.json (ART_LEDGER) — both o
 working-tree reset cannot delete them. `export-ledger` copies the ledger to pipeline/art_ledger.json to commit.
   art_director.py bootstrap [--vision]              put the existing card art in the ledger
   art_director.py plan <card_id…> | --stratum S | --missing | --worst N
-  art_director.py render <card_id…> | --planned [--candidates 2] [--models flux,gemini]
-  art_director.py sheet [card_id…]                  review contact sheet with scores
+  art_director.py render <card_id…> | --planned [--candidates 1] [--models flux,gemini]
+  art_director.py sheet [card_id…] [--all|--run ID]  review pages for the LAST run only (default),
+                                                    written to artifacts/art_review/<run>/ to commit
   art_director.py approve <card_id> <candidate#>    install as client/content/art/<id>.webp
   art_director.py score [--top 20]                  uniqueness of every card vs all others
   art_director.py show <card_id>
@@ -565,6 +566,13 @@ def cmd_plan(a):
 def cmd_render(a):
     led = load_ledger()
     models = [m.strip() for m in a.models.split(",") if m.strip()]
+    # FABLE-034: every render is a RUN. The ledger remembers every painting ever made, and the
+    # review sheet used to show all of them — three runs of 6-7 cards came out as one 19-row
+    # sheet that looked like a single enormous spend. Each card now carries the run that
+    # painted it, and `sheet` shows the latest run unless told otherwise.
+    run = time.strftime("%Y%m%d-%H%M%S")
+    todo = [c for c in select_cards(a, load_cards(), led) if led["cards"].get(c["id"], {}).get("prompt")]
+    print(f"run {run}: {len(todo)} card(s) × {a.candidates} candidate(s) = {len(todo) * a.candidates} painting(s)", flush=True)
     if not a.mock:
         _key()                        # before the import: gen_image_any reads the key when it loads
         import gen_image_any as gia   # noqa: E402
@@ -603,6 +611,9 @@ def cmd_render(a):
         results.sort(key=lambda r: r["image_similarity"])
         e["candidates"] = results
         e["status"] = "rendered" if results else "planned"
+        if results:
+            e["run"] = run
+            led["last_run"] = run
         save_ledger(led)
         if results:
             print(f"{card['id']:<28} best candidate #{results[0]['n']} ({results[0]['generator']}) "
@@ -612,37 +623,81 @@ def cmd_render(a):
 
 def cmd_sheet(a):
     led = load_ledger()
-    ids = a.ids or [k for k, e in led["cards"].items() if e.get("status") == "rendered"]
+    run = a.run or led.get("last_run")
+    if a.ids:
+        ids, label = a.ids, "picked"
+    elif a.all or not run:
+        ids, label = [k for k, e in led["cards"].items() if e.get("status") == "rendered"], "all"
+    else:
+        ids, label = [k for k, e in led["cards"].items() if e.get("status") == "rendered" and e.get("run") == run], run
     rows = [(i, led["cards"][i]) for i in ids if led["cards"].get(i, {}).get("candidates")]
     if not rows:
-        print("nothing rendered to show")
+        print("nothing rendered to show" + (f" for run {run} (try --all)" if run else ""))
         return 1
-    W, H, TXT = 260, 380, 150
-    cols = 1 + max(len(e["candidates"]) for _, e in rows)
-    sheet = Image.new("RGB", (cols * W, len(rows) * (H + TXT)), (14, 12, 10))
-    d = ImageDraw.Draw(sheet)
+    W, H, TXTW, GAP = 240, 351, 640, 14
+    ncand = max(len(e["candidates"]) for _, e in rows)
+    row_h = H + GAP
+    page_w = (1 + ncand) * (W + GAP) + TXTW
     try:
-        font = ImageFont.truetype(str(REPO / "client" / "assets" / "fonts" / "Inter-Variable.ttf"), 15)
+        font = ImageFont.truetype(str(REPO / "client" / "assets" / "fonts" / "Inter-Variable.ttf"), 16)
+        small = ImageFont.truetype(str(REPO / "client" / "assets" / "fonts" / "Inter-Variable.ttf"), 14)
     except OSError:
-        font = None
-    for r, (cid, e) in enumerate(rows):
-        y = r * (H + TXT)
-        old = e.get("replaces")
-        if old and (REPO / old).exists():
-            sheet.paste(Image.open(REPO / old).convert("RGB").resize((W, H)), (0, y))
-            d.text((6, y + H + 4), "OLD", fill=(160, 150, 130), font=font)
-        for j, c in enumerate(e["candidates"]):
-            sheet.paste(Image.open(REPO / c["path"]).convert("RGB").resize((W, H)), ((j + 1) * W, y))
-            d.text(((j + 1) * W + 6, y + H + 4), f"#{c['n']} {c['generator']}  closest {c['image_similarity']:.2f}",
-                   fill=(230, 200, 120), font=font)
-        con = e["concept"]
-        text = f"{cid}  ·  novelty {e.get('novelty', 0):.2f}\n{con.get('title', '')}: {con.get('pitch', '')}"
-        for k, line in enumerate(_wrap(text, 95)[:6]):
-            d.text((6, y + H + 24 + k * 19), line, fill=(215, 205, 185), font=font)
+        font = small = None
+    pages = []
+    for start in range(0, len(rows), a.rows):
+        chunk = rows[start:start + a.rows]
+        sheet = Image.new("RGB", (page_w, 40 + len(chunk) * row_h), (14, 12, 10))
+        d = ImageDraw.Draw(sheet)
+        d.text((10, 10), f"Runewake art review · run {label} · page {len(pages) + 1} of {math.ceil(len(rows) / a.rows)}"
+               f" · approve with: art_director.py approve <card_id> <#>", fill=(200, 185, 150), font=font)
+        for r, (cid, e) in enumerate(chunk):
+            y = 40 + r * row_h
+            x = 0
+            old = e.get("replaces")
+            if old and (REPO / old).exists():
+                sheet.paste(Image.open(REPO / old).convert("RGB").resize((W, H)), (x, y))
+                d.text((x + 6, y + 6), "OLD", fill=(230, 220, 200), font=font)
+            x += W + GAP
+            for c in e["candidates"]:
+                try:
+                    sheet.paste(Image.open(REPO / c["path"]).convert("RGB").resize((W, H)), (x, y))
+                except (OSError, FileNotFoundError):
+                    d.rectangle((x, y, x + W, y + H), outline=(90, 60, 50))
+                    d.text((x + 6, y + 6), "missing file", fill=(200, 120, 100), font=small)
+                d.text((x + 6, y + 6), f"#{c['n']} {c['generator']}", fill=(255, 230, 150), font=font)
+                d.text((x + 6, y + H - 22), f"closest match {c['image_similarity']:.2f}", fill=(220, 200, 150), font=small)
+                x += W + GAP
+            x = (1 + ncand) * (W + GAP)   # the text column lines up whatever a row's candidate count
+            con = e.get("concept", {})
+            text = (f"{cid}  ·  novelty {e.get('novelty', 0):.2f}  ·  {e.get('status')}\n"
+                    f"{con.get('title', '')}: {con.get('pitch', '')}")
+            for k, line in enumerate(_wrap(text, 78)[:16]):
+                d.text((x + 8, y + 6 + k * 20), line, fill=(215, 205, 185), font=small)
+        pages.append(sheet)
     WORK.mkdir(parents=True, exist_ok=True)
-    out = WORK / "review.jpg"
-    sheet.save(out, quality=85)
-    print(f"review sheet: {out}")
+    outs = []
+    for i, pg in enumerate(pages):
+        out = WORK / f"review_{label}_p{i + 1}.jpg"
+        pg.save(out, quality=85)
+        outs.append(out)
+    print(f"{len(rows)} card(s) in run {label} → {len(outs)} page(s):")
+    for o in outs:
+        print(f"  {o}")
+    if not a.no_export:
+        dest = REPO / "artifacts" / "art_review" / str(label)
+        dest.mkdir(parents=True, exist_ok=True)
+        for o in outs:
+            (dest / o.name).write_bytes(o.read_bytes())
+        lines = [f"# Art review — run {label}", "",
+                 f"{len(rows)} card(s). Pages: " + ", ".join(o.name for o in outs), "",
+                 "Approve a candidate with `python3 tools/art_director.py approve <card_id> <#>`, then re-bake the plates.", ""]
+        for cid, e in rows:
+            con = e.get("concept", {})
+            lines += [f"## {cid}", "", f"**{con.get('title', '')}** — {con.get('pitch', '')}", "",
+                      "candidates: " + ", ".join(f"#{c['n']} {c['generator']} (closest {c['image_similarity']:.2f})" for c in e["candidates"]), "",
+                      "```", (e.get("prompt") or "").strip(), "```", ""]
+        (dest / "README.md").write_text("\n".join(lines), encoding="utf-8")
+        print(f"exported to {dest.relative_to(REPO)}/ — commit that folder so the pages travel with the repo")
     return 0
 
 
@@ -714,8 +769,9 @@ def main():
     p = sub.add_parser("plan"); p.add_argument("ids", nargs="*"); p.add_argument("--stratum"); p.add_argument("--missing", action="store_true")
     p.add_argument("--worst", type=int, default=0); p.add_argument("--concepts", type=int, default=5)
     r = sub.add_parser("render"); r.add_argument("ids", nargs="*"); r.add_argument("--planned", action="store_true")
-    r.add_argument("--candidates", type=int, default=2); r.add_argument("--models", default="flux")
-    s = sub.add_parser("sheet"); s.add_argument("ids", nargs="*")
+    r.add_argument("--candidates", type=int, default=1); r.add_argument("--models", default="flux")
+    s = sub.add_parser("sheet"); s.add_argument("ids", nargs="*"); s.add_argument("--all", action="store_true")
+    s.add_argument("--run"); s.add_argument("--rows", type=int, default=4); s.add_argument("--no-export", action="store_true")
     ap_ = sub.add_parser("approve"); ap_.add_argument("card_id"); ap_.add_argument("candidate", type=int)
     sc = sub.add_parser("score"); sc.add_argument("--top", type=int, default=20)
     sh = sub.add_parser("show"); sh.add_argument("card_id")

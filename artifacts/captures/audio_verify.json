@@ -15,18 +15,11 @@
       "callCount": 1
     },
     {
-      "id": "card_shuffle",
+      "id": "defeat",
       "type": "sfx",
       "streamNonNull": true,
       "enteredPlaying": true,
       "callCount": 1
-    },
-    {
-      "id": "victory",
-      "type": "sfx",
-      "streamNonNull": true,
-      "enteredPlaying": true,
-      "callCount": 3
     },
     {
       "id": "metal_clink",
@@ -71,19 +64,20 @@
     "music:stones_and_dust",
     "music:thorn_reach",
     "sfx:card_play",
+    "sfx:card_shuffle",
     "sfx:click",
     "sfx:coins",
     "sfx:damage",
     "sfx:death",
-    "sfx:defeat",
     "sfx:hit_light",
     "sfx:spell",
     "sfx:stone_rumble",
-    "sfx:unlock"
+    "sfx:unlock",
+    "sfx:victory"
   ],
   "musicExercised": false,
   "sfxExercised": true,
   "totalMusicCalls": 0,
-  "totalSfxCalls": 7,
+  "totalSfxCalls": 4,
   "totalAmbientCalls": 1
 }

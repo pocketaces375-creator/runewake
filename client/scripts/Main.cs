@@ -95,6 +95,16 @@ public partial class Main : Control
 
         float wheelViewportCx = WHEEL_SRC_CX * scale - offsetX;
         float wheelViewportCy = WHEEL_SRC_CY * scale - offsetY;
+
+        // FABLE-032: the painted vortex sits at 47% of the picture's width, so under a centred
+        // menu it read a hair left ("the spiral is off centre left of the Continue button").
+        // Slide the painting right by exactly that difference; the vortex is now the axis the
+        // menu hangs on. TitleAtmosphere.StartPushIn keeps enough overscan to hide the slide.
+        float heroShiftX = vw / 2f - wheelViewportCx;
+        heroArt.Position = new Vector2(heroShiftX, heroArt.Position.Y);
+        TitleAtmosphere.HeroShiftX = heroShiftX;
+        wheelViewportCx = vw / 2f;
+        GD.Print($"[TITLE] vortex centred: painting slid {heroShiftX:F0}px");
         float wheelViewportRadius = WHEEL_SRC_RADIUS * scale;
         float wheelSize = wheelViewportRadius * 2f;
 
@@ -743,8 +753,11 @@ public partial class Main : Control
             syncManager.Initialize(supabaseConfig, CampaignContext.Progression!, CampaignContext.SaveManager!);
             CampaignContext.SyncManager = syncManager;
             var sm = syncManager;
-            // The root is busy adding THIS scene during _Ready: add next frame.
-            Callable.From(() => { if (IsInstanceValid(sm) && sm.GetParent() == null) GetTree().Root.AddChild(sm); }).CallDeferred();
+            // The root is busy adding THIS scene during _Ready: add next frame. The tree is
+            // captured now: a capture run swaps this scene out within the frame, and GetTree()
+            // on a node that has left the tree is null (FABLE-033).
+            var tree = GetTree();
+            Callable.From(() => { if (tree != null && IsInstanceValid(sm) && sm.GetParent() == null) tree.Root.AddChild(sm); }).CallDeferred();
         }
         syncManager!.StatusChanged += status =>
         {
@@ -808,7 +821,8 @@ public partial class Main : Control
             var telemetry = new TelemetryService { Name = "TelemetryService" };
             telemetry.Initialize(supabaseConfig, null); // accountId resolved lazily by SyncManager
             CampaignContext.Telemetry = telemetry;
-            Callable.From(() => { if (IsInstanceValid(telemetry) && telemetry.GetParent() == null) GetTree().Root.AddChild(telemetry); }).CallDeferred();
+            var tree2 = GetTree();
+            Callable.From(() => { if (tree2 != null && IsInstanceValid(telemetry) && telemetry.GetParent() == null) tree2.Root.AddChild(telemetry); }).CallDeferred();
         }
 
         // Upload any pending crash reports (fire-and-forget, no-op if not configured)

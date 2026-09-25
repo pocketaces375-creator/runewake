@@ -2524,7 +2524,8 @@ public partial class DuelScene : Control
 
         // ═══ TASK-E: Game-over overlay — check after rendering each frame ═══
         bool isGameOver = _gsm.IsGameOver;
-        if (isGameOver)
+        // FABLE-033: only once OnGameOver has banked the rewards (StateChanged fires first).
+        if (isGameOver && _gameOverSettled)
         {
             // FABLE-012 — THE Continue bug, finally.
             //
@@ -5131,219 +5132,6 @@ public partial class DuelScene : Control
     /// <summary>Display name of the card granted by this victory (null = none).</summary>
     private string? _grantedCardName;
 
-    // ── TASK-DROPS-UI-1: Drop reveal state ──
-    private struct DropRevealCard
-    {
-        public string CardId;
-        public string CardName;
-        public int Cost;
-        public Strata Strata;
-        public int? Attack;
-        public int? Vigor;
-        public bool IsNew;
-    }
-    private readonly List<DropRevealCard> _dropRevealCards = new();
-    private int _currentRevealIndex = -1;
-    private Control? _dropRevealContainer;
-    private Control? _dropCardContainer; // holds the currently visible CardPlate
-    private Label? _dropRibbonLabel;     // "NEW" or "+1"
-    private Label? _dropTitleLabel;      // "Drops" header
-    private Godot.Timer? _revealTimer;
-    private bool _revealTapped;          // player tapped to advance
-
-    // ── TASK-REWARD-SCREEN-1: Animated reward counters ──
-    private struct AnimatedRewardCounter
-    {
-        public Label ValueLabel;
-        public int TargetValue;
-        public int Index;
-    }
-    private readonly List<AnimatedRewardCounter> _rewardCounters = [];
-    private bool _countersStarted;
-
-    /// <summary>
-    /// Start the drop reveal sequence on the victory overlay.
-    /// </summary>
-    private void StartDropReveal()
-    {
-        if (_dropRevealContainer == null || _dropRevealCards.Count == 0)
-        {
-            // No drops to reveal — skip reveal state
-            _currentRevealIndex = _dropRevealCards.Count;
-            return;
-        }
-
-        _currentRevealIndex = -1;
-        _revealTapped = false;
-
-        // Show the drops header
-        if (_dropTitleLabel != null)
-            _dropTitleLabel.Visible = true;
-
-        // Reveal the first card after a short pause
-        var timer = new Godot.Timer();
-        timer.WaitTime = 0.8f;
-        timer.OneShot = true;
-        timer.Timeout += RevealNextDrop;
-        AddChild(timer);
-        timer.Start();
-        _revealTimer = timer;
-    }
-
-    /// <summary>
-    /// Reveal the next card in the drop sequence, or finish.
-    /// </summary>
-    private void RevealNextDrop()
-    {
-        _revealTapped = false;
-
-        // Clean up previous card
-        if (_dropCardContainer != null)
-        {
-            _dropCardContainer.QueueFree();
-            _dropCardContainer = null;
-        }
-
-        _currentRevealIndex++;
-
-        if (_currentRevealIndex >= _dropRevealCards.Count)
-        {
-            // All drops revealed — hide the reveal UI, let Continue button work
-            if (_dropRevealContainer != null)
-                _dropRevealContainer.Visible = false;
-            if (_dropTitleLabel != null)
-                _dropTitleLabel.Visible = false;
-            // Re-enable Continue button if it was disabled
-            return;
-        }
-
-        var card = _dropRevealCards[_currentRevealIndex];
-        BuildDropRevealCard(card);
-
-        // Set up auto-advance timer for this card
-        if (_revealTimer != null && IsInstanceValid(_revealTimer))
-        {
-            _revealTimer.QueueFree();
-        }
-        var timer = new Godot.Timer();
-        timer.WaitTime = 2.5f;
-        timer.OneShot = true;
-        timer.Timeout += () =>
-        {
-            if (!_revealTapped && _currentRevealIndex < _dropRevealCards.Count)
-                RevealNextDrop();
-        };
-        AddChild(timer);
-        timer.Start();
-        _revealTimer = timer;
-    }
-
-    /// <summary>
-    /// Build a CardPlate for one revealed drop card inside the reveal container.
-    /// </summary>
-    private void BuildDropRevealCard(DropRevealCard card)
-    {
-        if (_dropRevealContainer == null) return;
-
-        // Remove any existing card plate
-        if (_dropCardContainer != null)
-        {
-            _dropCardContainer.QueueFree();
-            _dropCardContainer = null;
-        }
-
-        // Card size: hand-card size (~260px wide at 2316x1080)
-        float cardW = 260f;
-        float cardH = cardW * 1.45f; // ~2:3 card aspect
-
-        // Container for the card + ribbon
-        var ctr = new Control
-        {
-            Name = "DropRevealCardWrapper",
-            CustomMinimumSize = new Vector2(cardW + 40, cardH + 60),
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
-        };
-
-        // CardPlate
-        var plate = new CardPlate
-        {
-            Name = "DropCardPlate",
-            MouseFilter = Control.MouseFilterEnum.Stop,
-            CustomMinimumSize = new Vector2(cardW, cardH),
-        };
-        plate.Setup(card.CardId, card.Attack, card.Vigor, cardW, cardH, card.Cost);
-
-        ctr.AddChild(plate);
-
-        // ── Ribbon (top-left corner) ──
-        var ribbonText = card.IsNew ? "NEW" : "+1";
-        var ribbon = new Label
-        {
-            Text = ribbonText,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        ApplyHeaderFont(ribbon, 14);
-        float ribbonW = card.IsNew ? 60f : 44f;
-        float ribbonH = 24f;
-        ribbon.Size = new Vector2(ribbonW, ribbonH);
-        ribbon.Position = new Vector2(-4, -4);
-        var ribbonStyle = new StyleBoxFlat
-        {
-            BgColor = card.IsNew ? Color.FromHtml("#2A6B2A") : Color.FromHtml("#6B5A2A"),
-            BorderColor = card.IsNew ? Color.FromHtml("#5AFA2A") : Color.FromHtml("#FA9A2A"),
-            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 6, ContentMarginTop = 2, ContentMarginRight = 6, ContentMarginBottom = 2,
-        };
-        ribbon.AddThemeStyleboxOverride("normal", ribbonStyle);
-        ribbon.Modulate = card.IsNew ? Color.FromHtml("#C8FFC8") : Color.FromHtml("#FFE8A0");
-        ctr.AddChild(ribbon);
-        _dropRibbonLabel = ribbon;
-
-        // ── Tap hint ──
-        bool isLast = _currentRevealIndex >= _dropRevealCards.Count - 1;
-        var hint = new Label
-        {
-            Text = isLast ? "Tap to continue" : "Tap for next",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        ApplyBodyFont(hint, 12);
-        hint.Modulate = new Color(0.7f, 0.7f, 0.7f, 0.7f);
-        hint.Position = new Vector2(0, cardH + 8);
-        hint.Size = new Vector2(cardW, 20);
-        ctr.AddChild(hint);
-
-        // ── Tap-to-advance on the card area ──
-        var tapArea = new ColorRect
-        {
-            Color = new Color(0, 0, 0, 0),
-            MouseFilter = Control.MouseFilterEnum.Stop,
-            Size = new Vector2(cardW, cardH),
-            Position = Vector2.Zero,
-        };
-        tapArea.GuiInput += (evt) =>
-        {
-            if (evt is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-            {
-                _revealTapped = true;
-                if (_revealTimer != null && IsInstanceValid(_revealTimer))
-                    _revealTimer.QueueFree();
-                RevealNextDrop();
-            }
-        };
-        ctr.AddChild(tapArea);
-
-        // Add to reveal container
-        _dropRevealContainer.AddChild(ctr);
-        _dropCardContainer = ctr;
-    }
-
     private void OnGameOver(int winnerIndex)
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
@@ -5359,6 +5147,7 @@ public partial class DuelScene : Control
         if (CampaignContext.IsArenaDuel && !_isGameOverHandled)
         {
             _isGameOverHandled = true;
+            _arenaDuelEnded = true;   // FABLE-033
             var prog = CampaignContext.Progression;
 
             if (winnerIndex == 0)
@@ -5366,6 +5155,7 @@ public partial class DuelScene : Control
                 // Player won — award RuneDust
                 int reward = CampaignContext.IsWardenOpponent ? 25 : 10;
                 prog.RuneDust += reward;
+                _arenaRuneDust = reward;   // FABLE-033
                 prog.ArenaWins++;
                 GD.Print($"[DuelScene] Arena victory! +{reward} RuneDust (warden={CampaignContext.IsWardenOpponent})");
 
@@ -5382,6 +5172,7 @@ public partial class DuelScene : Control
                         bool firstTime = !prog.Collection.ContainsKey(rewardCardId);
                         prog.AddCard(rewardCardId);
                         _grantedCardName = rewardDef.Name;
+                        NoteLootCard(rewardCardId, rewardDef, "drop", firstTime);   // FABLE-033
                         GD.Print($"[DuelScene] Arena bonus card: {rewardCardId} (first={firstTime})");
                     }
                 }
@@ -5406,6 +5197,7 @@ public partial class DuelScene : Control
             };
             AddChild(arenaNavTimer);
             arenaNavTimer.Start();
+            SettleGameOver();   // FABLE-033
             return;
         }
 
@@ -5474,6 +5266,7 @@ public partial class DuelScene : Control
 
                     if (firstTime)
                         _grantedCardName = rewardDef.Name;
+                    NoteLootCard(rewardCardId!, rewardDef, "reward");   // FABLE-033
                     GD.Print($"[DuelScene] Card reward granted: {rewardCardId} (firstTime={firstTime})");
                 }
             }
@@ -5497,6 +5290,7 @@ public partial class DuelScene : Control
                         {
                             prog.AddRelic(relic);
                             prog.AddCard(relic.CardId);
+                            NoteLootCard(relic.CardId, CardRegistry.Get(relic.CardId), "relic");   // FABLE-033
 
                             // Sync the newly minted relic to Supabase (fire-and-forget)
                             if (CampaignContext.SyncManager != null)
@@ -5525,7 +5319,10 @@ public partial class DuelScene : Control
             foreach (var cardId in enc.Deck)
             {
                 if (!prog.Collection.ContainsKey(cardId))
+                {
                     prog.AddCard(cardId);
+                    NoteLootCard(cardId, CardRegistry.Get(cardId), "deck");   // FABLE-033
+                }
             }
 
             // ── TASK-DROPS-UI-1: Roll encounter drop table ──
@@ -5548,16 +5345,7 @@ public partial class DuelScene : Control
                 // Grant the drop copy
                 prog.AddCard(dcId);
 
-                _dropRevealCards.Add(new DropRevealCard
-                {
-                    CardId = dcId,
-                    CardName = cardDef.Name,
-                    Cost = cardDef.Cost,
-                    Strata = cardDef.Strata,
-                    Attack = cardDef.Attack,
-                    Vigor = cardDef.Vigor,
-                    IsNew = isNew,
-                });
+                NoteLootCard(dcId, cardDef, "drop", isNew);   // FABLE-033
 
                 GD.Print($"[DuelScene] Drop rolled: {cardDef.Name} ({dcId}) {(isNew ? "NEW" : "+1")}");
             }
@@ -5578,87 +5366,10 @@ public partial class DuelScene : Control
     else
     {
         // Non-campaign (test/free-play) — show game-over overlay
-        ShowGameOverOverlay(winnerIndex);
+        // FABLE-033: the same end screen as a campaign fight, built once settled.
     }
+    SettleGameOver();   // FABLE-033: rewards banked — the end screen may build now
 } // closes OnGameOver
-
-private void ShowGameOverOverlay(int winnerIndex)
-    {
-        var panel = new Panel();
-        panel.AnchorLeft = 0.2f;
-        panel.AnchorRight = 0.8f;
-        panel.AnchorTop = 0.25f;
-        panel.AnchorBottom = 0.55f;
-
-        var style = new StyleBoxFlat();
-        style.BgColor = new Color(BgDark.R, BgDark.G, BgDark.B, 0.95f);
-        style.BorderColor = winnerIndex == 0 ? Gold : Ember;
-        style.BorderWidthLeft = 2;
-        style.BorderWidthTop = 2;
-        style.BorderWidthRight = 2;
-        style.BorderWidthBottom = 2;
-        style.CornerRadiusTopLeft = 8;
-        style.CornerRadiusTopRight = 8;
-        style.CornerRadiusBottomLeft = 8;
-        style.CornerRadiusBottomRight = 8;
-        panel.AddThemeStyleboxOverride("panel", style);
-        AddChild(panel);
-
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        vbox.AnchorLeft = 0.1f;
-        vbox.AnchorRight = 0.9f;
-        vbox.AnchorTop = 0.1f;
-        vbox.AnchorBottom = 0.9f;
-        panel.AddChild(vbox);
-
-        var title = new Label();
-        title.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
-        title.HorizontalAlignment = HorizontalAlignment.Center;
-        title.AddThemeFontSizeOverride("font_size", 28);
-        title.Modulate = winnerIndex == 0 ? Gold : Ember;
-        vbox.AddChild(title);
-
-        vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 }); // Spacer
-
-        var turnInfo = new Label();
-        turnInfo.Text = $"Game ended on turn {_gsm.TurnNumber}";
-        turnInfo.HorizontalAlignment = HorizontalAlignment.Center;
-        turnInfo.AddThemeFontSizeOverride("font_size", 16);
-        vbox.AddChild(turnInfo);
-
-        vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 }); // Spacer
-
-        var btnHBox = new HBoxContainer();
-        btnHBox.Alignment = BoxContainer.AlignmentMode.Center;
-        btnHBox.SizeFlagsHorizontal = (Control.SizeFlags)3;
-        vbox.AddChild(btnHBox);
-
-        var playAgain = new Button();
-        playAgain.Text = "Play Again";
-        playAgain.CustomMinimumSize = new Vector2(130, 40);
-        playAgain.Pressed += () =>
-        {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ReloadCurrentScene();
-        };
-        btnHBox.AddChild(playAgain);
-
-        // Spacer between buttons
-        btnHBox.AddChild(new Control { CustomMinimumSize = new Vector2(20, 0) });
-
-        var backToTitle = new Button();
-        backToTitle.Text = "Back to Title";
-        backToTitle.CustomMinimumSize = new Vector2(130, 40);
-        backToTitle.Pressed += () =>
-        {
-            // Was "res://scenes/Main.tscn", which does not exist — the real scene is
-            // scenes/main/Main.tscn, so this button has always been a no-op.
-            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
-            LeaveDuelFor(MainMenuScenePath, "Back to Title pressed");
-        };
-        btnHBox.AddChild(backToTitle);
-    }
 
     /// <summary>The real path of the title scene. "res://scenes/Main.tscn" does not exist.</summary>
     private const string MainMenuScenePath = "res://scenes/main/Main.tscn";
@@ -5760,6 +5471,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 ExitTrace($"'{label}' activated via {via}");
                 GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
                 btn.Text = label == "Fight Again" ? "Loading…" : "Continuing…";
+                MirrorButtonFace(btn);   // FABLE-033: plate buttons draw their text on a child
                 // Deliberately NOT setting btn.Disabled — changing a Button's
                 // disabled state from inside its own press is a needless extra
                 // thing to go wrong, and the latch already prevents a double fire.
@@ -5778,7 +5490,7 @@ private void ShowGameOverOverlay(int winnerIndex)
                 ShowExitError($"{label} failed: {ex.GetType().Name} — {ex.Message}");
                 fired = false;
                 _exitCommitted = false;
-                if (IsInstanceValid(btn)) btn.Text = label;
+                if (IsInstanceValid(btn)) { btn.Text = label; MirrorButtonFace(btn); }
             }
         }
 
@@ -5900,14 +5612,14 @@ private void ShowGameOverOverlay(int winnerIndex)
         }
     }
 
-    private async System.Threading.Tasks.Task AuditAfterLayout(Button a, Button b)
+    private async System.Threading.Tasks.Task AuditAfterLayout(params Button?[] buttons)
     {
         var tree = GetTree();
         if (tree == null) return;
         await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
         await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
         if (!IsInsideTree()) return;   // already left — nothing to audit
-        AuditEndOfDuelButtons(a, b);
+        AuditEndOfDuelButtons(buttons);
     }
 
     /// <summary>Z as Godot resolves it: relative z-indexes accumulate up the chain.</summary>
@@ -6247,775 +5959,7 @@ private void ShowGameOverOverlay(int winnerIndex)
     /// </summary>
     private const int GameOverZIndex = 1000;
 
-    /// <summary>
-    /// Build the end-of-duel screen — full-screen overlay in the game's serif/stone language.
-    /// Handles victory and defeat: encounter name, turns taken, reward summary, action buttons.
-    /// Uses ThemeTokens for all colors, fonts, and border treatments.
-    /// Plays victory/defeat audio event on creation.
-    /// </summary>
-    private void BuildGameOverOverlay()
-    {
-        _gameOverOverlay = new Control { Name = "GameOverOverlay" };
-        _gameOverOverlay.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        // FABLE-005: this overlay was left at the default z-index 0 and relied on
-        // MoveChild-to-last to sit on top. Tree order only breaks ties BETWEEN equal
-        // z-indexes — a higher z-index always wins, so every piece of duel chrome that
-        // sets one (hand cards at 1/10, the enemy hand row at 50, deck counts at 99/100,
-        // the rules slab at 100, the coach at 150, the deny panel at 200) drew over the
-        // end-of-duel screen and took the taps meant for Continue.
-        _gameOverOverlay.ZIndex = GameOverZIndex;
-        _gameOverOverlay.MouseFilter = Control.MouseFilterEnum.Stop;
-
-        // Semi-transparent dark panel dimming the board. Stop, not Ignore: the duel is
-        // over, so nothing behind this should be tappable. The panel and its buttons are
-        // added after it, so they are still picked first.
-        var dim = new ColorRect();
-        dim.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        dim.Color = new Color(BgDark.R, BgDark.G, BgDark.B, 0.85f);
-        dim.MouseFilter = Control.MouseFilterEnum.Stop;
-        _gameOverOverlay.AddChild(dim);
-
-        // Determine winner: player is index 0
-        int winner = -1;
-        if (_gsm.State != null) winner = _gsm.WinnerIndex;
-        bool playerWon = winner == 0;
-
-        // Read encounter data from CampaignContext
-        var encounter = CampaignContext.CurrentEncounter;
-        string encName = encounter?.Name ?? "";
-        if (string.IsNullOrEmpty(encName))
-        {
-            GD.Print("[DuelScene] Warning: CampaignContext.CurrentEncounter.Name is null/empty — falling back to generic label");
-            encName = playerWon ? "Victory" : "Defeat";
-        }
-
-        Color accentColor = playerWon ? Gold : Ember;
-        string statusLabel = playerWon ? "VICTORY" : "DEFEATED";
-        // The status title above already reads DEFEATED; "Defeated by X" repeated
-        // the word directly beneath it. Parallel to the victory line instead.
-        string headline = playerWon
-            ? $"You defeated {encName}"
-            : $"{encName} prevails";
-
-        // ── Central stone panel ──
-        // A plain Panel is not a container: it neither lays out nor measures its
-        // children, so panelVBox's height never propagated and the CenterContainer
-        // centred a 640x0 rect — the stone frame drew around nothing and the
-        // content spilled down over the board. PanelContainer measures its child.
-        // (The Center anchors preset was dead code: CenterContainer overwrites it.)
-        var panel = new PanelContainer();
-        panel.CustomMinimumSize = new Vector2(640, 0);
-        var panelStyle = StyleWornBorder(
-            borderColor: accentColor,
-            width: 3,
-            radius: RadiusLarge,
-            bgColor: SurfaceStone
-        );
-        panel.AddThemeStyleboxOverride("panel", panelStyle);
-
-        var panelVBox = new VBoxContainer
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Alignment = BoxContainer.AlignmentMode.Center,
-        };
-        panelVBox.AddThemeConstantOverride("separation", 6);
-        panel.AddChild(panelVBox);
-
-        // FABLE-006: every autowrap Label in this panel, so its real wrapped height can
-        // be pinned once the width is known — see FitWrappedLabels at the end.
-        var wrapLabels = new System.Collections.Generic.List<Label>();
-
-        // Top spacer
-        panelVBox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
-
-        // ── Status icon + label ──
-        var statusLabelNode = new Label
-        {
-            Text = statusLabel,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        ApplyHeaderFont(statusLabelNode, FontTitleScreen);
-        statusLabelNode.Modulate = accentColor;
-        panelVBox.AddChild(statusLabelNode);
-
-        // ── TASK-REWARD-SCREEN-1: Encounter portrait ──
-        if (encounter != null && !string.IsNullOrEmpty(encounter.Portrait))
-        {
-            var portraitCtr = new CenterContainer
-            {
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-                CustomMinimumSize = new Vector2(0, 72),
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            };
-            var portraitTex = ResourceLoader.Load<Texture2D>(encounter.Portrait);
-            if (portraitTex != null)
-            {
-                var portrait = new TextureRect
-                {
-                    Texture = portraitTex,
-                    StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                    CustomMinimumSize = new Vector2(72, 72),
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                };
-                var portraitStyle = new StyleBoxFlat
-                {
-                    BgColor = SurfaceStone,
-                    BorderColor = accentColor,
-                    BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-                    CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
-                    CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
-                };
-                portrait.AddThemeStyleboxOverride("normal", portraitStyle);
-                portraitCtr.AddChild(portrait);
-            }
-            panelVBox.AddChild(portraitCtr);
-        }
-
-        // ── Encounter name headline ──
-        var headlineLabel = new Label
-        {
-            Text = headline,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            // Fill, not ShrinkCenter: with Word autowrap, ShrinkCenter gives the
-            // label its longest-word minimum width and it wraps one word per line.
-            // HorizontalAlignment.Center still centres the text inside the width.
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-        };
-        ApplyHeaderFont(headlineLabel, FontSectionHeader);
-        headlineLabel.Modulate = TextPrimary;
-        panelVBox.AddChild(headlineLabel);
-        wrapLabels.Add(headlineLabel);
-
-        // ── Flavor text (DialogueOutro) ──
-        string flavor = playerWon && encounter?.DialogueOutro is { Count: > 0 }
-            ? string.Join("\n", encounter.DialogueOutro)
-            : "";
-        if (!string.IsNullOrEmpty(flavor))
-        {
-            var flavorLabel = new Label
-            {
-                Text = flavor,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                AutowrapMode = TextServer.AutowrapMode.Word,
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-                // Fill for the same reason as the headline above.
-                SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                CustomMinimumSize = new Vector2(0, 48),
-            };
-            ApplyBodyFont(flavorLabel, FontSecondary);
-            flavorLabel.Modulate = TextSecondary;
-            panelVBox.AddChild(flavorLabel);
-            wrapLabels.Add(flavorLabel);
-        }
-
-        // ── Divider line ──
-        panelVBox.AddChild(MakeDivider());
-
-        // ── Turns taken ──
-        var turnLabel = new Label
-        {
-            Text = $"Turns taken: {_gsm.TurnNumber}",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        ApplyBodyFont(turnLabel, FontBody);
-        turnLabel.Modulate = TextMuted;
-        panelVBox.AddChild(turnLabel);
-
-        // ── FABLE-016: rewards used to be stacked here, above the buttons.
-        // They now live in the Spoils panel pinned to the right edge, built at
-        // the end of this method so nothing it contains can grow into the
-        // button row. Nothing between the turn count and the buttons any more.
-        // ── Divider line ──
-        panelVBox.AddChild(MakeDivider());
-
-        // ── Action buttons ──
-        var btnHBox = new HBoxContainer
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Alignment = BoxContainer.AlignmentMode.Center,
-        };
-        btnHBox.AddThemeConstantOverride("separation", Space5);
-
-        // "Fight Again" / "Try Again" — reloads the duel
-        var fightAgainBtn = MakeStoneButton(playerWon ? "Fight Again" : "Try Again");
-        string seedHex = CampaignContext.DebugSeed.HasValue
-            ? CampaignContext.DebugSeed.Value.ToString("X")
-            : "";
-        string currentSeed = CampaignContext.DebugSeed?.ToString() ?? "";
-        ArmEndOfDuelButton(fightAgainBtn, "Fight Again", () =>
-        {
-            LeaveDuelFor("res://scenes/duel/DuelScene.tscn", "Fight Again pressed", () =>
-            {
-                // Retry preserves the same seed (for deterministic replay)
-                if (!string.IsNullOrEmpty(currentSeed))
-                    CampaignContext.DebugSeed = ulong.Parse(currentSeed);
-            });
-        });
-        btnHBox.AddChild(fightAgainBtn);
-
-        // "Continue" / "Return to Map"
-        var continueBtn = MakeStoneButton(playerWon ? "Continue" : "Return to Map");
-        ArmEndOfDuelButton(continueBtn, playerWon ? "Continue" : "Return to Map", () =>
-        {
-            // An Arena duel has no campaign map behind it; sending the player
-            // there would strand them on an empty region.
-            if (CampaignContext.IsArenaDuel)
-            {
-                LeaveDuelFor("res://scenes/arena/ArenaScene.tscn", "Continue pressed (arena)");
-                return;
-            }
-
-            // FABLE-012: a win rolls straight into the next challenge. Losing
-            // still goes back to the map — repeating a fight you just lost,
-            // without a chance to change your deck, is a punishment not a loop.
-            if (!playerWon)
-            {
-                LeaveDuelFor(CampaignRun.MapPathFor(CampaignContext.CurrentNodeId), "Return to Map pressed");
-                return;
-            }
-
-            var (step, scene, what) = CampaignRun.AdvanceAfterVictory();
-            if (step == CampaignRun.Step.NextDuel)
-                continueBtn.Text = "Next: " + what;
-            else if (step == CampaignRun.Step.NewZone)
-                continueBtn.Text = "New zone: " + what;
-            else if (scene == WorldService.WorldMapScenePath)
-                continueBtn.Text = "Back to the map";
-            LeaveDuelFor(scene, $"Continue pressed → {step} ({what})");
-        });
-        btnHBox.AddChild(continueBtn);
-
-        panelVBox.AddChild(btnHBox);
-
-        // Bottom spacer
-        panelVBox.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.Expand });
-
-        // ── Add panel to overlay ──
-        // Wrap panel in a centered container so it sits in the middle
-        var container = new CenterContainer();
-        container.SetAnchorsPreset(Control.LayoutPreset.FullRect);
-        container.AddChild(panel);
-        _gameOverOverlay.AddChild(container);
-
-        // FABLE-016: the Spoils panel, pinned to the right edge. Added AFTER
-        // the centre panel so that at equal z-index it draws above the dim —
-        // and it shares no container with the buttons, so it cannot push them
-        // down or hang over them however much it holds.
-        _gameOverOverlay.AddChild(BuildSpoilsPanel(playerWon, encounter));
-
-        AddChild(_gameOverOverlay);
-
-        // FABLE-006: an autowrap Label reports a ONE-LINE minimum height, because it is
-        // entitled to wrap to whatever width it is given. So the headline ("You defeated
-        // The Wayfarer", two lines) and the outro flavour (three lines) asked for far
-        // less height than they draw. CenterContainer sizes the panel to that minimum,
-        // panelVBox then had to squeeze everything below them, and the text drew straight
-        // over the buttons. Measure the wrapped text and pin the height it really needs.
-        //
-        // Runs now so the first frame is right, and again deferred once the panel has its
-        // true width. The measuring width is deliberately a little narrower than the real
-        // inner width: erring narrow over-estimates height, which is the harmless
-        // direction — too tall merely looks roomy, too short overlaps.
-        void FitWrappedLabels()
-        {
-            float w = panel.Size.X > 0 ? panel.Size.X : 640f;
-            float inner = Mathf.Max(80f, w - 32f);
-            foreach (var l in wrapLabels)
-            {
-                if (l == null || !IsInstanceValid(l)) continue;
-                float h = UiText.MeasureHeight(l, inner);
-                if (h > 0) l.CustomMinimumSize = new Vector2(l.CustomMinimumSize.X, Mathf.Ceil(h));
-            }
-        }
-        FitWrappedLabels();
-        Callable.From(FitWrappedLabels).CallDeferred();
-
-        // ═══ TASK-JUICE-1: Victory/defeat light effects ═══
-        if (playerWon)
-            RitualEffects.PlayVictoryLight(this, CampaignContext.ReduceMotion);
-        else
-            RitualEffects.PlayDefeatDrain(this, CampaignContext.ReduceMotion);
-
-        // ── TASK-DROPS-UI-1: Start the drop reveal sequence ──
-        if (_dropRevealCards.Count > 0)
-        {
-            // Wait one frame for layout then start reveal
-            var startTimer = new Godot.Timer();
-            startTimer.WaitTime = 0.1f;
-            startTimer.OneShot = true;
-            startTimer.Timeout += StartDropReveal;
-            _gameOverOverlay.AddChild(startTimer);
-            startTimer.Start();
-        }
-
-        // ── TASK-REWARD-SCREEN-1: Start animated reward counters ──
-        // Starts counting up immediately; staggered delays managed by StartAnimatedCounters
-        var counterTimer = new Godot.Timer();
-        counterTimer.WaitTime = 0.1f;
-        counterTimer.OneShot = true;
-        counterTimer.Timeout += StartAnimatedCounters;
-        _gameOverOverlay.AddChild(counterTimer);
-        counterTimer.Start();
-
-        // Play audio event
-        var audio = GetNode<AudioManager>("/root/AudioManager");
-        audio.PlaySfx(playerWon ? "victory" : "defeat");
-
-        // FABLE-015: prove, on the frame after layout settles, that these two
-        // buttons can actually be touched. See AuditEndOfDuelButtons.
-        // FABLE-019: after TWO frames, not one deferred call. The first real run
-        // of this audit reported Continue at y=1344 on a 1080-tall screen: it
-        // measured before the containers had laid out. Positions were wrong,
-        // the verdict happened to be right.
-        _ = AuditAfterLayout(fightAgainBtn, continueBtn);
-
-        // ═══ SOAK MODE: auto-press Continue/Return to Map after overlay shows ═══
-        if (CampaignContext.SoakActive)
-        {
-            bool isDefeatRetry = CampaignContext.SoakDefeatPhase && !playerWon && !CampaignContext.SoakDefeatHasRetried;
-            GD.Print($"[DUELSOAK] Soak mode — auto-continue (defeatRetry={isDefeatRetry}, won={playerWon}, hasRetried={CampaignContext.SoakDefeatHasRetried})");
-            var soakTimer = new Godot.Timer();
-            soakTimer.WaitTime = 1.5f;
-            soakTimer.OneShot = true;
-            soakTimer.Timeout += () =>
-            {
-                if (isDefeatRetry)
-                {
-                    CampaignContext.SoakDefeatHasRetried = true;
-                    // Defeat test phase: press Try Again to prove retry works
-                    GD.Print("[DUELSOAK] Defeat test — pressing Try Again to retry");
-                    // Don't clear the node — retry means we try again
-                    // Reload duel scene (same seed)
-                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-                }
-                else
-                {
-                    GD.Print("[DUELSOAK] Auto-pressing Continue");
-                    // In soak mode, clear the node regardless of outcome so the loop progresses
-                    if (CampaignContext.CurrentNodeId != null)
-                        CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
-                    CampaignContext.SaveManager.Save();
-                    if (CampaignContext.SoakStopAfterRetry && CampaignContext.SoakDefeatHasRetried)
-                    {
-                        GD.Print("[DUELSOAK] SoakStopAfterRetry — quitting after retry cycle");
-                        GetTree().Quit(0);
-                    }
-                    else
-                    {
-                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
-                    }
-                }
-            };
-            _gameOverOverlay.AddChild(soakTimer);
-            soakTimer.Start();
-        }
-        // ═══ END SOAK AUTO-CONTINUE ═══
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // FABLE-016 — the Spoils panel
-    // ═══════════════════════════════════════════════════════════════════════
-    //
-    // Trikzos: "we also need the reward cards/essence to be a thing. That
-    // should pop up on one of the sides at the end, very aesthetic little
-    // window that says what rewards you got for beating the enemy" — and then,
-    // on where it sits today: "current location if I recall correctly blocks
-    // the continue/return to map/try again screen."
-    //
-    // He is describing a real structural fault, not just a preference. Every
-    // reward was stacked INSIDE the centre panel's VBox, above the buttons:
-    // a 360px reward panel, a divider, a drops header, and a drop reveal area
-    // asking for 340px that then holds a 377px card — a CenterContainer does
-    // not clip, so that card hangs ~48px out of its slot and into the button
-    // row, and the plate and its tap area are both MouseFilter.Stop. The code
-    // already knew: RevealNextDrop's own comment for tearing the reveal down
-    // reads "let Continue button work".
-    //
-    // So the rewards move out of the buttons' way entirely, to a panel pinned
-    // against the right edge, vertically centred, which shares no layout with
-    // the centre panel and cannot push or cover anything in it. The centre
-    // panel is now headline, turns, flavour, buttons — nothing that grows.
-    //
-    // The reward rows, the animated counters and the whole drop-reveal
-    // sequence are reparented, not rewritten: StartDropReveal and friends drive
-    // _dropRevealContainer and _dropTitleLabel wherever they happen to live, so
-    // moving them is a layout change and not a behaviour change. Deliberately
-    // so — this file is 6500 lines and I cannot compile it here.
-    private const float SpoilsWidth = 420f;
-    private const float SpoilsEdgeMargin = 48f;
-    private const float SpoilsSlideFrom = 72f;
-
-    /// <summary>
-    /// Build the side panel listing what the fight paid — or, on a loss, what
-    /// it would have paid. Anchored to the right edge, centred vertically,
-    /// laid out independently of the centre panel and its buttons.
-    /// </summary>
-    private Control BuildSpoilsPanel(bool playerWon, EncounterDef? encounter)
-    {
-        // This panel now owns all three of these. Anything left over from an
-        // earlier build points at freed nodes; clear before repopulating.
-        _rewardCounters.Clear();
-        _dropRevealContainer = null;
-        _dropTitleLabel = null;
-
-        var spoils = new PanelContainer { Name = "SpoilsPanel" };
-
-        // Explicit anchors rather than SetAnchorsPreset: the preset call
-        // rewrites offsets to preserve the control's CURRENT rect, which for a
-        // node that has never been laid out is not what we want.
-        spoils.AnchorLeft = 1f; spoils.AnchorRight = 1f;
-        spoils.AnchorTop = 0.5f; spoils.AnchorBottom = 0.5f;
-        spoils.GrowHorizontal = Control.GrowDirection.Begin;
-        spoils.GrowVertical = Control.GrowDirection.Both;
-        spoils.OffsetLeft = -(SpoilsEdgeMargin + SpoilsWidth);
-        spoils.OffsetRight = -SpoilsEdgeMargin;
-        spoils.OffsetTop = 0f; spoils.OffsetBottom = 0f;
-        spoils.CustomMinimumSize = new Vector2(SpoilsWidth, 0);
-        // Ignore, not Stop: this panel must never be a second thing competing
-        // for a tap meant for a button. The one child that does want input —
-        // the drop reveal's tap area — sets Stop on itself, and it now lives
-        // over here on the right where there is nothing to steal from.
-        spoils.MouseFilter = Control.MouseFilterEnum.Ignore;
-        spoils.AddThemeStyleboxOverride("panel", StyleWornBorder(
-            borderColor: playerWon ? Gold : BorderSubtle,
-            width: 2,
-            radius: RadiusMedium,
-            bgColor: CardFace));
-
-        var pad = new MarginContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        foreach (var side in new[] { "margin_left", "margin_right", "margin_top", "margin_bottom" })
-            pad.AddThemeConstantOverride(side, 18);
-        spoils.AddChild(pad);
-
-        var col = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        col.AddThemeConstantOverride("separation", 6);
-        pad.AddChild(col);
-
-        var header = new Label
-        {
-            Text = playerWon ? "SPOILS" : "FORFEITED",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        ApplyHeaderFont(header, FontLargeBody);
-        header.Modulate = playerWon ? Gold : Ember;
-        col.AddChild(header);
-
-        if (!playerWon)
-        {
-            var sub = new Label
-            {
-                Text = "what a win would have paid",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                AutowrapMode = TextServer.AutowrapMode.WordSmart,
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-            };
-            ApplyBodyFont(sub, FontSecondary);
-            sub.Modulate = TextMuted;
-            col.AddChild(sub);
-        }
-
-        col.AddChild(MakeDivider());
-
-        // ── What the fight pays ──
-        int rewardIdx = 0;
-        bool anyRow = false;
-        if (encounter != null)
-        {
-            if (encounter.ShardReward > 0)
-            {
-                if (playerWon)
-                {
-                    var (row, val) = MakeAnimatedRewardRow("● Shards", encounter.ShardReward, Gold, rewardIdx);
-                    col.AddChild(row);
-                    _rewardCounters.Add(new AnimatedRewardCounter
-                    { ValueLabel = val, TargetValue = encounter.ShardReward, Index = rewardIdx });
-                    rewardIdx++;
-                }
-                else
-                {
-                    // FABLE-015: no plus sign on this side of the screen. The
-                    // defeat list used to read "Rewards forfeited" and then
-                    // "Shards +30", which says he was paid for losing.
-                    col.AddChild(MakeRewardRow("● Shards", $"{encounter.ShardReward}", TextMuted));
-                }
-                anyRow = true;
-            }
-
-            if (encounter.DigChargeReward > 0)
-            {
-                if (playerWon)
-                {
-                    var (row, val) = MakeAnimatedRewardRow("◇ Dig Charges", encounter.DigChargeReward, Moss, rewardIdx);
-                    col.AddChild(row);
-                    _rewardCounters.Add(new AnimatedRewardCounter
-                    { ValueLabel = val, TargetValue = encounter.DigChargeReward, Index = rewardIdx });
-                    rewardIdx++;
-                }
-                else
-                {
-                    col.AddChild(MakeRewardRow("◇ Dig Charges", $"{encounter.DigChargeReward}", TextMuted));
-                }
-                anyRow = true;
-            }
-
-            if (!string.IsNullOrEmpty(encounter.FragmentReward))
-            {
-                col.AddChild(MakeRewardRow("◆ Fragments",
-                    playerWon ? $"+{encounter.FragmentReward}" : $"{encounter.FragmentReward}",
-                    playerWon ? Amber : TextMuted));
-                anyRow = true;
-            }
-        }
-
-        if (!string.IsNullOrEmpty(_grantedCardName))
-        {
-            col.AddChild(MakeRewardRow("♠ New Card", _grantedCardName,
-                playerWon ? Gold : TextMuted));
-            anyRow = true;
-        }
-
-        // ── Card drops ──
-        if (_dropRevealCards.Count > 0)
-        {
-            if (playerWon)
-            {
-                col.AddChild(MakeDivider());
-
-                var dropHeader = new Label
-                {
-                    Text = "— Drops —",
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                };
-                ApplyBodyFont(dropHeader, FontSecondary);
-                dropHeader.Modulate = Moss;
-                dropHeader.Visible = false;   // StartDropReveal shows it
-                col.AddChild(dropHeader);
-                _dropTitleLabel = dropHeader;
-
-                // Tall enough for the 377px plate the reveal actually builds,
-                // plus its ribbon and tap hint. The old slot asked for 340 and
-                // the overflow is what landed on the buttons.
-                var dropCtr = new CenterContainer
-                {
-                    Name = "DropRevealArea",
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    CustomMinimumSize = new Vector2(0, 450),
-                };
-                col.AddChild(dropCtr);
-                _dropRevealContainer = dropCtr;
-            }
-            else
-            {
-                int n = _dropRevealCards.Count;
-                col.AddChild(MakeRewardRow("♠ Card Drops",
-                    $"{n} card{(n != 1 ? "s" : "")}", TextMuted));
-            }
-            anyRow = true;
-        }
-
-        if (!anyRow)
-        {
-            var none = new Label
-            {
-                Text = playerWon ? "Nothing but the win." : "Nothing at stake.",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-            };
-            ApplyBodyFont(none, FontBody);
-            none.Modulate = TextMuted;
-            col.AddChild(none);
-        }
-
-        // ── Slide in from the edge ──
-        if (CampaignContext.ReduceMotion)
-        {
-            spoils.Modulate = Colors.White;
-        }
-        else
-        {
-            spoils.Modulate = new Color(1, 1, 1, 0);
-            spoils.OffsetLeft -= SpoilsSlideFrom;
-            spoils.OffsetRight -= SpoilsSlideFrom;
-            // Deferred: a tween started before the node is in the tree has
-            // nothing to run on.
-            Callable.From(() =>
-            {
-                if (!IsInstanceValid(spoils) || !spoils.IsInsideTree()) return;
-                var t = spoils.CreateTween();
-                t.SetParallel();
-                t.TweenProperty(spoils, "modulate:a", 1.0f, 0.35f).SetEase(Tween.EaseType.Out);
-                t.TweenProperty(spoils, "offset_left", -(SpoilsEdgeMargin + SpoilsWidth), 0.35f)
-                    .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
-                t.TweenProperty(spoils, "offset_right", -SpoilsEdgeMargin, 0.35f)
-                    .SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
-            }).CallDeferred();
-        }
-
-        return spoils;
-    }
-
-    /// <summary>Create a thin gold divider line.</summary>
-    private Control MakeDivider()
-    {
-        var div = new ColorRect
-        {
-            Color = new Color(Gold.R, Gold.G, Gold.B, 0.3f),
-            CustomMinimumSize = new Vector2(240, 1),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        var ctr = new CenterContainer
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            CustomMinimumSize = new Vector2(0, 4),
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        ctr.AddChild(div);
-        return ctr;
-    }
-
-    /// <summary>Create a reward row: label + value in an HBox.</summary>
-    private Control MakeRewardRow(string label, string value, Color valueColor)
-    {
-        var row = new HBoxContainer
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Alignment = BoxContainer.AlignmentMode.Center,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        row.AddThemeConstantOverride("separation", 12);
-
-        var lbl = new Label
-        {
-            Text = label,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        ApplyBodyFont(lbl, FontBody);
-        lbl.Modulate = TextSecondary;
-        row.AddChild(lbl);
-
-        var val = new Label
-        {
-            Text = value,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        ApplyHeaderFont(val, FontLargeBody);
-        val.Modulate = valueColor;
-        row.AddChild(val);
-
-        return row;
-    }
-
-    // ── TASK-REWARD-SCREEN-1: Animated reward row ──
-    /// <summary>Create a reward row with a label and a value label that will count up from 0 to the target.</summary>
-    private (Control Row, Label ValueLabel) MakeAnimatedRewardRow(string label, int targetValue, Color valueColor, int index)
-    {
-        var row = new HBoxContainer
-        {
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            Alignment = BoxContainer.AlignmentMode.Center,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        row.AddThemeConstantOverride("separation", 12);
-
-        var lbl = new Label
-        {
-            Text = label,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        ApplyBodyFont(lbl, FontBody);
-        lbl.Modulate = TextSecondary;
-        row.AddChild(lbl);
-
-        var val = new Label
-        {
-            Text = "0",
-            HorizontalAlignment = HorizontalAlignment.Left,
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-        };
-        ApplyHeaderFont(val, FontLargeBody);
-        val.Modulate = valueColor;
-        row.AddChild(val);
-
-        return (row, val);
-    }
-
-    /// <summary>Start the animated reward counters counting up from 0 to their target values.</summary>
-    private void StartAnimatedCounters()
-    {
-        if (_countersStarted || _rewardCounters.Count == 0) return;
-        _countersStarted = true;
-
-        float baseDelay = 0.5f; // brief pause after overlay appears
-        float counterTime = 1.2f;
-        float stagger = 0.3f;
-
-        foreach (var counter in _rewardCounters)
-        {
-            int target = counter.TargetValue;
-            Label label = counter.ValueLabel;
-            if (target <= 0) continue;
-
-            float delay = baseDelay + counter.Index * stagger;
-            var tween = label.CreateTween();   // FABLE-029: bound to the label, dies with it
-            tween.SetParallel(false);
-            var capturedLabel = label;
-            tween.TweenMethod(
-                Callable.From<double>(v => { if (GodotObject.IsInstanceValid(capturedLabel)) capturedLabel.Text = ((int)v).ToString(); }),
-                0.0, (double)target, counterTime
-            ).SetDelay(delay);
-        }
-    }
-
-    /// <summary>Create a stone-styled action button with ThemeTokens colors.</summary>
-    private Button MakeStoneButton(string text)
-    {
-        var btn = new Button
-        {
-            Text = text,
-            MouseFilter = Control.MouseFilterEnum.Stop,
-            CustomMinimumSize = new Vector2(180, MinButtonHeight),
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-        };
-        ApplyBodyFont(btn, FontButtonPrimary);
-        var normal = new StyleBoxFlat
-        {
-            BgColor = SurfaceMetal,
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
-            CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
-            ContentMarginLeft = Space4, ContentMarginTop = Space2, ContentMarginRight = Space4, ContentMarginBottom = Space2,
-        };
-        btn.AddThemeStyleboxOverride("normal", normal);
-        var hover = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#4A4540"),
-            BorderColor = BorderHighlight,
-            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = RadiusMedium, CornerRadiusTopRight = RadiusMedium,
-            CornerRadiusBottomLeft = RadiusMedium, CornerRadiusBottomRight = RadiusMedium,
-            ContentMarginLeft = Space4, ContentMarginTop = Space2, ContentMarginRight = Space4, ContentMarginBottom = Space2,
-        };
-        btn.AddThemeStyleboxOverride("hover", hover);
-        btn.Modulate = TextPrimary;
-        return btn;
-    }
+    // FABLE-033: BuildGameOverOverlay and the loot shelf live in DuelScene.Victory.cs.
 
     // ——— Tutorial helpers (TASK-TU2) ———
     /// <summary>Enable/disable the End Turn button. Used by TutorialRunner for action restrictions.</summary>
@@ -7083,6 +6027,8 @@ private void ShowGameOverOverlay(int winnerIndex)
     private void CheckAffordableCards()
     {
         if (_gsm == null || _noPlayBanner == null) return;
+        // FABLE-033: the duel is over — no hint about playing cards over the end screen.
+        if (_gsm.IsGameOver) { _noPlayBanner.Visible = false; return; }
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         var hand = _gsm.GetHand(0);
         if (hand == null || hand.Count == 0) { _noPlayBanner.Visible = false; return; }

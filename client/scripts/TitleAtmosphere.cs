@@ -61,6 +61,8 @@ public partial class TitleAtmosphere : Control
     private const int MoteCount = 40;
 
     // Where the painted rune circle sits in the 1536x864 source image.
+    /// <summary>FABLE-032: how far Main slid the painting so the vortex is on the centre line.</summary>
+    public static float HeroShiftX;
     private const float WheelSrcX = 722f;
     private const float WheelSrcY = 350f;
     private const float SrcW = 1536f;
@@ -150,7 +152,7 @@ public partial class TitleAtmosphere : Control
         float scale = Mathf.Max(_vpW / SrcW, _vpH / SrcH);
         float offX = (SrcW * scale - _vpW) / 2f;
         float offY = (SrcH * scale - _vpH) / 2f;
-        return new Vector2(WheelSrcX * scale - offX, WheelSrcY * scale - offY);
+        return new Vector2(WheelSrcX * scale - offX + HeroShiftX, WheelSrcY * scale - offY);
     }
 
     // ── Layers ───────────────────────────────────────────────────────────────
@@ -412,11 +414,15 @@ public partial class TitleAtmosphere : Control
             _hero.PivotOffset = _hero.Size / 2f;
             // A permanent overscan: KeepAspectCovered fits the viewport EXACTLY
             // at 1.0, so drifting from there would show bare background.
-            _hero.Scale = new Vector2(1.045f, 1.045f);   // FABLE-019c: 9s legs, 1.045–1.11 (was 24s, to 1.08: invisible)
+            // FABLE-032: enough overscan that the centring slide (HeroShiftX) plus the ±18px
+            // drift never uncovers the edge: half the extra width must exceed |shift| + 18.
+            float need = (Mathf.Abs(HeroShiftX) + 18f) * 2f / Mathf.Max(1f, _hero.Size.X);
+            float lo = Mathf.Max(1.045f, 1f + need + 0.01f), hi = lo + 0.065f;
+            _hero.Scale = new Vector2(lo, lo);   // FABLE-019c: 9s legs (was 24s, to 1.08: invisible)
             var zoom = CreateTween().SetLoops();
             zoom.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
-            zoom.TweenProperty(_hero, "scale", new Vector2(1.11f, 1.11f), 9.0f);
-            zoom.TweenProperty(_hero, "scale", new Vector2(1.045f, 1.045f), 9.0f);
+            zoom.TweenProperty(_hero, "scale", new Vector2(hi, hi), 9.0f);
+            zoom.TweenProperty(_hero, "scale", new Vector2(lo, lo), 9.0f);
 
             var drift = CreateTween().SetLoops();
             drift.SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);

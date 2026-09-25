@@ -109,6 +109,48 @@ public static class CampaignRun
     }
 
     /// <summary>
+    /// FABLE-033: what Continue will do, as a line for the button — read-only, so
+    /// the end screen can say "Next: Thornbark" before the player commits. Mirrors
+    /// AdvanceAfterVictory's decisions without arming anything.
+    /// </summary>
+    public static string PeekAfterVictory()
+    {
+        var just = CampaignContext.CurrentNodeId;
+        if (WorldService.IsWorldBlip(just)) return "Back to the world map";
+        if (TowerScene.IsTowerNode(just)) return "Back to the Tower";
+        var region = LoadCurrentRegion();
+        var next = FindNextDuelNode(region);
+        if (next == null)
+        {
+            bool crossroads = CampaignContext.Progression != null
+                && !CampaignContext.Progression.ClearedNodes.Contains("wx|crossroads") && WorldService.CrossroadsEarned();
+            return crossroads ? $"New zone: {WorldService.Atlas.HubName}" : "Back to the map";
+        }
+        string? zoneBefore = string.IsNullOrEmpty(just) ? null : RegionOfNode(just!);
+        if (region != null && zoneBefore != null && region.Id != zoneBefore) return $"New zone: {region.Name}";
+        return CampaignContext.EncounterIndex.TryGetValue(next.Encounter!, out var e) ? $"Next: {e.Name}" : "Back to the map";
+    }
+
+    /// <summary>
+    /// FABLE-033: bank the win without arming the next fight — "Back to the map"
+    /// from the victory screen. The Crossroads still opens if this was the win
+    /// that earned it, so leaving by the map costs nothing.
+    /// </summary>
+    public static void BankVictory()
+    {
+        var just = CampaignContext.CurrentNodeId;
+        if (!string.IsNullOrEmpty(just)) CampaignContext.Progression?.MarkNodeCleared(just!);
+        if (CampaignContext.Progression != null && !CampaignContext.Progression.ClearedNodes.Contains("wx|crossroads") && WorldService.CrossroadsEarned())
+        {
+            WorldService.OpenCrossroads();
+            CampaignContext.CrossroadsJustOpened = true;
+            GD.Print("[CampaignRun] the Crossroads opened (via the map)");
+        }
+        try { CampaignContext.SaveManager?.Save(); }
+        catch (System.Exception ex) { GD.PrintErr($"[CampaignRun] save failed, continuing anyway: {ex.Message}"); }
+    }
+
+    /// <summary>
     /// Close out the duel just won and arm whatever comes next.
     ///
     /// Returns the scene to load and what it means. The caller navigates —
