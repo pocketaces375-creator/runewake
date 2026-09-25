@@ -1,5 +1,5 @@
 {
-  "expected_hand_card_count": 10,
+  "expected_hand_card_count": 4,
   "expected_board_card_count": 10,
   "viewport_width": 2316,
   "viewport_height": 1080,
@@ -10,61 +10,25 @@
     {
       "card_id": "vrd_r_bloomweaver",
       "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 614.9, "y": 835.9, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 809.3, "y": 766.6, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 699.8, "y": 800.9, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 944.3, "y": 739.6, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "emb_u_wildfire_adept",
       "name": "Wildfire Adept",
-      "rect": { "x": 787.1, "y": 772.6, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 1081.5, "y": 728.4, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
-      "rect": { "x": 876.4, "y": 751.1, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "vrd_r_bloomweaver",
-      "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 967.0, "y": 736.6, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "vrd_c_root_warden",
-      "name": "Root Warden",
-      "rect": { "x": 1058.5, "y": 729.2, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "emb_u_wildfire_adept",
-      "name": "Wildfire Adept",
-      "rect": { "x": 1150.3, "y": 728.9, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "dwn_r_sealing_light",
-      "name": "Sealing Light",
-      "rect": { "x": 1241.9, "y": 735.7, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "vrd_r_bloomweaver",
-      "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 1332.7, "y": 749.5, "w": 191.6, "h": 280.0 },
-      "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
-    },
-    {
-      "card_id": "vrd_c_root_warden",
-      "name": "Root Warden",
-      "rect": { "x": 1422.1, "y": 770.4, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 1219.1, "y": 733.3, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     }
   ],
@@ -83,7 +47,7 @@
       "side": "player",
       "slot": 0,
       "artifact_id": "artf_warrior_sword",
-      "name": "Sword",
+      "name": "Shield",
       "visual_state": "READY",
       "charges": 0,
       "is_suppressed": false,
@@ -94,7 +58,7 @@
       "side": "player",
       "slot": 1,
       "artifact_id": "artf_rogue_dagger_dusk",
-      "name": "Duskfang",
+      "name": "Sword",
       "visual_state": "CHARGED",
       "charges": 3,
       "is_suppressed": false,
@@ -105,7 +69,7 @@
       "side": "enemy",
       "slot": 0,
       "artifact_id": "artf_warrior_shield",
-      "name": "Shield",
+      "name": "Duskfang",
       "visual_state": "SUPPRESSED",
       "charges": 0,
       "is_suppressed": true,
@@ -116,7 +80,7 @@
       "side": "enemy",
       "slot": 1,
       "artifact_id": "artf_mage_wand",
-      "name": "?",
+      "name": "Poisoner's Kiss",
       "visual_state": "SPENT",
       "charges": 0,
       "is_suppressed": false,
