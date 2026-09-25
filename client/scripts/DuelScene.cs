@@ -104,6 +104,7 @@ public partial class DuelScene : Control
     // TASK-DUEL-CORNERS-1: Enemy hand back row
     private Control? _enemyHandRow;
     private readonly List<TextureRect> _enemyHandBacks = new();
+    private Panel? _enemyHandDisc;
     private static Texture2D? _cardBackTex;
 
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
@@ -3042,27 +3043,31 @@ public partial class DuelScene : Control
             GD.Print($"[ENEMYHAND] n={n}");
             if (_enemyHandRow != null)
             {
-                // TASK-DUEL-LAYOUT-TABLE-1 B4: Enemy hand fans ABOVE (converge upward, outer cards sit higher)
-                float stripH   = 90f * _scale;                       // strip height per table
-                float backH    = 140f * _scale;
+                // FABLE-031: the enemy hand is a MINIATURE fan, fully visible, resting along the top of
+                // the board — not card backs half-hidden under the screen edge (which read as "a dot").
+                // Trikzos: "reduce the spatial sizing of the enemy's hand so I can clearly see the whole
+                // hand, but it would be miniature and could sit over the board."
+                float backH = 92f * _scale;
                 float backW = backH * (416f / 608f);
-                float R        = 700f * _scale;
-                float spreadDeg = Mathf.Min(n * 4f, 28f);            // narrower spread for above
-                float peek     = 70f * _scale;                       // visible height of CENTRE card
-                float pivotX   = 1098f * _scale;
-                float pivotY   = (peek - backH / 2f) - R;            // above the strip (negative relative)
+                float step = Mathf.Min(backW * 0.62f, n > 1 ? (520f * _scale) / (n - 1) : backW);   // overlap grows with hand size
+                float spreadDeg = Mathf.Min(n * 3.2f, 22f);
+                float fanW = (n - 1) * step + backW;
+                float centreX = _vw * 0.5f;
+                float top = 10f * _scale;
+                _enemyHandRow.Size = new Vector2(_vw, backH + 30f * _scale);
+                _enemyHandRow.ClipContents = false;
 
                 for (int i = 0; i < n; i++)
                 {
-                    float angleDeg = (n <= 1f) ? 0f : -spreadDeg / 2f + i * spreadDeg / Mathf.Max(1f, n - 1f);
-                    float a = Mathf.DegToRad(angleDeg);
-                    float cx = pivotX + Mathf.Sin(a) * R;
-                    float cy = pivotY + Mathf.Cos(a) * R;            // +Cos because pivot is above
-
+                    float t = n <= 1 ? 0f : (i / (float)(n - 1)) - 0.5f;      // -0.5 … 0.5
+                    float angle = Mathf.DegToRad(t * spreadDeg);
+                    float x = centreX - fanW / 2f + i * step;
+                    float lift = Mathf.Abs(t) * 10f * _scale;                  // outer cards sit a touch lower: a gentle arc
                     var back = new TextureRect
                     {
                         MouseFilter = MouseFilterEnum.Ignore,
                         StretchMode = TextureRect.StretchModeEnum.Scale,
+                        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
                     };
                     if (_cardBackTex == null)
                     {
@@ -3073,53 +3078,44 @@ public partial class DuelScene : Control
                     }
                     if (_cardBackTex != null) back.Texture = _cardBackTex;
                     _enemyHandRow.AddChild(back);
-                    back.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                    back.Position = new Vector2(cx - backW / 2f, cy - backH / 2f);
+                    back.Position = new Vector2(x, top + lift);
                     back.Size = new Vector2(backW, backH);
-                    back.PivotOffset = new Vector2(backW / 2f, backH / 2f);
-                    back.Rotation = -a;                               // rotated opposite direction
+                    back.PivotOffset = new Vector2(backW / 2f, backH);
+                    back.Rotation = angle;
                     back.ZIndex = i;
+                    back.Modulate = new Color(1, 1, 1, 0.96f);
                     _enemyHandBacks.Add(back);
                 }
 
-                // B4: fan geometry print — outer_bottom must be LESS than centre_bottom
-                float centreY = pivotY + Mathf.Cos(0f) * R;
-                float outerA = Mathf.DegToRad(spreadDeg / 2f);
-                float outerY = pivotY + Mathf.Cos(outerA) * R;
-                GD.Print($"[ENEMYHAND] n={n} spread={spreadDeg:F0} centre_bottom={centreY:F0} outer_bottom={outerY:F0}");
-
-                // count numeral, placed just right of the rightmost card
-                float lastAngleRad = (n <= 1f) ? 0f : Mathf.DegToRad(spreadDeg / 2f);
-                float lastCardX = pivotX + Mathf.Sin(lastAngleRad) * R;
+                // A small count disc at the fan's right shoulder, so the number reads at a glance.
+                float discD = 34f * _scale;
+                var disc = new Panel
+                {
+                    Name = "CountDisc", MouseFilter = MouseFilterEnum.Ignore,
+                    Position = new Vector2(centreX + fanW / 2f - discD * 0.35f, top + backH - discD * 0.8f),
+                    Size = new Vector2(discD, discD), ZIndex = n + 1,
+                };
+                disc.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+                {
+                    BgColor = new Color(0.082f, 0.074f, 0.059f, 0.92f), BorderColor = new Color(0.78f, 0.66f, 0.30f, 0.95f),
+                    BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                    CornerRadiusTopLeft = (int)discD, CornerRadiusTopRight = (int)discD, CornerRadiusBottomLeft = (int)discD, CornerRadiusBottomRight = (int)discD,
+                    AntiAliasing = true,
+                });
+                _enemyHandRow.AddChild(disc);
                 var countLabel = new Label
                 {
-                    MouseFilter = MouseFilterEnum.Ignore,
-                    Text = n.ToString(),
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Top,
+                    MouseFilter = MouseFilterEnum.Ignore, Text = n.ToString(),
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
                 };
-                countLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(20f * _scale));
-                countLabel.AddThemeColorOverride("font_color", new Color(232f/255f, 220f/255f, 200f/255f));
+                countLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+                countLabel.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(19f * _scale));
+                countLabel.AddThemeColorOverride("font_color", new Color(232f / 255f, 220f / 255f, 200f / 255f));
                 var cinzel = ResourceLoader.Load<FontFile>("res://assets/fonts/CinzelDecorative-Bold.ttf");
                 if (cinzel != null) countLabel.AddThemeFontOverride("font", cinzel);
-                _enemyHandRow.AddChild(countLabel);
-                countLabel.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
-                countLabel.Position = new Vector2(1098f * _scale, 46f * _scale);
-                countLabel.Size = new Vector2(36f * _scale, 36f * _scale);
-                countLabel.HorizontalAlignment = HorizontalAlignment.Center;
-                countLabel.VerticalAlignment = VerticalAlignment.Center;
-                countLabel.ZIndex = 100;
-                // Disc background
-                var disc = new ColorRect
-                {
-                    Name = "CountDisc",
-                    MouseFilter = Control.MouseFilterEnum.Ignore,
-                    Color = new Color(0.082f, 0.074f, 0.059f, 0.85f),
-                    Size = new Vector2(36f * _scale, 36f * _scale),
-                    Position = new Vector2(1098f * _scale - 18f * _scale, 46f * _scale - 18f * _scale),
-                    ZIndex = 99
-                };
-                _enemyHandRow.AddChild(disc);
+                disc.AddChild(countLabel);
+                _enemyHandDisc?.QueueFree();
+                _enemyHandDisc = disc;
             }
         }
     }

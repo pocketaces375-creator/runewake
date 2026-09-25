@@ -40,6 +40,21 @@ public partial class RulesSlab : Control
 
     private static readonly Color BorderColor = new Color(107f / 255f, 86f / 255f, 54f / 255f, 1f);
 
+    // FABLE-031: the slab is dark glass like the tutorial boxes, not parchment. Two palettes:
+    // gold for cards, violet for Artifacts — Trikzos: "something to distinguish the importance
+    // of artifacts".
+    private sealed record Palette(Color Rim, Color Heading, Color Kicker, Color Body, Color Reminder, Color Flavor, Color Face);
+    private static readonly Palette CardPalette = new(
+        Rim: new Color(0.80f, 0.60f, 0.20f, 0.85f), Heading: new Color(0.93f, 0.78f, 0.36f), Kicker: new Color(0.72f, 0.62f, 0.38f),
+        Body: new Color(0.95f, 0.92f, 0.86f), Reminder: new Color(0.78f, 0.74f, 0.64f), Flavor: new Color(0.66f, 0.62f, 0.54f),
+        Face: new Color(0.06f, 0.06f, 0.15f, 0.95f));
+    private static readonly Palette ArtifactPalette = new(
+        Rim: new Color(0.62f, 0.42f, 0.92f, 0.90f), Heading: new Color(0.80f, 0.66f, 1.0f), Kicker: new Color(0.62f, 0.52f, 0.82f),
+        Body: new Color(0.93f, 0.90f, 0.98f), Reminder: new Color(0.76f, 0.70f, 0.88f), Flavor: new Color(0.64f, 0.58f, 0.78f),
+        Face: new Color(0.08f, 0.05f, 0.14f, 0.95f));
+    private Label _kickerLabel = default!;
+    private StyleBoxFlat _faceStyle = default!;
+
     public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
 
     private int ScalePx(float px) =>
@@ -82,28 +97,24 @@ public partial class RulesSlab : Control
             Name = "RulesSlabPanel",
             MouseFilter = MouseFilterEnum.Ignore,
         };
-        var borderStyle = new StyleBoxFlat
+        _faceStyle = new StyleBoxFlat
         {
-            BgColor = Colors.Transparent,
-            BorderColor = BorderColor,
-            BorderWidthLeft = 4, BorderWidthTop = 4,
-            BorderWidthRight = 4, BorderWidthBottom = 4,
-            CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5,
-            CornerRadiusBottomLeft = 5, CornerRadiusBottomRight = 5,
+            BgColor = CardPalette.Face,
+            BorderColor = CardPalette.Rim,
+            BorderWidthLeft = 3, BorderWidthTop = 3,
+            BorderWidthRight = 3, BorderWidthBottom = 3,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
             ContentMarginLeft = 0, ContentMarginTop = 0,
             ContentMarginRight = 0, ContentMarginBottom = 0,
+            AntiAliasing = true,
         };
-        _bgPanel.AddThemeStyleboxOverride("panel", borderStyle);
+        _bgPanel.AddThemeStyleboxOverride("panel", _faceStyle);
         AddChild(_bgPanel);
 
-        _gradientRect = new TextureRect
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            StretchMode = TextureRect.StretchModeEnum.Scale,
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-        };
+        // Kept for layout compatibility (the parchment is gone; this rect is now invisible).
+        _gradientRect = new TextureRect { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
         _bgPanel.AddChild(_gradientRect);
-        _gradientRect.Texture = GetParchmentGradient();
 
         _vbox = new VBoxContainer
         {
@@ -113,6 +124,16 @@ public partial class RulesSlab : Control
         };
         _bgPanel.AddChild(_vbox);
 
+        _kickerLabel = new Label
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Text = "",
+        };
+        var kickFont = ThemeTokens.GetHeaderFont(18);
+        if (kickFont != null) _kickerLabel.AddThemeFontOverride("font", kickFont);
+        _vbox.AddChild(_kickerLabel);
+
         _nameLabel = new Label
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -120,7 +141,7 @@ public partial class RulesSlab : Control
             AutowrapMode = TextServer.AutowrapMode.Off,
             MaxLinesVisible = 1,
         };
-        _nameLabel.AddThemeColorOverride("font_color", new Color(46f/255f, 32f/255f, 19f/255f));
+        _nameLabel.AddThemeColorOverride("font_color", CardPalette.Heading);
         var decFont = ResourceLoader.Load<FontFile>(FontCinzelDecorative);
         if (decFont != null) _nameLabel.AddThemeFontOverride("font", decFont);
         _vbox.AddChild(_nameLabel);
@@ -138,7 +159,7 @@ public partial class RulesSlab : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
-        _rulesLabel.AddThemeColorOverride("font_color", new Color(36f/255f, 26f/255f, 15f/255f));
+        _rulesLabel.AddThemeColorOverride("font_color", CardPalette.Body);
         var bodyFont = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
         if (bodyFont != null) _rulesLabel.AddThemeFontOverride("font", bodyFont);
         _vbox.AddChild(_rulesLabel);
@@ -149,7 +170,7 @@ public partial class RulesSlab : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
-        _keywordsLabel.AddThemeColorOverride("font_color", new Color(90f/255f, 69f/255f, 41f/255f));
+        _keywordsLabel.AddThemeColorOverride("font_color", CardPalette.Reminder);
         var kwFont = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
         if (kwFont != null)
         {
@@ -171,7 +192,7 @@ public partial class RulesSlab : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
-        _flavorLabel.AddThemeColorOverride("font_color", new Color(106f/255f, 85f/255f, 58f/255f));
+        _flavorLabel.AddThemeColorOverride("font_color", CardPalette.Flavor);
         var flvFont = ResourceLoader.Load<FontFile>(FontCormorantGaramond);
         if (flvFont != null) _flavorLabel.AddThemeFontOverride("font", flvFont);
         _vbox.AddChild(_flavorLabel);
@@ -207,6 +228,22 @@ public partial class RulesSlab : Control
         _nameLabel.Text = card.Name;
         _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
 
+        // FABLE-031: violet for Artifacts, gold for everything else.
+        bool isArtifact = card.Type == CardType.ARTIFACT;
+        var pal = isArtifact ? ArtifactPalette : CardPalette;
+        _faceStyle.BgColor = pal.Face;
+        _faceStyle.BorderColor = pal.Rim;
+        _nameLabel.AddThemeColorOverride("font_color", pal.Heading);
+        _rulesLabel.AddThemeColorOverride("font_color", pal.Body);
+        _keywordsLabel.AddThemeColorOverride("font_color", pal.Reminder);
+        _flavorLabel.AddThemeColorOverride("font_color", pal.Flavor);
+        _kickerLabel.AddThemeColorOverride("font_color", pal.Kicker);
+        _kickerLabel.AddThemeFontSizeOverride("font_size", ScalePx(18f));
+        _kickerLabel.Text = isArtifact ? "ARTIFACT" : card.Type switch
+        {
+            CardType.RITUAL => "RITUAL", CardType.RELIC => "RELIC", _ => "CREATURE",
+        };
+
         string rules = RulesTextRenderer.RenderAbilityTextOnly(card);
         _rulesLabel.Text = rules;
         _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
@@ -224,6 +261,8 @@ public partial class RulesSlab : Control
         _flavorLabel.Visible = hasFlavor;
         _flavorDivider.Visible = hasFlavor;
 
+        foreach (var l in new[] { _rulesLabel, _keywordsLabel, _flavorLabel, _kickerLabel, _nameLabel })
+            l.CustomMinimumSize = new Vector2(contentW, 0);
         // Check overflow and shrink flavour first, then keywords
         _vbox.Size = Vector2.Zero;
         Vector2 minSize = _vbox.GetCombinedMinimumSize();
@@ -261,13 +300,18 @@ public partial class RulesSlab : Control
         float actualH = Mathf.Clamp(ScalePx(InnerPadTop) + contentH + ScalePx(InnerPadBottom), minH, slabH);
         Size = new Vector2(slabW, actualH);
         CustomMinimumSize = new Vector2(slabW, actualH);
-        _bgPanel.Size = new Vector2(slabW, slabH);
+        // FABLE-031: the box hugs its content (it used to be the full 440px whatever it held).
+        _bgPanel.Size = new Vector2(slabW, actualH);
 
         _gradientRect.Position = new Vector2(4, 4);
         _gradientRect.Size = new Vector2(slabW - 8, slabH - 8);
 
         _vbox.Position = new Vector2(padSide, padTop);
         _vbox.Size = new Vector2(contentW, availH);
+        // FABLE-031: wrap at the slab's width, not at the longest word (an artifact's short lines
+        // used to collapse the column to a few characters wide).
+        foreach (var l in new[] { _rulesLabel, _keywordsLabel, _flavorLabel, _kickerLabel, _nameLabel })
+            l.CustomMinimumSize = new Vector2(contentW, 0);
 
         if (_nameDivider.GetChildCount() == 0)
         {
@@ -287,7 +331,7 @@ public partial class RulesSlab : Control
         var shadowPanel = GetNodeOrNull<PanelContainer>("RulesSlabShadow");
         if (shadowPanel != null)
         {
-            shadowPanel.Size = new Vector2(slabW, slabH);
+            shadowPanel.Size = new Vector2(slabW, actualH);   // FABLE-031: shadow hugs the box too
             shadowPanel.Position = new Vector2(0, 14);
         }
 

@@ -271,61 +271,77 @@ public partial class Main : Control
         // ═══ Build slot picker (single campaign panel) ═══
         BuildSlotPicker();
 
-        // ═══ Button stack (VBox with 2×2 grid + full-width Create New Account) ═══
-        var buttonStack = new VBoxContainer
+        // ═══ FABLE-031: one quiet row of four, low, so the hall and the vortex own the screen ═══
+        // Trikzos: "I want the focal point to in part be the gorgeous background." The 2×2 grid
+        // and the full-width account plate covered a third of the hall; this is a single row.
+        var buttonRow = new HBoxContainer
         {
-            // FABLE-019d: 44% of the width (was 56%), starting lower, so the
-            // arch and the pillars stay in view around the menu.
-            AnchorLeft = 0.28f, AnchorRight = 0.72f,
-            AnchorTop = 0.60f, AnchorBottom = 0.955f,
+            AnchorLeft = 0.20f, AnchorRight = 0.80f,
+            AnchorTop = 0.815f, AnchorBottom = 0.885f,
+            Alignment = BoxContainer.AlignmentMode.Center,
         };
-        buttonStack.AddThemeConstantOverride("separation", 10);
-        AddChild(buttonStack);
+        buttonRow.AddThemeConstantOverride("separation", 14);
+        AddChild(buttonRow);
 
-        // 2×2 grid: Decks, Reliquary, Settings, Duel Arena
-        var buttonGrid = new GridContainer
+        Button Quiet(string text)
         {
-            Columns = 2,
-        };
-        buttonGrid.AddThemeConstantOverride("h_separation", 10);
-        buttonGrid.AddThemeConstantOverride("v_separation", 10);
-        buttonStack.AddChild(buttonGrid);
+            var b = MakeStoneButton(text);
+            b.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            b.CustomMinimumSize = new Vector2(0, 72);
+            b.AddThemeFontSizeOverride("font_size", 30);
+            var f = ThemeTokens.GetButtonFont(30);
+            if (f != null) b.AddThemeFontOverride("font", f);
+            b.AddThemeStyleboxOverride("normal", MenuButtons.QuietNormal());
+            b.AddThemeStyleboxOverride("disabled", MenuButtons.QuietNormal());
+            return b;
+        }
 
-        var decksButton = MakeStoneButton("Decks");
-        decksButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var decksButton = Quiet("Decks");
         decksButton.Pressed += OnOpenDecks;
-        buttonGrid.AddChild(decksButton);
+        buttonRow.AddChild(decksButton);
         _decksButton = decksButton;
 
-        var reliquaryButton = MakeStoneButton("Reliquary");
-        reliquaryButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var reliquaryButton = Quiet("Reliquary");
         reliquaryButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
         };
-        buttonGrid.AddChild(reliquaryButton);
+        buttonRow.AddChild(reliquaryButton);
 
-        var settingsButton = MakeStoneButton("Settings");
-        settingsButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        settingsButton.Pressed += () => {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
-        };
-        buttonGrid.AddChild(settingsButton);
-
-        var arenaButton = MakeStoneButton("Duel Arena");
-        arenaButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var arenaButton = Quiet("Duel Arena");
         arenaButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
         };
-        buttonGrid.AddChild(arenaButton);
+        buttonRow.AddChild(arenaButton);
 
-        // Full-width "Create New Account" button beneath the grid
-        var newAccountBtn = MakeStoneButton("Create New Account");
-        newAccountBtn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        var settingsButton = Quiet("Settings");
+        settingsButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+        };
+        buttonRow.AddChild(settingsButton);
+
+        // "Create New Account" is rare: a small text link in the corner, not a plate.
+        var newAccountBtn = new Button
+        {
+            Text = "Create new account",
+            Flat = true,
+            AnchorLeft = 0.72f, AnchorRight = 0.985f,
+            AnchorTop = 0.915f, AnchorBottom = 0.975f,
+        };
+        newAccountBtn.AddThemeFontSizeOverride("font_size", 24);
+        var linkFont = ThemeTokens.GetBodyFont(24);
+        if (linkFont != null) newAccountBtn.AddThemeFontOverride("font", linkFont);
+        newAccountBtn.AddThemeColorOverride("font_color", new Color(0.78f, 0.70f, 0.52f, 0.85f));
+        newAccountBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+        newAccountBtn.AddThemeStyleboxOverride("normal", new StyleBoxEmpty());
+        newAccountBtn.AddThemeStyleboxOverride("hover", new StyleBoxEmpty());
+        newAccountBtn.AddThemeStyleboxOverride("pressed", new StyleBoxEmpty());
+        newAccountBtn.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        newAccountBtn.Alignment = HorizontalAlignment.Right;
         newAccountBtn.Pressed += OnOpenAccountsCarousel;
-        buttonStack.AddChild(newAccountBtn);
+        AddChild(newAccountBtn);
 
         // FABLE-007: the menu assembles itself — title, subtitle, then each plate
         // in turn — instead of snapping into existence all at once.
@@ -1373,12 +1389,14 @@ public partial class Main : Control
         if (_slotPickerContainer != null && IsInstanceValid(_slotPickerContainer))
             _slotPickerContainer.QueueFree();
 
-        // Single campaign panel — centered, fills ~25% viewport height
+        // FABLE-031: ONE plate, no panel around it. Trikzos: "new campaign effectively has 2
+        // boxes … let's just have the smaller box inside if anything." With a campaign going, the
+        // plate is Continue (class · region on a second line); without one, New Campaign. It sits
+        // just under the vortex's eye, on the centre line, so the hall stays the picture.
         _slotPickerContainer = new Control
         {
-            // FABLE-019d: narrower and shorter, clear of the vortex's eye.
-            AnchorLeft = 0.37f, AnchorRight = 0.63f,
-            AnchorTop = 0.36f, AnchorBottom = 0.56f,
+            AnchorLeft = 0.33f, AnchorRight = 0.67f,
+            AnchorTop = 0.615f, AnchorBottom = 0.735f,
             MouseFilter = MouseFilterEnum.Stop
         };
         AddChild(_slotPickerContainer);
@@ -1388,223 +1406,76 @@ public partial class Main : Control
             && CampaignContext.ActiveProfileSlot < profiles.Count
             && !string.IsNullOrEmpty(profiles[CampaignContext.ActiveProfileSlot].ClassId);
 
-        var slotCard = new PanelContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill,
-            MouseFilter = MouseFilterEnum.Stop,
-            CustomMinimumSize = new Vector2(0, 150)
-        };
+        var plate = new Button { Name = "PrimaryPlate", FocusMode = FocusModeEnum.None, MouseFilter = MouseFilterEnum.Stop };
+        plate.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        // The plate's own Text carries its meaning for tooling (the loop smoke test finds the
+        // button by Text) but is drawn invisibly — the two child labels are what the player sees.
+        plate.Text = hasActiveProfile ? "Continue" : "New Campaign";
+        foreach (var st in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color", "font_disabled_color" })
+            plate.AddThemeColorOverride(st, Colors.Transparent);
+        plate.AddThemeStyleboxOverride("normal", MenuButtons.PrimaryNormal());
+        plate.AddThemeStyleboxOverride("hover", MenuButtons.PrimaryHover());
+        plate.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed());
+        plate.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        MenuButtons.Animate(plate);
+        _slotPickerContainer.AddChild(plate);
 
-        var slotStyle = new StyleBoxFlat
-        {
-            // FABLE-019c: smoked glass over the hall, not an opaque slab (see MenuButtons).
-            BgColor = hasActiveProfile
-                ? new Color(0.20f, 0.17f, 0.14f, 0.66f)
-                : new Color(0.13f, 0.11f, 0.09f, 0.62f),
-            BorderColor = hasActiveProfile
-                ? new Color(0.62f, 0.52f, 0.28f, 0.9f)
-                : new Color(0.45f, 0.38f, 0.24f, 0.8f),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
-            ContentMarginLeft = 14, ContentMarginTop = 10,
-            ContentMarginRight = 14, ContentMarginBottom = 10
-        };
-        slotCard.AddThemeStyleboxOverride("panel", slotStyle);
+        var col = new VBoxContainer { Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
+        col.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+        col.AddThemeConstantOverride("separation", 2);
+        plate.AddChild(col);
 
-        var vbox = new VBoxContainer
+        Label Line(string text, int size, Font? font, Color color)
         {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill
-        };
-        slotCard.AddChild(vbox);
+            var l = new Label
+            {
+                Text = text, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore,
+                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled,
+            };
+            if (font != null) l.AddThemeFontOverride("font", font);
+            l.AddThemeFontSizeOverride("font_size", size);
+            l.AddThemeColorOverride("font_color", color);
+            l.AddThemeConstantOverride("outline_size", 3);
+            l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.55f));
+            col.AddChild(l);
+            return l;
+        }
 
         if (hasActiveProfile)
         {
             var profile = profiles[CampaignContext.ActiveProfileSlot];
             string classId = profile.ClassId;
             string className = char.ToUpper(classId[0]) + classId.Substring(1);
+            // The real region name ("The Fallow Reach"), not "Region 1".
+            string region;
+            try { region = CampaignRun.LoadCurrentRegion()?.Name ?? CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot); }
+            catch { region = CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot); }
+            Line("Continue", 44, ThemeTokens.GetButtonFont(44), Color.FromHtml("#F2DFA6"));
+            Line($"{className}  ·  {region}", 24, ThemeTokens.GetBodyFont(24), new Color(0.86f, 0.80f, 0.66f));
+            plate.Pressed += () => OnSlotContinueClicked(CampaignContext.ActiveProfileSlot);
 
-            // Class portrait
-            string portraitPath = CampaignContext.GetClassPortraitPath(classId, profile.PortraitVariant);
-            if (ResourceLoader.Exists(portraitPath))
+            // Starting over is rare and destructive: a small link under the plate, not a red button.
+            var startOver = new Button
             {
-                var portrait = new TextureRect
-                {
-                    Texture = ResourceLoader.Load<Texture2D>(portraitPath),
-                    StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                    CustomMinimumSize = new Vector2(72, 72),
-                    SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize
-                };
-                vbox.AddChild(portrait);
-            }
-
-            // Class name
-            var nameLabel = new Label
-            {
-                Text = className,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
+                Text = "Start a new campaign", Flat = true,
+                AnchorLeft = 0f, AnchorRight = 1f, AnchorTop = 1.08f, AnchorBottom = 1.50f,
             };
-            nameLabel.AddThemeFontSizeOverride("font_size", ThemeTokens.FontCardName);
-            nameLabel.Modulate = Color.FromHtml("#E8DCC8");
-            vbox.AddChild(nameLabel);
-
-            // Progress
-            string region = CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot);
-            var regionLabel = new Label
-            {
-                Text = region,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-            };
-            regionLabel.AddThemeFontSizeOverride("font_size", 14);
-            regionLabel.Modulate = new Color(0.7f, 0.65f, 0.55f);
-            vbox.AddChild(regionLabel);
-
-            // Cards collected
-            int pieces = CampaignContext.GetSlotPiecesCollected(CampaignContext.ActiveProfileSlot);
-            var piecesLabel = new Label
-            {
-                Text = $"Cards: {pieces}",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-            };
-            piecesLabel.AddThemeFontSizeOverride("font_size", 14);
-            piecesLabel.Modulate = new Color(0.65f, 0.6f, 0.5f);
-            vbox.AddChild(piecesLabel);
-
-            // Spacer
-            var spacer = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
-            vbox.AddChild(spacer);
-
-            // Buttons row
-            var btnHbox = new HBoxContainer
-            {
-                SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                Alignment = BoxContainer.AlignmentMode.Center
-            };
-            vbox.AddChild(btnHbox);
-
-            // Continue button — use 48px height (MIN_TOUCH floor is 44px; these are small
-            // secondary buttons inside a compact card panel, not primary menu buttons)
-            var continueBtn = new Button
-            {
-                Text = "Continue",
-                CustomMinimumSize = new Vector2(140, 48),
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
-            };
-            continueBtn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
-            continueBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
-            continueBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
-            var contNormal = new StyleBoxFlat
-            {
-                BgColor = new Color(0.3f, 0.25f, 0.1f, 0.5f),
-                BorderColor = Color.FromHtml("#C9A84C"),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            continueBtn.AddThemeStyleboxOverride("normal", contNormal);
-            continueBtn.Pressed += () => OnSlotContinueClicked(CampaignContext.ActiveProfileSlot);
-            var contLabelFont = ThemeTokens.GetButtonFont(ThemeTokens.FontButtonPrimary);
-            if (contLabelFont != null)
-                continueBtn.AddThemeFontOverride("font", contLabelFont);
-            btnHbox.AddChild(continueBtn);
-
-            // Delete button — 48px height, matching Continue button
-            var deleteBtn = new Button
-            {
-                Text = "Delete",
-                CustomMinimumSize = new Vector2(140, 48),
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
-            };
-            deleteBtn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
-            deleteBtn.AddThemeColorOverride("font_color", new Color(0.8f, 0.3f, 0.2f));
-            deleteBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.4f, 0.3f));
-            var delNormal = new StyleBoxFlat
-            {
-                BgColor = new Color(0.3f, 0.1f, 0.05f, 0.3f),
-                BorderColor = new Color(0.6f, 0.2f, 0.1f, 0.4f),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            deleteBtn.AddThemeStyleboxOverride("normal", delNormal);
-            deleteBtn.Pressed += () => OnSlotDeleteClicked(CampaignContext.ActiveProfileSlot);
-            if (contLabelFont != null)
-                deleteBtn.AddThemeFontOverride("font", contLabelFont);
-            btnHbox.AddChild(deleteBtn);
+            startOver.AddThemeFontSizeOverride("font_size", 26);
+            var lf = ThemeTokens.GetBodyFont(22);
+            if (lf != null) startOver.AddThemeFontOverride("font", lf);
+            startOver.AddThemeColorOverride("font_color", new Color(0.86f, 0.78f, 0.58f, 0.95f));
+            startOver.AddThemeConstantOverride("outline_size", 6);
+            startOver.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.6f));
+            startOver.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+            foreach (var st in new[] { "normal", "hover", "pressed", "focus" }) startOver.AddThemeStyleboxOverride(st, new StyleBoxEmpty());
+            startOver.Pressed += () => OnSlotDeleteClicked(CampaignContext.ActiveProfileSlot);
+            _slotPickerContainer.AddChild(startOver);
         }
         else
         {
-            // ── No active profile — "New Campaign" ──
-            var emptySpacer = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
-            vbox.AddChild(emptySpacer);
-
-            var emptyLabel = new Label
-            {
-                Text = "No Campaign",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-            };
-            emptyLabel.AddThemeFontSizeOverride("font_size", 20);
-            emptyLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.5f);
-            vbox.AddChild(emptyLabel);
-
-            var emptySubLabel = new Label
-            {
-                Text = "Start a new campaign to begin your journey",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                SizeFlagsHorizontal = Control.SizeFlags.Fill,
-                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
-            };
-            emptySubLabel.AddThemeFontSizeOverride("font_size", 14);
-            emptySubLabel.Modulate = new Color(0.5f, 0.45f, 0.35f, 0.3f);
-            vbox.AddChild(emptySubLabel);
-
-            var newBtn = new Button
-            {
-                Text = "New Campaign",
-                CustomMinimumSize = new Vector2(200, ThemeTokens.MinButtonHeight),
-                SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter
-            };
-            newBtn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
-            newBtn.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
-            newBtn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
-            var newBtnNormal = new StyleBoxFlat
-            {
-                BgColor = new Color(0.3f, 0.25f, 0.1f, 0.5f),
-                BorderColor = Color.FromHtml("#C9A84C"),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            };
-            newBtn.AddThemeStyleboxOverride("normal", newBtnNormal);
-            newBtn.Pressed += () => OnSlotNewClicked(0, overwrite: false);
-            var btnLabelFont = ThemeTokens.GetButtonFont(ThemeTokens.FontButtonPrimary);
-            if (btnLabelFont != null)
-                newBtn.AddThemeFontOverride("font", btnLabelFont);
-            vbox.AddChild(newBtn);
-
-            var emptySpacer2 = new Control { SizeFlagsVertical = Control.SizeFlags.Expand };
-            vbox.AddChild(emptySpacer2);
+            Line("New Campaign", 44, ThemeTokens.GetButtonFont(44), Color.FromHtml("#F2DFA6"));
+            plate.Pressed += () => OnSlotNewClicked(0, overwrite: false);
         }
-
-        _slotPickerContainer.AddChild(slotCard);
-        slotCard.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
     }
 
     /// <summary>

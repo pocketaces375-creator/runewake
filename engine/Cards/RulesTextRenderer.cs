@@ -365,6 +365,10 @@ public static class RulesTextRenderer
                 "FIRST_ATTACKER" => "first attacker ",
                 "SECOND_ATTACKER" => "second attacker ",
                 "CURRENT_ATTACKER" => "attacking ",
+                // FABLE-031: artifact filters used to print raw ("has_not_attacked ally creatures").
+                "HAS_NOT_ATTACKED" => "unattacked ",
+                "FIRST_ATTACKED" => "first-attacked ",
+                "MOST_WOUNDED" => "most wounded ",
                 var s when s.StartsWith("ATTACK_LTE:") => $"attack ≤ {s[11..]} ",
                 _ => target.Filter.ToLowerInvariant() + " "
             };

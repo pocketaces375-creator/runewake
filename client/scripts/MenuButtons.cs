@@ -123,6 +123,15 @@ public static class MenuButtons
         return box;
     }
 
+    /// <summary>FABLE-031: the one primary plate on the title — a warmer face and a gold rim.</summary>
+    public static StyleBox PrimaryNormal() =>
+        Plate(Color.FromHtml("#5A4A22"), Color.FromHtml("#2A2112"), Color.FromHtml("#D9B75A"), 3.0f, 0.62f);
+    public static StyleBox PrimaryHover() =>
+        Plate(Color.FromHtml("#6B5828"), Color.FromHtml("#332816"), Color.FromHtml("#F0D27A"), 3.4f, 0.82f);
+    /// <summary>FABLE-031: a slimmer, quieter plate for the secondary row.</summary>
+    public static StyleBox QuietNormal() =>
+        Plate(Color.FromHtml("#2E2822"), Color.FromHtml("#16130F"), Color.FromHtml("#7E6A3C"), 1.8f, 0.46f);
+
     public static StyleBox Normal() =>
         Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.2f, 0.58f);   // FABLE-019d: a little more glass
 
