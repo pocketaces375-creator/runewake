@@ -1,7 +1,7 @@
 {
   "expected_hand_card_count": 4,
   "expected_board_card_count": 10,
-  "viewport_width": 2999,
+  "viewport_width": 2316,
   "viewport_height": 1080,
   "altar_ellipse": {
     "bottom_y": 801.6
@@ -35,11 +35,11 @@
   "groups": [
     {
       "side": "player",
-      "rect": { "x": 2667.0, "y": 688.0, "w": 332.0, "h": 238.0 }
+      "rect": { "x": 1984.0, "y": 688.0, "w": 332.0, "h": 238.0 }
     },
     {
       "side": "enemy",
-      "rect": { "x": 2667.0, "y": 16.0, "w": 332.0, "h": 238.0 }
+      "rect": { "x": 1984.0, "y": 16.0, "w": 332.0, "h": 238.0 }
     }
   ],
   "artifact_cards": [
@@ -52,7 +52,7 @@
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 2667.0, "y": 688.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 1984.0, "y": 688.0, "w": 156.0, "h": 238.0 }
     },
     {
       "side": "player",
@@ -63,7 +63,7 @@
       "charges": 3,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 2827.0, "y": 688.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 2144.0, "y": 688.0, "w": 156.0, "h": 238.0 }
     },
     {
       "side": "enemy",
@@ -74,7 +74,7 @@
       "charges": 0,
       "is_suppressed": true,
       "has_triggered": false,
-      "rect": { "x": 2667.0, "y": 16.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 1984.0, "y": 16.0, "w": 156.0, "h": 238.0 }
     },
     {
       "side": "enemy",
@@ -85,7 +85,7 @@
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": true,
-      "rect": { "x": 2827.0, "y": 16.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 2144.0, "y": 16.0, "w": 156.0, "h": 238.0 }
     }
   ],
   "board_cards": [

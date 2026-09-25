@@ -198,13 +198,17 @@ public partial class BotController : Node
                     if (card != null)
                     {
                         GD.Print($"[BotController] Bot plays card '{card.CardDefId}' to lane {play.LaneIndex}");
-                        var result = _gsm.TryPlayCard(_playerIndex, card.CardDefId, play.LaneIndex ?? 0);
+                        var result = _gsm.TryPlayCard(_playerIndex, card.CardDefId, play.LaneIndex ?? 0, card.InstanceId);
                         if (!result.Success)
-                            GD.PrintErr($"[BotController] TryPlayCard FAILED: {result.ErrorMessage}");
+                        {
+                            GiveUpTurn($"TryPlayCard {card.CardDefId} FAILED: {result.ErrorMessage}");
+                            return;
+                        }
                     }
                     else
                     {
-                        GD.Print($"[BotController] WARNING: Bot tried to play card instance {play.CardInstanceId} but not found in hand");
+                        GiveUpTurn($"tried to play card instance {play.CardInstanceId} but it is not in hand");
+                        return;
                     }
                     ScheduleNext();
                 }
@@ -213,7 +217,10 @@ public partial class BotController : Node
                     GD.Print($"[BotController] Bot attacks: lane {attack.SourceLane} → target {attack.TargetLane}");
                     var result = _gsm.TryAttack(_playerIndex, attack.SourceLane, attack.TargetLane ?? attack.SourceLane);
                     if (!result.Success)
-                        GD.PrintErr($"[BotController] TryAttack FAILED: {result.ErrorMessage}");
+                    {
+                        GiveUpTurn($"TryAttack {attack.SourceLane}→{attack.TargetLane} FAILED: {result.ErrorMessage}");
+                        return;
+                    }
                     ScheduleNext();
                 }
                 else
@@ -242,6 +249,28 @@ public partial class BotController : Node
                 EndBotTurn();
             }
         }
+
+    /// <summary>
+    /// FABLE-036: an action the bot chose was refused. The bot is deterministic — asked again
+    /// from the same state it chooses the same refused action — so retrying is an endless loop:
+    /// that was the frozen enemy turn (bot and client disagreed on a card's cost, and the bot
+    /// re-asked every 0.6 s forever). Whatever the disagreement, the answer is the same: say so
+    /// loudly, and end the turn. A bot that passes once is a small loss; a turn that never ends
+    /// is a dead game.
+    /// </summary>
+    private void GiveUpTurn(string why)
+    {
+        GD.PrintErr($"[BotController] {why} — ending the bot's turn instead of retrying");
+        DuelScene.ExitTrace($"bot: {why} — turn ended");
+        _timer?.Stop();
+        _pendingAction = false;
+        if (_gsm != null && !_gsm.IsGameOver && _gsm.CurrentPlayerIndex == _playerIndex)
+        {
+            var r = _gsm.TryEndTurn();
+            if (!r.Success) GD.PrintErr($"[BotController] …and TryEndTurn failed too: {r.ErrorMessage}");
+        }
+        EndBotTurn();
+    }
 
     private void EndBotTurn()
     {

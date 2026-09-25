@@ -4804,7 +4804,7 @@ public partial class DuelScene : Control
             var card = player.Hand.FirstOrDefault(c => c.InstanceId == play.CardInstanceId);
             if (card != null)
             {
-                var result = _gsm.TryPlayCard(playerIndex, card.CardDefId, play.LaneIndex ?? 0);
+                var result = _gsm.TryPlayCard(playerIndex, card.CardDefId, play.LaneIndex ?? 0, card.InstanceId);
                 if (!result.Success)
                     GD.PrintErr($"[BotDuelTest] TryPlayCard P{playerIndex} FAILED: {result.ErrorMessage}");
             }

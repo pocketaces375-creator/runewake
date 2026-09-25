@@ -155,8 +155,17 @@ public partial class GameStateManager : Node
     /// <summary>
     /// Play a card from the player's hand to a lane.
     /// Returns ActionResult with success flag and error reason on failure.
+    ///
+    /// FABLE-036 — THE FROZEN ENEMY TURN. This check used to charge the card's PRINTED cost,
+    /// while the engine (and the bot, which asks the engine) charges the DISCOUNTED cost
+    /// (CostInterceptor: artifact and rune discounts). So the bot would choose a card it could
+    /// afford only with its discount, this method refused it ("not enough attunement"), the bot
+    /// asked again 0.6 s later, chose the same card, was refused again — forever. The enemy's
+    /// turn never ended, End Turn was not the player's to press, and the music played on over a
+    /// still board. A bot-vs-bot sweep hit it in 394 of 1,680 games. The checks here now match
+    /// the engine's exactly: the discounted cost, and lanes only for cards that go in a lane.
     /// </summary>
-    public ActionResult TryPlayCard(int playerIndex, string cardDefId, int laneIndex)
+    public ActionResult TryPlayCard(int playerIndex, string cardDefId, int laneIndex, int? instanceId = null)
     {
         if (_state.IsGameOver)
             return Error("Game is already over.");
@@ -165,29 +174,38 @@ public partial class GameStateManager : Node
             return Error("It's not your turn.");
 
         var player = _state.Players[playerIndex];
-        var card = player.Hand.FirstOrDefault(c => c.CardDefId == cardDefId);
+        var card = instanceId is int iid
+            ? player.Hand.FirstOrDefault(c => c.InstanceId == iid)
+            : player.Hand.FirstOrDefault(c => c.CardDefId == cardDefId);
         if (card == null)
             return Error("Card not found in hand.");
 
-        var def = CardRegistry.Get(cardDefId);
+        var def = CardRegistry.Get(card.CardDefId);
         if (def == null)
-            return Error($"Card definition not found: {cardDefId}.");
+            return Error($"Card definition not found: {card.CardDefId}.");
 
-        if (player.Attunement < card.Cost)
-            return Error($"Not enough attunement: have {player.Attunement}, need {card.Cost}.");
+        int cost = CostInterceptor.GetEffectiveCost(_state, card, playerIndex);
+        if (player.Attunement < cost)
+            return Error($"Not enough attunement: have {player.Attunement}, need {cost}.");
 
         if (laneIndex < 0 || laneIndex > 4)
             return Error($"Invalid lane index: {laneIndex}.");
 
-        var lane = player.Lanes[laneIndex];
-        if (lane.Occupant is not null)
-            return Error($"Lane {laneIndex + 1} is already occupied.");
+        bool goesInALane = card.CardType == CardType.CREATURE || card.CardType == CardType.RELIC;
+        if (goesInALane)
+        {
+            var lane = player.Lanes[laneIndex];
+            if (lane.Occupant is not null)
+                return Error($"Lane {laneIndex + 1} is already occupied.");
+            if (lane.IsBuried)
+                return Error($"Lane {laneIndex + 1} is buried.");
+        }
 
         var action = new PlayCardAction
         {
             PlayerIndex = playerIndex,
             CardInstanceId = card.InstanceId,
-            Cost = card.Cost,
+            Cost = cost,
             LaneIndex = laneIndex
         };
 
@@ -384,7 +402,10 @@ public partial class GameStateManager : Node
                 CardDefId = ci.CardDefId,
                 InstanceId = ci.InstanceId,
                 Name = def?.Name ?? ci.CardDefId,
-                Cost = ci.Cost,
+                // FABLE-036: what it costs to play NOW (discounts applied), the number the
+                // engine charges — so the hand's cost disc, its "playable" glow and the
+                // not-enough-attunement refusal all agree with what actually happens.
+                Cost = CostInterceptor.GetEffectiveCost(_state, ci, playerIndex),
                 Strata = def?.Strata ?? Strata.VERDANT
             });
         }
