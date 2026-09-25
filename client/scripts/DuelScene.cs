@@ -695,6 +695,7 @@ public partial class DuelScene : Control
 
         // ═══ TASK-H/UI4-ARSENAL: Player and Enemy arsenal groups (bordered groups with artifact frames + deck + barrow) ═══
         AddArsenalGroups();
+        BuildConcedeButton();   // FABLE-035
         Callable.From(OnStateChanged).CallDeferred();
         // Re-apply encounter name AFTER BuildSideHud creates the labels (TASK-BREATHE-FIX-1)
         _enemyName.Text = _encounterName;
@@ -5939,6 +5940,8 @@ public partial class DuelScene : Control
     {
         _deny?.HideNow();
         HideRulesSlab();
+        if (_concedeBtn != null) _concedeBtn.Visible = false;   // FABLE-035
+        CloseConcedeConfirm();
         _tutorialPopup?.Hide();
         // The coach is a child of this scene, added by TutorialRunner.
         GetNodeOrNull<Control>("TutorialCoach")?.Hide();

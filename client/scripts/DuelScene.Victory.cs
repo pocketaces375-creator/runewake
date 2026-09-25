@@ -142,7 +142,7 @@ public partial class DuelScene
         var kicker = OverlayText(playerWon ? "THE FIGHT IS WON" : "THE FIGHT IS LOST", 58f * s, 26, GetHeaderFont((int)(26 * s)), new Color(0.72f, 0.66f, 0.52f), vp.X);
         var headline = OverlayText(playerWon ? "VICTORY" : "DEFEATED", 84f * s, 128, GetCardNameFont((int)(128 * s)), accent, vp.X);
         headline.Name = "Headline";
-        string sub = playerWon ? $"You defeated {encName}" : $"{encName} prevails";
+        string sub = playerWon ? $"You defeated {encName}" : _conceded ? $"You yielded to {encName}" : $"{encName} prevails";
         if (_gsm.TurnNumber > 0) sub += $"   ·   turn {_gsm.TurnNumber}";
         var subline = OverlayText(sub, 244f * s, 38, GetBodyFont((int)(38 * s)), Parchment, vp.X);
         reveal.Add(kicker); reveal.Add(headline); reveal.Add(subline);

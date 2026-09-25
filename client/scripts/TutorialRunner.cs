@@ -1289,31 +1289,54 @@ public partial class TutorialRunner : Node
         }
     }
 
+    /// <summary>
+    /// Put the script's cards in a hand.
+    ///
+    /// FABLE-035. This used to throw the WHOLE hand back into the deck and mint fresh copies of
+    /// the scripted cards. For the opponent that meant: the Wayfarer holds 7 cards, the player
+    /// ends turn one, and the Wayfarer's hand collapses to the single Thorn Sprout the script
+    /// wants it to play — which it plays, and is left holding nothing. Trikzos: "the enemy is
+    /// losing their whole hand after the first pass." It also grew the decks by a card or three
+    /// every override (the minted copies were never taken back).
+    ///
+    /// Now the scripted cards are found before anything is minted — already in hand, then
+    /// pulled from the deck — and:
+    ///   the player's hand is set exactly (the coach's prompts name those cards), with the
+    ///     cards it replaces going back to the deck;
+    ///   the opponent keeps its hand SIZE: each scripted card swaps out one other card, so a
+    ///     7-card hand stays 7 and plays down to 6.
+    /// </summary>
     private void ApplyHandOverride(int playerIndex, List<string> cardIds)
     {
         var state = _gsm.State;
         if (state == null) return;
 
         var player = state.Players[playerIndex];
+        bool keepSize = playerIndex != 0;
+        int sizeBefore = player.Hand.Count;
 
-        // Move all current hand cards to deck
-        foreach (var card in player.Hand.ToList())
-        {
-            card.Zone = Zone.Deck;
-            player.Deck.Add(card);
-        }
-        player.Hand.Clear();
-
-        // Create new card instances for the override
+        var kept = new List<CardInstance>();      // the scripted cards, in script order
+        var spare = new List<CardInstance>(player.Hand);
         foreach (var cardId in cardIds)
         {
+            var inHand = spare.FirstOrDefault(c => c.CardDefId == cardId);
+            if (inHand != null) { spare.Remove(inHand); kept.Add(inHand); continue; }
+
+            var inDeck = player.Deck.FirstOrDefault(c => c.CardDefId == cardId);
+            if (inDeck != null)
+            {
+                player.Deck.Remove(inDeck);
+                inDeck.Zone = Zone.Hand;
+                kept.Add(inDeck);
+                continue;
+            }
+
             var def = CardRegistry.Get(cardId);
             if (def == null)
             {
                 GD.PrintErr($"[TutorialRunner] Unknown card in override: {cardId}");
                 continue;
             }
-
             var instance = new CardInstance(state.NextInstanceId++, cardId, playerIndex)
             {
                 CardType = def.Type,
@@ -1324,13 +1347,25 @@ public partial class TutorialRunner : Node
                 Zone = Zone.Hand,
             };
             instance.Keywords.AddRange(def.Keywords);
-
-            player.Hand.Add(instance);
+            kept.Add(instance);
         }
 
-        // Remove the overridden cards from the deck (they were just created fresh)
-        // But keep deck balanced — remove extras beyond override amount
-        GD.Print($"[TutorialRunner] Hand override: P{playerIndex} set to {cardIds.Count} cards");
+        // Which of the other cards stay: none for the player; for the opponent, as many as
+        // keep the hand the size it was (never fewer than the scripted cards themselves).
+        int room = keepSize ? System.Math.Max(0, sizeBefore - kept.Count) : 0;
+        var stay = spare.Take(room).ToList();
+        foreach (var card in spare.Skip(room))
+        {
+            card.Zone = Zone.Deck;
+            player.Deck.Add(card);
+        }
+
+        player.Hand.Clear();
+        player.Hand.AddRange(stay);
+        player.Hand.AddRange(kept);
+        foreach (var c in player.Hand) c.Zone = Zone.Hand;
+
+        GD.Print($"[TutorialRunner] Hand override: P{playerIndex} {sizeBefore} → {player.Hand.Count} cards ({kept.Count} scripted{(keepSize ? ", size kept" : "")})");
 
         // Force a re-render
         _gsm.NotifyStateChanged();

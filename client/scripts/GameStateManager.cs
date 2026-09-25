@@ -464,6 +464,21 @@ public partial class GameStateManager : Node
     }
 
     /// <summary>
+    /// FABLE-035: <paramref name="playerIndex"/> concedes. The duel ends as a win for the other
+    /// side, through the same StateChanged → GameOver path as any other ending, so the end
+    /// screen, save and telemetry all behave exactly as for a loss on the board.
+    /// </summary>
+    public void Concede(int playerIndex)
+    {
+        if (_state == null || _state.IsGameOver) return;
+        _state.IsGameOver = true;
+        _state.WinnerIndex = _state.OpponentIndex(playerIndex);
+        GD.Print($"[GameStateManager] P{playerIndex} conceded on turn {_state.TurnNumber}");
+        StateChanged?.Invoke();
+        CheckGameOver();
+    }
+
+    /// <summary>
     /// Fire StateChanged from outside the class. Used by TutorialRunner to
     /// force a re-render after applying hand/attunement overrides.
     /// </summary>
