@@ -726,7 +726,7 @@ def cmd_approve(a):
     e.update({"status": "approved", "image": c["image"], "image_path": str(dest.relative_to(REPO)), "generator": c["generator"]})
     save_ledger(led)
     print(f"{a.card_id}: installed {dest.relative_to(REPO)} — uniqueness now {uniqueness(led, a.card_id)}/100 "
-          f"(re-bake card plates before shipping)")
+          f"— now re-bake its card face: python3 pipeline/bake_cards.py {a.card_id}")
     return 0
 
 
