@@ -27,7 +27,27 @@ public partial class GameStateManager : Node
     public bool IsGameOver => _state?.IsGameOver ?? false;
 
     /// <summary>Index of the winning player, or -1 if game not over.</summary>
-    public int WinnerIndex => _state?.WinnerIndex ?? -1;
+    public int WinnerIndex => _state?.WinnerIndex is int w ? View(w) : -1;
+
+    // ═══ FABLE-038: SEATS ═══════════════════════════════════════════════════
+    // Online, two phones run ONE canonical duel state (seat 0 = Players[0],
+    // seat 1 = Players[1]). DuelScene was written with "0 = me, 1 = the enemy"
+    // in some 80 places. Rather than touch them all, this class speaks VIEW
+    // indices (0 = me) at its surface and translates to seats at the engine
+    // boundary — here, in one place. LocalSeat is 0 in every offline duel, so
+    // nothing changes for them.
+    /// <summary>Which seat of the canonical state this phone is playing. 0 unless online.</summary>
+    public int LocalSeat { get; set; }
+    /// <summary>Canonical seat for a view index (0 = me, 1 = the opponent).</summary>
+    public int Seat(int view) => view ^ LocalSeat;
+    /// <summary>View index for a canonical seat.</summary>
+    public int View(int seat) => seat ^ LocalSeat;
+    /// <summary>This phone's player, in the canonical state.</summary>
+    public PlayerState Me => _state.Players[LocalSeat];
+    /// <summary>The opponent, in the canonical state.</summary>
+    public PlayerState Foe => _state.Players[1 - LocalSeat];
+    /// <summary>The player a view index refers to.</summary>
+    public PlayerState Side(int view) => _state.Players[Seat(view)];
 
     // ——— Signals for UI updates ———
 
@@ -44,6 +64,9 @@ public partial class GameStateManager : Node
     /// turn then happens in the expedition, not in BotController.
     /// </summary>
     public Func<GameAction, GameState?>? ActionSink { get; set; }
+
+    /// <summary>FABLE-038: online, a concede must reach the other phone too. Runs before the local concede.</summary>
+    public Action? ConcedeSink { get; set; }
 
     /// <summary>FABLE-020: in co-op, this board ending doesn't end the fight — the expedition decides.</summary>
     public bool DeferGameOver { get; set; }
@@ -167,6 +190,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public ActionResult TryPlayCard(int playerIndex, string cardDefId, int laneIndex, int? instanceId = null)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         if (_state.IsGameOver)
             return Error("Game is already over.");
 
@@ -228,6 +252,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public ActionResult TryAttack(int playerIndex, int sourceLaneIndex, int targetLaneIndex)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         if (_state.IsGameOver)
             return Error("Game is already over.");
 
@@ -278,6 +303,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public ActionResult PerformMulligan(int playerIndex, List<int> redrawIndices)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         if (_state.IsGameOver)
             return Error("Game is already over.");
 
@@ -381,7 +407,7 @@ public partial class GameStateManager : Node
     {
         if (_state.IsGameOver && !DeferGameOver)
         {
-            GameOver?.Invoke(_state.WinnerIndex ?? -1);
+            GameOver?.Invoke(_state.WinnerIndex is int w ? View(w) : -1);
         }
     }
 
@@ -392,6 +418,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public List<HandCardInfo> GetHand(int playerIndex)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         var player = _state.Players[playerIndex];
         var infos = new List<HandCardInfo>();
         foreach (var ci in player.Hand)
@@ -418,6 +445,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public List<LaneInfo> GetLanes(int playerIndex)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         var player = _state.Players[playerIndex];
         var infos = new List<LaneInfo>();
         foreach (var lane in player.Lanes)
@@ -457,6 +485,7 @@ public partial class GameStateManager : Node
     /// </summary>
     public PlayerHudInfo GetPlayerHud(int playerIndex)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         var p = _state.Players[playerIndex];
         return new PlayerHudInfo
         {
@@ -469,7 +498,7 @@ public partial class GameStateManager : Node
         };
     }
 
-    public int CurrentPlayerIndex => _state.CurrentPlayerIndex;
+    public int CurrentPlayerIndex => View(_state.CurrentPlayerIndex);
     public int TurnNumber => _state.TurnNumber;
 
     /// <summary>
@@ -491,7 +520,9 @@ public partial class GameStateManager : Node
     /// </summary>
     public void Concede(int playerIndex)
     {
+        playerIndex = Seat(playerIndex);   // FABLE-038: view → seat
         if (_state == null || _state.IsGameOver) return;
+        ConcedeSink?.Invoke();             // FABLE-038: tell the other phone (it applies the same concede)
         _state.IsGameOver = true;
         _state.WinnerIndex = _state.OpponentIndex(playerIndex);
         GD.Print($"[GameStateManager] P{playerIndex} conceded on turn {_state.TurnNumber}");

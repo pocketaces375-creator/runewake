@@ -286,7 +286,7 @@ public partial class Main : Control
         // and the full-width account plate covered a third of the hall; this is a single row.
         var buttonRow = new HBoxContainer
         {
-            AnchorLeft = 0.20f, AnchorRight = 0.80f,
+            AnchorLeft = 0.15f, AnchorRight = 0.85f,     // FABLE-038: five plates now, a touch wider
             AnchorTop = 0.815f, AnchorBottom = 0.885f,
             Alignment = BoxContainer.AlignmentMode.Center,
         };
@@ -324,6 +324,14 @@ public partial class Main : Control
             GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
         };
         buttonRow.AddChild(arenaButton);
+
+        // FABLE-038: play with friends — a PvP duel or a co-op fight over the cloud.
+        var onlineButton = Quiet("Play Online");
+        onlineButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            GetTree().ChangeSceneToFile(OnlineLobbyScene.ScenePath);
+        };
+        buttonRow.AddChild(onlineButton);
 
         var settingsButton = Quiet("Settings");
         settingsButton.Pressed += () => {

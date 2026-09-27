@@ -46,6 +46,7 @@ public partial class DuelScene
     private readonly List<LootCard> _loot = new();
     private int _arenaRuneDust;
     private bool _arenaDuelEnded;
+    private bool _onlineRewarded;
     private bool _gameOverSettled;
 
     /// <summary>
@@ -113,7 +114,15 @@ public partial class DuelScene
         var encounter = CampaignContext.CurrentEncounter;
         bool arena = _arenaDuelEnded;
         bool campaign = _isCampaignEncounter && encounter != null;
-        string encName = arena ? (CampaignContext.ArenaEncounter?.Name ?? "") : (encounter?.Name ?? "");
+        string encName = arena ? (CampaignContext.ArenaEncounter?.Name ?? "") : OnlineMatch.Current?.OpponentName ?? (encounter?.Name ?? "");
+        // FABLE-038: an online win pays a little Rune Dust, once.
+        if (OnlineMatch.Current != null && playerWon && !_onlineRewarded && CampaignContext.Progression is { } oprog)
+        {
+            _onlineRewarded = true;
+            _arenaRuneDust = 15;
+            oprog.RuneDust += 15;
+            try { CampaignContext.SaveManager?.Save(); } catch (Exception ex) { GD.PrintErr($"[Online] save after win failed: {ex.Message}"); }
+        }
         if (string.IsNullOrEmpty(encName)) encName = "your opponent";
         Color accent = playerWon ? Gold : Ember;
 
@@ -197,7 +206,15 @@ public partial class DuelScene
                 if (!string.IsNullOrEmpty(currentSeed)) CampaignContext.DebugSeed = ulong.Parse(currentSeed);
             });
 
-            if (!campaign)
+            if (OnlineMatch.Current is { } online)
+            {
+                // FABLE-038: an online duel ends here; a rematch is a new lobby.
+                primary = PlateButton("Play online again", null, true, s);
+                ArmEndOfDuelButton(primary, "Continue", () => LeaveDuelFor(OnlineLobbyScene.ScenePath, "Play online again pressed"));
+                quietA = PlateButton("Back to title", null, false, s);
+                ArmEndOfDuelButton(quietA, "Back to title", () => LeaveDuelFor(MainMenuScenePath, "Back to title pressed"));
+            }
+            else if (!campaign)
             {
                 primary = PlateButton("Play again", null, true, s);
                 ArmEndOfDuelButton(primary, "Fight Again", () => Retry("Play again pressed"));

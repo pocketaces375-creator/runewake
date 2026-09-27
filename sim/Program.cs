@@ -24,6 +24,9 @@ switch (command)
     case "tower-sim":
         Environment.Exit(TowerSim.Run(args));
         break;
+    case "pvp-bot":
+        Environment.Exit(PvpBot.Run(args));
+        break;
     default:
         Console.Error.WriteLine($"Unknown command: {command}");
         PrintUsage();
@@ -40,6 +43,8 @@ static void PrintUsage()
     Console.WriteLine("  Runewake.Sim validate-card <card-file>");
     Console.WriteLine("  Runewake.Sim tower-sim [--root .] [--floor 1] [--games 10] [--raids 20]");
     Console.WriteLine("  Runewake.Sim world-soak [--root .] [--pages 100] [--biome elvenwood] [--class all] [--games 4]");
+    Console.WriteLine("  Runewake.Sim pvp-bot --code ABC123 [--name Fable] [--class battlemage] [--think 1.5] [--root .]");
+    Console.WriteLine("                    (joins an online duel lobby by its code and plays it; needs SUPABASE_URL + SUPABASE_ANON_KEY)");
     Console.WriteLine();
     Console.WriteLine("Commands:");
     Console.WriteLine("  run              Run a batch simulation between two bots");

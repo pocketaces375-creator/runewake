@@ -656,6 +656,22 @@ public partial class DuelScene : Control
             if (CoopSession.Current != null)
                 CoopOverlay.Attach(this, _gsm, _bot);
         }
+        else if (OnlineMatch.Current is { } online)
+        {
+            // FABLE-038: an online match. The lobby built the duel on both phones from the
+            // shared seed; this scene just shows this phone's seat of it.
+            _encounterName = online.OpponentName.ToUpperInvariant();
+            if (online.Coop != null)
+            {
+                _gsm.InitializeTestGame();
+                CoopOverlay.Attach(this, _gsm, _bot);
+            }
+            else
+            {
+                _gsm.InitializeTestGame();
+            }
+            OnlineOverlay.Attach(this, _gsm, _bot);
+        }
         else
         {
             _gsm.InitializeTestGame();
@@ -732,7 +748,7 @@ public partial class DuelScene : Control
             capTimer.Timeout += () =>
             {
                 // Skip mulligan for both players
-                if (_gsm != null && _gsm.State != null && !_gsm.State.Players[0].HasMulliganed)
+                if (_gsm != null && _gsm.State != null && !_gsm.Me.HasMulliganed)
                 {
                     _gsm.PerformMulligan(0, new System.Collections.Generic.List<int>());
                     _gsm.PerformMulligan(1, new System.Collections.Generic.List<int>());
@@ -1034,7 +1050,7 @@ public partial class DuelScene : Control
                         meta.Append($"      \"slot\": \"player_{slot.LaneIndex}\",\n");
                         meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
                         meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }},\n");
-                        meta.Append($"      \"state\": \"{(_gsm.State.Players[0].Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
+                        meta.Append($"      \"state\": \"{(_gsm.Me.Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
                         meta.Append("    },");
                         meta.Append("\n");
                         bi++;
@@ -1055,7 +1071,7 @@ public partial class DuelScene : Control
                         meta.Append($"      \"slot\": \"enemy_{slot.LaneIndex}\",\n");
                         meta.Append($"      \"rect\": {{ \"x\": {gp.X:F1}, \"y\": {gp.Y:F1}, \"w\": {r.Size.X:F1}, \"h\": {r.Size.Y:F1} }},\n");
                         meta.Append($"      \"name_rect\": {{ \"x\": {nameRect.Position.X:F1}, \"y\": {nameRect.Position.Y:F1}, \"w\": {nameRect.Size.X:F1}, \"h\": {nameRect.Size.Y:F1} }},\n");
-                        meta.Append($"      \"state\": \"{(_gsm.State.Players[1].Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
+                        meta.Append($"      \"state\": \"{(_gsm.Foe.Lanes[slot.LaneIndex].Occupant != null ? "occupied" : "empty")}\"\n");
                         meta.Append("    }");
                         if (bi < (_playerSlots.Count + _enemySlots.Count) - 1)
                             meta.Append(",");
@@ -2015,7 +2031,7 @@ public partial class DuelScene : Control
         var count = 0;
         if (_gsm != null && _gsm.State != null)
         {
-            var p = isPlayer ? _gsm.State.Players[0] : _gsm.State.Players[1];
+            var p = isPlayer ? _gsm.Me : _gsm.Foe;
             count = p.Deck.Count;
         }
         var label = new Label
@@ -2407,7 +2423,7 @@ public partial class DuelScene : Control
         // Compute excavate card count BEFORE render (hand state before update)
         int excavateCount = 0;
         if (state != null && state.Players.Length > 0)
-            excavateCount = CountExcavateCards(state, 0);
+            excavateCount = CountExcavateCards(state, _gsm.LocalSeat);
 
         // Capture the new state for comparison
         var newEnemyBoard = CaptureBoard(1);
@@ -2448,7 +2464,7 @@ public partial class DuelScene : Control
         // ═══ TASK-AUDIO-HOOK-1: Detect card draw ═══
         if (state != null && state.Players.Length > 0)
         {
-            int currentHandSize = state.Players[0].Hand.Count;
+            int currentHandSize = _gsm.Me.Hand.Count;
             if (currentHandSize > _prevHandSize)
             {
                 var audio = GetNode<AudioManager>("/root/AudioManager");
@@ -2462,9 +2478,9 @@ public partial class DuelScene : Control
         {
             int fullMask = 0;
             for (int side = 0; side <= 1; side++)
-            for (int ai = 0; ai < (state.Players[side].ArtifactSlots?.Length ?? 0); ai++)
+            for (int ai = 0; ai < (_gsm.Side(side).ArtifactSlots?.Length ?? 0); ai++)
             {
-                var slot = state.Players[side].ArtifactSlots[ai];
+                var slot = _gsm.Side(side).ArtifactSlots[ai];
                 if (slot.Occupant != null && slot.MaxCharges > 0 && slot.Charges >= slot.MaxCharges)
                     fullMask |= (1 << (side * 2 + ai));
             }
@@ -2481,9 +2497,9 @@ public partial class DuelScene : Control
         {
             for (int side = 0; side <= 1; side++)
             {
-                for (int ai = 0; ai < (state.Players[side].ArtifactSlots?.Length ?? 0); ai++)
+                for (int ai = 0; ai < (_gsm.Side(side).ArtifactSlots?.Length ?? 0); ai++)
                 {
-                    var slot = state.Players[side].ArtifactSlots[ai];
+                    var slot = _gsm.Side(side).ArtifactSlots[ai];
                     if (slot.Occupant == null || slot.MaxCharges <= 0) continue;
                     
                     int prevCharges = side == 0 ? _prevPlayerCharges[ai] : _prevEnemyCharges[ai];
@@ -2599,7 +2615,7 @@ public partial class DuelScene : Control
         {
             for (int i = 0; i < 5; i++)
             {
-                if (state.Players[0].Lanes[i].Occupant != null)
+                if (_gsm.Me.Lanes[i].Occupant != null)
                 {
                     _tutorialGateStep = -1;
                     GD.Print("[TUTORIAL] gate t05 satisfied");
@@ -2612,7 +2628,7 @@ public partial class DuelScene : Control
         // Tutorial gate: detect attack (t11) — enemy vigor decreased
         if (_tutorialGateStep == 11 && state != null && _prevEnemyVigor >= 0)
         {
-            if (state.Players[1].Vigor < _prevEnemyVigor)
+            if (_gsm.Foe.Vigor < _prevEnemyVigor)
             {
                 _tutorialGateStep = -1;
                 GD.Print("[TUTORIAL] gate t11 satisfied");
@@ -2628,7 +2644,7 @@ public partial class DuelScene : Control
         _prevPlayerBoard = newPlayerBoard;
         _prevExcavateCardCount = excavateCount;
         if (state != null && state.Players.Length > 0)
-            _prevBuryCount = state.Players[0].Barrow.Count;
+            _prevBuryCount = _gsm.Me.Barrow.Count;
 
         _firstRender = false;
     }
@@ -2877,8 +2893,9 @@ public partial class DuelScene : Control
     {
         if (!_isCampaignEncounter)
         {
-            _enemyName.Text = "Enemy";
-            _enemyNameLabel.Text = "Enemy";
+            string foe = OnlineMatch.Current?.OpponentName ?? "Enemy";
+            _enemyName.Text = foe;
+            _enemyNameLabel.Text = foe;
         }
 
         var enemyHud = _gsm.GetPlayerHud(1);
@@ -2892,7 +2909,7 @@ public partial class DuelScene : Control
         // Deck and barrow counts
         if (state != null && state.Players.Length > 1)
         {
-            var p1 = state.Players[1];
+            var p1 = _gsm.Foe;
             // Guard: RenderHud fires before BuildSideHud from _Ready→GSM.Initialize
             if (_enemyDeckValue != null)
                 _enemyDeckValue.Text = p1.Deck.Count.ToString();
@@ -2955,7 +2972,7 @@ public partial class DuelScene : Control
         // TASK-UI3c: Player shrine — artifacts, deck, barrow, vigor
         if (state != null && state.Players.Length > 0)
         {
-            var p0 = state.Players[0];
+            var p0 = _gsm.Me;
             if (_playerShrineDeckLabel != null)
                 _playerShrineDeckLabel.Text = p0.Deck.Count.ToString();
             if (_playerShrineBarrowLabel != null)
@@ -3041,7 +3058,7 @@ public partial class DuelScene : Control
 
         if (state != null && state.Players.Length > 1)
         {
-            int n = state.Players[1].Hand.Count;
+            int n = _gsm.Foe.Hand.Count;
             GD.Print($"[ENEMYHAND] n={n}");
             if (_enemyHandRow != null)
             {
@@ -3378,7 +3395,7 @@ public partial class DuelScene : Control
                 HideRulesSlab();
                 _slabCardId = null;
                 var occupant = (laneIndex >= 0 && laneIndex < 5 && _gsm.State != null)
-                    ? _gsm.State.Players[0].Lanes[laneIndex].Occupant : null;
+                    ? _gsm.Me.Lanes[laneIndex].Occupant : null;
                 string creatureName = occupant != null
                     ? (CardRegistry.Get(occupant.CardDefId)?.Name ?? "That creature") : "That creature";
                 if (occupant != null && occupant.HasAttackedThisTurn)
@@ -3990,7 +4007,7 @@ public partial class DuelScene : Control
                 {
                     // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so every card is playable ═══
                     if (_gsm.State != null)
-                        _gsm.State.Players[0].Attunement = 99;
+                        _gsm.Me.Attunement = 99;
 
                     // Pick first hand card
                     touchTargetCard = _handCards.Count > 0 ? _handCards[0] : null;
@@ -4046,7 +4063,7 @@ public partial class DuelScene : Control
                         int? lane = null;
                         for (int i = 0; i < 5; i++)
                         {
-                            if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                            if (_gsm.Me.Lanes[i].Occupant == null)
                             {
                                 lane = i;
                                 break;
@@ -4155,7 +4172,7 @@ public partial class DuelScene : Control
 
                     // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so mouse card play succeeds ═══
                     if (_gsm.State != null)
-                        _gsm.State.Players[0].Attunement = 99;
+                        _gsm.Me.Attunement = 99;
 
                     HandCard? mouseCard = _handCards.Count > 0 ? _handCards[0] : null;
                     if (mouseCard == null)
@@ -4195,7 +4212,7 @@ public partial class DuelScene : Control
                         int? lane = null;
                         for (int i = 0; i < 5; i++)
                         {
-                            if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                            if (_gsm.Me.Lanes[i].Occupant == null)
                             {
                                 lane = i;
                                 break;
@@ -4364,7 +4381,7 @@ public partial class DuelScene : Control
             if (step == 1)
             {
                 // ═══ TASK-SKIP-IS-FAIL-1: Force attunement so every card is playable ═══
-                _gsm.State.Players[0].Attunement = 99;
+                _gsm.Me.Attunement = 99;
 
                 // Phase 1: Pick first hand card (deterministic — no cost gate)
                 if (_handCards.Count == 0)
@@ -4411,7 +4428,7 @@ public partial class DuelScene : Control
                     int? lane = null;
                     for (int i = 0; i < 5; i++)
                     {
-                        if (_gsm.State.Players[0].Lanes[i].Occupant == null)
+                        if (_gsm.Me.Lanes[i].Occupant == null)
                         { lane = i; break; }
                     }
 
@@ -4468,7 +4485,7 @@ public partial class DuelScene : Control
                     bool creatureOnBoard = false;
                     if (playLane.HasValue)
                     {
-                        var occupant = _gsm.State.Players[0].Lanes[playLane.Value].Occupant;
+                        var occupant = _gsm.Me.Lanes[playLane.Value].Occupant;
                         creatureOnBoard = occupant != null;
                         if (creatureOnBoard)
                             GD.Print($"[TouchOnlySmokeTest] Board: creature '{occupant!.CardDefId}' in lane {playLane.Value}");
@@ -4478,7 +4495,7 @@ public partial class DuelScene : Control
                         // Fallback: check all player lanes
                         for (int i = 0; i < 5; i++)
                         {
-                            if (_gsm.State.Players[0].Lanes[i].Occupant != null)
+                            if (_gsm.Me.Lanes[i].Occupant != null)
                             { creatureOnBoard = true; break; }
                         }
                     }
@@ -4555,8 +4572,8 @@ public partial class DuelScene : Control
                 int? attackerLane = null;
                 for (int i = 0; i < 5; i++)
                 {
-                    if (_gsm.State.Players[0].Lanes[i].Occupant != null
-                        && !_gsm.State.Players[0].Lanes[i].Occupant.IsExhausted)
+                    if (_gsm.Me.Lanes[i].Occupant != null
+                        && !_gsm.Me.Lanes[i].Occupant.IsExhausted)
                     {
                         attackerLane = i;
                         break;
@@ -4603,7 +4620,7 @@ public partial class DuelScene : Control
                     int targetLane = 0;
                     for (int i = 0; i < 5; i++)
                     {
-                        if (_gsm.State.Players[1].Lanes[i].Occupant != null)
+                        if (_gsm.Foe.Lanes[i].Occupant != null)
                         {
                             targetLane = i;
                             break;
@@ -4946,14 +4963,14 @@ public partial class DuelScene : Control
     private void ShowMulliganIfNeeded()
     {
         if (_gsm == null || !_gsm.IsInitialized) return;
-        if (_gsm.State.Players[0].HasMulliganed) return;
+        if (_gsm.Me.HasMulliganed) return;
 
         // FABLE-026: the mulligan screen is switched off (GameFeatures.Mulligan). Both players
         // keep their opening hands and the duel starts straight away.
         if (!GameFeatures.Mulligan)
         {
             _gsm.PerformMulligan(0, new List<int>());
-            if (!_gsm.State.Players[1].HasMulliganed)
+            if (!_gsm.Foe.HasMulliganed)
                 _gsm.PerformMulligan(1, new List<int>());
             Callable.From(OnStateChanged).CallDeferred();
             return;
