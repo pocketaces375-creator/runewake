@@ -13,8 +13,7 @@ namespace Runewake.Client;
 /// defeat screen as any loss (Try again / Back to the map), and every exit path, save and
 /// telemetry hook that already works for a loss works for this.
 ///
-/// Not offered in the guided first duel (it has its own "Skip tutorial") or on a co-op board
-/// (the expedition decides the outcome for everyone at that table).
+/// Not offered on a co-op board (the expedition decides the outcome for everyone at that table).
 /// </summary>
 public partial class DuelScene
 {
@@ -24,7 +23,9 @@ public partial class DuelScene
 
     private void BuildConcedeButton()
     {
-        if (_isTutorialScriptMode || CoopSession.Current != null) return;
+        // FABLE-041: offered in the guided first duel too (Trikzos: "the game needs the concede
+        // button"); the coach's Skip link hides with the coach, which left no way out at all.
+        if (CoopSession.Current != null) return;
         float s = GetViewportRect().Size.Y / 1080f;
         _concedeBtn = new Button
         {
@@ -151,6 +152,9 @@ public partial class DuelScene
         _conceded = true;
         ExitTrace("concede: player conceded the duel");
         if (_concedeBtn != null) _concedeBtn.Visible = false;
+        // In the guided first duel, stand the tutorial down first so its restrictions and coach
+        // don't sit over the defeat screen (and the tutorial counts as done).
+        if (_isTutorialScriptMode && _tutorialRunner != null) _tutorialRunner.SkipTutorial();
         _gsm.Concede(0);
     }
 }

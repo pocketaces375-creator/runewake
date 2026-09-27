@@ -1808,7 +1808,12 @@ public partial class DuelScene : Control
             SizeFlagsHorizontal = (Control.SizeFlags)3, Alignment = BoxContainer.AlignmentMode.Center };
         pnp.AddChild(pnh);
 
-        var playerClassName = new Label { Text = "BATTLEMAGE", HorizontalAlignment = HorizontalAlignment.Center,
+        // FABLE-041: this was hard-coded "BATTLEMAGE" for every class. Online it's your name; otherwise
+        // the class you're actually playing this duel with.
+        string myLabel = OnlineMatch.Current?.MyName
+            ?? (_gsm?.State != null && !string.IsNullOrEmpty(_gsm.Me.ArtifactClass) ? _gsm.Me.ArtifactClass
+            : !string.IsNullOrEmpty(CampaignContext.ChosenClass) ? CampaignContext.ChosenClass : "You");
+        var playerClassName = new Label { Text = myLabel.ToUpperInvariant(), HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
         playerClassName.AddThemeFontSizeOverride("font_size", nameFont);
         playerClassName.AddThemeColorOverride("font_color", Colors.White);
@@ -2891,11 +2896,13 @@ public partial class DuelScene : Control
 
     private void RenderHud()
     {
-        if (!_isCampaignEncounter)
+        // FABLE-041: the first StateChanged fires from _gsm.Initialize, BEFORE BuildSideHud has made
+        // these labels — so every non-campaign duel (online 1v1, quick play) died here with an NRE.
+        if (!_isCampaignEncounter && _enemyNameLabel != null)
         {
             string foe = OnlineMatch.Current?.OpponentName ?? "Enemy";
-            _enemyName.Text = foe;
             _enemyNameLabel.Text = foe;
+            if (_enemyName != null) _enemyName.Text = foe;
         }
 
         var enemyHud = _gsm.GetPlayerHud(1);
@@ -6038,6 +6045,8 @@ public partial class DuelScene : Control
         if (_gsm == null || _noPlayBanner == null) return;
         // FABLE-033: the duel is over — no hint about playing cards over the end screen.
         if (_gsm.IsGameOver) { _noPlayBanner.Visible = false; return; }
+        // FABLE-041: online, "tap End Turn" while it's the other player's turn is wrong advice.
+        if (OnlineMatch.Current?.Pvp is { } pvp && !pvp.IsMyTurn) { _noPlayBanner.Visible = false; return; }
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         var hand = _gsm.GetHand(0);
         if (hand == null || hand.Count == 0) { _noPlayBanner.Visible = false; return; }
