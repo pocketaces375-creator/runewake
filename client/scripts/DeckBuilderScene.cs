@@ -42,6 +42,8 @@ public partial class DeckBuilderScene : Control
     private Control _leftPanel;
     private Control _rightRail;
     private Control _savedDecksContainer; // Load Deck section
+    // FABLE-039: grab-the-page scrolling
+    private DragScroll? _gridDrag, _deckDrag, _savedDrag;
 
     // Data
     private readonly List<CardDef> _allCards = new();
@@ -353,14 +355,39 @@ public partial class DeckBuilderScene : Control
         _leftPanel.OffsetTop = 64; // below top bar
         AddChild(_leftPanel);
 
+        // FABLE-039: the display case — near-black velvet with a soft warm light from above,
+        // so the cards are the brightest thing on screen.
+        var caseBg = new ColorRect { Color = Color.FromHtml("#0B0A09"), MouseFilter = MouseFilterEnum.Ignore };
+        caseBg.SetAnchorsPreset(LayoutPreset.FullRect);
+        _leftPanel.AddChild(caseBg);
+        var caseLight = new TextureRect
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            StretchMode = TextureRect.StretchModeEnum.Scale,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            Texture = new GradientTexture2D
+            {
+                Width = 256, Height = 256,
+                Fill = GradientTexture2D.FillEnum.Radial,
+                FillFrom = new Vector2(0.5f, 0.0f), FillTo = new Vector2(0.5f, 1.05f),
+                Gradient = new Gradient
+                {
+                    Offsets = new[] { 0f, 1f },
+                    Colors = new[] { new Color(0.55f, 0.44f, 0.26f, 0.20f), new Color(0, 0, 0, 0) },
+                },
+            },
+        };
+        caseLight.SetAnchorsPreset(LayoutPreset.FullRect);
+        _leftPanel.AddChild(caseLight);
+
         // Grid scroll area (with subtle scrollbar)
         _gridScroll = new ScrollContainer();
         _gridScroll.SetAnchorsPreset(LayoutPreset.FullRect);
         _gridScroll.SizeFlagsHorizontal = (SizeFlags)3;
         _gridScroll.SizeFlagsVertical = (SizeFlags)3;
         _gridScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Auto;
-        // Touch tuning: small drags press cards, longer drags scroll the grid
-        _gridScroll.ScrollDeadzone = 24;
+        // FABLE-039: grab the page itself to scroll (DragScroll owns dragging; taps still add cards)
+        _gridDrag = DragScroll.Attach(_gridScroll);
         // Visible-but-elegant scrollbar: slim gold grabber on a faint track
         var vsb = _gridScroll.GetVScrollBar();
         vsb.CustomMinimumSize = new Vector2(8, 0);
@@ -508,7 +535,7 @@ public partial class DeckBuilderScene : Control
 
         // Deck list scroll
         _deckListScroll = new ScrollContainer();
-        _deckListScroll.ScrollDeadzone = 24;
+        _deckDrag = DragScroll.Attach(_deckListScroll);
         _deckListScroll.SizeFlagsVertical = (SizeFlags)3;
         _deckListScroll.SizeFlagsHorizontal = (SizeFlags)3;
         railVbox.AddChild(_deckListScroll);
@@ -580,7 +607,7 @@ public partial class DeckBuilderScene : Control
         savedHeader.AddChild(savedLabel);
 
         var savedScroll = new ScrollContainer();
-        savedScroll.ScrollDeadzone = 24;
+        _savedDrag = DragScroll.Attach(savedScroll);
         savedScroll.SizeFlagsVertical = (SizeFlags)3;
         savedScroll.SizeFlagsHorizontal = (SizeFlags)3;
         savedScroll.CustomMinimumSize = new Vector2(0, 80);
@@ -775,227 +802,128 @@ public partial class DeckBuilderScene : Control
     }
 
     /// <summary>
-    /// Create a grid card item using the CardPlate template.
+    /// FABLE-039: one card in the display case.
+    ///
+    /// The baked Runestone face IS the card (frame, name band, shields, cost diamond), so there
+    /// is no extra box around it — just a soft shadow under it and a warm glow when you touch it.
+    /// Owned cards sit at full colour with a gentle vibrance lift; cards you haven't found yet are
+    /// shown dimmed (not see-through, which made the whole case look muddy) with a small
+    /// "Not yet found" caption. Copies in the current deck show as a gold "×N" pill.
     /// </summary>
     private Control MakeGridCard(CardDef card, int ownedCount, int inDeckCount, float gridW)
     {
-        float gridH = gridW * 219f / 150f; // 13:19 aspect ratio
+        float gridH = gridW * 608f / 416f;      // the bake's aspect
+        const float captionH = 40f;
 
-        var container = new PanelContainer();
-        container.CustomMinimumSize = new Vector2(gridW, gridH);
-        container.SizeFlagsHorizontal = (SizeFlags)0;
-        container.SizeFlagsVertical = (SizeFlags)0;
-        container.MouseDefaultCursorShape = CursorShape.PointingHand;
+        bool isUnowned = ownedCount == 0;
+        bool isAtLimit = !isUnowned && ownedCount <= inDeckCount;
 
-        // Card face style
-        var strataColor = StrataColor(card.Strata);
-        var cardStyle = new StyleBoxFlat
+        var cell = new Control
         {
-            BgColor = Color.FromHtml("#332E28"),
-            BorderColor = strataColor.Darkened(0.4f),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 0, ContentMarginTop = 0,
-            ContentMarginRight = 0, ContentMarginBottom = 0
+            CustomMinimumSize = new Vector2(gridW, gridH + captionH),
+            SizeFlagsHorizontal = 0, SizeFlagsVertical = 0,
+            MouseFilter = MouseFilterEnum.Ignore,
         };
-        container.AddThemeStyleboxOverride("panel", cardStyle);
 
-        // Content area
-        var content = new Control();
-        content.SetAnchorsPreset(LayoutPreset.FullRect);
-        container.AddChild(content);
-
-        // ── Card art background (parchment tone, visible behind dark art) ──
-        var artBg = new ColorRect
+        // everything that lifts on touch lives in `face`, so the container never fights the scale
+        var face = new Control
         {
-            Color = CardArtColors.Parchment,
-            MouseFilter = MouseFilterEnum.Ignore
+            Position = Vector2.Zero, Size = new Vector2(gridW, gridH),
+            PivotOffset = new Vector2(gridW / 2, gridH / 2),
+            MouseFilter = MouseFilterEnum.Ignore,
         };
-        artBg.SetAnchorsPreset(LayoutPreset.FullRect);
-        content.AddChild(artBg);
+        cell.AddChild(face);
 
-        // ── Card art (full-bleed, cover-cropped) ──
-        var artRect = new TextureRect();
-        artRect.SetAnchorsPreset(LayoutPreset.FullRect);
-        artRect.MouseFilter = MouseFilterEnum.Ignore;
-        artRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-        artRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-        string artPath = $"res://content/art/{card.Id}.webp";
-        if (ResourceLoader.Exists(artPath))
+        var shadowBox = new StyleBoxFlat
         {
-            var texture = ResourceLoader.Load<Texture2D>(artPath);
-            if (texture != null)
-                artRect.Texture = texture;
-            else
-                artRect.Modulate = CardArtColors.Parchment;
-        }
-        else
-        {
-            artRect.Modulate = CardArtColors.Parchment;
-            GD.Print($"[ART-MISSING] {card.Id}");
-        }
-        content.AddChild(artRect);
-
-        // Cost badge
-        var costBadge = new PanelContainer();
-        costBadge.Position = new Vector2(0, 0);
-        costBadge.Size = new Vector2(Mathf.Max(18, gridW * 0.17f), Mathf.Max(16, gridW * 0.17f * 0.85f));
-        var costStyle = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#1C1610"),
-            BorderColor = Gold,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
-            CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3,
-            ContentMarginLeft = 2, ContentMarginTop = 1,
-            ContentMarginRight = 2, ContentMarginBottom = 1
+            BgColor = new Color(0, 0, 0, 0.0f),
+            ShadowColor = new Color(0, 0, 0, 0.60f), ShadowSize = 22, ShadowOffset = new Vector2(0, 10),
+            CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
         };
-        costBadge.AddThemeStyleboxOverride("panel", costStyle);
-        var costLabel = new Label
+        var glowBox = new StyleBoxFlat
         {
-            Text = card.Cost.ToString(),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            BgColor = new Color(0, 0, 0, 0.0f),
+            ShadowColor = new Color(0.93f, 0.76f, 0.36f, 0.55f), ShadowSize = 26,
+            CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
         };
-        ApplyHeaderFont(costLabel, FontSmall);
-        costLabel.AddThemeColorOverride("font_color", Gold);
-        costLabel.SetAnchorsPreset(LayoutPreset.FullRect);
-        costBadge.AddChild(costLabel);
-        content.AddChild(costBadge);
+        var halo = new Panel { MouseFilter = MouseFilterEnum.Ignore };
+        halo.SetAnchorsPreset(LayoutPreset.FullRect);
+        halo.OffsetLeft = 6; halo.OffsetRight = -6; halo.OffsetTop = 8; halo.OffsetBottom = -4;
+        halo.AddThemeStyleboxOverride("panel", shadowBox);
+        face.AddChild(halo);
 
-        // CardPlate
         var plate = new CardPlate();
-        content.AddChild(plate);
+        face.AddChild(plate);
         plate.Setup(card.Id, card.Attack, card.Vigor, gridW, gridH, card.Cost);
+        if (!isUnowned) plate.Showcase();
 
-        // xN badge (copies in current deck)
+        if (isUnowned)
+            face.Modulate = new Color(0.46f, 0.44f, 0.42f, 1f);   // dimmed, still solid
+
+        // in-deck pill, top-right (the cost diamond owns top-left)
         if (inDeckCount > 0)
         {
-            var inDeckBadge = new PanelContainer();
-            inDeckBadge.Position = new Vector2(gridW - 32, 0);
-            inDeckBadge.Size = new Vector2(30, 16);
-            var inDeckStyle = new StyleBoxFlat
+            var pill = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
+            pill.AddThemeStyleboxOverride("panel", new StyleBoxFlat
             {
-                BgColor = Color.FromHtml("#1C2A18"),
-                BorderColor = Color.FromHtml("#6F8F5A"),
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 3, CornerRadiusTopRight = 3,
-                CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3,
-                ContentMarginLeft = 2, ContentMarginTop = 0,
-                ContentMarginRight = 2, ContentMarginBottom = 0
-            };
-            inDeckBadge.AddThemeStyleboxOverride("panel", inDeckStyle);
-            var inDeckLabel = new Label
-            {
-                Text = $"x{inDeckCount}",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(inDeckLabel, FontTiny);
-            inDeckLabel.AddThemeColorOverride("font_color", Color.FromHtml("#6F8F5A"));
-            inDeckLabel.SetAnchorsPreset(LayoutPreset.FullRect);
-            inDeckBadge.AddChild(inDeckLabel);
-            content.AddChild(inDeckBadge);
+                BgColor = new Color(0.10f, 0.08f, 0.05f, 0.92f),
+                BorderColor = Gold, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16, CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16,
+                ContentMarginLeft = 12, ContentMarginRight = 12, ContentMarginTop = 2, ContentMarginBottom = 2,
+            });
+            var pl = new Label { Text = $"×{inDeckCount}", HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+            ApplyHeaderFont(pl, Mathf.RoundToInt(gridW * 0.10f));
+            pl.AddThemeColorOverride("font_color", Color.FromHtml("#F2DFA6"));
+            pill.AddChild(pl);
+            face.AddChild(pill);
+            pill.Position = new Vector2(gridW - gridW * 0.30f, gridW * 0.05f);
         }
 
-        // Compute how many saved decks this card appears in
-        int countInDecks = 0;
-        var progression = CampaignContext.Progression;
-        foreach (var (deckName, cardIds) in progression.SavedDecks)
+        // caption under the card
+        var caption = new Label
         {
-            if (cardIds != null && cardIds.Contains(card.Id))
-                countInDecks++;
-        }
-        bool isAtLimit = ownedCount <= inDeckCount;
-        bool isUnowned = ownedCount == 0;
-        if (isUnowned)
-            container.Modulate = new Color(1, 1, 1, 0.4f);
-        else if (isAtLimit)
-            container.Modulate = new Color(1, 1, 1, 0.55f);
+            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Position = new Vector2(0, gridH + 4), Size = new Vector2(gridW, captionH - 4),
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        ApplyBodyFont(caption, Mathf.RoundToInt(Mathf.Clamp(gridW * 0.085f, 18f, 28f)));
+        if (isUnowned) { caption.Text = "Not yet found"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#7A6F60")); }
+        else if (isAtLimit) { caption.Text = ownedCount == 1 ? "In your deck" : $"All {ownedCount} in your deck"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#9DBB84")); }
+        else { caption.Text = $"Owned ×{ownedCount}"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#BFB097")); }
+        cell.AddChild(caption);
 
-        // Owned / in-decks label
-        if (ownedCount > 0 || countInDecks > 0)
-        {
-            var ownedLabel = new Label
-            {
-                Text = $"owned {ownedCount} · in {countInDecks} decks",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Bottom
-            };
-            ownedLabel.AddThemeFontSizeOverride("font_size", 7);
-            ownedLabel.AddThemeColorOverride("font_color", Color.FromHtml("#A09080"));
-            ownedLabel.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
-            ownedLabel.AnchorLeft = 0; ownedLabel.AnchorRight = 1;
-            ownedLabel.AnchorBottom = 1;
-            ownedLabel.AnchorTop = 0.9f;
-            content.AddChild(ownedLabel);
-        }
-
-        // Click to add
-        var clickArea = new Button();
-        clickArea.SetAnchorsPreset(LayoutPreset.FullRect);
-        clickArea.MouseDefaultCursorShape = CursorShape.PointingHand;
-        var transparent = new StyleBoxFlat { BgColor = Colors.Transparent };
+        // Tap to add
+        var clickArea = new Button { FocusMode = FocusModeEnum.None, MouseDefaultCursorShape = CursorShape.PointingHand };
+        clickArea.Position = Vector2.Zero;
+        clickArea.Size = new Vector2(gridW, gridH);
+        var transparent = new StyleBoxEmpty();
         clickArea.AddThemeStyleboxOverride("normal", transparent);
         clickArea.AddThemeStyleboxOverride("hover", transparent);
         clickArea.AddThemeStyleboxOverride("pressed", transparent);
         clickArea.AddThemeStyleboxOverride("disabled", transparent);
-        container.AddChild(clickArea);
+        clickArea.AddThemeStyleboxOverride("focus", transparent);
+        cell.AddChild(clickArea);
 
-        clickArea.Disabled = isUnowned || isAtLimit;
-        clickArea.Pressed += () => AddToDeck(card.Id);
+        bool canAdd = !isUnowned && !isAtLimit;
+        clickArea.Disabled = !canAdd;
+        clickArea.Pressed += () => { if (_gridDrag?.Dragged != true) AddToDeck(card.Id); };
 
-        // Hover: gold border
-        bool isHovered = false;
-        container.MouseEntered += () =>
+        Tween? lift = null;
+        void Lift(float scale, bool glow)
         {
-            if (!isUnowned && !isAtLimit)
-            {
-                isHovered = true;
-                var hoverStyle = (StyleBoxFlat)cardStyle.Duplicate();
-                hoverStyle.BorderColor = Gold;
-                container.AddThemeStyleboxOverride("panel", hoverStyle);
-            }
-        };
-        container.MouseExited += () =>
-        {
-            isHovered = false;
-            container.RemoveThemeStyleboxOverride("panel");
-        };
+            if (!IsInstanceValid(face)) return;
+            halo.AddThemeStyleboxOverride("panel", glow ? glowBox : shadowBox);
+            lift?.Kill();
+            if (CampaignContext.ReduceMotion) { face.Scale = Vector2.One * scale; return; }
+            lift = face.CreateTween();
+            lift.TweenProperty(face, "scale", Vector2.One * scale, 0.12f).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+        }
+        clickArea.MouseEntered += () => { if (canAdd) Lift(1.035f, true); };
+        clickArea.MouseExited += () => Lift(1f, false);
+        clickArea.ButtonDown += () => { if (canAdd) Lift(0.975f, true); };
+        clickArea.ButtonUp += () => Lift(clickArea.IsHovered() && canAdd ? 1.035f : 1f, clickArea.IsHovered() && canAdd);
 
-        // Press: gold border + lift shadow
-        clickArea.ButtonDown += () =>
-        {
-            if (!isUnowned && !isAtLimit)
-            {
-                var pressStyle = (StyleBoxFlat)cardStyle.Duplicate();
-                pressStyle.BorderColor = Gold;
-                pressStyle.ShadowSize = 6;
-                pressStyle.ShadowColor = new Color(0, 0, 0, 0.35f);
-                pressStyle.ShadowOffset = new Vector2(0, 2);
-                container.AddThemeStyleboxOverride("panel", pressStyle);
-            }
-        };
-        clickArea.ButtonUp += () =>
-        {
-            if (isHovered && !isUnowned && !isAtLimit)
-            {
-                var hoverStyle = (StyleBoxFlat)cardStyle.Duplicate();
-                hoverStyle.BorderColor = Gold;
-                container.AddThemeStyleboxOverride("panel", hoverStyle);
-            }
-            else
-                container.RemoveThemeStyleboxOverride("panel");
-        };
-
-        // Long-press to inspect (using pressed-hold detection)
-        // For simplicity, we rely on the existing card detail popup
-
-        return container;
+        return cell;
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -1064,6 +992,7 @@ public partial class DeckBuilderScene : Control
         _gridScrollTarget = Mathf.Clamp(
             from + (mb.ButtonIndex == MouseButton.WheelUp ? -step : step), 0f, max);
 
+        _gridDrag?.Halt();
         _gridScrollTween?.Kill();
         _gridScrollTween = CreateTween();
         _gridScrollTween.TweenProperty(_gridScroll, "scroll_vertical", (int)_gridScrollTarget, 0.16f)
@@ -1122,14 +1051,16 @@ public partial class DeckBuilderScene : Control
         float availWidth = _leftPanel.Size.X - 40; // 20px margins each side
         if (availWidth <= 0) availWidth = 800;
 
-        float gap = 18f;
+        // FABLE-039: a display case, not a spreadsheet — five across on a phone in landscape
+        // (was nine), each card ~300px wide. The baked faces are 416px, so this stays sharp;
+        // any bigger and they'd start to soften.
+        float gap = 34f;
         float ratio = GetViewportRect().Size.Y / 1080f;
-        float baseCellW = 150f;
-        float cellW = baseCellW * Mathf.Max(0.6f, Mathf.Min(1.4f, ratio));
-        int columns = Mathf.Max(1, Mathf.FloorToInt((availWidth + gap) / (cellW + gap)));
-
-        // Actual card width to fill available space evenly
-        float cardW = (availWidth - (columns - 1) * gap) / columns;
+        float cellW = 300f * Mathf.Clamp(ratio, 0.6f, 1.4f);
+        int columns = Mathf.Clamp(Mathf.RoundToInt((availWidth + gap) / (cellW + gap)), 3, 6);
+        float cardW = Mathf.Min((availWidth - (columns - 1) * gap) / columns, 416f);
+        _cardGrid.AddThemeConstantOverride("separation", 30);
+        _cardGrid.AddChild(new Control { CustomMinimumSize = new Vector2(0, 14), MouseFilter = MouseFilterEnum.Ignore });
 
         for (int i = 0; i < filtered.Count; i += columns)
         {
@@ -1152,8 +1083,12 @@ public partial class DeckBuilderScene : Control
             }
         }
 
+        _cardGrid.AddChild(new Control { CustomMinimumSize = new Vector2(0, 60), MouseFilter = MouseFilterEnum.Ignore });
+
         if (preserveScroll && keepScroll > 0)
             RestoreGridScroll(keepScroll);
+        else
+            _gridDrag?.Halt();
     }
 
     private void RefreshDeckList()
@@ -1252,7 +1187,7 @@ public partial class DeckBuilderScene : Control
                 clickArea.AddThemeStyleboxOverride("hover", transparent);
                 clickArea.AddThemeStyleboxOverride("pressed", transparent);
                 row.AddChild(clickArea);
-                clickArea.Pressed += () => RemoveFromDeck(cardId);
+                clickArea.Pressed += () => { if (_deckDrag?.Dragged != true) RemoveFromDeck(cardId); };
             }
 
             _deckListContainer.AddChild(row);
@@ -1849,7 +1784,7 @@ public partial class DeckBuilderScene : Control
             // Capture the deck name for the closure
             string capturedName = deckName;
             List<string> capturedCards = cardIds;
-            clickArea.Pressed += () => LoadDeck(capturedName, capturedCards);
+            clickArea.Pressed += () => { if (_savedDrag?.Dragged != true) LoadDeck(capturedName, capturedCards); };
 
             _savedDecksContainer.AddChild(row);
         }

@@ -135,6 +135,28 @@ public partial class CardPlate : Control
         }
     }
 
+    // FABLE-039: the Deck Forge is the display case — a gentle vibrance/contrast lift on the face.
+    // Only the baked texture gets it; the live numerals keep their exact colours.
+    private static ShaderMaterial? _showcase;
+    private const string ShowcaseShader = @"shader_type canvas_item;
+uniform float saturation = 1.14;
+uniform float contrast = 1.06;
+uniform float lift = 1.04;
+void fragment() {
+    vec4 c = texture(TEXTURE, UV);
+    float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 rgb = mix(vec3(l), c.rgb, saturation);
+    rgb = (rgb - 0.5) * contrast + 0.5;
+    COLOR = vec4(clamp(rgb * lift, 0.0, 1.0), c.a) * COLOR;
+}";
+
+    public void Showcase()
+    {
+        if (_baked == null) return;
+        _showcase ??= new ShaderMaterial { Shader = new Shader { Code = ShowcaseShader } };
+        _baked.Material = _showcase;
+    }
+
     public void SetAttunementAvailable(int available)
     {
         _attuneAvailable = available;
@@ -212,7 +234,11 @@ public partial class CardPlate : Control
         float boxW = fs * 2.4f;
         float cx = n[0] * cardW, baseline = n[1] * cardH + _numeralMid * fs;
         l.Position = new Vector2(cx - boxW / 2f, baseline - ascent);
-        l.Size = new Vector2(boxW, height);
+        // FABLE-039: a Label only draws lines that fit its height, and a box exactly one line
+        // tall loses its only line whenever rounding makes the line a hair taller than the box —
+        // that is why the cost numeral vanished on some card sizes (every card in the Deck Forge).
+        // Top-aligned, so extra height below changes nothing about where the digit sits.
+        l.Size = new Vector2(boxW, height * 1.6f + 4f);
         l.AddThemeFontSizeOverride("font_size", fs);
         int outline = Mathf.Max(2, Mathf.RoundToInt(fs * 0.13f));
         l.AddThemeConstantOverride("outline_size", outline);

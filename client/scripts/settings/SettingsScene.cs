@@ -4,37 +4,51 @@ using Runewake.Engine.State;
 namespace Runewake.Client;
 
 /// <summary>
-/// Settings screen — code-driven Godot UI.
-/// Volume sliders apply live to audio buses, Save persists to disk.
-/// Styled in Cinzel/gold on dark stone matching the title screen.
+/// Settings — FABLE-039 rebuild.
+///
+/// Trikzos: "the UI is so wonky… make it a super clean and professional looking settings page."
+///
+/// One dark-glass panel over the dimmed hero art, two columns:
+///   SOUND     master / music / effects / ambience sliders (gold fill, round grabber, % readout)
+///             and a mute switch
+///   GAMEPLAY  reduce-motion switch
+///   HELP & STORY  replay the tutorial, replay the intro, audio credits (list rows with a chevron)
+///   reset all progress, in ember, set apart at the bottom
+///
+/// Changes apply at once and save themselves (on slider release, on every switch, and when the
+/// screen closes) — no Save button to forget. The old "Graphics Quality: Low" switch is gone:
+/// "Low" set the whole viewport to NEAREST filtering the moment this screen opened (it was the
+/// default), which made every card and portrait crunchy for the rest of the session.
 /// </summary>
 public partial class SettingsScene : Control
 {
+    // palette
+    private static readonly Color Gold = Color.FromHtml("#C9A84C");
+    private static readonly Color GoldBright = Color.FromHtml("#E8C96A");
+    private static readonly Color Cream = Color.FromHtml("#EDE2CC");
+    private static readonly Color Muted = Color.FromHtml("#9C8F78");
+    private static readonly Color Rule = new(0.79f, 0.66f, 0.30f, 0.22f);
+    private static readonly Color EmberText = Color.FromHtml("#E0735A");
+
     // ── Controls ────────────────────────────────────────────────────
-    private HSlider? _musicSlider;
-    private Label? _musicLabel;
-    private HSlider? _sfxSlider;
-    private Label? _sfxLabel;
-    private HSlider? _ambientSlider;
-    private Label? _ambientLabel;
-    private CheckButton? _muteToggle;
+    private HSlider? _masterSlider, _musicSlider, _sfxSlider, _ambientSlider;
+    private SettingsSwitch? _muteSwitch, _motionSwitch;
     private Button? _backBtn;
+    private Label? _status;
 
-    // Credits overlay
     private Control? _creditsOverlay;
-
-    // Reset confirm overlay
     private Control? _resetOverlay;
     private LineEdit? _resetInput;
     private Button? _resetConfirmBtn;
     private Label? _resetError;
 
-    // Stored pre-save so we only write to disk on explicit Save
     private bool _dirty;
+    private bool _loading;
+    private float _statusFade;
 
     public override void _Ready()
     {
-        BuildUI();
+        SceneGuard.Build(this, "SettingsScene", BuildUI, "res://scenes/main/Main.tscn", "Back to title");
         LoadCurrentSettings();
 
         // Capture hook for --capture=settings_test[_wide]
@@ -46,655 +60,545 @@ public partial class SettingsScene : Control
                 var image = GetViewport().GetTexture().GetImage();
                 if (image != null)
                 {
-                    string path = CampaignContext.WideCaptureMode
-                        ? ProjectPaths.Artifacts + "/captures/settings_test_wide.png"
-                        : ProjectPaths.Artifacts + "/captures/settings_test.png";
-                    image.SavePng(path);
                     string baseName = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
+                    string path = ProjectPaths.Artifacts + $"/captures/{baseName}.png";
+                    image.SavePng(path);
                     DebugCapture.WriteLayoutJson(this, baseName);
                     GD.Print($"[SettingsScene] Captured to {path}");
-
-                    // TASK-UI-LINT-1: Dump layout JSON
-                    string settingsBasename = CampaignContext.WideCaptureMode ? "settings_test_wide" : "settings_test";
-                    DebugCapture.DumpLayoutJSON(settingsBasename, this);
+                    DebugCapture.DumpLayoutJSON(baseName, this);
                 }
                 GetTree().Quit(0);
             };
         }
     }
 
+    public override void _ExitTree()
+    {
+        if (_dirty) Persist();
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_status == null || _statusFade <= 0) return;
+        _statusFade -= (float)delta;
+        _status.Modulate = new Color(1, 1, 1, Mathf.Clamp(_statusFade / 0.6f, 0f, 1f));
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  Layout
+    // ════════════════════════════════════════════════════════════════
+
     private void BuildUI()
     {
-        // ── Dark stone background ──
-        var bg = new ColorRect
-        {
-            Color = Color.FromHtml("#1A1816"),
-            AnchorsPreset = (int)LayoutPreset.FullRect,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
+        var vp = GetViewportRect().Size;
+
+        var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
+        bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
-        // ── Title ──
+        const string heroPath = "res://content/art/title/hero_art.png";
+        if (ResourceLoader.Exists(heroPath))
+        {
+            var hero = new TextureRect
+            {
+                Texture = GD.Load<Texture2D>(heroPath),
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                Modulate = new Color(0.55f, 0.55f, 0.55f, 0.60f),
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            hero.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(hero);
+        }
+        var veil = new ColorRect { Color = new Color(0.03f, 0.025f, 0.02f, 0.40f), MouseFilter = MouseFilterEnum.Ignore };
+        veil.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(veil);
+
+        // ── Header: SETTINGS between two short ornament rules ──
         var title = new Label
         {
             Text = "SETTINGS",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            AnchorLeft = 0.1f, AnchorRight = 0.9f,
-            AnchorTop = 0.02f, AnchorBottom = 0.12f
+            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Position = new Vector2(0, 34), Size = new Vector2(vp.X, 100),
+            MouseFilter = MouseFilterEnum.Ignore,
         };
-        ThemeTokens.ApplyHeaderFont(title, ThemeTokens.FontTitleScreen);
-        title.Modulate = Color.FromHtml("#C9A84C"); // gold
+        title.AddThemeFontOverride("font", ThemeTokens.GetHeaderFont(78));
+        title.AddThemeFontSizeOverride("font_size", 78);
+        title.AddThemeColorOverride("font_color", Gold);
         AddChild(title);
+        float titleHalf = 290f, ruleLen = 260f, ruleY = 84f;
+        AddChild(new OrnamentRule { Position = new Vector2(vp.X / 2 - titleHalf - ruleLen, ruleY - 10), Size = new Vector2(ruleLen, 20), PointRight = true });
+        AddChild(new OrnamentRule { Position = new Vector2(vp.X / 2 + titleHalf, ruleY - 10), Size = new Vector2(ruleLen, 20), PointRight = false });
 
-        // ── Decorative separator line ──
-        var sep = new ColorRect
+        // ── The glass panel ──
+        float panelW = Mathf.Min(1680f, vp.X - 80f);
+        const float panelTop = 160f, panelBottomGap = 150f;
+        var panel = new PanelContainer
         {
-            Color = Color.FromHtml("#C9A84C"),
-            AnchorLeft = 0.15f, AnchorRight = 0.85f,
-            AnchorTop = 0.10f, AnchorBottom = 0.102f,
-            MouseFilter = MouseFilterEnum.Ignore
+            Position = new Vector2((vp.X - panelW) / 2, panelTop),
+            Size = new Vector2(panelW, vp.Y - panelTop - panelBottomGap),
+            MouseFilter = MouseFilterEnum.Stop,
         };
-        AddChild(sep);
+        panel.AddThemeStyleboxOverride("panel", Glass());
+        AddChild(panel);
 
-        // ── Content scroll container ──
-        var scroll = new ScrollContainer
+        var cols = new HBoxContainer();
+        cols.AddThemeConstantOverride("separation", 0);
+        panel.AddChild(cols);
+
+        // left column — SOUND
+        var left = Column();
+        cols.AddChild(left);
+        SectionHeader(left, "SOUND");
+        _masterSlider = SliderRow(left, "Master");
+        _musicSlider = SliderRow(left, "Music");
+        _sfxSlider = SliderRow(left, "Effects");
+        _ambientSlider = SliderRow(left, "Ambience");
+        Spacer(left, 6);
+        _muteSwitch = SwitchRow(left, "Mute all sound", null, OnMuteToggled);
+
+        // divider
+        cols.AddChild(new ColorRect { Color = Rule, CustomMinimumSize = new Vector2(2, 0), SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+
+        // right column — GAMEPLAY, HELP & STORY, reset
+        var right = Column();
+        cols.AddChild(right);
+        SectionHeader(right, "GAMEPLAY");
+        _motionSwitch = SwitchRow(right, "Reduce motion", "Fewer flashes, shakes and sweeps", on =>
         {
-            AnchorLeft = 0.08f, AnchorRight = 0.92f,
-            AnchorTop = 0.12f, AnchorBottom = 0.82f
-        };
-        AddChild(scroll);
+            CampaignContext.Settings.ReduceMotion = on;
+            MarkChanged(true);
+        });
+        Spacer(right, 14);
+        SectionHeader(right, "HELP & STORY");
+        ActionRow(right, "Replay the tutorial", false, OnReplayTutorial);
+        ActionRow(right, "Replay the intro", false, OnReplayIntro);
+        ActionRow(right, "Audio credits", false, ShowCreditsOverlay);
+        right.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        ActionRow(right, "Reset all progress", true, ShowResetConfirm);
 
-        var vbox = new VBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(0, 0)
-        };
-        scroll.AddChild(vbox);
-
-        // ═══ VOLUME SECTION ═══
-        AddSectionHeader(vbox, "VOLUME");
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
-
-        AddSliderRow(vbox, "Music", out _musicSlider, out _musicLabel, OnVolumeChanged);
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
-        AddSliderRow(vbox, "SFX", out _sfxSlider, out _sfxLabel, OnVolumeChanged);
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
-        AddSliderRow(vbox, "Ambient", out _ambientSlider, out _ambientLabel, OnVolumeChanged);
-
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 12) });
-
-        // ═══ MASTER MUTE ═══
-        _muteToggle = AddToggle(vbox, "Mute All", OnMuteToggled);
-
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 16) });
-
-        // ═══ GRAPHICS QUALITY ═══
-        var gfxHbox = new HBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(0, 44)
-        };
-        vbox.AddChild(gfxHbox);
-
-        var gfxLbl = new Label
-        {
-            Text = "Graphics Quality",
-            CustomMinimumSize = new Vector2(100, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ThemeTokens.ApplyBodyFont(gfxLbl, ThemeTokens.FontBody);
-        gfxLbl.Modulate = Color.FromHtml("#E8DCC8");
-        gfxHbox.AddChild(gfxLbl);
-
-        gfxHbox.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.Fill });
-
-        var gfxValue = new Label
-        {
-            Text = "Low",
-            CustomMinimumSize = new Vector2(60, 0),
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ThemeTokens.ApplyBodyFont(gfxValue, ThemeTokens.FontSmall);
-        gfxValue.Modulate = Color.FromHtml("#C9A84C");
-        gfxHbox.AddChild(gfxValue);
-
-        var gfxToggle = new CheckButton
-        {
-            CustomMinimumSize = new Vector2(48, 0),
-            ButtonPressed = CampaignContext.Settings.GraphicsQuality
-        };
-        gfxValue.Text = gfxToggle.ButtonPressed ? "High" : "Low";
-        gfxToggle.Toggled += on =>
-        {
-            _dirty = true;
-            CampaignContext.Settings.GraphicsQuality = on;
-            gfxValue.Text = on ? "High" : "Low";
-            ApplyGraphicsQuality(on);
-            GD.Print($"[Settings] Graphics quality set to {(on ? "High" : "Low")}");
-        };
-        gfxHbox.AddChild(gfxToggle);
-
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 16) });
-
-        // ═══ REPLAY INTRO ═══
-        var replayBtn = MakeStoneButton("Replay Intro");
-        replayBtn.Pressed += OnReplayIntro;
-        vbox.AddChild(replayBtn);
-
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
-
-        // ═══ CREDITS BUTTON ═══
-        var creditsBtn = MakeStoneButton("Audio Credits");
-        creditsBtn.Pressed += ShowCreditsOverlay;
-        vbox.AddChild(creditsBtn);
-
-        // ═══ RESET PROGRESS ═══
-        vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 8) });
-
-        var resetBtn = MakeStoneButton("Reset Progress");
-        resetBtn.Pressed += ShowResetConfirm;
-        vbox.AddChild(resetBtn);
-
-        // ═══ SAVE + BACK BUTTONS ═══
-        var btnHbox = new HBoxContainer
-        {
-            AnchorLeft = 0.15f, AnchorRight = 0.85f,
-            AnchorTop = 0.85f, AnchorBottom = 0.96f,
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter
-        };
-        AddChild(btnHbox);
-
-        var saveBtn = MakeStoneButton("Save");
-        saveBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
-        saveBtn.Pressed += OnSavePressed;
-        btnHbox.AddChild(saveBtn);
-
-        btnHbox.AddChild(new Control { CustomMinimumSize = new Vector2(16, 0) });
-
-        // TASK-TUTORIAL-WALKTHROUGH-2 C2: Replay tutorial
-        var replayTutorialBtn = MakeStoneButton("Replay Tutorial");
-        replayTutorialBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
-        replayTutorialBtn.Pressed += () =>
-        {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            // FABLE-002: replay the guided first duel on the real Wayfarer encounter
-            CampaignContext.TutorialScriptId = "first_duel";
-            CampaignContext.TutorialHeadless = false;
-            if (CampaignContext.EncounterIndex.Count == 0)
-                CampaignContext.LoadEncounters();
-            if (CampaignContext.EncounterIndex.TryGetValue("r1_duel_wayfarer", out var wayfarer))
-                CampaignContext.CurrentEncounter = wayfarer;
-            var profile = CampaignContext.ActiveProfile
-                ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
-            if (profile != null)
-                profile.TutorialDone = false;
-            GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
-        };
-        btnHbox.AddChild(replayTutorialBtn);
-
-        _backBtn = MakeStoneButton("Back");
-        _backBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
+        // ── Footer ──
+        _backBtn = Plate("◂  Back", false, 300, 84);
+        _backBtn.Position = new Vector2((vp.X - panelW) / 2, vp.Y - 118);
         _backBtn.Pressed += () =>
         {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            Click();
+            if (_dirty) Persist();
             GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
         };
-        btnHbox.AddChild(_backBtn);
+        AddChild(_backBtn);
 
-        // ═══ VERSION + BUILD HASH (bottom-right) ═══
+        _status = new Label
+        {
+            Text = "",
+            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Position = new Vector2(vp.X / 2 - 500, vp.Y - 118), Size = new Vector2(1000, 84),
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        _status.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(30));
+        _status.AddThemeFontSizeOverride("font_size", 30);
+        _status.AddThemeColorOverride("font_color", Muted);
+        AddChild(_status);
+
         var versionLabel = new Label
         {
-            AnchorLeft = 0.60f, AnchorRight = 0.96f,
-            AnchorTop = 0.96f, AnchorBottom = 0.995f,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            MouseFilter = MouseFilterEnum.Ignore
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
+            Position = new Vector2(vp.X - (vp.X - panelW) / 2 - 600, vp.Y - 118), Size = new Vector2(600, 84),
+            MouseFilter = MouseFilterEnum.Ignore,
         };
-        versionLabel.AddThemeFontSizeOverride("font_size", 10);
-        versionLabel.Modulate = Color.FromHtml("#5A5048"); // muted stone
+        versionLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(24));
+        versionLabel.AddThemeFontSizeOverride("font_size", 24);
+        versionLabel.AddThemeColorOverride("font_color", new Color(0.55f, 0.50f, 0.42f));
+        versionLabel.Text = $"Runewake {VersionString()}";
+        AddChild(versionLabel);
+    }
 
-        // Build version string from project settings and build info
+    private static string VersionString()
+    {
         string version = ProjectSettings.GetSetting("application/config/version", "dev").AsString();
-        string hash = "unknown";
+        string hash = "";
         try
         {
             if (Godot.FileAccess.FileExists("res://content/misc/build_info.txt"))
             {
-                string buildInfo = Godot.FileAccess.GetFileAsString("res://content/misc/build_info.txt");
-                var lines = buildInfo.Split('\n');
+                var lines = Godot.FileAccess.GetFileAsString("res://content/misc/build_info.txt").Split('\n');
                 if (lines.Length >= 2 && lines[1].StartsWith("sha:"))
-                    hash = lines[1].Substring(4, Math.Min(8, lines[1].Length - 4));
+                    hash = lines[1].Substring(4, Math.Min(8, lines[1].Length - 4)).Trim();
             }
         }
         catch { /* best-effort */ }
-
-        versionLabel.Text = $"{version} ({hash})";
-        AddChild(versionLabel);
+        return string.IsNullOrEmpty(hash) ? $"v{version}" : $"v{version} · {hash}";
     }
 
-    // ── UI helpers ──────────────────────────────────────────────────
+    // ── building blocks ─────────────────────────────────────────────
 
-    private static void AddSectionHeader(VBoxContainer parent, string text)
+    private static StyleBoxFlat Glass(Color? border = null, float alpha = 0.84f, int margin = 0)
     {
-        var label = new Label
+        var box = new StyleBoxFlat
         {
-            Text = text,
-            HorizontalAlignment = HorizontalAlignment.Center
+            BgColor = new Color(0.082f, 0.072f, 0.061f, alpha),
+            BorderColor = border ?? new Color(0.79f, 0.66f, 0.30f, 0.38f),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18, CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+            ShadowColor = new Color(0, 0, 0, 0.55f), ShadowSize = 28,
+            ContentMarginLeft = margin, ContentMarginRight = margin, ContentMarginTop = margin, ContentMarginBottom = margin,
         };
-        ThemeTokens.ApplyHeaderFont(label, ThemeTokens.FontSectionHeader);
-        label.Modulate = Color.FromHtml("#C9A84C"); // gold
-        parent.AddChild(label);
+        return box;
     }
 
-    private static void AddSliderRow(VBoxContainer parent, string labelText,
-        out HSlider slider, out Label valLabel, Action<double> handler)
+    private static VBoxContainer Column()
     {
-        var hbox = new HBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(0, 44) // 44px touch target
-        };
+        var margin = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
+        margin.AddThemeConstantOverride("separation", 0);
+        // inner padding via a MarginContainer would nest one more level; a VBox with side
+        // padding on each row keeps the tree flat and the rows full-width for touch.
+        return margin;
+    }
 
-        var lbl = new Label
-        {
-            Text = labelText,
-            CustomMinimumSize = new Vector2(100, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        var boldFont = ThemeTokens.GetButtonFont(ThemeTokens.FontBody);
-        if (boldFont != null)
-            lbl.AddThemeFontOverride("font", boldFont);
-        lbl.AddThemeFontSizeOverride("font_size", ThemeTokens.FontBody);
-        lbl.Modulate = Color.FromHtml("#E8DCC8"); // cream
-        hbox.AddChild(lbl);
+    private const float Pad = 56f;
 
-        slider = new HSlider
+    private static void Spacer(VBoxContainer col, float h) =>
+        col.AddChild(new Control { CustomMinimumSize = new Vector2(0, h), MouseFilter = MouseFilterEnum.Ignore });
+
+    private static void SectionHeader(VBoxContainer col, string text)
+    {
+        var wrap = new MarginContainer { CustomMinimumSize = new Vector2(0, 92) };
+        wrap.AddThemeConstantOverride("margin_left", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_right", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_top", 34);
+        col.AddChild(wrap);
+        var v = new VBoxContainer();
+        v.AddThemeConstantOverride("separation", 10);
+        wrap.AddChild(v);
+        var l = new Label { Text = text, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", ThemeTokens.GetHeaderFont(30));
+        l.AddThemeFontSizeOverride("font_size", 30);
+        l.AddThemeColorOverride("font_color", Gold);
+        l.AddThemeConstantOverride("outline_size", 0);
+        v.AddChild(l);
+        v.AddChild(new ColorRect { Color = Rule, CustomMinimumSize = new Vector2(0, 1), MouseFilter = MouseFilterEnum.Ignore });
+    }
+
+    private static Label RowLabel(string text, int size = 34, Color? colour = null)
+    {
+        var l = new Label { Text = text, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(size));
+        l.AddThemeFontSizeOverride("font_size", size);
+        l.AddThemeColorOverride("font_color", colour ?? Cream);
+        return l;
+    }
+
+    private HSlider SliderRow(VBoxContainer col, string label)
+    {
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, 88) };
+        row.AddThemeConstantOverride("separation", 24);
+        var wrap = new MarginContainer();
+        wrap.AddThemeConstantOverride("margin_left", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_right", (int)Pad);
+        wrap.AddChild(row);
+        col.AddChild(wrap);
+
+        var name = RowLabel(label);
+        name.CustomMinimumSize = new Vector2(190, 0);
+        row.AddChild(name);
+
+        var slider = new HSlider
         {
             MinValue = 0, MaxValue = 100, Step = 1,
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(100, 0)
+            SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ShrinkCenter,
+            CustomMinimumSize = new Vector2(0, 56),
+            FocusMode = FocusModeEnum.None,
+            Scrollable = false,
         };
-        slider.ValueChanged += v => handler(v);
-        slider.AddThemeStyleboxOverride("slider", ThemeTokens.StyleWornBorder(
-            borderColor: Color.FromHtml("#C9A84C"), width: 1, radius: 2));
-        hbox.AddChild(slider);
+        StyleSlider(slider);
+        row.AddChild(slider);
 
-        valLabel = new Label
+        var value = RowLabel("100%", 30, Muted);
+        value.CustomMinimumSize = new Vector2(92, 0);
+        value.HorizontalAlignment = HorizontalAlignment.Right;
+        row.AddChild(value);
+
+        slider.ValueChanged += v =>
         {
-            Text = "100",
-            CustomMinimumSize = new Vector2(40, 0),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            value.Text = $"{(int)v}%";
+            OnVolumeChanged();
         };
-        ThemeTokens.ApplyBodyFont(valLabel, ThemeTokens.FontSmall);
-        valLabel.Modulate = Color.FromHtml("#E8DCC8");
-        var capturedLabel = valLabel; // local copy for lambda capture
-        slider.ValueChanged += v => capturedLabel.Text = ((int)v).ToString();
-        hbox.AddChild(valLabel);
-
-        parent.AddChild(hbox);
+        slider.DragEnded += _ => { if (_dirty) Persist(); };
+        return slider;
     }
 
-    private static CheckButton AddToggle(VBoxContainer parent, string labelText, Action<bool> handler)
+    private SettingsSwitch SwitchRow(VBoxContainer col, string label, string? hint, Action<bool> onToggle)
     {
-        var hbox = new HBoxContainer
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, hint == null ? 88 : 104) };
+        row.AddThemeConstantOverride("separation", 24);
+        var wrap = new MarginContainer();
+        wrap.AddThemeConstantOverride("margin_left", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_right", (int)Pad);
+        wrap.AddChild(row);
+        col.AddChild(wrap);
+
+        var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, Alignment = BoxContainer.AlignmentMode.Center };
+        text.AddThemeConstantOverride("separation", 0);
+        text.AddChild(RowLabel(label));
+        if (hint != null) text.AddChild(RowLabel(hint, 26, Muted));
+        row.AddChild(text);
+
+        var sw = new SettingsSwitch { SizeFlagsVertical = SizeFlags.ShrinkCenter };
+        sw.Toggled += on => { if (!_loading) { Click(); onToggle(on); } };
+        row.AddChild(sw);
+
+        // the whole row is the hit area
+        wrap.MouseFilter = MouseFilterEnum.Stop;
+        wrap.GuiInput += e =>
         {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(0, 44)
+            if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } mb && !sw.GetGlobalRect().HasPoint(mb.GlobalPosition))
+                sw.Flip();
         };
-
-        var lbl = new Label
-        {
-            Text = labelText,
-            CustomMinimumSize = new Vector2(100, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ThemeTokens.ApplyBodyFont(lbl, ThemeTokens.FontBody);
-        lbl.Modulate = Color.FromHtml("#E8DCC8");
-        hbox.AddChild(lbl);
-
-        hbox.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.Fill });
-
-        var toggle = new CheckButton
-        {
-            CustomMinimumSize = new Vector2(48, 0)
-        };
-        toggle.Toggled += on => handler(on);
-        hbox.AddChild(toggle);
-
-        parent.AddChild(hbox);
-        return toggle;
+        return sw;
     }
 
-    private static Button MakeStoneButton(string text)
+    private void ActionRow(VBoxContainer col, string label, bool danger, Action onPress)
     {
-        var btn = new Button
-        {
-            Text = text,
-            CustomMinimumSize = new Vector2(0, ThemeTokens.MinButtonHeight)
-        };
-        btn.AddThemeFontSizeOverride("font_size", ThemeTokens.FontButtonPrimary);
-        var cormFont = ThemeTokens.GetBodyFont(ThemeTokens.FontButtonPrimary);
-        if (cormFont != null)
-            btn.AddThemeFontOverride("font", cormFont);
-        btn.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
-        btn.AddThemeColorOverride("font_pressed_color", Color.FromHtml("#B8A878"));
-        btn.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F0E8D0"));
+        var wrap = new MarginContainer();
+        wrap.AddThemeConstantOverride("margin_left", (int)(Pad - 20));
+        wrap.AddThemeConstantOverride("margin_right", (int)(Pad - 20));
+        wrap.AddThemeConstantOverride("margin_bottom", danger ? 30 : 0);
+        col.AddChild(wrap);
 
+        var b = new Button
+        {
+            Text = "", CustomMinimumSize = new Vector2(0, 80), FocusMode = FocusModeEnum.None,
+            MouseDefaultCursorShape = CursorShape.PointingHand,
+        };
         var normal = new StyleBoxFlat
         {
-            BgColor = Color.FromHtml("#3A3530"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 12,
-            ContentMarginRight = 16, ContentMarginBottom = 12
+            BgColor = danger ? new Color(0.42f, 0.12f, 0.08f, 0.16f) : new Color(1, 1, 1, 0.0f),
+            BorderColor = danger ? new Color(0.88f, 0.45f, 0.35f, 0.45f) : new Color(0, 0, 0, 0),
+            BorderWidthLeft = danger ? 1 : 0, BorderWidthRight = danger ? 1 : 0, BorderWidthTop = danger ? 1 : 0, BorderWidthBottom = danger ? 1 : 0,
+            CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12,
         };
-        var hover = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#4A4540"),
-            BorderColor = Color.FromHtml("#C9A84C"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 12,
-            ContentMarginRight = 16, ContentMarginBottom = 12
-        };
-        var pressed = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A2520"),
-            BorderColor = Color.FromHtml("#A08838"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 16, ContentMarginTop = 12,
-            ContentMarginRight = 16, ContentMarginBottom = 12
-        };
-        btn.AddThemeStyleboxOverride("normal", normal);
-        btn.AddThemeStyleboxOverride("hover", hover);
-        btn.AddThemeStyleboxOverride("pressed", pressed);
-        btn.AddThemeStyleboxOverride("disabled", normal);
-        return btn;
+        var hover = (StyleBoxFlat)normal.Duplicate();
+        hover.BgColor = danger ? new Color(0.50f, 0.14f, 0.09f, 0.30f) : new Color(0.79f, 0.66f, 0.30f, 0.10f);
+        var pressed = (StyleBoxFlat)normal.Duplicate();
+        pressed.BgColor = danger ? new Color(0.55f, 0.15f, 0.10f, 0.42f) : new Color(0.79f, 0.66f, 0.30f, 0.18f);
+        b.AddThemeStyleboxOverride("normal", normal);
+        b.AddThemeStyleboxOverride("hover", hover);
+        b.AddThemeStyleboxOverride("pressed", pressed);
+        b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        wrap.AddChild(b);
+
+        var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        inner.SetAnchorsPreset(LayoutPreset.FullRect);
+        inner.OffsetLeft = 20; inner.OffsetRight = -20;
+        b.AddChild(inner);
+        var l = RowLabel(label, 34, danger ? EmberText : Cream);
+        l.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        inner.AddChild(l);
+        inner.AddChild(RowLabel("›", 44, danger ? EmberText : Gold));
+
+        b.Pressed += () => onPress();
     }
 
-    // ── Credits overlay ──────────────────────────────────────────────
+    private static void StyleSlider(HSlider s)
+    {
+        StyleBoxFlat Track(Color c) => new()
+        {
+            BgColor = c,
+            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6, CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
+            ContentMarginTop = 5, ContentMarginBottom = 5,
+        };
+        var groove = Track(new Color(0.16f, 0.14f, 0.12f));
+        groove.BorderColor = new Color(0.36f, 0.31f, 0.25f);
+        groove.BorderWidthLeft = groove.BorderWidthRight = groove.BorderWidthTop = groove.BorderWidthBottom = 1;
+        s.AddThemeStyleboxOverride("slider", groove);
+        s.AddThemeStyleboxOverride("grabber_area", Track(Gold));
+        s.AddThemeStyleboxOverride("grabber_area_highlight", Track(GoldBright));
+        var knob = Knob(false);
+        s.AddThemeIconOverride("grabber", knob);
+        s.AddThemeIconOverride("grabber_highlight", Knob(true));
+        s.AddThemeIconOverride("grabber_disabled", knob);
+    }
+
+    private static ImageTexture? _knob, _knobHi;
+
+    /// <summary>A 44px round grabber: cream face, gold ring, soft shadow — drawn once, cached.</summary>
+    private static ImageTexture Knob(bool hi)
+    {
+        if (hi && _knobHi != null) return _knobHi;
+        if (!hi && _knob != null) return _knob;
+        const int n = 44;
+        var img = Image.CreateEmpty(n, n, false, Image.Format.Rgba8);
+        float c = (n - 1) / 2f, rOuter = 19.5f, rRing = 16.5f;
+        var face = hi ? new Color(1f, 0.97f, 0.88f) : new Color(0.95f, 0.91f, 0.82f);
+        var ring = hi ? GoldBright : Gold;
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c - 1) * (y - c - 1));
+                float shadowA = Mathf.Clamp((rOuter + 2.5f - d) / 3f, 0, 1) * 0.35f;
+                var px = new Color(0, 0, 0, shadowA);
+                float dd = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                float aOuter = Mathf.Clamp(rOuter + 0.5f - dd, 0, 1);
+                if (aOuter > 0)
+                {
+                    float tRing = Mathf.Clamp(rRing + 0.5f - dd, 0, 1);    // 1 inside the face
+                    var col = ring.Lerp(face, tRing);
+                    px = px.Lerp(new Color(col.R, col.G, col.B, 1), aOuter);
+                }
+                img.SetPixel(x, y, px);
+            }
+        var tex = ImageTexture.CreateFromImage(img);
+        if (hi) _knobHi = tex; else _knob = tex;
+        return tex;
+    }
+
+    private static Button Plate(string text, bool primary, float w, float h)
+    {
+        var b = new Button { Text = text, Size = new Vector2(w, h), CustomMinimumSize = new Vector2(w, h), FocusMode = FocusModeEnum.None };
+        b.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(32)); b.AddThemeFontSizeOverride("font_size", 32);
+        b.AddThemeColorOverride("font_color", primary ? Color.FromHtml("#F2DFA6") : Color.FromHtml("#D8CBB0"));
+        b.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.42f, 0.36f));
+        b.AddThemeStyleboxOverride("normal", primary ? MenuButtons.PrimaryNormal() : MenuButtons.QuietNormal());
+        b.AddThemeStyleboxOverride("hover", primary ? MenuButtons.PrimaryHover() : MenuButtons.Hover());
+        b.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed());
+        b.AddThemeStyleboxOverride("disabled", MenuButtons.QuietNormal());
+        b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        MenuButtons.Animate(b);
+        return b;
+    }
+
+    private void Click() => GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+
+    private void Say(string text, float seconds = 3.2f)
+    {
+        if (_status == null) return;
+        _status.Text = text;
+        _status.Modulate = Colors.White;
+        _statusFade = seconds;
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  Overlays
+    // ════════════════════════════════════════════════════════════════
+
+    /// <summary>Full-screen dim + centred glass card. Returns (overlay, content column).</summary>
+    private (Control overlay, VBoxContainer body) Modal(float w, float h, bool danger)
+    {
+        var vp = GetViewportRect().Size;
+        var overlay = new Control { MouseFilter = MouseFilterEnum.Stop, ZIndex = 20 };
+        overlay.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(overlay);
+        var dim = new ColorRect { Color = danger ? new Color(0.10f, 0.03f, 0.02f, 0.82f) : new Color(0.02f, 0.02f, 0.015f, 0.80f), MouseFilter = MouseFilterEnum.Ignore };
+        dim.SetAnchorsPreset(LayoutPreset.FullRect);
+        overlay.AddChild(dim);
+        var card = new PanelContainer { Position = new Vector2((vp.X - w) / 2, (vp.Y - h) / 2), Size = new Vector2(w, h) };
+        card.AddThemeStyleboxOverride("panel", Glass(danger ? new Color(0.88f, 0.45f, 0.35f, 0.65f) : null, 0.96f, 48));
+        overlay.AddChild(card);
+        var body = new VBoxContainer();
+        body.AddThemeConstantOverride("separation", 18);
+        card.AddChild(body);
+        return (overlay, body);
+    }
+
+    private static Label ModalTitle(string text, Color colour)
+    {
+        var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center };
+        l.AddThemeFontOverride("font", ThemeTokens.GetHeaderFont(44));
+        l.AddThemeFontSizeOverride("font_size", 44);
+        l.AddThemeColorOverride("font_color", colour);
+        return l;
+    }
 
     private void ShowCreditsOverlay()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        Click();
+        if (_creditsOverlay != null && IsInstanceValid(_creditsOverlay)) return;
 
-        // Close existing overlay if open
-        if (_creditsOverlay != null && IsInstanceValid(_creditsOverlay))
-        {
-            RemoveChild(_creditsOverlay);
-            _creditsOverlay.QueueFree();
-            _creditsOverlay = null;
-            return;
-        }
+        var (overlay, body) = Modal(1400, 860, false);
+        _creditsOverlay = overlay;
+        body.AddChild(ModalTitle("AUDIO CREDITS", Gold));
 
-        _creditsOverlay = new Control
-        {
-            AnchorsPreset = (int)LayoutPreset.FullRect,
-            MouseFilter = MouseFilterEnum.Stop
-        };
-        AddChild(_creditsOverlay);
-
-        // Dim background
-        var dimBg = new ColorRect
-        {
-            Color = new Color(0.1f, 0.09f, 0.08f, 0.85f),
-            AnchorsPreset = (int)LayoutPreset.FullRect,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _creditsOverlay.AddChild(dimBg);
-
-        // Centered panel
-        var panel = new PanelContainer
-        {
-            AnchorsPreset = (int)LayoutPreset.Center,
-            AnchorLeft = 0.15f, AnchorRight = 0.85f,
-            AnchorTop = 0.10f, AnchorBottom = 0.85f,
-            CustomMinimumSize = new Vector2(0, 0)
-        };
-        var panelBg = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A2520"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
-        };
-        panel.AddThemeStyleboxOverride("panel", panelBg);
-        _creditsOverlay.AddChild(panel);
-
-        var panelVbox = new VBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill
-        };
-        panel.AddChild(panelVbox);
-
-        // Title
-        var credTitle = new Label
-        {
-            Text = "AUDIO CREDITS",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            CustomMinimumSize = new Vector2(0, 40)
-        };
-        ThemeTokens.ApplyHeaderFont(credTitle, ThemeTokens.FontLargeBody);
-        credTitle.Modulate = Color.FromHtml("#C9A84C");
-        panelVbox.AddChild(credTitle);
-
-        // Scrollable credits content
-        var scroll = new ScrollContainer
-        {
-            SizeFlagsVertical = Control.SizeFlags.Fill,
-            SizeFlagsHorizontal = Control.SizeFlags.Fill
-        };
-        panelVbox.AddChild(scroll);
-
-        string creditsText = "All audio files shipped with Runewake are CC0 / public domain.\n\n";
+        string creditsText = "All audio files shipped with Runewake are CC0 / public domain.";
         try
         {
             if (Godot.FileAccess.FileExists("res://content/audio/AUDIO_CREDITS.md"))
-            {
                 creditsText = Godot.FileAccess.GetFileAsString("res://content/audio/AUDIO_CREDITS.md");
-            }
-            else
-            {
-                creditsText += "AUDIO_CREDITS.md not found — see content/audio/ directory for full details.";
-            }
         }
-        catch
-        {
-            creditsText += "Could not load credits file.";
-        }
+        catch { /* keep the default line */ }
 
-        var credBody = new Label
-        {
-            Text = creditsText,
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            SizeFlagsVertical = Control.SizeFlags.ExpandFill,
-            SizeFlagsHorizontal = Control.SizeFlags.Fill
-        };
-        ThemeTokens.ApplyBodyFont(credBody, ThemeTokens.FontSmall);
-        credBody.Modulate = Color.FromHtml("#C8B88A");
-        scroll.AddChild(credBody);
+        var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        body.AddChild(scroll);
+        var text = RowLabel(creditsText.Replace("#", "").Trim(), 26, Color.FromHtml("#CFC2A6"));
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.VerticalAlignment = VerticalAlignment.Top;
+        text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        scroll.AddChild(text);
+        DragScroll.Attach(scroll);
 
-        // Close button
-        var closeBtn = MakeStoneButton("Close");
-        closeBtn.CustomMinimumSize = new Vector2(0, 40);
-        closeBtn.Pressed += () =>
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        body.AddChild(row);
+        var close = Plate("Close", true, 320, 84);
+        close.Pressed += () =>
         {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            if (_creditsOverlay != null && IsInstanceValid(_creditsOverlay))
-            {
-                RemoveChild(_creditsOverlay);
-                _creditsOverlay.QueueFree();
-                _creditsOverlay = null;
-            }
+            Click();
+            if (_creditsOverlay != null && IsInstanceValid(_creditsOverlay)) _creditsOverlay.QueueFree();
+            _creditsOverlay = null;
         };
-        panelVbox.AddChild(closeBtn);
+        row.AddChild(close);
     }
-
-    // ── Reset progress confirm ──────────────────────────────────────
 
     private void ShowResetConfirm()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+        Click();
+        if (_resetOverlay != null && IsInstanceValid(_resetOverlay)) return;
 
-        if (_resetOverlay != null && IsInstanceValid(_resetOverlay))
-        {
-            // Already open — remove it
-            RemoveChild(_resetOverlay);
-            _resetOverlay.QueueFree();
-            _resetOverlay = null;
-            return;
-        }
+        var (overlay, body) = Modal(1100, 590, true);
+        _resetOverlay = overlay;
+        body.AddChild(ModalTitle("RESET ALL PROGRESS", EmberText));
 
-        _resetOverlay = new Control
-        {
-            AnchorsPreset = (int)LayoutPreset.FullRect,
-            MouseFilter = MouseFilterEnum.Stop
-        };
-        AddChild(_resetOverlay);
+        var warn = RowLabel("This deletes every card you own, your runes and upgrades, saved decks, map progress and your profile. It cannot be undone.", 30);
+        warn.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        warn.HorizontalAlignment = HorizontalAlignment.Center;
+        body.AddChild(warn);
 
-        // Dim background (darker red tint for danger)
-        var dimBg = new ColorRect
-        {
-            Color = new Color(0.15f, 0.05f, 0.05f, 0.85f),
-            AnchorsPreset = (int)LayoutPreset.FullRect,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        _resetOverlay.AddChild(dimBg);
+        var instr = RowLabel("Type RESET to confirm", 28, Gold);
+        instr.HorizontalAlignment = HorizontalAlignment.Center;
+        body.AddChild(instr);
 
-        // Centered panel
-        var panel = new PanelContainer
+        var editRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        body.AddChild(editRow);
+        _resetInput = new LineEdit { PlaceholderText = "RESET", CustomMinimumSize = new Vector2(420, 80), MaxLength = 10, Alignment = HorizontalAlignment.Center };
+        _resetInput.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(34));
+        _resetInput.AddThemeFontSizeOverride("font_size", 34);
+        _resetInput.AddThemeColorOverride("font_color", Cream);
+        _resetInput.AddThemeColorOverride("font_placeholder_color", new Color(0.45f, 0.40f, 0.34f));
+        var box = new StyleBoxFlat
         {
-            AnchorsPreset = (int)LayoutPreset.Center,
-            AnchorLeft = 0.20f, AnchorRight = 0.80f,
-            AnchorTop = 0.30f, AnchorBottom = 0.70f
+            BgColor = new Color(0.09f, 0.075f, 0.065f), BorderColor = new Color(0.62f, 0.34f, 0.26f),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+            ContentMarginLeft = 16, ContentMarginRight = 16,
         };
-        var panelBg = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#2A1A18"),
-            BorderColor = Color.FromHtml("#A03828"),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8
-        };
-        panel.AddThemeStyleboxOverride("panel", panelBg);
-        _resetOverlay.AddChild(panel);
-
-        var panelVbox = new VBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            SizeFlagsVertical = Control.SizeFlags.Fill
-        };
-        panel.AddChild(panelVbox);
-
-        // Warning title
-        var warnTitle = new Label
-        {
-            Text = "RESET PROGRESS",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            CustomMinimumSize = new Vector2(0, 36)
-        };
-        ThemeTokens.ApplyHeaderFont(warnTitle, ThemeTokens.FontLargeBody);
-        warnTitle.Modulate = Color.FromHtml("#D4442A"); // danger red
-        panelVbox.AddChild(warnTitle);
-
-        // Warning text
-        var warnText = new Label
-        {
-            Text = "This will permanently delete ALL saved data:\n- Card collection\n- Runes and upgrades\n- Saved decks\n- Map progress\n- Profile\n\nThis cannot be undone.",
-            AutowrapMode = TextServer.AutowrapMode.Word,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            SizeFlagsVertical = Control.SizeFlags.ExpandFill
-        };
-        ThemeTokens.ApplyBodyFont(warnText, ThemeTokens.FontBody);
-        warnText.Modulate = Color.FromHtml("#E8DCC8");
-        panelVbox.AddChild(warnText);
-
-        // Instruction
-        var instrLabel = new Label
-        {
-            Text = "Type RESET to confirm:",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            CustomMinimumSize = new Vector2(0, 28)
-        };
-        ThemeTokens.ApplyBodyFont(instrLabel, ThemeTokens.FontSmall);
-        instrLabel.Modulate = Color.FromHtml("#C9A84C");
-        panelVbox.AddChild(instrLabel);
-
-        // Line edit for typed confirm
-        _resetInput = new LineEdit
-        {
-            PlaceholderText = "type RESET here",
-            CustomMinimumSize = new Vector2(0, 36),
-            MaxLength = 10,
-            SizeFlagsHorizontal = Control.SizeFlags.Fill
-        };
-        _resetInput.AddThemeColorOverride("font_color", Color.FromHtml("#E8DCC8"));
-        _resetInput.AddThemeColorOverride("placeholder_color", Color.FromHtml("#5A5048"));
-        _resetInput.AddThemeColorOverride("background_color", Color.FromHtml("#3A3530"));
-        var inputBorder = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#3A3530"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        };
-        _resetInput.AddThemeStyleboxOverride("normal", inputBorder);
-        _resetInput.AddThemeStyleboxOverride("focus", inputBorder);
+        _resetInput.AddThemeStyleboxOverride("normal", box);
+        _resetInput.AddThemeStyleboxOverride("focus", box);
         _resetInput.TextChanged += _ => OnResetTextChanged();
-        panelVbox.AddChild(_resetInput);
+        editRow.AddChild(_resetInput);
 
-        // Error label (hidden by default)
-        _resetError = new Label
-        {
-            Text = "",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            CustomMinimumSize = new Vector2(0, 22),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        ThemeTokens.ApplyBodyFont(_resetError, ThemeTokens.FontSmall);
-        _resetError.Modulate = Color.FromHtml("#D4442A");
-        panelVbox.AddChild(_resetError);
+        _resetError = RowLabel("", 26, EmberText);
+        _resetError.HorizontalAlignment = HorizontalAlignment.Center;
+        _resetError.CustomMinimumSize = new Vector2(0, 34);
+        body.AddChild(_resetError);
 
-        // Button row
-        var btnHbox = new HBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.Fill,
-            CustomMinimumSize = new Vector2(0, 44)
-        };
-        panelVbox.AddChild(btnHbox);
-
-        var cancelBtn = MakeStoneButton("Cancel");
-        cancelBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
-        cancelBtn.Pressed += DismissResetConfirm;
-        btnHbox.AddChild(cancelBtn);
-
-        btnHbox.AddChild(new Control { CustomMinimumSize = new Vector2(12, 0) });
-
-        _resetConfirmBtn = MakeStoneButton("Delete Everything");
-        _resetConfirmBtn.SizeFlagsHorizontal = Control.SizeFlags.Fill;
+        var btnRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        btnRow.AddThemeConstantOverride("separation", 28);
+        body.AddChild(btnRow);
+        var cancel = Plate("Keep my progress", true, 400, 84);
+        cancel.Pressed += DismissResetConfirm;
+        btnRow.AddChild(cancel);
+        _resetConfirmBtn = Plate("Delete everything", false, 400, 84);
         _resetConfirmBtn.Disabled = true;
-        _resetConfirmBtn.Modulate = Color.FromHtml("#5A4038"); // dimmed
         _resetConfirmBtn.Pressed += ExecuteResetProgress;
-        btnHbox.AddChild(_resetConfirmBtn);
+        btnRow.AddChild(_resetConfirmBtn);
 
         _resetInput.GrabFocus();
     }
@@ -702,33 +606,17 @@ public partial class SettingsScene : Control
     private void OnResetTextChanged()
     {
         if (_resetInput == null || _resetConfirmBtn == null || _resetError == null) return;
-
         bool matches = _resetInput.Text.Trim().ToUpperInvariant() == "RESET";
         _resetConfirmBtn.Disabled = !matches;
-        if (matches)
-        {
-            _resetError.Text = "";
-            _resetConfirmBtn.Modulate = Color.FromHtml("#D4442A"); // danger red when enabled
-        }
-        else if (_resetInput.Text.Length >= 3)
-        {
-            _resetError.Text = "Type RESET exactly to enable";
-        }
-        else
-        {
-            _resetError.Text = "";
-        }
+        _resetConfirmBtn.AddThemeColorOverride("font_color", matches ? EmberText : Color.FromHtml("#D8CBB0"));
+        _resetError.Text = !matches && _resetInput.Text.Length >= 3 ? "Type RESET exactly to enable" : "";
     }
 
     private void DismissResetConfirm()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        if (_resetOverlay != null && IsInstanceValid(_resetOverlay))
-        {
-            RemoveChild(_resetOverlay);
-            _resetOverlay.QueueFree();
-            _resetOverlay = null;
-        }
+        Click();
+        if (_resetOverlay != null && IsInstanceValid(_resetOverlay)) _resetOverlay.QueueFree();
+        _resetOverlay = null;
         _resetInput = null;
         _resetConfirmBtn = null;
         _resetError = null;
@@ -736,161 +624,135 @@ public partial class SettingsScene : Control
 
     private void ExecuteResetProgress()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-
+        Click();
         GD.Print("[Settings] Resetting all progress...");
-
         try
         {
-            // Wipe in-memory progression — reset to fresh defaults
             var fresh = new ProgressionState();
-            CampaignContext.SaveManager.State.Version = fresh.Version;
-            CampaignContext.SaveManager.State.Shards = fresh.Shards;
-            CampaignContext.SaveManager.State.DigCharges = fresh.DigCharges;
-            CampaignContext.SaveManager.State.RuneDust = fresh.RuneDust;
-            CampaignContext.SaveManager.State.HasCompletedTutorial = fresh.HasCompletedTutorial;
-            CampaignContext.SaveManager.State.GlobalDiscoveryIndex = fresh.GlobalDiscoveryIndex;
-            CampaignContext.SaveManager.State.ClearedNodes.Clear();
-            CampaignContext.SaveManager.State.Collection.Clear();
-            CampaignContext.SaveManager.State.Fragments.Clear();
-            CampaignContext.SaveManager.State.OwnedRuneIds.Clear();
-            CampaignContext.SaveManager.State.SeenCardIds.Clear();
-            CampaignContext.SaveManager.State.UnlockedTools.Clear();
-            CampaignContext.SaveManager.State.DiscoveredRelics.Clear();
-            CampaignContext.SaveManager.State.DeckCardIds.Clear();
-            CampaignContext.SaveManager.State.SavedDecks.Clear();
-            // RuneSlotUnlockCounts/RuneUpgradeTiers were removed from ProgressionState (v4→v5)
-            CampaignContext.SaveManager.State.SavedRunePageJson = "";
-            CampaignContext.SaveManager.State.Tutorial = null;
+            var st = CampaignContext.SaveManager.State;
+            st.Version = fresh.Version;
+            st.Shards = fresh.Shards;
+            st.DigCharges = fresh.DigCharges;
+            st.RuneDust = fresh.RuneDust;
+            st.HasCompletedTutorial = fresh.HasCompletedTutorial;
+            st.GlobalDiscoveryIndex = fresh.GlobalDiscoveryIndex;
+            st.ClearedNodes.Clear();
+            st.Collection.Clear();
+            st.Fragments.Clear();
+            st.OwnedRuneIds.Clear();
+            st.SeenCardIds.Clear();
+            st.UnlockedTools.Clear();
+            st.DiscoveredRelics.Clear();
+            st.DeckCardIds.Clear();
+            st.SavedDecks.Clear();
+            st.SavedRunePageJson = "";
+            st.Tutorial = null;
             CampaignContext.Progression.Collection.Clear();
-
-            // Persist empty state to disk (replaces DB content)
             CampaignContext.SaveManager.Save();
 
-            // Reset settings, keep current audio prefs but reset IntroSeen
             var s = CampaignContext.Settings;
             s.IntroSeen = false;
             CampaignContext.SaveManager.SaveSettings(s);
 
-            // Clear deck library
             CampaignContext.DeckLibrary.Clear();
             CampaignContext.SaveDeckLibrary();
 
-            // Clear campaign profiles
             CampaignContext.Profiles.Clear();
             CampaignContext.ActiveProfileSlot = -1;
             CampaignContext.ChosenClass = "";
             CampaignContext.ChosenTown = "";
             CampaignContext.SaveCampaignProfile();
-
             GD.Print("[Settings] Progress reset complete — all save data cleared.");
         }
         catch (System.Exception ex)
         {
             GD.PrintErr($"[Settings] Reset progress failed: {ex.Message}");
         }
-
-        // Dismiss overlay
         DismissResetConfirm();
-
-        // Show feedback toast
-        var toast = new Label
-        {
-            Text = "Progress reset. Intro will play on next launch.",
-            AnchorsPreset = (int)LayoutPreset.Center,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ThemeTokens.ApplyBodyFont(toast, ThemeTokens.FontLargeBody);
-        toast.Modulate = Color.FromHtml("#C9A84C");
-        AddChild(toast);
-
-        var toastTimer = GetTree().CreateTimer(3.0f);
-        toastTimer.Timeout += () =>
-        {
-            if (IsInstanceValid(toast))
-            {
-                RemoveChild(toast);
-                toast.QueueFree();
-            }
-        };
+        Say("Progress reset. The intro will play next time you open the game.", 5f);
     }
 
-    // ── Event handlers ──────────────────────────────────────────────
+    // ════════════════════════════════════════════════════════════════
+    //  Behaviour
+    // ════════════════════════════════════════════════════════════════
 
     private void LoadCurrentSettings()
     {
+        _loading = true;
         var s = CampaignContext.Settings;
-        if (_musicSlider != null) _musicSlider.Value = (int)(s.MusicVolume * 100);
-        if (_sfxSlider != null) _sfxSlider.Value = (int)(s.SfxVolume * 100);
-        if (_ambientSlider != null) _ambientSlider.Value = (int)(s.AmbientVolume * 100);
-        if (_muteToggle != null) _muteToggle.ButtonPressed = s.MasterMute;
-
-        // Apply saved graphics quality
-        ApplyGraphicsQuality(s.GraphicsQuality);
+        if (_masterSlider != null) _masterSlider.Value = Mathf.RoundToInt(s.MasterVolume * 100);
+        if (_musicSlider != null) _musicSlider.Value = Mathf.RoundToInt(s.MusicVolume * 100);
+        if (_sfxSlider != null) _sfxSlider.Value = Mathf.RoundToInt(s.SfxVolume * 100);
+        if (_ambientSlider != null) _ambientSlider.Value = Mathf.RoundToInt(s.AmbientVolume * 100);
+        _muteSwitch?.SetOn(s.MasterMute, instant: true);
+        _motionSwitch?.SetOn(s.ReduceMotion, instant: true);
+        _loading = false;
+        _dirty = false;
     }
 
-    private void OnVolumeChanged(double value)
+    private void OnVolumeChanged()
     {
-        _dirty = true;
-        // Apply live to bus
+        if (_loading) return;
         var s = CampaignContext.Settings;
+        if (_masterSlider != null) s.MasterVolume = (float)_masterSlider.Value / 100f;
         if (_musicSlider != null) s.MusicVolume = (float)_musicSlider.Value / 100f;
         if (_sfxSlider != null) s.SfxVolume = (float)_sfxSlider.Value / 100f;
         if (_ambientSlider != null) s.AmbientVolume = (float)_ambientSlider.Value / 100f;
         ApplyAudioSettings(s);
+        _dirty = true;
     }
 
     private void OnMuteToggled(bool muted)
     {
-        _dirty = true;
         var s = CampaignContext.Settings;
         s.MasterMute = muted;
         ApplyAudioSettings(s);
+        MarkChanged(true);
+    }
+
+    private void MarkChanged(bool persistNow)
+    {
+        _dirty = true;
+        if (persistNow) Persist();
+    }
+
+    private void Persist()
+    {
+        try
+        {
+            CampaignContext.SaveManager?.SaveSettings(CampaignContext.Settings);
+            _dirty = false;
+            Say("Saved");
+        }
+        catch (System.Exception ex) { GD.PrintErr($"[Settings] save failed: {ex.Message}"); }
     }
 
     private void OnReplayIntro()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-
+        Click();
         var s = CampaignContext.Settings;
         s.IntroSeen = false;
-        if (CampaignContext.SaveManager != null)
-        {
-            CampaignContext.SaveManager.SaveSettings(s);
-        }
+        CampaignContext.SaveManager?.SaveSettings(s);
+        Say("The intro will play next time you open the game.");
         GD.Print("[Settings] IntroSeen reset to false — intro will show on next launch.");
     }
 
-    private void OnSavePressed()
+    private void OnReplayTutorial()
     {
-        GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        if (!_dirty) return;
-        var s = CampaignContext.Settings;
-        if (_musicSlider != null) s.MusicVolume = (float)_musicSlider.Value / 100f;
-        if (_sfxSlider != null) s.SfxVolume = (float)_sfxSlider.Value / 100f;
-        if (_ambientSlider != null) s.AmbientVolume = (float)_ambientSlider.Value / 100f;
-        if (_muteToggle != null) s.MasterMute = _muteToggle.ButtonPressed;
-
-        CampaignContext.SaveManager!.SaveSettings(s);
-        ApplyAudioSettings(s);
-        _dirty = false;
-
-        GD.Print("[Settings] Saved and applied.");
-    }
-
-    private void ApplyGraphicsQuality(bool highQuality)
-    {
-        var filter = highQuality
-            ? Viewport.DefaultCanvasItemTextureFilter.Linear
-            : Viewport.DefaultCanvasItemTextureFilter.Nearest;
-        // Apply to the main viewport — affects all 2D rendering
-        var tree = GetTree();
-        if (tree != null && tree.Root != null)
-        {
-            tree.Root.CanvasItemDefaultTextureFilter = filter;
-            GD.Print($"[Settings] Viewport texture filter set to {(highQuality ? "Linear" : "Nearest")}");
-        }
+        Click();
+        if (_dirty) Persist();
+        // FABLE-002: replay the guided first duel on the real Wayfarer encounter
+        CampaignContext.TutorialScriptId = "first_duel";
+        CampaignContext.TutorialHeadless = false;
+        if (CampaignContext.EncounterIndex.Count == 0)
+            CampaignContext.LoadEncounters();
+        if (CampaignContext.EncounterIndex.TryGetValue("r1_duel_wayfarer", out var wayfarer))
+            CampaignContext.CurrentEncounter = wayfarer;
+        var profile = CampaignContext.ActiveProfile
+            ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
+        if (profile != null)
+            profile.TutorialDone = false;
+        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
     }
 
     private static void ApplyAudioSettings(SettingsState s)
@@ -901,17 +763,103 @@ public partial class SettingsScene : Control
             AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
             AudioServer.SetBusMute(masterIdx, s.MasterMute);
         }
-
         int musicIdx = AudioServer.GetBusIndex("Music");
-        if (musicIdx >= 0)
-            AudioServer.SetBusVolumeDb(musicIdx, Mathf.LinearToDb(s.MusicVolume));
-
+        if (musicIdx >= 0) AudioServer.SetBusVolumeDb(musicIdx, Mathf.LinearToDb(s.MusicVolume));
         int sfxIdx = AudioServer.GetBusIndex("SFX");
-        if (sfxIdx >= 0)
-            AudioServer.SetBusVolumeDb(sfxIdx, Mathf.LinearToDb(s.SfxVolume));
-
+        if (sfxIdx >= 0) AudioServer.SetBusVolumeDb(sfxIdx, Mathf.LinearToDb(s.SfxVolume));
         int ambIdx = AudioServer.GetBusIndex("Ambient");
-        if (ambIdx >= 0)
-            AudioServer.SetBusVolumeDb(ambIdx, Mathf.LinearToDb(s.AmbientVolume));
+        if (ambIdx >= 0) AudioServer.SetBusVolumeDb(ambIdx, Mathf.LinearToDb(s.AmbientVolume));
+    }
+}
+
+/// <summary>FABLE-039: a pill switch — gold track when on, dark when off, cream knob that slides.</summary>
+public partial class SettingsSwitch : Control
+{
+    public event Action<bool>? Toggled;
+    public bool On { get; private set; }
+    private float _t;   // 0 = off, 1 = on (animated)
+
+    public SettingsSwitch()
+    {
+        CustomMinimumSize = new Vector2(104, 56);
+        MouseFilter = MouseFilterEnum.Stop;
+        MouseDefaultCursorShape = CursorShape.PointingHand;
+    }
+
+    public void SetOn(bool on, bool instant = false)
+    {
+        On = on;
+        if (instant) { _t = on ? 1 : 0; QueueRedraw(); }
+    }
+
+    public void Flip()
+    {
+        On = !On;
+        Toggled?.Invoke(On);
+    }
+
+    public override void _GuiInput(InputEvent e)
+    {
+        if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false })
+        {
+            Flip();
+            AcceptEvent();
+        }
+    }
+
+    public override void _Process(double delta)
+    {
+        float target = On ? 1 : 0;
+        if (Mathf.IsEqualApprox(_t, target)) return;
+        _t = CampaignContext.ReduceMotion ? target : Mathf.MoveToward(_t, target, (float)delta * 7f);
+        QueueRedraw();
+    }
+
+    public override void _Draw()
+    {
+        var sz = Size;
+        float h = 48, w = 96;
+        var o = new Vector2(sz.X - w, (sz.Y - h) / 2);
+        var off = new Color(0.17f, 0.15f, 0.13f);
+        var on = Color.FromHtml("#C9A84C");
+        var track = off.Lerp(on, _t);
+        var box = new StyleBoxFlat
+        {
+            BgColor = track,
+            BorderColor = new Color(0.45f, 0.38f, 0.26f).Lerp(Color.FromHtml("#E8C96A"), _t),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 24, CornerRadiusTopRight = 24, CornerRadiusBottomLeft = 24, CornerRadiusBottomRight = 24,
+        };
+        DrawStyleBox(box, new Rect2(o, new Vector2(w, h)));
+        float r = 17;
+        float x = Mathf.Lerp(o.X + 6 + r, o.X + w - 6 - r, _t);
+        var c = new Vector2(x, o.Y + h / 2);
+        DrawCircle(c + new Vector2(0, 2), r + 1, new Color(0, 0, 0, 0.35f));
+        DrawCircle(c, r, new Color(0.96f, 0.92f, 0.84f));
+    }
+}
+
+/// <summary>FABLE-039 ornament: a thin gold rule that fades out toward one end and ends in a small diamond at the other.</summary>
+public partial class OrnamentRule : Control
+{
+    public bool PointRight { get; set; }
+
+    public OrnamentRule() { MouseFilter = MouseFilterEnum.Ignore; }
+
+    public override void _Draw()
+    {
+        var gold = Color.FromHtml("#C9A84C");
+        float y = Size.Y / 2, w = Size.X;
+        int steps = 24;
+        for (int i = 0; i < steps; i++)
+        {
+            float a0 = i / (float)steps, a1 = (i + 1) / (float)steps;
+            float fade = PointRight ? a0 : 1 - a1;
+            float x0 = a0 * (w - 14), x1 = a1 * (w - 14);
+            if (!PointRight) { x0 += 14; x1 += 14; }
+            DrawLine(new Vector2(x0, y), new Vector2(x1, y), new Color(gold, 0.15f + 0.65f * fade), 2);
+        }
+        float dx = PointRight ? w - 7 : 7;
+        DrawColoredPolygon(new[] { new Vector2(dx - 7, y), new Vector2(dx, y - 7), new Vector2(dx + 7, y), new Vector2(dx, y + 7) }, gold);
     }
 }
