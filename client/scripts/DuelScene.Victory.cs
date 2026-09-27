@@ -192,12 +192,6 @@ public partial class DuelScene
 
         // ── The way out ──
         Button? primary = null, quietA = null, quietB = null;
-        if (arena)
-        {
-            var line = OverlayText("Returning to the arena…", 940f * s, 32, GetBodyFont((int)(32 * s)), TextMuted, vp.X);
-            reveal.Add(line);
-        }
-        else
         {
             string currentSeed = CampaignContext.DebugSeed?.ToString() ?? "";
             void Retry(string why) => LeaveDuelFor("res://scenes/duel/DuelScene.tscn", why, () =>
@@ -206,7 +200,15 @@ public partial class DuelScene
                 if (!string.IsNullOrEmpty(currentSeed)) CampaignContext.DebugSeed = ulong.Parse(currentSeed);
             });
 
-            if (OnlineMatch.Current is { } online)
+            if (arena)
+            {
+                // FABLE-040: the arena used to yank you back after 1.5 s, before you'd read the screen.
+                primary = PlateButton("Fight again", null, true, s);
+                ArmEndOfDuelButton(primary, "Fight Again", () => LeaveDuelFor(ArenaScene.ScenePath, "Fight again pressed", ArenaScene.ReturnFromDuel));
+                quietA = PlateButton("Back to title", null, false, s);
+                ArmEndOfDuelButton(quietA, "Back to title", () => LeaveDuelFor(MainMenuScenePath, "Back to title pressed", ArenaScene.ReturnFromDuel));
+            }
+            else if (OnlineMatch.Current is { } online)
             {
                 // FABLE-038: an online duel ends here; a rematch is a new lobby.
                 primary = PlateButton("Play online again", null, true, s);

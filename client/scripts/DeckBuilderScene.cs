@@ -16,63 +16,65 @@ internal static class CardArtColors
 }
 
 /// <summary>
-/// ARMORY RAIL deck builder — replaces the Ancient Tome layout.
-/// Top bar with search + strata filter chips.
-/// Left: scrollable card grid using CardPlate template.
-/// Right rail: deck name, mana curve, deck list, FORGE DECK button.
-/// All styling follows the game's existing vocabulary.
+/// DECK FORGE — FABLE-040 rebuild of the chrome around the display case.
+///
+/// Left 70%: the display case (FABLE-039) — five cards across, grab-to-scroll, tap to add.
+/// Top bar: title, class, a real search field, and the five strata filters as pills.
+/// Right rail (one glass panel): the deck's name (tap to rename), a big count with a bar, the
+/// curve, the list (tap a row to take one copy out), then FORGE DECK, LOAD A DECK and BACK as
+/// full-width plates you can actually hit. Dialogs are centred glass cards with big type.
+///
+/// Trikzos: "The UI on the right is not easy to interact with though. Back button is super tiny."
 /// </summary>
 public partial class DeckBuilderScene : Control
 {
     // ── Nodes ──
-    private LineEdit _searchField;
-    private Control _filterChipRow;
-    private VBoxContainer _cardGrid;
-    private ScrollContainer _gridScroll;
-    private Label _deckNameLabel;
-    private LineEdit _deckNameEdit;
-    private Control _curveContainer;
-    private Control _deckListContainer;
-    private ScrollContainer _deckListScroll;
-    private Label _countLabel;
-    private ColorRect _countBar;
-    private Button _forgeButton;
-    private Button _backButton;
-    private Control _topBar;
-    private Control _leftPanel;
-    private Control _rightRail;
-    private Control _savedDecksContainer; // Load Deck section
-    // FABLE-039: grab-the-page scrolling
+    private LineEdit _searchField = null!;
+    private HBoxContainer _filterChipRow = null!;
+    private VBoxContainer _cardGrid = null!;
+    private ScrollContainer _gridScroll = null!;
+    private Label _deckNameLabel = null!;
+    private CurveBars _curve = null!;
+    private VBoxContainer _deckListContainer = null!;
+    private ScrollContainer _deckListScroll = null!;
+    private Label _countLabel = null!;
+    private Label _countHint = null!;
+    private ColorRect _countBar = null!;
+    private Control _countTrack = null!;
+    private Button _forgeButton = null!;
+    private Control _leftPanel = null!;
+    private Control _rightRail = null!;
+    private Control? _savedDecksContainer;   // only inside the Load dialog now
     private DragScroll? _gridDrag, _deckDrag, _savedDrag;
 
     // Data
     private readonly List<CardDef> _allCards = new();
     private readonly List<string> _deckCardIds = new();
-    private readonly List<CardDef> _coreCardIds = new(); // locked class core cards
+    private readonly List<CardDef> _coreCardIds = new();
     private ProgressionState? _saveState;
     private string _searchText = "";
-    private int _selectedStrataIdx; // 0=All, 1-5=VERDANT..DAWN
+    private int _selectedStrataIdx;
     private string _deckName = "My Deck";
-
-    // Locked core cards (set by ChooseYourPath flow)
     private readonly HashSet<string> _lockedCardIds = new();
-    private List<string>? _pendingCoreCards; // set before _Ready, applied during _Ready
+    private List<string>? _pendingCoreCards;
 
     private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
-    private static readonly Color[] StrataColors = {
-        Gold, // ALL
-        StrataVerdant, StrataEmber, StrataTide, StrataHollow, StrataDawn
-    };
+    private static readonly string[] StrataLabels = { "All", "Verdant", "Ember", "Tide", "Hollow", "Dawn" };
+    private static readonly Color[] StrataColors = { Gold, StrataVerdant, StrataEmber, StrataTide, StrataHollow, StrataDawn };
 
-    // Capture mode
+    private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
+    private static readonly Color MutedInk = new(0.62f, 0.57f, 0.47f);
+    private static readonly Color Rule = new(0.79f, 0.66f, 0.30f, 0.22f);
+    private const float TopH = 104f;
+    private const float RailFrac = 0.70f;
+
     private bool _captureMode;
-
-    // Track unsaved changes
     private bool _modified;
 
-    public override void _Ready()
+    public override void _Ready() => SceneGuard.Build(this, "DeckBuilderScene", Build, "res://scenes/main/Main.tscn", "Back to title");
+
+    private void Build()
     {
-        // Ensure campaign data is loaded
         if (!CampaignContext.SaveManager.IsLoaded)
             CampaignContext.SaveManager.Initialize();
         if (CampaignContext.EncounterIndex.Count == 0)
@@ -81,49 +83,41 @@ public partial class DeckBuilderScene : Control
             CampaignContext.LoadDigSites();
         }
 
-        BuildArmoryUI();
+        BuildUI();
         LoadCards();
 
-        // Load existing deck from progression
         if (CampaignContext.Progression.DeckCardIds.Count > 0)
             _deckCardIds.AddRange(CampaignContext.Progression.DeckCardIds);
 
-        // In capture mode, seed test deck
         if (_deckCardIds.Count == 0 && CampaignContext.AutoCaptureScreenshot && CampaignContext.CaptureDeckBuilderScreenshot)
         {
             SeedTestDeck();
             _captureMode = true;
         }
 
-        RefreshCardGrid();
-        RefreshDeckList();
-        RefreshCurve();
-        UpdateCount();
-        RefreshSavedDecksList();
-
-        // Apply core cards from CampaignContext (set by ChooseYourPath)
         if (CampaignContext.CoreCardIds != null && CampaignContext.CoreCardIds.Count > 0)
         {
             ApplyCoreCardsInternal(CampaignContext.CoreCardIds);
             CampaignContext.CoreCardIds = null;
         }
-
-        // Default strata filter for cross-strata classes (ASTROLOGIST, OCCULTIST)
-        string chosen = CampaignContext.ChosenClass;
-        if (CampaignContext.CaptureOverrideStrataIdx >= 0)
-            _selectedStrataIdx = CampaignContext.CaptureOverrideStrataIdx;
-        else if (chosen == "astrologist" || chosen == "occultist" || string.IsNullOrEmpty(chosen))
-            _selectedStrataIdx = 0; // ALL
-        UpdateFilterChips();
-
-        // Apply any core cards set via SetCoreCards before _Ready
         if (_pendingCoreCards != null)
         {
             ApplyCoreCardsInternal(_pendingCoreCards);
             _pendingCoreCards = null;
         }
 
-        // Capture hook
+        string chosen = CampaignContext.ChosenClass;
+        if (CampaignContext.CaptureOverrideStrataIdx >= 0)
+            _selectedStrataIdx = CampaignContext.CaptureOverrideStrataIdx;
+        else
+            _selectedStrataIdx = 0;
+        UpdateFilterChips();
+
+        RefreshCardGrid();
+        RefreshDeckList();
+        RefreshCurve();
+        UpdateCount();
+
         if (_captureMode)
         {
             var capTimer = GetTree().CreateTimer(0.8f);
@@ -134,19 +128,12 @@ public partial class DeckBuilderScene : Control
                     var image = GetViewport().GetTexture().GetImage();
                     if (image != null)
                     {
-                        string path = CampaignContext.WideCaptureMode
-                            ? ProjectPaths.Artifacts + "/captures/deck_test_wide.png"
-                            : CampaignContext.PhoneCaptureMode
-                                ? ProjectPaths.Artifacts + "/captures/deck_test_phone.png"
-                                : ProjectPaths.Artifacts + "/captures/deck_test.png";
+                        string baseName = CampaignContext.WideCaptureMode ? "deck_test_wide" : CampaignContext.PhoneCaptureMode ? "deck_test_phone" : "deck_test";
+                        string path = ProjectPaths.Artifacts + $"/captures/{baseName}.png";
                         image.SavePng(path);
-                        string baseName = System.IO.Path.GetFileNameWithoutExtension(path.Substring(path.LastIndexOf('/') + 1));
                         DebugCapture.WriteLayoutJson(this, baseName);
                         GD.Print($"[DeckBuilderScene] Captured to {path}");
-
-                        // TASK-UI-LINT-1: Dump layout JSON
-                        string deckBasename = CampaignContext.WideCaptureMode ? "deck_test_wide" : CampaignContext.PhoneCaptureMode ? "deck_test_phone" : "deck_test";
-                        DebugCapture.DumpLayoutJSON(deckBasename, this);
+                        DebugCapture.DumpLayoutJSON(baseName, this);
                     }
                 }
                 GetTree().Quit(0);
@@ -157,18 +144,12 @@ public partial class DeckBuilderScene : Control
     public void SetSaveState(ProgressionState state)
     {
         _saveState = state;
-        if (_cardGrid != null)
-            RefreshCardGrid();
+        if (_cardGrid != null) RefreshCardGrid();
     }
     public List<string> GetDeckCardIds() => new(_deckCardIds);
     public void SetCoreCards(List<string> coreIds)
     {
-        // If _Ready hasn't run yet, defer the work
-        if (_cardGrid == null)
-        {
-            _pendingCoreCards = new List<string>(coreIds);
-            return;
-        }
+        if (_cardGrid == null) { _pendingCoreCards = new List<string>(coreIds); return; }
         ApplyCoreCardsInternal(coreIds);
     }
 
@@ -179,13 +160,10 @@ public partial class DeckBuilderScene : Control
         foreach (var id in coreIds)
         {
             var def = _allCards.FirstOrDefault(c => c.Id == id);
-            if (def != null)
-            {
-                _coreCardIds.Add(def);
-                _lockedCardIds.Add(id);
-                if (!_deckCardIds.Contains(id))
-                    _deckCardIds.Add(id);
-            }
+            if (def == null) continue;
+            _coreCardIds.Add(def);
+            _lockedCardIds.Add(id);
+            if (!_deckCardIds.Contains(id)) _deckCardIds.Add(id);
         }
         RefreshDeckList();
         RefreshCurve();
@@ -193,530 +171,203 @@ public partial class DeckBuilderScene : Control
     }
 
     // ════════════════════════════════════════════════════════════════
-    // ARMORY RAIL UI CONSTRUCTION
+    //  Layout
     // ════════════════════════════════════════════════════════════════
 
-    private void BuildArmoryUI()
+    private void BuildUI()
     {
         MouseFilter = MouseFilterEnum.Pass;
+        var vp = GetViewportRect().Size;
 
-        // Dark background
-        var bg = new ColorRect
-        {
-            Color = BgDark,
-            AnchorLeft = 0, AnchorRight = 1,
-            AnchorTop = 0, AnchorBottom = 1
-        };
+        var bg = new ColorRect { Color = Color.FromHtml("#0B0A09"), MouseFilter = MouseFilterEnum.Ignore };
+        bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
-        // ── Top bar (64px) — HBox layout ──
-                _topBar = new Control();
-                _topBar.AnchorLeft = 0; _topBar.AnchorRight = 1;
-                _topBar.AnchorTop = 0;
-                _topBar.CustomMinimumSize = new Vector2(0, 64);
-                _topBar.Size = new Vector2(GetViewportRect().Size.X, 64);
-                AddChild(_topBar);
+        // ── Top bar ──
+        var top = new Control { Position = Vector2.Zero, Size = new Vector2(vp.X, TopH), MouseFilter = MouseFilterEnum.Pass };
+        AddChild(top);
+        var topBg = new ColorRect { Color = new Color(0.082f, 0.072f, 0.061f), MouseFilter = MouseFilterEnum.Ignore };
+        topBg.SetAnchorsPreset(LayoutPreset.FullRect);
+        top.AddChild(topBg);
+        top.AddChild(new ColorRect { Color = Rule, Position = new Vector2(0, TopH - 1), Size = new Vector2(vp.X, 1), MouseFilter = MouseFilterEnum.Ignore });
 
-                // Top bar background
-                var topBg = new ColorRect
-                {
-                    Color = SurfaceStone,
-                    MouseFilter = MouseFilterEnum.Ignore
-                };
-                topBg.SetAnchorsPreset(LayoutPreset.FullRect);
-                _topBar.AddChild(topBg);
+        var row = new HBoxContainer { Position = new Vector2(40, 0), Size = new Vector2(vp.X - 80, TopH), MouseFilter = MouseFilterEnum.Pass };
+        row.AddThemeConstantOverride("separation", 28);
+        top.AddChild(row);
 
-                // Inner HBox: [Title] [Search] [spacer] [Chips]
-                var topBarRow = new HBoxContainer();
-                topBarRow.SetAnchorsPreset(LayoutPreset.FullRect);
-                topBarRow.AddThemeConstantOverride("separation", 8);
-                topBarRow.OffsetLeft = 12;
-                topBarRow.OffsetRight = -12;
-                _topBar.AddChild(topBarRow);
+        var title = new Label { Text = "DECK FORGE", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        title.AddThemeFontOverride("font", GetHeaderFont(44)); title.AddThemeFontSizeOverride("font_size", 44);
+        title.AddThemeColorOverride("font_color", Gold);
+        row.AddChild(title);
 
-                // Title
-                var title = new Label
-                {
-                    Text = "DECK FORGE",
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                ApplyHeaderFont(title, FontSubtitle);
-                title.AddThemeColorOverride("font_color", Gold);
-                title.SizeFlagsHorizontal = (SizeFlags)0;
-                title.CustomMinimumSize = new Vector2(140, 64);
-                topBarRow.AddChild(title);
+        if (!string.IsNullOrEmpty(CampaignContext.ChosenClass))
+        {
+            string cls = CampaignContext.ChosenClass.ToLowerInvariant();
+            Color dot = cls switch
+            {
+                "warrior" => StrataEmber, "necromancer" or "occultist" or "rogue" => StrataHollow, "druid" => StrataVerdant,
+                "battlemage" or "astrologist" => StrataTide, "paladin" => StrataDawn, _ => Gold,
+            };
+            row.AddChild(Pill(char.ToUpperInvariant(cls[0]) + cls.Substring(1), dot, false, 30));
+        }
 
-                // ── Class banner (visible when campaign class is set) ──
-                if (!string.IsNullOrEmpty(CampaignContext.ChosenClass))
-                {
-                    var classBanner = new HBoxContainer();
-                    classBanner.SizeFlagsHorizontal = (SizeFlags)0;
-                    classBanner.Alignment = BoxContainer.AlignmentMode.Center;
-                    classBanner.AddThemeConstantOverride("separation", 4);
-                    classBanner.CustomMinimumSize = new Vector2(0, 44);
+        _searchField = new LineEdit { PlaceholderText = "Search cards", CustomMinimumSize = new Vector2(420, 64), SizeFlagsVertical = SizeFlags.ShrinkCenter, ClearButtonEnabled = true };
+        StyleEdit(_searchField, 30);
+        _searchField.TextChanged += t => { _searchText = t; RefreshCardGrid(); };
+        row.AddChild(_searchField);
 
-                    // Strata dot for class
-                    Color classDotColor = Gold; // fallback
-                    string cls = CampaignContext.ChosenClass.ToLowerInvariant();
-                    if (cls == "warrior") classDotColor = StrataEmber;
-                    else if (cls == "necromancer" || cls == "occultist" || cls == "rogue") classDotColor = StrataHollow;
-                    else if (cls == "druid") classDotColor = StrataVerdant;
-                    else if (cls == "battlemage" || cls == "astrologist") classDotColor = StrataTide;
-                    else if (cls == "paladin") classDotColor = StrataDawn;
+        row.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
 
-                    var classDot = new ColorRect
-                    {
-                        Color = classDotColor,
-                        CustomMinimumSize = new Vector2(8, 8),
-                        Size = new Vector2(8, 8),
-                        MouseFilter = MouseFilterEnum.Ignore
-                    };
-                    classBanner.AddChild(classDot);
-
-                    var className = char.ToUpper(CampaignContext.ChosenClass[0]) + CampaignContext.ChosenClass.Substring(1);
-                    var classLabel = new Label
-                    {
-                        Text = className,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        MouseFilter = MouseFilterEnum.Ignore
-                    };
-                    classLabel.AddThemeFontSizeOverride("font_size", 12);
-                    classLabel.AddThemeColorOverride("font_color", TextMuted);
-                    classBanner.AddChild(classLabel);
-
-                    topBarRow.AddChild(classBanner);
-                }
-
-                // Search field — max-width 250
-                _searchField = new LineEdit
-                {
-                    PlaceholderText = "Search cards...",
-                    CustomMinimumSize = new Vector2(140, 32)
-                };
-                _searchField.SizeFlagsHorizontal = (SizeFlags)0;
-                _searchField.AddThemeColorOverride("font_color", TextPrimary);
-                _searchField.AddThemeColorOverride("placeholder_color", TextMuted);
-                _searchField.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-                {
-                    BgColor = Color.FromHtml("#1C1712"),
-                    BorderColor = BorderStandard,
-                    BorderWidthLeft = 1, BorderWidthTop = 1,
-                    BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-                    CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
-                });
-                _searchField.TextChanged += (text) => { _searchText = text; RefreshCardGrid(); };
-                topBarRow.AddChild(_searchField);
-
-                // Spacer — pushes chips to right
-                var spacer = new Control();
-                spacer.SizeFlagsHorizontal = (SizeFlags)3; // Expand + Fill
-                topBarRow.AddChild(spacer);
-
-                // Filter chips row (scrollable horizontally when overflow)
-                var chipScroll = new ScrollContainer();
-                chipScroll.SizeFlagsVertical = (SizeFlags)4; // Shrink Center
-                chipScroll.SizeFlagsHorizontal = (SizeFlags)3; // Expand + Fill
-                chipScroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Auto;
-                chipScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Disabled;
-                chipScroll.CustomMinimumSize = new Vector2(200, 44);
-        _filterChipRow = new HBoxContainer();
-        _filterChipRow.AddThemeConstantOverride("separation", 8);
-        _filterChipRow.CustomMinimumSize = new Vector2(0, 44);
-        _filterChipRow.SizeFlagsVertical = (SizeFlags)0;
-        chipScroll.AddChild(_filterChipRow);
-        topBarRow.AddChild(chipScroll);
-
+        _filterChipRow = new HBoxContainer { SizeFlagsVertical = SizeFlags.ShrinkCenter };
+        _filterChipRow.AddThemeConstantOverride("separation", 12);
+        row.AddChild(_filterChipRow);
         for (int i = 0; i < StrataOptions.Length; i++)
         {
             int idx = i;
-            var chip = MakeFilterChip(StrataOptions[i], StrataColors[i], i);
-            chip.Pressed += () => {
-                _selectedStrataIdx = idx;
-                UpdateFilterChips();
-                RefreshCardGrid();
-            };
+            var chip = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(0, 58), MouseDefaultCursorShape = CursorShape.PointingHand };
+            chip.SetMeta("strata_idx", idx);
+            var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            inner.SetAnchorsPreset(LayoutPreset.FullRect);
+            inner.OffsetLeft = 18; inner.OffsetRight = -18;
+            inner.AddThemeConstantOverride("separation", 10);
+            chip.AddChild(inner);
+            if (i > 0)
+            {
+                var sw = new Control { CustomMinimumSize = new Vector2(14, 14), SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+                var swRect = new ColorRect { Color = StrataColors[i], MouseFilter = MouseFilterEnum.Ignore };
+                swRect.SetAnchorsPreset(LayoutPreset.FullRect);
+                sw.AddChild(swRect);
+                inner.AddChild(sw);
+            }
+            var lbl = new Label { Text = StrataLabels[i], VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+            lbl.AddThemeFontOverride("font", GetBodyFont(28)); lbl.AddThemeFontSizeOverride("font_size", 28);
+            inner.AddChild(lbl);
+            // the button's own text is empty; size it from the label
+            chip.CustomMinimumSize = new Vector2(lbl.GetThemeFont("font").GetStringSize(StrataLabels[i], HorizontalAlignment.Left, -1, 28).X + 36 + (i > 0 ? 24 : 0), 58);
+            chip.Pressed += () => { Click(); _selectedStrataIdx = idx; UpdateFilterChips(); RefreshCardGrid(); };
             _filterChipRow.AddChild(chip);
         }
 
-        // Right padding spacer — ensures last chip isn't clipped at edge on scroll overflow
-        var rowEndPad = new Control();
-        rowEndPad.CustomMinimumSize = new Vector2(8, 44);
-        _filterChipRow.AddChild(rowEndPad);
-
-        // ── Left panel (card grid) ──
-        _leftPanel = new Control();
-        _leftPanel.AnchorLeft = 0;
-        _leftPanel.AnchorRight = 0.72f;
-        _leftPanel.AnchorTop = 0;
-        _leftPanel.AnchorBottom = 1;
-        _leftPanel.OffsetTop = 64; // below top bar
+        // ── Left: the display case ──
+        _leftPanel = new Control { Position = new Vector2(0, TopH), Size = new Vector2(vp.X * RailFrac, vp.Y - TopH), MouseFilter = MouseFilterEnum.Pass };
         AddChild(_leftPanel);
-
-        // FABLE-039: the display case — near-black velvet with a soft warm light from above,
-        // so the cards are the brightest thing on screen.
-        var caseBg = new ColorRect { Color = Color.FromHtml("#0B0A09"), MouseFilter = MouseFilterEnum.Ignore };
-        caseBg.SetAnchorsPreset(LayoutPreset.FullRect);
-        _leftPanel.AddChild(caseBg);
         var caseLight = new TextureRect
         {
-            MouseFilter = MouseFilterEnum.Ignore,
-            StretchMode = TextureRect.StretchModeEnum.Scale,
-            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            MouseFilter = MouseFilterEnum.Ignore, StretchMode = TextureRect.StretchModeEnum.Scale, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             Texture = new GradientTexture2D
             {
-                Width = 256, Height = 256,
-                Fill = GradientTexture2D.FillEnum.Radial,
+                Width = 256, Height = 256, Fill = GradientTexture2D.FillEnum.Radial,
                 FillFrom = new Vector2(0.5f, 0.0f), FillTo = new Vector2(0.5f, 1.05f),
-                Gradient = new Gradient
-                {
-                    Offsets = new[] { 0f, 1f },
-                    Colors = new[] { new Color(0.55f, 0.44f, 0.26f, 0.20f), new Color(0, 0, 0, 0) },
-                },
+                Gradient = new Gradient { Offsets = new[] { 0f, 1f }, Colors = new[] { new Color(0.55f, 0.44f, 0.26f, 0.20f), new Color(0, 0, 0, 0) } },
             },
         };
         caseLight.SetAnchorsPreset(LayoutPreset.FullRect);
         _leftPanel.AddChild(caseLight);
 
-        // Grid scroll area (with subtle scrollbar)
-        _gridScroll = new ScrollContainer();
+        _gridScroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, VerticalScrollMode = ScrollContainer.ScrollMode.Auto };
         _gridScroll.SetAnchorsPreset(LayoutPreset.FullRect);
-        _gridScroll.SizeFlagsHorizontal = (SizeFlags)3;
-        _gridScroll.SizeFlagsVertical = (SizeFlags)3;
-        _gridScroll.VerticalScrollMode = ScrollContainer.ScrollMode.Auto;
-        // FABLE-039: grab the page itself to scroll (DragScroll owns dragging; taps still add cards)
         _gridDrag = DragScroll.Attach(_gridScroll);
-        // Visible-but-elegant scrollbar: slim gold grabber on a faint track
         var vsb = _gridScroll.GetVScrollBar();
-        vsb.CustomMinimumSize = new Vector2(8, 0);
-        vsb.CustomStep = 120;
-        vsb.AddThemeStyleboxOverride("scroll", new StyleBoxFlat
-        {
-            BgColor = new Color(0f, 0f, 0f, 0.18f),
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        var grabber = new StyleBoxFlat
-        {
-            BgColor = new Color(0.83f, 0.72f, 0.45f, 0.55f),
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        };
-        var grabberHi = new StyleBoxFlat
-        {
-            BgColor = new Color(0.9f, 0.8f, 0.5f, 0.85f),
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        };
-        vsb.AddThemeStyleboxOverride("grabber", grabber);
-        vsb.AddThemeStyleboxOverride("grabber_highlight", grabberHi);
-        vsb.AddThemeStyleboxOverride("grabber_pressed", grabberHi);
-        // Smooth animated wheel scrolling (touch drag keeps native inertia)
+        vsb.CustomMinimumSize = new Vector2(10, 0);
+        vsb.AddThemeStyleboxOverride("scroll", new StyleBoxFlat { BgColor = new Color(0, 0, 0, 0.18f), CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 5, CornerRadiusBottomRight = 5 });
+        var grab = new StyleBoxFlat { BgColor = new Color(0.83f, 0.72f, 0.45f, 0.55f), CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 5, CornerRadiusBottomRight = 5 };
+        var grabHi = (StyleBoxFlat)grab.Duplicate(); grabHi.BgColor = new Color(0.9f, 0.8f, 0.5f, 0.85f);
+        vsb.AddThemeStyleboxOverride("grabber", grab);
+        vsb.AddThemeStyleboxOverride("grabber_highlight", grabHi);
+        vsb.AddThemeStyleboxOverride("grabber_pressed", grabHi);
         _gridScroll.GuiInput += OnGridScrollInput;
         _leftPanel.AddChild(_gridScroll);
 
-        // Dynamic grid container (not GridContainer — we lay out rows manually for proper fill)
-        _cardGrid = new VBoxContainer();
-        _cardGrid.SizeFlagsHorizontal = (SizeFlags)3;
-        _cardGrid.AddThemeConstantOverride("separation", 18);
-        _cardGrid.CustomMinimumSize = new Vector2(0, 0);
+        _cardGrid = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _cardGrid.AddThemeConstantOverride("separation", 30);
         _gridScroll.AddChild(_cardGrid);
 
-        // ── Right rail (fixed ~28% width) ──
-        _rightRail = new Control();
-        _rightRail.AnchorLeft = 0.72f;
-        _rightRail.AnchorRight = 1;
-        _rightRail.AnchorTop = 0;
-        _rightRail.AnchorBottom = 1;
-        _rightRail.OffsetTop = 64;
-        _rightRail.OffsetLeft = 8;
+        // ── Right rail ──
+        float railX = vp.X * RailFrac + 16, railW = vp.X - railX - 24;
+        _rightRail = new PanelContainer { Position = new Vector2(railX, TopH + 20), Size = new Vector2(railW, vp.Y - TopH - 44), MouseFilter = MouseFilterEnum.Stop };
+        ((PanelContainer)_rightRail).AddThemeStyleboxOverride("panel", Glass());
         AddChild(_rightRail);
 
-        // Rail background
-        var railBg = new ColorRect
+        var rail = new VBoxContainer();
+        rail.AddThemeConstantOverride("separation", 0);
+        _rightRail.AddChild(rail);
+        VBoxContainer Section(float top = 0)
         {
-            Color = SurfaceStone,
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        railBg.SetAnchorsPreset(LayoutPreset.FullRect);
-        _rightRail.AddChild(railBg);
+            var m = new MarginContainer();
+            m.AddThemeConstantOverride("margin_left", 36); m.AddThemeConstantOverride("margin_right", 36); m.AddThemeConstantOverride("margin_top", (int)top);
+            rail.AddChild(m);
+            var v = new VBoxContainer();
+            v.AddThemeConstantOverride("separation", 8);
+            m.AddChild(v);
+            return v;
+        }
 
-        // Rail inner VBox
-        var railVbox = new VBoxContainer();
-        railVbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        railVbox.OffsetLeft = 8; railVbox.OffsetRight = -8;
-        railVbox.OffsetTop = 8; railVbox.OffsetBottom = -8;
-        railVbox.AddThemeConstantOverride("separation", 6);
-        _rightRail.AddChild(railVbox);
-
-        // Editable deck name with pencil icon
+        // name + count
+        var nameSec = Section(30);
         var nameRow = new HBoxContainer();
-        nameRow.AddThemeConstantOverride("separation", 4);
-        nameRow.CustomMinimumSize = new Vector2(0, 28);
-        railVbox.AddChild(nameRow);
-
-        _deckNameLabel = new Label
-        {
-            Text = _deckName,
-            SizeFlagsHorizontal = (SizeFlags)3,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(_deckNameLabel, FontBody);
+        nameRow.AddThemeConstantOverride("separation", 16);
+        nameSec.AddChild(nameRow);
+        _deckNameLabel = new Label { Text = _deckName, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis, MouseFilter = MouseFilterEnum.Ignore };
+        _deckNameLabel.AddThemeFontOverride("font", GetCardNameFont(40)); _deckNameLabel.AddThemeFontSizeOverride("font_size", 40);
         _deckNameLabel.AddThemeColorOverride("font_color", Gold);
         nameRow.AddChild(_deckNameLabel);
+        var rename = Quiet("✎  Rename", 190, 56, 26);
+        rename.Pressed += () => { Click(); ShowRenameDialog(); };
+        nameRow.AddChild(rename);
 
-        var pencilBtn = new Button
-        {
-            Text = "\u270E", // pencil
-            Flat = true,
-            CustomMinimumSize = new Vector2(24, 24)
-        };
-        pencilBtn.AddThemeFontSizeOverride("font_size", 14);
-        pencilBtn.AddThemeColorOverride("font_color", TextMuted);
-        pencilBtn.Pressed += () => {
-            _deckNameLabel.Visible = false;
-            _deckNameEdit = new LineEdit { Text = _deckName };
-            _deckNameEdit.AddThemeColorOverride("font_color", Gold);
-            _deckNameEdit.CustomMinimumSize = new Vector2(0, 24);
-            _deckNameEdit.SizeFlagsHorizontal = (SizeFlags)3;
-            _deckNameEdit.TextSubmitted += (text) => {
-                _deckName = text;
-                _deckNameLabel.Text = text;
-                _deckNameLabel.Visible = true;
-                _deckNameEdit.QueueFree();
-            };
-            nameRow.AddChild(_deckNameEdit);
-            _deckNameEdit.GrabFocus();
-        };
-        nameRow.AddChild(pencilBtn);
+        var countRow = new HBoxContainer { CustomMinimumSize = new Vector2(0, 60) };
+        countRow.AddThemeConstantOverride("separation", 16);
+        nameSec.AddChild(countRow);
+        _countLabel = new Label { Text = "0 / 30", VerticalAlignment = VerticalAlignment.Bottom, MouseFilter = MouseFilterEnum.Ignore };
+        _countLabel.AddThemeFontOverride("font", GetHeaderFont(48)); _countLabel.AddThemeFontSizeOverride("font_size", 48);
+        _countLabel.AddThemeColorOverride("font_color", Parchment);
+        countRow.AddChild(_countLabel);
+        _countHint = new Label { Text = "cards", VerticalAlignment = VerticalAlignment.Bottom, SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore };
+        _countHint.AddThemeFontOverride("font", GetBodyFont(26)); _countHint.AddThemeFontSizeOverride("font_size", 26);
+        _countHint.AddThemeColorOverride("font_color", MutedInk);
+        countRow.AddChild(_countHint);
 
-        // Mana curve
-        var curveLabel = new Label
-        {
-            Text = "Mana Curve",
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyBodyFont(curveLabel, FontSmall);
-        curveLabel.AddThemeColorOverride("font_color", TextSecondary);
-        railVbox.AddChild(curveLabel);
+        _countTrack = new Control { CustomMinimumSize = new Vector2(0, 10), MouseFilter = MouseFilterEnum.Ignore };
+        var trackBg = new ColorRect { Color = new Color(1, 1, 1, 0.06f), MouseFilter = MouseFilterEnum.Ignore };
+        trackBg.SetAnchorsPreset(LayoutPreset.FullRect);
+        _countTrack.AddChild(trackBg);
+        _countBar = new ColorRect { Color = Gold, Position = Vector2.Zero, Size = new Vector2(0, 10), MouseFilter = MouseFilterEnum.Ignore };
+        _countTrack.AddChild(_countBar);
+        nameSec.AddChild(_countTrack);
 
-        _curveContainer = new Control();
-        _curveContainer.CustomMinimumSize = new Vector2(0, 40);
-        _curveContainer.SizeFlagsHorizontal = (SizeFlags)3;
-        railVbox.AddChild(_curveContainer);
+        // curve
+        var curveSec = Section(22);
+        curveSec.AddChild(SmallHeader("CURVE"));
+        _curve = new CurveBars { CustomMinimumSize = new Vector2(0, 104), MouseFilter = MouseFilterEnum.Ignore };
+        curveSec.AddChild(_curve);
 
-        // Deck list header
-        var listHeader = new HBoxContainer();
-        listHeader.AddThemeConstantOverride("separation", 4);
-        listHeader.CustomMinimumSize = new Vector2(0, 20);
-        railVbox.AddChild(listHeader);
-
-        var listLabel = new Label
-        {
-            Text = "Deck List",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyBodyFont(listLabel, FontSmall);
-        listLabel.AddThemeColorOverride("font_color", TextSecondary);
-        listHeader.AddChild(listLabel);
-
-        _countLabel = new Label
-        {
-            Text = "0/30",
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyHeaderFont(_countLabel, FontSmall);
-        _countLabel.AddThemeColorOverride("font_color", Gold);
-        listHeader.AddChild(_countLabel);
-
-        // Deck list scroll
-        _deckListScroll = new ScrollContainer();
+        // list
+        var listSec = Section(22);
+        listSec.AddChild(SmallHeader("DECK LIST", "tap a card to take one out"));
+        rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
+        _deckListScroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         _deckDrag = DragScroll.Attach(_deckListScroll);
-        _deckListScroll.SizeFlagsVertical = (SizeFlags)3;
-        _deckListScroll.SizeFlagsHorizontal = (SizeFlags)3;
-        railVbox.AddChild(_deckListScroll);
-
-        _deckListContainer = new VBoxContainer();
-        _deckListContainer.SizeFlagsHorizontal = (SizeFlags)3;
-        _deckListContainer.AddThemeConstantOverride("separation", 2);
+        rail.AddChild(_deckListScroll);
+        _deckListContainer = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        _deckListContainer.AddThemeConstantOverride("separation", 4);
         _deckListScroll.AddChild(_deckListContainer);
 
-        // Count progress bar
-        _countBar = new ColorRect
-        {
-            Color = Gold,
-            CustomMinimumSize = new Vector2(0, 4),
-            Size = new Vector2(0, 4),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        railVbox.AddChild(_countBar);
-
-        // FORGE DECK button
-        _forgeButton = new Button
-        {
-            Text = "FORGE DECK",
-            Disabled = true,
-            CustomMinimumSize = new Vector2(0, 40)
-        };
-        ApplyBodyFont(_forgeButton, FontButtonPrimary);
-        _forgeButton.AddThemeFontOverride("font", GetButtonFont(FontButtonPrimary));
-        _forgeButton.AddThemeFontSizeOverride("font_size", FontButtonPrimary);
-        _forgeButton.AddThemeColorOverride("font_color", Gold);
-        _forgeButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = SurfaceStone,
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1
-        });
-        _forgeButton.AddThemeStyleboxOverride("hover", new StyleBoxFlat
-        {
-            BgColor = new Color(0.25f, 0.22f, 0.18f, 1),
-            BorderColor = Gold,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1
-        });
-        _forgeButton.AddThemeStyleboxOverride("disabled", new StyleBoxFlat
-        {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 1),
-            BorderColor = TextInactive,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1
-        });
-        _forgeButton.Pressed += OnSaveDeck;
-        railVbox.AddChild(_forgeButton);
-
-        // ── Saved decks section ──
-        var savedHeader = new HBoxContainer();
-        savedHeader.AddThemeConstantOverride("separation", 4);
-        savedHeader.CustomMinimumSize = new Vector2(0, 20);
-        railVbox.AddChild(savedHeader);
-
-        var savedLabel = new Label
-        {
-            Text = "Load Saved Deck",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyBodyFont(savedLabel, FontSmall);
-        savedLabel.AddThemeColorOverride("font_color", TextSecondary);
-        savedHeader.AddChild(savedLabel);
-
-        var savedScroll = new ScrollContainer();
-        _savedDrag = DragScroll.Attach(savedScroll);
-        savedScroll.SizeFlagsVertical = (SizeFlags)3;
-        savedScroll.SizeFlagsHorizontal = (SizeFlags)3;
-        savedScroll.CustomMinimumSize = new Vector2(0, 80);
-        railVbox.AddChild(savedScroll);
-
-        _savedDecksContainer = new VBoxContainer();
-        _savedDecksContainer.SizeFlagsHorizontal = (SizeFlags)3;
-        _savedDecksContainer.AddThemeConstantOverride("separation", 2);
-        savedScroll.AddChild(_savedDecksContainer);
-
-        // Back button (bottom of rail)
-        _backButton = new Button
-        {
-            Text = "\u2190 Back",
-            Flat = true,
-            CustomMinimumSize = new Vector2(0, 24)
-        };
-        _backButton.AddThemeFontSizeOverride("font_size", 12);
-        _backButton.AddThemeColorOverride("font_color", TextMuted);
-        _backButton.Pressed += () => OnBack();
-        railVbox.AddChild(_backButton);
-    }
-
-    /// <summary>
-    /// Create a strata filter chip button — one hit-testable control
-    /// containing swatch + label, minimum 44x44 touch target, 8px padding.
-    /// The inner HBox fills the entire button content area so that both
-    /// the 8x8 swatch and the 11px label are vertically centered together.
-    /// Selected state: filled with strata color at low alpha + 1px border.
-    /// Pressed state: slightly brighter bg for tactile feedback.
-    /// </summary>
-    private Button MakeFilterChip(string label, Color accent, int idx)
-    {
-        var btn = new Button
-        {
-            Flat = false,
-            Text = "" // custom content via children
-        };
-
-        btn.CustomMinimumSize = new Vector2(44, 44);
-
-        // Chip normal style: 8px side padding, 4px vertical breathing room, 18px corner
-        var normalStyle = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#26201A"),
-            BorderColor = Color.FromHtml("#4A4238"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
-            CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
-        };
-        var pressedStyle = new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#322C26"),
-            BorderColor = Color.FromHtml("#5A5048"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
-            CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-            ContentMarginLeft = 8, ContentMarginTop = 4,
-            ContentMarginRight = 8, ContentMarginBottom = 4
-        };
-        btn.AddThemeStyleboxOverride("normal", normalStyle);
-        btn.AddThemeStyleboxOverride("hover", normalStyle);
-        btn.AddThemeStyleboxOverride("pressed", pressedStyle);
-
-        btn.SetMeta("strata_idx", idx);
-        btn.SetMeta("accent_color", accent);
-
-        // ── Inner HBox fills the button content area so swatch+label
-        //     are centered as a unit, not pinned to the top ──
-        var inner = new HBoxContainer
-        {
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsVertical = (SizeFlags)3, // Fill | Expand — fills button height
-            Alignment = BoxContainer.AlignmentMode.Center
-        };
-        inner.AddThemeConstantOverride("separation", 6);
-        btn.AddChild(inner);
-
-        // ── Swatch — 8x8 ColorRect, vertically centered within the
-        //     expanded HBox, which aligns it against label cap height ──
-        var swatch = new ColorRect
-        {
-            Color = accent,
-            CustomMinimumSize = new Vector2(8, 8),
-            Size = new Vector2(8, 8),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        inner.AddChild(swatch);
-
-        // ── Label — Cinzel 11px ──
-        var chipFont = GetHeaderFont(11);
-        var chipLabel = new Label
-        {
-            Text = label,
-            VerticalAlignment = VerticalAlignment.Center,
-            MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = (SizeFlags)0,
-            AutowrapMode = TextServer.AutowrapMode.Off
-        };
-        chipLabel.AddThemeFontSizeOverride("font_size", 11);
-        chipLabel.AddThemeFontOverride("font", chipFont);
-        chipLabel.AddThemeColorOverride("font_color", Color.FromHtml("#CFC4AE"));
-        inner.AddChild(chipLabel);
-
-        return btn;
+        // plates
+        var btnSec = Section(18);
+        btnSec.AddThemeConstantOverride("separation", 12);
+        _forgeButton = Plate("Forge deck", true, 84);
+        _forgeButton.Pressed += () => { Click(); OnSaveDeck(); };
+        btnSec.AddChild(_forgeButton);
+        var pair = new HBoxContainer();
+        pair.AddThemeConstantOverride("separation", 12);
+        btnSec.AddChild(pair);
+        var loadBtn = Plate("Load a deck", false, 72); loadBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        loadBtn.Pressed += () => { Click(); ShowLoadDialog(); };
+        pair.AddChild(loadBtn);
+        var back = Plate("◀  Back", false, 72); back.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        back.Pressed += () => { Click(); OnBack(); };
+        pair.AddChild(back);
+        rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 28) });
     }
 
     private void UpdateFilterChips()
@@ -724,82 +375,21 @@ public partial class DeckBuilderScene : Control
         foreach (var child in _filterChipRow.GetChildren())
         {
             if (child is not Button btn) continue;
-
             int idx = (int)btn.GetMeta("strata_idx", -1);
-            bool selected = idx == _selectedStrataIdx;
-
-            // Determine the accent color for this chip
-            Color accent;
-            if (idx >= 0 && idx < StrataColors.Length)
-                accent = StrataColors[idx];
-            else
-                accent = Gold; // fallback
-
-            if (selected)
-            {
-                // Selected: fill with strata color at low alpha + 1px border in strata color
-                var selectedStyle = new StyleBoxFlat
-                {
-                    BgColor = new Color(accent.R, accent.G, accent.B, 0.22f),
-                    BorderColor = accent,
-                    BorderWidthLeft = 1, BorderWidthTop = 1,
-                    BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
-                    CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
-                };
-                btn.AddThemeStyleboxOverride("normal", selectedStyle);
-                btn.AddThemeStyleboxOverride("hover", selectedStyle);
-                btn.AddThemeStyleboxOverride("pressed", selectedStyle);
-            }
-            else
-            {
-                // Normal: dark bg, muted border
-                var normalStyle = new StyleBoxFlat
-                {
-                    BgColor = Color.FromHtml("#26201A"),
-                    BorderColor = Color.FromHtml("#4A4238"),
-                    BorderWidthLeft = 1, BorderWidthTop = 1,
-                    BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
-                    CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
-                };
-                var normalPressedStyle = new StyleBoxFlat
-                {
-                    BgColor = Color.FromHtml("#322C26"),
-                    BorderColor = Color.FromHtml("#5A5048"),
-                    BorderWidthLeft = 1, BorderWidthTop = 1,
-                    BorderWidthRight = 1, BorderWidthBottom = 1,
-                    CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18,
-                    CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
-                    ContentMarginLeft = 8, ContentMarginTop = 4,
-                    ContentMarginRight = 8, ContentMarginBottom = 4
-                };
-                btn.AddThemeStyleboxOverride("normal", normalStyle);
-                btn.AddThemeStyleboxOverride("hover", normalStyle);
-                btn.AddThemeStyleboxOverride("pressed", normalPressedStyle);
-            }
-
-            // Update label color: gold when selected, muted when not
-            foreach (var innerChild in btn.GetChildren())
-            {
-                if (innerChild is HBoxContainer hbox)
-                {
-                    foreach (var hboxChild in hbox.GetChildren())
-                    {
-                        if (hboxChild is Label lbl)
-                        {
-                            lbl.AddThemeColorOverride("font_color",
-                                selected ? Color.FromHtml("#D4B84C") : Color.FromHtml("#CFC4AE"));
-                        }
-                    }
-                }
-            }
+            bool sel = idx == _selectedStrataIdx;
+            var accent = idx >= 0 && idx < StrataColors.Length ? StrataColors[idx] : Gold;
+            btn.AddThemeStyleboxOverride("normal", PillBox(accent, sel, false));
+            btn.AddThemeStyleboxOverride("hover", PillBox(accent, sel, true));
+            btn.AddThemeStyleboxOverride("pressed", PillBox(accent, true, true));
+            btn.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            foreach (var l in btn.FindChildren("*", "Label", true, false).OfType<Label>())
+                l.AddThemeColorOverride("font_color", sel ? Color.FromHtml("#F2DFA6") : new Color(0.78f, 0.72f, 0.60f));
         }
     }
+
+    // ════════════════════════════════════════════════════════════════
+    //  The display case
+    // ════════════════════════════════════════════════════════════════
 
     /// <summary>
     /// FABLE-039: one card in the display case.
@@ -926,9 +516,6 @@ public partial class DeckBuilderScene : Control
         return cell;
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // CARD LOADING
-    // ════════════════════════════════════════════════════════════════
 
     private void LoadCards()
     {
@@ -965,10 +552,6 @@ public partial class DeckBuilderScene : Control
     }
 
     private CardDef? LookupCard(string id) => _allCards.FirstOrDefault(c => c.Id == id);
-
-    // ════════════════════════════════════════════════════════════════
-    // REFRESH
-    // ════════════════════════════════════════════════════════════════
 
     // ── Smooth scrolling state ──
     private Tween _gridScrollTween;
@@ -1091,208 +674,109 @@ public partial class DeckBuilderScene : Control
             _gridDrag?.Halt();
     }
 
+
+    // ════════════════════════════════════════════════════════════════
+    //  Rail refreshes
+    // ════════════════════════════════════════════════════════════════
+
     private void RefreshDeckList()
     {
-        foreach (var child in _deckListContainer.GetChildren())
-            child.QueueFree();
+        foreach (var child in _deckListContainer.GetChildren()) child.QueueFree();
 
-        var grouped = _deckCardIds
-            .GroupBy(id => id)
-            .ToDictionary(g => g.Key, g => g.Count());
-
-        foreach (var (cardId, count) in grouped)
-        {
-            var def = LookupCard(cardId);
-            if (def == null) continue;
-
-            bool isLocked = _lockedCardIds.Contains(cardId);
-
-            var row = new PanelContainer();
-            row.CustomMinimumSize = new Vector2(0, 28);
-            row.SizeFlagsHorizontal = (SizeFlags)3;
-            row.MouseDefaultCursorShape = isLocked ? CursorShape.Arrow : CursorShape.PointingHand;
-
-            var rowStyle = new StyleBoxFlat
-            {
-                BgColor = new Color(0.15f, 0.13f, 0.10f, 0.4f),
-                BorderColor = isLocked ? Gold : Colors.Transparent,
-                BorderWidthLeft = 2, BorderWidthTop = 0,
-                BorderWidthRight = 0, BorderWidthBottom = 0,
-                CornerRadiusTopLeft = 3, CornerRadiusBottomLeft = 3
-            };
-            row.AddThemeStyleboxOverride("panel", rowStyle);
-
-            var hbox = new HBoxContainer();
-            hbox.AnchorLeft = 0; hbox.AnchorRight = 1;
-            hbox.AnchorTop = 0; hbox.AnchorBottom = 1;
-            hbox.OffsetLeft = 4;
-            hbox.MouseFilter = MouseFilterEnum.Ignore;
-            row.AddChild(hbox);
-
-            // Cost chip
-            var costChip = new Label
-            {
-                Text = def.Cost.ToString(),
-                CustomMinimumSize = new Vector2(20, 0),
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            ApplyHeaderFont(costChip, FontTiny);
-            costChip.AddThemeColorOverride("font_color", Gold);
-            hbox.AddChild(costChip);
-
-            // Name
-            var nameLabel = new Label
-            {
-                Text = def.Name,
-                SizeFlagsHorizontal = (SizeFlags)3,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(nameLabel, FontSmall);
-            nameLabel.AddThemeColorOverride("font_color", isLocked ? Gold : TextPrimary);
-            hbox.AddChild(nameLabel);
-
-            // Lock icon or xN
-            if (isLocked)
-            {
-                var lockLabel = new Label
-                {
-                    Text = "\uD83D\uDD12",
-                    CustomMinimumSize = new Vector2(18, 0),
-                    HorizontalAlignment = HorizontalAlignment.Right
-                };
-                ApplyBodyFont(lockLabel, FontTiny);
-                lockLabel.AddThemeColorOverride("font_color", Gold);
-                hbox.AddChild(lockLabel);
-            }
-            else
-            {
-                var countLabel = new Label
-                {
-                    Text = $"x{count}",
-                    CustomMinimumSize = new Vector2(18, 0),
-                    HorizontalAlignment = HorizontalAlignment.Right
-                };
-                ApplyBodyFont(countLabel, FontTiny);
-                countLabel.AddThemeColorOverride("font_color", TextMuted);
-                hbox.AddChild(countLabel);
-            }
-
-            // Click to remove (only non-locked cards)
-            if (!isLocked)
-            {
-                var clickArea = new Button();
-                clickArea.SetAnchorsPreset(LayoutPreset.FullRect);
-                var transparent = new StyleBoxFlat { BgColor = Colors.Transparent };
-                clickArea.AddThemeStyleboxOverride("normal", transparent);
-                clickArea.AddThemeStyleboxOverride("hover", transparent);
-                clickArea.AddThemeStyleboxOverride("pressed", transparent);
-                row.AddChild(clickArea);
-                clickArea.Pressed += () => { if (_deckDrag?.Dragged != true) RemoveFromDeck(cardId); };
-            }
-
-            _deckListContainer.AddChild(row);
-        }
+        var grouped = _deckCardIds.GroupBy(id => id).Select(g => (id: g.Key, n: g.Count(), def: LookupCard(g.Key)))
+            .Where(x => x.def != null).OrderBy(x => x.def!.Cost).ThenBy(x => x.def!.Name).ToList();
 
         if (grouped.Count == 0)
         {
-            var emptyLabel = new Label
-            {
-                Text = "Your deck is empty.\nAdd cards from the left panel.",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(emptyLabel, FontSmall);
-            emptyLabel.AddThemeColorOverride("font_color", TextMuted);
-            _deckListContainer.AddChild(emptyLabel);
+            var empty = new Label { Text = "Your deck is empty.\nTap cards on the left to add them.", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, CustomMinimumSize = new Vector2(0, 160), MouseFilter = MouseFilterEnum.Ignore };
+            empty.AddThemeFontOverride("font", GetBodyFont(28)); empty.AddThemeFontSizeOverride("font_size", 28);
+            empty.AddThemeColorOverride("font_color", MutedInk);
+            _deckListContainer.AddChild(empty);
+            return;
+        }
+
+        foreach (var (cardId, count, defN) in grouped)
+        {
+            var def = defN!;
+            bool locked = _lockedCardIds.Contains(cardId);
+            var wrap = new MarginContainer();
+            wrap.AddThemeConstantOverride("margin_left", 24); wrap.AddThemeConstantOverride("margin_right", 24);
+            _deckListContainer.AddChild(wrap);
+
+            var b = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(0, 62), Disabled = locked, MouseDefaultCursorShape = locked ? CursorShape.Arrow : CursorShape.PointingHand };
+            var box = new StyleBoxFlat { BgColor = new Color(1, 1, 1, 0.03f), CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10 };
+            var hov = (StyleBoxFlat)box.Duplicate(); hov.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.10f);
+            var prs = (StyleBoxFlat)box.Duplicate(); prs.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.18f);
+            b.AddThemeStyleboxOverride("normal", box); b.AddThemeStyleboxOverride("hover", hov); b.AddThemeStyleboxOverride("pressed", prs); b.AddThemeStyleboxOverride("disabled", box);
+            b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            wrap.AddChild(b);
+
+            var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            inner.SetAnchorsPreset(LayoutPreset.FullRect);
+            inner.OffsetLeft = 12; inner.OffsetRight = -14;
+            inner.AddThemeConstantOverride("separation", 14);
+            b.AddChild(inner);
+
+            inner.AddChild(new CostDiamond { Cost = def.Cost, Colour = TypeColour(def.Type), CustomMinimumSize = new Vector2(44, 44), SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore });
+            var name = new Label { Text = def.Name, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis, MouseFilter = MouseFilterEnum.Ignore };
+            name.AddThemeFontOverride("font", GetBodyFont(29)); name.AddThemeFontSizeOverride("font_size", 29);
+            name.AddThemeColorOverride("font_color", locked ? Gold : Parchment);
+            inner.AddChild(name);
+            var tag = new Label { Text = locked ? "core" : $"×{count}", VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, CustomMinimumSize = new Vector2(64, 0), MouseFilter = MouseFilterEnum.Ignore };
+            tag.AddThemeFontOverride("font", locked ? GetBodyFont(24) : GetHeaderFont(26)); tag.AddThemeFontSizeOverride("font_size", locked ? 24 : 26);
+            tag.AddThemeColorOverride("font_color", locked ? Gold : new Color(0.85f, 0.78f, 0.60f));
+            inner.AddChild(tag);
+
+            string captured = cardId;
+            if (!locked) b.Pressed += () => { if (_deckDrag?.Dragged != true) { Click(); RemoveFromDeck(captured); } };
         }
     }
 
     private void RefreshCurve()
     {
-        foreach (var child in _curveContainer.GetChildren())
-            child.QueueFree();
-
-        int[] curve = new int[8]; // costs 0-7+
+        int[] curve = new int[8];
         foreach (var id in _deckCardIds)
         {
             var def = LookupCard(id);
-            if (def != null)
-            {
-                int idx = Mathf.Clamp(def.Cost, 0, 7);
-                curve[idx]++;
-            }
+            if (def != null) curve[Mathf.Clamp(def.Cost, 0, 7)]++;
         }
-
-        int maxCount = Math.Max(1, curve.Max());
-
-        var curveHbox = new HBoxContainer();
-        curveHbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        curveHbox.AddThemeConstantOverride("separation", 2);
-        _curveContainer.AddChild(curveHbox);
-
-        for (int i = 0; i < 8; i++)
-        {
-            var col = new VBoxContainer();
-            col.SizeFlagsVertical = (SizeFlags)3;
-            col.SizeFlagsHorizontal = (SizeFlags)3;
-            col.AddThemeConstantOverride("separation", 1);
-            curveHbox.AddChild(col);
-
-            // Bar
-            var bar = new ColorRect
-            {
-                Color = Gold,
-                SizeFlagsHorizontal = (SizeFlags)3,
-                SizeFlagsVertical = (SizeFlags)3,
-                CustomMinimumSize = new Vector2(0, 0)
-            };
-            float pct = (float)curve[i] / maxCount;
-            bar.Size = new Vector2(0, Mathf.Max(2, pct * 36f));
-            bar.AnchorBottom = 0; // grow from bottom
-            col.AddChild(bar);
-
-            // Label
-            var label = new Label
-            {
-                Text = i == 7 ? "7+" : i.ToString(),
-                HorizontalAlignment = HorizontalAlignment.Center,
-                SizeFlagsHorizontal = (SizeFlags)3
-            };
-            ApplyBodyFont(label, FontTiny);
-            label.AddThemeColorOverride("font_color", TextMuted);
-            col.AddChild(label);
-        }
+        _curve.Counts = curve;
+        _curve.QueueRedraw();
     }
 
     private void UpdateCount()
     {
-        int unique = _deckCardIds.Distinct().Count();
         int total = _deckCardIds.Count;
-        _countLabel.Text = $"{total}/30";
-
-        // Progress bar
-        float pct = Mathf.Clamp((float)total / 30f, 0f, 1f);
-        _countBar.Size = new Vector2(pct * _rightRail.Size.X, 4);
-        _countBar.Color = total >= 30 ? Moss : Gold;
-
-        // Forge button state
+        _countLabel.Text = $"{total} / {DeckRules.MaxSize}";
         var result = DeckValidator.Validate(_deckCardIds, LookupCard);
+        _countHint.Text = result.IsValid ? "ready to forge" : total < DeckRules.MinSize ? $"{DeckRules.MinSize - total} more to go" : result.Errors.FirstOrDefault() ?? "";
+        float pct = Mathf.Clamp((float)total / DeckRules.MaxSize, 0f, 1f);
+        _countBar.Size = new Vector2(pct * _countTrack.Size.X, 10);
+        _countBar.Color = result.IsValid ? Moss : Gold;
+        // the track has no width until the first layout pass
+        CallDeferred(nameof(FitCountBar));
         _forgeButton.Disabled = !result.IsValid;
-        _forgeButton.Text = result.IsValid ? "FORGE DECK" : $"{total}/30";
+    }
+
+    private void FitCountBar()
+    {
+        if (!IsInstanceValid(_countBar)) return;
+        float pct = Mathf.Clamp((float)_deckCardIds.Count / DeckRules.MaxSize, 0f, 1f);
+        _countBar.Size = new Vector2(pct * _countTrack.Size.X, 10);
     }
 
     // ════════════════════════════════════════════════════════════════
-    // ADD / REMOVE
+    //  Add / remove
     // ════════════════════════════════════════════════════════════════
 
     private void AddToDeck(string cardId)
     {
         if (_lockedCardIds.Contains(cardId)) return;
         var result = DeckValidator.CanAdd(_deckCardIds, cardId, LookupCard);
-        if (!result.IsValid) return;
-
+        if (!result.IsValid) { Toast(result.Errors.FirstOrDefault() ?? "Can't add that card."); return; }
         _deckCardIds.Add(cardId);
         _modified = true;
+        Click();
         RefreshCardGrid(preserveScroll: true);
         RefreshDeckList();
         RefreshCurve();
@@ -1304,7 +788,6 @@ public partial class DeckBuilderScene : Control
         if (_lockedCardIds.Contains(cardId)) return;
         int idx = _deckCardIds.LastIndexOf(cardId);
         if (idx < 0) return;
-
         _deckCardIds.RemoveAt(idx);
         _modified = true;
         RefreshCardGrid(preserveScroll: true);
@@ -1314,581 +797,133 @@ public partial class DeckBuilderScene : Control
     }
 
     // ════════════════════════════════════════════════════════════════
-    // BACK — with unsaved-changes confirmation
+    //  Dialogs
     // ════════════════════════════════════════════════════════════════
 
     private void OnBack()
     {
-        if (!_modified)
-        {
-            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
-            return;
-        }
-
-        // Stone confirmation dialog
-        var dialog = new PanelContainer();
-        dialog.Name = "ConfirmDialog";
-        dialog.Position = new Vector2(GetViewportRect().Size.X / 2f - 140, GetViewportRect().Size.Y / 2f - 50);
-        dialog.Size = new Vector2(280, 100);
-        dialog.MouseFilter = MouseFilterEnum.Pass;
-        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.95f),
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
-            ContentMarginLeft = 8, ContentMarginTop = 8,
-            ContentMarginRight = 8, ContentMarginBottom = 8
-        });
-
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        vbox.AddThemeConstantOverride("separation", 6);
-        dialog.AddChild(vbox);
-
-        var msg = new Label
-        {
-            Text = "Unsaved changes will be lost.",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ApplyBodyFont(msg, FontSmall);
-        msg.AddThemeColorOverride("font_color", TextPrimary);
-        vbox.AddChild(msg);
-
-        var btnRow = new HBoxContainer();
-        btnRow.AddThemeConstantOverride("separation", 8);
-        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
-        btnRow.SizeFlagsVertical = (SizeFlags)3;
-        vbox.AddChild(btnRow);
-
-        // Keep editing button
-        var keepBtn = new Button
-        {
-            Text = "Keep editing",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        keepBtn.AddThemeColorOverride("font_color", Gold);
-        keepBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = SurfaceStone,
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        keepBtn.Pressed += () =>
-        {
-            if (IsInstanceValid(dialog))
-                dialog.QueueFree();
-        };
-        btnRow.AddChild(keepBtn);
-
-        // Discard button
-        var discardBtn = new Button
-        {
-            Text = "Discard",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        discardBtn.AddThemeColorOverride("font_color", TextMuted);
-        discardBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.2f, 0.08f, 0.05f, 1),
-            BorderColor = BorderSubtle,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        discardBtn.Pressed += () =>
-        {
-            if (IsInstanceValid(dialog))
-                dialog.QueueFree();
-            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
-        };
-        btnRow.AddChild(discardBtn);
-
-        AddChild(dialog);
+        if (!_modified) { GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); return; }
+        var (overlay, body) = Modal(1000, 420);
+        body.AddChild(ModalTitle("LEAVE THE FORGE?"));
+        body.AddChild(ModalText("This deck has changes you haven't forged. Leave now and they're lost."));
+        var rowB = ButtonRow(body);
+        var keep = Plate("Keep working", true, 84, 380); keep.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(keep);
+        var leave = Plate("Leave anyway", false, 84, 380); leave.Pressed += () => { Click(); overlay.QueueFree(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
     }
-
-    // ════════════════════════════════════════════════════════════════
-    // SAVE — with name prompt & overwrite protection
-    // ════════════════════════════════════════════════════════════════
 
     private void OnSaveDeck()
     {
         var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
-        if (!validation.IsValid) return;
-
+        if (!validation.IsValid) { Toast(validation.Errors.FirstOrDefault() ?? "The deck isn't ready."); return; }
         ShowSaveNameDialog();
     }
 
-    /// <summary>
-    /// Show a stone-themed dialog prompting for the deck name.
-    /// On confirm, checks for overwrite conflicts, then persists.
-    /// </summary>
+    private void ShowRenameDialog()
+    {
+        var (overlay, body) = Modal(1000, 440);
+        body.AddChild(ModalTitle("NAME YOUR DECK"));
+        var edit = ModalEdit(_deckName);
+        body.AddChild(edit);
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Rename", true, 84, 300);
+        void Commit() { string n = edit.Text.Trim(); if (n.Length == 0) return; _deckName = n; _deckNameLabel.Text = n; _modified = true; overlay.QueueFree(); }
+        ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
+        edit.TextSubmitted += _ => Commit();
+        edit.CallDeferred(Control.MethodName.GrabFocus);
+        edit.SelectAll();
+    }
+
     private void ShowSaveNameDialog()
     {
-        var dialog = new PanelContainer();
-        dialog.Name = "SaveNameDialog";
-        float vw = GetViewportRect().Size.X;
-        float vh = GetViewportRect().Size.Y;
-        dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 70);
-        dialog.Size = new Vector2(300, 140);
-        dialog.MouseFilter = MouseFilterEnum.Pass;
-        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        var (overlay, body) = Modal(1000, 460);
+        body.AddChild(ModalTitle("FORGE THIS DECK"));
+        body.AddChild(ModalText("Give it a name. It becomes your active deck and shows up in the Arena and online."));
+        var edit = ModalEdit(_deckName);
+        body.AddChild(edit);
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Forge", true, 84, 300);
+        void Commit()
         {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
-            BorderColor = Gold,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
-            ContentMarginLeft = 12, ContentMarginTop = 12,
-            ContentMarginRight = 12, ContentMarginBottom = 12
-        });
-
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        vbox.AddThemeConstantOverride("separation", 8);
-        dialog.AddChild(vbox);
-
-        var titleLabel = new Label
-        {
-            Text = "Name Your Deck",
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        ApplyHeaderFont(titleLabel, FontBody);
-        titleLabel.AddThemeColorOverride("font_color", Gold);
-        vbox.AddChild(titleLabel);
-
-        var nameEdit = new LineEdit
-        {
-            Text = _deckName,
-            PlaceholderText = "Enter deck name...",
-            CustomMinimumSize = new Vector2(0, 28)
-        };
-        nameEdit.AddThemeColorOverride("font_color", TextPrimary);
-        nameEdit.AddThemeColorOverride("placeholder_color", TextMuted);
-        nameEdit.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = Color.FromHtml("#1C1712"),
-            BorderColor = BorderStandard,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 6, ContentMarginTop = 2,
-            ContentMarginRight = 6, ContentMarginBottom = 2
-        });
-        vbox.AddChild(nameEdit);
-        nameEdit.GrabFocus();
-        nameEdit.SelectAll();
-
-        var btnRow = new HBoxContainer();
-        btnRow.AddThemeConstantOverride("separation", 8);
-        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
-        btnRow.SizeFlagsVertical = (SizeFlags)3;
-        vbox.AddChild(btnRow);
-
-        var cancelBtn = new Button
-        {
-            Text = "Cancel",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        cancelBtn.AddThemeColorOverride("font_color", TextMuted);
-        cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
-            BorderColor = BorderSubtle,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        cancelBtn.Pressed += () =>
-        {
-            if (IsInstanceValid(dialog)) dialog.QueueFree();
-        };
-        btnRow.AddChild(cancelBtn);
-
-        var okBtn = new Button
-        {
-            Text = "Save",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        okBtn.AddThemeColorOverride("font_color", Gold);
-        okBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = SurfaceStone,
-            BorderColor = Gold,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        okBtn.Pressed += () =>
-        {
-            string newName = nameEdit.Text.Trim();
-            if (string.IsNullOrWhiteSpace(newName)) return;
-
-            _deckName = newName;
-            _deckNameLabel.Text = _deckName;
-            if (IsInstanceValid(dialog)) dialog.QueueFree();
-
-            // Check overwrite
-            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName))
-                ShowOverwriteConfirmDialog();
-            else
-                PersistDeck();
-        };
-        btnRow.AddChild(okBtn);
-
-        // Submit on Enter
-        nameEdit.TextSubmitted += (text) =>
-        {
-            string newName = text.Trim();
-            if (string.IsNullOrWhiteSpace(newName)) return;
-
-            _deckName = newName;
-            _deckNameLabel.Text = _deckName;
-            if (IsInstanceValid(dialog)) dialog.QueueFree();
-
-            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName))
-                ShowOverwriteConfirmDialog();
-            else
-                PersistDeck();
-        };
-
-        AddChild(dialog);
+            string n = edit.Text.Trim();
+            if (n.Length == 0) return;
+            _deckName = n; _deckNameLabel.Text = n;
+            overlay.QueueFree();
+            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName)) ShowOverwriteConfirmDialog();
+            else PersistDeck();
+        }
+        ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
+        edit.TextSubmitted += _ => Commit();
+        edit.CallDeferred(Control.MethodName.GrabFocus);
+        edit.SelectAll();
     }
 
-    /// <summary>
-    /// Confirm dialog for overwriting an existing saved deck.
-    /// </summary>
     private void ShowOverwriteConfirmDialog()
     {
-        var dialog = new PanelContainer();
-        dialog.Name = "OverwriteDialog";
-        float vw = GetViewportRect().Size.X;
-        float vh = GetViewportRect().Size.Y;
-        dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 60);
-        dialog.Size = new Vector2(300, 120);
-        dialog.MouseFilter = MouseFilterEnum.Pass;
-        dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
-            BorderColor = Gold,
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
-            ContentMarginLeft = 12, ContentMarginTop = 12,
-            ContentMarginRight = 12, ContentMarginBottom = 12
-        });
-
-        var vbox = new VBoxContainer();
-        vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-        vbox.AddThemeConstantOverride("separation", 8);
-        dialog.AddChild(vbox);
-
-        var msg = new Label
-        {
-            Text = $"A deck named \"{_deckName}\" already exists.\nOverwrite it?",
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            SizeFlagsVertical = (SizeFlags)1
-        };
-        ApplyBodyFont(msg, FontSmall);
-        msg.AddThemeColorOverride("font_color", TextPrimary);
-        vbox.AddChild(msg);
-
-        var btnRow = new HBoxContainer();
-        btnRow.AddThemeConstantOverride("separation", 8);
-        btnRow.SizeFlagsHorizontal = (SizeFlags)3;
-        btnRow.SizeFlagsVertical = (SizeFlags)3;
-        vbox.AddChild(btnRow);
-
-        var cancelBtn = new Button
-        {
-            Text = "Cancel",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        cancelBtn.AddThemeColorOverride("font_color", TextMuted);
-        cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
-            BorderColor = BorderSubtle,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        cancelBtn.Pressed += () =>
-        {
-            if (IsInstanceValid(dialog)) dialog.QueueFree();
-        };
-        btnRow.AddChild(cancelBtn);
-
-        var overwriteBtn = new Button
-        {
-            Text = "Overwrite",
-            SizeFlagsHorizontal = (SizeFlags)3,
-            CustomMinimumSize = new Vector2(0, 32)
-        };
-        overwriteBtn.AddThemeColorOverride("font_color", Color.FromHtml("#E8A040"));
-        overwriteBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.25f, 0.15f, 0.05f, 1),
-            BorderColor = Color.FromHtml("#C08030"),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-        });
-        overwriteBtn.Pressed += () =>
-        {
-            if (IsInstanceValid(dialog)) dialog.QueueFree();
-            PersistDeck(); // overwrite
-        };
-        btnRow.AddChild(overwriteBtn);
-
-        AddChild(dialog);
+        var (overlay, body) = Modal(1000, 420);
+        body.AddChild(ModalTitle("REPLACE IT?"));
+        body.AddChild(ModalText($"You already have a deck called \"{_deckName}\". Forging replaces it."));
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Keep the old one", false, 84, 380); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Replace", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); PersistDeck(); }; rowB.AddChild(ok);
     }
 
-    /// <summary>
-    /// Persist the current deck to ProgressionState.SavedDecks + legacy paths.
-    /// </summary>
-    private void PersistDeck()
+    private void ShowLoadDialog()
     {
-        string classId = CampaignContext.ChosenClass;
-        if (string.IsNullOrEmpty(classId))
-            classId = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior";
-
-        // Save to ProgressionState.SavedDecks (v2 schema)
-        var prog = CampaignContext.Progression;
-        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
-
-        // Legacy: also update the single-slot DeckCardIds for backward compat
-        prog.DeckCardIds.Clear();
-        prog.DeckCardIds.AddRange(_deckCardIds);
-        CampaignContext.PlayerDeckIds.Clear();
-        CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
-
-        // Account-wide JSON deck library
-        CampaignContext.SaveDeck(_deckName, classId, _deckCardIds);
-
-        // Update the active profile
-        string deckId = $"{classId}_{_deckName.ToLowerInvariant().Replace(" ", "_")}";
-        if (CampaignContext.ActiveProfile != null)
+        var saved = CampaignContext.Progression.SavedDecks;
+        var (overlay, body) = Modal(1100, 760);
+        body.AddChild(ModalTitle("YOUR SAVED DECKS"));
+        if (saved.Count == 0)
         {
-            CampaignContext.ActiveProfile.ActiveDeckId = deckId;
-            CampaignContext.SaveCampaignProfile();
-        }
-
-        // Persist SQLite
-        CampaignContext.SaveManager.Save();
-        _modified = false;
-
-        ShowToast("Deck saved.");
-        RefreshSavedDecksList();
-    }
-
-    /// <summary>
-    /// Refresh the saved-decks section in the right rail.
-    /// Reads from ProgressionState.SavedDecks.
-    /// </summary>
-    private void RefreshSavedDecksList()
-    {
-        if (_savedDecksContainer == null) return;
-        foreach (var child in _savedDecksContainer.GetChildren())
-            child.QueueFree();
-
-        var savedDecks = CampaignContext.Progression.SavedDecks;
-        if (savedDecks.Count == 0)
-        {
-            var emptyLabel = new Label
-            {
-                Text = "No saved decks yet.",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                CustomMinimumSize = new Vector2(0, 24)
-            };
-            ApplyBodyFont(emptyLabel, FontTiny);
-            emptyLabel.AddThemeColorOverride("font_color", TextMuted);
-            _savedDecksContainer.AddChild(emptyLabel);
-            return;
-        }
-
-        foreach (var (deckName, cardIds) in savedDecks)
-        {
-            var row = new PanelContainer();
-            row.CustomMinimumSize = new Vector2(0, 28);
-            row.SizeFlagsHorizontal = (SizeFlags)3;
-            row.MouseDefaultCursorShape = CursorShape.PointingHand;
-
-            var rowStyle = new StyleBoxFlat
-            {
-                BgColor = new Color(0.15f, 0.13f, 0.10f, 0.4f),
-                BorderColor = Color.FromHtml("#5A5048"),
-                BorderWidthLeft = 2, BorderWidthTop = 0,
-                BorderWidthRight = 0, BorderWidthBottom = 0,
-                CornerRadiusTopLeft = 3, CornerRadiusBottomLeft = 3
-            };
-            row.AddThemeStyleboxOverride("panel", rowStyle);
-
-            var hbox = new HBoxContainer();
-            hbox.AnchorLeft = 0; hbox.AnchorRight = 1;
-            hbox.AnchorTop = 0; hbox.AnchorBottom = 1;
-            hbox.OffsetLeft = 4;
-            hbox.MouseFilter = MouseFilterEnum.Ignore;
-            row.AddChild(hbox);
-
-            var nameLabel = new Label
-            {
-                Text = deckName,
-                SizeFlagsHorizontal = (SizeFlags)3,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(nameLabel, FontSmall);
-            nameLabel.AddThemeColorOverride("font_color", Gold);
-            hbox.AddChild(nameLabel);
-
-            var countLabel = new Label
-            {
-                Text = $"{cardIds.Count}/30",
-                CustomMinimumSize = new Vector2(28, 0),
-                HorizontalAlignment = HorizontalAlignment.Right
-            };
-            ApplyBodyFont(countLabel, FontTiny);
-            countLabel.AddThemeColorOverride("font_color", TextMuted);
-            hbox.AddChild(countLabel);
-
-            // Click to load
-            var clickArea = new Button();
-            clickArea.SetAnchorsPreset(LayoutPreset.FullRect);
-            clickArea.MouseDefaultCursorShape = CursorShape.PointingHand;
-            clickArea.AddThemeStyleboxOverride("normal", new StyleBoxFlat { BgColor = Colors.Transparent });
-            clickArea.AddThemeStyleboxOverride("hover", new StyleBoxFlat { BgColor = Colors.Transparent });
-            clickArea.AddThemeStyleboxOverride("pressed", new StyleBoxFlat { BgColor = Colors.Transparent });
-            row.AddChild(clickArea);
-
-            // Capture the deck name for the closure
-            string capturedName = deckName;
-            List<string> capturedCards = cardIds;
-            clickArea.Pressed += () => { if (_savedDrag?.Dragged != true) LoadDeck(capturedName, capturedCards); };
-
-            _savedDecksContainer.AddChild(row);
-        }
-    }
-
-    /// <summary>
-    /// Load a saved deck into the builder. Shows unsaved-changes guard if modified.
-    /// </summary>
-    private void LoadDeck(string deckName, List<string> cardIds)
-    {
-        if (_modified)
-        {
-            // Show unsaved-changes confirmation before loading
-            var dialog = new PanelContainer();
-            dialog.Name = "LoadConfirmDialog";
-            float vw = GetViewportRect().Size.X;
-            float vh = GetViewportRect().Size.Y;
-            dialog.Position = new Vector2(vw / 2f - 150, vh / 2f - 60);
-            dialog.Size = new Vector2(300, 120);
-            dialog.MouseFilter = MouseFilterEnum.Pass;
-            dialog.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-            {
-                BgColor = new Color(0.15f, 0.13f, 0.10f, 0.97f),
-                BorderColor = Gold,
-                BorderWidthLeft = 2, BorderWidthTop = 2,
-                BorderWidthRight = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8,
-                CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
-                ContentMarginLeft = 12, ContentMarginTop = 12,
-                ContentMarginRight = 12, ContentMarginBottom = 12
-            });
-
-            var vbox = new VBoxContainer();
-            vbox.SetAnchorsPreset(LayoutPreset.FullRect);
-            vbox.AddThemeConstantOverride("separation", 8);
-            dialog.AddChild(vbox);
-
-            var msg = new Label
-            {
-                Text = "Load this deck?\nUnsaved changes will be lost.",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            ApplyBodyFont(msg, FontSmall);
-            msg.AddThemeColorOverride("font_color", TextPrimary);
-            vbox.AddChild(msg);
-
-            var btnRow = new HBoxContainer();
-            btnRow.AddThemeConstantOverride("separation", 8);
-            btnRow.SizeFlagsHorizontal = (SizeFlags)3;
-            btnRow.SizeFlagsVertical = (SizeFlags)3;
-            vbox.AddChild(btnRow);
-
-            var cancelBtn = new Button
-            {
-                Text = "Cancel",
-                SizeFlagsHorizontal = (SizeFlags)3,
-                CustomMinimumSize = new Vector2(0, 32)
-            };
-            cancelBtn.AddThemeColorOverride("font_color", TextMuted);
-            cancelBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-            {
-                BgColor = new Color(0.2f, 0.18f, 0.15f, 1),
-                BorderColor = BorderSubtle,
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            });
-            cancelBtn.Pressed += () =>
-            {
-                if (IsInstanceValid(dialog)) dialog.QueueFree();
-            };
-            btnRow.AddChild(cancelBtn);
-
-            var loadBtn = new Button
-            {
-                Text = "Load",
-                SizeFlagsHorizontal = (SizeFlags)3,
-                CustomMinimumSize = new Vector2(0, 32)
-            };
-            loadBtn.AddThemeColorOverride("font_color", Gold);
-            loadBtn.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-            {
-                BgColor = SurfaceStone,
-                BorderColor = Gold,
-                BorderWidthLeft = 1, BorderWidthTop = 1,
-                BorderWidthRight = 1, BorderWidthBottom = 1,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4
-            });
-            loadBtn.Pressed += () =>
-            {
-                if (IsInstanceValid(dialog)) dialog.QueueFree();
-                DoLoadDeck(deckName, cardIds);
-            };
-            btnRow.AddChild(loadBtn);
-
-            AddChild(dialog);
+            body.AddChild(ModalText("Nothing forged yet. Build a deck of 30 and press Forge deck."));
+            body.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
         }
         else
         {
-            DoLoadDeck(deckName, cardIds);
+            var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+            body.AddChild(scroll);
+            var list = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+            list.AddThemeConstantOverride("separation", 12);
+            scroll.AddChild(list);
+            _savedDecksContainer = list;
+            _savedDrag = DragScroll.Attach(scroll);
+            foreach (var (deckName, cardIds) in saved.OrderBy(k => k.Key))
+            {
+                var b = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(0, 84), MouseDefaultCursorShape = CursorShape.PointingHand };
+                var box = new StyleBoxFlat { BgColor = new Color(1, 1, 1, 0.03f), BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.22f), BorderWidthLeft = 1, BorderWidthRight = 1, BorderWidthTop = 1, BorderWidthBottom = 1, CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12 };
+                var hov = (StyleBoxFlat)box.Duplicate(); hov.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.10f); hov.BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.5f);
+                b.AddThemeStyleboxOverride("normal", box); b.AddThemeStyleboxOverride("hover", hov); b.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed()); b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+                list.AddChild(b);
+                var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+                inner.SetAnchorsPreset(LayoutPreset.FullRect);
+                inner.OffsetLeft = 26; inner.OffsetRight = -26;
+                b.AddChild(inner);
+                var nm = new Label { Text = deckName, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                nm.AddThemeFontOverride("font", GetBodyFont(32)); nm.AddThemeFontSizeOverride("font_size", 32);
+                nm.AddThemeColorOverride("font_color", Parchment);
+                inner.AddChild(nm);
+                var ct = new Label { Text = $"{cardIds.Count} cards", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                ct.AddThemeFontOverride("font", GetBodyFont(26)); ct.AddThemeFontSizeOverride("font_size", 26);
+                ct.AddThemeColorOverride("font_color", MutedInk);
+                inner.AddChild(ct);
+                string cn = deckName; var cc = cardIds;
+                b.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); overlay.QueueFree(); LoadDeck(cn, cc); };
+            }
         }
+        var rowB = ButtonRow(body);
+        var close = Plate("Close", true, 84, 300); close.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(close);
+    }
+
+    private void LoadDeck(string deckName, List<string> cardIds)
+    {
+        if (!_modified) { DoLoadDeck(deckName, cardIds); return; }
+        var (overlay, body) = Modal(1000, 420);
+        body.AddChild(ModalTitle("LOAD THIS DECK?"));
+        body.AddChild(ModalText("The deck you're working on has changes you haven't forged. They'll be lost."));
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Load it", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); DoLoadDeck(deckName, cardIds); }; rowB.AddChild(ok);
     }
 
     private void DoLoadDeck(string deckName, List<string> cardIds)
@@ -1898,58 +933,278 @@ public partial class DeckBuilderScene : Control
         _deckName = deckName;
         _deckNameLabel.Text = deckName;
         _modified = false;
-
         RefreshCardGrid();
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();
-
-        ShowToast($"Loaded: {deckName}");
+        Toast($"Loaded {deckName}");
     }
 
-    /// <summary>
-    /// Show a brief gold toast message centered on screen.
-    /// </summary>
-    private void ShowToast(string message)
+    private void PersistDeck()
     {
-        var toast = new PanelContainer();
-        toast.Name = "Toast";
-        toast.Position = new Vector2(GetViewportRect().Size.X / 2f - 100, GetViewportRect().Size.Y / 2f - 20);
-        toast.Size = new Vector2(200, 40);
-        toast.MouseFilter = MouseFilterEnum.Ignore;
-        toast.AddThemeStyleboxOverride("panel", new StyleBoxFlat
-        {
-            BgColor = new Color(0.2f, 0.18f, 0.14f, 0.9f),
-            BorderColor = Gold,
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 12, ContentMarginTop = 6,
-            ContentMarginRight = 12, ContentMarginBottom = 6
-        });
+        string classId = CampaignContext.ChosenClass;
+        if (string.IsNullOrEmpty(classId))
+            classId = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior";
 
-        var toastLabel = new Label
+        var prog = CampaignContext.Progression;
+        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
+        prog.DeckCardIds.Clear();
+        prog.DeckCardIds.AddRange(_deckCardIds);
+        CampaignContext.PlayerDeckIds.Clear();
+        CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
+        CampaignContext.SaveDeck(_deckName, classId, _deckCardIds);
+        string deckId = $"{classId}_{_deckName.ToLowerInvariant().Replace(" ", "_")}";
+        if (CampaignContext.ActiveProfile != null)
         {
-            Text = message,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
+            CampaignContext.ActiveProfile.ActiveDeckId = deckId;
+            CampaignContext.SaveCampaignProfile();
+        }
+        CampaignContext.SaveManager.Save();
+        _modified = false;
+        Toast($"{_deckName} forged — it's your active deck now.");
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  Bits
+    // ════════════════════════════════════════════════════════════════
+
+    private static Color TypeColour(CardType t) => t switch
+    {
+        CardType.RITUAL => Color.FromHtml("#2C6098"),
+        CardType.RELIC or CardType.ARTIFACT => Color.FromHtml("#704896"),
+        CardType.CURSE => Color.FromHtml("#6A3A3A"),
+        _ => Color.FromHtml("#427A38"),
+    };
+
+    private static StyleBoxFlat Glass(int margin = 0, Color? border = null) => new()
+    {
+        BgColor = new Color(0.082f, 0.072f, 0.061f, 0.90f),
+        BorderColor = border ?? new Color(0.79f, 0.66f, 0.30f, 0.38f),
+        BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+        CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18, CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
+        ShadowColor = new Color(0, 0, 0, 0.55f), ShadowSize = 24,
+        ContentMarginLeft = margin, ContentMarginRight = margin, ContentMarginTop = margin, ContentMarginBottom = margin,
+    };
+
+    private static Control SmallHeader(string text, string? hint = null)
+    {
+        var v = new VBoxContainer();
+        v.AddThemeConstantOverride("separation", 8);
+        var row = new HBoxContainer();
+        v.AddChild(row);
+        var l = new Label { Text = text, SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", GetHeaderFont(24)); l.AddThemeFontSizeOverride("font_size", 24);
+        l.AddThemeColorOverride("font_color", Gold);
+        row.AddChild(l);
+        if (hint != null)
+        {
+            var h = new Label { Text = hint, VerticalAlignment = VerticalAlignment.Bottom, MouseFilter = MouseFilterEnum.Ignore };
+            h.AddThemeFontOverride("font", GetBodyFont(22)); h.AddThemeFontSizeOverride("font_size", 22);
+            h.AddThemeColorOverride("font_color", MutedInk);
+            row.AddChild(h);
+        }
+        v.AddChild(new ColorRect { Color = Rule, CustomMinimumSize = new Vector2(0, 1), MouseFilter = MouseFilterEnum.Ignore });
+        return v;
+    }
+
+    private static StyleBoxFlat PillBox(Color accent, bool selected, bool hover) => new()
+    {
+        BgColor = selected ? new Color(accent.R, accent.G, accent.B, 0.28f) : hover ? new Color(1, 1, 1, 0.06f) : new Color(1, 1, 1, 0.03f),
+        BorderColor = selected ? accent : new Color(0.79f, 0.66f, 0.30f, hover ? 0.5f : 0.25f),
+        BorderWidthLeft = selected ? 2 : 1, BorderWidthRight = selected ? 2 : 1, BorderWidthTop = selected ? 2 : 1, BorderWidthBottom = selected ? 2 : 1,
+        CornerRadiusTopLeft = 29, CornerRadiusTopRight = 29, CornerRadiusBottomLeft = 29, CornerRadiusBottomRight = 29,
+    };
+
+    private static Control Pill(string text, Color accent, bool selected, int size)
+    {
+        var p = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore, SizeFlagsVertical = SizeFlags.ShrinkCenter };
+        var box = PillBox(accent, selected, false);
+        box.ContentMarginLeft = 20; box.ContentMarginRight = 20; box.ContentMarginTop = 8; box.ContentMarginBottom = 8;
+        p.AddThemeStyleboxOverride("panel", box);
+        var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 10);
+        p.AddChild(row);
+        var sw = new ColorRect { Color = accent, CustomMinimumSize = new Vector2(14, 14), SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+        row.AddChild(sw);
+        var l = new Label { Text = text, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", GetBodyFont(size)); l.AddThemeFontSizeOverride("font_size", size);
+        l.AddThemeColorOverride("font_color", new Color(0.9f, 0.84f, 0.68f));
+        row.AddChild(l);
+        return p;
+    }
+
+    private static void StyleEdit(LineEdit e, int size)
+    {
+        e.AddThemeFontOverride("font", GetBodyFont(size)); e.AddThemeFontSizeOverride("font_size", size);
+        e.AddThemeColorOverride("font_color", new Color(0.95f, 0.92f, 0.85f));
+        e.AddThemeColorOverride("font_placeholder_color", new Color(0.5f, 0.47f, 0.4f));
+        e.AddThemeColorOverride("caret_color", Gold);
+        var box = new StyleBoxFlat
+        {
+            BgColor = new Color(0.06f, 0.055f, 0.045f), BorderColor = new Color(0.5f, 0.42f, 0.24f),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+            ContentMarginLeft = 18, ContentMarginRight = 18,
         };
-        ApplyHeaderFont(toastLabel, FontBody);
-        toastLabel.AddThemeColorOverride("font_color", Gold);
-        toastLabel.SetAnchorsPreset(LayoutPreset.FullRect);
-        toast.AddChild(toastLabel);
+        var focus = (StyleBoxFlat)box.Duplicate(); focus.BorderColor = Gold;
+        e.AddThemeStyleboxOverride("normal", box);
+        e.AddThemeStyleboxOverride("focus", focus);
+    }
 
+    private static Button Plate(string text, bool primary, float h, float w = 0)
+    {
+        var b = new Button { Text = text, CustomMinimumSize = new Vector2(w, h), FocusMode = FocusModeEnum.None };
+        if (w > 0) b.Size = new Vector2(w, h);
+        b.AddThemeFontOverride("font", GetButtonFont(32)); b.AddThemeFontSizeOverride("font_size", 32);
+        b.AddThemeColorOverride("font_color", primary ? Color.FromHtml("#F2DFA6") : Color.FromHtml("#D8CBB0"));
+        b.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.42f, 0.36f));
+        b.AddThemeStyleboxOverride("normal", primary ? MenuButtons.PrimaryNormal() : MenuButtons.QuietNormal());
+        b.AddThemeStyleboxOverride("hover", primary ? MenuButtons.PrimaryHover() : MenuButtons.Hover());
+        b.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed());
+        b.AddThemeStyleboxOverride("disabled", MenuButtons.QuietNormal());
+        b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        MenuButtons.Animate(b);
+        return b;
+    }
+
+    private static Button Quiet(string text, float w, float h, int size)
+    {
+        var b = Plate(text, false, h, w);
+        b.AddThemeFontOverride("font", GetButtonFont(size)); b.AddThemeFontSizeOverride("font_size", size);
+        b.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+        return b;
+    }
+
+    private (Control overlay, VBoxContainer body) Modal(float w, float h)
+    {
+        var vp = GetViewportRect().Size;
+        var overlay = new Control { MouseFilter = MouseFilterEnum.Stop, ZIndex = 30 };
+        overlay.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(overlay);
+        var dim = new ColorRect { Color = new Color(0.02f, 0.02f, 0.015f, 0.80f), MouseFilter = MouseFilterEnum.Ignore };
+        dim.SetAnchorsPreset(LayoutPreset.FullRect);
+        overlay.AddChild(dim);
+        var card = new PanelContainer { Position = new Vector2((vp.X - w) / 2, (vp.Y - h) / 2), Size = new Vector2(w, h) };
+        card.AddThemeStyleboxOverride("panel", Glass(48));
+        overlay.AddChild(card);
+        var body = new VBoxContainer();
+        body.AddThemeConstantOverride("separation", 22);
+        card.AddChild(body);
+        return (overlay, body);
+    }
+
+    private static Label ModalTitle(string text)
+    {
+        var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", GetHeaderFont(42)); l.AddThemeFontSizeOverride("font_size", 42);
+        l.AddThemeColorOverride("font_color", Gold);
+        return l;
+    }
+
+    private static Label ModalText(string text)
+    {
+        var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", GetBodyFont(30)); l.AddThemeFontSizeOverride("font_size", 30);
+        l.AddThemeColorOverride("font_color", Parchment);
+        return l;
+    }
+
+    private static LineEdit ModalEdit(string text)
+    {
+        var e = new LineEdit { Text = text, PlaceholderText = "Deck name", CustomMinimumSize = new Vector2(0, 80), MaxLength = 28, Alignment = HorizontalAlignment.Center };
+        StyleEdit(e, 34);
+        return e;
+    }
+
+    private static HBoxContainer ButtonRow(VBoxContainer body)
+    {
+        body.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("separation", 28);
+        body.AddChild(row);
+        return row;
+    }
+
+    private void Toast(string message)
+    {
+        var vp = GetViewportRect().Size;
+        var toast = new PanelContainer { Name = "Toast", MouseFilter = MouseFilterEnum.Ignore, ZIndex = 40 };
+        var box = Glass(0, Gold); box.ContentMarginLeft = 34; box.ContentMarginRight = 34; box.ContentMarginTop = 16; box.ContentMarginBottom = 16;
+        toast.AddThemeStyleboxOverride("panel", box);
+        var l = new Label { Text = message, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        l.AddThemeFontOverride("font", GetBodyFont(30)); l.AddThemeFontSizeOverride("font_size", 30);
+        l.AddThemeColorOverride("font_color", Color.FromHtml("#F2DFA6"));
+        toast.AddChild(l);
         AddChild(toast);
-
-        // Fade out after 1s
-        var tween = CreateTween();
-        tween.TweenInterval(0.8f);
-        tween.TweenProperty(toast, "modulate", new Color(1, 1, 1, 0), 0.3f);
-        tween.TweenCallback(Callable.From(() =>
+        toast.CallDeferred(nameof(CenterToast));
+        void Fade()
         {
-            if (IsInstanceValid(toast))
-                toast.QueueFree();
-        }));
+            var tween = toast.CreateTween();
+            tween.TweenInterval(1.6f);
+            tween.TweenProperty(toast, "modulate", new Color(1, 1, 1, 0), 0.35f);
+            tween.TweenCallback(Callable.From(() => { if (IsInstanceValid(toast)) toast.QueueFree(); }));
+        }
+        Fade();
+    }
+
+    private void CenterToast()
+    {
+        var toast = GetNodeOrNull<Control>("Toast");
+        if (toast == null) return;
+        var vp = GetViewportRect().Size;
+        toast.Position = new Vector2((vp.X * RailFrac - toast.Size.X) / 2, vp.Y - 150);
+    }
+
+    private void Click() => GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+}
+
+/// <summary>FABLE-040: a small type-coloured cost diamond for list rows.</summary>
+public partial class CostDiamond : Control
+{
+    public int Cost { get; set; }
+    public Color Colour { get; set; } = Color.FromHtml("#427A38");
+    public override void _Draw()
+    {
+        var c = Size / 2; float r = Mathf.Min(Size.X, Size.Y) / 2 - 2;
+        var pts = new[] { c + new Vector2(0, -r), c + new Vector2(r, 0), c + new Vector2(0, r), c + new Vector2(-r, 0) };
+        DrawColoredPolygon(pts, Colour);
+        DrawPolyline(new[] { pts[0], pts[1], pts[2], pts[3], pts[0] }, ThemeTokens.Gold, 2f, true);
+        var font = ThemeTokens.GetButtonFont(22);
+        string t = Cost.ToString();
+        var sz = font.GetStringSize(t, HorizontalAlignment.Left, -1, 22);
+        DrawString(font, new Vector2(c.X - sz.X / 2, c.Y + sz.Y / 2 - font.GetDescent(22) - 1), t, HorizontalAlignment.Left, -1, 22, new Color(0.96f, 0.93f, 0.86f));
+    }
+}
+
+/// <summary>FABLE-040: the mana curve as eight rounded bars with counts on top and costs below.</summary>
+public partial class CurveBars : Control
+{
+    public int[] Counts { get; set; } = new int[8];
+    public override void _Draw()
+    {
+        int n = Counts.Length; if (n == 0) return;
+        int max = Mathf.Max(1, Counts.Max());
+        float gap = 10f, labelH = 28f, topH = 32f;
+        float w = (Size.X - gap * (n - 1)) / n;
+        float barMax = Size.Y - labelH - topH;
+        var small = ThemeTokens.GetBodyFont(22);
+        var num = ThemeTokens.GetButtonFont(22);
+        for (int i = 0; i < n; i++)
+        {
+            float x = i * (w + gap);
+            float h = Counts[i] == 0 ? 4f : Mathf.Max(8f, barMax * Counts[i] / max);
+            var rect = new Rect2(x, topH + barMax - h, w, h);
+            var box = new StyleBoxFlat { BgColor = Counts[i] == 0 ? new Color(1, 1, 1, 0.08f) : ThemeTokens.Gold, CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3 };
+            DrawStyleBox(box, rect);
+            if (Counts[i] > 0)
+            {
+                string t = Counts[i].ToString();
+                var sz = num.GetStringSize(t, HorizontalAlignment.Left, -1, 22);
+                DrawString(num, new Vector2(x + w / 2 - sz.X / 2, rect.Position.Y - 10), t, HorizontalAlignment.Left, -1, 22, new Color(0.96f, 0.93f, 0.86f));
+            }
+            string lbl = i == n - 1 ? $"{i}+" : i.ToString();
+            var ls = small.GetStringSize(lbl, HorizontalAlignment.Left, -1, 22);
+            DrawString(small, new Vector2(x + w / 2 - ls.X / 2, Size.Y - 4), lbl, HorizontalAlignment.Left, -1, 22, new Color(0.62f, 0.57f, 0.47f));
+        }
     }
 }

@@ -63,6 +63,7 @@ public partial class CardPlate : Control
     private bool _hasStats;
     private int _cost;
     private int _attuneAvailable = int.MaxValue;
+    private string _cardId = "";
 
     private static readonly Color CREAM = new(0.957f, 0.925f, 0.855f);
     private static readonly Color OUTLINE = new(0.05f, 0.035f, 0.02f, 1f);
@@ -79,6 +80,7 @@ public partial class CardPlate : Control
         Position = Vector2.Zero;
         Size = new Vector2(cardWidth, cardHeight);
         _baseAtk = attack ?? -1; _baseVig = vigor ?? -1;
+        _cardId = cardId;
 
         if (_baked == null)
         {
@@ -155,6 +157,38 @@ void fragment() {
         if (_baked == null) return;
         _showcase ??= new ShaderMaterial { Shader = new Shader { Code = ShowcaseShader } };
         _baked.Material = _showcase;
+    }
+
+    /// <summary>FABLE-040: a baked slot's rect on this plate (name_plate, cost_badge, attack_badge, vigor_badge), or an empty rect.</summary>
+    public Rect2 SlotRect(string key)
+    {
+        var r = ArrayOf(_cardId, key, 4);
+        if (r[2] <= 0f || r[3] <= 0f) return new Rect2();
+        return new Rect2(r[0] * Size.X, r[1] * Size.Y, r[2] * Size.X, r[3] * Size.Y);
+    }
+
+    /// <summary>FABLE-040: the Codex shows undiscovered cards with their numbers hidden.</summary>
+    public void HideNumerals()
+    {
+        if (_atkNum != null) _atkNum.Visible = false;
+        if (_vigNum != null) _vigNum.Visible = false;
+        if (_costNum != null) _costNum.Visible = false;
+    }
+
+    private static ShaderMaterial? _veiled;
+    private const string VeilShader = @"shader_type canvas_item;
+void fragment() {
+    vec4 c = texture(TEXTURE, UV);
+    float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+    vec3 g = mix(vec3(l), c.rgb, 0.12) * vec3(0.62, 0.60, 0.56);
+    COLOR = vec4(g, c.a) * COLOR;
+}";
+    /// <summary>FABLE-040: stone-grey — the art still reads, the colour is gone.</summary>
+    public void Veil()
+    {
+        if (_baked == null) return;
+        _veiled ??= new ShaderMaterial { Shader = new Shader { Code = VeilShader } };
+        _baked.Material = _veiled;
     }
 
     public void SetAttunementAvailable(int available)

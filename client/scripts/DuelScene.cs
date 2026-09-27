@@ -5203,18 +5203,7 @@ public partial class DuelScene : Control
 
             CampaignContext.SaveManager.Save();
             CampaignContext.IsArenaDuel = false;
-
-            // Navigate back to ArenaScene after a brief delay
-            var arenaNavTimer = new Godot.Timer();
-            arenaNavTimer.OneShot = true;
-            arenaNavTimer.WaitTime = 1.5f;
-            arenaNavTimer.Timeout += () =>
-            {
-                ArenaScene.ReturnFromDuel();
-                GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
-            };
-            AddChild(arenaNavTimer);
-            arenaNavTimer.Start();
+            // FABLE-040: no auto-return timer — the victory screen's buttons lead back to the arena.
             SettleGameOver();   // FABLE-033
             return;
         }
