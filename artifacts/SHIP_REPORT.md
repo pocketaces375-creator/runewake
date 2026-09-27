@@ -5,13 +5,13 @@
 
 | | |
 |---|---|
-| apk | `Runewake.apk` (216.1 MB, release) |
-| sha256 | `c0b75963d141674c126e6347096be93c67bc4de826e23b953e2529fd6f1d29af` |
-| commit | `5fc0261a` |
-| code fingerprint | `9a35ac020b02` |
+| apk | `Runewake.apk` (218.1 MB, release) |
+| sha256 | `9e32d282ca3bd1392d7faa4897439534e96011195535c196cb87c0d5f97c2dc2` |
+| commit | `cfb4ee53` |
+| code fingerprint | `cfebc48984d4` |
 | loop smoke says playable | True |
-| built | 2026-09-25 12:26 EDT |
-| look at | FABLE-033 one-screen victory; drops live; versionCode 33 |
+| built | 2026-09-27 11:22 EDT |
+| look at | FABLE-041 online duel fix + concede |
 
 ## Must-pass checks
 
@@ -36,4 +36,7 @@
 - ⚠️ captures fresh
 - ⚠️ supabase config baked in (accounts + cloud save)
 - ⚠️ apk preflight (full)
+
+⚠️ Built from a working tree with 8 uncommitted file(s) — this APK
+does not correspond to any commit.
 

@@ -15,6 +15,13 @@
       "callCount": 1
     },
     {
+      "id": "thorn_reach",
+      "type": "music",
+      "streamNonNull": true,
+      "enteredPlaying": true,
+      "callCount": 1
+    },
+    {
       "id": "defeat",
       "type": "sfx",
       "streamNonNull": true,
@@ -62,7 +69,6 @@
     "music:ambient_reach",
     "music:hall_of_runes",
     "music:stones_and_dust",
-    "music:thorn_reach",
     "sfx:card_play",
     "sfx:card_shuffle",
     "sfx:click",
@@ -75,9 +81,9 @@
     "sfx:unlock",
     "sfx:victory"
   ],
-  "musicExercised": false,
+  "musicExercised": true,
   "sfxExercised": true,
-  "totalMusicCalls": 0,
+  "totalMusicCalls": 1,
   "totalSfxCalls": 4,
   "totalAmbientCalls": 1
 }

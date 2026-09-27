@@ -133,50 +133,59 @@
     {
       "path": "Main/@HBoxContainer@72",
       "class": "HBoxContainer",
-      "x": 463,
+      "x": 347,
       "y": 880,
-      "w": 1389,
+      "w": 1621,
       "h": 75,
       "mouse_filter": 1
     },
     {
       "path": "Main/@HBoxContainer@72/@Button@73",
       "class": "Button",
-      "x": 463,
+      "x": 347,
       "y": 880,
-      "w": 336,
+      "w": 313,
       "h": 75,
       "mouse_filter": 0
     },
     {
       "path": "Main/@HBoxContainer@72/@Button@74",
       "class": "Button",
-      "x": 813,
+      "x": 674,
       "y": 880,
-      "w": 337,
+      "w": 313,
       "h": 75,
       "mouse_filter": 0
     },
     {
       "path": "Main/@HBoxContainer@72/@Button@75",
       "class": "Button",
-      "x": 1164,
+      "x": 1001,
       "y": 880,
-      "w": 337,
+      "w": 313,
       "h": 75,
       "mouse_filter": 0
     },
     {
       "path": "Main/@HBoxContainer@72/@Button@76",
       "class": "Button",
-      "x": 1515,
+      "x": 1328,
       "y": 880,
-      "w": 337,
+      "w": 313,
       "h": 75,
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Button@77",
+      "path": "Main/@HBoxContainer@72/@Button@77",
+      "class": "Button",
+      "x": 1655,
+      "y": 880,
+      "w": 313,
+      "h": 75,
+      "mouse_filter": 0
+    },
+    {
+      "path": "Main/@Button@78",
       "class": "Button",
       "x": 1667,
       "y": 988,
@@ -185,7 +194,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@80",
+      "path": "Main/@Control@81",
       "class": "Control",
       "x": 764,
       "y": 664,
@@ -194,7 +203,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@80/PrimaryPlate",
+      "path": "Main/@Control@81/PrimaryPlate",
       "class": "Button",
       "x": 764,
       "y": 664,
@@ -203,7 +212,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@80/PrimaryPlate/@VBoxContainer@81",
+      "path": "Main/@Control@81/PrimaryPlate/@VBoxContainer@82",
       "class": "VBoxContainer",
       "x": 764,
       "y": 664,
@@ -212,7 +221,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "Main/@Control@80/PrimaryPlate/@VBoxContainer@81/@Label@82",
+      "path": "Main/@Control@81/PrimaryPlate/@VBoxContainer@82/@Label@83",
       "class": "Label",
       "x": 764,
       "y": 685,
@@ -222,7 +231,7 @@
       "font_size": 44
     },
     {
-      "path": "Main/@Control@80/PrimaryPlate/@VBoxContainer@81/@Label@83",
+      "path": "Main/@Control@81/PrimaryPlate/@VBoxContainer@82/@Label@84",
       "class": "Label",
       "x": 764,
       "y": 741,
@@ -232,7 +241,7 @@
       "font_size": 24
     },
     {
-      "path": "Main/@Control@80/@Button@84",
+      "path": "Main/@Control@81/@Button@85",
       "class": "Button",
       "x": 764,
       "y": 804,
@@ -241,7 +250,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Button@86",
+      "path": "Main/@Button@87",
       "class": "Button",
       "x": 8,
       "y": 8,
@@ -250,7 +259,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@87",
+      "path": "Main/@Control@90",
       "class": "Control",
       "x": 764,
       "y": 664,
@@ -259,7 +268,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@87/PrimaryPlate",
+      "path": "Main/@Control@90/PrimaryPlate",
       "class": "Button",
       "x": 764,
       "y": 664,
@@ -268,7 +277,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "Main/@Control@87/PrimaryPlate/@VBoxContainer@88",
+      "path": "Main/@Control@90/PrimaryPlate/@VBoxContainer@91",
       "class": "VBoxContainer",
       "x": 764,
       "y": 664,
@@ -277,7 +286,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "Main/@Control@87/PrimaryPlate/@VBoxContainer@88/@Label@89",
+      "path": "Main/@Control@90/PrimaryPlate/@VBoxContainer@91/@Label@92",
       "class": "Label",
       "x": 764,
       "y": 664,
@@ -287,7 +296,7 @@
       "font_size": 44
     },
     {
-      "path": "Main/@Control@87/PrimaryPlate/@VBoxContainer@88/@Label@90",
+      "path": "Main/@Control@90/PrimaryPlate/@VBoxContainer@91/@Label@93",
       "class": "Label",
       "x": 764,
       "y": 664,
@@ -297,7 +306,7 @@
       "font_size": 24
     },
     {
-      "path": "Main/@Control@87/@Button@91",
+      "path": "Main/@Control@90/@Button@94",
       "class": "Button",
       "x": 764,
       "y": 804,
