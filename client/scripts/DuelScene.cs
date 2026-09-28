@@ -91,6 +91,11 @@ public partial class DuelScene : Control
     // FABLE-044: the reliquary frame around each artifact (player / enemy).
     private readonly ReliquaryFrame?[] _playerReliquaries = new ReliquaryFrame?[2];
     private readonly ReliquaryFrame?[] _enemyReliquaries = new ReliquaryFrame?[2];
+    // FABLE-045: the Crescent Dial HUD (vigor, attunement, deck, barrow, hand, both sides).
+    private CrescentHud? _crescent;
+    private Label? _endTurnTitle, _endTurnSub;
+    private string _myHudName = "You";
+    private bool _enemyPortraitSet;
     private readonly Control[] _playerArsenalPanels = new Control[2];
     private readonly Control[] _enemyArsenalPanels = new Control[2];
 
@@ -153,7 +158,7 @@ public partial class DuelScene : Control
     internal List<LaneSlot> TutorialPlayerSlots => _playerSlots;
     internal List<LaneSlot> TutorialEnemySlots => _enemySlots;
     internal Button? TutorialEndTurnButton => _endTurnButton;
-    internal Control? TutorialAttunePanel => _playerAttunePanel;
+    internal Control? TutorialAttunePanel => _crescent != null ? _crescent.PlayerAttuneAnchor : _playerAttunePanel;
     internal ArtifactCardPlate[] TutorialPlayerArtifactPlates => _playerArtifactPlates;
     internal ArtifactCardPlate[] TutorialEnemyArtifactPlates => _enemyArtifactPlates;
 
@@ -1157,7 +1162,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
         GD.Print("[TUTORIAL] step t01 shown");
-        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _crescent != null ? _crescent.EnemyCrest : _enemyVigorValue });
         _tutorialCtrl.ShowPopup("t01",
             onContinue: ShowTutorialStep_t02,
             onSkip: () => { _tutorialCtrl?.EndTutorial(); }
@@ -1232,7 +1237,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
         GD.Print("[TUTORIAL] step t09 shown");
-        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _playerDeckBarrowPanelContainer });
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _crescent != null ? _crescent.PlayerPilesAnchor : _playerDeckBarrowPanelContainer });
         _tutorialCtrl.ShowPopup("t09", onContinue: ShowTutorialStep_t10);
     }
 
@@ -1266,7 +1271,7 @@ public partial class DuelScene : Control
     {
         if (_tutorialCtrl == null || !_tutorialCtrl.IsActive || _tutorialPopup == null) return;
         GD.Print("[TUTORIAL] step t13 shown");
-        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _enemyVigorValue });
+        _tutorialPopup.SetHighlightTargets(new System.Collections.Generic.List<Control> { _crescent != null ? _crescent.EnemyCrest : _enemyVigorValue });
         _tutorialCtrl.ShowPopup("t13",
             onContinue: () =>
             {
@@ -1359,9 +1364,10 @@ public partial class DuelScene : Control
         float scale = vh / 1080f;
 
         // FABLE-044: two reliquaries with a real gap between them (was 156 wide, 8 apart — they touched).
-        _artFrameW = 146f * scale;
-        _artFrameH = 238f * scale;
-        float gap = 26f * scale;
+        // FABLE-045: 136x222, sitting just left of the Crescent Dial (CrescentHud.Reach from the right edge).
+        _artFrameW = 136f * scale;
+        _artFrameH = 222f * scale;
+        float gap = 22f * scale;
         float marginX = 12f * scale;
 
         _turnLabel.Text = "Turn 1";
@@ -1373,8 +1379,8 @@ public partial class DuelScene : Control
         _turnLabel.Size = new Vector2(322f * scale, 30f * scale);
         _turnLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
-        float artX = vw - 2 * _artFrameW - gap - marginX;
-        float artY = 16f * scale;
+        float artX = vw - (CrescentHud.Reach + 18f) * scale - 2 * _artFrameW - gap;
+        float artY = 24f * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -1527,14 +1533,15 @@ public partial class DuelScene : Control
         float scale = vh / 1080f;
 
         // FABLE-044: two reliquaries with a real gap between them (was 156 wide, 8 apart — they touched).
-        _artFrameW = 146f * scale;
-        _artFrameH = 238f * scale;
-        float gap = 26f * scale;
+        // FABLE-045: 136x222, sitting just left of the Crescent Dial (CrescentHud.Reach from the right edge).
+        _artFrameW = 136f * scale;
+        _artFrameH = 222f * scale;
+        float gap = 22f * scale;
         float marginX = 12f * scale;
         float marginBottom = 10f * scale;
 
-        float artX = vw - 2 * _artFrameW - gap - marginX;
-        float artY = 688f * scale;
+        float artX = vw - (CrescentHud.Reach + 18f) * scale - 2 * _artFrameW - gap;
+        float artY = vh - 22f * scale - _artFrameH;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -1918,7 +1925,93 @@ public partial class DuelScene : Control
         ApplyHeaderFont(_playerShrineAttuneLabel, Mathf.RoundToInt(16f * scale));
         path.AddChild(_playerShrineAttuneLabel);
 
+        // FABLE-045: the old stacked column is replaced by the Crescent Dial. The labels above stay
+        // (RenderHud and the tests still write them) but their panels are hidden.
+        foreach (var old in new Control?[] { enp, edp, eatp, pnp, pdp, patp })
+            if (old != null) old.Visible = false;
+        _myHudName = myLabel;
+        _crescent = new CrescentHud { S = scale };
+        AddChild(_crescent);
+        StyleEndTurnDial(scale);
+        _turnLabel.Visible = false;
+        _turnIndicatorLabel.Visible = false;   // the dial's End Turn hub says whose turn it is now
+
         GD.Print("[DUEL] BREATHE: Side HUD built");
+    }
+
+    // ═══ FABLE-045: Crescent Dial ═══════════════════════════════════════════
+
+    /// <summary>
+    /// The End Turn button becomes the hub of your dial: a gold quarter-disc filling the bottom-right
+    /// corner (a StyleBoxFlat with ONE corner radius equal to its size is exactly a quarter circle).
+    /// It is the same Button as before — tests, the tutorial and the pulse all still drive it.
+    /// </summary>
+    private void StyleEndTurnDial(float scale)
+    {
+        if (_endTurnButton == null) return;
+        float r = CrescentHud.HubR * scale;
+        int ri = Mathf.RoundToInt(r);
+        StyleBoxFlat Face(string bg, string rim, float glow) => new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml(bg), BorderColor = Color.FromHtml(rim),
+            BorderWidthLeft = Mathf.RoundToInt(4 * scale), BorderWidthTop = Mathf.RoundToInt(4 * scale),
+            CornerRadiusTopLeft = ri, AntiAliasing = true, CornerDetail = 24,
+            ShadowColor = new Color(0.95f, 0.8f, 0.4f, glow), ShadowSize = Mathf.RoundToInt(22 * scale),
+        };
+        _endTurnButton.Text = "";
+        _endTurnButton.AddThemeStyleboxOverride("normal", Face("#D9A93A", "#F7E3A0", 0.45f));
+        _endTurnButton.AddThemeStyleboxOverride("hover", Face("#E9BD52", "#FFF0B8", 0.6f));
+        _endTurnButton.AddThemeStyleboxOverride("pressed", Face("#A77A22", "#D9B75A", 0.25f));
+        _endTurnButton.AddThemeStyleboxOverride("disabled", Face("#6B5A3A", "#9E8447", 0.0f));
+        _endTurnButton.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        _endTurnButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+        _endTurnButton.OffsetLeft = -r;
+        _endTurnButton.OffsetTop = -r;
+        _endTurnButton.OffsetRight = 0;
+        _endTurnButton.OffsetBottom = 0;
+        _endTurnButton.CustomMinimumSize = new Vector2(r, r);
+
+        Label L(int px, Color c)
+        {
+            var l = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+                MouseFilter = MouseFilterEnum.Ignore, AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+            };
+            l.AddThemeFontOverride("font", GetHeaderFont(px));
+            l.AddThemeFontSizeOverride("font_size", px);
+            l.AddThemeColorOverride("font_color", c);
+            _endTurnButton.AddChild(l);
+            return l;
+        }
+        _endTurnTitle = L(Mathf.RoundToInt(32 * scale), Color.FromHtml("#2A1A06"));
+        _endTurnTitle.Text = "END\nTURN";
+        _endTurnTitle.Position = new Vector2(r * 0.26f, r * 0.26f);
+        _endTurnTitle.Size = new Vector2(r * 0.70f, r * 0.44f);
+        _endTurnSub = L(Mathf.RoundToInt(16 * scale), Color.FromHtml("#3A2708"));
+        _endTurnSub.Position = new Vector2(r * 0.14f, r * 0.72f);
+        _endTurnSub.Size = new Vector2(r * 0.84f, r * 0.18f);
+        MoveChild(_endTurnButton, GetChildCount() - 1);
+    }
+
+    private void RenderCrescent(bool isMyTurn)
+    {
+        if (_crescent == null || _gsm?.State == null) return;
+        var me = _gsm.Me;
+        var foe = _gsm.Foe;
+        string foeName = _enemyNameLabel != null && !string.IsNullOrEmpty(_enemyNameLabel.Text) ? _enemyNameLabel.Text : _encounterName;
+        _crescent.SetSide(0, _myHudName, me.Vigor, me.MaxVigor, me.Attunement, me.AttunementMax, me.Deck.Count, me.Barrow.Count, me.Hand.Count);
+        _crescent.SetSide(1, foeName, foe.Vigor, foe.MaxVigor, foe.Attunement, foe.AttunementMax, foe.Deck.Count, foe.Barrow.Count, foe.Hand.Count);
+        if (!_enemyPortraitSet && !string.IsNullOrEmpty(foe.ArtifactClass))
+        {
+            _enemyPortraitSet = true;
+            string path = $"res://content/art/classes/{foe.ArtifactClass.ToLowerInvariant()}.webp";
+            _crescent.SetEnemyPortrait(ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null);
+        }
+        if (_endTurnSub != null)
+            _endTurnSub.Text = isMyTurn ? $"YOUR TURN · {_gsm.TurnNumber}" : "ENEMY TURN";
+        if (_endTurnButton != null)
+            _endTurnButton.SelfModulate = isMyTurn ? Colors.White : new Color(0.62f, 0.6f, 0.58f);
     }
 
     /// The group rects are stored in _playerGroupRect/_enemyGroupRect and written to duel_test.meta.json.
@@ -2268,8 +2361,10 @@ public partial class DuelScene : Control
         }
 
         // TASK-ONE-SIZE-1: Lane band 416..1885, pitch 316, gap 111
-        float laneLeft = 416f * scale;
-        float pitch = 316f * scale;
+        // FABLE-045: centres 310..1430, pitch 280 — the band now ends at ~1532, clear of the artifacts
+        // (from vw-782) and the Crescent Dial on the right; the left edge (~208) clears the Concede plate.
+        float laneLeft = 310f * scale;
+        float pitch = 280f * scale;
         float centerX = laneLeft + 2f * pitch;
 
         // DUELRES-1: Board slots at design scale, spread rows
@@ -2590,6 +2685,7 @@ public partial class DuelScene : Control
             // drawing over it, which is how a clipped turn banner showed through.
             _turnIndicatorLabel.Visible = false;
             _endTurnButton.Visible = false;
+            if (_crescent != null) _crescent.Visible = false;
             // TASK-DUEL-HUD-1: hide DECK/BARROW panels so they don't overlap the overlay
             if (_enemyDeckBarrowPanel != null)
                 _enemyDeckBarrowPanel.Visible = false;
@@ -2891,7 +2987,14 @@ public partial class DuelScene : Control
             */
         }
 
-        if (isEnemy)
+        if (_crescent != null)
+        {
+            // FABLE-045: from the vigor crest on the Crescent Dial
+            var crest = isEnemy ? _crescent.EnemyCrest : _crescent.PlayerCrest;
+            pos = crest.GlobalPosition + new Vector2(-crest.Size.X * 0.6f, isEnemy ? crest.Size.Y : -crest.Size.Y * 0.4f);
+            _crescent.Jolt(isEnemy ? 1 : 0);
+        }
+        else if (isEnemy)
             pos = _enemyVigorValue.GlobalPosition + new Vector2(40, -10);
         else
             pos = _playerShrineVigorLabel?.GlobalPosition ?? new Vector2(100, 500) + new Vector2(40, -20);
@@ -3062,6 +3165,7 @@ public partial class DuelScene : Control
         _turnLabel.Modulate = isMyTurn ? Gold : Ember;
         _turnIndicatorLabel.Text = isMyTurn ? "YOUR TURN" : "ENEMY TURN";
         _turnIndicatorLabel.Modulate = isMyTurn ? Gold : Ember;
+        RenderCrescent(isMyTurn);
 
         // ── TASK-DUEL-CORNERS-1: Enemy hand backs peeking from top edge ──
         float _vh = GetViewportRect().Size.Y;
@@ -3222,8 +3326,9 @@ public partial class DuelScene : Control
         float rMargin = _handArea.GetThemeConstant("margin_right");
         if (lMargin <= 0) lMargin = 180f;
         if (rMargin <= 0) rMargin = 80f;
-        float endTurnBuffer = 100f;
-        float availWidth = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
+        // FABLE-045: the hand stops short of the player's artifacts, which now sit left of the Crescent Dial.
+        float handRightLimit = GetViewportRect().Size.X - (CrescentHud.Reach + 18f + 2f * 136f + 22f + 24f) * scaleRH;
+        float availWidth = handRightLimit - lMargin;
 
         // Always center alignment — N/A for plain Control, card positions handle it
 
@@ -3235,7 +3340,7 @@ public partial class DuelScene : Control
         float cardWidth = cardHeight * aspect;
         float RArc = 900f * scaleRH;
         float spreadDeg = Mathf.Min(n * 5f, 40f);
-        float availW = GetViewportRect().Size.X - lMargin - rMargin - endTurnBuffer;
+        float availW = availWidth - cardWidth * 0.6f;
 
         // If arc too wide, shrink spreadDeg; if still too wide, shrink RArc
         // Never shrink card size
