@@ -150,6 +150,58 @@ public class PvpSessionTests
     }
 
     [Fact]
+    public void Hello_Catches_Two_Phones_That_Built_Different_Duels_Before_Anyone_Moves()
+    {
+        // FABLE-042: same lobby, but one side's build gives seat 1 a different deck order —
+        // the kind of thing a version or content mismatch produces.
+        var (s0, s1) = Seats();
+        var s1b = new SeatConfig { Seat = 1, DisplayName = s1.DisplayName, ClassId = s1.ClassId, Deck = s1.Deck.AsEnumerable().Reverse().ToList() };
+        var a = new PvpSession(new PvpDuel(7, s0, s1), 0);
+        var b = new PvpSession(new PvpDuel(7, s0, s1b), 1);
+        var wireA = new List<string>(); var wireB = new List<string>();
+        a.Outbound += wireA.Add; b.Outbound += wireB.Add;
+        a.Hello(); b.Hello();
+        foreach (var m in wireA) b.Receive(m);
+        foreach (var m in wireB) a.Receive(m);
+        Assert.True(a.VersionMismatch && b.VersionMismatch);
+
+        // and two matching phones say hello without complaint
+        var (c, d, wc, wd) = TwoPhones();
+        c.Hello(); d.Hello();
+        foreach (var m in wc.ToList()) d.Receive(m);
+        foreach (var m in wd.ToList()) c.Receive(m);
+        Assert.False(c.IsDesynced || d.IsDesynced);
+    }
+
+    [Fact]
+    public void Default_Loadout_Does_Not_Change_When_Variant_Artifacts_Are_Loaded()
+    {
+        // FABLE-042: the phone ships fewer variant files than the repo the bot runs from. The
+        // loadout both sides build for a class must not depend on which variants are loaded.
+        var root = WorldGeneratorTests.Root();
+        var classes = new[] { "battlemage", "druid", "warrior", "necromancer", "paladin", "rogue", "astrologist" };
+        try
+        {
+            ArtifactRegistry.Clear();
+            ArtifactLoader.LoadPack(Path.Combine(root, "content", "artifacts", "launch_artifacts.json"));
+            var bare = classes.ToDictionary(c => c, c => string.Join(",", ArtifactRegistry.DefaultLoadoutFor(c)));
+            ArtifactLoader.LoadAllVariants(Path.Combine(root, "content", "artifacts", "variants"));
+            foreach (var c in classes)
+            {
+                var pair = ArtifactRegistry.DefaultLoadoutFor(c);
+                Assert.Equal(2, pair.Length);
+                Assert.Equal(bare[c], string.Join(",", pair));
+                Assert.True(pair.All(id => ArtifactRegistry.Get(id)!.Class == c), c);
+            }
+        }
+        finally
+        {
+            ArtifactRegistry.Clear();
+            ArtifactLoader.LoadPack(Path.Combine(root, "content", "artifacts", "launch_artifacts.json"));
+        }
+    }
+
+    [Fact]
     public void Seat_View_Translation_Is_Its_Own_Inverse()
     {
         // The client's GameStateManager shows every phone "0 = me"; seat = view ^ localSeat.

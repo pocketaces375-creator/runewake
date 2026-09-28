@@ -56,6 +56,13 @@ public sealed class OnlineMatch
     private double _presenceClock;
     private int _opponentSecondsAgo;
     private volatile bool _opponentLeftFlag;
+    private int _failStreak;             // FABLE-042: consecutive failed exchanges
+    private volatile string _lastError = "";
+    /// <summary>FABLE-042: the match can't go on (versions differ or the two phones disagree).</summary>
+    public bool Broken => Pvp != null && Pvp.IsDesynced;
+    public string BrokenReason => Pvp == null ? "" : Pvp.VersionMismatch
+        ? $"Your game and {OpponentName}'s don't match — different versions or card data. Update both to the newest build, then play again."
+        : $"Your game and {OpponentName}'s disagree about what happened, so the match can't continue. Leave and start a new one — and send Fable the log.";
 
     private OnlineMatch(string id, string kind, int seat, string me, string them, OnlinePlaySync sync, SupabaseSession session,
                         PvpSession? pvp, CoopSession? coop)
@@ -82,7 +89,9 @@ public sealed class OnlineMatch
             if (seats.Count < 2) return null;
             var duel = new PvpDuel((ulong)seed, seats[0], seats[1]);
             var pvp = new PvpSession(duel, mine.Seat);
-            return new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, session, pvp, null);
+            var match = new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, session, pvp, null);
+            pvp.Hello();   // FABLE-042: compare the freshly built duels before anyone moves
+            return match;
         }
 
         // co-op: everyone fights their own copy of the target encounter; first to win wins for all
@@ -148,6 +157,7 @@ public sealed class OnlineMatch
     }
 
     private void Enqueue(string json) => _outbound.Enqueue(json);
+    private static string Short(string e) => string.IsNullOrEmpty(e) ? "no answer" : e.Length > 60 ? e.Substring(0, 60) + "…" : e;
 
     // ── the wire ────────────────────────────────────────────────────────────
 
@@ -165,13 +175,20 @@ public sealed class OnlineMatch
             Pvp?.Receive(json);
             Coop?.Network?.Receive(json);
         }
-        while (_errors.TryDequeue(out var e)) GD.PrintErr("[Online] " + e);
+        while (_errors.TryDequeue(out var e))
+        {
+            GD.PrintErr("[Online] " + e);
+            // the exit trace is what Trikzos screenshots; one line per trouble, not one per second
+            if (_failStreak <= 1 || e.Contains("refused") || e.Contains("threw")) DuelScene.ExitTrace("[Online] " + e);
+        }
         if (_opponentLeftFlag && Pvp != null && !Pvp.OpponentLeft) Pvp.OpponentAbandoned();
 
         if (Pvp != null)
         {
             if (Pvp.OpponentLeft) Status = $"{OpponentName} left the duel";
+            else if (Pvp.VersionMismatch) Status = "Games don't match — update both";
             else if (Pvp.IsDesynced) Status = "Out of step with the other phone";
+            else if (_failStreak >= 3) Status = $"Can't reach the server — retrying ({_lastError})";
             else if (Pvp.State.IsGameOver) Status = "";
             else if (Pvp.IsMyTurn) Status = "Your turn";
             else Status = _opponentSecondsAgo > 30 ? $"{OpponentName} — no word for {_opponentSecondsAgo}s" : $"Waiting for {OpponentName}…";
@@ -205,6 +222,7 @@ public sealed class OnlineMatch
                         _errors.Enqueue($"post_move refused: {r.error}");
                     else
                         _errors.Enqueue($"post_move failed (will retry): {r.error}");
+                    _failStreak++; _lastError = Short(r.error);
                     break;
                 }
                 _outbound.TryDequeue(out _);
@@ -217,6 +235,7 @@ public sealed class OnlineMatch
             if (m.ok)
             {
                 LastContact = DateTime.UtcNow;
+                if (_outbound.IsEmpty) _failStreak = 0;
                 foreach (var row in m.rows)
                 {
                     _cursor = Math.Max(_cursor, row.Id);
@@ -224,7 +243,7 @@ public sealed class OnlineMatch
                     _inbound.Enqueue(row.Payload);
                 }
             }
-            else _errors.Enqueue($"moves_since failed: {m.error}");
+            else { _errors.Enqueue($"moves_since failed: {m.error}"); _failStreak++; _lastError = Short(m.error); }
 
             // 3. now and then, who is still here
             if (presence)
@@ -238,7 +257,7 @@ public sealed class OnlineMatch
                 }
             }
         }
-        catch (Exception ex) { _errors.Enqueue($"exchange threw: {ex.GetType().Name}: {ex.Message}"); }
+        catch (Exception ex) { _errors.Enqueue($"exchange threw: {ex.GetType().Name}: {ex.Message}"); _failStreak++; _lastError = ex.GetType().Name; }
         finally { System.Threading.Interlocked.Exchange(ref _inFlight, 0); }
     }
 }

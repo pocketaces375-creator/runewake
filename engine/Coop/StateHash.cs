@@ -23,7 +23,10 @@ public static class StateHash
         {
             parts.Add(p.Vigor); parts.Add(p.MaxVigor); parts.Add(p.Attunement); parts.Add(p.AttunementMax);
             parts.Add(p.Deck.Count); parts.Add(p.Discard.Count); parts.Add(p.Barrow.Count);
-            foreach (var c in p.Hand) parts.Add(c.InstanceId);
+            foreach (var c in p.Hand) { parts.Add(c.InstanceId); parts.Add(c.CardDefId); }
+            // FABLE-042: what is still to come — two sides with different card data or different
+            // decks disagree here from the very first hash, not three turns later.
+            foreach (var c in p.Deck) parts.Add(c.CardDefId);
             parts.Add('|');
             foreach (var lane in p.Lanes)
             {
@@ -32,7 +35,7 @@ public static class StateHash
                 parts.Add(o.InstanceId); parts.Add(o.CardDefId); parts.Add(o.BaseAttack + o.AttackModifier);
                 parts.Add(o.BaseVigor + o.VigorModifier - o.Damage); parts.Add(o.IsExhausted);
             }
-            foreach (var slot in p.ArtifactSlots) { parts.Add(slot.Charges); parts.Add(slot.IsSuppressed); parts.Add(slot.Occupant?.InstanceId ?? -1); }
+            foreach (var slot in p.ArtifactSlots) { parts.Add(slot.Charges); parts.Add(slot.IsSuppressed); parts.Add(slot.Occupant?.InstanceId ?? -1); parts.Add(slot.Occupant?.CardDefId ?? ""); }
         }
         return StableHash.Of(parts.ToArray());
     }

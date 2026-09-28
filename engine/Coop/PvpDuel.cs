@@ -102,6 +102,9 @@ public sealed class PvpSession
     public int Opponent => 1 - _me;
     public bool IsMyTurn => !State.IsGameOver && State.CurrentPlayerIndex == _me;
     public bool IsDesynced { get; private set; }
+    /// <summary>FABLE-042: the two sides built different duels from the same lobby (different card
+    /// data / versions). Known from the very first message, before anyone moves.</summary>
+    public bool VersionMismatch { get; private set; }
     /// <summary>Set when the other seat sent "leave" (their app closed or they quit).</summary>
     public bool OpponentLeft { get; private set; }
     public int MovesApplied => _applied;
@@ -110,6 +113,20 @@ public sealed class PvpSession
     {
         _duel = duel;
         _me = localSeat;
+    }
+
+    /// <summary>
+    /// FABLE-042: say hello with the hash of the freshly built duel (move count 0). If the other
+    /// side built something different — another version of the game, other card data — both
+    /// know at once, instead of freezing mid-game when the first divergent rule fires.
+    /// Older clients ignore it (they have no hash for count 0).
+    /// </summary>
+    public void Hello()
+    {
+        ulong h = _duel.Hash();
+        _myHashes[0] = h;
+        Send(new NetMessage { Type = "hash", Seat = _me, Round = 0, Hash = h.ToString() });
+        Compare(0, Opponent);
     }
 
     /// <summary>The local player makes a move. Applied here at once and broadcast.</summary>
@@ -217,6 +234,7 @@ public sealed class PvpSession
     {
         if (_myHashes.TryGetValue(count, out var mine) && _theirs.TryGetValue((count, seat), out var theirs) && mine != theirs)
         {
+            if (count == 0) VersionMismatch = true;
             IsDesynced = true;
             Desynced?.Invoke(count, seat);
         }

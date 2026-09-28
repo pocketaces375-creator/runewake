@@ -49,8 +49,11 @@ public static class PvpBot
 
     private static async Task<int> RunAsync(string root, string code, string name, string url, string key, string cls, double think, string sessionPath)
     {
-        // content — the same packs the phone ships
-        var content = Path.Combine(root, "content");
+        // content — FABLE-042: the phone's own copy (client/content, what the APK ships), so the bot
+        // builds exactly the duel the phone builds. The repo's top-level content/ is a separate
+        // copy that can drift (it has extra artifact variants the phone doesn't).
+        var content = Path.Combine(root, "client", "content");
+        if (!Directory.Exists(Path.Combine(content, "cards"))) content = Path.Combine(root, "content");
         var cards = Directory.GetFiles(Path.Combine(content, "cards"), "*.json").SelectMany(CardLoader.LoadPack).ToList();
         CardRegistry.Clear(); CardRegistry.RegisterRange(cards);
         var artPath = Path.Combine(content, "artifacts", "launch_artifacts.json");
@@ -101,7 +104,10 @@ public static class PvpBot
         var ps = new PvpSession(duel, me);
         var outbound = new Queue<string>();
         ps.Outbound += json => outbound.Enqueue(json);
-        ps.Desynced += (n, s) => Console.WriteLine($"[bot] DESYNC after move {n} (seat {s})");
+        ps.Desynced += (n, s) => Console.WriteLine(n == 0
+            ? "[bot] VERSION MISMATCH — the phone built a different duel from this lobby. Update the bot's repo to the phone's build."
+            : $"[bot] DESYNC after move {n} (seat {s})");
+        ps.Hello();
         var bot = new GreedyBot();
         int seq = 0; long cursor = 0;
         var rnd = new Random();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Runewake.Engine.State;
@@ -61,26 +62,27 @@ public static class ArtifactRegistry
         if (string.IsNullOrEmpty(classId))
             classId = "battlemage";
 
-        var artifacts = _artifacts.Values
-            .Where(a => a.Class == classId)
-            .OrderBy(a => a.SlotPool)
-            .Take(2)
-            .Select(a => a.Id)
-            .ToArray();
-
+        var artifacts = LaunchPair(classId);
         if (artifacts.Length < 2)
-        {
-            // Fallback to battlemage
-            artifacts = _artifacts.Values
-                .Where(a => a.Class == "battlemage")
-                .OrderBy(a => a.SlotPool)
-                .Take(2)
-                .Select(a => a.Id)
-                .ToArray();
-        }
-
+            artifacts = LaunchPair("battlemage");   // fallback
         return artifacts;
     }
+
+    /// <summary>
+    /// FABLE-042: the class's two LAUNCH artifacts — the first two registered for it
+    /// (launch_artifacts.json loads before any variant file), in slot-pool order as before.
+    /// The old OrderBy(SlotPool).Take(2) looked at every registered artifact, so once variant
+    /// files were loaded a druid could get two books — and because the phone and the PC bot
+    /// load different variant files, the two sides of an online duel built different
+    /// loadouts and fell out of step the first time an artifact mattered.
+    /// (Rogues really do carry two daggers: their launch pair shares the "dagger" pool.)
+    /// </summary>
+    private static string[] LaunchPair(string classId) => _artifacts.Values
+        .Where(a => a.Class == classId)
+        .Take(2)
+        .OrderBy(a => a.SlotPool, StringComparer.Ordinal)
+        .Select(a => a.Id)
+        .ToArray();
 
     /// <summary>
     /// A hash of a string that is the same in every process and every build.
