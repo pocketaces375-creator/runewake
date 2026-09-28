@@ -88,6 +88,9 @@ public partial class DuelScene : Control
     private PanelContainer _enemyDeckBarrowPanel = default!;
     private PanelContainer _playerDeckBarrowPanelContainer = default!;
     private readonly ArtifactCardPlate[] _enemyArtifactPlates = new ArtifactCardPlate[2];
+    // FABLE-044: the reliquary frame around each artifact (player / enemy).
+    private readonly ReliquaryFrame?[] _playerReliquaries = new ReliquaryFrame?[2];
+    private readonly ReliquaryFrame?[] _enemyReliquaries = new ReliquaryFrame?[2];
     private readonly Control[] _playerArsenalPanels = new Control[2];
     private readonly Control[] _enemyArsenalPanels = new Control[2];
 
@@ -1355,9 +1358,10 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float scale = vh / 1080f;
 
-        _artFrameW = 156f * scale;
+        // FABLE-044: two reliquaries with a real gap between them (was 156 wide, 8 apart — they touched).
+        _artFrameW = 146f * scale;
         _artFrameH = 238f * scale;
-        float gap = 8f * scale;
+        float gap = 26f * scale;
         float marginX = 12f * scale;
 
         _turnLabel.Text = "Turn 1";
@@ -1377,6 +1381,7 @@ public partial class DuelScene : Control
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
+        artifactRow.AddThemeConstantOverride("separation", Mathf.RoundToInt(gap));
         artifactRow.Position = new Vector2(artX, artY);
         AddChild(artifactRow);
         for (int i = 0; i < 2; i++)
@@ -1417,17 +1422,16 @@ public partial class DuelScene : Control
         };
         panel.AddThemeStyleboxOverride("panel", artStyle);
 
-        // Root-Bound 9-slice border
-        var border = new RootBoundBorder();
-        border.Name = "RootBoundBorder";
-        border.Setup(w, h);
-        panel.AddChild(border);
-
-        // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
+        // ArtifactCardPlate — the art, the suppressed ash and the trigger flash
         var plate = new ArtifactCardPlate();
         plate.Name = $"ArtPlateE{index}";
-        plate.Setup("—", w, h, 0, 0, false);
+        plate.Setup("", w, h, 0, 0, false);
         panel.AddChild(plate);
+
+        // FABLE-044: the reliquary frame on top — gilded border, corner gems, type + name plaques
+        var reliquary = new ReliquaryFrame { Name = $"ReliquaryE{index}", Side = 1, S = scale };
+        panel.AddChild(reliquary);
+        _enemyReliquaries[index] = reliquary;
 
         // TASK-CARD-TEXT-1: Transparent touch overlay for long-press rules slab
         AddArtifactTouchOverlay(panel, 1, index, w, h);
@@ -1522,9 +1526,10 @@ public partial class DuelScene : Control
         float vw = GetViewportRect().Size.X;
         float scale = vh / 1080f;
 
-        _artFrameW = 156f * scale;
+        // FABLE-044: two reliquaries with a real gap between them (was 156 wide, 8 apart — they touched).
+        _artFrameW = 146f * scale;
         _artFrameH = 238f * scale;
-        float gap = 8f * scale;
+        float gap = 26f * scale;
         float marginX = 12f * scale;
         float marginBottom = 10f * scale;
 
@@ -1536,6 +1541,7 @@ public partial class DuelScene : Control
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             Alignment = BoxContainer.AlignmentMode.Center
         };
+        artifactRow.AddThemeConstantOverride("separation", Mathf.RoundToInt(gap));
         artifactRow.Position = new Vector2(artX, artY);
         AddChild(artifactRow);
 
@@ -1573,17 +1579,16 @@ public partial class DuelScene : Control
         };
         panel.AddThemeStyleboxOverride("panel", artStyle);
 
-        // Root-Bound 9-slice border
-        var border = new RootBoundBorder();
-        border.Name = "RootBoundBorder";
-        border.Setup(w, h);
-        panel.AddChild(border);
-
-        // ArtifactCardPlate — unified card frame with teal-gold rim + ARTIFACT tag + charge rail
+        // ArtifactCardPlate — the art, the suppressed ash and the trigger flash
         var plate = new ArtifactCardPlate();
         plate.Name = $"ArtPlateP{index}";
-        plate.Setup("—", w, h, 0, 0, false);
+        plate.Setup("", w, h, 0, 0, false);
         panel.AddChild(plate);
+
+        // FABLE-044: the reliquary frame on top — gilded border, corner gems, type + name plaques
+        var reliquary = new ReliquaryFrame { Name = $"ReliquaryP{index}", Side = 0, S = scale };
+        panel.AddChild(reliquary);
+        _playerReliquaries[index] = reliquary;
 
         // TASK-CARD-TEXT-1: Transparent touch overlay for long-press rules slab
         AddArtifactTouchOverlay(panel, 0, index, w, h);
@@ -2939,10 +2944,11 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_enemyArtifactPlates[i] != null)
                     {
-                        _enemyArtifactPlates[i].Setup(artName, _artFrameW, _artFrameH, ch, maxCh, suppressed);
+                        _enemyArtifactPlates[i].Setup("", _artFrameW, _artFrameH, 0, 0, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _enemyArtifactPlates[i].SetArt(occ.CardDefId);
                     }
+                    _enemyReliquaries[i]?.Set(true, ReliquaryFrame.TypeWord(artDef?.SlotPool), artDef?.Name ?? "", ch, maxCh, suppressed);
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
                     {
@@ -2965,13 +2971,15 @@ public partial class DuelScene : Control
                     {
                         if (_enemyArtifactPlates[i] != null)
                             _enemyArtifactPlates[i].PlayTriggerFlash();
+                        _enemyReliquaries[i]?.Flash();
                     }
                     _prevEnemyTriggered[i] = nowTriggered;
                 }
                 else
                 {
                     if (_enemyArtifactPlates[i] != null)
-                        _enemyArtifactPlates[i].Setup("—", _artFrameW, _artFrameH, 0, 0, false);
+                        _enemyArtifactPlates[i].Setup("", _artFrameW, _artFrameH, 0, 0, false);
+                    _enemyReliquaries[i]?.Set(false, "", "", 0, 0, false);
                 }
             }
         }
@@ -3005,10 +3013,11 @@ public partial class DuelScene : Control
                     // Update ArtifactCardPlate name, charges, suppressed state
                     if (_playerArtifactPlates[i] != null)
                     {
-                        _playerArtifactPlates[i].Setup(artName, _artFrameW, _artFrameH, ch, maxCh, suppressed);
+                        _playerArtifactPlates[i].Setup("", _artFrameW, _artFrameH, 0, 0, suppressed);
                         // BOARD-MATCH-2: Load artifact art thumbnail
                         _playerArtifactPlates[i].SetArt(occ.CardDefId);
                     }
+                    _playerReliquaries[i]?.Set(true, ReliquaryFrame.TypeWord(artDef?.SlotPool), artDef?.Name ?? "", ch, maxCh, suppressed);
                     // TASK-AC2: Detect charge-full and pulse (skip when suppressed per G3)
                     if (maxCh > 0 && ch >= maxCh && !slot.IsSuppressed)
                     {
@@ -3031,13 +3040,15 @@ public partial class DuelScene : Control
                     {
                         if (_playerArtifactPlates[i] != null)
                             _playerArtifactPlates[i].PlayTriggerFlash();
+                        _playerReliquaries[i]?.Flash();
                     }
                     _prevPlayerTriggered[i] = nowTriggered;
                 }
                 else
                 {
                     if (_playerArtifactPlates[i] != null)
-                        _playerArtifactPlates[i].Setup("—", _artFrameW, _artFrameH, 0, 0, false);
+                        _playerArtifactPlates[i].Setup("", _artFrameW, _artFrameH, 0, 0, false);
+                    _playerReliquaries[i]?.Set(false, "", "", 0, 0, false);
                 }
             }
         }

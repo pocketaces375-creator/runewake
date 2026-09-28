@@ -65,6 +65,7 @@ sys.path.insert(0, str(TOOLS))
 sys.path.insert(0, str(REPO / "pipeline"))
 from art_prompt import BANNED, PALETTES, stable_hash  # noqa: E402
 from card_art_prompt import SPINES, legacy_subjects, load_cards, palette_line, Draw  # noqa: E402
+import composition_bank  # noqa: E402  (FABLE-044: the twelve framings, drawn at random)
 
 # The ledger lives next to the paintings, outside the repo, so a working-tree reset between
 # commands cannot wipe it. `export-ledger` copies it into the repo when it should be committed.
@@ -185,6 +186,7 @@ Return ONLY JSON: {"concepts": [ {
   "setting": where, "time_weather": when and what weather, "light": the light source,
   "action": what is happening, "mood": one or two words, "twist": the surprising element,
   "colour_key": the dominant colours and light of the painting,
+  "composition": the id of the COMPOSITION you were assigned for this concept,
   "fit": 1-5 how clearly this reads as the card,
   "prompt": the image prompt
 } ] }"""
@@ -447,15 +449,29 @@ def plan_card(led, card, legacy, n=5, mock=False, min_novelty=0.45, tries=3):
     for attempt in range(tries):
         count, digest = overused(led, exclude=card["id"])
         sparks = rnd.sample(SPARKS, 4)
+        # FABLE-044: each concept gets its own framing from the bank of twelve, drawn at random and
+        # weighted toward the least-used — the camera is assigned, not left to the model's habit.
+        used, recent = composition_bank.usage_from_ledger(led, "relic" if card["id"].startswith("artf_") else "card")
+        kind = "relic" if card["id"].startswith("artf_") else "card"
+        comps, crnd = [], random.Random()
+        while len(comps) < min(n, len(composition_bank.KINDS[kind])):
+            c = composition_bank.pick(kind, used, recent + [x[0] for x in comps], crnd, avoid_last=3 + len(comps))
+            if c not in comps:
+                comps.append(c)
+        assigned = "\n".join(f"- concept {i + 1}: composition \"{c[0]}\" ({c[1]}) — {c[2]}" for i, c in enumerate(comps))
         user = (card_brief(card, legacy) +
+                f"\n\nCOMPOSITIONS (mandatory — build concept N on composition N; the framing, placement and camera "
+                f"in the prompt must be exactly this, and the subject must NOT stand in the centre of the frame):\n{assigned}\n" +
                 f"\n\nThe game already has {count} card paintings. What it has too much of:\n{digest or '- nothing yet'}\n" +
                 f"\nOptional sparks for this card (use one, combine them, or ignore them): {'; '.join(sparks)}.\n" +
                 (f"\nYour last concepts were too close to existing cards: {feedback} Go much further.\n" if feedback else "") +
                 f"\nPitch {n} concepts.")
         raw = mock_concepts(card, n, rnd) if mock else chat_json(DIRECTOR_MODEL, DIRECTOR_SYSTEM, user)["concepts"]
         cands = []
-        for c in raw:
+        for i, c in enumerate(raw):
             c = {k: (norm(k, str(v)) if k in VOCAB else v) for k, v in c.items()}
+            if not c.get("composition") and i < len(comps):
+                c["composition"] = comps[i][0]
             if not c.get("prompt") or int(c.get("fit", 0) or 0) < 3:
                 continue
             near = nearest(led, c, k=1, exclude=card["id"])
@@ -552,6 +568,7 @@ def cmd_plan(a):
             continue
         prev = led["cards"].get(card["id"], {})
         led["cards"][card["id"]] = {"status": "planned", "mock": bool(a.mock), "strata": card["strata"], "concept": concept,
+                                    "planned_at": time.time(),
                                     "prompt": prompt, "novelty": novelty, "replaces": prev.get("image_path"),
                                     "old_image": prev.get("image")}
         save_ledger(led)   # after every card: the next card must be different from this one too
