@@ -30,7 +30,8 @@ public partial class DuelScene
         _concedeBtn = new Button
         {
             Name = "ConcedeButton", Text = "⚑  Concede", FocusMode = FocusModeEnum.None,
-            Position = new Vector2(22f * s, 20f * s), Size = new Vector2(196f * s, 60f * s),
+            // FABLE-046: the middle of the left edge, between the two artifact pairs — the symmetric spot.
+            Position = new Vector2(22f * s, GetViewportRect().Size.Y / 2f - 30f * s), Size = new Vector2(196f * s, 60f * s),
             CustomMinimumSize = new Vector2(196f * s, 60f * s),
             MouseFilter = MouseFilterEnum.Stop, ZIndex = 60,
         };

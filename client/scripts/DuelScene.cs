@@ -96,6 +96,11 @@ public partial class DuelScene : Control
     private Label? _endTurnTitle, _endTurnSub;
     private string _myHudName = "You";
     private bool _enemyPortraitSet;
+    // FABLE-046: both artifact pairs on the LEFT; the lanes, both hands and the "no playable cards"
+    // banner are centred on this x — the middle of the space between the pairs and the dials.
+    private float _laneCenterX = 1158f;
+    /// <summary>Artifact pairs: this far in from the left edge, and this far from the top / bottom (1080 ref).</summary>
+    private const float ArtEdge = 24f;
     private readonly Control[] _playerArsenalPanels = new Control[2];
     private readonly Control[] _enemyArsenalPanels = new Control[2];
 
@@ -486,7 +491,7 @@ public partial class DuelScene : Control
         };
         AddChild(noPlayBg);
         // Centre it horizontally (setting Position after the CenterTop preset used to pin it to x=0).
-        noPlayBg.Position = new Vector2((GetViewportRect().Size.X - noPlayBg.Size.X) / 2f, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
+        noPlayBg.Position = new Vector2(_laneCenterX - noPlayBg.Size.X / 2f, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
         _noPlayLabel = new Label
         {
             Text = "",
@@ -1379,8 +1384,11 @@ public partial class DuelScene : Control
         _turnLabel.Size = new Vector2(322f * scale, 30f * scale);
         _turnLabel.HorizontalAlignment = HorizontalAlignment.Center;
 
-        float artX = vw - (CrescentHud.Reach + 18f) * scale - 2 * _artFrameW - gap;
-        float artY = 24f * scale;
+        // FABLE-046: top-left, mirrored by the player's pair bottom-left.
+        float artX = ArtEdge * scale;
+        // the type plaque rides 13px above the frame: count it, so the pair's top margin matches the
+        // player pair's bottom margin exactly
+        float artY = (ArtEdge + 13f) * scale;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -1540,8 +1548,9 @@ public partial class DuelScene : Control
         float marginX = 12f * scale;
         float marginBottom = 10f * scale;
 
-        float artX = vw - (CrescentHud.Reach + 18f) * scale - 2 * _artFrameW - gap;
-        float artY = vh - 22f * scale - _artFrameH;
+        // FABLE-046: bottom-left, the mirror image of the enemy's pair.
+        float artX = ArtEdge * scale;
+        float artY = vh - ArtEdge * scale - _artFrameH;
         var artifactRow = new HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -2365,6 +2374,16 @@ public partial class DuelScene : Control
         // (from vw-782) and the Crescent Dial on the right; the left edge (~208) clears the Concede plate.
         float laneLeft = 310f * scale;
         float pitch = 280f * scale;
+        {
+            // FABLE-046: the band sits centred between the artifact pairs (left) and the dials (right),
+            // with the same clearance on both sides.
+            float clear = 30f * scale;
+            float bandL = (ArtEdge + 2f * 136f + 22f) * scale + clear;
+            float bandR = vw - CrescentHud.Reach * scale - clear;
+            _laneCenterX = (bandL + bandR) / 2f;
+            pitch = Mathf.Min(322f * scale, (bandR - bandL - slotW) / 4f);
+            laneLeft = _laneCenterX - 2f * pitch;
+        }
         float centerX = laneLeft + 2f * pitch;
 
         // DUELRES-1: Board slots at design scale, spread rows
@@ -3193,7 +3212,7 @@ public partial class DuelScene : Control
                 float step = Mathf.Min(backW * 0.62f, n > 1 ? (520f * _scale) / (n - 1) : backW);   // overlap grows with hand size
                 float spreadDeg = Mathf.Min(n * 3.2f, 22f);
                 float fanW = (n - 1) * step + backW;
-                float centreX = _vw * 0.5f;
+                float centreX = _laneCenterX;   // FABLE-046: over the lanes, not the screen
                 float top = 10f * _scale;
                 _enemyHandRow.Size = new Vector2(_vw, backH + 30f * _scale);
                 _enemyHandRow.ClipContents = false;
@@ -3327,8 +3346,10 @@ public partial class DuelScene : Control
         if (lMargin <= 0) lMargin = 180f;
         if (rMargin <= 0) rMargin = 80f;
         // FABLE-045: the hand stops short of the player's artifacts, which now sit left of the Crescent Dial.
-        float handRightLimit = GetViewportRect().Size.X - (CrescentHud.Reach + 18f + 2f * 136f + 22f + 24f) * scaleRH;
-        float availWidth = handRightLimit - lMargin;
+        // FABLE-046: centred under the lanes; it may reach as far left as the artifact pairs allow and
+        // exactly as far right, so the fan is symmetric about the lane centre.
+        float handHalf = _laneCenterX - (ArtEdge + 2f * 136f + 22f + 40f) * scaleRH;
+        float availWidth = 2f * handHalf;
 
         // Always center alignment — N/A for plain Control, card positions handle it
 
@@ -3340,7 +3361,7 @@ public partial class DuelScene : Control
         float cardWidth = cardHeight * aspect;
         float RArc = 900f * scaleRH;
         float spreadDeg = Mathf.Min(n * 5f, 40f);
-        float availW = availWidth - cardWidth * 0.6f;
+        float availW = availWidth - cardWidth;
 
         // If arc too wide, shrink spreadDeg; if still too wide, shrink RArc
         // Never shrink card size
@@ -3356,7 +3377,7 @@ public partial class DuelScene : Control
             RArc *= availW / arcW;
         }
 
-        float pivotX = availW / 2f;
+        float pivotX = _laneCenterX - lMargin;   // FABLE-046 (HandFlow starts at the HandArea margin): the fan's centre is the lane centre
         float pivotY = cardHeight / 2f + RArc;
         float droopAllowance = 54f * scaleRH;
 
