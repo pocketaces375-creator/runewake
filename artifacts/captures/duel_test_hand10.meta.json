@@ -10,36 +10,36 @@
     {
       "card_id": "vrd_r_bloomweaver",
       "name": "The Undying Root of the Fallow Reach",
-      "rect": { "x": 809.3, "y": 766.6, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 794.8, "y": 766.6, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "vrd_c_root_warden",
       "name": "Root Warden",
-      "rect": { "x": 944.3, "y": 739.6, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 929.8, "y": 739.6, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "emb_u_wildfire_adept",
       "name": "Wildfire Adept",
-      "rect": { "x": 1081.5, "y": 728.4, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 1067.0, "y": 728.4, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     },
     {
       "card_id": "dwn_r_sealing_light",
       "name": "Sealing Light",
-      "rect": { "x": 1219.1, "y": 733.3, "w": 191.6, "h": 280.0 },
+      "rect": { "x": 1204.6, "y": 733.3, "w": 191.6, "h": 280.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 }
     }
   ],
   "groups": [
     {
       "side": "player",
-      "rect": { "x": 1984.0, "y": 688.0, "w": 332.0, "h": 238.0 }
+      "rect": { "x": 24.0, "y": 834.0, "w": 306.0, "h": 222.0 }
     },
     {
       "side": "enemy",
-      "rect": { "x": 1984.0, "y": 16.0, "w": 332.0, "h": 238.0 }
+      "rect": { "x": 24.0, "y": 37.0, "w": 306.0, "h": 222.0 }
     }
   ],
   "artifact_cards": [
@@ -47,105 +47,105 @@
       "side": "player",
       "slot": 0,
       "artifact_id": "artf_warrior_sword",
-      "name": "Sword",
+      "name": "",
       "visual_state": "READY",
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 1984.0, "y": 688.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 24.0, "y": 834.0, "w": 136.0, "h": 222.0 }
     },
     {
       "side": "player",
       "slot": 1,
       "artifact_id": "artf_rogue_dagger_dusk",
-      "name": "Duskfang",
+      "name": "",
       "visual_state": "CHARGED",
       "charges": 3,
       "is_suppressed": false,
       "has_triggered": false,
-      "rect": { "x": 2144.0, "y": 688.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 182.0, "y": 834.0, "w": 136.0, "h": 222.0 }
     },
     {
       "side": "enemy",
       "slot": 0,
       "artifact_id": "artf_warrior_shield",
-      "name": "Shield",
+      "name": "",
       "visual_state": "SUPPRESSED",
       "charges": 0,
       "is_suppressed": true,
       "has_triggered": false,
-      "rect": { "x": 1984.0, "y": 16.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 24.0, "y": 37.0, "w": 136.0, "h": 222.0 }
     },
     {
       "side": "enemy",
       "slot": 1,
       "artifact_id": "artf_mage_wand",
-      "name": "?",
+      "name": "",
       "visual_state": "SPENT",
       "charges": 0,
       "is_suppressed": false,
       "has_triggered": true,
-      "rect": { "x": 2144.0, "y": 16.0, "w": 156.0, "h": 238.0 }
+      "rect": { "x": 182.0, "y": 37.0, "w": 136.0, "h": 222.0 }
     }
   ],
   "board_cards": [
     {
       "slot": "player_0",
-      "rect": { "x": 313.4, "y": 490.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 348.0, "y": 490.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "player_1",
-      "rect": { "x": 629.4, "y": 490.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 669.7, "y": 490.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "player_2",
-      "rect": { "x": 945.4, "y": 490.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 991.4, "y": 490.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "player_3",
-      "rect": { "x": 1261.4, "y": 490.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 1313.1, "y": 490.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "player_4",
-      "rect": { "x": 1577.4, "y": 490.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 1634.7, "y": 490.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_0",
-      "rect": { "x": 313.4, "y": 174.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 348.0, "y": 174.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_1",
-      "rect": { "x": 629.4, "y": 174.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 669.7, "y": 174.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_2",
-      "rect": { "x": 945.4, "y": 174.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 991.4, "y": 174.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_3",
-      "rect": { "x": 1261.4, "y": 174.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 1313.1, "y": 174.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     },
     {
       "slot": "enemy_4",
-      "rect": { "x": 1577.4, "y": 174.0, "w": 205.3, "h": 300.0 },
+      "rect": { "x": 1634.7, "y": 174.0, "w": 205.3, "h": 300.0 },
       "name_rect": { "x": 0.0, "y": 0.0, "w": 0.0, "h": 0.0 },
       "state": "empty"
     }
