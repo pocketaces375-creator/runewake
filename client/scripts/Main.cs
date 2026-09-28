@@ -1566,23 +1566,29 @@ public partial class Main : Control
         var profile = CampaignContext.Profiles[slotIndex];
         string className = char.ToUpper(profile.ClassId[0]) + profile.ClassId.Substring(1);
 
-        var dialog = new ConfirmationDialog
-        {
-            DialogText = $"Delete {className}'s campaign? All progress in this slot will be lost forever.",
-            OkButtonText = "Delete",
-            CancelButtonText = "Cancel",
-            Title = "Delete Campaign"
-        };
+        // FABLE-043: the stock ConfirmationDialog was unreadable on a phone — the game's own dialog.
+        string region;
+        try { region = slotIndex == CampaignContext.ActiveProfileSlot
+                ? CampaignRun.LoadCurrentRegion()?.Name ?? CampaignContext.GetSlotRegion(slotIndex)
+                : CampaignContext.GetSlotRegion(slotIndex); }
+        catch { region = CampaignContext.GetSlotRegion(slotIndex); }
         int capturedSlot = slotIndex;
-        dialog.Confirmed += () =>
+        RuneConfirm.Show(this, new RuneConfirmSpec
         {
-            CampaignContext.DeleteProfile(capturedSlot);
-            GD.Print($"[Main] Deleted slot {capturedSlot}");
-            // Rebuild the slot picker to reflect the change
-            BuildSlotPicker();
-        };
-        AddChild(dialog);
-        dialog.PopupCentered();
+            Eyebrow = "Delete campaign",
+            Title = string.IsNullOrEmpty(region) ? className : $"{className}  ·  {region}",
+            Body = $"Your {className}'s journey ends here — every card, relic and step of the map is lost for good. This can't be undone.",
+            CancelText = "Keep Campaign",
+            ConfirmText = "Delete Forever",
+            Danger = true,
+            OnConfirm = () =>
+            {
+                CampaignContext.DeleteProfile(capturedSlot);
+                GD.Print($"[Main] Deleted slot {capturedSlot}");
+                // Rebuild the slot picker to reflect the change
+                BuildSlotPicker();
+            },
+        });
     }
 
     /// <summary>

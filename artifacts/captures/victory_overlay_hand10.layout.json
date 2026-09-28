@@ -1,9 +1,9 @@
 {
-  "viewport_width": 2999,
+  "viewport_width": 2316,
   "viewport_height": 1080,
   "safe_area_x": 0,
   "safe_area_y": 0,
-  "safe_area_w": 2999,
+  "safe_area_w": 2316,
   "safe_area_h": 1080,
   "controls": [
     {
@@ -11,14 +11,14 @@
       "class": "DuelScene",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 1080,
       "mouse_filter": 0
     },
     {
       "path": "DuelScene/TurnLabel",
       "class": "Label",
-      "x": 2667,
+      "x": 1984,
       "y": 462,
       "w": 322,
       "h": 31,
@@ -30,7 +30,7 @@
       "class": "TextureRect",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 1080,
       "mouse_filter": 2,
       "texture_non_null": true
@@ -40,7 +40,7 @@
       "class": "Control",
       "x": 0,
       "y": 74,
-      "w": 2999,
+      "w": 2316,
       "h": 846,
       "mouse_filter": 0
     },
@@ -49,7 +49,7 @@
       "class": "AtmosphereOverlay",
       "x": 0,
       "y": 74,
-      "w": 2999,
+      "w": 2316,
       "h": 846,
       "mouse_filter": 2
     },
@@ -58,7 +58,7 @@
       "class": "AltarField",
       "x": 0,
       "y": 74,
-      "w": 2999,
+      "w": 2316,
       "h": 846,
       "mouse_filter": 2
     },
@@ -67,7 +67,7 @@
       "class": "Control",
       "x": 0,
       "y": 74,
-      "w": 2999,
+      "w": 2316,
       "h": 846,
       "mouse_filter": 2
     },
@@ -119,7 +119,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@108",
       "class": "LaneSlot",
       "x": 313,
       "y": 490,
@@ -128,7 +128,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/SlotBg",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@108/SlotBg",
       "class": "TextureRect",
       "x": 313,
       "y": 490,
@@ -138,7 +138,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/Content",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@108/Content",
       "class": "Control",
       "x": 313,
       "y": 490,
@@ -147,7 +147,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/Content/ArtTexture",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@108/Content/ArtTexture",
       "class": "TextureRect",
       "x": 313,
       "y": 490,
@@ -157,7 +157,7 @@
       "texture_non_null": false
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/TouchArea",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@108/TouchArea",
       "class": "Control",
       "x": 313,
       "y": 490,
@@ -166,7 +166,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@112",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110",
       "class": "LaneSlot",
       "x": 629,
       "y": 174,
@@ -175,10 +175,57 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@112/SlotBg",
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/SlotBg",
       "class": "TextureRect",
       "x": 629,
       "y": 174,
+      "w": 205,
+      "h": 300,
+      "mouse_filter": 2,
+      "texture_non_null": true
+    },
+    {
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/Content",
+      "class": "Control",
+      "x": 629,
+      "y": 174,
+      "w": 205,
+      "h": 300,
+      "mouse_filter": 2
+    },
+    {
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/Content/ArtTexture",
+      "class": "TextureRect",
+      "x": 629,
+      "y": 174,
+      "w": 205,
+      "h": 300,
+      "mouse_filter": 2,
+      "texture_non_null": false
+    },
+    {
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@110/TouchArea",
+      "class": "Control",
+      "x": 629,
+      "y": 174,
+      "w": 205,
+      "h": 300,
+      "mouse_filter": 0
+    },
+    {
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@112",
+      "class": "LaneSlot",
+      "x": 629,
+      "y": 490,
+      "w": 205,
+      "h": 300,
+      "mouse_filter": 0
+    },
+    {
+      "path": "DuelScene/Board/AltarContainer/@PanelContainer@112/SlotBg",
+      "class": "TextureRect",
+      "x": 629,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -188,7 +235,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@112/Content",
       "class": "Control",
       "x": 629,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -197,7 +244,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@112/Content/ArtTexture",
       "class": "TextureRect",
       "x": 629,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -207,7 +254,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@112/TouchArea",
       "class": "Control",
       "x": 629,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -215,8 +262,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@114",
       "class": "LaneSlot",
-      "x": 629,
-      "y": 490,
+      "x": 945,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -224,8 +271,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@114/SlotBg",
       "class": "TextureRect",
-      "x": 629,
-      "y": 490,
+      "x": 945,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -234,8 +281,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@114/Content",
       "class": "Control",
-      "x": 629,
-      "y": 490,
+      "x": 945,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -243,8 +290,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@114/Content/ArtTexture",
       "class": "TextureRect",
-      "x": 629,
-      "y": 490,
+      "x": 945,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -253,8 +300,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@114/TouchArea",
       "class": "Control",
-      "x": 629,
-      "y": 490,
+      "x": 945,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -263,7 +310,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@116",
       "class": "LaneSlot",
       "x": 945,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -272,7 +319,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@116/SlotBg",
       "class": "TextureRect",
       "x": 945,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -282,7 +329,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@116/Content",
       "class": "Control",
       "x": 945,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -291,7 +338,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@116/Content/ArtTexture",
       "class": "TextureRect",
       "x": 945,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -301,7 +348,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@116/TouchArea",
       "class": "Control",
       "x": 945,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -309,8 +356,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@118",
       "class": "LaneSlot",
-      "x": 945,
-      "y": 490,
+      "x": 1261,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -318,8 +365,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@118/SlotBg",
       "class": "TextureRect",
-      "x": 945,
-      "y": 490,
+      "x": 1261,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -328,8 +375,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@118/Content",
       "class": "Control",
-      "x": 945,
-      "y": 490,
+      "x": 1261,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -337,8 +384,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@118/Content/ArtTexture",
       "class": "TextureRect",
-      "x": 945,
-      "y": 490,
+      "x": 1261,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -347,8 +394,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@118/TouchArea",
       "class": "Control",
-      "x": 945,
-      "y": 490,
+      "x": 1261,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -357,7 +404,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@120",
       "class": "LaneSlot",
       "x": 1261,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -366,7 +413,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@120/SlotBg",
       "class": "TextureRect",
       "x": 1261,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -376,7 +423,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@120/Content",
       "class": "Control",
       "x": 1261,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -385,7 +432,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@120/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1261,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -395,7 +442,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@120/TouchArea",
       "class": "Control",
       "x": 1261,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -403,8 +450,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@122",
       "class": "LaneSlot",
-      "x": 1261,
-      "y": 490,
+      "x": 1577,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -412,8 +459,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@122/SlotBg",
       "class": "TextureRect",
-      "x": 1261,
-      "y": 490,
+      "x": 1577,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -422,8 +469,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@122/Content",
       "class": "Control",
-      "x": 1261,
-      "y": 490,
+      "x": 1577,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -431,8 +478,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@122/Content/ArtTexture",
       "class": "TextureRect",
-      "x": 1261,
-      "y": 490,
+      "x": 1577,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -441,8 +488,8 @@
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@122/TouchArea",
       "class": "Control",
-      "x": 1261,
-      "y": 490,
+      "x": 1577,
+      "y": 174,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -451,7 +498,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@124",
       "class": "LaneSlot",
       "x": 1577,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 0
@@ -460,7 +507,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@124/SlotBg",
       "class": "TextureRect",
       "x": 1577,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -470,7 +517,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@124/Content",
       "class": "Control",
       "x": 1577,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2
@@ -479,7 +526,7 @@
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@124/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1577,
-      "y": 174,
+      "y": 490,
       "w": 205,
       "h": 300,
       "mouse_filter": 2,
@@ -487,53 +534,6 @@
     },
     {
       "path": "DuelScene/Board/AltarContainer/@PanelContainer@124/TouchArea",
-      "class": "Control",
-      "x": 1577,
-      "y": 174,
-      "w": 205,
-      "h": 300,
-      "mouse_filter": 0
-    },
-    {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@126",
-      "class": "LaneSlot",
-      "x": 1577,
-      "y": 490,
-      "w": 205,
-      "h": 300,
-      "mouse_filter": 0
-    },
-    {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@126/SlotBg",
-      "class": "TextureRect",
-      "x": 1577,
-      "y": 490,
-      "w": 205,
-      "h": 300,
-      "mouse_filter": 2,
-      "texture_non_null": true
-    },
-    {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@126/Content",
-      "class": "Control",
-      "x": 1577,
-      "y": 490,
-      "w": 205,
-      "h": 300,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@126/Content/ArtTexture",
-      "class": "TextureRect",
-      "x": 1577,
-      "y": 490,
-      "w": 205,
-      "h": 300,
-      "mouse_filter": 2,
-      "texture_non_null": false
-    },
-    {
-      "path": "DuelScene/Board/AltarContainer/@PanelContainer@126/TouchArea",
       "class": "Control",
       "x": 1577,
       "y": 490,
@@ -595,7 +595,7 @@
       "class": "MarginContainer",
       "x": 0,
       "y": 732,
-      "w": 2999,
+      "w": 2316,
       "h": 342,
       "mouse_filter": 0
     },
@@ -609,7 +609,7 @@
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353",
       "class": "HandCard",
       "x": 809,
       "y": 766,
@@ -618,7 +618,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/CardBg",
       "class": "ColorRect",
       "x": 809,
       "y": 766,
@@ -627,7 +627,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content",
       "class": "Control",
       "x": 809,
       "y": 766,
@@ -636,7 +636,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/ArtTexture",
       "class": "TextureRect",
       "x": 809,
       "y": 766,
@@ -646,7 +646,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/@ColorRect@362",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/@ColorRect@354",
       "class": "ColorRect",
       "x": 809,
       "y": 766,
@@ -655,7 +655,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/CardPlate",
       "class": "CardPlate",
       "x": 809,
       "y": 766,
@@ -664,7 +664,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/CardPlate/Baked",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/CardPlate/Baked",
       "class": "TextureRect",
       "x": 809,
       "y": 766,
@@ -674,7 +674,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/CardPlate/AttackNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/CardPlate/AttackNum",
       "class": "Label",
       "x": 855,
       "y": 982,
@@ -684,7 +684,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/CardPlate/VigorNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/CardPlate/VigorNum",
       "class": "Label",
       "x": 883,
       "y": 977,
@@ -694,7 +694,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@361/Content/CardPlate/CostNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@353/Content/CardPlate/CostNum",
       "class": "Label",
       "x": 808,
       "y": 777,
@@ -704,7 +704,7 @@
       "font_size": 26
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355",
       "class": "HandCard",
       "x": 944,
       "y": 739,
@@ -713,7 +713,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/CardBg",
       "class": "ColorRect",
       "x": 944,
       "y": 739,
@@ -722,7 +722,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content",
       "class": "Control",
       "x": 944,
       "y": 739,
@@ -731,7 +731,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/ArtTexture",
       "class": "TextureRect",
       "x": 944,
       "y": 739,
@@ -741,7 +741,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/@ColorRect@364",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/@ColorRect@356",
       "class": "ColorRect",
       "x": 944,
       "y": 739,
@@ -750,7 +750,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/CardPlate",
       "class": "CardPlate",
       "x": 944,
       "y": 739,
@@ -759,7 +759,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/CardPlate/Baked",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/CardPlate/Baked",
       "class": "TextureRect",
       "x": 944,
       "y": 739,
@@ -769,7 +769,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/CardPlate/AttackNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/CardPlate/AttackNum",
       "class": "Label",
       "x": 964,
       "y": 959,
@@ -779,7 +779,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/CardPlate/VigorNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/CardPlate/VigorNum",
       "class": "Label",
       "x": 993,
       "y": 957,
@@ -789,7 +789,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@363/Content/CardPlate/CostNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@355/Content/CardPlate/CostNum",
       "class": "Label",
       "x": 942,
       "y": 750,
@@ -799,7 +799,7 @@
       "font_size": 26
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357",
       "class": "HandCard",
       "x": 1081,
       "y": 728,
@@ -808,7 +808,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/CardBg",
       "class": "ColorRect",
       "x": 1081,
       "y": 728,
@@ -817,7 +817,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content",
       "class": "Control",
       "x": 1081,
       "y": 728,
@@ -826,7 +826,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1081,
       "y": 728,
@@ -836,7 +836,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/@ColorRect@366",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/@ColorRect@358",
       "class": "ColorRect",
       "x": 1081,
       "y": 728,
@@ -845,7 +845,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/CardPlate",
       "class": "CardPlate",
       "x": 1081,
       "y": 728,
@@ -854,7 +854,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/CardPlate/Baked",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/CardPlate/Baked",
       "class": "TextureRect",
       "x": 1081,
       "y": 728,
@@ -864,7 +864,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/CardPlate/AttackNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/CardPlate/AttackNum",
       "class": "Label",
       "x": 1076,
       "y": 949,
@@ -874,7 +874,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/CardPlate/VigorNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/CardPlate/VigorNum",
       "class": "Label",
       "x": 1105,
       "y": 950,
@@ -884,7 +884,7 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@365/Content/CardPlate/CostNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@357/Content/CardPlate/CostNum",
       "class": "Label",
       "x": 1078,
       "y": 738,
@@ -894,7 +894,7 @@
       "font_size": 26
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359",
       "class": "HandCard",
       "x": 1219,
       "y": 733,
@@ -903,7 +903,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/CardBg",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/CardBg",
       "class": "ColorRect",
       "x": 1219,
       "y": 733,
@@ -912,7 +912,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content",
       "class": "Control",
       "x": 1219,
       "y": 733,
@@ -921,7 +921,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content/ArtTexture",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content/ArtTexture",
       "class": "TextureRect",
       "x": 1219,
       "y": 733,
@@ -931,7 +931,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content/@ColorRect@368",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content/@ColorRect@360",
       "class": "ColorRect",
       "x": 1219,
       "y": 733,
@@ -940,7 +940,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content/CardPlate",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content/CardPlate",
       "class": "CardPlate",
       "x": 1219,
       "y": 733,
@@ -949,7 +949,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content/CardPlate/Baked",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content/CardPlate/Baked",
       "class": "TextureRect",
       "x": 1219,
       "y": 733,
@@ -959,7 +959,7 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@367/Content/CardPlate/CostNum",
+      "path": "DuelScene/HandArea/HandFlow/@PanelContainer@359/Content/CardPlate/CostNum",
       "class": "Label",
       "x": 1214,
       "y": 743,
@@ -969,36 +969,36 @@
       "font_size": 26
     },
     {
-      "path": "DuelScene/@HBoxContainer@90",
+      "path": "DuelScene/@HBoxContainer@88",
       "class": "HBoxContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 316,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97",
       "class": "PanelContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1006,9 +1006,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1016,9 +1016,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1026,9 +1026,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1036,9 +1036,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 16,
       "w": 134,
       "h": 11,
@@ -1046,9 +1046,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 243,
       "w": 134,
       "h": 11,
@@ -1056,9 +1056,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -1066,9 +1066,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -1076,18 +1076,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0",
       "class": "ArtifactCardPlate",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@TextureRect@92",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@TextureRect@90",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
@@ -1095,27 +1095,27 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@ColorRect@93",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@ColorRect@91",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 206,
       "w": 312,
       "h": 285,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@Control@94",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@Control@92",
       "class": "Control",
-      "x": 2688,
+      "x": 2005,
       "y": 206,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@Control@94/@Label@95",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@Control@92/@Label@93",
       "class": "Label",
-      "x": 2688,
+      "x": 2005,
       "y": 206,
       "w": 114,
       "h": 45,
@@ -1123,9 +1123,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@Label@96",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@Label@94",
       "class": "Label",
-      "x": 2751,
+      "x": 2068,
       "y": 223,
       "w": 60,
       "h": 14,
@@ -1133,45 +1133,45 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtPlateE0/@ColorRect@98",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtPlateE0/@ColorRect@96",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@99/ArtifactTouchOverlay_1_0",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@97/ArtifactTouchOverlay_1_0",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106",
       "class": "PanelContainer",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1179,9 +1179,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1189,9 +1189,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1199,9 +1199,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1209,9 +1209,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 16,
       "w": 134,
       "h": 11,
@@ -1219,9 +1219,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 243,
       "w": 134,
       "h": 11,
@@ -1229,9 +1229,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -1239,9 +1239,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -1249,18 +1249,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1",
       "class": "ArtifactCardPlate",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@TextureRect@101",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@TextureRect@99",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
@@ -1268,37 +1268,37 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@ColorRect@102",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@ColorRect@100",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 206,
       "w": 312,
       "h": 285,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@Control@103",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@Control@101",
       "class": "Control",
-      "x": 2848,
+      "x": 2165,
       "y": 206,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@Control@103/@Label@104",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@Control@101/@Label@102",
       "class": "Label",
-      "x": 2848,
+      "x": 2165,
       "y": 206,
       "w": 114,
       "h": 45,
       "mouse_filter": 2,
-      "font_size": 14
+      "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@Label@105",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@Label@103",
       "class": "Label",
-      "x": 2911,
+      "x": 2228,
       "y": 223,
       "w": 60,
       "h": 14,
@@ -1306,18 +1306,18 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtPlateE1/@ColorRect@107",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtPlateE1/@ColorRect@105",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@90/@PanelContainer@108/ArtifactTouchOverlay_1_1",
+      "path": "DuelScene/@HBoxContainer@88/@PanelContainer@106/ArtifactTouchOverlay_1_1",
       "class": "Control",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
@@ -1326,7 +1326,7 @@
     {
       "path": "DuelScene/EnemyGroupRect",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 332,
       "h": 238,
@@ -1337,14 +1337,14 @@
       "class": "Control",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 122,
       "mouse_filter": 2
     },
     {
       "path": "DuelScene/CloseBtn",
       "class": "Button",
-      "x": 1311,
+      "x": 970,
       "y": 340,
       "w": 44,
       "h": 44,
@@ -1353,7 +1353,7 @@
     {
       "path": "DuelScene/Margin",
       "class": "MarginContainer",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 240,
       "h": 340,
@@ -1362,7 +1362,7 @@
     {
       "path": "DuelScene/Margin/VBox",
       "class": "VBoxContainer",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 24,
       "h": 241,
@@ -1371,7 +1371,7 @@
     {
       "path": "DuelScene/Margin/VBox/Header",
       "class": "HBoxContainer",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 24,
       "h": 31,
@@ -1380,7 +1380,7 @@
     {
       "path": "DuelScene/Margin/VBox/Header/CostLabel",
       "class": "Label",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 10,
       "h": 31,
@@ -1390,7 +1390,7 @@
     {
       "path": "DuelScene/Margin/VBox/Header/NameLabel",
       "class": "Label",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 10,
       "h": 31,
@@ -1400,7 +1400,7 @@
     {
       "path": "DuelScene/Margin/VBox/ArtRect",
       "class": "TextureRect",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 0,
       "h": 180,
@@ -1410,7 +1410,7 @@
     {
       "path": "DuelScene/Margin/VBox/TypeLine",
       "class": "Label",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 7,
       "h": 20,
@@ -1420,7 +1420,7 @@
     {
       "path": "DuelScene/Margin/VBox/AttackLabel",
       "class": "Label",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 13,
       "h": 31,
@@ -1430,7 +1430,7 @@
     {
       "path": "DuelScene/Margin/VBox/VigorLabel",
       "class": "Label",
-      "x": 1359,
+      "x": 1018,
       "y": 340,
       "w": 13,
       "h": 31,
@@ -1438,9 +1438,9 @@
       "font_size": 22
     },
     {
-      "path": "DuelScene/@Label@134",
+      "path": "DuelScene/@Label@132",
       "class": "Label",
-      "x": 1319,
+      "x": 978,
       "y": 44,
       "w": 1,
       "h": 20,
@@ -1448,9 +1448,9 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/@Label@135",
+      "path": "DuelScene/@Label@133",
       "class": "Label",
-      "x": 1299,
+      "x": 958,
       "y": 676,
       "w": 400,
       "h": 36,
@@ -1476,7 +1476,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135",
       "class": "VBoxContainer",
       "x": 0,
       "y": 0,
@@ -1485,7 +1485,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Label@138",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Label@136",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1495,7 +1495,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Label@139",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Label@137",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1505,7 +1505,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Control@140",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Control@138",
       "class": "Control",
       "x": 0,
       "y": 0,
@@ -1514,7 +1514,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Label@141",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Label@139",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1524,7 +1524,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Label@142",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Label@140",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1534,7 +1534,7 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Control@143",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Control@141",
       "class": "Control",
       "x": 0,
       "y": 0,
@@ -1543,7 +1543,7 @@
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@137/@Label@144",
+      "path": "DuelScene/RulesSlabPanel/@VBoxContainer@135/@Label@142",
       "class": "Label",
       "x": 0,
       "y": 0,
@@ -1553,36 +1553,36 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@159",
+      "path": "DuelScene/@HBoxContainer@157",
       "class": "HBoxContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 316,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166",
       "class": "PanelContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 11,
       "h": 11,
@@ -1590,9 +1590,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 688,
       "w": 11,
       "h": 11,
@@ -1600,9 +1600,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 915,
       "w": 11,
       "h": 11,
@@ -1610,9 +1610,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 915,
       "w": 11,
       "h": 11,
@@ -1620,9 +1620,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 688,
       "w": 134,
       "h": 11,
@@ -1630,9 +1630,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 915,
       "w": 134,
       "h": 11,
@@ -1640,9 +1640,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 699,
       "w": 11,
       "h": 216,
@@ -1650,9 +1650,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 699,
       "w": 11,
       "h": 216,
@@ -1660,18 +1660,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0",
       "class": "ArtifactCardPlate",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0/@TextureRect@161",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0/@TextureRect@159",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
@@ -1679,27 +1679,27 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0/@ColorRect@162",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0/@ColorRect@160",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 878,
       "w": 156,
       "h": 47,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0/@Control@163",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0/@Control@161",
       "class": "Control",
-      "x": 2688,
+      "x": 2005,
       "y": 878,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0/@Control@163/@Label@164",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0/@Control@161/@Label@162",
       "class": "Label",
-      "x": 2688,
+      "x": 2005,
       "y": 878,
       "w": 114,
       "h": 45,
@@ -1707,45 +1707,45 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtPlateP0/@ColorRect@167",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtPlateP0/@ColorRect@165",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@168/ArtifactTouchOverlay_0_0",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@166/ArtifactTouchOverlay_0_0",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175",
       "class": "PanelContainer",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 11,
       "h": 11,
@@ -1753,9 +1753,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 688,
       "w": 11,
       "h": 11,
@@ -1763,9 +1763,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 915,
       "w": 11,
       "h": 11,
@@ -1773,9 +1773,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 915,
       "w": 11,
       "h": 11,
@@ -1783,9 +1783,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 688,
       "w": 134,
       "h": 11,
@@ -1793,9 +1793,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 915,
       "w": 134,
       "h": 11,
@@ -1803,9 +1803,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 699,
       "w": 11,
       "h": 216,
@@ -1813,9 +1813,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 699,
       "w": 11,
       "h": 216,
@@ -1823,18 +1823,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1",
       "class": "ArtifactCardPlate",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@TextureRect@170",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@TextureRect@168",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
@@ -1842,27 +1842,27 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@ColorRect@171",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@ColorRect@169",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 878,
       "w": 156,
       "h": 47,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@Control@172",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@Control@170",
       "class": "Control",
-      "x": 2848,
+      "x": 2165,
       "y": 878,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@Control@172/@Label@173",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@Control@170/@Label@171",
       "class": "Label",
-      "x": 2848,
+      "x": 2165,
       "y": 878,
       "w": 114,
       "h": 45,
@@ -1870,9 +1870,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@Label@174",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@Label@172",
       "class": "Label",
-      "x": 2911,
+      "x": 2228,
       "y": 895,
       "w": 60,
       "h": 14,
@@ -1880,18 +1880,18 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtPlateP1/@ColorRect@176",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtPlateP1/@ColorRect@174",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@159/@PanelContainer@177/ArtifactTouchOverlay_0_1",
+      "path": "DuelScene/@HBoxContainer@157/@PanelContainer@175/ArtifactTouchOverlay_0_1",
       "class": "Control",
-      "x": 2827,
+      "x": 2144,
       "y": 688,
       "w": 156,
       "h": 238,
@@ -1900,43 +1900,43 @@
     {
       "path": "DuelScene/PlayerGroupRect",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 688,
       "w": 332,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178",
+      "path": "DuelScene/@HBoxContainer@176",
       "class": "HBoxContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 316,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185",
       "class": "PanelContainer",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1944,9 +1944,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -1954,9 +1954,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1964,9 +1964,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -1974,9 +1974,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 16,
       "w": 134,
       "h": 11,
@@ -1984,9 +1984,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2678,
+      "x": 1995,
       "y": 243,
       "w": 134,
       "h": 11,
@@ -1994,9 +1994,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -2004,9 +2004,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2812,
+      "x": 2129,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -2014,18 +2014,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0",
       "class": "ArtifactCardPlate",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@TextureRect@180",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@TextureRect@178",
       "class": "TextureRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
@@ -2033,27 +2033,27 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@ColorRect@181",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@ColorRect@179",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 206,
       "w": 156,
       "h": 47,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@Control@182",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@Control@180",
       "class": "Control",
-      "x": 2688,
+      "x": 2005,
       "y": 206,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@Control@182/@Label@183",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@Control@180/@Label@181",
       "class": "Label",
-      "x": 2688,
+      "x": 2005,
       "y": 206,
       "w": 114,
       "h": 45,
@@ -2061,54 +2061,54 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@ColorRect@185",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@ColorRect@183",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtPlateE0/@ColorRect@186",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtPlateE0/@ColorRect@184",
       "class": "ColorRect",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@187/ArtifactTouchOverlay_1_0",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@185/ArtifactTouchOverlay_1_0",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194",
       "class": "PanelContainer",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder",
       "class": "RootBoundBorder",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/CornerTL",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/CornerTL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -2116,9 +2116,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/CornerTR",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/CornerTR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 16,
       "w": 11,
       "h": 11,
@@ -2126,9 +2126,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/CornerBL",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/CornerBL",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -2136,9 +2136,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/CornerBR",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/CornerBR",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 243,
       "w": 11,
       "h": 11,
@@ -2146,9 +2146,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/EdgeTop",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/EdgeTop",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 16,
       "w": 134,
       "h": 11,
@@ -2156,9 +2156,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/EdgeBottom",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/EdgeBottom",
       "class": "TextureRect",
-      "x": 2838,
+      "x": 2155,
       "y": 243,
       "w": 134,
       "h": 11,
@@ -2166,9 +2166,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/EdgeLeft",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/EdgeLeft",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -2176,9 +2176,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/RootBoundBorder/EdgeRight",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/RootBoundBorder/EdgeRight",
       "class": "TextureRect",
-      "x": 2972,
+      "x": 2289,
       "y": 27,
       "w": 11,
       "h": 216,
@@ -2186,18 +2186,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1",
       "class": "ArtifactCardPlate",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@TextureRect@189",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@TextureRect@187",
       "class": "TextureRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
@@ -2205,27 +2205,27 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@ColorRect@190",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@ColorRect@188",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 206,
       "w": 156,
       "h": 47,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@Control@191",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@Control@189",
       "class": "Control",
-      "x": 2848,
+      "x": 2165,
       "y": 206,
       "w": 114,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@Control@191/@Label@192",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@Control@189/@Label@190",
       "class": "Label",
-      "x": 2848,
+      "x": 2165,
       "y": 206,
       "w": 114,
       "h": 45,
@@ -2233,9 +2233,9 @@
       "font_size": 8
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@Label@193",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@Label@191",
       "class": "Label",
-      "x": 2911,
+      "x": 2228,
       "y": 223,
       "w": 60,
       "h": 14,
@@ -2243,45 +2243,45 @@
       "font_size": 10
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtPlateE1/@ColorRect@195",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtPlateE1/@ColorRect@193",
       "class": "ColorRect",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@178/@PanelContainer@196/ArtifactTouchOverlay_1_1",
+      "path": "DuelScene/@HBoxContainer@176/@PanelContainer@194/ArtifactTouchOverlay_1_1",
       "class": "Control",
-      "x": 2827,
+      "x": 2144,
       "y": 16,
       "w": 156,
       "h": 238,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/@Control@197",
+      "path": "DuelScene/@Control@195",
       "class": "Control",
-      "x": 2667,
+      "x": 1984,
       "y": 16,
       "w": 332,
       "h": 238,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@198",
+      "path": "DuelScene/@Control@196",
       "class": "Control",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 122,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@353",
+      "path": "DuelScene/@Control@196/@TextureRect@345",
       "class": "TextureRect",
-      "x": 1355,
+      "x": 1014,
       "y": 21,
       "w": 62,
       "h": 91,
@@ -2289,9 +2289,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@354",
+      "path": "DuelScene/@Control@196/@TextureRect@346",
       "class": "TextureRect",
-      "x": 1400,
+      "x": 1058,
       "y": 16,
       "w": 62,
       "h": 92,
@@ -2299,9 +2299,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@355",
+      "path": "DuelScene/@Control@196/@TextureRect@347",
       "class": "TextureRect",
-      "x": 1445,
+      "x": 1103,
       "y": 12,
       "w": 62,
       "h": 92,
@@ -2309,9 +2309,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@356",
+      "path": "DuelScene/@Control@196/@TextureRect@348",
       "class": "TextureRect",
-      "x": 1490,
+      "x": 1149,
       "y": 9,
       "w": 62,
       "h": 92,
@@ -2319,9 +2319,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@357",
+      "path": "DuelScene/@Control@196/@TextureRect@349",
       "class": "TextureRect",
-      "x": 1535,
+      "x": 1194,
       "y": 10,
       "w": 62,
       "h": 92,
@@ -2329,9 +2329,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@TextureRect@358",
+      "path": "DuelScene/@Control@196/@TextureRect@350",
       "class": "TextureRect",
-      "x": 1581,
+      "x": 1239,
       "y": 11,
       "w": 62,
       "h": 91,
@@ -2339,18 +2339,18 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/@Control@198/@Panel@359",
+      "path": "DuelScene/@Control@196/@Panel@351",
       "class": "Panel",
-      "x": 1616,
+      "x": 1275,
       "y": 74,
       "w": 34,
       "h": 34,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@Control@198/@Panel@359/@Label@360",
+      "path": "DuelScene/@Control@196/@Panel@351/@Label@352",
       "class": "Label",
-      "x": 1616,
+      "x": 1275,
       "y": 74,
       "w": 34,
       "h": 34,
@@ -2360,25 +2360,25 @@
     {
       "path": "DuelScene/EnemyNameplate",
       "class": "PanelContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 270,
       "w": 322,
       "h": 34,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/EnemyNameplate/@HBoxContainer@199",
+      "path": "DuelScene/EnemyNameplate/@HBoxContainer@197",
       "class": "HBoxContainer",
-      "x": 2657,
+      "x": 1974,
       "y": 270,
       "w": 318,
       "h": 34,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/EnemyNameplate/@HBoxContainer@199/@Label@200",
+      "path": "DuelScene/EnemyNameplate/@HBoxContainer@197/@Label@198",
       "class": "Label",
-      "x": 2749,
+      "x": 2066,
       "y": 276,
       "w": 108,
       "h": 21,
@@ -2386,9 +2386,9 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/EnemyNameplate/@HBoxContainer@199/@Label@201",
+      "path": "DuelScene/EnemyNameplate/@HBoxContainer@197/@Label@199",
       "class": "Label",
-      "x": 2861,
+      "x": 2178,
       "y": 276,
       "w": 9,
       "h": 22,
@@ -2396,9 +2396,9 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/EnemyNameplate/@HBoxContainer@199/@Label@202",
+      "path": "DuelScene/EnemyNameplate/@HBoxContainer@197/@Label@200",
       "class": "Label",
-      "x": 2869,
+      "x": 2186,
       "y": 276,
       "w": 9,
       "h": 22,
@@ -2406,18 +2406,18 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@HBoxContainer@203",
+      "path": "DuelScene/@HBoxContainer@201",
       "class": "HBoxContainer",
-      "x": 2657,
+      "x": 1974,
       "y": 312,
       "w": 318,
       "h": 30,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@203/@Label@204",
+      "path": "DuelScene/@HBoxContainer@201/@Label@202",
       "class": "Label",
-      "x": 2749,
+      "x": 2066,
       "y": 316,
       "w": 18,
       "h": 22,
@@ -2425,9 +2425,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@203/@Label@205",
+      "path": "DuelScene/@HBoxContainer@201/@Label@203",
       "class": "Label",
-      "x": 2771,
+      "x": 2088,
       "y": 318,
       "w": 36,
       "h": 18,
@@ -2435,9 +2435,9 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@203/@Label@206",
+      "path": "DuelScene/@HBoxContainer@201/@Label@204",
       "class": "Label",
-      "x": 2811,
+      "x": 2128,
       "y": 316,
       "w": 10,
       "h": 22,
@@ -2445,9 +2445,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@203/@Label@207",
+      "path": "DuelScene/@HBoxContainer@201/@Label@205",
       "class": "Label",
-      "x": 2825,
+      "x": 2142,
       "y": 318,
       "w": 57,
       "h": 18,
@@ -2457,25 +2457,25 @@
     {
       "path": "DuelScene/EnemyAttunement",
       "class": "PanelContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 350,
       "w": 322,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/EnemyAttunement/@HBoxContainer@208",
+      "path": "DuelScene/EnemyAttunement/@HBoxContainer@206",
       "class": "HBoxContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 350,
       "w": 322,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/EnemyAttunement/@HBoxContainer@208/@Label@209",
+      "path": "DuelScene/EnemyAttunement/@HBoxContainer@206/@Label@207",
       "class": "Label",
-      "x": 2772,
+      "x": 2089,
       "y": 353,
       "w": 58,
       "h": 20,
@@ -2483,9 +2483,9 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/EnemyAttunement/@HBoxContainer@208/@Label@210",
+      "path": "DuelScene/EnemyAttunement/@HBoxContainer@206/@Label@208",
       "class": "Label",
-      "x": 2834,
+      "x": 2151,
       "y": 352,
       "w": 26,
       "h": 22,
@@ -2495,35 +2495,35 @@
     {
       "path": "DuelScene/PlayerNameplate",
       "class": "PanelContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 592,
       "w": 322,
       "h": 34,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@211",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@209",
       "class": "HBoxContainer",
-      "x": 2657,
+      "x": 1974,
       "y": 592,
       "w": 318,
       "h": 34,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@211/@Label@212",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@209/@Label@210",
       "class": "Label",
-      "x": 2763,
+      "x": 2098,
       "y": 598,
-      "w": 71,
+      "w": 34,
       "h": 21,
       "mouse_filter": 2,
       "font_size": 15
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@211/@Label@213",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@209/@Label@211",
       "class": "Label",
-      "x": 2838,
+      "x": 2136,
       "y": 598,
       "w": 9,
       "h": 22,
@@ -2531,9 +2531,9 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/PlayerNameplate/@HBoxContainer@211/@Label@214",
+      "path": "DuelScene/PlayerNameplate/@HBoxContainer@209/@Label@212",
       "class": "Label",
-      "x": 2851,
+      "x": 2149,
       "y": 598,
       "w": 18,
       "h": 22,
@@ -2541,18 +2541,18 @@
       "font_size": 15
     },
     {
-      "path": "DuelScene/@HBoxContainer@215",
+      "path": "DuelScene/@HBoxContainer@213",
       "class": "HBoxContainer",
-      "x": 2657,
+      "x": 1974,
       "y": 630,
       "w": 318,
       "h": 30,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/@HBoxContainer@215/@Label@216",
+      "path": "DuelScene/@HBoxContainer@213/@Label@214",
       "class": "Label",
-      "x": 2750,
+      "x": 2067,
       "y": 634,
       "w": 17,
       "h": 22,
@@ -2560,9 +2560,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@215/@Label@217",
+      "path": "DuelScene/@HBoxContainer@213/@Label@215",
       "class": "Label",
-      "x": 2771,
+      "x": 2088,
       "y": 636,
       "w": 36,
       "h": 18,
@@ -2570,9 +2570,9 @@
       "font_size": 13
     },
     {
-      "path": "DuelScene/@HBoxContainer@215/@Label@218",
+      "path": "DuelScene/@HBoxContainer@213/@Label@216",
       "class": "Label",
-      "x": 2811,
+      "x": 2128,
       "y": 634,
       "w": 10,
       "h": 22,
@@ -2580,9 +2580,9 @@
       "font_size": 16
     },
     {
-      "path": "DuelScene/@HBoxContainer@215/@Label@219",
+      "path": "DuelScene/@HBoxContainer@213/@Label@217",
       "class": "Label",
-      "x": 2825,
+      "x": 2142,
       "y": 636,
       "w": 57,
       "h": 18,
@@ -2592,25 +2592,25 @@
     {
       "path": "DuelScene/PlayerAttunement",
       "class": "PanelContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 662,
       "w": 322,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218",
       "class": "HBoxContainer",
-      "x": 2655,
+      "x": 1972,
       "y": 662,
       "w": 322,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@Label@221",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@Label@219",
       "class": "Label",
-      "x": 2744,
+      "x": 2061,
       "y": 665,
       "w": 58,
       "h": 20,
@@ -2618,45 +2618,45 @@
       "font_size": 14
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@ColorRect@352",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@ColorRect@344",
       "class": "ColorRect",
-      "x": 2806,
+      "x": 2123,
       "y": 662,
       "w": 12,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@ColorRect@274",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@ColorRect@272",
       "class": "ColorRect",
-      "x": 2822,
+      "x": 2139,
       "y": 662,
       "w": 12,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@ColorRect@257",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@ColorRect@255",
       "class": "ColorRect",
-      "x": 2838,
+      "x": 2155,
       "y": 662,
       "w": 12,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@ColorRect@240",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@ColorRect@238",
       "class": "ColorRect",
-      "x": 2854,
+      "x": 2171,
       "y": 662,
       "w": 12,
       "h": 26,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/PlayerAttunement/@HBoxContainer@220/@Label@222",
+      "path": "DuelScene/PlayerAttunement/@HBoxContainer@218/@Label@220",
       "class": "Label",
-      "x": 2870,
+      "x": 2187,
       "y": 664,
       "w": 18,
       "h": 22,
@@ -2668,35 +2668,35 @@
       "class": "Control",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 1080,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/GameOverOverlay/@ColorRect@305",
+      "path": "DuelScene/GameOverOverlay/@ColorRect@303",
       "class": "ColorRect",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 1080,
       "mouse_filter": 0
     },
     {
-      "path": "DuelScene/GameOverOverlay/@TextureRect@306",
+      "path": "DuelScene/GameOverOverlay/@TextureRect@304",
       "class": "TextureRect",
       "x": 0,
       "y": 0,
-      "w": 2999,
+      "w": 2316,
       "h": 1080,
       "mouse_filter": 2,
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/@Label@307",
+      "path": "DuelScene/GameOverOverlay/@Label@305",
       "class": "Label",
       "x": 0,
       "y": 58,
-      "w": 2999,
+      "w": 2316,
       "h": 36,
       "mouse_filter": 2,
       "font_size": 26
@@ -2706,17 +2706,17 @@
       "class": "Label",
       "x": 0,
       "y": 84,
-      "w": 2999,
+      "w": 2316,
       "h": 179,
       "mouse_filter": 2,
       "font_size": 128
     },
     {
-      "path": "DuelScene/GameOverOverlay/@Label@309",
+      "path": "DuelScene/GameOverOverlay/@Label@307",
       "class": "Label",
       "x": 0,
       "y": 244,
-      "w": 2999,
+      "w": 2316,
       "h": 53,
       "mouse_filter": 2,
       "font_size": 38
@@ -2724,25 +2724,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder",
       "class": "Control",
-      "x": 114,
+      "x": 91,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@325",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@323",
       "class": "CardPlate",
-      "x": 114,
+      "x": 91,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@325/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@323/Baked",
       "class": "TextureRect",
-      "x": 114,
+      "x": 91,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -2750,9 +2750,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@325/AttackNum",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@323/AttackNum",
       "class": "Label",
-      "x": 121,
+      "x": 97,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -2760,9 +2760,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@325/VigorNum",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@323/VigorNum",
       "class": "Label",
-      "x": 149,
+      "x": 126,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -2770,9 +2770,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@325/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Control@323/CostNum",
       "class": "Label",
-      "x": 112,
+      "x": 88,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -2780,9 +2780,9 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Label@326",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_c_dawn_warder/@Label@324",
       "class": "Label",
-      "x": 114,
+      "x": 91,
       "y": 597,
       "w": 186,
       "h": 33,
@@ -2792,25 +2792,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light",
       "class": "Control",
-      "x": 326,
+      "x": 303,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@327",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@325",
       "class": "CardPlate",
-      "x": 326,
+      "x": 303,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@327/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@325/Baked",
       "class": "TextureRect",
-      "x": 326,
+      "x": 303,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -2818,9 +2818,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@327/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Control@325/CostNum",
       "class": "Label",
-      "x": 324,
+      "x": 300,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -2828,9 +2828,9 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Label@328",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_r_sealing_light/@Label@326",
       "class": "Label",
-      "x": 326,
+      "x": 303,
       "y": 597,
       "w": 186,
       "h": 33,
@@ -2840,25 +2840,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light",
       "class": "Control",
-      "x": 538,
+      "x": 515,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@329",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@327",
       "class": "CardPlate",
-      "x": 538,
+      "x": 515,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@329/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@327/Baked",
       "class": "TextureRect",
-      "x": 538,
+      "x": 515,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -2866,9 +2866,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@329/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Control@327/CostNum",
       "class": "Label",
-      "x": 536,
+      "x": 512,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -2876,9 +2876,9 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Label@330",
+      "path": "DuelScene/GameOverOverlay/Loot_dwn_u_purifying_light/@Label@328",
       "class": "Label",
-      "x": 538,
+      "x": 515,
       "y": 597,
       "w": 186,
       "h": 33,
@@ -2888,25 +2888,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner",
       "class": "Control",
-      "x": 750,
+      "x": 727,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@331",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@329",
       "class": "CardPlate",
-      "x": 750,
+      "x": 727,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@331/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@329/Baked",
       "class": "TextureRect",
-      "x": 750,
+      "x": 727,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -2914,9 +2914,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@331/AttackNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@329/AttackNum",
       "class": "Label",
-      "x": 757,
+      "x": 733,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -2924,9 +2924,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@331/VigorNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@329/VigorNum",
       "class": "Label",
-      "x": 785,
+      "x": 762,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -2934,9 +2934,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@331/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Control@329/CostNum",
       "class": "Label",
-      "x": 748,
+      "x": 724,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -2944,9 +2944,9 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Label@332",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_cinder_runner/@Label@330",
       "class": "Label",
-      "x": 750,
+      "x": 727,
       "y": 597,
       "w": 186,
       "h": 33,
@@ -2956,25 +2956,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound",
       "class": "Control",
-      "x": 962,
+      "x": 939,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@333",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@331",
       "class": "CardPlate",
-      "x": 962,
+      "x": 939,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@333/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@331/Baked",
       "class": "TextureRect",
-      "x": 962,
+      "x": 939,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -2982,9 +2982,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@333/AttackNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@331/AttackNum",
       "class": "Label",
-      "x": 969,
+      "x": 945,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -2992,9 +2992,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@333/VigorNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@331/VigorNum",
       "class": "Label",
-      "x": 997,
+      "x": 974,
       "y": 529,
       "w": 48,
       "h": 48,
@@ -3002,9 +3002,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@333/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Control@331/CostNum",
       "class": "Label",
-      "x": 960,
+      "x": 936,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -3012,9 +3012,9 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Label@334",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_ember_hound/@Label@332",
       "class": "Label",
-      "x": 962,
+      "x": 939,
       "y": 597,
       "w": 186,
       "h": 33,
@@ -3024,25 +3024,25 @@
     {
       "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker",
       "class": "Control",
-      "x": 1174,
+      "x": 1151,
       "y": 318,
       "w": 186,
       "h": 315,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@335",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@333",
       "class": "CardPlate",
-      "x": 1174,
+      "x": 1151,
       "y": 318,
       "w": 186,
       "h": 269,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@335/Baked",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@333/Baked",
       "class": "TextureRect",
-      "x": 1174,
+      "x": 1151,
       "y": 318,
       "w": 186,
       "h": 269,
@@ -3050,9 +3050,9 @@
       "texture_non_null": true
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@335/AttackNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@333/AttackNum",
       "class": "Label",
-      "x": 1181,
+      "x": 1157,
       "y": 530,
       "w": 48,
       "h": 48,
@@ -3060,9 +3060,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@335/VigorNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@333/VigorNum",
       "class": "Label",
-      "x": 1209,
+      "x": 1186,
       "y": 530,
       "w": 48,
       "h": 48,
@@ -3070,9 +3070,9 @@
       "font_size": 20
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@335/CostNum",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Control@333/CostNum",
       "class": "Label",
-      "x": 1172,
+      "x": 1148,
       "y": 328,
       "w": 60,
       "h": 60,
@@ -3080,214 +3080,10 @@
       "font_size": 25
     },
     {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Label@336",
+      "path": "DuelScene/GameOverOverlay/Loot_emb_c_forgeguard_berserker/@Label@334",
       "class": "Label",
-      "x": 1174,
+      "x": 1151,
       "y": 597,
-      "w": 186,
-      "h": 33,
-      "mouse_filter": 2,
-      "font_size": 24
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent",
-      "class": "Control",
-      "x": 1386,
-      "y": 318,
-      "w": 186,
-      "h": 315,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Control@337",
-      "class": "CardPlate",
-      "x": 1386,
-      "y": 318,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Control@337/Baked",
-      "class": "TextureRect",
-      "x": 1386,
-      "y": 318,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2,
-      "texture_non_null": true
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Control@337/AttackNum",
-      "class": "Label",
-      "x": 1393,
-      "y": 530,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Control@337/VigorNum",
-      "class": "Label",
-      "x": 1421,
-      "y": 530,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Control@337/CostNum",
-      "class": "Label",
-      "x": 1384,
-      "y": 329,
-      "w": 60,
-      "h": 60,
-      "mouse_filter": 2,
-      "font_size": 25
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_lava_serpent/@Label@338",
-      "class": "Label",
-      "x": 1386,
-      "y": 598,
-      "w": 186,
-      "h": 33,
-      "mouse_filter": 2,
-      "font_size": 24
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept",
-      "class": "Control",
-      "x": 1598,
-      "y": 320,
-      "w": 186,
-      "h": 315,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Control@339",
-      "class": "CardPlate",
-      "x": 1598,
-      "y": 320,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Control@339/Baked",
-      "class": "TextureRect",
-      "x": 1598,
-      "y": 320,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2,
-      "texture_non_null": true
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Control@339/AttackNum",
-      "class": "Label",
-      "x": 1605,
-      "y": 532,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Control@339/VigorNum",
-      "class": "Label",
-      "x": 1633,
-      "y": 532,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Control@339/CostNum",
-      "class": "Label",
-      "x": 1596,
-      "y": 330,
-      "w": 60,
-      "h": 60,
-      "mouse_filter": 2,
-      "font_size": 25
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_emb_u_wildfire_adept/@Label@340",
-      "class": "Label",
-      "x": 1598,
-      "y": 600,
-      "w": 186,
-      "h": 33,
-      "mouse_filter": 2,
-      "font_size": 24
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall",
-      "class": "Control",
-      "x": 1810,
-      "y": 324,
-      "w": 186,
-      "h": 315,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Control@341",
-      "class": "CardPlate",
-      "x": 1810,
-      "y": 324,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Control@341/Baked",
-      "class": "TextureRect",
-      "x": 1810,
-      "y": 324,
-      "w": 186,
-      "h": 269,
-      "mouse_filter": 2,
-      "texture_non_null": true
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Control@341/AttackNum",
-      "class": "Label",
-      "x": 1817,
-      "y": 536,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Control@341/VigorNum",
-      "class": "Label",
-      "x": 1845,
-      "y": 536,
-      "w": 48,
-      "h": 48,
-      "mouse_filter": 2,
-      "font_size": 20
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Control@341/CostNum",
-      "class": "Label",
-      "x": 1808,
-      "y": 334,
-      "w": 60,
-      "h": 60,
-      "mouse_filter": 2,
-      "font_size": 25
-    },
-    {
-      "path": "DuelScene/GameOverOverlay/Loot_hol_c_gravewrit_thrall/@Label@342",
-      "class": "Label",
-      "x": 1810,
-      "y": 603,
       "w": 186,
       "h": 33,
       "mouse_filter": 2,
@@ -3296,64 +3092,64 @@
     {
       "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS",
       "class": "PanelContainer",
-      "x": 2022,
-      "y": 330,
+      "x": 1363,
+      "y": 318,
       "w": 196,
       "h": 362,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335",
       "class": "VBoxContainer",
-      "x": 2024,
-      "y": 332,
+      "x": 1365,
+      "y": 320,
       "w": 192,
       "h": 358,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343/@Control@345",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335/@Control@337",
       "class": "Control",
-      "x": 2083,
-      "y": 386,
+      "x": 1424,
+      "y": 374,
       "w": 74,
       "h": 74,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343/@Control@345/@Panel@344",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335/@Control@337/@Panel@336",
       "class": "Panel",
-      "x": 2098,
-      "y": 399,
+      "x": 1439,
+      "y": 387,
       "w": 37,
       "h": 54,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343/@Label@346",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335/@Label@338",
       "class": "Label",
-      "x": 2024,
-      "y": 466,
+      "x": 1365,
+      "y": 454,
       "w": 192,
       "h": 101,
       "mouse_filter": 2,
       "font_size": 74
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343/@Label@347",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335/@Label@339",
       "class": "Label",
-      "x": 2024,
-      "y": 573,
+      "x": 1365,
+      "y": 561,
       "w": 192,
       "h": 29,
       "mouse_filter": 2,
       "font_size": 21
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@343/@Label@348",
+      "path": "DuelScene/GameOverOverlay/Chip_MORE_CARDS/@VBoxContainer@335/@Label@340",
       "class": "Label",
-      "x": 2024,
-      "y": 608,
+      "x": 1365,
+      "y": 596,
       "w": 192,
       "h": 28,
       "mouse_filter": 2,
@@ -3362,54 +3158,54 @@
     {
       "path": "DuelScene/GameOverOverlay/Chip_SHARDS",
       "class": "PanelContainer",
-      "x": 2244,
-      "y": 340,
+      "x": 1585,
+      "y": 320,
       "w": 196,
       "h": 362,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@310",
+      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@308",
       "class": "VBoxContainer",
-      "x": 2246,
-      "y": 342,
+      "x": 1587,
+      "y": 322,
       "w": 192,
       "h": 358,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@310/@Control@312",
+      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@308/@Control@310",
       "class": "Control",
-      "x": 2305,
-      "y": 413,
+      "x": 1646,
+      "y": 393,
       "w": 74,
       "h": 74,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@310/@Control@312/@Panel@311",
+      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@308/@Control@310/@Panel@309",
       "class": "Panel",
-      "x": 2315,
-      "y": 423,
+      "x": 1656,
+      "y": 403,
       "w": 54,
       "h": 54,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@310/@Label@313",
+      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@308/@Label@311",
       "class": "Label",
-      "x": 2246,
-      "y": 493,
+      "x": 1587,
+      "y": 473,
       "w": 192,
       "h": 101,
       "mouse_filter": 2,
       "font_size": 74
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@310/@Label@314",
+      "path": "DuelScene/GameOverOverlay/Chip_SHARDS/@VBoxContainer@308/@Label@312",
       "class": "Label",
-      "x": 2246,
-      "y": 600,
+      "x": 1587,
+      "y": 580,
       "w": 192,
       "h": 29,
       "mouse_filter": 2,
@@ -3418,54 +3214,54 @@
     {
       "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES",
       "class": "PanelContainer",
-      "x": 2466,
-      "y": 346,
+      "x": 1807,
+      "y": 324,
       "w": 196,
       "h": 362,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@315",
+      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@313",
       "class": "VBoxContainer",
-      "x": 2468,
-      "y": 348,
+      "x": 1809,
+      "y": 326,
       "w": 192,
       "h": 358,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@315/@Control@317",
+      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@313/@Control@315",
       "class": "Control",
-      "x": 2527,
-      "y": 419,
+      "x": 1868,
+      "y": 397,
       "w": 74,
       "h": 74,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@315/@Control@317/@Panel@316",
+      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@313/@Control@315/@Panel@314",
       "class": "Panel",
-      "x": 2564,
-      "y": 429,
+      "x": 1905,
+      "y": 408,
       "w": 37,
       "h": 37,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@315/@Label@318",
+      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@313/@Label@316",
       "class": "Label",
-      "x": 2468,
-      "y": 499,
+      "x": 1809,
+      "y": 477,
       "w": 192,
       "h": 101,
       "mouse_filter": 2,
       "font_size": 74
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@315/@Label@319",
+      "path": "DuelScene/GameOverOverlay/Chip_DIG_CHARGES/@VBoxContainer@313/@Label@317",
       "class": "Label",
-      "x": 2468,
-      "y": 606,
+      "x": 1809,
+      "y": 584,
       "w": 192,
       "h": 29,
       "mouse_filter": 2,
@@ -3474,63 +3270,63 @@
     {
       "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS",
       "class": "PanelContainer",
-      "x": 2688,
-      "y": 346,
+      "x": 2029,
+      "y": 331,
       "w": 196,
       "h": 362,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@320",
+      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@318",
       "class": "VBoxContainer",
-      "x": 2690,
-      "y": 348,
+      "x": 2031,
+      "y": 333,
       "w": 192,
       "h": 358,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@320/@Control@322",
+      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@318/@Control@320",
       "class": "Control",
-      "x": 2749,
-      "y": 403,
+      "x": 2090,
+      "y": 388,
       "w": 74,
       "h": 74,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@320/@Control@322/@Panel@321",
+      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@318/@Control@320/@Panel@319",
       "class": "Panel",
-      "x": 2791,
-      "y": 412,
+      "x": 2131,
+      "y": 398,
       "w": 31,
       "h": 45,
       "mouse_filter": 2
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@320/@Label@323",
+      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@318/@Label@321",
       "class": "Label",
-      "x": 2690,
-      "y": 483,
+      "x": 2031,
+      "y": 468,
       "w": 192,
       "h": 101,
       "mouse_filter": 2,
       "font_size": 74
     },
     {
-      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@320/@Label@324",
+      "path": "DuelScene/GameOverOverlay/Chip_EMBER_FRAGMENTS/@VBoxContainer@318/@Label@322",
       "class": "Label",
-      "x": 2690,
-      "y": 590,
+      "x": 2031,
+      "y": 575,
       "w": 192,
       "h": 61,
       "mouse_filter": 2,
       "font_size": 21
     },
     {
-      "path": "DuelScene/GameOverOverlay/@Label@349",
+      "path": "DuelScene/GameOverOverlay/@Label@341",
       "class": "Label",
-      "x": 739,
+      "x": 398,
       "y": 772,
       "w": 1520,
       "h": 120,
@@ -3540,7 +3336,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Back_to_the_map",
       "class": "Button",
-      "x": 765,
+      "x": 424,
       "y": 923,
       "w": 380,
       "h": 96,
@@ -3549,7 +3345,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Back_to_the_map/Col",
       "class": "VBoxContainer",
-      "x": 765,
+      "x": 424,
       "y": 923,
       "w": 380,
       "h": 96,
@@ -3558,7 +3354,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Back_to_the_map/Col/Face",
       "class": "Label",
-      "x": 765,
+      "x": 424,
       "y": 952,
       "w": 380,
       "h": 37,
@@ -3568,7 +3364,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Continue",
       "class": "Button",
-      "x": 1179,
+      "x": 838,
       "y": 912,
       "w": 640,
       "h": 118,
@@ -3577,7 +3373,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Continue/Col",
       "class": "VBoxContainer",
-      "x": 1179,
+      "x": 838,
       "y": 912,
       "w": 640,
       "h": 118,
@@ -3586,7 +3382,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Continue/Col/Face",
       "class": "Label",
-      "x": 1179,
+      "x": 838,
       "y": 926,
       "w": 640,
       "h": 54,
@@ -3594,9 +3390,9 @@
       "font_size": 44
     },
     {
-      "path": "DuelScene/GameOverOverlay/Btn_Continue/Col/@Label@350",
+      "path": "DuelScene/GameOverOverlay/Btn_Continue/Col/@Label@342",
       "class": "Label",
-      "x": 1179,
+      "x": 838,
       "y": 982,
       "w": 640,
       "h": 33,
@@ -3606,7 +3402,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Fight_again",
       "class": "Button",
-      "x": 1853,
+      "x": 1512,
       "y": 923,
       "w": 380,
       "h": 96,
@@ -3615,7 +3411,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Fight_again/Col",
       "class": "VBoxContainer",
-      "x": 1853,
+      "x": 1512,
       "y": 923,
       "w": 380,
       "h": 96,
@@ -3624,7 +3420,7 @@
     {
       "path": "DuelScene/GameOverOverlay/Btn_Fight_again/Col/Face",
       "class": "Label",
-      "x": 1853,
+      "x": 1512,
       "y": 952,
       "w": 380,
       "h": 37,
