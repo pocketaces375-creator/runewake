@@ -70,7 +70,21 @@ public partial class ReliquaryScene : Control
         if (!CampaignContext.SaveManager.IsLoaded) CampaignContext.SaveManager.Initialize();
         var vp = GetViewportRect().Size;
 
-        var bg = new ColorRect { Color = Color.FromHtml("#0B0A09"), MouseFilter = MouseFilterEnum.Ignore };
+        // FABLE-047: a lit reading room, not a black page — warm light pooled over the shelves, falling
+        // off to deep brown at the edges (was flat #0B0A09).
+        var bgGrad = new Gradient();
+        bgGrad.SetColor(0, Color.FromHtml("#3B3226"));
+        bgGrad.SetColor(1, Color.FromHtml("#17130F"));
+        var bg = new TextureRect
+        {
+            Texture = new GradientTexture2D
+            {
+                Gradient = bgGrad, Fill = GradientTexture2D.FillEnum.Radial,
+                FillFrom = new Vector2(0.5f, 0.42f), FillTo = new Vector2(1.05f, 1.05f), Width = 512, Height = 256,
+            },
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
@@ -160,7 +174,7 @@ public partial class ReliquaryScene : Control
             Texture = new GradientTexture2D
             {
                 Width = 256, Height = 256, Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.5f, 0f), FillTo = new Vector2(0.5f, 1.05f),
-                Gradient = new Gradient { Offsets = new[] { 0f, 1f }, Colors = new[] { new Color(0.55f, 0.44f, 0.26f, 0.18f), new Color(0, 0, 0, 0) } },
+                Gradient = new Gradient { Offsets = new[] { 0f, 1f }, Colors = new[] { new Color(0.62f, 0.50f, 0.30f, 0.30f), new Color(0, 0, 0, 0) } },
             },
         };
         light.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -317,7 +331,7 @@ public partial class ReliquaryScene : Control
         var plate = new CardPlate();
         face.AddChild(plate);
         plate.Setup(card.Id, card.Attack, card.Vigor, cardW, cardH, card.Cost);
-        if (found) plate.Showcase();
+        if (found) plate.Lit();   // FABLE-047: display lighting (Showcase was too dark on this page)
         else Veil(plate, card, cardW, cardH, face);
 
         var cap = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = new Vector2(0, tagH + cardH + 2), Size = new Vector2(cardW, capH - 2), MouseFilter = MouseFilterEnum.Ignore };
@@ -494,7 +508,7 @@ public partial class ReliquaryScene : Control
         var plate = new CardPlate();
         face.AddChild(plate);
         plate.Setup(card.Id, card.Attack, card.Vigor, cw, ch, card.Cost);
-        if (found) plate.Showcase(); else Veil(plate, card, cw, ch, face);
+        if (found) plate.Lit(); else Veil(plate, card, cw, ch, face);   // FABLE-047: display lighting
 
         // the words
         float tx = 64 + cw + 64, tw = pw - tx - 64, y = 56;

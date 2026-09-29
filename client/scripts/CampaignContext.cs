@@ -333,7 +333,7 @@ public static class CampaignContext
             {
                 // Temporarily switch to read the other slot's data
                 string dataDir = ProjectSettings.GlobalizePath("user://");
-                string dbPath = System.IO.Path.Combine(dataDir, $"runewake_save_slot{slotIndex}.db");
+                string dbPath = SaveDbPath(SaveIdOf(slotIndex));
                 if (System.IO.File.Exists(dbPath))
                 {
                     var repo = new SaveRepository(dbPath);
@@ -373,7 +373,7 @@ public static class CampaignContext
         {
             try
             {
-                var data = new ProfilesData { Profiles = Profiles };
+                var data = new ProfilesData { Profiles = Profiles, Active = Math.Max(0, ActiveProfileSlot) };
                 string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
                 using var file = Godot.FileAccess.Open(ProfilesPathV2, Godot.FileAccess.ModeFlags.Write);
                 if (file != null)
@@ -390,9 +390,71 @@ public static class CampaignContext
             }
         }
 
+        // ═══ FABLE-047: stable save files per campaign ═══════════════════════════
+
+        private static bool _profilesLoaded;
+
+        /// <summary>The save file of the campaign at list position <paramref name="index"/>.</summary>
+        public static int SaveIdOf(int index) =>
+            index >= 0 && index < Profiles.Count && Profiles[index].SaveId >= 0 ? Profiles[index].SaveId : Math.Max(0, index);
+
+        /// <summary>The save file of the campaign being played, or -1.</summary>
+        public static int ActiveSaveId => ActiveProfileSlot >= 0 && ActiveProfileSlot < Profiles.Count ? SaveIdOf(ActiveProfileSlot) : -1;
+
+        private static string SaveDbPath(int saveId) =>
+            System.IO.Path.Combine(ProjectSettings.GlobalizePath("user://"), $"runewake_save_slot{saveId}.db");
+
+        private static void DeleteSaveFiles(int saveId)
+        {
+            try
+            {
+                foreach (var ext in new[] { "", "-wal", "-shm" })
+                {
+                    string f = SaveDbPath(saveId) + ext;
+                    if (System.IO.File.Exists(f)) System.IO.File.Delete(f);
+                }
+            }
+            catch (Exception ex) { GD.PrintErr($"[CampaignContext] could not delete save file {saveId}: {ex.Message}"); }
+        }
+
+        /// <summary>The lowest save file number no campaign uses.</summary>
+        private static int FreeSaveId()
+        {
+            var used = new HashSet<int>(Profiles.Select((p, i) => p.SaveId >= 0 ? p.SaveId : i));
+            int id = 0;
+            while (used.Contains(id)) id++;
+            return id;
+        }
+
+        /// <summary>Make the campaign at <paramref name="index"/> the one being played: its save file loads,
+        /// the one being left is saved first, and the choice survives a restart.</summary>
+        public static void SwitchToProfile(int index)
+        {
+            if (index < 0 || index >= Profiles.Count) return;
+            ActiveProfileSlot = index;
+            var p = Profiles[index];
+            ChosenClass = p.ClassId;
+            ChosenTown = p.TownName ?? "";
+            PortraitVariant = p.PortraitVariant;
+            int id = SaveIdOf(index);
+            if (!SaveManager.IsLoaded || SaveManager.CurrentSlot != id) SaveManager.SwitchSlot(id);
+            SaveCampaignProfile();
+        }
+
         /// <summary>Load profiles from disk with migration from old format.</summary>
         public static void LoadCampaignProfile()
         {
+            // FABLE-047: this runs every time the title screen loads. It used to throw the loaded profiles
+            // away and force slot 0 each time — so going back to the title mid-session dropped you out of
+            // the campaign you were playing (and into slot 0's save). Once loaded, the in-memory profiles
+            // are the truth; just make sure the active campaign's save is the one open.
+            if (_profilesLoaded)
+            {
+                if (ActiveProfileSlot < 0 && Profiles.Count > 0) ActiveProfileSlot = 0;
+                if (ActiveProfileSlot >= 0) SwitchToProfile(ActiveProfileSlot);
+                return;
+            }
+            _profilesLoaded = true;
             Profiles = new List<CampaignProfile>();
             ActiveProfileSlot = -1;
 
@@ -411,15 +473,15 @@ public static class CampaignContext
                             if (data?.Profiles != null && data.Profiles.Count > 0)
                             {
                                 Profiles = data.Profiles;
-                                ActiveProfileSlot = 0;
                                 MigrateLegacyClassIds();
-                                ChosenClass = Profiles[0].ClassId;
-                                ChosenTown = Profiles[0].TownName ?? "";
-                                PortraitVariant = Profiles[0].PortraitVariant;
+                                // FABLE-047: older builds read campaign N from file N — pin that as its save file.
+                                for (int i = 0; i < Profiles.Count; i++)
+                                    if (Profiles[i].SaveId < 0) Profiles[i].SaveId = i;
 
-                                // Switch SaveManager to slot 0's per-slot DB
-                                try { SaveManager.SwitchSlot(0); }
-                                catch (Exception ex) { GD.PrintErr($"[CampaignContext] Slot 0 save switch: {ex.Message}"); }
+                                // Reopen the campaign that was being played, not always the first one
+                                int active = Math.Clamp(data.Active, 0, Profiles.Count - 1);
+                                try { SwitchToProfile(active); }
+                                catch (Exception ex) { GD.PrintErr($"[CampaignContext] Active save switch: {ex.Message}"); }
 
                                 GD.Print($"[CampaignContext] {Profiles.Count} profiles loaded (v2 format)");
                                 return;
@@ -442,6 +504,7 @@ public static class CampaignContext
                             if (old != null && !string.IsNullOrEmpty(old.ClassId))
                             {
                                 old.Slot = 0;
+                                old.SaveId = 0;
                                 old.ActiveDeckId = "";
                                 old.MapProgress = "";
                                 old.StoryFlags = "";
@@ -454,8 +517,7 @@ public static class CampaignContext
                                 // Save to new format immediately
                                 SaveCampaignProfile();
 
-                                // Switch SaveManager to slot 0's per-slot DB
-                                try { SaveManager.SwitchSlot(0); }
+                                try { SwitchToProfile(0); }
                                 catch (Exception ex) { GD.PrintErr($"[CampaignContext] Slot 0 save switch: {ex.Message}"); }
 
                                 GD.Print($"[CampaignContext] Migrated v1 profile to v2: {old.ClassId}");
@@ -507,7 +569,7 @@ public static class CampaignContext
             if (slot >= 0 && slot < Profiles.Count)
             {
                 // Update existing — save current progression to old slot, then switch
-                SaveManager.SwitchSlot(slot);
+                SwitchToProfile(slot);
                 var p = Profiles[slot];
                 p.ClassId = classId;
                 p.TownName = townName;
@@ -527,13 +589,22 @@ public static class CampaignContext
             if (Profiles.Count >= 3)
             {
                 GD.PrintErr("[CampaignContext] Max 3 profiles reached — replacing oldest");
+                int oldId = SaveIdOf(0);
+                if (ActiveProfileSlot == 0) SaveManager.SwitchSlot(oldId, saveCurrent: false);
+                DeleteSaveFiles(oldId);
                 Profiles.RemoveAt(0);
-                newSlot = 2;
+                if (ActiveProfileSlot > 0) ActiveProfileSlot--; else ActiveProfileSlot = -1;
+                newSlot = Profiles.Count;
             }
+            // FABLE-047: a brand-new campaign gets a save file nobody else uses, emptied first — so it can
+            // never open with a deleted campaign's cards.
+            int newSaveId = FreeSaveId();
+            DeleteSaveFiles(newSaveId);
 
             var profile = new CampaignProfile
             {
                 Slot = newSlot,
+                SaveId = newSaveId,
                 ClassId = classId,
                 TownName = townName,
                 CreatedAt = DateTime.UtcNow.ToString("O"),
@@ -543,8 +614,8 @@ public static class CampaignContext
                 PortraitVariant = portraitVariant ?? "m"
             };
 
-            // Switch SaveManager to this slot before adding to list
-            SaveManager.SwitchSlot(newSlot);
+            // Switch SaveManager to this campaign's file before adding to list (the one being left is saved first)
+            SaveManager.SwitchSlot(newSaveId, saveCurrent: ActiveProfileSlot >= 0);
             Profiles.Add(profile);
             ActiveProfileSlot = Profiles.Count - 1;
             ChosenClass = classId;
@@ -559,46 +630,31 @@ public static class CampaignContext
         {
             if (slot >= 0 && slot < Profiles.Count)
             {
-                // Delete the slot's save database file if it exists
-                try
-                {
-                    string dataDir = ProjectSettings.GlobalizePath("user://");
-                    string dbPath = System.IO.Path.Combine(dataDir, $"runewake_save_slot{slot}.db");
-                    if (System.IO.File.Exists(dbPath))
-                    {
-                        System.IO.File.Delete(dbPath);
-                        GD.Print($"[CampaignContext] Deleted save DB for slot {slot}");
-                    }
-                    // Also clean up WAL/SHM files
-                    foreach (var ext in new[] { "-wal", "-shm" })
-                    {
-                        string extra = dbPath + ext;
-                        if (System.IO.File.Exists(extra))
-                            System.IO.File.Delete(extra);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    GD.PrintErr($"[CampaignContext] Failed to delete DB for slot {slot}: {ex.Message}");
-                }
+                // FABLE-047: delete THIS campaign's own file (not "file N" — the list shifts, files don't),
+                // and never save the deleted campaign's in-memory state back over it on the way out.
+                int saveId = SaveIdOf(slot);
+                bool wasActive = ActiveProfileSlot == slot;
+                if (wasActive) SaveManager.SwitchSlot(saveId, saveCurrent: false);
+                DeleteSaveFiles(saveId);
+                GD.Print($"[CampaignContext] Deleted save file {saveId} (campaign {slot})");
 
                 Profiles.RemoveAt(slot);
-                if (ActiveProfileSlot == slot)
+                if (wasActive)
                 {
                     ActiveProfileSlot = -1;
                     ChosenClass = "";
                     ChosenTown = "";
-
-                    // If there are remaining profiles, load the first one
                     if (Profiles.Count > 0)
                     {
-                        ActiveProfileSlot = 0;
-                        var p = Profiles[0];
-                        ChosenClass = p.ClassId;
-                        ChosenTown = p.TownName ?? "";
-                        PortraitVariant = p.PortraitVariant;
-                        SaveManager.SwitchSlot(0);
-                        GD.Print($"[CampaignContext] Switched to remaining profile slot 0: {p.ClassId}");
+                        // the remaining campaigns keep their own files; open the first
+                        SaveManager.SwitchSlot(SaveIdOf(0), saveCurrent: false);
+                        SwitchToProfile(0);
+                        GD.Print($"[CampaignContext] Switched to remaining campaign 0: {Profiles[0].ClassId} (file {SaveIdOf(0)})");
+                    }
+                    else
+                    {
+                        // nothing left: park on an emptied file so nothing stale is shown
+                        SaveManager.SwitchSlot(FreeSaveId(), saveCurrent: false);
                     }
                 }
                 else if (ActiveProfileSlot > slot)
@@ -630,6 +686,8 @@ public static class CampaignContext
         public class ProfilesData
         {
             public List<CampaignProfile> Profiles { get; set; } = new();
+            /// <summary>FABLE-047: the campaign that was being played (list index), restored on launch.</summary>
+            public int Active { get; set; } = 0;
         }
 
         /// <summary>
@@ -638,6 +696,10 @@ public static class CampaignContext
         public class CampaignProfile
         {
             public int Slot { get; set; } = 0;
+            /// <summary>FABLE-047: the save FILE this campaign lives in (runewake_save_slot{SaveId}.db).
+            /// Stable for the campaign's life — deleting another campaign no longer moves it to someone
+            /// else's file. -1 = written by an older build (migrated to its list position on load).</summary>
+            public int SaveId { get; set; } = -1;
             public string ClassId { get; set; } = "";
             public string TownName { get; set; } = "";
             public string MapProgress { get; set; } = "";

@@ -448,7 +448,7 @@ public partial class SyncManager : Node
             ProfilesJson = ReadTextOrNull(ProfilesPath),
             DecksJson = ReadTextOrNull(DecksPath),
         };
-        int active = CampaignContext.ActiveProfileSlot;
+        int active = CampaignContext.ActiveSaveId;   // FABLE-047: files are keyed by save id, not list position
         for (int slot = 0; slot < MaxSlots; slot++)
         {
             try
@@ -472,7 +472,7 @@ public partial class SyncManager : Node
             if (b.ProfilesJson != null) WriteText(ProfilesPath, b.ProfilesJson);
             if (b.DecksJson != null) WriteText(DecksPath, b.DecksJson);
 
-            int active = CampaignContext.ActiveProfileSlot;
+            int active = CampaignContext.ActiveSaveId;   // FABLE-047: files are keyed by save id, not list position
             for (int slot = 0; slot < MaxSlots; slot++)
             {
                 if (!b.Slots.TryGetValue(slot.ToString(), out var snap)) continue;

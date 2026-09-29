@@ -550,8 +550,7 @@ public partial class AccountsCarouselScene : Control
 
         // Switch to this account
         GD.Print("[AccountsCarousel] Switching to account " + accountIdx + ": " + account.ClassId);
-        CampaignContext.ActiveProfileSlot = accountIdx;
-        CampaignContext.SaveManager.SwitchSlot(accountIdx);
+        CampaignContext.SwitchToProfile(accountIdx);   // FABLE-047: the campaign's own save file
         CampaignContext.ChosenClass = account.ClassId;
         CampaignContext.ChosenTown = account.TownName ?? "";
         CampaignContext.PortraitVariant = account.PortraitVariant;

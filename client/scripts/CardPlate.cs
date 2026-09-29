@@ -152,6 +152,29 @@ void fragment() {
     COLOR = vec4(clamp(rgb * lift, 0.0, 1.0), c.a) * COLOR;
 }";
 
+    // FABLE-047: the Reliquary's display light. Much of the card art is painted low-key (Verdant above
+    // all), and on the Codex's near-black page a whole shelf of it read as "the screen is too dark".
+    // This lifts the shadows (gamma), not the highlights, so the paintings open up without washing out.
+    private static ShaderMaterial? _lit;
+    private const string LitShader = @"shader_type canvas_item;
+uniform float gamma = 0.74;
+uniform float saturation = 1.12;
+uniform float lift = 1.07;
+void fragment() {
+    vec4 c = texture(TEXTURE, UV);
+    vec3 rgb = pow(max(c.rgb, vec3(0.0)), vec3(gamma));
+    float l = dot(rgb, vec3(0.299, 0.587, 0.114));
+    rgb = mix(vec3(l), rgb, saturation) * lift;
+    COLOR = vec4(clamp(rgb, 0.0, 1.0), c.a) * COLOR;
+}";
+    /// <summary>FABLE-047: display lighting for the Reliquary — shadows opened up, colour kept.</summary>
+    public void Lit()
+    {
+        if (_baked == null) return;
+        _lit ??= new ShaderMaterial { Shader = new Shader { Code = LitShader } };
+        _baked.Material = _lit;
+    }
+
     public void Showcase()
     {
         if (_baked == null) return;
@@ -180,7 +203,9 @@ void fragment() {
 void fragment() {
     vec4 c = texture(TEXTURE, UV);
     float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-    vec3 g = mix(vec3(l), c.rgb, 0.12) * vec3(0.62, 0.60, 0.56);
+    // FABLE-047: still stone-grey, but lit: the veiled art reads as not yet found, not switched off
+    float lg = pow(max(l, 0.0), 0.72);
+    vec3 g = mix(vec3(lg), c.rgb, 0.12) * vec3(0.90, 0.87, 0.81);
     COLOR = vec4(g, c.a) * COLOR;
 }";
     /// <summary>FABLE-040: stone-grey — the art still reads, the colour is gone.</summary>

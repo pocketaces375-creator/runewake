@@ -42,6 +42,9 @@ public class SaveManager
     /// <summary>True if the most recent load performed any repair or migration.</summary>
     public bool WasRepaired => _repository.RepairLog.Count > 0;
 
+    /// <summary>FABLE-047: which save file (runewake_save_slot{N}.db) this manager reads and writes.</summary>
+    public int CurrentSlot { get; private set; }
+
     public SaveManager()
     {
         // user:// is the Godot-managed, platform sandboxed data directory.
@@ -56,6 +59,7 @@ public class SaveManager
     public SaveManager(int slotIndex)
     {
         _repository = CreateRepository(slotIndex);
+        CurrentSlot = slotIndex;
     }
 
     /// <summary>
@@ -74,14 +78,19 @@ public class SaveManager
     /// Switch to a different campaign slot, saving the current state first.
     /// The new slot's data is loaded into <see cref="State"/>.
     /// </summary>
-    public void SwitchSlot(int slotIndex)
+    public void SwitchSlot(int slotIndex, bool saveCurrent = true)
     {
-        // Save current progression to the old slot's DB
-        if (IsFunctional)
+        // Save current progression to the old slot's DB.
+        // FABLE-047: ONLY a state that was actually loaded. On a fresh launch State is still the empty
+        // default when the profiles load and switch to the active slot — saving it here wrote an EMPTY
+        // save over slot 0 on every launch (cards, cleared nodes, dust: all gone). And never when the
+        // caller has just deleted the old slot's file: that would write the deleted campaign back.
+        if (saveCurrent && IsLoaded && IsFunctional)
             _repository.Save(State);
 
         // Create a new repository for the target slot
         _repository = CreateRepository(slotIndex);
+        CurrentSlot = slotIndex;
 
         // Reset state
         LastError = null;

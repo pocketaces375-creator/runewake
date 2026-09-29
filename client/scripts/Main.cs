@@ -393,7 +393,10 @@ public partial class Main : Control
         // buttons are interactive) is the suspected root cause of skipped
         // deck-select on some devices. Initialize is now called here,
         // synchronously in _Ready, before any CallDeferred.
-        CampaignContext.SaveManager.Initialize();
+        // FABLE-047: load the save ONCE. Coming back to the title mid-session used to re-read the file
+        // here and throw away anything in memory that had not been written yet; now we flush instead.
+        if (!CampaignContext.SaveManager.IsLoaded) CampaignContext.SaveManager.Initialize();
+        else CampaignContext.SaveManager.Save();
 
         // Refresh slot picker to show current state
         BuildSlotPicker();
@@ -1545,8 +1548,7 @@ public partial class Main : Control
         }
 
         // Switch SaveManager to this slot's database
-        CampaignContext.ActiveProfileSlot = slotIndex;
-        CampaignContext.SaveManager.SwitchSlot(slotIndex);
+        CampaignContext.SwitchToProfile(slotIndex);   // FABLE-047: the campaign's own save file
         CampaignContext.ChosenClass = profile.ClassId;
         CampaignContext.ChosenTown = profile.TownName ?? "";
 
