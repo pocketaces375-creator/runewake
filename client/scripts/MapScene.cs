@@ -75,7 +75,6 @@ public partial class MapScene : Control
 
     // TASK-MAP-INFOBOX-1: reserved info panel rectangle (normalized anchors)
     // FABLE-051: the left rail — its own column for the info card and the menu buttons
-    private const float RailFrac = 0.15f, RailPad = 0.01f, InfoBottom = 0.56f;
 
     // TASK-UI-READABLE-2: viewport height for scale helper
     private float _viewportHeight = 1080f;
@@ -601,23 +600,8 @@ public partial class MapScene : Control
 
     private void BuildSideButtons()
     {
-        var rail = new ColorRect
-        {
-            Name = "LeftRail",
-            Color = new Color(0.07f, 0.055f, 0.04f, 0.97f),
-            AnchorLeft = 0f, AnchorRight = RailFrac, AnchorTop = 0.057f, AnchorBottom = 1f,
-            MouseFilter = MouseFilterEnum.Stop,   // taps on the rail never pan the map underneath
-        };
-        AddChild(rail);
-        AddChild(new ColorRect
-        {
-            Color = new Color(0.62f, 0.52f, 0.28f, 0.55f),
-            AnchorLeft = RailFrac, AnchorRight = RailFrac, AnchorTop = 0.057f, AnchorBottom = 1f,
-            OffsetRight = 2f, MouseFilter = MouseFilterEnum.Ignore,
-        });
-
-        float btnW = RailFrac - 2 * RailPad;
-        float xL = RailPad;
+        float btnW = 0.13f;
+        float xL = 0.01f;
 
         // FABLE-020: once the starting lands are done, the way into the endless world.
         if (WorldService.Progress.CrossroadsOpen)
@@ -767,8 +751,7 @@ public partial class MapScene : Control
     private Rect2 MapArea()
     {
         Vector2 vp = GetViewportRect().Size;
-        float left = vp.X * RailFrac;
-        return new Rect2(left, 0f, vp.X - left, vp.Y);
+        return new Rect2(0f, 0f, vp.X, vp.Y);   // FABLE-052: full-bleed again (the FABLE-051 rail is gone)
     }
 
     private void ClampPan()
@@ -792,131 +775,171 @@ public partial class MapScene : Control
 
     // ── Info panel ───────────────────────────────────────────────────────
 
+    // FABLE-052: Trikzos picked mockup A — a compact card tucked into the bottom-right corner,
+    // sized to sit in the open sea under the Merchant instead of reaching over Warden Aelin.
+    // Geometry is in 1080p reference pixels (s = viewport height / 1080), from the mockup.
+    private const float CardW = 596f, CardH = 252f, CardMargin = 20f, CardPad = 28f;
+    private Control _infoRewardsRow = null!;
+
     private void BuildInfoPanel()
     {
-        // Bottom-RIGHT so it never overlaps the Forge/Rune Page/Settings
-        // stack in the bottom-left. Sized to its content, not the map.
-        _infoPanel = new Panel();
-        // FABLE-051: the info card has its own place — the top of the left rail, above the
-        // Forge / Rune Page / Reliquary / Settings stack. The map is framed to the right of the
-        // rail, so the card can never sit on a node, a label or the region scroll.
-        _infoPanel.AnchorLeft = RailPad; _infoPanel.AnchorRight = RailFrac - RailPad;
-        _infoPanel.AnchorTop = 0.075f; _infoPanel.AnchorBottom = InfoBottom;
-        var panelStyle = new StyleBoxFlat
+        var vp = GetViewportRect().Size;
+        float s = vp.Y / 1080f;
+        var cardPos = new Vector2(vp.X - (CardMargin + CardW) * s, vp.Y - (CardMargin + CardH) * s);
+        var cardSize = new Vector2(CardW, CardH) * s;
+        int P(float px) => Mathf.RoundToInt(px * s);
+
+        // outer hairline ring, a few pixels outside the card
+        var ring = new Panel { Position = cardPos, Size = cardSize, MouseFilter = MouseFilterEnum.Ignore };
+        ring.AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
-            BgColor = new Color(0.085f, 0.07f, 0.05f, 0.96f),
-            BorderColor = new Color(0.72f, 0.6f, 0.3f, 0.65f),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10,
-            CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
-            ContentMarginLeft = 16, ContentMarginTop = 12,
-            ContentMarginRight = 16, ContentMarginBottom = 12,
-            ShadowColor = new Color(0f, 0f, 0f, 0.5f),
-            ShadowSize = 10
-        };
-        _infoPanel.AddThemeStyleboxOverride("panel", panelStyle);
+            BgColor = new Color(0.08f, 0.055f, 0.03f, 0.9f),
+            BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.45f),
+            BorderWidthLeft = 1, BorderWidthTop = 1, BorderWidthRight = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = P(18), CornerRadiusTopRight = P(18), CornerRadiusBottomLeft = P(18), CornerRadiusBottomRight = P(18),
+            ExpandMarginLeft = P(5), ExpandMarginTop = P(5), ExpandMarginRight = P(5), ExpandMarginBottom = P(5),
+            ShadowColor = new Color(0f, 0f, 0f, 0.7f), ShadowSize = P(18), ShadowOffset = new Vector2(0, P(8)),
+        });
+        AddChild(ring);
+
+        _infoPanel = new Panel { Position = cardPos, Size = cardSize };
+        _infoPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.075f, 0.058f, 0.042f, 1f),
+            BorderColor = new Color(0.725f, 0.592f, 0.29f, 1f),
+            BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = P(14), CornerRadiusTopRight = P(14), CornerRadiusBottomLeft = P(14), CornerRadiusBottomRight = P(14),
+        });
         AddChild(_infoPanel);
 
-        var infoVbox = new VBoxContainer();
-        infoVbox.AnchorLeft = 0f; infoVbox.AnchorRight = 1f;
-        infoVbox.AnchorTop = 0f; infoVbox.AnchorBottom = 1f;
-        infoVbox.OffsetLeft = 16; infoVbox.OffsetRight = -16;
-        infoVbox.OffsetTop = 12; infoVbox.OffsetBottom = -12;
-        infoVbox.AddThemeConstantOverride("separation", 2);
-        _infoPanel.AddChild(infoVbox);
+        float innerW = (CardW - 2 * CardPad) * s;
 
-        // FABLE-051: kicker line — what kind of place this is
-        _infoKind = new Label { HorizontalAlignment = HorizontalAlignment.Center, Text = "DESTINATION" };
-        ThemeTokens.ApplyHeaderFont(_infoKind, Mathf.RoundToInt(BodyFontPx() * 0.72f));
-        _infoKind.AddThemeColorOverride("font_color", new Color(0.62f, 0.55f, 0.40f, 0.95f));
-        infoVbox.AddChild(_infoKind);
+        // kind — DUEL / REGION WARDEN / SHRINE · REST …
+        _infoKind = new Label { Position = new Vector2(CardPad, 18f) * s, Size = new Vector2(innerW, 24f * s), MouseFilter = MouseFilterEnum.Ignore };
+        ThemeTokens.ApplyHeaderFont(_infoKind, P(17));
+        _infoKind.AddThemeColorOverride("font_color", new Color(0.616f, 0.541f, 0.384f, 1f));
+        _infoPanel.AddChild(_infoKind);
 
-        // Name — Cinzel gold
-        _infoName = new Label { AutowrapMode = TextServer.AutowrapMode.Word, HorizontalAlignment = HorizontalAlignment.Center };
-        ThemeTokens.ApplyHeaderFont(_infoName, Mathf.RoundToInt(BodyFontPx() * 1.25f));
-        _infoName.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 1f));
-        infoVbox.AddChild(_infoName);
+        // name — shrinks to fit one line (FitInfoText)
+        _infoName = new Label { Position = new Vector2(CardPad, 42f) * s, Size = new Vector2(innerW, 56f * s), VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        ThemeTokens.ApplyHeaderFont(_infoName, P(40));
+        _infoName.AddThemeColorOverride("font_color", new Color(0.941f, 0.863f, 0.627f, 1f));
+        _infoPanel.AddChild(_infoName);
 
-        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
-
-        // Divider
-        var divider = new ColorRect
+        // divider fading out to the right
+        var grad = new Gradient();
+        grad.SetColor(0, new Color(0.79f, 0.66f, 0.30f, 1f));
+        grad.SetColor(1, new Color(0.79f, 0.66f, 0.30f, 0f));
+        _infoPanel.AddChild(new TextureRect
         {
-            CustomMinimumSize = new Vector2(0, 1),
-            Color = new Color(0.72f, 0.6f, 0.3f, 0.35f),
-            MouseFilter = MouseFilterEnum.Ignore
-        };
-        infoVbox.AddChild(divider);
+            Texture = new GradientTexture2D { Gradient = grad, Width = 256, Height = 1 },
+            Position = new Vector2(CardPad, 104f) * s, Size = new Vector2(innerW, Mathf.Max(1f, s)),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+            MouseFilter = MouseFilterEnum.Ignore,
+        });
 
-        infoVbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
+        // rewards — "Rewards · " in sage, the list in cream, one line (shrinks to fit)
+        var row = new HBoxContainer { Position = new Vector2(CardPad, 114f) * s, Size = new Vector2(innerW, 44f * s), MouseFilter = MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 0);
+        _infoRewardsRow = row;
+        var head = new Label { Text = "Rewards \u00B7 ", Name = "RewardsHead", VerticalAlignment = VerticalAlignment.Center };
+        _infoRewards = new Label { VerticalAlignment = VerticalAlignment.Center, ClipText = true, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        var body = ResourceLoader.Load<FontFile>("res://assets/fonts/CormorantGaramond-Bold.ttf");
+        foreach (var l in new[] { head, _infoRewards })
+        {
+            if (body != null) l.AddThemeFontOverride("font", body);
+            l.AddThemeFontSizeOverride("font_size", P(30));
+            l.MouseFilter = MouseFilterEnum.Ignore;
+        }
+        head.AddThemeColorOverride("font_color", new Color(0.725f, 0.788f, 0.541f, 1f));
+        _infoRewards.AddThemeColorOverride("font_color", new Color(0.937f, 0.89f, 0.776f, 1f));
+        row.AddChild(head);
+        row.AddChild(_infoRewards);
+        _infoPanel.AddChild(row);
 
-        // Rewards — pretty text, not raw tokens.
-        // When a node has no rewards, this row is hidden entirely
-        // (no "Rewards: —" placeholder).
-        _infoRewards = new Label();
-        _infoRewards.AddThemeFontSizeOverride("font_size", BodyFontPx());
-        _infoRewards.AddThemeColorOverride("font_color", new Color(0.65f, 0.72f, 0.5f, 0.95f));
-        _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
-        _infoRewards.HorizontalAlignment = HorizontalAlignment.Center;
-        infoVbox.AddChild(_infoRewards);
-
-        // Fixed spacer so button row sits just below content, not pushed to bottom
-        var spacer = new Control { CustomMinimumSize = new Vector2(0, 6), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
-        infoVbox.AddChild(spacer);
-
-        // FABLE-051: a narrow card, so the actions stack — the main one on the bottom, under the thumb
-        var buttonRow = new VBoxContainer();
-        buttonRow.AddThemeConstantOverride("separation", 8);
-        infoVbox.AddChild(buttonRow);
-
-        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(0, 40), SizeFlagsHorizontal = Control.SizeFlags.Fill };
-        StyleButton(_infoCloseButton, goldText: false);
+        float btnY = (CardH - 22f - 64f) * s;
+        _infoCloseButton = new Button { Text = "Close", Position = new Vector2(CardPad * s, btnY), Size = new Vector2(160f, 64f) * s };
+        ThemeTokens.ApplyHeaderFont(_infoCloseButton, P(22));
+        StyleInfoButton(_infoCloseButton, gold: false, P);
         _infoCloseButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             HideInfoPanel();
         };
-        buttonRow.AddChild(_infoCloseButton);
+        _infoPanel.AddChild(_infoCloseButton);
 
-        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(0, 52), SizeFlagsHorizontal = Control.SizeFlags.Fill };
-        StyleButton(_infoGoButton);
-        // Go button: bright, clearly enabled styling so it doesn't read as disabled
-        // against the dark info panel background
-        _infoGoButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat
-        {
-            BgColor = new Color(0.35f, 0.25f, 0.12f, 1f),
-            BorderColor = new Color(0.95f, 0.85f, 0.45f, 1f),
-            BorderWidthLeft = 2, BorderWidthTop = 2,
-            BorderWidthRight = 2, BorderWidthBottom = 2,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 10, ContentMarginTop = 4,
-            ContentMarginRight = 10, ContentMarginBottom = 4
-        });
-        _infoGoButton.AddThemeColorOverride("font_color", new Color(1f, 0.92f, 0.65f, 1f));
-        // Disabled state: clearly visible but obviously muted — legible dark
-        // text on a dimmed background, not invisible against the panel
-        _infoGoButton.AddThemeStyleboxOverride("disabled", new StyleBoxFlat
-        {
-            BgColor = new Color(0.12f, 0.1f, 0.06f, 1f),
-            BorderColor = new Color(0.3f, 0.25f, 0.12f, 0.7f),
-            BorderWidthLeft = 1, BorderWidthTop = 1,
-            BorderWidthRight = 1, BorderWidthBottom = 1,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            ContentMarginLeft = 10, ContentMarginTop = 4,
-            ContentMarginRight = 10, ContentMarginBottom = 4
-        });
-        _infoGoButton.AddThemeColorOverride("font_disabled_color", new Color(0.5f, 0.43f, 0.25f, 0.9f));
+        _infoGoButton = new Button { Text = "Challenge", Position = new Vector2((CardW - CardPad - 330f) * s, btnY), Size = new Vector2(330f, 64f) * s };
+        ThemeTokens.ApplyHeaderFont(_infoGoButton, P(28));
+        StyleInfoButton(_infoGoButton, gold: true, P);
         _infoGoButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             OnGoButtonPressed();
         };
-        buttonRow.AddChild(_infoGoButton);
+        _infoPanel.AddChild(_infoGoButton);
 
         SetIdleInfoState();
+    }
+
+    private static void StyleInfoButton(Button b, bool gold, System.Func<float, int> P)
+    {
+        StyleBoxFlat Box(Color bg, Color border, int bw, float glow) => new StyleBoxFlat
+        {
+            BgColor = bg, BorderColor = border,
+            BorderWidthLeft = bw, BorderWidthTop = bw, BorderWidthRight = bw, BorderWidthBottom = bw,
+            CornerRadiusTopLeft = P(8), CornerRadiusTopRight = P(8), CornerRadiusBottomLeft = P(8), CornerRadiusBottomRight = P(8),
+            ShadowColor = new Color(0.95f, 0.81f, 0.39f, glow), ShadowSize = glow > 0 ? P(14) : 0,
+        };
+        if (gold)
+        {
+            b.AddThemeStyleboxOverride("normal", Box(new Color(0.86f, 0.66f, 0.26f), new Color(0.97f, 0.89f, 0.63f), 2, 0.4f));
+            b.AddThemeStyleboxOverride("hover", Box(new Color(0.93f, 0.74f, 0.33f), new Color(1f, 0.94f, 0.72f), 2, 0.55f));
+            b.AddThemeStyleboxOverride("pressed", Box(new Color(0.70f, 0.51f, 0.18f), new Color(0.97f, 0.89f, 0.63f), 2, 0.3f));
+            b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            b.AddThemeStyleboxOverride("disabled", Box(new Color(0.16f, 0.13f, 0.08f), new Color(0.40f, 0.33f, 0.17f, 0.8f), 1, 0f));
+            var ink = new Color(0.165f, 0.10f, 0.024f);
+            b.AddThemeColorOverride("font_color", ink);
+            b.AddThemeColorOverride("font_hover_color", ink);
+            b.AddThemeColorOverride("font_pressed_color", ink);
+            b.AddThemeColorOverride("font_focus_color", ink);
+            b.AddThemeColorOverride("font_disabled_color", new Color(0.55f, 0.47f, 0.28f, 0.9f));
+        }
+        else
+        {
+            b.AddThemeStyleboxOverride("normal", Box(new Color(0.08f, 0.063f, 0.047f, 0.85f), new Color(0.79f, 0.66f, 0.30f, 0.45f), 2, 0f));
+            b.AddThemeStyleboxOverride("hover", Box(new Color(0.13f, 0.10f, 0.07f, 0.9f), new Color(0.79f, 0.66f, 0.30f, 0.7f), 2, 0f));
+            b.AddThemeStyleboxOverride("pressed", Box(new Color(0.05f, 0.04f, 0.03f, 0.9f), new Color(0.79f, 0.66f, 0.30f, 0.7f), 2, 0f));
+            b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            b.AddThemeStyleboxOverride("disabled", Box(new Color(0.08f, 0.063f, 0.047f, 0.6f), new Color(0.79f, 0.66f, 0.30f, 0.2f), 2, 0f));
+            b.AddThemeColorOverride("font_color", new Color(0.72f, 0.66f, 0.54f));
+            b.AddThemeColorOverride("font_hover_color", new Color(0.9f, 0.84f, 0.68f));
+            b.AddThemeColorOverride("font_pressed_color", new Color(0.9f, 0.84f, 0.68f));
+            b.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.40f, 0.32f, 0.8f));
+        }
+    }
+
+    /// <summary>FABLE-052: name and rewards stay on one line each — shrink until they fit.</summary>
+    private void FitInfoText()
+    {
+        float s = GetViewportRect().Size.Y / 1080f;
+        float innerW = (CardW - 2 * CardPad) * s;
+        void Fit(Label l, float startPx, float minPx, float width)
+        {
+            var f = l.GetThemeFont("font");
+            int px = Mathf.RoundToInt(startPx * s), floor = Mathf.RoundToInt(minPx * s);
+            while (px > floor && f.GetStringSize(l.Text, HorizontalAlignment.Left, -1, px).X > width) px--;
+            l.AddThemeFontSizeOverride("font_size", px);
+        }
+        Fit(_infoName, 40f, 24f, innerW);
+        var head = _infoRewardsRow.GetNode<Label>("RewardsHead");
+        head.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(30f * s));
+        _infoRewards.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(30f * s));
+        // shrink both halves together so the line keeps one size
+        var hf = head.GetThemeFont("font");
+        int rp = Mathf.RoundToInt(30f * s), rfloor = Mathf.RoundToInt(19f * s);
+        while (rp > rfloor && hf.GetStringSize(head.Text + _infoRewards.Text, HorizontalAlignment.Left, -1, rp).X > innerW) rp--;
+        head.AddThemeFontSizeOverride("font_size", rp);
+        _infoRewards.AddThemeFontSizeOverride("font_size", rp);
     }
 
     private void HideInfoPanel()
@@ -932,7 +955,8 @@ public partial class MapScene : Control
         _infoName.Text = "Select a destination";
         _infoKind.Text = "THE MAP";
         _infoRewards.Text = "";
-        _infoRewards.Hide();
+        _infoRewardsRow.Hide();
+        FitInfoText();
         _infoGoButton.Disabled = true;
         _infoGoButton.Text = "Go";
         _infoCloseButton.Disabled = true;
@@ -1060,6 +1084,7 @@ public partial class MapScene : Control
             displayName = (mapNode.Encounter ?? mapNode.Type.ToString()).Replace("_", " ");
 
         _infoName.Text = displayName;
+        _infoCloseButton.Disabled = false;   // FABLE-052: it was disabled at idle and never re-enabled — Close was always dead
         _infoKind.Text = mapNode.Type switch
         {
             MapNodeType.Duel => "DUEL",
@@ -1076,14 +1101,15 @@ public partial class MapScene : Control
         // Rewards — hide when none, show pretty list when present
         if (mapNode.Rewards is { Count: > 0 })
         {
-            _infoRewards.Text = "Rewards\n" + string.Join("\n", mapNode.Rewards.Select(PrettifyReward));   // FABLE-051: one per line in the narrow card
-            _infoRewards.Show();
+            _infoRewards.Text = string.Join(" \u00B7 ", mapNode.Rewards.Select(PrettifyReward));
+            _infoRewardsRow.Show();
         }
         else
         {
             _infoRewards.Text = "";
-            _infoRewards.Hide();
+            _infoRewardsRow.Hide();
         }
+        FitInfoText();
 
         bool isCleared = CampaignContext.Progression.IsNodeCleared(nodeId);
         bool isLocked = !IsNodeUnlocked(mapNode);
@@ -1195,7 +1221,7 @@ public partial class MapScene : Control
         if (@event is InputEventMouseButton mouseBtn)
         {
             bool panButton = mouseBtn.ButtonIndex == MouseButton.Middle || mouseBtn.ButtonIndex == MouseButton.Right;
-            if (panButton && mouseBtn.Pressed && !_infoPanel.GetGlobalRect().HasPoint(mouseBtn.Position) && mouseBtn.Position.X > GetViewportRect().Size.X * RailFrac)
+            if (panButton && mouseBtn.Pressed && !_infoPanel.GetGlobalRect().HasPoint(mouseBtn.Position))
             {
                 _dragStart = mouseBtn.Position;
                 _containerStartPos = _mapContainer.Position;
@@ -1264,8 +1290,8 @@ public partial class MapScene : Control
         if (!_tap.Accept(@event)) return;
 
         // Don't handle taps on the info panel
-        if (_infoPanel.GetGlobalRect().HasPoint(screenPos) || screenPos.X <= GetViewportRect().Size.X * RailFrac)
-            return;   // FABLE-051: the rail is not map
+        if (_infoPanel.GetGlobalRect().HasPoint(screenPos))
+            return;
 
         // Convert screen position to map container local coordinates
         // ToLocal already accounts for the Node2D's position and scale
