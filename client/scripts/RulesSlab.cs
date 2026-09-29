@@ -30,12 +30,17 @@ public partial class RulesSlab : Control
     private const float InnerPadBottom = 28f;
 
     // Fixed typography at 1080p reference, scaled by vh/1080
-    private const float NameSize1080 = 34f;
-    private const float BodySize1080 = 27f;
-    private const float KwSize1080 = 22f;
-    private const float FlavorSize1080 = 22f;
-    private const float FlavorMin1080 = 18f;
-    private const float KwMin1080 = 16f;
+    // FABLE-048: bigger and the SAME for every card — Trikzos: "small and hard to read … much more
+    // uniform as far as presentation; these look a little wonky from one another on shapes and sizes".
+    private const float NameSize1080 = 36f;
+    private const float BodySize1080 = 35f;
+    private const float KwSize1080 = 27f;
+    private const float FlavorSize1080 = 28f;
+    private const float FlavorMin1080 = 21f;
+    private const float KwMin1080 = 21f;
+    private const float BodyMin1080 = 26f;
+    private const float SlabW1080 = 520f;
+    private const float SlabH1080 = 470f;
     private const float RefVh = 1080f;
 
     private static readonly Color BorderColor = new Color(107f / 255f, 86f / 255f, 54f / 255f, 1f);
@@ -119,8 +124,8 @@ public partial class RulesSlab : Control
         _vbox = new VBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter,
-            SizeFlagsVertical = Control.SizeFlags.ShrinkBegin,
+            SizeFlagsHorizontal = Control.SizeFlags.Fill,
+            SizeFlagsVertical = Control.SizeFlags.Fill,   // FABLE-048: fill the fixed box so the flavour sits at its foot
         };
         _bgPanel.AddChild(_vbox);
 
@@ -179,6 +184,9 @@ public partial class RulesSlab : Control
         }
         _vbox.AddChild(_keywordsLabel);
 
+        // FABLE-048: pushes the flavour to the foot of the (fixed-size) box
+        _vbox.AddChild(new Control { Name = "FlavorSpacer", MouseFilter = MouseFilterEnum.Ignore, SizeFlagsVertical = Control.SizeFlags.ExpandFill });
+
         _flavorDivider = new Control
         {
             MouseFilter = MouseFilterEnum.Ignore,
@@ -198,15 +206,39 @@ public partial class RulesSlab : Control
         _vbox.AddChild(_flavorLabel);
     }
 
+    /// <summary>Height the column needs at width <paramref name="w"/>, from the fonts (not from layout).</summary>
+    private float MeasureColumn(float w)
+    {
+        float sep = _vbox.GetThemeConstant("separation");
+        float total = 0f; int n = 0;
+        foreach (var node in _vbox.GetChildren())
+        {
+            if (node is not Control c || !c.Visible) continue;
+            n++;
+            if (c is Label l && !string.IsNullOrEmpty(l.Text))
+            {
+                var f = l.GetThemeFont("font");
+                int fs = l.GetThemeFontSize("font_size");
+                float lh = f.GetHeight(fs) + l.GetThemeConstant("line_spacing");
+                int lines = l.AutowrapMode == TextServer.AutowrapMode.Off ? 1
+                    : Mathf.Max(1, Mathf.RoundToInt(f.GetMultilineStringSize(l.Text, HorizontalAlignment.Left, w, fs).Y / f.GetHeight(fs)));
+                total += lines * lh;
+            }
+            else total += c.CustomMinimumSize.Y;
+        }
+        return total + sep * Mathf.Max(0, n - 1);
+    }
+
     public void ShowForCard(CardDef card, Vector2 viewportSize)
     {
         if (card == null) { Hide(); return; }
         _vpSize = viewportSize;
 
-        float slabX = 24f * (viewportSize.Y / RefVh);
-        float slabY = 300f * (viewportSize.Y / RefVh);
-        float slabW = 380f * (viewportSize.Y / RefVh);
-        float slabH = 440f * (viewportSize.Y / RefVh);
+        float k = viewportSize.Y / RefVh;
+        float slabW = SlabW1080 * k;
+        float slabH = SlabH1080 * k;
+        float slabX = 24f * k;
+        float slabY = Mathf.Round((viewportSize.Y - slabH) / 2f);   // FABLE-048: centred on the left edge, between the artifact pairs
         float padTop = ScalePx(InnerPadTop);
         float padSide = ScalePx(InnerPadSides);
         float contentW = slabW - 2 * padSide - 8f;
@@ -216,7 +248,7 @@ public partial class RulesSlab : Control
         float innerW = slabW - 2f * ScalePx(InnerPadSides);
         _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
         _nameLabel.Text = card.Name;
-        while (_nameLabel.GetCombinedMinimumSize().X > innerW && nameFs > ScalePx(22f))
+        while (_nameLabel.GetCombinedMinimumSize().X > innerW && nameFs > ScalePx(28f))
         {
             nameFs -= ScalePx(2f);
             _nameLabel.AddThemeFontSizeOverride("font_size", nameFs);
@@ -238,7 +270,7 @@ public partial class RulesSlab : Control
         _keywordsLabel.AddThemeColorOverride("font_color", pal.Reminder);
         _flavorLabel.AddThemeColorOverride("font_color", pal.Flavor);
         _kickerLabel.AddThemeColorOverride("font_color", pal.Kicker);
-        _kickerLabel.AddThemeFontSizeOverride("font_size", ScalePx(18f));
+        _kickerLabel.AddThemeFontSizeOverride("font_size", ScalePx(20f));
         _kickerLabel.Text = isArtifact ? "ARTIFACT" : card.Type switch
         {
             CardType.RITUAL => "RITUAL", CardType.RELIC => "RELIC", _ => "CREATURE",
@@ -264,25 +296,28 @@ public partial class RulesSlab : Control
         foreach (var l in new[] { _rulesLabel, _keywordsLabel, _flavorLabel, _kickerLabel, _nameLabel })
             l.CustomMinimumSize = new Vector2(contentW, 0);
         // Check overflow and shrink flavour first, then keywords
-        _vbox.Size = Vector2.Zero;
-        Vector2 minSize = _vbox.GetCombinedMinimumSize();
+        // FABLE-048: measure the text itself at the column width. The VBox minimum size used to report
+        // ~780px for a two-line card (autowrap labels measured before they had a width), so every card
+        // was shrunk to the floor sizes.
+        Vector2 minSize = new Vector2(contentW, MeasureColumn(contentW));
         float availH = slabH - padTop - ScalePx(InnerPadBottom);
         int flvMin = ScalePx(FlavorMin1080);
         int kwMin = ScalePx(KwMin1080);
         if (minSize.Y > availH)
         {
-            GD.Print($"[SLAB] overflow {card.Id}");
-            while (minSize.Y > availH && flvFs > flvMin && hasFlavor)
+            GD.Print($"[SLAB] overflow {card.Id} need={minSize.Y:0} avail={availH:0}");
+            // FABLE-048: shrink the three text tiers TOGETHER so a wordy card keeps the same proportions
+            // as every other card (it used to crush flavour and keywords to the floor while the body stayed big).
+            int bodyMin = ScalePx(BodyMin1080);
+            while (minSize.Y > availH && (bodyFs > bodyMin || kwFs > kwMin || flvFs > flvMin))
             {
-                flvFs--;
-                _flavorLabel.AddThemeFontSizeOverride("font_size", flvFs);
-                minSize = _vbox.GetCombinedMinimumSize();
-            }
-            while (minSize.Y > availH && kwFs > kwMin && !string.IsNullOrEmpty(kwReminders))
-            {
-                kwFs--;
+                if (bodyFs > bodyMin) bodyFs--;
+                if (kwFs > kwMin) kwFs--;
+                if (flvFs > flvMin) flvFs--;
+                _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
                 _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
-                minSize = _vbox.GetCombinedMinimumSize();
+                _flavorLabel.AddThemeFontSizeOverride("font_size", flvFs);
+                minSize.Y = MeasureColumn(contentW);
             }
         }
 
@@ -297,7 +332,8 @@ public partial class RulesSlab : Control
         float flavorGap = _flavorLabel.Visible ? 4f : 0f;
         float contentH = H(_nameLabel) + ruleH + H(_rulesLabel) + kwGap + H(_keywordsLabel) + flavorRuleH + flavorGap + H(_flavorLabel);
         float minH = 160f * (viewportSize.Y / RefVh);
-        float actualH = Mathf.Clamp(ScalePx(InnerPadTop) + contentH + ScalePx(InnerPadBottom), minH, slabH);
+        // FABLE-048: every card gets the same box — no more hugging the content
+        float actualH = slabH;
         Size = new Vector2(slabW, actualH);
         CustomMinimumSize = new Vector2(slabW, actualH);
         // FABLE-031: the box hugs its content (it used to be the full 440px whatever it held).
@@ -306,6 +342,9 @@ public partial class RulesSlab : Control
         _gradientRect.Position = new Vector2(4, 4);
         _gradientRect.Size = new Vector2(slabW - 8, slabH - 8);
 
+        // FABLE-048: the panel lays the column out — give it the padding as content margins
+        _faceStyle.ContentMarginLeft = padSide; _faceStyle.ContentMarginRight = padSide;
+        _faceStyle.ContentMarginTop = padTop; _faceStyle.ContentMarginBottom = ScalePx(InnerPadBottom);
         _vbox.Position = new Vector2(padSide, padTop);
         _vbox.Size = new Vector2(contentW, availH);
         // FABLE-031: wrap at the slab's width, not at the longest word (an artifact's short lines

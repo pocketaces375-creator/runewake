@@ -310,6 +310,14 @@ public partial class TutorialPopup : Control, ITutorialPresenter
             float my = _highlightMargins.Y;
             var framePos = new Vector2(targetRect.Position.X - mx, targetRect.Position.Y - my);
             var frameSize = new Vector2(targetRect.Size.X + mx * 2, targetRect.Size.Y + my * 2);
+            // FABLE-048: a control can say what SHAPE it is. The End Turn button is a quarter-disc in the
+            // bottom-right corner; ringing it with a square looked wrong. "quarter_br" = ring the curve only.
+            bool quarter = target.HasMeta("highlight_shape") && target.GetMeta("highlight_shape").AsString() == "quarter_br";
+            if (quarter)
+            {
+                framePos = new Vector2(targetRect.Position.X - mx, targetRect.Position.Y - my);
+                frameSize = new Vector2(targetRect.Size.X + mx, targetRect.Size.Y + my);   // flush with the screen corner
+            }
 
             // Create highlight outline as a PanelContainer with transparent fill
             // and a colored border via StyleBoxFlat
@@ -333,6 +341,14 @@ public partial class TutorialPopup : Control, ITutorialPresenter
                 CornerRadiusBottomLeft = 4,
                 CornerRadiusBottomRight = 4,
             };
+            if (quarter)
+            {
+                style.CornerRadiusTopLeft = Mathf.RoundToInt(Mathf.Min(frameSize.X, frameSize.Y));
+                style.CornerRadiusTopRight = 0; style.CornerRadiusBottomLeft = 0; style.CornerRadiusBottomRight = 0;
+                style.BorderWidthRight = 0; style.BorderWidthBottom = 0;
+                style.CornerDetail = 24;
+                style.AntiAliasing = true;
+            }
             panel.AddThemeStyleboxOverride("panel", style);
 
             AddChild(panel);

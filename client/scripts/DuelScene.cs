@@ -1979,6 +1979,7 @@ public partial class DuelScene : Control
         _endTurnButton.OffsetRight = 0;
         _endTurnButton.OffsetBottom = 0;
         _endTurnButton.CustomMinimumSize = new Vector2(r, r);
+        _endTurnButton.SetMeta("highlight_shape", "quarter_br");   // FABLE-048: tutorial rings the curve, not a square
 
         Label L(int px, Color c)
         {

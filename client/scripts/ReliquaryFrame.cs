@@ -32,8 +32,9 @@ public partial class ReliquaryFrame : Control
     private static readonly Color GoldDeep = Color.FromHtml("#6E5220");
     private static readonly Color GoldMid = Color.FromHtml("#C9A84C");
     private static readonly Color GoldHi = Color.FromHtml("#F3DE95");
-    private static readonly Color TealGem = Color.FromHtml("#43D6C8");
-    private static readonly Color CrimsonGem = Color.FromHtml("#E4504A");
+    // FABLE-048: Trikzos — "a cyan or purple hue/glow". Yours burn cyan, the enemy's violet.
+    private static readonly Color TealGem = Color.FromHtml("#3FE6F2");
+    private static readonly Color CrimsonGem = Color.FromHtml("#B46BFF");
     private static readonly Color Ash = Color.FromHtml("#6D6A66");
 
     /// <summary>0 = this phone's player (teal), 1 = the opponent (crimson).</summary>
@@ -126,7 +127,8 @@ public partial class ReliquaryFrame : Control
         _typeLabel.Text = occupied ? typeWord : "";
         // "Wand" under a WAND plaque says nothing twice — the name plaque only when it adds something.
         bool nameAddsInfo = occupied && !string.IsNullOrEmpty(name) && !name.Equals(typeWord, StringComparison.OrdinalIgnoreCase);
-        _nameLabel.Text = nameAddsInfo ? name : "";
+        _nameRaw = nameAddsInfo ? name : "";
+        _nameLabel.Text = _nameRaw;
         _nameLabel.Modulate = suppressed ? new Color(0.7f, 0.7f, 0.7f) : Colors.White;
         _typeLabel.Modulate = suppressed ? new Color(0.7f, 0.7f, 0.7f) : Colors.White;
     }
@@ -144,14 +146,19 @@ public partial class ReliquaryFrame : Control
     {
         var f = Font(_typeLabel);
         float tw = string.IsNullOrEmpty(_type) ? 0 : f.GetStringSize(_type, HorizontalAlignment.Left, -1, _typeLabel.GetThemeFontSize("font_size")).X;
-        float w = Mathf.Clamp(tw + 30f * S, 70f * S, Size.X - 10f * S);
+        // FABLE-048: the plaque may overhang the frame a little, and the word shrinks to fit (Layout) —
+        // "STARLIGHT" used to be clipped to "STARLIGH".
+        float w = Mathf.Clamp(tw + 30f * S, 70f * S, Size.X + 14f * S);
         float h = 30f * S;
         return new Rect2((Size.X - w) / 2f, -h * 0.42f, w, h);
     }
     private bool HasNameLine => !string.IsNullOrEmpty(_nameLabel?.Text);
+    private bool _nameTwoLines;
+    private string _nameRaw = "";
     private Rect2 NamePlaque()
     {
-        float h = (HasNameLine && _maxCharges > 0 ? 46f : 30f) * S;
+        float nameH = _nameTwoLines ? 44f : 28f;
+        float h = (HasNameLine ? nameH + (_maxCharges > 0 ? 16f : 2f) : 30f) * S;
         return new Rect2(Band + 2f * S, Size.Y - Band - h - 2f * S, Size.X - 2 * (Band + 2f * S), h);
     }
     private static Font Font(Label l) => l.GetThemeFont("font");
@@ -159,18 +166,54 @@ public partial class ReliquaryFrame : Control
     private void Layout()
     {
         if (_typeLabel == null) return;
+        // FABLE-048: the type word always fits its plaque (shrink before clipping)
+        {
+            int tpx = Mathf.RoundToInt(17 * S), tfloor = Mathf.RoundToInt(11 * S);
+            var tf = Font(_typeLabel);
+            float maxW = Size.X + 14f * S - 22f * S;
+            while (tpx > tfloor && !string.IsNullOrEmpty(_type) && tf.GetStringSize(_type, HorizontalAlignment.Left, -1, tpx).X > maxW) tpx--;
+            _typeLabel.AddThemeFontSizeOverride("font_size", tpx);
+            _typeLabel.ClipText = false;
+        }
+        // FABLE-048: a long name breaks onto two balanced lines instead of ending in "…".
+        // Explicit "\n" split with autowrap off: Label autowrap inside this hand-laid frame rendered blank.
+        {
+            var nf = Font(_nameLabel);
+            float innerW = Size.X - 2 * (Band + 2f * S) - 8f * S - 4f * S;
+            string raw = _nameRaw ?? "";
+            _nameTwoLines = raw.Contains(' ') && nf.GetStringSize(raw, HorizontalAlignment.Left, -1, Mathf.RoundToInt(13 * S)).X > innerW;
+            _nameLabel.Text = _nameTwoLines ? SplitBalanced(raw) : raw;
+            _nameLabel.AutowrapMode = TextServer.AutowrapMode.Off;
+            _nameLabel.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
+            _nameLabel.ClipText = false;
+        }
         var tp = TypePlaque();
         _typeLabel.Position = tp.Position;
         _typeLabel.Size = tp.Size;
         var np = NamePlaque();
-        float lineH = _maxCharges > 0 ? 28f * S : np.Size.Y;
+        float lineH = (_nameTwoLines ? 44f : 28f) * S;
         _nameLabel.Position = np.Position + new Vector2(4f * S, 1f * S);
         _nameLabel.Size = new Vector2(np.Size.X - 8f * S, lineH);
-        // the whole name, always: shrink the type before trimming it
-        int px = Mathf.RoundToInt(16 * S), floor = Mathf.RoundToInt(11 * S);
+        // the whole name, always: shrink before wrapping, wrap before trimming
+        int px = Mathf.RoundToInt(16 * S), floor = Mathf.RoundToInt(13 * S);
         var f = Font(_nameLabel);
-        while (px > floor && f.GetStringSize(_nameLabel.Text, HorizontalAlignment.Left, -1, px).X > _nameLabel.Size.X - 4f * S) px--;
+        if (_nameTwoLines) { px = Mathf.RoundToInt(15 * S); floor = Mathf.RoundToInt(11 * S); }
+        foreach (var line in _nameLabel.Text.Split('\n'))
+            while (px > floor && f.GetStringSize(line, HorizontalAlignment.Left, -1, px).X > _nameLabel.Size.X - 4f * S) px--;
         _nameLabel.AddThemeFontSizeOverride("font_size", px);
+    }
+
+    /// <summary>Break at the space that leaves the two lines closest in length.</summary>
+    private static string SplitBalanced(string s)
+    {
+        int best = -1, bestDiff = int.MaxValue;
+        for (int i = 0; i < s.Length; i++)
+        {
+            if (s[i] != ' ') continue;
+            int d = Math.Abs(i - (s.Length - i - 1));
+            if (d < bestDiff) { bestDiff = d; best = i; }
+        }
+        return best < 0 ? s : s[..best] + "\n" + s[(best + 1)..];
     }
 
     public override void _Process(double delta)
@@ -194,7 +237,7 @@ public partial class ReliquaryFrame : Control
         if (_occupied)
         {
             float breathe = motion ? 0.5f + 0.5f * Mathf.Sin((float)_t * 1.7f + Side * 1.3f) : 0.6f;
-            float strength = (_suppressed ? 0.10f : 0.22f + 0.16f * breathe) + (Full ? 0.25f : 0f) + _flash * 0.45f;
+            float strength = (_suppressed ? 0.10f : 0.34f + 0.20f * breathe) + (Full ? 0.25f : 0f) + _flash * 0.45f;
             for (int i = 1; i <= 14; i++)
             {
                 float g = i * 1.4f * S;
@@ -206,9 +249,10 @@ public partial class ReliquaryFrame : Control
 
         // ── the gilded band: bronze lip → gold → bright edge → gold, as nested chamfered lines ──
         var outer = new Rect2(Vector2.Zero, sz);
-        var gold = _suppressed ? Ash : GoldMid;
-        var hi = _suppressed ? Ash.Lightened(0.25f) : GoldHi.Lerp(Colors.White, _flash * 0.6f);
-        var deep = _suppressed ? Ash.Darkened(0.5f) : GoldDeep;
+        // FABLE-048: the metal itself is enchanted — gold drawn toward the side's hue (cyan / violet)
+        var gold = _suppressed ? Ash : GoldMid.Lerp(gem, 0.55f);
+        var hi = _suppressed ? Ash.Lightened(0.25f) : GoldHi.Lerp(gem.Lightened(0.55f), 0.6f).Lerp(Colors.White, _flash * 0.6f);
+        var deep = _suppressed ? Ash.Darkened(0.5f) : GoldDeep.Lerp(gem.Darkened(0.65f), 0.6f);
         DrawBand(outer, c, 0f, 2.2f * S, deep);
         DrawBand(outer, c, 2.0f * S, 2.6f * S, gold);
         DrawBand(outer, c, 4.2f * S, 1.4f * S, hi);
@@ -229,7 +273,7 @@ public partial class ReliquaryFrame : Control
             {
                 float a0 = head - tail * i / segs, a1 = head - tail * (i + 1) / segs;
                 float k = 1f - (float)i / segs;
-                DrawLine(PointAt(path, per, a0), PointAt(path, per, a1), new Color(1f, 0.97f, 0.85f, 0.85f * k * k), 2.6f * S * k + 0.6f, true);
+                DrawLine(PointAt(path, per, a0), PointAt(path, per, a1), new Color(gem.Lightened(0.7f).R, gem.Lightened(0.7f).G, gem.Lightened(0.7f).B, 0.9f * k * k), 2.6f * S * k + 0.6f, true);
             }
         }
 
