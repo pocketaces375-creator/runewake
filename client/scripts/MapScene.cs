@@ -18,6 +18,7 @@ public partial class MapScene : Control
 
     // Node info panel
     private Panel _infoPanel;
+    private Label _infoKind = null!;
     private Label _infoName;
     private Label _infoRewards;
     private Button _infoGoButton;
@@ -73,7 +74,8 @@ public partial class MapScene : Control
     private Vector2 _mapOffset;
 
     // TASK-MAP-INFOBOX-1: reserved info panel rectangle (normalized anchors)
-    private static readonly Vector4 InfoBoxAnchors = new(0.665f, 0.78f, 0.985f, 0.945f);
+    // FABLE-051: the left rail — its own column for the info card and the menu buttons
+    private const float RailFrac = 0.15f, RailPad = 0.01f, InfoBottom = 0.56f;
 
     // TASK-UI-READABLE-2: viewport height for scale helper
     private float _viewportHeight = 1080f;
@@ -599,8 +601,23 @@ public partial class MapScene : Control
 
     private void BuildSideButtons()
     {
-        float btnW = 0.13f;
-        float xL = 0.01f;
+        var rail = new ColorRect
+        {
+            Name = "LeftRail",
+            Color = new Color(0.07f, 0.055f, 0.04f, 0.97f),
+            AnchorLeft = 0f, AnchorRight = RailFrac, AnchorTop = 0.057f, AnchorBottom = 1f,
+            MouseFilter = MouseFilterEnum.Stop,   // taps on the rail never pan the map underneath
+        };
+        AddChild(rail);
+        AddChild(new ColorRect
+        {
+            Color = new Color(0.62f, 0.52f, 0.28f, 0.55f),
+            AnchorLeft = RailFrac, AnchorRight = RailFrac, AnchorTop = 0.057f, AnchorBottom = 1f,
+            OffsetRight = 2f, MouseFilter = MouseFilterEnum.Ignore,
+        });
+
+        float btnW = RailFrac - 2 * RailPad;
+        float xL = RailPad;
 
         // FABLE-020: once the starting lands are done, the way into the endless world.
         if (WorldService.Progress.CrossroadsOpen)
@@ -728,13 +745,15 @@ public partial class MapScene : Control
 
         // Auto-frame: fill the screen with the plate (cover), like the old
         // full-bleed background — but now the nodes are welded to the art.
+        // FABLE-051: the map lives to the right of the left rail.
         Vector2 viewport = GetViewportRect().Size;
-        float coverZoom = Mathf.Max(viewport.X / _plateSize.X, viewport.Y / _plateSize.Y);
-        float fitZoom = Mathf.Min(viewport.X / _plateSize.X, viewport.Y / _plateSize.Y);
+        var area = MapArea();
+        float coverZoom = Mathf.Max(area.Size.X / _plateSize.X, area.Size.Y / _plateSize.Y);
+        float fitZoom = Mathf.Min(area.Size.X / _plateSize.X, area.Size.Y / _plateSize.Y);
         _minZoom = fitZoom;                       // zoom out far enough to see the whole plate
         _zoom = Mathf.Clamp(coverZoom, _minZoom, MaxZoom);
 
-        _mapOffset = viewport / 2f;
+        _mapOffset = area.GetCenter();
         _mapContainer.Position = _mapOffset;
         _mapContainer.Scale = new Vector2(_zoom, _zoom);
         ClampPan();
@@ -744,21 +763,29 @@ public partial class MapScene : Control
     /// Keep the plate covering the viewport: no dead space past an edge while
     /// the plate is larger than the screen; center the axis when it is smaller.
     /// </summary>
+    /// <summary>FABLE-051: the part of the screen the map owns — everything right of the rail.</summary>
+    private Rect2 MapArea()
+    {
+        Vector2 vp = GetViewportRect().Size;
+        float left = vp.X * RailFrac;
+        return new Rect2(left, 0f, vp.X - left, vp.Y);
+    }
+
     private void ClampPan()
     {
-        Vector2 viewport = GetViewportRect().Size;
+        var area = MapArea();
         Vector2 half = _plateSize * _zoom / 2f;
         Vector2 pos = _mapContainer.Position;
 
-        if (half.X * 2f >= viewport.X)
-            pos.X = Mathf.Clamp(pos.X, viewport.X - half.X, half.X);
+        if (half.X * 2f >= area.Size.X)
+            pos.X = Mathf.Clamp(pos.X, area.End.X - half.X, area.Position.X + half.X);
         else
-            pos.X = viewport.X / 2f;
+            pos.X = area.GetCenter().X;
 
-        if (half.Y * 2f >= viewport.Y)
-            pos.Y = Mathf.Clamp(pos.Y, viewport.Y - half.Y, half.Y);
+        if (half.Y * 2f >= area.Size.Y)
+            pos.Y = Mathf.Clamp(pos.Y, area.End.Y - half.Y, area.Position.Y + half.Y);
         else
-            pos.Y = viewport.Y / 2f;
+            pos.Y = area.GetCenter().Y;
 
         _mapContainer.Position = pos;
     }
@@ -770,12 +797,11 @@ public partial class MapScene : Control
         // Bottom-RIGHT so it never overlaps the Forge/Rune Page/Settings
         // stack in the bottom-left. Sized to its content, not the map.
         _infoPanel = new Panel();
-        // FABLE-050: fixed size, placed by PlaceInfoPanel() wherever it covers no node, label or
-        // banner (it used to sit bottom-right over WARDEN A…, MERCHANT and the Silt-Reader label).
-        var vp0 = GetViewportRect().Size;
-        _infoPanel.Size = new Vector2((InfoBoxAnchors.Z - InfoBoxAnchors.X) * vp0.X * 0.86f, (InfoBoxAnchors.W - InfoBoxAnchors.Y) * vp0.Y);
-        _infoPanel.Position = new Vector2(vp0.X * InfoBoxAnchors.Z - _infoPanel.Size.X, vp0.Y * InfoBoxAnchors.Y);
-
+        // FABLE-051: the info card has its own place — the top of the left rail, above the
+        // Forge / Rune Page / Reliquary / Settings stack. The map is framed to the right of the
+        // rail, so the card can never sit on a node, a label or the region scroll.
+        _infoPanel.AnchorLeft = RailPad; _infoPanel.AnchorRight = RailFrac - RailPad;
+        _infoPanel.AnchorTop = 0.075f; _infoPanel.AnchorBottom = InfoBottom;
         var panelStyle = new StyleBoxFlat
         {
             BgColor = new Color(0.085f, 0.07f, 0.05f, 0.96f),
@@ -800,9 +826,15 @@ public partial class MapScene : Control
         infoVbox.AddThemeConstantOverride("separation", 2);
         _infoPanel.AddChild(infoVbox);
 
+        // FABLE-051: kicker line — what kind of place this is
+        _infoKind = new Label { HorizontalAlignment = HorizontalAlignment.Center, Text = "DESTINATION" };
+        ThemeTokens.ApplyHeaderFont(_infoKind, Mathf.RoundToInt(BodyFontPx() * 0.72f));
+        _infoKind.AddThemeColorOverride("font_color", new Color(0.62f, 0.55f, 0.40f, 0.95f));
+        infoVbox.AddChild(_infoKind);
+
         // Name — Cinzel gold
-        _infoName = new Label();
-        ThemeTokens.ApplyHeaderFont(_infoName, BodyFontPx());
+        _infoName = new Label { AutowrapMode = TextServer.AutowrapMode.Word, HorizontalAlignment = HorizontalAlignment.Center };
+        ThemeTokens.ApplyHeaderFont(_infoName, Mathf.RoundToInt(BodyFontPx() * 1.25f));
         _infoName.AddThemeColorOverride("font_color", new Color(0.9f, 0.82f, 0.55f, 1f));
         infoVbox.AddChild(_infoName);
 
@@ -826,18 +858,19 @@ public partial class MapScene : Control
         _infoRewards.AddThemeFontSizeOverride("font_size", BodyFontPx());
         _infoRewards.AddThemeColorOverride("font_color", new Color(0.65f, 0.72f, 0.5f, 0.95f));
         _infoRewards.AutowrapMode = TextServer.AutowrapMode.Word;
+        _infoRewards.HorizontalAlignment = HorizontalAlignment.Center;
         infoVbox.AddChild(_infoRewards);
 
         // Fixed spacer so button row sits just below content, not pushed to bottom
-        var spacer = new Control { CustomMinimumSize = new Vector2(0, 6) };
+        var spacer = new Control { CustomMinimumSize = new Vector2(0, 6), SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         infoVbox.AddChild(spacer);
 
-        var buttonRow = new HBoxContainer();
-        buttonRow.Alignment = BoxContainer.AlignmentMode.End;
-        buttonRow.AddThemeConstantOverride("separation", 10);
+        // FABLE-051: a narrow card, so the actions stack — the main one on the bottom, under the thumb
+        var buttonRow = new VBoxContainer();
+        buttonRow.AddThemeConstantOverride("separation", 8);
         infoVbox.AddChild(buttonRow);
 
-        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(100, 44) };
+        _infoCloseButton = new Button { Text = "Close", CustomMinimumSize = new Vector2(0, 40), SizeFlagsHorizontal = Control.SizeFlags.Fill };
         StyleButton(_infoCloseButton, goldText: false);
         _infoCloseButton.Pressed += () =>
         {
@@ -846,7 +879,7 @@ public partial class MapScene : Control
         };
         buttonRow.AddChild(_infoCloseButton);
 
-        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(150, 44) };
+        _infoGoButton = new Button { Text = "Challenge", CustomMinimumSize = new Vector2(0, 52), SizeFlagsHorizontal = Control.SizeFlags.Fill };
         StyleButton(_infoGoButton);
         // Go button: bright, clearly enabled styling so it doesn't read as disabled
         // against the dark info panel background
@@ -886,101 +919,6 @@ public partial class MapScene : Control
         SetIdleInfoState();
     }
 
-    // ── FABLE-050: keep the info box off the map's contents ──
-    private Vector2 _placedFor = new(float.NaN, float.NaN);
-    private float _placedZoom = float.NaN;
-
-    public override void _Process(double delta)
-    {
-        if (_infoPanel == null || _mapContainer == null) return;
-        // re-place only when the map moved/zoomed or the current spot became crowded
-        if (_mapContainer.Position == _placedFor && Mathf.IsEqualApprox(_mapContainer.Scale.X, _placedZoom)) return;
-        _placedFor = _mapContainer.Position; _placedZoom = _mapContainer.Scale.X;
-        PlaceInfoPanel();
-    }
-
-    private static Rect2 GlobalRectOf(Control c)
-    {
-        var xf = c.GetGlobalTransform();
-        var a = xf * Vector2.Zero; var b = xf * c.Size;
-        return new Rect2(new Vector2(Mathf.Min(a.X, b.X), Mathf.Min(a.Y, b.Y)), (b - a).Abs());
-    }
-
-    private List<Rect2> InfoObstacles()
-    {
-        var list = new List<Rect2>();
-        var vp = GetViewportRect().Size;
-        foreach (var icon in _nodeIcons.Values)
-        {
-            if (!IsInstanceValid(icon) || !icon.IsVisibleInTree()) continue;
-            var r = GlobalRectOf(icon);
-            var name = icon.GetNodeOrNull<Control>("NameLabel");
-            if (name != null)
-            {
-                // the label's text can run wider than its box — measure the string itself
-                var lr = GlobalRectOf(name);
-                if (name is Label l && l.GetThemeFont("font") is Font f)
-                {
-                    float tw = f.GetStringSize(l.Text, HorizontalAlignment.Left, -1, l.GetThemeFontSize("font_size")).X * _mapContainer.Scale.X;
-                    if (tw > lr.Size.X) lr = new Rect2(lr.GetCenter().X - tw / 2f, lr.Position.Y, tw, lr.Size.Y);
-                }
-                r = r.Merge(lr);
-            }
-            list.Add(r.Grow(6f));
-        }
-        // the region cartouche (the scroll art around the banner text)
-        if (_regionBanner != null && IsInstanceValid(_regionBanner))
-        {
-            var br = GlobalRectOf(_regionBanner);
-            float z = _mapContainer.Scale.X;
-            list.Add(new Rect2(br.Position - new Vector2(190f, 170f) * z, br.Size + new Vector2(380f, 230f) * z));
-        }
-        // the screen's own chrome: top bar, side buttons, deck label …
-        foreach (var node in GetChildren())
-        {
-            if (node is not Control c || c == _infoPanel || !c.Visible) continue;
-            var cr = c.GetGlobalRect();
-            if (cr.Size.X <= 0 || cr.Size.Y <= 0) continue;
-            if (cr.Size.X > vp.X * 0.6f && cr.Size.Y > vp.Y * 0.6f) continue;   // full-screen layers
-            list.Add(cr.Grow(4f));
-        }
-        return list;
-    }
-
-    private void PlaceInfoPanel()
-    {
-        var vp = GetViewportRect().Size;
-        var size = _infoPanel.Size;
-        float m = 14f;
-        float topBar = vp.Y * 0.065f;
-        var candidates = new[]
-        {
-            new Vector2(vp.X - size.X - m, vp.Y - size.Y - m),          // bottom-right
-            new Vector2((vp.X - size.X) / 2f, vp.Y - size.Y - m),        // bottom-centre
-            new Vector2(vp.X * 0.62f - size.X / 2f, vp.Y - size.Y - m),  // bottom, right of centre
-            new Vector2(vp.X - size.X - m, (vp.Y - size.Y) / 2f),        // right-middle
-            new Vector2(vp.X * 0.16f, topBar + m),                        // top-left, clear of the menu button
-            new Vector2((vp.X - size.X) / 2f, topBar + m),               // top-centre
-            new Vector2(vp.X * 0.16f, vp.Y - size.Y - m),               // bottom-left, beside the side buttons
-            new Vector2(vp.X * 0.16f, (vp.Y - size.Y) / 2f),            // left-middle
-        };
-        var obstacles = InfoObstacles();
-        Vector2 best = candidates[0]; float bestScore = float.MaxValue;
-        for (int i = 0; i < candidates.Length; i++)
-        {
-            var r = new Rect2(candidates[i], size);
-            float overlap = 0f;
-            foreach (var o in obstacles)
-            {
-                var x = r.Intersection(o);
-                overlap += x.Size.X * x.Size.Y;
-            }
-            float score = overlap * 10f + i;   // first clear spot in preference order wins
-            if (score < bestScore) { bestScore = score; best = candidates[i]; }
-        }
-        _infoPanel.Position = best;
-    }
-
     private void HideInfoPanel()
     {
         if (_selectedNodeId != null && _nodeIcons.TryGetValue(_selectedNodeId, out var icon))
@@ -992,6 +930,7 @@ public partial class MapScene : Control
     private void SetIdleInfoState()
     {
         _infoName.Text = "Select a destination";
+        _infoKind.Text = "THE MAP";
         _infoRewards.Text = "";
         _infoRewards.Hide();
         _infoGoButton.Disabled = true;
@@ -1121,11 +1060,23 @@ public partial class MapScene : Control
             displayName = (mapNode.Encounter ?? mapNode.Type.ToString()).Replace("_", " ");
 
         _infoName.Text = displayName;
+        _infoKind.Text = mapNode.Type switch
+        {
+            MapNodeType.Duel => "DUEL",
+            MapNodeType.Elite => "ELITE DUEL",
+            MapNodeType.Warden => "WARDEN",
+            MapNodeType.WardenBoss => "REGION WARDEN",
+            MapNodeType.Dig => "DIG SITE",
+            MapNodeType.Shrine => "SHRINE · REST",
+            MapNodeType.Cache => "CACHE",
+            MapNodeType.Merchant => "MERCHANT · TRADE",
+            _ => "DESTINATION",
+        };
 
         // Rewards — hide when none, show pretty list when present
         if (mapNode.Rewards is { Count: > 0 })
         {
-            _infoRewards.Text = "Rewards:  " + string.Join("  ·  ", mapNode.Rewards.Select(PrettifyReward));
+            _infoRewards.Text = "Rewards\n" + string.Join("\n", mapNode.Rewards.Select(PrettifyReward));   // FABLE-051: one per line in the narrow card
             _infoRewards.Show();
         }
         else
@@ -1244,7 +1195,7 @@ public partial class MapScene : Control
         if (@event is InputEventMouseButton mouseBtn)
         {
             bool panButton = mouseBtn.ButtonIndex == MouseButton.Middle || mouseBtn.ButtonIndex == MouseButton.Right;
-            if (panButton && mouseBtn.Pressed && !_infoPanel.GetGlobalRect().HasPoint(mouseBtn.Position))
+            if (panButton && mouseBtn.Pressed && !_infoPanel.GetGlobalRect().HasPoint(mouseBtn.Position) && mouseBtn.Position.X > GetViewportRect().Size.X * RailFrac)
             {
                 _dragStart = mouseBtn.Position;
                 _containerStartPos = _mapContainer.Position;
@@ -1313,8 +1264,8 @@ public partial class MapScene : Control
         if (!_tap.Accept(@event)) return;
 
         // Don't handle taps on the info panel
-        if (_infoPanel.GetGlobalRect().HasPoint(screenPos))
-            return;
+        if (_infoPanel.GetGlobalRect().HasPoint(screenPos) || screenPos.X <= GetViewportRect().Size.X * RailFrac)
+            return;   // FABLE-051: the rail is not map
 
         // Convert screen position to map container local coordinates
         // ToLocal already accounts for the Node2D's position and scale
