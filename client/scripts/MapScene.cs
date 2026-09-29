@@ -770,10 +770,11 @@ public partial class MapScene : Control
         // Bottom-RIGHT so it never overlaps the Forge/Rune Page/Settings
         // stack in the bottom-left. Sized to its content, not the map.
         _infoPanel = new Panel();
-        _infoPanel.AnchorLeft = InfoBoxAnchors.X;
-        _infoPanel.AnchorRight = InfoBoxAnchors.Z;
-        _infoPanel.AnchorTop = InfoBoxAnchors.Y;
-        _infoPanel.AnchorBottom = InfoBoxAnchors.W;
+        // FABLE-050: fixed size, placed by PlaceInfoPanel() wherever it covers no node, label or
+        // banner (it used to sit bottom-right over WARDEN A…, MERCHANT and the Silt-Reader label).
+        var vp0 = GetViewportRect().Size;
+        _infoPanel.Size = new Vector2((InfoBoxAnchors.Z - InfoBoxAnchors.X) * vp0.X * 0.86f, (InfoBoxAnchors.W - InfoBoxAnchors.Y) * vp0.Y);
+        _infoPanel.Position = new Vector2(vp0.X * InfoBoxAnchors.Z - _infoPanel.Size.X, vp0.Y * InfoBoxAnchors.Y);
 
         var panelStyle = new StyleBoxFlat
         {
@@ -883,6 +884,101 @@ public partial class MapScene : Control
         buttonRow.AddChild(_infoGoButton);
 
         SetIdleInfoState();
+    }
+
+    // ── FABLE-050: keep the info box off the map's contents ──
+    private Vector2 _placedFor = new(float.NaN, float.NaN);
+    private float _placedZoom = float.NaN;
+
+    public override void _Process(double delta)
+    {
+        if (_infoPanel == null || _mapContainer == null) return;
+        // re-place only when the map moved/zoomed or the current spot became crowded
+        if (_mapContainer.Position == _placedFor && Mathf.IsEqualApprox(_mapContainer.Scale.X, _placedZoom)) return;
+        _placedFor = _mapContainer.Position; _placedZoom = _mapContainer.Scale.X;
+        PlaceInfoPanel();
+    }
+
+    private static Rect2 GlobalRectOf(Control c)
+    {
+        var xf = c.GetGlobalTransform();
+        var a = xf * Vector2.Zero; var b = xf * c.Size;
+        return new Rect2(new Vector2(Mathf.Min(a.X, b.X), Mathf.Min(a.Y, b.Y)), (b - a).Abs());
+    }
+
+    private List<Rect2> InfoObstacles()
+    {
+        var list = new List<Rect2>();
+        var vp = GetViewportRect().Size;
+        foreach (var icon in _nodeIcons.Values)
+        {
+            if (!IsInstanceValid(icon) || !icon.IsVisibleInTree()) continue;
+            var r = GlobalRectOf(icon);
+            var name = icon.GetNodeOrNull<Control>("NameLabel");
+            if (name != null)
+            {
+                // the label's text can run wider than its box — measure the string itself
+                var lr = GlobalRectOf(name);
+                if (name is Label l && l.GetThemeFont("font") is Font f)
+                {
+                    float tw = f.GetStringSize(l.Text, HorizontalAlignment.Left, -1, l.GetThemeFontSize("font_size")).X * _mapContainer.Scale.X;
+                    if (tw > lr.Size.X) lr = new Rect2(lr.GetCenter().X - tw / 2f, lr.Position.Y, tw, lr.Size.Y);
+                }
+                r = r.Merge(lr);
+            }
+            list.Add(r.Grow(6f));
+        }
+        // the region cartouche (the scroll art around the banner text)
+        if (_regionBanner != null && IsInstanceValid(_regionBanner))
+        {
+            var br = GlobalRectOf(_regionBanner);
+            float z = _mapContainer.Scale.X;
+            list.Add(new Rect2(br.Position - new Vector2(190f, 170f) * z, br.Size + new Vector2(380f, 230f) * z));
+        }
+        // the screen's own chrome: top bar, side buttons, deck label …
+        foreach (var node in GetChildren())
+        {
+            if (node is not Control c || c == _infoPanel || !c.Visible) continue;
+            var cr = c.GetGlobalRect();
+            if (cr.Size.X <= 0 || cr.Size.Y <= 0) continue;
+            if (cr.Size.X > vp.X * 0.6f && cr.Size.Y > vp.Y * 0.6f) continue;   // full-screen layers
+            list.Add(cr.Grow(4f));
+        }
+        return list;
+    }
+
+    private void PlaceInfoPanel()
+    {
+        var vp = GetViewportRect().Size;
+        var size = _infoPanel.Size;
+        float m = 14f;
+        float topBar = vp.Y * 0.065f;
+        var candidates = new[]
+        {
+            new Vector2(vp.X - size.X - m, vp.Y - size.Y - m),          // bottom-right
+            new Vector2((vp.X - size.X) / 2f, vp.Y - size.Y - m),        // bottom-centre
+            new Vector2(vp.X * 0.62f - size.X / 2f, vp.Y - size.Y - m),  // bottom, right of centre
+            new Vector2(vp.X - size.X - m, (vp.Y - size.Y) / 2f),        // right-middle
+            new Vector2(vp.X * 0.16f, topBar + m),                        // top-left, clear of the menu button
+            new Vector2((vp.X - size.X) / 2f, topBar + m),               // top-centre
+            new Vector2(vp.X * 0.16f, vp.Y - size.Y - m),               // bottom-left, beside the side buttons
+            new Vector2(vp.X * 0.16f, (vp.Y - size.Y) / 2f),            // left-middle
+        };
+        var obstacles = InfoObstacles();
+        Vector2 best = candidates[0]; float bestScore = float.MaxValue;
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            var r = new Rect2(candidates[i], size);
+            float overlap = 0f;
+            foreach (var o in obstacles)
+            {
+                var x = r.Intersection(o);
+                overlap += x.Size.X * x.Size.Y;
+            }
+            float score = overlap * 10f + i;   // first clear spot in preference order wins
+            if (score < bestScore) { bestScore = score; best = candidates[i]; }
+        }
+        _infoPanel.Position = best;
     }
 
     private void HideInfoPanel()
