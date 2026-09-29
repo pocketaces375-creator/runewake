@@ -32,9 +32,8 @@ public partial class ReliquaryFrame : Control
     private static readonly Color GoldDeep = Color.FromHtml("#6E5220");
     private static readonly Color GoldMid = Color.FromHtml("#C9A84C");
     private static readonly Color GoldHi = Color.FromHtml("#F3DE95");
-    // FABLE-048: Trikzos — "a cyan or purple hue/glow". Yours burn cyan, the enemy's violet.
+    // FABLE-048/049: every artifact burns cyan, both sides.
     private static readonly Color TealGem = Color.FromHtml("#3FE6F2");
-    private static readonly Color CrimsonGem = Color.FromHtml("#B46BFF");
     private static readonly Color Ash = Color.FromHtml("#6D6A66");
 
     /// <summary>0 = this phone's player (teal), 1 = the opponent (crimson).</summary>
@@ -137,7 +136,8 @@ public partial class ReliquaryFrame : Control
     public void Flash() => _flash = 1f;
 
     private bool Full => _maxCharges > 0 && _charges >= _maxCharges && !_suppressed;
-    private Color Gem => _suppressed ? Ash : Side == 0 ? TealGem : CrimsonGem;
+    // FABLE-049: every artifact glows cyan — both sides (Trikzos: "Both should be cyan").
+    private Color Gem => _suppressed ? Ash : TealGem;
 
     // ── geometry shared by Layout and _Draw ──
     private float Band => 9f * S;                          // gilded band thickness

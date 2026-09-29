@@ -423,6 +423,20 @@ public partial class TutorialCoach : Control
                 ShadowColor = new Color(0.98f, 0.80f, 0.30f, 0.35f),
                 ShadowSize = Px(10),
             };
+            // FABLE-049: a target can declare its shape. The End Turn dial is a quarter-disc tucked
+            // into the bottom-right corner; the square frame sat over it as a pale box.
+            if (IsQuarter(t))
+            {
+                style.CornerRadiusTopRight = 0; style.CornerRadiusBottomLeft = 0; style.CornerRadiusBottomRight = 0;
+                style.BorderWidthRight = 0; style.BorderWidthBottom = 0;
+                style.CornerDetail = 32;
+                style.AntiAliasing = true;
+                // StyleBoxFlat paints its shadow as a FILLED shape under a see-through panel, so the
+                // glow tinted the whole dial pale yellow. The ring alone, a little heavier, reads better.
+                style.ShadowSize = 0;
+                int w = Px(FrameThickness) + Px(2);
+                style.BorderWidthLeft = w; style.BorderWidthTop = w;
+            }
             // Panel, not PanelContainer: the frame has no children and its rect is set by
             // hand every frame, so a container's own layout pass can only fight us.
             var frame = new Panel { MouseFilter = MouseFilterEnum.Ignore, ZIndex = 5 };
@@ -499,9 +513,18 @@ public partial class TutorialCoach : Control
             frame.PivotOffset = Vector2.Zero;   // rotate about the top-left we just mapped
             frame.Position = rel * new Vector2(-m, -m);
             frame.Size = new Vector2(size.X + 2 * m, size.Y + 2 * m);
+            if (IsQuarter(target))
+            {
+                // flush with the screen corner: grow up and left only, and round the whole top-left
+                frame.Size = new Vector2(size.X + m, size.Y + m);
+                _frameStyles[i].CornerRadiusTopLeft = Mathf.RoundToInt(Mathf.Min(frame.Size.X, frame.Size.Y));
+            }
             _frameStyles[i].BorderColor = col;
         }
     }
+
+    private static bool IsQuarter(Control c) =>
+        c.HasMeta("highlight_shape") && c.GetMeta("highlight_shape").AsString() == "quarter_br";
 
     public override void _ExitTree()
     {
