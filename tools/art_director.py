@@ -609,6 +609,10 @@ def cmd_render(a):
             gen = models[i % len(models)]
             out = WORK / f"{card['id']}_{i + 1}.png"
             def paint(prompt):
+                # FABLE-STYLE: "lora" paints with the trained house style, "refs" with example images attached (tools/style_lora.py)
+                if gen in ("lora", "refs"):
+                    import style_lora  # noqa: E402
+                    return style_lora.paint_lora(prompt, out) if gen == "lora" else style_lora.paint_refs(prompt, out)
                 return (gia.via_images(prompt, str(out), GENERATORS[gen], 832, 1216) if gen == "flux"
                         else gia.via_chat(prompt, str(out), GENERATORS.get(gen, gen), "2:3"))
             if a.mock:
