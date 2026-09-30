@@ -1,0 +1,19 @@
+{
+ "trigger": "rnwk style",
+ "models": [],
+ "active": null,
+ "refs": [],
+ "style_guide": {
+  "clause": "painterly digital illustration, oil on canvas emulation, matte finish, visible expressive brushwork, dramatic chiaroscuro lighting, strong value contrast, glowing rim light, desaturated color palette with a single vibrant saturated accent color, strong atmospheric perspective, high detail in focal point",
+  "drifts": [
+   "The painting looks too clean, polished, or digital, lacking the intended painterly feel and subtle canvas texture.",
+   "The lighting is too flat or ambient, missing the strong directional source, deep shadows, and high contrast needed for drama.",
+   "Detail is too uniform across the image, which flattens the composition instead of guiding the eye to a sharp focal point.",
+   "The color palette is chaotic or uniformly saturated, failing to use a muted base to make a key accent color pop."
+  ],
+  "enabled": false,
+  "images": 24,
+  "model": "google/gemini-2.5-pro",
+  "made": "2026-09-30 09:12"
+ }
+}
