@@ -106,7 +106,13 @@ public partial class CardPlate : Control
             string ip = $"res://content/art/cards_baked/{cardId}.webp";
             var tex = ResourceLoader.Exists(ip) ? ResourceLoader.Load<Texture2D>(ip) : null;
             if (tex != null) _baked.Texture = tex;
-            else GD.PrintErr($"[BAKE] no baked art for {cardId}");
+            else
+            {
+                // FABLE-COOP-1: never keep the previous card's face. A Familiar token (no bake) summoned
+                // into a lane that last held, say, a Brine Scout used to show the Brine Scout.
+                _baked.Texture = null;
+                GD.PrintErr($"[BAKE] no baked art for {cardId}");
+            }
         }
 
         var atk = ArrayOf(cardId, "attack_num", 3);

@@ -83,6 +83,8 @@ public sealed class SeatBoard
     /// <summary>They beat their copy of the enemy.</summary>
     public bool Won => State.IsGameOver && State.WinnerIndex == 0;
     public bool Active => !State.IsGameOver;
+    /// <summary>FABLE-COOP-1: they gave up this board (it counts as out).</summary>
+    public bool Conceded { get; internal set; }
     /// <summary>Moves applied this round, for replay/verification.</summary>
     public int ActionsThisRound { get; internal set; }
 }
@@ -94,6 +96,8 @@ public sealed class Expedition
     private readonly List<SeatBoard> _boards = new();
     /// <summary>Each board's enemy Vigor when the round began — the pool is charged for everything below it.</summary>
     private readonly Dictionary<int, int> _enemyVigorAtRoundStart = new();
+    /// <summary>FABLE-COOP-1: seats that gave up after already ending this round's turn — they drop out as the round resolves.</summary>
+    private readonly SortedSet<int> _concedeAtRoundEnd = new();
 
     public int Round { get; private set; } = 1;
     public int? PoolRemaining { get; private set; }
@@ -168,6 +172,50 @@ public sealed class Expedition
         return true;
     }
 
+    /// <summary>
+    /// FABLE-COOP-1: a player gives up their board. Their board is out (a loss for them, exactly
+    /// like being knocked out); the team fights on, and loses only if nobody is left standing.
+    ///
+    /// Deterministic on every phone, however the channel orders things: a concede made BEFORE the
+    /// player ended this round's turn takes effect at once (the round cannot resolve without that
+    /// seat, so every phone applies it before the round resolves). A concede made AFTER they ended
+    /// their turn takes effect as the round resolves, after the enemies act — a phone that only
+    /// hears of it once the round has already resolved (<paramref name="round"/> &lt; Round) applies
+    /// it then, which is the same state. Allowed after the expedition is decided too (it then only
+    /// marks the board), so every phone ends with the same boards.
+    /// </summary>
+    public bool Concede(int seat, int round, out string error)
+    {
+        error = "";
+        var board = _boards.FirstOrDefault(b => b.Seat.Seat == seat);
+        if (board == null) { error = $"no seat {seat}"; return false; }
+        if (round > Round) { error = $"concede for round {round}, expedition is on round {Round}"; return false; }
+        if (!board.Active) { error = "that player is already out of the fight"; return false; }
+        if (round == Round && board.EndedTurn && Outcome == ExpeditionOutcome.Running)
+        {
+            _concedeAtRoundEnd.Add(seat);
+            return true;
+        }
+        DropOut(board);
+        CheckOutcome();
+        if (Outcome == ExpeditionOutcome.Running && _boards.Any(b => b.Active) && _boards.Where(b => b.Active).All(b => b.EndedTurn))
+            ResolveRound();
+        return true;
+    }
+
+    /// <summary>FABLE-COOP-1: true once this seat has given up (applied, or waiting for the round to resolve).</summary>
+    public bool HasConceded(int seat) => _concedeAtRoundEnd.Contains(seat) || _boards.Any(b => b.Seat.Seat == seat && b.Conceded);
+
+    private static void DropOut(SeatBoard board)
+    {
+        var s = board.State.Clone();
+        s.IsGameOver = true;
+        s.WinnerIndex = 1;
+        board.State = s;
+        board.EndedTurn = true;
+        board.Conceded = true;
+    }
+
     /// <summary>Everyone still standing has ended their turn: every enemy acts, the pool settles.</summary>
     private void ResolveRound()
     {
@@ -202,6 +250,19 @@ public sealed class Expedition
             }
         }
 
+        // FABLE-COOP-1: the round's hash is taken HERE — after the enemies acted and the pool settled,
+        // before anyone who gave up mid-round drops out. A phone that hears of such a concede only
+        // after the round resolved takes the same hash, so the two phones still agree.
+        LastResolvedHash = Hash();
+
+        // FABLE-COOP-1: players who gave up after ending their turn drop out now, after the enemies acted.
+        foreach (var seat in _concedeAtRoundEnd)
+        {
+            var b = _boards.First(x => x.Seat.Seat == seat);
+            if (b.Active) DropOut(b);
+        }
+        _concedeAtRoundEnd.Clear();
+
         CheckOutcome();
         Round++;
         foreach (var b in _boards)
@@ -230,6 +291,9 @@ public sealed class Expedition
                 break;
         }
     }
+
+    /// <summary>FABLE-COOP-1: <see cref="Hash"/> as the last round resolved (see ResolveRound). Lockstep compares this per round.</summary>
+    public ulong LastResolvedHash { get; private set; }
 
     /// <summary>One number for the whole expedition. Phones compare it every round to catch a desync.</summary>
     public ulong Hash()

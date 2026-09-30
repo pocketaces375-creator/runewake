@@ -13,7 +13,9 @@ namespace Runewake.Client;
 /// defeat screen as any loss (Try again / Back to the map), and every exit path, save and
 /// telemetry hook that already works for a loss works for this.
 ///
-/// Not offered on a co-op board (the expedition decides the outcome for everyone at that table).
+/// FABLE-COOP-1: offered on a co-op board too (Trikzos: "No concede button anywhere for this version
+/// mode of the game"). There it gives up YOUR board only — your allies fight on — and it sits at the
+/// foot of the co-op tabs on the left edge. The expedition carries the concede to every phone.
 /// </summary>
 public partial class DuelScene
 {
@@ -25,13 +27,16 @@ public partial class DuelScene
     {
         // FABLE-041: offered in the guided first duel too (Trikzos: "the game needs the concede
         // button"); the coach's Skip link hides with the coach, which left no way out at all.
-        if (CoopSession.Current != null) return;
         float s = GetViewportRect().Size.Y / 1080f;
+        // FABLE-046: the middle of the left edge, between the two artifact pairs — the symmetric spot.
+        // FABLE-COOP-1: in co-op the tabs take that band, so it sits at the foot of the band instead.
+        float y = CoopSession.Current != null
+            ? CoopOverlay.BandBottom(GetViewportRect().Size.Y, s) - 60f * s
+            : GetViewportRect().Size.Y / 2f - 30f * s;
         _concedeBtn = new Button
         {
             Name = "ConcedeButton", Text = "⚑  Concede", FocusMode = FocusModeEnum.None,
-            // FABLE-046: the middle of the left edge, between the two artifact pairs — the symmetric spot.
-            Position = new Vector2(22f * s, GetViewportRect().Size.Y / 2f - 30f * s), Size = new Vector2(196f * s, 60f * s),
+            Position = new Vector2(22f * s, y), Size = new Vector2(196f * s, 60f * s),
             CustomMinimumSize = new Vector2(196f * s, 60f * s),
             MouseFilter = MouseFilterEnum.Stop, ZIndex = 60,
         };
@@ -54,7 +59,10 @@ public partial class DuelScene
 
     private void ShowConcedeConfirm()
     {
-        if (_concedeConfirm != null || _gsm == null || _gsm.IsGameOver) return;
+        bool coop = CoopSession.Current != null;
+        if (_concedeConfirm != null || _gsm == null || _conceded) return;
+        // co-op: your own board may already be out (knocked out) — conceding then just leaves the fight
+        if (coop ? GetNodeOrNull<CoopOverlay>("CoopOverlay")?.CanConcede != true : _gsm.IsGameOver) return;
         var vp = GetViewportRect().Size;
         float s = vp.Y / 1080f;
 
@@ -103,8 +111,9 @@ public partial class DuelScene
             col.AddChild(l);
             return l;
         }
-        L("Concede the duel?", GetCardNameFont((int)(52 * s)), (int)(52 * s), Color.FromHtml("#E4C7A0"));
-        L("It counts as a loss, and this fight's rewards are forfeited. You can try it again straight away.",
+        L(coop ? "Leave the fight?" : "Concede the duel?", GetCardNameFont((int)(52 * s)), (int)(52 * s), Color.FromHtml("#E4C7A0"));
+        L(coop ? "You give up your board and it counts as a loss for you. Your allies fight on without you."
+               : "It counts as a loss, and this fight's rewards are forfeited. You can try it again straight away.",
             GetBodyFont((int)(28 * s)), (int)(28 * s), TextSecondary);
 
         var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
@@ -149,13 +158,23 @@ public partial class DuelScene
     private void Concede()
     {
         CloseConcedeConfirm();
-        if (_gsm == null || _gsm.IsGameOver) return;
+        if (_gsm == null || _conceded) return;
+        if (CoopSession.Current == null && _gsm.IsGameOver) return;
         _conceded = true;
         ExitTrace("concede: player conceded the duel");
         if (_concedeBtn != null) _concedeBtn.Visible = false;
         // In the guided first duel, stand the tutorial down first so its restrictions and coach
         // don't sit over the defeat screen (and the tutorial counts as done).
         if (_isTutorialScriptMode && _tutorialRunner != null) _tutorialRunner.SkipTutorial();
+        if (CoopSession.Current != null)
+        {
+            // FABLE-COOP-1: never _gsm.Concede in co-op — the board state belongs to the expedition, and
+            // editing it here would put this phone out of step with the others. The overlay concedes
+            // through the expedition and then shows the loss.
+            EndSpectate();
+            GetNodeOrNull<CoopOverlay>("CoopOverlay")?.ConcedeLocal();
+            return;
+        }
         _gsm.Concede(0);
     }
 }

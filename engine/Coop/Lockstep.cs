@@ -11,7 +11,9 @@ namespace Runewake.Engine.Coop;
 /// FABLE-020: one message on the expedition's Realtime channel ("exp:&lt;id&gt;").
 ///   t="move"  a player's move: seat, round, per-seat sequence number, action
 ///   t="hash"  after a round resolves: that phone's Expedition.Hash()
-///   t="leave" a player disconnected / gave up (their board is treated as out)
+///   t="leave" a player disconnected (older builds; their End Turn is taken for them once)
+///   t="concede" FABLE-COOP-1: a player gave up their board — in their move sequence (seq), so every
+///               phone applies it in the same place relative to that player's moves
 /// </summary>
 public sealed class NetMessage
 {
@@ -98,6 +100,22 @@ public sealed class LockstepSession
         return true;
     }
 
+    /// <summary>
+    /// FABLE-COOP-1: the local player gives up their board. Applied here at once and broadcast in
+    /// this player's move sequence. The team fights on without them.
+    /// </summary>
+    public bool LocalConcede(out string error)
+    {
+        int round = _exp.Round;
+        if (!_exp.Concede(_me, round, out error)) return false;
+        var msg = new NetMessage { Type = "concede", Seat = _me, Round = round, Seq = _mySeq++ };
+        _nextSeq[_me] = _mySeq;
+        Outbound?.Invoke(msg.ToJson());
+        AfterApply(round);
+        Drain();
+        return true;
+    }
+
     /// <summary>A payload arrived from the channel.</summary>
     public void Receive(string json)
     {
@@ -106,6 +124,7 @@ public sealed class LockstepSession
         switch (m.Type)
         {
             case "move":
+            case "concede":
                 if (!_pending.ContainsKey(m.Seat)) return;
                 _pending[m.Seat][m.Seq] = m;
                 Drain();
@@ -141,6 +160,14 @@ public sealed class LockstepSession
                     if (m.Round > _exp.Round) break;            // their next round: wait for ours
                     queue.Remove(m.Seq);
                     _nextSeq[seat]++;
+                    if (m.Type == "concede")
+                    {
+                        int r0 = _exp.Round;
+                        _exp.Concede(seat, m.Round, out _);
+                        AfterApply(r0);
+                        progressed = true;
+                        continue;
+                    }
                     var a = m.ReadAction();
                     if (a == null) continue;
                     int before = _exp.Round;
@@ -156,7 +183,8 @@ public sealed class LockstepSession
     private void AfterApply(int roundBefore)
     {
         if (_exp.Round == roundBefore && _exp.Outcome == ExpeditionOutcome.Running) return;
-        ulong h = _exp.Hash();
+        // FABLE-COOP-1: a resolved round is compared by the hash taken as it resolved (see Expedition.Concede).
+        ulong h = _exp.Round != roundBefore ? _exp.LastResolvedHash : _exp.Hash();
         _myHashes[roundBefore] = h;
         Outbound?.Invoke(new NetMessage { Type = "hash", Seat = _me, Round = roundBefore, Hash = h.ToString() }.ToJson());
         foreach (var seat in _exp.Boards.Select(b => b.Seat.Seat)) Compare(roundBefore, seat);

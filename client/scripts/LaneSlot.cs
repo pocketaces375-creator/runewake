@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
 using static ThemeTokens;
@@ -176,8 +177,22 @@ public partial class LaneSlot : PanelContainer
 
         LoadArt(cardDefId);
 
+        // FABLE-COOP-1: a card with no baked face (tokens like the Familiar) shows its name and stats
+        // in words instead of a blank tile.
+        if (!ResourceLoader.Exists($"res://content/art/cards_baked/{cardDefId}.webp"))
+        {
+            _noArtLabel.Visible = true;
+            _noArtLabel.Text = $"{(string.IsNullOrEmpty(name) || name == cardDefId ? PrettyTokenName(cardDefId) : name)}\n{attack} / {vigor}";
+        }
+
         // Visual: exhausted creatures get subtle desaturation
         Modulate = isExhausted ? new Color(0.85f, 0.85f, 0.85f, 1f) : Colors.White;
+    }
+
+    private static string PrettyTokenName(string id)
+    {
+        var t = id.StartsWith("tok_") ? id[4..] : id;
+        return string.Join(' ', t.Split('_', System.StringSplitOptions.RemoveEmptyEntries).Select(w => char.ToUpperInvariant(w[0]) + w[1..]));
     }
 
     private void LoadArt(string cardDefId)

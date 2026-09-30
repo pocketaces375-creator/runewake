@@ -53,6 +53,20 @@ public sealed class CoopSession
         return Local.State;
     }
 
+    /// <summary>
+    /// FABLE-COOP-1: the player gives up their board. Allies fight on; over the network the concede
+    /// goes out in this player's move sequence so every phone applies it in the same place.
+    /// </summary>
+    public bool Concede()
+    {
+        if (Expedition.HasConceded(LocalSeat) || !Local.Active) return false;
+        bool ok = Network != null
+            ? Network.LocalConcede(out var err)
+            : Expedition.Concede(LocalSeat, Expedition.Round, out err);
+        if (!ok) GD.PrintErr($"[Coop] concede refused: {err}");
+        return ok;
+    }
+
     /// <summary>One AI move for one AI seat that still has to act this round. False = nothing to do.</summary>
     public bool StepAi()
     {

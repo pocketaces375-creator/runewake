@@ -133,20 +133,47 @@ public sealed class OnlineMatch
         return Coop?.SubmitLocal(action);
     }
 
+    /// <summary>FABLE-COOP-1: send what is queued now (a co-op concede) instead of on the next poll.</summary>
+    public void FlushOutbound() => FlushNow();
+
     public void ConcedeLocal()
     {
         Pvp?.LocalConcede();
         FlushNow();
     }
 
-    /// <summary>Called when the duel scene is left: say goodbye, report the result if we know it.</summary>
+    /// <summary>
+    /// Called when the duel scene is left: say goodbye, report the result if we know it.
+    /// FABLE-COOP-1: in co-op, leaving mid-fight gives up this player's board, so the allies'
+    /// round no longer waits for a phone that has gone. The goodbye is sent AFTER everything
+    /// queued (the concede included) has reached the server — the per-frame pump stops with
+    /// the scene, so a flush that lost the race with an exchange in flight used to drop it.
+    /// </summary>
     public void LeaveMatch()
     {
         if (Pvp != null && !Pvp.State.IsGameOver) Pvp.LocalLeave();
-        FlushNow();
-        _ = _sync.Leave(_session, ExpeditionId);
+        if (Coop != null && Coop.Expedition.Outcome == ExpeditionOutcome.Running) Coop.Concede();
+        _ = FinalFlushThenLeave();
         if (Current == this) Current = null;
         if (Coop != null && CoopSession.Current == Coop) CoopSession.Current = null;
+    }
+
+    /// <summary>No nodes touched (FABLE-019d): waits out an exchange in flight, sends the rest, then leaves.</summary>
+    private async Task FinalFlushThenLeave()
+    {
+        try
+        {
+            for (int i = 0; i < 3 && !_outbound.IsEmpty; i++)
+            {
+                int wait = 0;
+                while (System.Threading.Interlocked.CompareExchange(ref _inFlight, 1, 0) != 0 && wait++ < 50)
+                    await Task.Delay(100).ConfigureAwait(false);
+                if (wait > 50) break;
+                await Exchange(false).ConfigureAwait(false);   // releases _inFlight when done
+            }
+        }
+        catch (Exception ex) { GD.PrintErr($"[Online] final flush: {ex.Message}"); }
+        await _sync.Leave(_session, ExpeditionId).ConfigureAwait(false);
     }
 
     public void ReportResult(bool iWon)
@@ -195,7 +222,8 @@ public sealed class OnlineMatch
         }
         else if (Coop != null)
         {
-            Status = Coop.Local.EndedTurn ? "Waiting for your allies…" : "Your move";
+            Status = Coop.Expedition.HasConceded(LocalSeat) ? "You left the fight — your allies fight on"
+                   : Coop.Local.EndedTurn ? "Waiting for your allies…" : "Your move";
         }
         OpponentGone = _opponentSecondsAgo > 90;
     }

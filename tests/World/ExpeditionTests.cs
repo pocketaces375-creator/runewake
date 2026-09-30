@@ -203,6 +203,86 @@ public class ExpeditionTests
     }
 
     [Fact]
+    public void A_Player_Who_Concedes_Is_Out_And_The_Team_Fights_On()
+    {
+        // FABLE-COOP-1: giving up in co-op knocks only your own board out.
+        var x = new Expedition(Config(2, WinRule.AnySeatWins, seed: 7), EnemyAi);
+        Assert.True(x.Concede(1, x.Round, out var err), err);
+        Assert.True(x.Board(1).IsOut);
+        Assert.True(x.Board(1).Conceded);
+        Assert.Equal(ExpeditionOutcome.Running, x.Outcome);
+        Assert.False(x.Submit(1, x.Round, new EndTurnAction { PlayerIndex = 0 }, out _), "a player who gave up cannot act");
+        Assert.False(x.Concede(1, x.Round, out _), "cannot give up twice");
+        int r = x.Round;
+        PlayRound(x);                                     // the round no longer waits for seat 1
+        Assert.True(x.Round > r || x.Outcome != ExpeditionOutcome.Running);
+        Assert.True(x.Concede(0, x.Round, out err), err);  // the last one standing gives up: the team loses
+        Assert.Equal(ExpeditionOutcome.Defeat, x.Outcome);
+    }
+
+    [Fact]
+    public void A_Concede_While_Waiting_For_Allies_Resolves_The_Round()
+    {
+        // Seat 0 has ended their turn; seat 1 gives up mid-turn: the round resolves at once.
+        var x = new Expedition(Config(2, WinRule.AnySeatWins, seed: 8), EnemyAi);
+        Assert.True(x.Submit(0, 1, new EndTurnAction { PlayerIndex = 0 }, out var err), err);
+        Assert.Equal(1, x.Round);
+        Assert.True(x.Concede(1, 1, out err), err);
+        Assert.Equal(2, x.Round);
+    }
+
+    [Fact]
+    public void A_Concede_After_Ending_The_Turn_Lands_The_Same_On_Every_Phone()
+    {
+        // Seat 1 ends their turn, then gives up while seat 0 is still acting. Phone A hears of it
+        // before seat 0 ends the round; phone B only after. Both must end up identical, with no desync.
+        var cfg = Config(2, WinRule.SharedPool, pool: 70, seed: 21);
+        var a = new LockstepSession(new Expedition(cfg, EnemyAi), 0);
+        var b = new LockstepSession(new Expedition(cfg, EnemyAi), 1);
+        var toA = new List<string>(); var toB = new List<string>();
+        a.Outbound += m => toB.Add(m);
+        b.Outbound += m => toA.Add(m);
+        bool desync = false;
+        a.Desynced += (_, _) => desync = true; b.Desynced += (_, _) => desync = true;
+        void ToA() { var l = toA.ToList(); toA.Clear(); foreach (var m in l) a.Receive(m); }
+        void ToB() { var l = toB.ToList(); toB.Clear(); foreach (var m in l) b.Receive(m); }
+
+        // round 1: seat 1 (phone B) plays and ends; seat 0 (phone A) plays but has not ended yet
+        void Play(LockstepSession s, int seat, bool end)
+        {
+            var bd = s.Expedition.Board(seat);
+            int guard = 0;
+            while (bd.Active && !bd.EndedTurn && guard++ < 50)
+            {
+                var mv = Bot.ChooseAction(bd.State, 0) ?? new EndTurnAction { PlayerIndex = 0 };
+                if (mv is EndTurnAction && !end) break;
+                Assert.True(s.Local(mv, out var e), e);
+            }
+        }
+        Play(b, 1, end: true);
+        Play(a, 0, end: false);
+        Assert.True(b.LocalConcede(out var err), err);       // after ending the turn: waits for the round
+        Assert.False(b.Expedition.Board(1).IsOut);
+        Assert.True(b.Expedition.HasConceded(1));
+        // phone A ends the round BEFORE hearing any of B's messages, then hears them all
+        Assert.True(a.Local(new EndTurnAction { PlayerIndex = 0 }, out err), err);
+        ToB(); ToA(); ToB(); ToA();
+        Assert.Equal(a.Expedition.Round, b.Expedition.Round);
+        Assert.True(a.Expedition.Board(1).IsOut);
+        Assert.True(b.Expedition.Board(1).IsOut);
+        Assert.Equal(a.Expedition.Hash(), b.Expedition.Hash());
+        Assert.False(desync, "no desync reported");
+
+        // and the fight goes on for seat 0 on both phones
+        int guard2 = 0;
+        while (a.Expedition.Outcome == ExpeditionOutcome.Running && guard2++ < 60) { Play(a, 0, end: true); ToB(); ToA(); }
+        Assert.NotEqual(ExpeditionOutcome.Running, a.Expedition.Outcome);
+        Assert.Equal(a.Expedition.Outcome, b.Expedition.Outcome);
+        Assert.Equal(a.Expedition.Hash(), b.Expedition.Hash());
+        Assert.False(desync, "no desync reported");
+    }
+
+    [Fact]
     public void Moves_Survive_The_Wire()
     {
         var moves = new GameAction[]

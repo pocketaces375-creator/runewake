@@ -673,7 +673,7 @@ public partial class DuelScene : Control
         {
             // FABLE-038: an online match. The lobby built the duel on both phones from the
             // shared seed; this scene just shows this phone's seat of it.
-            _encounterName = online.OpponentName.ToUpperInvariant();
+            _encounterName = (online.Coop?.Expedition.Config.Encounter.Name is { Length: > 0 } coopFoe ? coopFoe : online.OpponentName).ToUpperInvariant();
             if (online.Coop != null)
             {
                 _gsm.InitializeTestGame();
@@ -3028,7 +3028,9 @@ public partial class DuelScene : Control
         // these labels — so every non-campaign duel (online 1v1, quick play) died here with an NRE.
         if (!_isCampaignEncounter && _enemyNameLabel != null)
         {
-            string foe = OnlineMatch.Current?.OpponentName ?? "Enemy";
+            // FABLE-COOP-1: in co-op the foe is the encounter everyone fights, not the other players.
+            string foe = CoopSession.Current?.Expedition.Config.Encounter.Name is { Length: > 0 } enc ? enc
+                : OnlineMatch.Current?.OpponentName ?? "Enemy";
             _enemyNameLabel.Text = foe;
             if (_enemyName != null) _enemyName.Text = foe;
         }
@@ -6185,6 +6187,8 @@ public partial class DuelScene : Control
         if (_gsm.IsGameOver) { _noPlayBanner.Visible = false; return; }
         // FABLE-041: online, "tap End Turn" while it's the other player's turn is wrong advice.
         if (OnlineMatch.Current?.Pvp is { } pvp && !pvp.IsMyTurn) { _noPlayBanner.Visible = false; return; }
+        // FABLE-COOP-1: watching an ally's board — nothing there is yours to play.
+        if (IsSpectating) { _noPlayBanner.Visible = false; StopEndTurnPulse(); return; }
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         var hand = _gsm.GetHand(0);
         if (hand == null || hand.Count == 0) { _noPlayBanner.Visible = false; return; }
@@ -6224,8 +6228,14 @@ public partial class DuelScene : Control
         // Remove old pips
         foreach (var child in row.GetChildren())
         {
-            if (child is ColorRect cr && cr.Name.ToString().StartsWith("Pip_"))
+            // FABLE-COOP-1: detach first. A pip only queued for freeing still holds its name, so the new
+            // "Pip_0" was renamed by Godot, never matched this test again and was never freed — every
+            // HUD render leaked a row of pips (hundreds of nodes over a long fight).
+            if (child is ColorRect cr && (cr.Name.ToString().StartsWith("Pip_") || cr.HasMeta("attune_pip")))
+            {
+                row.RemoveChild(cr);
                 cr.QueueFree();
+            }
         }
         float scale = GetViewportRect().Size.Y / 1080f;
         float ps = 12f * scale;
@@ -6240,6 +6250,7 @@ public partial class DuelScene : Control
                 Size = new Vector2(ps, ps),
                 Color = i < cur ? Color.FromHtml("#E3B23C") : Color.FromHtml("#3a332a"),
             };
+            pip.SetMeta("attune_pip", true);
             row.AddChild(pip);
             row.MoveChild(pip, 1 + i); // after ATTUNEMENT label
         }
