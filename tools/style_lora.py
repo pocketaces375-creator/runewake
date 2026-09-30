@@ -41,6 +41,18 @@ The pipeline, start to finish:
   And in the normal art pipeline (after hook-art-director):
       art_director.py render <ids> --models lora   (or refs)
 
+  HOUSE-STYLE GUIDE (FABLE-STYLE-2 — no training, OpenRouter only, a few cents)
+      style_lora.py distill [--n 24]
+         a vision model studies a spread of the images and writes the house style down: a guide
+         for people (artifacts/art_review/style_lora/style_guide.md) and one short style clause
+         for generators (pipeline/style_lora.json).
+      style_lora.py guide on|off|show
+         with the guide ON, the clause rides on every art prompt — art_director (after
+         hook-art-director), reference mode, and `test --modes guide` (today's FLUX + the clause).
+
+  FREE TRAINING ON KAGGLE (FABLE-STYLE-2): tools/kaggle_lora.py trains an SDXL LoRA on Kaggle's
+      free GPUs from this same dataset and paints with it. No fal, no card. See its --help.
+
   style_lora.py doctor    checks keys, packages, folders and counts.
   style_lora.py hook-art-director [--dry-run]   adds the lora/refs generators to art_director.py,
                           only if its code still matches (otherwise it changes nothing).
@@ -91,6 +103,7 @@ TRIGGER = os.environ.get("STYLE_LORA_TRIGGER", "rnwk style")
 CAPTION_MODEL = os.environ.get("STYLE_CAPTION_MODEL", "google/gemini-2.5-flash")
 REFS_MODEL = os.environ.get("STYLE_REFS_MODEL", "google/gemini-3-pro-image")
 FLUX_MODEL = os.environ.get("STYLE_FLUX_MODEL", "black-forest-labs/flux.2-pro")
+DISTILL_MODEL = os.environ.get("STYLE_DISTILL_MODEL", "google/gemini-2.5-pro")
 TRAINER = "fal-ai/flux-lora-fast-training"
 PAINTER = "fal-ai/flux-lora"
 OPENROUTER = os.environ.get("STYLE_OPENROUTER_BASE", "https://openrouter.ai/api/v1")
@@ -528,7 +541,7 @@ def paint_refs(prompt, out, refs=None):
     refs = refs or pick_refs()
     lead = ("Paint a new card illustration in EXACTLY the artistic style of the attached reference images — "
             "same brushwork, palette, lighting and finish — but a completely new scene: ")
-    content = [{"type": "text", "text": lead + prompt}] + \
+    content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
               [{"type": "image_url", "image_url": {"url": _data_url(r, 1024)}} for r in refs]
     try:
         d = _openrouter({"model": REFS_MODEL, "modalities": ["image", "text"],
@@ -599,32 +612,185 @@ def cmd_test(a):
         return 1
     modes = [m.strip() for m in a.modes.split(",") if m.strip()]
     name = (active_model() or {}).get("name", "untrained")
-    run = RUNS / f"test_{name}_{time.strftime('%H%M%S')}"
+    # FABLE-STYLE-2: one folder per trained style, and tiles already painted are kept — so a test cut
+    # short (a shell time limit, a dropped connection) picks up where it stopped when run again.
+    run = RUNS / f"test_{name}"
+    if a.fresh and run.exists():
+        shutil.rmtree(run)
     run.mkdir(parents=True, exist_ok=True)
+    if "guide" in modes and not guide_clause(force=True):
+        print("no house-style guide yet — run `style_lora.py distill` first (or drop 'guide' from --modes)")
+        return 1
     cells = []
     for cid, prompt in prompts:
         for mode in modes:
             out = run / f"{cid}_{mode}.png"
-            if a.mock:
+            if out.exists() and out.stat().st_size > 0 and not a.mock:
+                ok = True
+            elif a.mock:
                 Image.new("RGB", (W, H), (40, 34, 30)).save(out)
                 ok = True
             elif mode == "lora":
                 ok = paint_lora(prompt, out, a.scale)
             elif mode == "refs":
                 ok = paint_refs(prompt, out)
+            elif mode == "guide":
+                ok = paint_flux(with_guide(prompt, force=True), out)
             else:
                 ok = paint_flux(prompt, out)
-            label = {"lora": f"TRAINED ({name})", "refs": "REFERENCE MODE", "flux": "TODAY (FLUX)"}.get(mode, mode)
+            label = {"lora": f"TRAINED ({name})", "refs": "REFERENCE MODE", "flux": "TODAY (FLUX)",
+                     "guide": "FLUX + HOUSE GUIDE"}.get(mode, mode)
             print(f"  {cid:<28} {label:<24} {'ok' if ok else 'FAILED'}", flush=True)
             cells.append((out if ok else None, f"{label} — {cid}"))
-    out = REVIEW / f"test_{name}.jpg"
+    out = REVIEW / f"test_{name}{'_' + '-'.join(modes) if a.modes_in_name else ''}.jpg"
     grid(cells, len(modes), out, 360, 526, 50, f"Style test — {name} — same prompt across each row")
     print(f"sheet: {out}")
     return 0
 
 
+# ──────────────────────────────── house-style guide (FABLE-STYLE-2) ─────────────
+DISTILL_LOOK = """You are the art director of a fantasy card game. You are shown a set of its card paintings.
+Describe ONLY the visual style they share — never the subjects. Cover: medium and finish; brushwork and
+edges; how light and shadow are handled; palette tendencies and saturation; value structure; texture and
+level of detail; how figures, creatures and faces are rendered; how backgrounds and atmosphere recede; the
+overall mood. Be concrete and visual. Note anything that varies a lot between images as "varies".
+Reply as JSON only: {"observations": ["...", "..."]}"""
+
+DISTILL_MERGE = """You are the art director of a fantasy card game. Below are notes on the shared style of its card
+paintings, gathered from several batches of images. Write the house style down. Reply as JSON only:
+{"guide_md": "a markdown style guide for human artists: a one-paragraph summary, then short sections
+  (Medium & finish, Brushwork, Light, Colour, Detail & texture, Figures, Backgrounds & atmosphere, Mood),
+  then a short 'Keep it on-model' checklist",
+ "style_clause": "ONE line for an image generator, at most 60 words: comma-separated visual descriptors of
+  the style only. No subjects, no composition or camera, no artist names, no negatives ('no …', 'without …'),
+  no quality boilerplate",
+ "drifts": ["the 3-6 most common ways a new painting could look off-model, in plain words"]}"""
+
+
+def _chat_text(d):
+    text = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+    if isinstance(text, list):
+        text = " ".join(p.get("text", "") for p in text if isinstance(p, dict))
+    return text
+
+
+def _json_from(text):
+    """The first JSON object in a model reply (models like to wrap it in ``` fences)."""
+    m = re.search(r"\{.*\}", text, re.S)
+    if not m:
+        raise ValueError(f"no JSON in the reply: {text[:160]!r}")
+    return json.loads(m.group(0))
+
+
+def _spread(items, n):
+    if len(items) <= n:
+        return list(items)
+    step = len(items) / n
+    return [items[int(i * step)] for i in range(n)]
+
+
+def guide_clause(force=False):
+    g = load_state().get("style_guide") or {}
+    return (g.get("clause") or "") if (force or g.get("enabled")) else ""
+
+
+def with_guide(prompt, gen=None, force=False):
+    """The prompt with the house-style clause added, when the guide is ON (or force). Never twice."""
+    clause = guide_clause(force)
+    if not clause or clause[:40] in prompt:
+        return prompt
+    return f"{prompt.rstrip().rstrip('.')}. House style: {clause.rstrip('.')}."
+
+
+def cmd_distill(a):
+    pool = dataset_images() or sorted(GAME_ART.glob("*.webp"))
+    if not pool:
+        print("no images: run gather first (or the game art folder is empty)")
+        return 1
+    picks = _spread(pool, a.n)
+    print(f"distilling the house style from {len(picks)} of {len(pool)} image(s) with {DISTILL_MODEL}", flush=True)
+    notes = []
+    if a.mock:
+        notes = ["thick oil paint", "warm key light against deep shadow"]
+    else:
+        _env_key("OPENROUTER_API_KEY")
+        for i in range(0, len(picks), a.batch):
+            batch = picks[i:i + a.batch]
+            content = [{"type": "text", "text": f"{len(batch)} card paintings from the game:"}] + \
+                      [{"type": "image_url", "image_url": {"url": _data_url(p, 640)}} for p in batch]
+            for attempt in range(3):
+                try:
+                    d = _openrouter({"model": DISTILL_MODEL, "temperature": 0.3, "messages": [
+                        {"role": "system", "content": DISTILL_LOOK}, {"role": "user", "content": content}]}, timeout=300)
+                    got = _json_from(_chat_text(d)).get("observations") or []
+                    notes += [str(x) for x in got]
+                    print(f"  batch {i // a.batch + 1}: {len(got)} observation(s)", flush=True)
+                    break
+                except (urllib.error.URLError, ValueError, KeyError) as e:
+                    print(f"  batch {i // a.batch + 1} attempt {attempt + 1} failed ({str(e)[:160]})", flush=True)
+                    time.sleep(3 * (attempt + 1))
+        if not notes:
+            print("no observations came back — nothing written")
+            return 1
+    if a.mock:
+        out = {"guide_md": "# Runewake house style (mock)\n\nThick oil paint.", "drifts": ["too smooth"],
+               "style_clause": "hand-painted oil on canvas, thick visible impasto strokes, warm key light against deep umber shadow"}
+    else:
+        out = None
+        for attempt in range(3):
+            try:
+                d = _openrouter({"model": DISTILL_MODEL, "temperature": 0.3, "messages": [
+                    {"role": "system", "content": DISTILL_MERGE},
+                    {"role": "user", "content": "Notes:\n- " + "\n- ".join(notes)}]}, timeout=300)
+                out = _json_from(_chat_text(d))
+                if out.get("style_clause"):
+                    break
+            except (urllib.error.URLError, ValueError, KeyError) as e:
+                print(f"  merge attempt {attempt + 1} failed ({str(e)[:160]})", flush=True)
+                time.sleep(3 * (attempt + 1))
+        if not out or not out.get("style_clause"):
+            print("the merge step returned no style clause — nothing written")
+            return 1
+    clause = re.sub(r"\s+", " ", str(out["style_clause"])).strip().strip('"').rstrip(".")
+    words = clause.split()
+    if len(words) > 70:
+        clause = " ".join(words[:70]).rstrip(",")
+    s = load_state()
+    was_on = bool((s.get("style_guide") or {}).get("enabled"))
+    s["style_guide"] = {"clause": clause, "drifts": out.get("drifts") or [], "enabled": was_on,
+                        "images": len(picks), "model": DISTILL_MODEL, "made": time.strftime("%Y-%m-%d %H:%M")}
+    save_state(s)
+    REVIEW.mkdir(parents=True, exist_ok=True)
+    md = str(out.get("guide_md") or "").strip()
+    md += "\n\n## The clause every art prompt gets (when the guide is on)\n\n> " + clause + "\n"
+    if out.get("drifts"):
+        md += "\n## Watch for\n\n" + "\n".join(f"- {x}" for x in out["drifts"]) + "\n"
+    md += f"\n_Distilled from {len(picks)} images by {DISTILL_MODEL}, {time.strftime('%Y-%m-%d')}._\n"
+    (REVIEW / "style_guide.md").write_text(md, encoding="utf-8")
+    print(f"style clause ({len(clause.split())} words):\n  {clause}")
+    print(f"guide: {REVIEW / 'style_guide.md'}")
+    print("the guide is ON — every art prompt gets the new clause" if was_on
+          else "the guide is OFF — `style_lora.py guide on` adds the clause to every art prompt")
+    return 0
+
+
+def cmd_guide(a):
+    s = load_state()
+    g = s.get("style_guide")
+    if not g:
+        print("no house-style guide yet — run `style_lora.py distill` first")
+        return 1
+    if a.state in ("on", "off"):
+        g["enabled"] = a.state == "on"
+        save_state(s)
+    print(f"house-style guide: {'ON' if g.get('enabled') else 'OFF'} ({g.get('images')} images, {g.get('made')})")
+    print(f"  clause: {g.get('clause')}")
+    return 0
+
+
 # ──────────────────────────────── art_director hook ───────────────────────────
 HOOK_MARK = "FABLE-STYLE: \"lora\" paints with the trained house style"
+GUIDE_MARK = "FABLE-STYLE-2: the house-style clause rides on every prompt while `style_lora.py guide on`"
 
 
 def cmd_hook(a):
@@ -636,33 +802,48 @@ def cmd_hook(a):
     except OSError:
         print("no tools/art_director.py — skipping the hook (style_lora.py works on its own)")
         return 0
-    if "style_lora" in text:
-        print("art_director.py already knows the lora/refs generators — nothing to do")
-        return 0
     m = re.search(r"^(?P<ind>[ \t]+)def paint\(prompt\):\n", text, re.M)
+    if "style_lora" in text:
+        # FABLE-STYLE-2: an already-hooked file gets the house-style guide on every prompt.
+        if "with_guide" in text:
+            print("art_director.py already knows the lora/refs generators and the house guide — nothing to do")
+            return 0
+        if not m:
+            print("art_director.py's render code has changed shape — NOT adding the guide hook; tell Fable")
+            return 1
+        ind = m.group("ind") + "    "
+        guide = (f"{ind}# {GUIDE_MARK}\n"
+                 f"{ind}import style_lora  # noqa: E402\n"
+                 f"{ind}prompt = style_lora.with_guide(prompt, gen)\n")
+        return _write_hook(ad, text, text[:m.end()] + guide + text[m.end():], guide, a.dry_run)
     if not m or "gia.via_" not in text[m.end():m.end() + 600]:
         print("art_director.py's render code has changed shape — NOT hooking it. Use style_lora.py test "
               "(and paint_lora / paint_refs) directly; tell Fable so the hook can be updated.")
         return 1
     ind = m.group("ind") + "    "
-    hook = (f"{ind}# {HOOK_MARK}, \"refs\" with example images attached (tools/style_lora.py)\n"
+    hook = (f"{ind}# {GUIDE_MARK}\n"
+            f"{ind}import style_lora  # noqa: E402\n"
+            f"{ind}prompt = style_lora.with_guide(prompt, gen)\n"
+            f"{ind}# {HOOK_MARK}, \"refs\" with example images attached (tools/style_lora.py)\n"
             f"{ind}if gen in (\"lora\", \"refs\"):\n"
             f"{ind}    import style_lora  # noqa: E402\n"
             f"{ind}    return style_lora.paint_lora(prompt, out) if gen == \"lora\" else style_lora.paint_refs(prompt, out)\n")
-    new = text[:m.end()] + hook + text[m.end():]
-    if a.dry_run:
-        print("would insert after `def paint(prompt):` in art_director.py:\n" + hook)
+    return _write_hook(ad, text, text[:m.end()] + hook + text[m.end():], hook, a.dry_run)
+
+
+def _write_hook(ad, text, new, inserted, dry_run):
+    if dry_run:
+        print("would insert after `def paint(prompt):` in art_director.py:\n" + inserted)
         return 0
-    shutil.copy2(ad, ad.with_suffix(".py.bak_style"))
-    ad.write_text(new, encoding="utf-8")
     try:
         compile(new, str(ad), "exec")
     except SyntaxError as e:
-        shutil.copy2(ad.with_suffix(".py.bak_style"), ad)
-        print(f"the hooked file did not compile ({e}) — restored the original; nothing changed")
+        print(f"the hooked file would not compile ({e}) — nothing changed")
         return 1
+    shutil.copy2(ad, ad.with_suffix(".py.bak_style"))
+    ad.write_text(new, encoding="utf-8")
     ad.with_suffix(".py.bak_style").unlink()
-    print("art_director.py now accepts --models lora and --models refs")
+    print("art_director.py: --models lora / refs, and the house-style guide on every prompt (while `guide on`)")
     return 0
 
 
@@ -682,14 +863,12 @@ def cmd_doctor(a):
     caps = sum(1 for p in ds if p.with_suffix(".txt").exists())
     line(True, f"dataset: {len(ds)} image(s), {caps} captioned")
     line(bool(_env_key("OPENROUTER_API_KEY", required=False)), "OPENROUTER_API_KEY (captions, reference mode, FLUX comparison)")
-    line(bool(_env_key("FAL_KEY", required=False)), "FAL_KEY (training + trained-style painting) — fal.ai → Dashboard → Keys, then add FAL_KEY=… to ~/.hermes/.env")
-    try:
-        import fal_client  # noqa: F401,WPS433
-        line(True, "python package fal-client")
-    except ImportError:
-        line(False, "python package fal-client — pip install fal-client")
+    have_fal = bool(_env_key("FAL_KEY", required=False))
+    print(("  ✓ " if have_fal else "  · ") + "FAL_KEY (optional: fal training) " + ("set" if have_fal else "not set — fine, use kaggle_lora.py"))
     m = active_model()
     line(True, f"active trained style: {m['name'] + ' (' + str(m['images']) + ' images)' if m else 'none yet'}")
+    g = load_state().get("style_guide")
+    line(True, f"house-style guide: {('ON' if g.get('enabled') else 'OFF') + ', ' + str(g.get('images')) + ' images' if g else 'not distilled yet (style_lora.py distill)'}")
     print("all good" if ok else "fix the ✗ lines, then run doctor again")
     return 0 if ok else 1
 
@@ -717,11 +896,20 @@ def main():
     te = sub.add_parser("test")
     te.add_argument("--n", type=int, default=6)
     te.add_argument("--scale", type=float, default=1.0)
-    te.add_argument("--modes", default="lora,refs,flux")
+    te.add_argument("--modes", default="lora,refs,flux", help="any of lora, refs, flux, guide")
     te.add_argument("--mock", action="store_true")
+    te.add_argument("--fresh", action="store_true", help="repaint every tile (default: keep tiles already painted)")
+    te.add_argument("--modes-in-name", action="store_true", help="name the sheet after the modes too")
+    di = sub.add_parser("distill")
+    di.add_argument("--n", type=int, default=24, help="how many images the vision model studies")
+    di.add_argument("--batch", type=int, default=8, help="images per look")
+    di.add_argument("--mock", action="store_true")
+    gu = sub.add_parser("guide")
+    gu.add_argument("state", nargs="?", choices=["on", "off", "show"], default="show")
     a = ap.parse_args()
     return {"doctor": cmd_doctor, "gather": cmd_gather, "caption": cmd_caption, "sheet": cmd_sheet,
-            "train": cmd_train, "use": cmd_use, "test": cmd_test, "hook-art-director": cmd_hook}[a.cmd](a)
+            "train": cmd_train, "use": cmd_use, "test": cmd_test, "hook-art-director": cmd_hook,
+            "distill": cmd_distill, "guide": cmd_guide}[a.cmd](a)
 
 
 if __name__ == "__main__":
