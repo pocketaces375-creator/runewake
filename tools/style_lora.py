@@ -130,16 +130,26 @@ def _env_key(name, required=True):
     return k
 
 
+# FABLE-STYLE-3: the working copy of the state lives OUTSIDE the repo, next to the dataset, because
+# a working-tree reset between commands (the foreman) wiped an uncommitted pipeline/style_lora.json.
+# Every save also writes the repo copy, which is the one to commit; a fresh machine starts from it.
+STATE_HOME = HOME / "state.json"
+
+
 def load_state():
-    try:
-        return json.loads(STATE.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"trigger": TRIGGER, "models": [], "active": None, "refs": []}
+    for f in (STATE_HOME, STATE):
+        try:
+            return json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+    return {"trigger": TRIGGER, "models": [], "active": None, "refs": []}
 
 
 def save_state(s):
-    STATE.parent.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(s, indent=1) + "\n", encoding="utf-8")
+    text = json.dumps(s, indent=1) + "\n"
+    for f in (STATE_HOME, STATE):
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text, encoding="utf-8")
 
 
 def active_model(s=None):
@@ -783,6 +793,15 @@ def cmd_guide(a):
     if a.state in ("on", "off"):
         g["enabled"] = a.state == "on"
         save_state(s)
+    elif a.state == "set":
+        # FABLE-STYLE-3: hand-tune the clause (e.g. drop words that pull the look the wrong way)
+        text = re.sub(r"\s+", " ", " ".join(a.text)).strip().strip('"').rstrip(".")
+        if len(text.split()) < 5:
+            print("give the whole clause, e.g.: guide set \"hand-painted oil on canvas, visible brushwork, …\"")
+            return 1
+        g["clause"] = text
+        g["made"] = time.strftime("%Y-%m-%d %H:%M") + " (hand-edited)"
+        save_state(s)
     print(f"house-style guide: {'ON' if g.get('enabled') else 'OFF'} ({g.get('images')} images, {g.get('made')})")
     print(f"  clause: {g.get('clause')}")
     return 0
@@ -905,7 +924,8 @@ def main():
     di.add_argument("--batch", type=int, default=8, help="images per look")
     di.add_argument("--mock", action="store_true")
     gu = sub.add_parser("guide")
-    gu.add_argument("state", nargs="?", choices=["on", "off", "show"], default="show")
+    gu.add_argument("state", nargs="?", choices=["on", "off", "show", "set"], default="show")
+    gu.add_argument("text", nargs="*", help="with set: the new clause")
     a = ap.parse_args()
     return {"doctor": cmd_doctor, "gather": cmd_gather, "caption": cmd_caption, "sheet": cmd_sheet,
             "train": cmd_train, "use": cmd_use, "test": cmd_test, "hook-art-director": cmd_hook,

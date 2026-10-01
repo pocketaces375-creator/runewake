@@ -112,16 +112,26 @@ def _need_user():
     return u
 
 
+# FABLE-STYLE-3: the working copy of the state lives OUTSIDE the repo, next to the dataset, because
+# a working-tree reset between commands (the foreman) wiped an uncommitted pipeline/style_lora.json.
+# Every save also writes the repo copy, which is the one to commit; a fresh machine starts from it.
+STATE_HOME = HOME / "state.json"
+
+
 def load_state():
-    try:
-        return json.loads(STATE.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"trigger": TRIGGER, "models": [], "active": None, "refs": []}
+    for f in (STATE_HOME, STATE):
+        try:
+            return json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+    return {"trigger": TRIGGER, "models": [], "active": None, "refs": []}
 
 
 def save_state(s):
-    STATE.parent.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(s, indent=1) + "\n", encoding="utf-8")
+    text = json.dumps(s, indent=1) + "\n"
+    for f in (STATE_HOME, STATE):
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text, encoding="utf-8")
 
 
 def kstate(s=None):
