@@ -29,6 +29,8 @@ THE LOOP
   kaggle_lora.py paint --ids a,b,c      a review sheet; --ids uses the art ledger's prompts, and with
        [--to-ledger] [--per 2]          --to-ledger the paintings become art_director candidates
                                         (then art_director.py sheet / approve work as usual)
+       [--scales 0.8,1.0,1.2]           the same prompts at several style strengths, side by side
+                                        (the house-style guide does NOT apply here — the LoRA is the style)
   kaggle_lora.py status [train|paint]   what the Kaggle run is doing
   kaggle_lora.py fetch [train|paint]    download a finished run (after --no-wait or a dropped wait)
   kaggle_lora.py use <name>             switch the active trained style
@@ -344,17 +346,20 @@ try:
     pipe = StableDiffusionXLPipeline.from_pretrained(CFG["base"], vae=vae, torch_dtype=torch.float16,
                                                      variant="fp16", use_safetensors=True).to("cuda")
     pipe.load_lora_weights(os.path.dirname(hits[0]), weight_name=CFG["file"], adapter_name="style")
-    pipe.set_adapters(["style"], adapter_weights=[CFG["scale"]])
     os.makedirs("/kaggle/working/paintings", exist_ok=True)
+    scales = CFG.get("scales") or [CFG["scale"]]
     for job in CFG["jobs"]:
         for k in range(CFG["per"]):
-            img = pipe(job["prompt"], negative_prompt=CFG["negative"], width=CFG["w"], height=CFG["h"],
-                       num_inference_steps=CFG["steps"], guidance_scale=CFG["cfg"],
-                       generator=torch.Generator("cuda").manual_seed(job["seed"] + k)).images[0]
-            name = f"{job['id']}__{k + 1}.png"
-            img.save(f"/kaggle/working/paintings/{name}")
-            REPORT["done"].append(name)
-            print("painted", name, flush=True)
+            # FABLE-STYLE-4: the same seed at every strength, so a row compares strength and nothing else
+            for sc in scales:
+                pipe.set_adapters(["style"], adapter_weights=[sc])
+                img = pipe(job["prompt"], negative_prompt=CFG["negative"], width=CFG["w"], height=CFG["h"],
+                           num_inference_steps=CFG["steps"], guidance_scale=CFG["cfg"],
+                           generator=torch.Generator("cuda").manual_seed(job["seed"] + k)).images[0]
+                name = f"{job['id']}__s{sc:g}__{k + 1}.png"
+                img.save(f"/kaggle/working/paintings/{name}")
+                REPORT["done"].append(name)
+                print("painted", name, flush=True)
         save_report()
     REPORT["ok"] = True
 except BaseException as e:
@@ -365,7 +370,10 @@ finally:
     save_report()
 '''
 
-NEGATIVE = "text, lettering, watermark, signature, card frame, border, blurry, lowres, jpeg artifacts, deformed hands"
+# FABLE-STYLE-4: SDXL slides toward photographs and game renders (the mine-v1 knights, the moss close-up):
+# name them here, where naming a thing pushes it away.
+NEGATIVE = ("photograph, photo, photorealistic, 3d render, cgi, video game screenshot, macro photography, "
+            "text, lettering, watermark, signature, card frame, border, blurry, lowres, jpeg artifacts, deformed hands")
 
 
 def _kernel_dir(slug, code, meta_extra):
@@ -522,14 +530,14 @@ def _fetch_train(ref):
     return 0
 
 
-def _sheet(cells, filename, title):
+def _sheet(cells, filename, title, cols=None):
     if not cells:
         return None
     sys.path.insert(0, str(TOOLS))
     try:
         import style_lora  # noqa: E402
         out = REVIEW / filename
-        style_lora.grid(cells, min(4, len(cells)), out, 300, 440, 60, title)
+        style_lora.grid(cells, cols or min(4, len(cells)), out, 300, 440, 60, title)
         return out
     except Exception as e:  # noqa: BLE001
         print(f"  (no sheet: {e})")
@@ -585,12 +593,15 @@ def cmd_paint(a):
             save_state(s)
         _wait_dataset(f"{u}/{LORAS_SLUG}")
         sources["dataset_sources"] = [f"{u}/{LORAS_SLUG}"]
-    cfg = {"name": name, "file": m["file"], "pip": PIP, "base": BASE_MODEL, "vae": VAE_FIX, "scale": a.scale,
+    scales = [float(x) for x in a.scales.split(",") if x.strip()] if a.scales else [a.scale]
+    cfg = {"name": name, "file": m["file"], "pip": PIP, "base": BASE_MODEL, "vae": VAE_FIX, "scale": scales[0],
+           "scales": scales,
            "steps": a.steps, "cfg": a.cfg, "per": a.per, "negative": NEGATIVE, "w": W, "h": H, "jobs": jobs}
     d, ref = _kernel_dir(PAINT_SLUG, _fill(PAINT_PY, cfg), {**sources, "machine_shape": a.accelerator})
-    print(f"painting {len(jobs)} prompt(s) × {a.per} with style {name} (scale {a.scale}) — pushing {ref}")
+    print(f"painting {len(jobs)} prompt(s) × {a.per} × strength {', '.join(f'{x:g}' for x in scales)} "
+          f"with style {name} — pushing {ref}")
     kaggle("kernels", "push", "-p", d)
-    k["pending_paint"] = {"model": name, "ids": [j["id"] for j in jobs], "to_ledger": bool(a.to_ledger),
+    k["pending_paint"] = {"model": name, "ids": [j["id"] for j in jobs], "to_ledger": bool(a.to_ledger), "scales": scales,
                           "prompts": {j["id"]: j["prompt"] for j in jobs}, "pushed": time.strftime("%Y-%m-%d %H:%M")}
     save_state(s)
     print(f"running on Kaggle — https://www.kaggle.com/code/{ref}")
@@ -628,13 +639,29 @@ def _fetch_paint(ref):
         n += 1
         dest = RUNS / f"kaggle_paint_{run}_{n}"
     _download(ref, dest)
-    pics = sorted(dest.rglob("*__*.png"))
+    def order(p):   # by prompt, then copy, then strength (numerically — "s1.2" must come after "s1")
+        bits = p.stem.split("__")
+        sc = next((b[1:] for b in bits[1:] if b.startswith("s")), "0")
+        try:
+            scv = float(sc)
+        except ValueError:
+            scv = 0.0
+        return (bits[0], bits[-1], scv)
+    pics = sorted(dest.rglob("*__*.png"), key=order)
     if not pics:
         print(f"no paintings in the output — see {dest}")
         return 1
     model = pend.get("model", "latest")
-    sheet = _sheet([(p, p.stem.replace("__", " #")) for p in pics], f"kaggle_{model}_paint.jpg",
-                   f"Kaggle SDXL style {model} — {len(pics)} painting(s)")
+    # FABLE-STYLE-4: one row per prompt, one column per strength; every run gets its own sheet
+    def label(p):
+        bits = p.stem.split("__")
+        sc = next((b[1:] for b in bits[1:] if b.startswith("s")), "")
+        return f"{bits[0]}" + (f" · strength {sc}" if sc else "") + (f" #{bits[-1]}" if bits[-1].isdigit() and bits[-1] != "1" else "")
+    cols = max(1, len(pend.get("scales") or [1])) or 4
+    sheet = _sheet([(p, label(p)) for p in pics], f"kaggle_{model}_paint_{run}.jpg",
+                   f"Style {model} — {len(pics)} painting(s)" +
+                   (f" — strength {' / '.join(f'{x:g}' for x in pend['scales'])}" if len(pend.get('scales') or []) > 1 else ""),
+                   cols=cols if cols > 1 else None)
     print(f"{len(pics)} painting(s) in {dest}")
     if sheet:
         print(f"review sheet: {sheet}")
@@ -737,7 +764,8 @@ def main():
     g.add_argument("--prompts", help="a JSON file: [\"prompt\", …] or [{\"id\":…, \"prompt\":…}, …]")
     p.add_argument("--model")
     p.add_argument("--per", type=int, default=1, help="paintings per prompt")
-    p.add_argument("--scale", type=float, default=0.9, help="style strength")
+    p.add_argument("--scale", type=float, default=1.0, help="style strength")
+    p.add_argument("--scales", help="several strengths side by side, e.g. 0.8,1.0,1.2 (same seed per row)")
     p.add_argument("--steps", type=int, default=30)
     p.add_argument("--cfg", type=float, default=6.0)
     p.add_argument("--accelerator", default=os.environ.get("KAGGLE_ACCELERATOR", "NvidiaTeslaT4"))
