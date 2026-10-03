@@ -592,8 +592,12 @@ def paint_refs(prompt, out, refs=None):
     Self-contained (its own OpenRouter call) so it never depends on the rest of the pipeline."""
     _env_key("OPENROUTER_API_KEY")
     refs = refs or pick_refs(prompt=prompt)
-    lead = ("Paint a new card illustration in EXACTLY the artistic style of the attached reference images — "
-            "same brushwork, palette, lighting and finish — but a completely new scene: ")
+    # FABLE-STYLE-6: the references are the style — colour and light first, not only brushwork — and they
+    # outrank any style words left in the card's prompt
+    lead = ("Paint a new fantasy card illustration in the style of the attached reference images. Match them as "
+            "closely as you can: their luminous colour, glowing light sources, sense of scale and wonder, level "
+            "of detail and finish. Paint a completely new scene, not a copy. If the text below names a style "
+            "that conflicts with the references, follow the references. ")
     content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
               [{"type": "image_url", "image_url": {"url": _data_url(r, 1024)}} for r in refs]
     try:
@@ -678,7 +682,12 @@ def cmd_test(a):
     for cid, prompt in prompts:
         for mode in modes:
             # a refs tile painted with a different gold set is a different picture: name it by the set
-            tag = f"-g{gold_tag()}" if mode == "refs" and gold_tag() else ""
+            # FABLE-STYLE-6: …and by the guide and the reference wording, so a changed look never reuses old tiles
+            tag = ""
+            if mode == "refs":
+                tag = f"-r2{('-g' + gold_tag()) if gold_tag() else ''}{('-c' + guide_tag()) if guide_tag() else ''}"
+            elif mode == "guide":
+                tag = f"-c{guide_tag(force=True)}"
             out = run / f"{cid}_{mode}{tag}.png"
             if out.exists() and out.stat().st_size > 0 and not a.mock:
                 ok = True
@@ -750,16 +759,38 @@ def guide_clause(force=False):
     return (g.get("clause") or "") if (force or g.get("enabled")) else ""
 
 
+# FABLE-STYLE-6: the art pipeline ends every prompt with its old locked style sentence ("Classical storybook
+# oil painting, dramatic chiaroscuro, … restrained palette …"). Next to Trikzos's gold images that sentence
+# wins and drags every painting back to the old dark look. A guide set with --replace-base removes it and
+# LEADS with the new look instead.
+BASE_STYLE = re.compile(r"storybook|chiaroscuro|restrained palette|impasto|painted by hand|unsigned", re.I)
+
+
+def strip_base_style(prompt):
+    sentences = re.split(r"(?<=\.)\s+", prompt.strip())
+    kept = [x for x in sentences if not BASE_STYLE.search(x)]
+    return " ".join(kept).strip() or prompt
+
+
+def guide_tag(force=False):
+    g = load_state().get("style_guide") or {}
+    if not (force or g.get("enabled")) or not g.get("clause"):
+        return ""
+    return hashlib.sha1(f"{g.get('clause')}|{bool(g.get('replace_base'))}".encode()).hexdigest()[:6]
+
+
 def with_guide(prompt, gen=None, force=False):
     """The prompt with the house-style clause added, when the guide is ON (or force). Never twice."""
     clause = guide_clause(force)
     if not clause or clause[:40] in prompt:
         return prompt
+    if (load_state().get("style_guide") or {}).get("replace_base"):
+        return f"{clause.rstrip('.')}. Scene: {strip_base_style(prompt).rstrip('.')}."
     return f"{prompt.rstrip().rstrip('.')}. House style: {clause.rstrip('.')}."
 
 
 def cmd_distill(a):
-    pool = dataset_images() or sorted(GAME_ART.glob("*.webp"))
+    pool = gold_set() if a.from_gold else (dataset_images() or sorted(GAME_ART.glob("*.webp")))
     if not pool:
         print("no images: run gather first (or the game art folder is empty)")
         return 1
@@ -833,8 +864,10 @@ def cmd_distill(a):
 def cmd_guide(a):
     s = load_state()
     g = s.get("style_guide")
+    if not g and a.state == "set":
+        g = s["style_guide"] = {"enabled": False, "images": 0}
     if not g:
-        print("no house-style guide yet — run `style_lora.py distill` first")
+        print("no house-style guide yet — run `style_lora.py distill` first (or `guide set …`)")
         return 1
     if a.state in ("on", "off"):
         g["enabled"] = a.state == "on"
@@ -846,10 +879,13 @@ def cmd_guide(a):
             print("give the whole clause, e.g.: guide set \"hand-painted oil on canvas, visible brushwork, …\"")
             return 1
         g["clause"] = text
+        g["replace_base"] = bool(a.replace_base)
         g["made"] = time.strftime("%Y-%m-%d %H:%M") + " (hand-edited)"
         save_state(s)
     print(f"house-style guide: {'ON' if g.get('enabled') else 'OFF'} ({g.get('images')} images, {g.get('made')})")
     print(f"  clause: {g.get('clause')}")
+    if g.get("replace_base"):
+        print("  replaces the old locked style sentence and leads every prompt")
     return 0
 
 
@@ -1068,6 +1104,7 @@ def main():
     di.add_argument("--n", type=int, default=24, help="how many images the vision model studies")
     di.add_argument("--batch", type=int, default=8, help="images per look")
     di.add_argument("--mock", action="store_true")
+    di.add_argument("--from-gold", action="store_true", help="study only the gold set")
     go = sub.add_parser("gold")
     go.add_argument("action", nargs="?", choices=["sheet", "set", "import", "show", "clear"], default="show")
     go.add_argument("numbers", nargs="*", help="with set: picks from the numbered sheet, e.g. 3 7 12-15; with import: a folder")
@@ -1075,6 +1112,8 @@ def main():
     gu = sub.add_parser("guide")
     gu.add_argument("state", nargs="?", choices=["on", "off", "show", "set"], default="show")
     gu.add_argument("text", nargs="*", help="with set: the new clause")
+    gu.add_argument("--replace-base", action="store_true",
+                    help="with set: drop the old locked style sentence from prompts and lead with this clause")
     a = ap.parse_args()
     return {"doctor": cmd_doctor, "gather": cmd_gather, "caption": cmd_caption, "sheet": cmd_sheet,
             "train": cmd_train, "use": cmd_use, "test": cmd_test, "hook-art-director": cmd_hook,
