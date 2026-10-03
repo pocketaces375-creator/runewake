@@ -745,6 +745,11 @@ def cmd_approve(a):
     c = next((c for c in (e or {}).get("candidates", []) if c["n"] == a.candidate), None)
     if not c:
         sys.exit(f"{a.card_id}: no candidate #{a.candidate}")
+    # FABLE-SCREEN-1: only screened, passing paintings go into the game (ART_FORCE=1 overrides)
+    if (c.get("screen") or {}).get("verdict") != "pass" and os.environ.get("ART_FORCE") != "1":
+        s = c.get("screen") or {}
+        sys.exit(f"{a.card_id} #{a.candidate}: the screen said {s.get('verdict', 'nothing yet')} "
+                 f"({'; '.join(s.get('reasons', [])) or 'run art_screen.py screen'}) — not installed. ART_FORCE=1 to override")
     dest = ART / f"{a.card_id}.webp"
     Image.open(REPO / c["path"]).convert("RGB").resize((832, 1216)).save(dest, "WEBP", quality=90)
     e.update({"status": "approved", "image": c["image"], "image_path": str(dest.relative_to(REPO)), "generator": c["generator"]})

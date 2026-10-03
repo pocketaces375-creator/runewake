@@ -859,7 +859,8 @@ def stratum_of(card=None, cid=None):
 
 def mood_for(cid, stratum, n=0, has_colour=False):
     bank = MOODS.get(stratum) or MOODS[sorted(MOODS)[int(hashlib.sha1(cid.encode()).hexdigest(), 16) % len(MOODS)]]
-    h = int(hashlib.sha1(f"{cid}|mood|{n}".encode()).hexdigest(), 16)
+    salt = os.environ.get("STYLE_MOOD_SALT", "")   # FABLE-SCREEN-1: a repaint round draws new moods
+    h = int(hashlib.sha1(f"{cid}|mood|{n}{'|' + salt if salt else ''}".encode()).hexdigest(), 16)
     light = bank["light"][h % len(bank["light"])]
     air = bank["air"][(h // 7) % len(bank["air"])]
     if (h // 49) % 6 == 0:
