@@ -15,5 +15,62 @@
   "images": 24,
   "model": "google/gemini-2.5-pro",
   "made": "2026-09-30 09:12"
- }
+ },
+ "kaggle": {
+  "models": [
+   {
+    "name": "v1",
+    "file": "runewake_style_v1.safetensors",
+    "path": "/home/fictive/runewake_art_archive/style_lora/runs/kaggle_v1/runewake_style_v1.safetensors",
+    "images": 211,
+    "minutes": 71.3,
+    "trained": "2026-09-30 22:52",
+    "steps": 1500,
+    "rank": 16,
+    "lr": 0.0001,
+    "resolution": 1024
+   },
+   {
+    "name": "mine-v1",
+    "file": "runewake_style_mine-v1.safetensors",
+    "path": "/home/fictive/runewake_art_archive/style_lora/runs/kaggle_mine-v1/runewake_style_mine-v1.safetensors",
+    "images": 64,
+    "minutes": 65.6,
+    "trained": "2026-10-01 13:31",
+    "steps": 1500,
+    "rank": 16,
+    "lr": 0.0001,
+    "resolution": 1024
+   }
+  ],
+  "active": "mine-v1",
+  "latest_train_output": "mine-v1",
+  "loras_uploaded": [],
+  "data": {
+   "images": 64,
+   "pushed": "2026-10-01 12:24"
+  }
+ },
+ "gold": [
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold01_storybook_portal.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold02_sphere_island.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold03_white_tree_cathedral.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold04_vine_portal.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold05_mushroom_cave.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold06_stone_ring_arch.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold07_cosmic_eye.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold08_moon_cliff.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold09_moon_castle.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold10_rune_doorway.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold11_moon_wanderer.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold12_verdant_knight.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold13_rune_mage.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold14_starlit_teacup.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold15_void_sorcerer.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold16_ember_forest.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold17_star_elf.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold18_dawn_warhorse.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold19_water_hand.jpg",
+  "/home/fictive/runewake_art_archive/style_lora/gold/gold20_floating_peak.jpg"
+ ]
 }
