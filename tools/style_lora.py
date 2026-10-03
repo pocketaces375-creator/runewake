@@ -50,6 +50,14 @@ The pipeline, start to finish:
          with the guide ON, the clause rides on every art prompt — art_director (after
          hook-art-director), reference mode, and `test --modes guide` (today's FLUX + the clause).
 
+  GOLD SET (FABLE-STYLE-5 — reference mode with Trikzos's hand-picked best images)
+      style_lora.py gold sheet [--with-game-art]   numbered contact sheets to pick from
+      style_lora.py gold set 3 7 12-15            those become the gold set; reference mode (test --modes refs,
+                                                  art_director --models refs) then paints with the 6 gold images
+                                                  closest to each prompt (STYLE_REFS_N to change the 6)
+      style_lora.py gold import <folder>           or hand over a folder of picks (+ optional .txt captions)
+      style_lora.py gold show | clear
+
   FREE TRAINING ON KAGGLE (FABLE-STYLE-2): tools/kaggle_lora.py trains an SDXL LoRA on Kaggle's
       free GPUs from this same dataset and paints with it. No fal, no card. See its --help.
 
@@ -519,7 +527,42 @@ def paint_lora(prompt, out, scale=1.0, seed=None, width=W, height=H):
     return False
 
 
-def pick_refs(n=4):
+REFS_N = int(os.environ.get("STYLE_REFS_N", "6"))
+_STOP = set("a an the of and or in on at to with from by for its his her their is are as into over under this that "
+            "rnwk style one two scene card fantasy illustration painting image".split())
+
+
+def _words(text):
+    return {w for w in re.findall(r"[a-z]+", (text or "").lower()) if len(w) > 2 and w not in _STOP}
+
+
+def _caption_of(path):
+    t = Path(path).with_suffix(".txt")
+    if t.exists():
+        return t.read_text(encoding="utf-8")
+    return Path(path).stem.replace("_", " ")   # game art: the card id is the best description we have
+
+
+def gold_set():
+    """FABLE-STYLE-5: the hand-picked 11/10 images, when Trikzos has chosen them."""
+    return [Path(p) for p in load_state().get("gold", []) if Path(p).exists()]
+
+
+def gold_tag():
+    g = load_state().get("gold", [])
+    return hashlib.sha1("|".join(g).encode()).hexdigest()[:6] if g else ""
+
+
+def pick_refs(n=None, prompt=None):
+    n = n or REFS_N
+    gold = gold_set()
+    if gold:
+        # the gold images that share the most with this prompt (a knight for a knight, a cave for a cave);
+        # ties broken by a stable hash, so the same card always gets the same references
+        want = _words(prompt)
+        key = lambda p: (-len(want & _words(_caption_of(p))),
+                         hashlib.sha1(((prompt or "") + p.name).encode()).hexdigest())
+        return sorted(gold, key=key)[:n]
     s = load_state()
     refs = [DATASET / r for r in s.get("refs", []) if (DATASET / r).exists()]
     if len(refs) < n:
@@ -548,7 +591,7 @@ def paint_refs(prompt, out, refs=None):
     """Reference mode: Gemini's image model with example images attached. No training.
     Self-contained (its own OpenRouter call) so it never depends on the rest of the pipeline."""
     _env_key("OPENROUTER_API_KEY")
-    refs = refs or pick_refs()
+    refs = refs or pick_refs(prompt=prompt)
     lead = ("Paint a new card illustration in EXACTLY the artistic style of the attached reference images — "
             "same brushwork, palette, lighting and finish — but a completely new scene: ")
     content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
@@ -634,7 +677,9 @@ def cmd_test(a):
     cells = []
     for cid, prompt in prompts:
         for mode in modes:
-            out = run / f"{cid}_{mode}.png"
+            # a refs tile painted with a different gold set is a different picture: name it by the set
+            tag = f"-g{gold_tag()}" if mode == "refs" and gold_tag() else ""
+            out = run / f"{cid}_{mode}{tag}.png"
             if out.exists() and out.stat().st_size > 0 and not a.mock:
                 ok = True
             elif a.mock:
@@ -648,7 +693,8 @@ def cmd_test(a):
                 ok = paint_flux(with_guide(prompt, force=True), out)
             else:
                 ok = paint_flux(prompt, out)
-            label = {"lora": f"TRAINED ({name})", "refs": "REFERENCE MODE", "flux": "TODAY (FLUX)",
+            label = {"lora": f"TRAINED ({name})", "refs": "GOLD REFERENCES" if gold_tag() else "REFERENCE MODE",
+                     "flux": "TODAY (FLUX)",
                      "guide": "FLUX + HOUSE GUIDE"}.get(mode, mode)
             print(f"  {cid:<28} {label:<24} {'ok' if ok else 'FAILED'}", flush=True)
             cells.append((out if ok else None, f"{label} — {cid}"))
@@ -807,6 +853,105 @@ def cmd_guide(a):
     return 0
 
 
+# ──────────────────────────────── gold set (FABLE-STYLE-5) ────────────────────
+def _parse_numbers(tokens):
+    out = []
+    for tok in re.split(r"[,\s]+", " ".join(tokens)):
+        if not tok:
+            continue
+        m = re.fullmatch(r"#?(\d+)(?:-(\d+))?", tok)
+        if not m:
+            raise ValueError(f"not a number or range: {tok}")
+        a, b = int(m.group(1)), int(m.group(2) or m.group(1))
+        out += list(range(min(a, b), max(a, b) + 1))
+    return list(dict.fromkeys(out))
+
+
+def cmd_gold(a):
+    s = load_state()
+    if a.action == "sheet":
+        pool = list(dataset_images())
+        if a.with_game_art:
+            pool += sorted(GAME_ART.glob("*.webp"))
+        if not pool:
+            print("nothing to pick from — run gather first")
+            return 1
+        s["gold_index"] = [str(p) for p in pool]   # the numbers on the sheet, kept so `gold set` reads them back
+        save_state(s)
+        per, outs = 30, []
+        for page in range(0, len(pool), per):
+            cells = [(p, f"#{page + i + 1}  {p.stem[:28]}") for i, p in enumerate(pool[page:page + per])]
+            out = REVIEW / f"gold_pick_p{page // per + 1}.jpg"
+            grid(cells, 5, out, 300, 440, 34, f"Pick the 11/10s — reply with numbers (page {page // per + 1})")
+            outs.append(out)
+        print(f"{len(pool)} image(s) numbered on {len(outs)} sheet(s):\n  " + "\n  ".join(str(o) for o in outs))
+        print("then: style_lora.py gold set 3 7 12-15 …   (10–20 picks works best)")
+        return 0
+    if a.action == "set":
+        index = s.get("gold_index") or []
+        if not index:
+            print("make the numbered sheets first: style_lora.py gold sheet")
+            return 1
+        try:
+            nums = _parse_numbers(a.numbers)
+        except ValueError as e:
+            print(e)
+            return 1
+        bad = [n for n in nums if not 1 <= n <= len(index)]
+        if bad or not nums:
+            print(f"numbers must be 1–{len(index)} (got {bad or 'none'})")
+            return 1
+        s["gold"] = [index[n - 1] for n in nums]
+        save_state(s)
+        cells = [(Path(p), f"#{n}") for n, p in zip(nums, s["gold"])]
+        out = grid(cells, 5, REVIEW / "gold_set.jpg", 300, 440, 34, f"Gold set — {len(cells)} image(s)")
+        print(f"gold set: {len(cells)} image(s) — {out}")
+        print(f"reference mode now paints with the {REFS_N} gold images closest to each prompt")
+        return 0
+    if a.action == "import":
+        # FABLE-STYLE-5: Trikzos's own pick, handed over as a folder (images + optional .txt captions)
+        src = Path(" ".join(a.numbers)).expanduser() if a.numbers else None
+        if not src or not src.is_dir():
+            print("usage: style_lora.py gold import <folder of images>")
+            return 1
+        dest = HOME / "gold"
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        picked = []
+        for f in sorted(src.iterdir()):
+            if f.suffix.lower() not in IMG_EXT:
+                continue
+            img = _open(f)
+            if img is None:
+                continue
+            img.thumbnail((1536, 1536))
+            out = dest / (f.stem + ".jpg")
+            img.save(out, "JPEG", quality=92)
+            cap = f.with_suffix(".txt")
+            if cap.exists():
+                shutil.copy2(cap, out.with_suffix(".txt"))
+            picked.append(out)
+        if not picked:
+            print(f"no images in {src}")
+            return 1
+        s["gold"] = [str(p) for p in picked]
+        save_state(s)
+        out = grid([(p, p.stem) for p in picked], 5, REVIEW / "gold_set.jpg", 300, 440, 34,
+                   f"Gold set — {len(picked)} image(s)")
+        print(f"gold set: {len(picked)} image(s) copied to {dest} — {out}")
+        print(f"reference mode now paints with the {REFS_N} gold images closest to each prompt")
+        return 0
+    if a.action == "clear":
+        s.pop("gold", None)
+        save_state(s)
+        print("gold set cleared — reference mode is back to spread picks from the dataset")
+        return 0
+    g = gold_set()
+    print(f"gold set: {len(g)} image(s)" + ("".join(f"\n  {p}" for p in g) if g else " — none (style_lora.py gold sheet)"))
+    return 0
+
+
 # ──────────────────────────────── art_director hook ───────────────────────────
 HOOK_MARK = "FABLE-STYLE: \"lora\" paints with the trained house style"
 GUIDE_MARK = "FABLE-STYLE-2: the house-style clause rides on every prompt while `style_lora.py guide on`"
@@ -923,13 +1068,17 @@ def main():
     di.add_argument("--n", type=int, default=24, help="how many images the vision model studies")
     di.add_argument("--batch", type=int, default=8, help="images per look")
     di.add_argument("--mock", action="store_true")
+    go = sub.add_parser("gold")
+    go.add_argument("action", nargs="?", choices=["sheet", "set", "import", "show", "clear"], default="show")
+    go.add_argument("numbers", nargs="*", help="with set: picks from the numbered sheet, e.g. 3 7 12-15; with import: a folder")
+    go.add_argument("--with-game-art", action="store_true", help="number the game's card art too")
     gu = sub.add_parser("guide")
     gu.add_argument("state", nargs="?", choices=["on", "off", "show", "set"], default="show")
     gu.add_argument("text", nargs="*", help="with set: the new clause")
     a = ap.parse_args()
     return {"doctor": cmd_doctor, "gather": cmd_gather, "caption": cmd_caption, "sheet": cmd_sheet,
             "train": cmd_train, "use": cmd_use, "test": cmd_test, "hook-art-director": cmd_hook,
-            "distill": cmd_distill, "guide": cmd_guide}[a.cmd](a)
+            "distill": cmd_distill, "guide": cmd_guide, "gold": cmd_gold}[a.cmd](a)
 
 
 if __name__ == "__main__":
