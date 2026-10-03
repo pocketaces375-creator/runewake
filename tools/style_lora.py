@@ -50,6 +50,10 @@ The pipeline, start to finish:
          with the guide ON, the clause rides on every art prompt — art_director (after
          hook-art-director), reference mode, and `test --modes guide` (today's FLUX + the clause).
 
+  ROTATION (FABLE-STYLE-7): style_lora.py guide rotate on — the guide clause becomes the shared "stitch"
+      (painterly finish, luminous quality) and every card draws its own light, atmosphere and palette from its
+      stratum's mood bank, so the set doesn't share one sky. guide moods [ids] previews the draws.
+
   GOLD SET (FABLE-STYLE-5 — reference mode with Trikzos's hand-picked best images)
       style_lora.py gold sheet [--with-game-art]   numbered contact sheets to pick from
       style_lora.py gold set 3 7 12-15            those become the gold set; reference mode (test --modes refs,
@@ -587,10 +591,11 @@ def _save_image_ref(url, out):
     return False
 
 
-def paint_refs(prompt, out, refs=None):
+def paint_refs(prompt, out, refs=None, cid=None, card=None, n=0):
     """Reference mode: Gemini's image model with example images attached. No training.
     Self-contained (its own OpenRouter call) so it never depends on the rest of the pipeline."""
     _env_key("OPENROUTER_API_KEY")
+    prompt = with_guide(prompt, card=card, n=n, cid=cid)
     refs = refs or pick_refs(prompt=prompt)
     # FABLE-STYLE-6: the references are the style — colour and light first, not only brushwork — and they
     # outrank any style words left in the card's prompt
@@ -598,6 +603,13 @@ def paint_refs(prompt, out, refs=None):
             "closely as you can: their luminous colour, glowing light sources, sense of scale and wonder, level "
             "of detail and finish. Paint a completely new scene, not a copy. If the text below names a style "
             "that conflicts with the references, follow the references. ")
+    if (load_state().get("style_guide") or {}).get("rotate") and "Mood (fit it to the scene):" in prompt:
+        # FABLE-STYLE-7: the references stitch the set together (finish, glow, detail, wonder); the card's own
+        # mood sets its light, time of day and colour, so cards don't all share one sky
+        lead = ("Paint a new fantasy card illustration in the style of the attached reference images. Follow the "
+                "references for brushwork, painterly finish, glowing light, level of detail and sense of wonder. "
+                "Follow the text for the scene, the time of day, the lighting and the colour palette — those are "
+                "this card's own. Paint a completely new scene, not a copy. ")
     content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
               [{"type": "image_url", "image_url": {"url": _data_url(r, 1024)}} for r in refs]
     try:
@@ -685,7 +697,7 @@ def cmd_test(a):
             # FABLE-STYLE-6: …and by the guide and the reference wording, so a changed look never reuses old tiles
             tag = ""
             if mode == "refs":
-                tag = f"-r2{('-g' + gold_tag()) if gold_tag() else ''}{('-c' + guide_tag()) if guide_tag() else ''}"
+                tag = f"-r3{('-g' + gold_tag()) if gold_tag() else ''}{('-c' + guide_tag()) if guide_tag() else ''}"
             elif mode == "guide":
                 tag = f"-c{guide_tag(force=True)}"
             out = run / f"{cid}_{mode}{tag}.png"
@@ -697,9 +709,9 @@ def cmd_test(a):
             elif mode == "lora":
                 ok = paint_lora(prompt, out, a.scale)
             elif mode == "refs":
-                ok = paint_refs(prompt, out)
+                ok = paint_refs(prompt, out, cid=cid)
             elif mode == "guide":
-                ok = paint_flux(with_guide(prompt, force=True), out)
+                ok = paint_flux(with_guide(prompt, force=True, cid=cid), out)
             else:
                 ok = paint_flux(prompt, out)
             label = {"lora": f"TRAINED ({name})", "refs": "GOLD REFERENCES" if gold_tag() else "REFERENCE MODE",
@@ -776,16 +788,101 @@ def guide_tag(force=False):
     g = load_state().get("style_guide") or {}
     if not (force or g.get("enabled")) or not g.get("clause"):
         return ""
-    return hashlib.sha1(f"{g.get('clause')}|{bool(g.get('replace_base'))}".encode()).hexdigest()[:6]
+    return hashlib.sha1(f"{g.get('clause')}|{bool(g.get('replace_base'))}|{bool(g.get('rotate'))}|m1".encode()).hexdigest()[:6]
 
 
-def with_guide(prompt, gen=None, force=False):
+# FABLE-STYLE-7: rotation. One fixed clause on every card makes every card the same starry teal night.
+# The guide clause is now the STITCH — the painterly finish and luminous quality every card shares — and each
+# card draws its own MOOD (light / time of day, atmosphere, and a palette when the card has no colour line of
+# its own) from its stratum's bank, picked by a stable hash of the card id (and the candidate number, so two
+# candidates of one card differ). One card in six draws a wildcard sky instead. Same card → same mood.
+MOODS = {
+    "VERDANT": {
+        "light": ["dawn light filtering through a towering canopy", "emerald twilight under the first stars",
+                  "golden afternoon sun breaking through mist", "a bioluminescent forest night",
+                  "green-gold storm light before rain", "moonlight on dew and spider silk", "a spring morning after rain"],
+        "air": ["drifting pollen and fireflies", "shafts of light through leaves", "ancient roots over overgrown ruins",
+                "floating seeds and petals", "soft ground mist", "giant glowing mushrooms", "a waterfall veiled in spray"],
+        "palette": ["emerald, moss and warm gold", "jade, teal and soft amber", "spring green, ivory and rose",
+                    "deep forest green with firefly yellow", "sage, copper and dusk violet", "lime glow against blue-black shade"],
+    },
+    "EMBER": {
+        "light": ["forge glow at midnight", "a blood-red sunset over ash fields", "lava light under storm clouds",
+                  "first light over a smoking caldera", "an eclipse corona above a volcano", "white-hot noon in a basalt canyon",
+                  "torchlight in a great iron hall"],
+        "air": ["rising embers and sparks", "heat shimmer", "ash falling like snow", "rivers of lava",
+                "volcanic lightning", "smoke columns lit from below", "molten metal pouring in arcs"],
+        "palette": ["crimson, amber and charcoal", "blazing orange against deep indigo", "molten gold and black iron",
+                    "scarlet and smoky violet", "copper, rust and ash grey", "vermilion with cool blue shadow"],
+    },
+    "TIDE": {
+        "light": ["moonlight on the open sea", "sunbeams slanting through deep water", "lightning over storm waves",
+                  "a pearl dawn over a drowned city", "an aurora over icy water", "the glow of a bioluminescent abyss",
+                  "a silver overcast noon on a grey sea"],
+        "air": ["spray and sea foam", "drifting bubbles and jellyfish", "fog rolling over the waves", "sunken ruins and kelp",
+                "towering crashing waves", "swirling glowing currents", "rain sheets sweeping the horizon"],
+        "palette": ["sapphire, aquamarine and silver", "turquoise and coral", "slate, seafoam and pale gold",
+                    "midnight blue and electric cyan", "ice blue and lilac", "indigo with pearl white"],
+    },
+    "HOLLOW": {
+        "light": ["cold moonlight through fog", "violet ghostlight in a crypt", "green witchfire at dusk",
+                  "the shadow of an eclipse", "candlelight in a bone cathedral", "a pale dawn over a graveyard",
+                  "lantern light deep in the catacombs"],
+        "air": ["drifting ghost wisps", "crows circling", "creeping fog", "floating glowing runes",
+                "cracked tombstones and dead trees", "dust motes in thin shafts of light", "chains and hanging censers"],
+        "palette": ["violet, bone white and black", "sickly green and ash", "indigo and silver",
+                    "plum and candle gold", "grey-blue with teal ghostlight", "crimson accents on charcoal"],
+    },
+    "DAWN": {
+        "light": ["sunrise blazing over cathedral spires", "radiant noon through stained glass",
+                  "golden hour on a battlefield", "holy light breaking through storm clouds",
+                  "twilight under a haloed moon", "white-gold dawn on snowy peaks", "morning light over a marble city"],
+        "air": ["god rays", "floating feathers and motes of light", "banners snapping in the wind",
+                "halos and glowing sacred geometry", "clouds parting overhead", "glittering dust in the air",
+                "petals drifting over a procession"],
+        "palette": ["white gold and sky blue", "ivory, gold and rose", "azure and amber",
+                    "pearl, gold and soft teal", "crimson banners and gold", "silver and dawn pink"],
+    },
+}
+WILDCARD = ["under an aurora that fills the sky", "beneath twin moons and a spiral nebula", "during a starfall of comets",
+            "in the light of a solar eclipse", "with rainbow light refracting through floating crystals",
+            "under a vast ringed planet low on the horizon"]
+STRATA_PREFIX = {"vrd": "VERDANT", "emb": "EMBER", "tid": "TIDE", "hol": "HOLLOW", "dwn": "DAWN"}
+
+
+def stratum_of(card=None, cid=None):
+    if isinstance(card, dict) and card.get("strata"):
+        return str(card["strata"]).upper()
+    cid = cid or (card.get("id") if isinstance(card, dict) else None) or ""
+    return STRATA_PREFIX.get(cid.split("_")[0], "")
+
+
+def mood_for(cid, stratum, n=0, has_colour=False):
+    bank = MOODS.get(stratum) or MOODS[sorted(MOODS)[int(hashlib.sha1(cid.encode()).hexdigest(), 16) % len(MOODS)]]
+    h = int(hashlib.sha1(f"{cid}|mood|{n}".encode()).hexdigest(), 16)
+    light = bank["light"][h % len(bank["light"])]
+    air = bank["air"][(h // 7) % len(bank["air"])]
+    if (h // 49) % 6 == 0:
+        light = f"{light}, {WILDCARD[(h // 294) % len(WILDCARD)]}"
+    mood = f"{light}, {air}"
+    if not has_colour:
+        mood += f"; palette of {bank['palette'][(h // 1764) % len(bank['palette'])]}"
+    return mood
+
+
+def with_guide(prompt, gen=None, force=False, card=None, n=0, cid=None):
     """The prompt with the house-style clause added, when the guide is ON (or force). Never twice."""
     clause = guide_clause(force)
     if not clause or clause[:40] in prompt:
         return prompt
-    if (load_state().get("style_guide") or {}).get("replace_base"):
-        return f"{clause.rstrip('.')}. Scene: {strip_base_style(prompt).rstrip('.')}."
+    g = load_state().get("style_guide") or {}
+    if g.get("replace_base"):
+        scene = strip_base_style(prompt).rstrip(".")
+        key = cid or (card.get("id") if isinstance(card, dict) else "") or ""
+        if g.get("rotate") and key:
+            mood = mood_for(key, stratum_of(card, key), n, has_colour=bool(re.search(r"\bColou?r:", scene)))
+            return f"{clause.rstrip('.')}. Mood (fit it to the scene): {mood}. Scene: {scene}."
+        return f"{clause.rstrip('.')}. Scene: {scene}."
     return f"{prompt.rstrip().rstrip('.')}. House style: {clause.rstrip('.')}."
 
 
@@ -869,8 +966,17 @@ def cmd_guide(a):
     if not g:
         print("no house-style guide yet — run `style_lora.py distill` first (or `guide set …`)")
         return 1
+    if a.state == "moods":
+        # preview: the mood each of the first N cards (or the ids given) would draw
+        ids = a.text or [c for c, _ in _test_prompts(int(os.environ.get("MOODS_N", "12")))]
+        for cid in ids:
+            print(f"  {cid:<30} {mood_for(cid, stratum_of(cid=cid))}")
+        return 0
     if a.state in ("on", "off"):
         g["enabled"] = a.state == "on"
+        save_state(s)
+    elif a.state == "rotate":
+        g["rotate"] = (a.text[:1] or ["on"])[0].lower() != "off"
         save_state(s)
     elif a.state == "set":
         # FABLE-STYLE-3: hand-tune the clause (e.g. drop words that pull the look the wrong way)
@@ -886,6 +992,7 @@ def cmd_guide(a):
     print(f"  clause: {g.get('clause')}")
     if g.get("replace_base"):
         print("  replaces the old locked style sentence and leads every prompt")
+    print(f"  rotation: {'ON — every card draws its own light, atmosphere and palette from its stratum' if g.get('rotate') else 'off'}")
     return 0
 
 
@@ -1005,6 +1112,10 @@ def cmd_hook(a):
     m = re.search(r"^(?P<ind>[ \t]+)def paint\(prompt\):\n", text, re.M)
     if "style_lora" in text:
         # FABLE-STYLE-2: an already-hooked file gets the house-style guide on every prompt.
+        if "with_guide(prompt, gen)" in text and "card=card" not in text:
+            # FABLE-STYLE-7: tell the guide which card (and which candidate) it is painting, for rotation
+            new = text.replace("with_guide(prompt, gen)", "with_guide(prompt, gen, card=card, n=i)", 1)
+            return _write_hook(ad, text, new, "with_guide(prompt, gen, card=card, n=i)", a.dry_run)
         if "with_guide" in text:
             print("art_director.py already knows the lora/refs generators and the house guide — nothing to do")
             return 0
@@ -1023,7 +1134,7 @@ def cmd_hook(a):
     ind = m.group("ind") + "    "
     hook = (f"{ind}# {GUIDE_MARK}\n"
             f"{ind}import style_lora  # noqa: E402\n"
-            f"{ind}prompt = style_lora.with_guide(prompt, gen)\n"
+            f"{ind}prompt = style_lora.with_guide(prompt, gen, card=card, n=i)\n"
             f"{ind}# {HOOK_MARK}, \"refs\" with example images attached (tools/style_lora.py)\n"
             f"{ind}if gen in (\"lora\", \"refs\"):\n"
             f"{ind}    import style_lora  # noqa: E402\n"
@@ -1110,7 +1221,7 @@ def main():
     go.add_argument("numbers", nargs="*", help="with set: picks from the numbered sheet, e.g. 3 7 12-15; with import: a folder")
     go.add_argument("--with-game-art", action="store_true", help="number the game's card art too")
     gu = sub.add_parser("guide")
-    gu.add_argument("state", nargs="?", choices=["on", "off", "show", "set"], default="show")
+    gu.add_argument("state", nargs="?", choices=["on", "off", "show", "set", "rotate", "moods"], default="show")
     gu.add_argument("text", nargs="*", help="with set: the new clause")
     gu.add_argument("--replace-base", action="store_true",
                     help="with set: drop the old locked style sentence from prompts and lead with this clause")

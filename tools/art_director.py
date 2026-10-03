@@ -611,7 +611,7 @@ def cmd_render(a):
             def paint(prompt):
                 # FABLE-STYLE-2: the house-style clause rides on every prompt while `style_lora.py guide on`
                 import style_lora  # noqa: E402
-                prompt = style_lora.with_guide(prompt, gen)
+                prompt = style_lora.with_guide(prompt, gen, card=card, n=i)
                 # FABLE-STYLE: "lora" paints with the trained house style, "refs" with example images attached (tools/style_lora.py)
                 if gen in ("lora", "refs"):
                     import style_lora  # noqa: E402
