@@ -60,6 +60,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -211,6 +212,13 @@ Judge it and reply as JSON only:
   "reason": "one short sentence: the single biggest strength or problem"}}"""
 
 
+class OutOfCredit(Exception):
+    """FABLE-BATCH-4: OpenRouter answered 402 Payment Required."""
+
+
+CREDIT_GONE = False   # set when a screener look hit 402 — the batch stops instead of crashing
+
+
 def vision(path, card):
     style = sl.guide_clause(force=True) or "luminous high-fantasy painting with a soft painterly finish"
     brief = f"Card: {card.get('name', '?')} ({str(card.get('type', '')).lower()}, {str(card.get('strata', '')).title()})."
@@ -228,6 +236,11 @@ def vision(path, card):
                                              {"type": "image_url", "image_url": {"url": sl._data_url(path, 1024)}}]}]},
                 timeout=180)
             return sl._json_from(sl._chat_text(d))
+        except urllib.error.HTTPError as e:
+            if e.code == 402:
+                raise OutOfCredit() from e
+            last = e
+            time.sleep(3 * (attempt + 1))
         except Exception as e:  # noqa: BLE001
             last = e
             time.sleep(3 * (attempt + 1))
@@ -351,9 +364,17 @@ def cmd_screen(a):
             print(f"nothing to screen (run {run or '—'}): render with art_director.py first")
             return 1
         print(f"screening run {run}: {len(items)} painting(s) with {SCREEN_MODEL if not a.no_vision else 'local checks only'}")
+        global CREDIT_GONE
         for cid, c in items:
-            res = screen_one(c["path"], cid, cards.get(cid, {"name": cid}), led, batch_feats, batch_subjects,
-                             cache, not a.no_vision)
+            if c.get("screen"):
+                continue   # FABLE-BATCH-4: already judged (a run screened before the credit ran out)
+            try:
+                res = screen_one(c["path"], cid, cards.get(cid, {"name": cid}), led, batch_feats, batch_subjects,
+                                 cache, not a.no_vision)
+            except OutOfCredit:
+                CREDIT_GONE = True
+                print("  OpenRouter: 402 Payment Required — out of credit; the rest stay unscreened for the next run")
+                break
             c["screen"] = {k: res[k] for k in ("verdict", "score", "reasons", "warnings", "subject", "screened")}
             cells.append((c["path"], _label(cid, res, c.get("n"))))
             print(f"  {_label(cid, res, c.get('n'))}", flush=True)
@@ -436,7 +457,14 @@ def cmd_pick(a):
 MOCK = False
 
 
+# FABLE-BATCH-4: the scene planner. art_director defaults to Gemini 2.5 Pro (a "thinking" model, several cents a
+# card with retries); a card's scene plan doesn't need it. ART_DIRECTOR_MODEL still overrides.
+PLAN_MODEL = "google/gemini-2.5-flash"
+
+
 def _ad_cli(*args, env=None):
+    env = dict(env or os.environ)
+    env.setdefault("ART_DIRECTOR_MODEL", PLAN_MODEL)
     cmd = [sys.executable, str(TOOLS / "art_director.py")] + (["--mock"] if MOCK else []) + [str(x) for x in args]
     print("  $ art_director.py " + " ".join(str(x) for x in args), flush=True)
     r = subprocess.run(cmd, env=env)
@@ -478,6 +506,9 @@ def cmd_cycle(a):
         led = ad.load_ledger()
         keep = _winners(led, done, a.allow_review)
         cmd_screen(argparse.Namespace(run=None, dir=None, no_vision=False, keep=keep))
+        if CREDIT_GONE:
+            print("OUT OF CREDIT: add credit at openrouter.ai/credits, then run this again.")
+            break
         led = ad.load_ledger()
         nxt, replan = [], set()
         for cid in todo:
@@ -697,18 +728,45 @@ def cmd_batch(a):
         print(f"installed {len(installed)} of {len(ids)} — the rest were not good enough yet")
         return 0
 
-    ids = _pick_batch(cards, a.n, led, a.ids)
+    if a.set:
+        # FABLE-BATCH-4: every card of a set that has no art yet (pass or near-miss) — e.g. finishing a drop
+        has_art = lambda e: any((c.get("screen") or {}).get("verdict") in ("pass", "review") for c in (e or {}).get("candidates") or [])
+        set_all = sorted(cid for cid, c in cards.items() if c.get("set") == a.set and c.get("type") != "TOKEN"
+                         and (led["cards"].get(cid) or {}).get("style_v") != 2)
+        ids = [cid for cid in set_all if not has_art(led["cards"].get(cid))]
+        # paintings made before the credit ran out but never judged: judge them first (a look is ~0.1¢,
+        # repainting would be ~3¢)
+        pending = [cid for cid in ids if any(not c.get("screen") and c.get("path") and Path(c["path"]).exists()
+                                             for c in (led["cards"].get(cid) or {}).get("candidates") or [])]
+        if pending:
+            print(f"judging {len(pending)} painting(s) left unscreened by an earlier run…")
+            for run in sorted({(led["cards"].get(cid) or {}).get("run") for cid in pending if (led["cards"].get(cid) or {}).get("run")}):
+                cmd_screen(argparse.Namespace(run=run, dir=None, no_vision=False))
+                if CREDIT_GONE:
+                    print("OUT OF CREDIT: add credit at openrouter.ai/credits, then run this again.")
+                    return 1
+            led = ad.load_ledger()
+            ids = [cid for cid in ids if not has_art(led["cards"].get(cid))]
+        if not ids:
+            print(f"every card in {a.set} already has art")
+            if not set_all:
+                return 0
+    else:
+        set_all = None
+        ids = _pick_batch(cards, a.n, led, a.ids)
     bad = [i for i in ids if i not in cards]
     if bad:
         print(f"unknown card(s): {', '.join(bad)}")
         return 1
-    if not ids:
+    if not ids and not set_all:
         print("every card is already in the new style")
         return 0
     bid = time.strftime("%Y%m%d-%H%M%S")
     need_plan = [c for c in ids if a.fresh_concepts or not (led["cards"].get(c) or {}).get("prompt")
                  or (led["cards"].get(c) or {}).get("mock")]
-    cap = min(a.max_paintings, len(ids) * a.rounds)
+    # FABLE-BATCH-4: a preview batch is capped at 14; finishing a set allows ~30% repaints by default
+    max_p = a.max_paintings if a.max_paintings is not None else (-(-len(ids) * 13 // 10) if a.set else 14)
+    cap = min(max_p, len(ids) * a.rounds)
     print(f"PREVIEW BATCH {bid} on {sl.refs_model()}: {len(ids)} cards, one painting each, then only the failures are repainted.\n"
           f"  cards: {', '.join(ids)}\n"
           f"  planned spend: {len(need_plan)} planning call(s) + about {len(ids)} paintings"
@@ -740,13 +798,16 @@ def cmd_batch(a):
             print("planning failed — stopping")
             return 1
         env = dict(os.environ, STYLE_MOOD_SALT=f"{rnd}")
-        if _ad_cli("render", *todo, "--models", "refs", "--candidates", 1, env=env) != 0:
+        rc = _ad_cli("render", *todo, "--models", "refs", "--candidates", 1, env=env)
+        spent += len(todo)
+        out_of_credit = rc == sl.OUT_OF_CREDIT
+        if rc != 0 and not out_of_credit:
             print("render failed — stopping")
             return 1
-        spent += len(todo)
         led = ad.load_ledger()
         keep = [(cid, b) for cid, b in _shown(led, [i for i in ids if i not in todo])]
         cmd_screen(argparse.Namespace(run=None, dir=None, no_vision=False, keep=keep))
+        out_of_credit = out_of_credit or CREDIT_GONE
         led = ad.load_ledger()
         nxt, replan = [], set()
         for cid in todo:
@@ -759,7 +820,14 @@ def cmd_batch(a):
                 replan.add(cid)
         print(f"round {rnd}: {len(todo) - len(nxt)} good, {len(nxt)} to repaint", flush=True)
         todo = nxt
+        if out_of_credit:
+            print("\nOUT OF CREDIT: OpenRouter refused payment (402). Paintings made so far are kept. Add credit at "
+                  "openrouter.ai/credits, then run the same command again — it only paints the cards still missing.")
+            break
     led = ad.load_ledger()
+    # FABLE-BATCH-4: finishing a set → the sheet (and --approve) covers the WHOLE set: what earlier runs made too
+    if set_all:
+        ids = set_all
     good = [cid for cid, _ in _shown(led, ids)]
     unsure = [cid for cid, b in _shown(led, ids) if b["screen"]["verdict"] != "pass"]
     sheet = _preview_sheet(led, cards, ids, bid)
@@ -774,8 +842,17 @@ def cmd_batch(a):
     print(f"\nbatch {bid}: {len(good)} of {len(ids)} cards have art to show — {spent} painting(s) made")
     if unsure:
         print(f"marked (?) on the sheet — just under the bar, your call: {', '.join(unsure)}")
+    # FABLE-BATCH-4: what one card's art really costs — the paintings and screener looks OpenRouter billed
+    paint_cost = sum(r["cost"] for r in _spend_rows() if r.get("tag") == bid and r.get("kind") == "paint"
+                     and isinstance(r.get("cost"), (int, float)))
+    n_paint = sum(1 for r in _spend_rows() if r.get("tag") == bid and r.get("kind") == "paint")
+    if n_paint:
+        print(f"per painting (billed by OpenRouter): {_usd(paint_cost / n_paint)} · "
+              f"per finished card, paintings + looks: {_usd(logged / max(1, len(good)))}")
     if cost is not None:
-        print(f"spent on this batch (OpenRouter's own account total, before vs after): {_usd(cost)}")
+        print(f"spent on this batch (OpenRouter's own account total, before vs after — includes planning and "
+              f"anything else on the account meanwhile): {_usd(cost)}"
+              + (f" = {_usd(cost / max(1, len(good)))} per finished card" if good else ""))
     elif logged:
         print(f"spent on the calls this batch made (logged): {_usd(logged)}")
     else:
@@ -863,8 +940,9 @@ def main():
     b = sub.add_parser("batch")
     b.add_argument("ids", nargs="*", help="card ids (default: a spread of cards not yet in the new style)")
     b.add_argument("--n", type=int, default=10)
+    b.add_argument("--set", help="every card of this set that has no art yet, e.g. class_drop_1")
     b.add_argument("--rounds", type=int, default=2, help="1 painting each, then repaint only the failures (default 2 rounds)")
-    b.add_argument("--max-paintings", type=int, default=14, help="hard cap on paintings (default 14)")
+    b.add_argument("--max-paintings", type=int, default=None, help="hard cap on paintings (default 14; with --set, cards × 1.3)")
     b.add_argument("--max-usd", type=float, default=0, help="stop between rounds once the account has spent this much on the batch")
     b.add_argument("--fresh-concepts", action="store_true", help="plan a new concept for every card first")
     b.add_argument("--approve", nargs="?", const="last", metavar="BATCH", help="install a batch's passing art in the game")

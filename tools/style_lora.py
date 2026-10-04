@@ -113,7 +113,10 @@ GAME_ART = REPO / "client" / "content" / "art"
 
 TRIGGER = os.environ.get("STYLE_LORA_TRIGGER", "rnwk style")
 CAPTION_MODEL = os.environ.get("STYLE_CAPTION_MODEL", "google/gemini-2.5-flash")
-REFS_MODEL_DEFAULT = "google/gemini-3-pro-image"
+# FABLE-BATCH-4: the cheapest Gemini image model (Nano Banana 2 Lite, ~3.4¢ an image at Google's list price;
+# 3.1 Flash is ~6.7¢, 3 Pro ~13.4¢). STYLE_REFS_MODEL in the environment or ~/.hermes/.env still overrides it.
+REFS_MODEL_DEFAULT = "google/gemini-3.1-flash-lite-image"
+OUT_OF_CREDIT = 42      # exit code: OpenRouter said 402 Payment Required — stop everything, don't retry
 
 
 def refs_model():
@@ -654,6 +657,12 @@ def paint_refs(prompt, out, refs=None, cid=None, card=None, n=0):
             if u and _save_image_ref(u, out):
                 return True
         print(f"  refs: no image in the reply ({str(msg.get('content'))[:160]})")
+    except urllib.error.HTTPError as e:
+        if e.code == 402:
+            # FABLE-BATCH-4: out of credit. Every further call would fail the same way — stop the whole run.
+            print("  OpenRouter: 402 Payment Required — the account is out of credit. Stopping.", flush=True)
+            sys.exit(OUT_OF_CREDIT)
+        print(f"  refs paint failed: HTTP {e.code} {str(e)[:160]}")
     except (urllib.error.URLError, ValueError, KeyError, IndexError) as e:
         print(f"  refs paint failed: {str(e)[:200]}")
     return False
