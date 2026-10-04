@@ -179,6 +179,8 @@ public static class EffectExecutor
             KeywordHandlers.TryAncestralShieldClamp(ct.Card, state);
             if (ct.Card.CurrentVigor <= 0)
                 KillCreature(ct.Card, state);
+            else if (amount > 0)
+                TriggerBus.FireDamaged(state, ct.Card);
         }
         else if (target is PlayerTarget pt)
         {

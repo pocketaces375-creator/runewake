@@ -1125,5 +1125,825 @@
     "abilities": [],
     "flavor": "Back for one more fight.",
     "content_version": 1
+  },
+  {
+    "id": "hol_c_barrow_gnawer",
+    "set": "class_drop_2",
+    "name": "Barrow Gnawer",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It chews on the dead, and the dead leave a fever behind.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_bone_harvester",
+    "set": "class_drop_2",
+    "name": "Bone Harvester",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every friend who falls adds another bone to his crown.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_corpse_candle",
+    "set": "class_drop_2",
+    "name": "Corpse Candle",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Light it over a grave and something answers.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_soul_exchange",
+    "set": "class_drop_2",
+    "name": "Soul Exchange",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "flavor": "One soul out, a better one in. The barrow keeps the change.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_ghoul_horde",
+    "set": "class_drop_2",
+    "name": "Ghoul Horde",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          },
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          }
+        ]
+      }
+    ],
+    "flavor": "Where one ghoul crawls, two more follow.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_carrion_feaster",
+    "set": "class_drop_2",
+    "name": "Carrion Feaster",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_CREATURE_DIES",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every death on the field is a meal.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_charnel_behemoth",
+    "set": "class_drop_2",
+    "name": "Charnel Behemoth",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 8,
+    "vigor": 8,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 2,
+    "abilities": [],
+    "flavor": "Two souls feed it. A thousand bones hold it up.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_rotfang_ghoul",
+    "set": "class_drop_2",
+    "name": "Rotfang Ghoul",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [],
+    "flavor": "One bite, and the rot does the rest.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_pestilence",
+    "set": "class_drop_2",
+    "name": "Pestilence",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The plague does not ask whose side you are on.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_queen_of_the_barrow",
+    "set": "class_drop_2",
+    "name": "Queen of the Barrow",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER+TRIBE:UNDEAD",
+              "count": "ALL"
+            },
+            "keyword": "VENOM"
+          }
+        ]
+      }
+    ],
+    "flavor": "Her kiss turned her court to poison. They adore her for it.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_cryptwalker",
+    "set": "class_drop_2",
+    "name": "Cryptwalker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "UNEARTH"
+    ],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [],
+    "flavor": "Bury it as often as you like. It knows the way back.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_soulreaper_acolyte",
+    "set": "class_drop_2",
+    "name": "Soulreaper Acolyte",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Each soul she reaps is sent screaming at your enemy.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_deathless_legion",
+    "set": "class_drop_2",
+    "name": "Rise, Deathless Legion",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 10
+          },
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 10
+          }
+        ]
+      }
+    ],
+    "flavor": "The fallen stand up in rows, as if they were never dismissed.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_barrow_tithe_taker",
+    "set": "class_drop_2",
+    "name": "Barrow Tithe-Taker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 1,
+    "abilities": [],
+    "flavor": "It collects one life, and pays out in strength.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_alley_pickpocket",
+    "set": "class_drop_2",
+    "name": "Alley Pickpocket",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Bumped into you, said sorry, took your best card.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_smoke_dancer",
+    "set": "class_drop_2",
+    "name": "Smoke Dancer",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "DODGE:40"
+    ],
+    "abilities": [],
+    "flavor": "She is never quite where your sword lands.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_poisoned_dart",
+    "set": "class_drop_2",
+    "name": "Poisoned Dart",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The dart is small. The poison is not.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_shadowstep",
+    "set": "class_drop_2",
+    "name": "Shadowstep",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "DODGE:50",
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Gone, and then right behind you.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_black_market_fence",
+    "set": "class_drop_2",
+    "name": "Black-Market Fence",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Whatever they lost, he is selling.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_asp_assassin",
+    "set": "class_drop_2",
+    "name": "Asp Assassin",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "VENOM",
+      "DODGE:20"
+    ],
+    "abilities": [],
+    "flavor": "Quick as a snake, and the bite is the same.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_master_thief",
+    "set": "class_drop_2",
+    "name": "Master Thief Veyra",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "STEAL",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            },
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "She steals your champion, wins your battle with it, and gives it back. Usually.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_cutthroat",
+    "set": "class_drop_2",
+    "name": "Cutthroat",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 2,
+            "duration": "THIS_TURN"
+          }
+        ],
+        "condition": {
+          "op": "ENEMY_HAND_LTE",
+          "value": 2
+        }
+      }
+    ],
+    "flavor": "Empty-handed enemies are her favorite kind.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_mind_rot",
+    "set": "class_drop_2",
+    "name": "Mind Rot",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "They forget their plans. Then they forget their cards.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_sabotage",
+    "set": "class_drop_2",
+    "name": "Sabotage",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUPPRESS",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A cut strap, a cracked gem, a fire in the armory.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_whisper_queen",
+    "set": "class_drop_2",
+    "name": "The Whisper Queen",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "DODGE:30"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER",
+              "count": "ALL"
+            },
+            "keyword": "DODGE:20"
+          }
+        ]
+      }
+    ],
+    "flavor": "Her court moves like smoke, and so does every blade aimed at it.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_hidden_blade",
+    "set": "class_drop_2",
+    "name": "Hidden Blade",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "AMBUSH",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "Look for the blade. You will not find it until it finds you.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_spiteful_robber",
+    "set": "class_drop_2",
+    "name": "Spiteful Robber",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Kill him and he takes something with him.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_kingsbane",
+    "set": "class_drop_2",
+    "name": "Kingsbane",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "Forged for one throat. It has never needed a second try.",
+    "content_version": 1
   }
 ]

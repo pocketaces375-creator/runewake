@@ -195,6 +195,8 @@ public static class RulesTextRenderer
             case Op.HEAL:
             {
                 string amt = effect.Amount?.ToString() ?? "?";
+                if (scope == Scope.PLAYER_SELF)
+                    return $"You heal {amt}";   // FABLE-DROP-2: was "Heal 2 from you"
                 string tgt = RenderTargetPhrase(target);
                 return $"Heal {amt} from {tgt}";
             }
@@ -461,6 +463,9 @@ public static class RulesTextRenderer
             return r.Contains('–') ? $" in lanes {r}" : $" in lane {r}";
         }));
         parts.RemoveAll(f => f.StartsWith("LANES:"));
+        // FABLE-DROP-2: "enemy creatures with 2 or less attack" reads better than "attack ≤ 2 enemy creatures"
+        lanesTail += string.Concat(parts.Where(f => f.StartsWith("ATTACK_LTE:")).Select(f => $" with {f[11..]} or less attack"));
+        parts.RemoveAll(f => f.StartsWith("ATTACK_LTE:"));
         string adjective = string.Concat(parts.Where(f => !f.StartsWith("TRIBE:") && f != "OTHER").Select(FilterAdjective));
         bool other = parts.Contains("OTHER");
         string? tribe = parts.FirstOrDefault(f => f.StartsWith("TRIBE:"))?[6..];
@@ -489,7 +494,7 @@ public static class RulesTextRenderer
         if (tribe is not null)
             adjective = (other ? "other " : "") + adjective + Title(tribe) + " ";
         else if (other)
-            adjective = "other " + adjective;
+            adjective = adjective + "other ";   // "strongest other ally creature"
 
         string noun = plural ? baseNoun + "s" : baseNoun;
         return countPrefix + adjective + noun + lanesTail;

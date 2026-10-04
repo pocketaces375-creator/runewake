@@ -904,5 +904,414 @@
     ],
     "flavor": "An army of one, because the others could not keep up.",
     "content_version": 1
+  },
+  {
+    "id": "emb_c_ashblade_recruit",
+    "set": "class_drop_2",
+    "name": "Ashblade Recruit",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "EXALTED"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "First in line, last to leave, and very loud about both.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinderfist_brawler",
+    "set": "class_drop_2",
+    "name": "Cinderfist Brawler",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Every punch he takes only makes the next one hotter.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_war_cry",
+    "set": "class_drop_2",
+    "name": "War Cry",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 3,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "One shout, and the whole forge-hall roars back.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_second_wind",
+    "set": "class_drop_2",
+    "name": "Second Wind",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "Up again. Always up again.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_brazen_duelist",
+    "set": "class_drop_2",
+    "name": "Brazen Duelist",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "EXALTED"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "SELF"
+            },
+            "keyword": "ARMOR:2"
+          }
+        ],
+        "condition": {
+          "op": "ALONE"
+        }
+      }
+    ],
+    "flavor": "She asked for one opponent at a time. Nobody listened. Nobody needed to.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_oath_of_the_lone_blade",
+    "set": "class_drop_2",
+    "name": "Oath of the Lone Blade",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2
+          },
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "PIERCE"
+          }
+        ]
+      }
+    ],
+    "flavor": "Swear it on the edge, and the edge remembers.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_emberline_captain",
+    "set": "class_drop_2",
+    "name": "Emberline Captain",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER+TRIBE:KNIGHT",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Her line never bends. It only advances.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_furnace_berserker",
+    "set": "class_drop_2",
+    "name": "Furnace Berserker",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Wounds are just more fuel.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_bladestorm",
+    "set": "class_drop_2",
+    "name": "Bladestorm",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "A hundred blades, one whirlwind, no survivors standing close.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_champion_of_ash",
+    "set": "class_drop_2",
+    "name": "Champion of Ash",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [
+      "EXALTED",
+      "ARMOR:1",
+      "SWIFT"
+    ],
+    "abilities": [],
+    "flavor": "Born in the forge's last fire. Unbowed by the first blow.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_pyre_skirmisher",
+    "set": "class_drop_2",
+    "name": "Pyre Skirmisher",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DIAGONAL",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She fights in a spray of cinders that burns everyone nearby.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_unbound_fury",
+    "set": "class_drop_2",
+    "name": "Unbound Fury",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DOUBLE_STATS",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "flavor": "Break the chains on the beast inside, and never put them back.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ember_squire",
+    "set": "class_drop_2",
+    "name": "Ember Squire",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [
+      "EXALTED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HIGHEST_ATTACK+OTHER",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "He polishes the champion's armor and dreams of wearing it.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_ninth_gate_warlord",
+    "set": "class_drop_2",
+    "name": "Ninth-Gate Warlord",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 3
+          }
+        ],
+        "condition": {
+          "op": "ALONE"
+        }
+      }
+    ],
+    "flavor": "Eight gates fell before her. She walked through the ninth alone.",
+    "content_version": 1
   }
 ]

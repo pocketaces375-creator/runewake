@@ -489,4 +489,28 @@ public class DropMechanicsTests
         }
         Assert.Equal(Run(), Run());
     }
+
+    // ══════════════ FABLE-DROP-2 ══════════════
+
+    [Fact]
+    public void OnDamaged_FiresForASurvivor()
+    {
+        var s = S();
+        var brawler = Put(s, 1, 0, 2, 3);
+        brawler.Abilities.Add(Ab(Trigger.ON_DAMAGED, new EffectDef { Op = Op.BUFF, Attack = 2, Target = new TargetDef { Scope = Scope.SELF } }));
+        Put(s, 0, 0, 1, 9);
+        s = Attack(s, 0, 0);
+        Assert.Equal(4, At(s, 1, 0).CurrentAttack);
+    }
+
+    [Fact]
+    public void AuraGrantedSwift_CountsOnArrival()
+    {
+        var s = S();
+        var alpha = Put(s, 0, 0, 5, 5);
+        alpha.Abilities.Add(new AbilityDef { Trigger = Trigger.PASSIVE, Effects = { new EffectDef { Op = Op.GRANT_KEY, Keyword = "SWIFT", Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Filter = "OTHER", Count = TargetCount.All } } } });
+        var cub = Hand(s, 0, CardType.CREATURE, 2, 1);
+        s = Play(s, 0, cub, 1);
+        Assert.False(At(s, 0, 1).IsExhausted);
+    }
 }

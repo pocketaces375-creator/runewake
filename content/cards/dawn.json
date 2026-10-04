@@ -958,5 +958,491 @@
     ],
     "flavor": "Her lantern burns all night so the wounded can find her.",
     "content_version": 1
+  },
+  {
+    "id": "dwn_c_oathbound_page",
+    "set": "class_drop_2",
+    "name": "Oathbound Page",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [
+      "GUARD"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "He carries the banner, the bandages and the knight's spare boots.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_sunward_sentry",
+    "set": "class_drop_2",
+    "name": "Sunward Sentry",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "keyword": "ARMOR:1",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "At every dawn she raises her shield, and her neighbors stand taller.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_steel_blessing",
+    "set": "class_drop_2",
+    "name": "Steel Blessing",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "Iron in the blood, light in the bones.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_chapel_mender",
+    "set": "class_drop_2",
+    "name": "Chapel Mender",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL_FULL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "MOST_WOUNDED",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "She has sewn up more knights than the armorers have.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_sanctified_ground",
+    "set": "class_drop_2",
+    "name": "Sanctified Ground",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "GUARD"
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "vigor": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Stand on this stone and no enemy can pass you by.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_knight_commander",
+    "set": "class_drop_2",
+    "name": "Knight-Commander Aurel",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER+TRIBE:KNIGHT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Thirty years, a hundred battles, not one knight left behind.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_aegis_of_dawn",
+    "set": "class_drop_2",
+    "name": "Aegis of Dawn",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "keyword": "WARD"
+          }
+        ]
+      }
+    ],
+    "flavor": "The sun rises, and every shield catches it.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_seraph_of_mercy",
+    "set": "class_drop_2",
+    "name": "Seraph of Mercy",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "SPIRIT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 2
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Her wings close over the wounded every night.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_lancer_of_light",
+    "set": "class_drop_2",
+    "name": "Lancer of Light",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "ARMOR:1"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "Her lance is tipped with sunrise.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_dawns_truce",
+    "set": "class_drop_2",
+    "name": "Dawn's Truce",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "keyword": "ARMOR:3",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "For one day, the light refuses to let anyone fall.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_martyrs_ward",
+    "set": "class_drop_2",
+    "name": "Martyr's Ward",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "Her last prayer was for everyone else.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_bastion_paragon",
+    "set": "class_drop_2",
+    "name": "Bastion Paragon",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 4,
+    "vigor": 9,
+    "keywords": [
+      "GUARD",
+      "ARMOR:2"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "Armies broke on him like waves on a cliff.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_shield_bearer",
+    "set": "class_drop_2",
+    "name": "Shield-Bearer",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "keyword": "ARMOR:1"
+          }
+        ]
+      }
+    ],
+    "flavor": "Her shield is wide enough for three.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_radiant_charge",
+    "set": "class_drop_2",
+    "name": "Radiant Charge",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:KNIGHT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Lances lowered, banners high, and the dawn behind them.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_squires_call",
+    "set": "class_drop_2",
+    "name": "Squire's Call",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "dwn_t_squire"
+          },
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "dwn_t_squire"
+          }
+        ]
+      }
+    ],
+    "flavor": "Two eager squires, one borrowed sword between them.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_t_squire",
+    "set": "class_drop_2",
+    "name": "Squire",
+    "strata": "DAWN",
+    "type": "TOKEN",
+    "rarity": "COMMON",
+    "cost": 0,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [
+      "GUARD"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "Eager. Very eager.",
+    "content_version": 1
   }
 ]

@@ -102,3 +102,19 @@ Trikzos: "New skills all in this drop. 50 cards is good, all new stuff though."
 - **Balance** (GreedyBot sims, class cards ×2 in a deck of the stratum's best base cards vs every stratum):
   see the drop's handoff note. The base strata themselves are uneven under the bot (Dawn strong, Ember weak) —
   that predates this drop.
+
+## 6. FABLE-DROP-2 — 100 more cards (2026-10-04)
+
+Trikzos: "We're green light to do 100 cards."
+
+- **100 cards** (14 per class; 15 Paladin and Druid) + 1 token (Squire), set `class_drop_2`, built on the drop-1
+  mechanics. New in the engine: **"When this takes damage"** (`ON_DAMAGED`) now fires — it was in the card language
+  from the start and never did — for the Warrior's enrage cards; aura keywords (a pack leader's Swift) count the
+  moment a creature arrives.
+- Warrior: enrage, extra attacks (Refresh), lone-champion cards. Battlemage: Sigils, recalls, ritual-fed creatures.
+  Necromancer: tribute giants, mass raise-dead, rot. Paladin: Knights, Armor auras, Ward for all. Druid: packs,
+  full heals, ramp, lane growth. Rogue: discard, Dodge auras, borrowing your champion, Kingsbane. Astrologist:
+  stun-all, flips, lane locks, Drain engines, global debuffs.
+- Synergy tags gained ENRAGE / EXTRA_ATTACK (Warrior) and SPELL_DAMAGE (Battlemage); conditions count too
+  ("if it's your only creature" → Exalted players).
+- Existing saves get the drop once (two copies of the cards that suit their class).

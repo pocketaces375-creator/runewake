@@ -205,6 +205,7 @@ public static class MechanicOps
         int dmg = ReduceByArmor(attacker, KeywordHandlers.ApplyWard(attacker, Math.Max(0, trap.Amount)));
         attacker.Damage += dmg;
         if (attacker.CurrentVigor <= 0) EffectExecutor.KillCreature(attacker, state);
+        else if (dmg > 0) TriggerBus.FireDamaged(state, attacker);
     }
 
     // ——— Redirect ———
@@ -306,6 +307,7 @@ public static class MechanicOps
             c.Damage += ReduceByArmor(c, c.Burn);
             c.Burn--;
             if (c.CurrentVigor <= 0) EffectExecutor.KillCreature(c, state);
+            else TriggerBus.FireDamaged(state, c);
         }
         if (p.Burn > 0 && !state.IsGameOver)
         {

@@ -11,8 +11,8 @@ public static class Synergy
     /// <summary>The classes' love-lists (CLASS_IDENTITY.md §2).</summary>
     public static readonly IReadOnlyDictionary<string, string[]> Loves = new Dictionary<string, string[]>
     {
-        ["warrior"] = new[] { "ATTACK_BUFF", "EXALTED", "DOUBLE_STATS", "HEAVY_DAMAGE", "HASTE" },
-        ["battlemage"] = new[] { "BOUNCE", "SUPPRESS", "COUNTER", "SPELL_TRIGGERED", "DRAW", "REDIRECT" },
+        ["warrior"] = new[] { "ATTACK_BUFF", "EXALTED", "DOUBLE_STATS", "HEAVY_DAMAGE", "HASTE", "ENRAGE", "EXTRA_ATTACK" },
+        ["battlemage"] = new[] { "BOUNCE", "SUPPRESS", "COUNTER", "SPELL_TRIGGERED", "DRAW", "REDIRECT", "SPELL_DAMAGE" },
         ["necromancer"] = new[] { "RESURRECT", "TOKENS", "TRIBUTE", "ON_DEATH", "VENOM", "BURN", "TRIBAL_UNDEAD" },
         ["paladin"] = new[] { "GUARD", "DEFENSE_BUFF", "PREVENT", "NEGATE", "STALL", "HEAL", "TRIBAL_KNIGHT" },
         ["druid"] = new[] { "HEAL", "ADJACENT_BUFF", "SPATIAL_BUFF", "RAMP", "TRIBAL_BEAST" },
@@ -45,8 +45,19 @@ public static class Synergy
 
         foreach (var a in card.Abilities)
         {
+            // FABLE-DROP-2: what a condition asks for says who the card is for
+            foreach (var c in new[] { a.Condition }.Concat(a.Condition?.All ?? new()).Concat(a.Condition?.Any ?? new()))
+            {
+                if (c?.Op == ConditionOp.ALONE) tags.Add("EXALTED");
+                if (c?.Op == ConditionOp.ENEMY_HAND_LTE) tags.Add("DISCARD");
+                if (c?.Op is ConditionOp.SPELLS_CAST_THIS_TURN_EQ or ConditionOp.SPELLS_CAST_THIS_TURN_GTE) tags.Add("SPELL_TRIGGERED");
+            }
             if (a.Trigger == Trigger.ON_DEATH || a.Trigger == Trigger.ON_ALLY_DEATH) tags.Add("ON_DEATH");
             if (a.Trigger == Trigger.ON_CAST_RITUAL) tags.Add("SPELL_TRIGGERED");
+            // FABLE-DROP-2
+            if (a.Trigger == Trigger.ON_DAMAGED) tags.Add("ENRAGE");
+            if (a.Trigger == Trigger.ON_CREATURE_DIES) tags.Add("ON_DEATH");
+            if (a.Trigger == Trigger.ON_HEAL) tags.Add("HEAL");
             foreach (var e in a.Effects)
             {
                 string f = e.Target?.Filter ?? "";
@@ -61,15 +72,18 @@ public static class Synergy
                         if (f.Contains("TRIBE:")) tags.Add("TRIBAL_" + TribeOf(f));
                         break;
                     case Op.DEBUFF:
-                        if (f.Contains("LANES:") || f.Contains("OPPOSING") || f.Contains("DIAGONAL")) tags.Add("SPATIAL_DEBUFF");
+                        if (e.Target?.Scope == Scope.ENEMY_CREATURE || f.Contains("LANES:") || f.Contains("OPPOSING") || f.Contains("DIAGONAL")) tags.Add("SPATIAL_DEBUFF");
                         if (f.Contains("DIAGONAL")) tags.Add("DIAGONAL");
                         break;
                     case Op.DAMAGE:
-                        if ((e.Amount ?? 0) >= 4) tags.Add("HEAVY_DAMAGE");
+                        if ((e.Amount ?? 0) >= 4 || (e.Target?.Count is { IsAll: true } && (e.Amount ?? 0) >= 2)) tags.Add("HEAVY_DAMAGE");
+                        else if (card.Type == CardType.RITUAL && e.Target?.Scope is Scope.ENEMY_CREATURE or Scope.PLAYER_ENEMY) tags.Add("SPELL_DAMAGE");
                         if (f.Contains("DIAGONAL")) tags.Add("DIAGONAL");
                         break;
                     case Op.DOUBLE_STATS: tags.Add("DOUBLE_STATS"); tags.Add("ATTACK_BUFF"); break;
                     case Op.BOUNCE: tags.Add("BOUNCE"); break;
+                    case Op.REFRESH: tags.Add("EXTRA_ATTACK"); break;
+                    case Op.SCY: tags.Add("DRAW"); break;
                     case Op.DESTROY: if (ally) tags.Add("TRIBUTE"); else tags.Add("HEAVY_DAMAGE"); break;
                     case Op.SUPPRESS: tags.Add("SUPPRESS"); break;
                     case Op.SET_TRAP: tags.Add("COUNTER"); break;
@@ -98,6 +112,8 @@ public static class Synergy
                         else if (gk == "WARD") tags.Add("PREVENT");
                         else if (gk == "GUARD") tags.Add("GUARD");
                         else if (gk == "SWIFT") tags.Add("HASTE");
+                        else if (gk == "VENOM") tags.Add("VENOM");
+                        else if (gk == "PIERCE") tags.Add("ATTACK_BUFF");
                         break;
                 }
             }

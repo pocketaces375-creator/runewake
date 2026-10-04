@@ -27,14 +27,24 @@ public class ClassDropTests
         return all;
     }
 
-    private static List<CardDef> Drop() => LoadAll().Where(c => c.Set == "class_drop_1").ToList();
+    // FABLE-DROP-2: both drops — class_drop_1 (50 cards) and class_drop_2 (100 cards)
+    private static List<CardDef> Drop() => LoadAll().Where(c => c.Set is "class_drop_1" or "class_drop_2").ToList();
+
+    [Theory]
+    [InlineData("class_drop_1", 50, 3)]
+    [InlineData("class_drop_2", 100, 1)]
+    public void Each_Drop_Has_Its_Cards_Plus_Tokens(string set, int cards, int tokens)
+    {
+        var drop = LoadAll().Where(c => c.Set == set).ToList();
+        Assert.Equal(cards, drop.Count(c => c.Type != CardType.TOKEN));
+        Assert.Equal(tokens, drop.Count(c => c.Type == CardType.TOKEN));
+    }
 
     [Fact]
-    public void Fifty_Cards_Plus_Tokens()
+    public void Card_Names_Are_Unique()
     {
-        var drop = Drop();
-        Assert.Equal(50, drop.Count(c => c.Type != CardType.TOKEN));
-        Assert.Equal(3, drop.Count(c => c.Type == CardType.TOKEN));
+        var dupes = LoadAll().GroupBy(c => c.Name.ToLowerInvariant()).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        Assert.True(dupes.Count == 0, "duplicate names: " + string.Join(", ", dupes));
     }
 
     [Fact]
@@ -46,7 +56,8 @@ public class ClassDropTests
             Assert.True(errors.Count == 0, $"{c.Id}: {string.Join("; ", errors)}");
             string text = RulesTextRenderer.Render(c);
             _out.WriteLine($"{c.Id} [{c.Cost}] {text.Replace("\n", " | ")}");
-            Assert.DoesNotContain("?", text.Replace("?\"", ""));
+            string rules = string.IsNullOrEmpty(c.Flavor) ? text : text.Replace("\"" + c.Flavor + "\"", "");
+            Assert.DoesNotContain("?", rules);   // an unrendered op or filter shows as "?"
         }
     }
 

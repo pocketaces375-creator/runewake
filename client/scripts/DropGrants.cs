@@ -18,7 +18,7 @@ public static class DropGrants
     private const string FilePath = "user://drop_grants.json";
 
     /// <summary>The drops, oldest first: the card set name, and the class each card was built for.</summary>
-    private static readonly string[] Drops = { "class_drop_1" };
+    private static readonly string[] Drops = { "class_drop_1", "class_drop_2" };
 
     public static void Ensure(ProgressionState progression, int saveSlot, string classId)
     {
@@ -36,7 +36,7 @@ public static class DropGrants
                     .OrderBy(c => c.Id, System.StringComparer.Ordinal)
                     .ToList();
                 if (cards.Count == 0) continue;     // content not loaded yet: try again next time
-                var mine = Synergy.Shelf(classId ?? "", cards).Take(7).Select(c => c.Id).ToHashSet();
+                var mine = Synergy.Shelf(classId ?? "", cards).Take(System.Math.Max(7, cards.Count / 7)).Select(c => c.Id).ToHashSet();
                 foreach (var c in cards)
                 {
                     int want = mine.Contains(c.Id) ? 2 : 1;

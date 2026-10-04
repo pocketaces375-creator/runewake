@@ -250,6 +250,8 @@ public static partial class DuelEngine
             if (card.CardType == CardType.CREATURE)
             {
                 // Apply keyword effects: Swift, Ward, SummonedThisTurn, etc.
+                // FABLE-DROP-2: auras first, so a keyword an aura grants (Swift from a pack leader) counts on arrival
+                Auras.Recompute(state);
                 KeywordHandlers.OnPlay(card);
 
                 // FABLE-DROP-1: THIS creature's ON_SUMMON (twice with Echo), then the artifacts and runes
@@ -372,6 +374,7 @@ public static partial class DuelEngine
         }
 
         int attackPower = attacker.CurrentAttack;
+        var damagedSurvivors = new List<CardInstance>();   // FABLE-DROP-2: for "when this takes damage"
 
         // TASK-FUN-SIM-1(c): ALTAR mode — lane 2 is War Altar (+1 atk)
         if (state.AltarMode && action.SourceLane == 2)
@@ -459,6 +462,10 @@ public static partial class DuelEngine
             // Remove dead defender (FABLE-DROP-1: the one death path — Unearth, triggers, counters)
             if (defenderKilled)
                 EffectExecutor.KillCreature(defender, state);
+            else if (dealtToDefender > 0)
+                damagedSurvivors.Add(defender);
+            if (dealtToAttacker > 0)
+                damagedSurvivors.Add(attacker);
         }
         else
         {
@@ -482,6 +489,9 @@ public static partial class DuelEngine
             attacker.HasAttackedThisTurn = true;
             attacker.IsExhausted = true;
         }
+
+        foreach (var hurt in damagedSurvivors)
+            TriggerBus.FireDamaged(state, hurt);
 
         return state;
     }

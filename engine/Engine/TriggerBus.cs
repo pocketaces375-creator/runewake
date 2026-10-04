@@ -100,6 +100,17 @@ public static class TriggerBus
     }
 
     /// <summary>
+    /// FABLE-DROP-2: "when this takes damage" — a creature that was hurt and is still standing. (The trigger was in
+    /// the card language from the start and never fired.)
+    /// </summary>
+    public static void FireDamaged(GameState state, CardInstance card)
+    {
+        if (state.IsGameOver || card.Zone != Zone.Lane || card.CurrentVigor <= 0) return;
+        if (!card.Abilities.Any(a => a.Trigger == Trigger.ON_DAMAGED)) return;
+        FireCardEvent(state, Trigger.ON_DAMAGED, card, card.Controller, listenersBothSides: false);
+    }
+
+    /// <summary>
     /// FABLE-DROP-1: an event that belongs to one player's side ("whenever you cast a ritual", "whenever
     /// one of your creatures dies"): that player's creatures, rune tokens and artifacts only.
     /// </summary>

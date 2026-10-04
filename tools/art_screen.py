@@ -676,7 +676,14 @@ def _preview_sheet(led, cards, ids, bid):
     if not cells:
         return None
     model = sl.refs_model().split("/")[-1]
-    return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s) · {model}")
+    if len(cells) <= 30:
+        return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s) · {model}")
+    # FABLE-DROP-2: a 100-card sheet is too tall to send as a phone photo — pages of 30
+    pages = [cells[i:i + 30] for i in range(0, len(cells), 30)]
+    paths = [str(sl.grid(pg, 5, PREVIEW / f"preview_{bid}_p{n}.jpg", 300, 440, 70,
+                         f"New art — page {n} of {len(pages)} · {len(cells)} card(s) · {model}"))
+             for n, pg in enumerate(pages, 1)]
+    return " ".join(paths)
 
 
 def _batch_file(name):
@@ -713,7 +720,7 @@ def cmd_batch(a):
         missing = [c for c in rec["ids"] if c not in {cid for cid, _ in shown}]
         if missing:
             print(f"no passing art for: {', '.join(missing)}")
-        print(f"ONE SHEET, one painting per card: {sheet}")
+        print(f"SHEET(S), one painting per card: {sheet}")
         return 0
 
     if a.approve:
@@ -869,7 +876,7 @@ def cmd_batch(a):
     if missing:
         print(f"no passing art yet for: {', '.join(missing)}")
     if sheet:
-        print(f"ONE SHEET, one painting per card: {sheet}")
+        print(f"SHEET(S), one painting per card: {sheet}")
     print(f"if you like them: python3 tools/art_screen.py batch --approve {bid}")
     return 0
 
