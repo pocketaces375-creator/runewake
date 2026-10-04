@@ -39,7 +39,8 @@ COMMANDS
         the preview: 10 cards not yet in the new style, spread over the strata, ONE painting each (gold references
         + rotating moods + house style), screened; only the failures are repainted, under a hard cap. Ends with
         ONE sheet — one painting per card, no comparisons — and what the batch cost (OpenRouter's own numbers).
-        artifacts/art_review/preview/preview_<batch>.jpg
+        ~/runewake_art_archive/previews/preview_<batch>.jpg (outside the repo, so the foreman can't clean it away)
+  art_screen.py batch --sheet [BATCH]     rebuilds that sheet from the paintings already made — free
   art_screen.py batch --approve [BATCH]   installs exactly what that sheet showed (default: the last batch)
   art_screen.py spend              where the money goes: OpenRouter account totals, every logged call by model,
                                    paintings per run (~/runewake_art_archive/spend.jsonl)
@@ -501,7 +502,8 @@ def cmd_cycle(a):
 
 # ──────────────────────────────── spend ───────────────────────────────────────
 BATCHES = sl.HOME.parent / "batches"
-PREVIEW = REPO / "artifacts" / "art_review" / "preview"
+# FABLE-BATCH-2: outside the repo — the foreman's `git clean` deleted the first preview sheet before it was sent
+PREVIEW = sl.HOME.parent / "previews"
 
 
 def account_usage():
@@ -624,10 +626,18 @@ def _preview_sheet(led, cards, ids, bid):
     for cid, b in _shown(led, ids):
         nm = cards.get(cid, {}).get("name", cid)
         mark = "" if b["screen"]["verdict"] == "pass" else "  (?)"
-        cells.append((b["path"], f"{nm}{mark}\n{b['screen'].get('subject', '')}"[:110]))
+        cells.append((b["path"], f"{nm}{mark} — {b['screen'].get('subject', '')}"[:110]))
     if not cells:
         return None
     return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s)")
+
+
+def _batch_file(name):
+    if name and name != "last":
+        p = BATCHES / f"{name}.json"
+        return p if p.exists() else None
+    files = sorted(BATCHES.glob("*.json"))
+    return files[-1] if files else None
 
 
 def cmd_batch(a):
@@ -638,14 +648,32 @@ def cmd_batch(a):
     led = ad.load_ledger()
     BATCHES.mkdir(parents=True, exist_ok=True)
 
+    if a.sheet:
+        # FABLE-BATCH-2: rebuild a batch's sheet from paintings already made — no painting, no cost
+        path = _batch_file(a.sheet)
+        if not path:
+            print("no batch found — run `art_screen.py batch` first")
+            return 1
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        sheet = _preview_sheet(led, cards, rec["ids"], rec["id"])
+        if not sheet:
+            print(f"batch {rec['id']}: no passing painting to show (none passed, or their files are gone)")
+            return 1
+        rec["sheet"] = str(sheet)
+        path.write_text(json.dumps(rec, indent=1), encoding="utf-8")
+        shown = _shown(led, rec["ids"])
+        print(f"batch {rec['id']}: {len(shown)} of {len(rec['ids'])} cards on the sheet (rebuilt, nothing repainted)")
+        missing = [c for c in rec["ids"] if c not in {cid for cid, _ in shown}]
+        if missing:
+            print(f"no passing art for: {', '.join(missing)}")
+        print(f"ONE SHEET, one painting per card: {sheet}")
+        return 0
+
     if a.approve:
-        path = BATCHES / f"{a.approve}.json" if a.approve != "last" else None
-        if path is None:
-            files = sorted(BATCHES.glob("*.json"))
-            if not files:
-                print("no batch to approve — run `art_screen.py batch` first")
-                return 1
-            path = files[-1]
+        path = _batch_file(a.approve)
+        if not path:
+            print("no batch to approve — run `art_screen.py batch` first")
+            return 1
         rec = json.loads(path.read_text(encoding="utf-8"))
         ids = rec["ids"]
         winners = _shown(led, ids)
@@ -830,6 +858,7 @@ def main():
     b.add_argument("--max-usd", type=float, default=0, help="stop between rounds once the account has spent this much on the batch")
     b.add_argument("--fresh-concepts", action="store_true", help="plan a new concept for every card first")
     b.add_argument("--approve", nargs="?", const="last", metavar="BATCH", help="install a batch's passing art in the game")
+    b.add_argument("--sheet", nargs="?", const="last", metavar="BATCH", help="rebuild a batch's sheet (free — nothing is repainted)")
     b.add_argument("--mock", action="store_true", help="art_director --mock (no paid paintings) — for testing")
     sub.add_parser("spend")
     hk = sub.add_parser("hook")
