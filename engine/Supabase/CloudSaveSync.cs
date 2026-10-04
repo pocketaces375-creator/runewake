@@ -224,4 +224,36 @@ public class CloudSaveSync
         if (localDirty) return Decision.PushLocalNewer;
         return Decision.NoOp;
     }
+
+    // ── FABLE-ACCOUNTS-1: signing in to an account on this phone ─────────
+
+    public enum SignInDecision
+    {
+        /// <summary>The account has no save yet: this phone's progress becomes the account's.</summary>
+        PushLocal,
+        /// <summary>This phone has nothing worth keeping (fresh install): load the account's save.</summary>
+        PullCloud,
+        /// <summary>Both hold the same thing. Just remember that we are in sync.</summary>
+        AlreadySame,
+        /// <summary>Both have real play on them. Ask which to keep.</summary>
+        Ask,
+    }
+
+    /// <summary>
+    /// Pure. Someone just signed in (or created an account) on this phone.
+    /// What happens to the progress already on it?
+    ///
+    /// A fresh install must load the account's save without a question —
+    /// that is the whole point of signing in on a new phone. A guest who has
+    /// been playing must not lose that play to a silent overwrite. Only when
+    /// both sides have real play does the player get asked.
+    /// </summary>
+    public static SignInDecision DecideOnSignIn(CloudSave? cloud, CloudSaveBundle local)
+    {
+        if (cloud == null) return SignInDecision.PushLocal;
+        if (cloud.Bundle.ToJson() == local.ToJson()) return SignInDecision.AlreadySame;
+        if (!local.HasPlayed) return SignInDecision.PullCloud;
+        if (!cloud.Bundle.HasPlayed) return SignInDecision.PushLocal;
+        return SignInDecision.Ask;
+    }
 }

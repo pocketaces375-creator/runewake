@@ -219,6 +219,18 @@ public class ProgressionSnapshot
         Shards == 0 && ClearedNodes.Count == 0 && Collection.Count == 0
         && DiscoveredRelics.Count == 0 && DelverLevel <= 1 && DelverXp == 0
         && !HasCompletedTutorial;
+
+    /// <summary>
+    /// FABLE-ACCOUNTS-1: has anyone actually PLAYED this slot? Unlike
+    /// IsEmptyProgress this ignores the collection and shards — a fresh
+    /// install is handed every card on first launch, so a full collection
+    /// says nothing about whether there is progress worth asking about.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasPlayed =>
+        ClearedNodes.Count > 0 || DelverLevel > 1 || DelverXp > 0
+        || DiscoveredRelics.Count > 0 || ArenaWins + ArenaLosses > 0
+        || HasCompletedTutorial;
 }
 
 /// <summary>
@@ -267,4 +279,8 @@ public class CloudSaveBundle
 
     [JsonIgnore]
     public bool IsEmptyProgress => Slots.Count == 0 || Slots.Values.All(s => s.IsEmptyProgress);
+
+    /// <summary>FABLE-ACCOUNTS-1: any slot has real play on it (see ProgressionSnapshot.HasPlayed).</summary>
+    [JsonIgnore]
+    public bool HasPlayed => Slots.Values.Any(s => s.HasPlayed);
 }

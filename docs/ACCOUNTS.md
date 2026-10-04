@@ -28,6 +28,53 @@ about play — it changes one line on the Account panel.
    *Cloud*, each summarised (level, nodes, shards, relics, when, which
    device) — and the player picks. The other is replaced.
 
+## FABLE-ACCOUNTS-1 — accounts have a front door
+
+The opening screen (`client/scripts/StartScreen.cs`) plays on **every launch**:
+the Buried Age intro, then
+
+- **signed in to an account** → "Signed in as …" · *Tap to begin*
+- **otherwise** → **Create Account** · **Sign In** · *Play as guest for now*
+- **no Supabase config in the build** → *Tap to begin*
+
+Accounts are **email + password** (`SupabaseAuth.SignUpWithPassword`,
+`SignInWithPassword`, `ResendConfirmation`, `SetPassword`).
+
+- *Create account* with Confirm email **OFF** signs straight in. With it **ON**
+  the panel says "Check your email"; after tapping the link the player presses
+  *I've confirmed — sign in*. (The page the link opens may be an error page —
+  the Site URL is not a website; the confirmation still counts.)
+- *Forgot password?* emails a 6-digit code (needs `{{ .Token }}` in the Magic
+  Link template, below), which signs in, then asks for a new password.
+- No anonymous guest is made until the player picks *Play as guest*
+  (`SyncManager.WaitingForChoice`). Automated runs (any command-line
+  argument) skip the screen and behave exactly as before.
+
+What happens to the progress on the phone when someone signs in or creates an
+account (`CloudSaveSync.DecideOnSignIn`, pure, tested):
+
+| account's cloud save | this phone | result |
+|---|---|---|
+| none (new account) | anything | phone's progress becomes the account's |
+| exists | fresh install (nothing *played* — the free collection doesn't count) | account's save loads |
+| exists | same as the cloud | nothing to do |
+| exists, never played | played | phone's progress kept |
+| exists, played | played | **ask** (two cards) |
+
+A save is never pushed before this session has compared the phone with the
+cloud (`_cloudSettled`): a debounced push in that state does the full compare
+instead, and nothing is pushed while the player is choosing between two saves.
+
+Fixed on the way (all of them reset progress on every launch):
+`SaveRepository` never wrote Delver level/XP, the Duel Arena record or seen
+cards; `SaveManager.CopyInto` dropped the rune page, tutorial state, shop day
+and named decks on load; a restore on a fresh install was overwritten by the
+empty in-memory slot (`SyncManager.InMemorySlot`).
+
+**Google Play later:** a *Sign in with Google* button sits next to Create
+Account / Sign In and calls GoTrue's `token?grant_type=id_token`; the adoption
+rule above stays the same. Removing *Play as guest* is deleting one button.
+
 ## The merge rule (`CloudSaveSync.Decide`, pure, tested)
 
 | cloud row | this install ever synced? | local saved since? | decision |

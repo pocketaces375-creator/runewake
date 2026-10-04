@@ -669,7 +669,7 @@ public partial class SettingsScene : Control
             GD.PrintErr($"[Settings] Reset progress failed: {ex.Message}");
         }
         DismissResetConfirm();
-        Say("Progress reset. The intro will play next time you open the game.", 5f);
+        Say("Progress reset.", 5f);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -730,11 +730,10 @@ public partial class SettingsScene : Control
     private void OnReplayIntro()
     {
         Click();
-        var s = CampaignContext.Settings;
-        s.IntroSeen = false;
-        CampaignContext.SaveManager?.SaveSettings(s);
-        Say("The intro will play next time you open the game.");
-        GD.Print("[Settings] IntroSeen reset to false — intro will show on next launch.");
+        // FABLE-ACCOUNTS-1: the opening screen plays on every launch now; replay it right away.
+        StartScreen.ShownThisRun = false;
+        GD.Print("[Settings] Replaying the opening screen.");
+        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
     }
 
     private void OnReplayTutorial()

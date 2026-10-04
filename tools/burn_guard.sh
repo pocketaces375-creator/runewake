@@ -19,6 +19,9 @@ DAILY_CAP=15; HOURLY_CAP=2.5; FAIL_STREAK=5; CANARY_EVERY=3600; WARN_AT=0.75
 set -a; . "$HOME/.hermes/.env" 2>/dev/null; set +a
 TG="$HOME/.local/bin/hermes -p tcgbot send --to telegram:-5481648844"
 now=$(date +%s); today=$(date +%F)
+# BYPASS_UNTIL=YYYY-MM-DD in burn_guard.conf: Trikzos green-lit spending past the caps until the end of
+# that day. The budget and rate tripwires only warn; a budget/rate halt lifts itself; tomorrow they arm again.
+BYPASS=0; [[ -n "${BYPASS_UNTIL:-}" && ! "$today" > "$BYPASS_UNTIL" ]] && BYPASS=1
 
 usage=$(curl -s -m 20 https://openrouter.ai/api/v1/auth/key -H "Authorization: Bearer ${OPENROUTER_API_KEY:-}" | python3 -c "import json,sys; print(json.load(sys.stdin)['data'].get('usage_daily',0))" 2>/dev/null || echo "")
 [[ -z "$usage" ]] && usage="nan"
@@ -70,9 +73,10 @@ except Exception: print('')" 2>/dev/null)
 if [[ -n "$prev_halt" ]]; then
   lift=""
   case "$prev_halt" in
+    *rate*|*budget*) [[ "$BYPASS" == "1" ]] && lift="Trikzos lifted the spend caps until the end of ${BYPASS_UNTIL}" ;;&
     *rate*)  awk_ok=$(python3 -c "print(1 if float('${rate:-0}') < float('${HOURLY_CAP}') else 0)" 2>/dev/null || echo 0)
              [[ "$awk_ok" == "1" ]] && lift="the burn rate is back to \$${rate}/h, under the \$${HOURLY_CAP} cap" ;;
-    *daily*) last_day=$(python3 -c "
+    *budget*|*daily*) last_day=$(python3 -c "
 import json
 try: print(json.load(open('/tmp/runewake_burn.json')).get('halt_day') or '')
 except Exception: print('')" 2>/dev/null)
@@ -112,7 +116,9 @@ halt_all(){ # $1 = reason tag, $2 = message
 unhalt_all(){ for d in "${LANES[@]}"; do rm -f "$d/FOREMAN_HALT" "$d/FOREMAN_HALT_REASON"; done; set_state halted_by "None"; $TG "✅ Burn guard: $1 — lanes resumed." >/dev/null 2>&1 || true; }
 
 # ── 1 + 2: budget tripwires ──
-if [[ "$usage" != "nan" ]]; then
+if [[ "$usage" != "nan" && "$BYPASS" == "1" ]]; then
+  echo "spend caps bypassed until the end of $BYPASS_UNTIL (spend today \$${watched}, rate \$${rate}/h)"
+elif [[ "$usage" != "nan" ]]; then
   over=$(python3 -c "print(1 if $watched > $DAILY_CAP else 0)")
   if [[ "$over" == "1" && -z "$halted_by" ]]; then halt_all budget "lanes spent \$${watched} under watch today, over the \$${DAILY_CAP} cap in tools/burn_guard.conf — raise the cap or wait for the day to roll"; exit 0; fi
   warn=$(python3 -c "print(1 if $watched > $DAILY_CAP*$WARN_AT else 0)")

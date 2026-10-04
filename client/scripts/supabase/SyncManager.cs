@@ -57,6 +57,7 @@ public partial class SyncManager : Node
     private const string DeviceIdPath = "user://data/account_id.txt";   // pre-existing file, reused as device id
     private const string ProfilesPath = "user://profiles.json";
     private const string DecksPath = "user://decks.json";
+    private const string DropGrantsPath = "user://drop_grants.json";
     private const int MaxSlots = 3;
 
     // ── state ─────────────────────────────────────────────────────────────
@@ -66,6 +67,16 @@ public partial class SyncManager : Node
     public SupabaseConfig Config => _config;
     public bool IsSignedIn => Session?.IsValid == true;
     public bool IsLinked => Session != null && !Session.IsAnonymous && !string.IsNullOrEmpty(Session.Email);
+    /// <summary>FABLE-ACCOUNTS-1: signed in to a real account (email + password, or a linked email) — not a guest.</summary>
+    public bool HasAccount => IsLinked;
+
+    /// <summary>
+    /// FABLE-ACCOUNTS-1: the opening screen is asking Create account / Sign in
+    /// / Play as guest, and nothing has been chosen yet. Until then no
+    /// anonymous guest is made behind the player's back (a save in the
+    /// meantime just stays marked dirty). ContinueAsGuest or signing in clears it.
+    /// </summary>
+    public bool WaitingForChoice { get; set; }
 
     /// <summary>One line for the account panel: "Backed up · Guest 3F2A", "No connection", …</summary>
     public string Status { get; private set; } = "Starting…";
@@ -154,7 +165,32 @@ public partial class SyncManager : Node
         try
         {
             if (!await EnsureSession().ConfigureAwait(false)) return;
+            await CompareWithCloud().ConfigureAwait(false);
+            await SyncRelicsWithLedger().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"[SyncManager] startup sync failed: {ex}");
+            RecordError(ex.Message);
+            SetStatus("Sync failed — " + ex.GetType().Name);
+        }
+        finally { _gate.Release(); }
+    }
 
+    /// <summary>
+    /// FABLE-ACCOUNTS-1: true once this session has compared the phone with the
+    /// cloud and acted on it. Until then a save must not be pushed blind — the
+    /// cloud may hold progress this phone has never seen (a sign-in whose fetch
+    /// failed, a launch while offline). A debounced push in that state does the
+    /// full compare instead.
+    /// </summary>
+    private bool _cloudSettled;
+
+    /// <summary>Fetch the cloud save and apply the merge rule. Caller holds the gate and has a session.</summary>
+    private async Task CompareWithCloud()
+    {
+        if (_cloud == null) return;
+        {
             var fetch = await _cloud.Fetch(Session!).ConfigureAwait(false);
             if (!fetch.Ok)
             {
@@ -192,16 +228,8 @@ public partial class SyncManager : Node
                     SetStatus("Backed up · " + Session!.DisplayLabel());
                     break;
             }
-
-            await SyncRelicsWithLedger().ConfigureAwait(false);
+            _cloudSettled = decision != CloudSaveSync.Decision.Conflict;
         }
-        catch (Exception ex)
-        {
-            GD.PrintErr($"[SyncManager] startup sync failed: {ex}");
-            RecordError(ex.Message);
-            SetStatus("Sync failed — " + ex.GetType().Name);
-        }
-        finally { _gate.Release(); }
     }
 
     /// <summary>Get a usable session: refresh, or sign in anonymously. False = offline/failed, status set.</summary>
@@ -231,6 +259,12 @@ public partial class SyncManager : Node
             }
             ArchiveSession();
             Session = null;
+        }
+
+        if (WaitingForChoice)
+        {
+            SetStatus("Not signed in");
+            return false;
         }
 
         var a = await _auth.SignInAnonymously().ConfigureAwait(false);
@@ -273,7 +307,9 @@ public partial class SyncManager : Node
             try
             {
                 if (!await EnsureSession().ConfigureAwait(false)) return;
-                await PushNow().ConfigureAwait(false);
+                if (PendingConflict != null) return;            // the player is choosing; keep both as they are
+                if (_cloudSettled) await PushNow().ConfigureAwait(false);
+                else await CompareWithCloud().ConfigureAwait(false);
             }
             finally { _gate.Release(); }
         }
@@ -318,6 +354,7 @@ public partial class SyncManager : Node
         {
             if (useCloud) ApplyCloud(c.Cloud);
             else if (await EnsureSession().ConfigureAwait(false)) await PushNow().ConfigureAwait(false);
+            _cloudSettled = true;
         }
         finally { _gate.Release(); }
     }
@@ -349,6 +386,128 @@ public partial class SyncManager : Node
         return r;
     }
 
+    // ── FABLE-ACCOUNTS-1: email + password accounts ─────────────────────
+
+    /// <summary>
+    /// Create an account. With the dashboard's "Confirm email" OFF this signs
+    /// straight in; with it ON the result says NeedsConfirmation and the
+    /// player signs in after tapping the link. Either way, the progress on
+    /// this phone becomes the new account's — a guest who signs up keeps
+    /// everything they have played.
+    /// </summary>
+    public async Task<SupabaseAuth.AuthResult> CreateAccount(string email, string password)
+    {
+        if (_auth == null || !_config.IsConfigured) return SupabaseAuth.AuthResult.Fail("Accounts not configured in this build");
+        var r = await _auth.SignUpWithPassword(email, password).ConfigureAwait(false);
+        if (!r.Ok || r.NeedsConfirmation || r.Session == null) return r;
+        await AdoptAccount(r.Session).ConfigureAwait(false);
+        return r;
+    }
+
+    /// <summary>Sign in with email + password, then settle whose progress this phone keeps.</summary>
+    public async Task<SupabaseAuth.AuthResult> SignInWithPassword(string email, string password)
+    {
+        if (_auth == null || !_config.IsConfigured) return SupabaseAuth.AuthResult.Fail("Accounts not configured in this build");
+        var r = await _auth.SignInWithPassword(email, password).ConfigureAwait(false);
+        if (!r.Ok || r.Session == null) return r;
+        await AdoptAccount(r.Session).ConfigureAwait(false);
+        return r;
+    }
+
+    public Task<SupabaseAuth.AuthResult> ResendConfirmation(string email)
+        => _auth == null ? Task.FromResult(SupabaseAuth.AuthResult.Fail("Not configured")) : _auth.ResendConfirmation(email);
+
+    /// <summary>New password for the signed-in account (after "Forgot password?", or from the panel).</summary>
+    public Task<SupabaseAuth.AuthResult> SetPassword(string password)
+        => Session == null || _auth == null
+            ? Task.FromResult(SupabaseAuth.AuthResult.Fail("Not signed in"))
+            : _auth.SetPassword(Session, password);
+
+    /// <summary>
+    /// The player chose "Play as guest" on the start screen: carry on exactly
+    /// as before accounts had a front door — a quiet anonymous user, backed up.
+    /// </summary>
+    public void ContinueAsGuest()
+    {
+        WaitingForChoice = false;
+        if (!_config.IsConfigured) return;
+        _ = RunStartupSync();
+    }
+
+    /// <summary>
+    /// This phone is now signed in to <paramref name="account"/>. Keep the old
+    /// session findable, then decide what happens to the progress already on
+    /// the phone (CloudSaveSync.DecideOnSignIn): a fresh install loads the
+    /// account's save, a guest's play moves into a new account, and when both
+    /// sides have real play the panel asks.
+    /// </summary>
+    private async Task AdoptAccount(SupabaseSession account)
+    {
+        if (_cloud == null) return;
+        WaitingForChoice = false;
+        await _gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (Session != null && Session.UserId != account.UserId) ArchiveSession();
+            AdoptSession(account);
+            PendingConflict = null;
+            _cloudSettled = false;
+            _meta.LastSyncedAt = null;      // this install has never synced with THIS account
+            _meta.Dirty = true;
+            WriteMeta();
+
+            var fetch = await _cloud.Fetch(account).ConfigureAwait(false);
+            if (!fetch.Ok)
+            {
+                // Never push blind: the account may hold a save we could not
+                // see. The next launch's startup sync asks if both moved.
+                RecordError(fetch.Error);
+                SetStatus("Signed in · " + account.DisplayLabel() + " — could not fetch save: " + fetch.Error);
+                return;
+            }
+
+            var local = BuildLocalBundle();
+            var decision = CloudSaveSync.DecideOnSignIn(fetch.Save, local);
+            GD.Print($"[SyncManager] signed in as {account.DisplayLabel()} — {decision}");
+            switch (decision)
+            {
+                case CloudSaveSync.SignInDecision.PushLocal:
+                    await PushNow().ConfigureAwait(false);
+                    break;
+                case CloudSaveSync.SignInDecision.PullCloud:
+                    ApplyCloud(fetch.Save!);
+                    break;
+                case CloudSaveSync.SignInDecision.AlreadySame:
+                    _meta.Dirty = false;
+                    _meta.LastSyncedAt = fetch.Save!.UpdatedAt.ToString("o");
+                    _meta.LastError = null;
+                    WriteMeta();
+                    SetStatus("Backed up · " + account.DisplayLabel());
+                    break;
+                case CloudSaveSync.SignInDecision.Ask:
+                    PendingConflict = new ConflictInfo
+                    {
+                        Cloud = fetch.Save!,
+                        CloudSummary = Summarize(fetch.Save!.Bundle) + $" · {Ago(fetch.Save.UpdatedAt)}",
+                        LocalSummary = Summarize(local) + " · this phone",
+                    };
+                    SetStatus("Two saves found — choose one");
+                    Emit(SignalName.ConflictDetected);
+                    break;
+            }
+            _cloudSettled = decision != CloudSaveSync.SignInDecision.Ask;
+        }
+        finally { _gate.Release(); }
+        await SyncRelicsAfterSignIn().ConfigureAwait(false);
+    }
+
+    private async Task SyncRelicsAfterSignIn()
+    {
+        if (!await _gate.WaitAsync(0).ConfigureAwait(false)) return;
+        try { await SyncRelicsWithLedger().ConfigureAwait(false); }
+        finally { _gate.Release(); }
+    }
+
     public Task<SupabaseAuth.AuthResult> SendSignInCode(string email)
         => _auth == null ? Task.FromResult(SupabaseAuth.AuthResult.Fail("Not configured")) : _auth.SendSignInCode(email);
 
@@ -361,26 +520,8 @@ public partial class SyncManager : Node
     {
         if (_auth == null || _cloud == null) return SupabaseAuth.AuthResult.Fail("Not configured");
         var r = await _auth.ConfirmSignInCode(email, code).ConfigureAwait(false);
-        if (!r.Ok) return r;
-
-        await _gate.WaitAsync().ConfigureAwait(false);
-        try
-        {
-            if (Session != null && Session.UserId != r.Session!.UserId) ArchiveSession();
-            AdoptSession(r.Session!);
-            PendingConflict = null;
-            var fetch = await _cloud.Fetch(Session!).ConfigureAwait(false);
-            if (fetch.Ok && fetch.Save != null) ApplyCloud(fetch.Save);
-            else if (fetch.Ok)
-            {
-                // Signed into an account that has no cloud save yet: this
-                // phone's progress becomes its save.
-                _meta.LastSyncedAt = null; _meta.Dirty = true; WriteMeta();
-                await PushNow().ConfigureAwait(false);
-            }
-            else SetStatus("Signed in, but could not fetch save — " + fetch.Error);
-        }
-        finally { _gate.Release(); }
+        if (!r.Ok || r.Session == null) return r;
+        await AdoptAccount(r.Session).ConfigureAwait(false);   // FABLE-ACCOUNTS-1: same rules as a password sign-in
         return r;
     }
 
@@ -390,6 +531,8 @@ public partial class SyncManager : Node
         if (_auth != null && Session != null) await _auth.SignOut(Session).ConfigureAwait(false);
         ArchiveSession();
         Session = null;
+        _cloudSettled = false;
+        WaitingForChoice = true;   // FABLE-ACCOUNTS-1: no silent guest after signing out; the panel offers the choice
         _meta = new SyncMeta { Dirty = !IsLocalEmpty() };
         WriteMeta();
         SetStatus("Signed out");
@@ -448,7 +591,11 @@ public partial class SyncManager : Node
             ProfilesJson = ReadTextOrNull(ProfilesPath),
             DecksJson = ReadTextOrNull(DecksPath),
         };
-        int active = CampaignContext.ActiveSaveId;   // FABLE-047: files are keyed by save id, not list position
+        // FABLE-047: files are keyed by save id, not list position.
+        // FABLE-ACCOUNTS-1: the slot in MEMORY is the one SaveManager has open — on a fresh
+        // install there is no campaign yet (ActiveSaveId = -1) but SaveManager still has slot 0
+        // open, and its next Save() would write the empty in-memory state over a restored file.
+        int active = InMemorySlot();
         for (int slot = 0; slot < MaxSlots; slot++)
         {
             try
@@ -472,7 +619,11 @@ public partial class SyncManager : Node
             if (b.ProfilesJson != null) WriteText(ProfilesPath, b.ProfilesJson);
             if (b.DecksJson != null) WriteText(DecksPath, b.DecksJson);
 
-            int active = CampaignContext.ActiveSaveId;   // FABLE-047: files are keyed by save id, not list position
+            // FABLE-047: files are keyed by save id, not list position.
+        // FABLE-ACCOUNTS-1: the slot in MEMORY is the one SaveManager has open — on a fresh
+        // install there is no campaign yet (ActiveSaveId = -1) but SaveManager still has slot 0
+        // open, and its next Save() would write the empty in-memory state over a restored file.
+        int active = InMemorySlot();
             for (int slot = 0; slot < MaxSlots; slot++)
             {
                 if (!b.Slots.TryGetValue(slot.ToString(), out var snap)) continue;
@@ -488,6 +639,16 @@ public partial class SyncManager : Node
                     new SaveRepository(SlotDbPath(slot)).Save(st);
                 }
             }
+
+            // FABLE-ACCOUNTS-1: the drop-grant record is per phone, but the save
+            // that just arrived may predate a drop. Forget it so each drop is
+            // checked again; DropGrants only ever tops up missing copies.
+            try
+            {
+                if (Godot.FileAccess.FileExists(DropGrantsPath))
+                    DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(DropGrantsPath));
+            }
+            catch (Exception ex) { GD.PrintErr($"[SyncManager] drop grants reset: {ex.Message}"); }
 
             _meta.Dirty = false;
             _meta.LastSyncedAt = cloud.UpdatedAt.ToString("o");
@@ -505,6 +666,9 @@ public partial class SyncManager : Node
         }
     }
 
+    private int InMemorySlot()
+        => _save != null && _save.IsLoaded ? _save.CurrentSlot : CampaignContext.ActiveSaveId;
+
     private bool IsLocalEmpty()
     {
         try { return BuildLocalBundle().IsEmptyProgress; } catch { return false; }
@@ -515,7 +679,9 @@ public partial class SyncManager : Node
         if (b.Slots.Count == 0) return "empty";
         var best = b.Slots.Values.OrderByDescending(s => s.DelverLevel).ThenByDescending(s => s.ClearedNodes.Count).First();
         int relics = b.Slots.Values.Sum(s => s.DiscoveredRelics.Count);
-        return $"Level {best.DelverLevel} · {best.ClearedNodes.Count} nodes · {best.Shards} shards · {relics} relic{(relics == 1 ? "" : "s")}";
+        int arena = b.Slots.Values.Sum(s => s.ArenaWins);
+        return $"Level {best.DelverLevel} ({best.DelverXp} XP) · {best.ClearedNodes.Count} nodes · {best.Shards} shards · {relics} relic{(relics == 1 ? "" : "s")}"
+               + (arena > 0 ? $" · {arena} arena win{(arena == 1 ? "" : "s")}" : "");
     }
 
     private static string Ago(DateTimeOffset t)

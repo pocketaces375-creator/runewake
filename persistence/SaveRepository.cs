@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
@@ -441,6 +442,13 @@ public sealed class SaveRepository
                     case "rune_page": state.SavedRunePageJson = value; break;
                     case "rune_dust": state.RuneDust = int.Parse(value); break;
                     case "shop_rotation_day": state.ShopRotationDay = int.Parse(value); break;
+                    case "delver_level": if (int.TryParse(value, out var dl) && dl >= 1) state.DelverLevel = dl; break;
+                    case "delver_xp": if (int.TryParse(value, out var dx) && dx >= 0) state.DelverXp = dx; break;
+                    case "arena_wins": if (int.TryParse(value, out var aw) && aw >= 0) state.ArenaWins = aw; break;
+                    case "arena_losses": if (int.TryParse(value, out var al) && al >= 0) state.ArenaLosses = al; break;
+                    case "seen_card_ids":
+                        foreach (var id in value.Split(',', StringSplitOptions.RemoveEmptyEntries)) state.SeenCardIds.Add(id);
+                        break;
                 }
             }
         }
@@ -583,6 +591,14 @@ public sealed class SaveRepository
             InsertMeta(conn, "rune_page", state.SavedRunePageJson ?? "");
             InsertMeta(conn, "rune_dust", state.RuneDust.ToString());
             InsertMeta(conn, "shop_rotation_day", state.ShopRotationDay.ToString());
+            // FABLE-ACCOUNTS-1: these five were never written, so they reset on every launch
+            // (Delver level/XP, Duel Arena record, which cards have been seen). Meta is
+            // key/value, so no schema change: an older save simply lacks the keys.
+            InsertMeta(conn, "delver_level", state.DelverLevel.ToString());
+            InsertMeta(conn, "delver_xp", state.DelverXp.ToString());
+            InsertMeta(conn, "arena_wins", state.ArenaWins.ToString());
+            InsertMeta(conn, "arena_losses", state.ArenaLosses.ToString());
+            InsertMeta(conn, "seen_card_ids", string.Join(",", state.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal)));
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)

@@ -343,7 +343,7 @@ public partial class Main : Control
         // "Create New Account" is rare: a small text link in the corner, not a plate.
         var newAccountBtn = new Button
         {
-            Text = "Create new account",
+            Text = "Switch campaign",   // FABLE-ACCOUNTS-1: was "Create new account" — these are campaign slots, not accounts
             Flat = true,
             AnchorLeft = 0.72f, AnchorRight = 0.985f,
             AnchorTop = 0.915f, AnchorBottom = 0.975f,
@@ -511,6 +511,15 @@ public partial class Main : Control
         else
             GD.Print("[SETTING ASSERT] ✅ All 4 critical display settings verified.");
     }
+
+    /// <summary>FABLE-ACCOUNTS-1: a capture, smoke test or probe drove this launch (any user command-line argument).</summary>
+    private static bool IsAutomatedRun()
+        => CampaignContext.AutoCaptureScreenshot || CampaignContext.LoopSmokeTest || CampaignContext.UxWalk
+           || OS.GetCmdlineUserArgs().Length > 0;
+
+    /// <summary>--capture=start_screen: show the opening screen even though this is a capture run.</summary>
+    private static bool ForceStartScreen()
+        => System.Array.Exists(OS.GetCmdlineUserArgs(), a => a.StartsWith("--capture=start_screen"));
 
     private void LoadGameData()
     {
@@ -788,42 +797,28 @@ public partial class Main : Control
                 GetTree().ReloadCurrentScene();
             }
         };
-        if (freshSync) _ = syncManager.RunStartupSync(); // fire and forget, once per launch
+        // FABLE-ACCOUNTS-1: with no session yet, the opening screen asks first
+        // (Create account / Sign in / Play as guest) — signing in quietly as an
+        // anonymous guest before the player has chosen would make a throwaway
+        // user every time. Any existing session (guest or account) syncs now.
+        bool automated = IsAutomatedRun();
+        bool showStart = !StartScreen.ShownThisRun && (!automated || ForceStartScreen());
+        if (freshSync && (syncManager.Session != null || !showStart || !syncManager.IsConfigured))
+            _ = syncManager.RunStartupSync(); // fire and forget, once per launch
+        else if (freshSync)
+            syncManager.WaitingForChoice = true;
 
         // Load and apply settings
         CampaignContext.Settings = CampaignContext.SaveManager!.LoadSettings();
         ApplyAudioSettings(CampaignContext.Settings);
 
-        // ═══ INTRO SPLASH (first-launch only, skipped during capture mode) ═══
-        // Show the story intro page full-bleed on top of everything. Tap/key
-        // dismisses instantly, marks seen, and saves so it never shows again.
-        if (!CampaignContext.Settings.IntroSeen && !CampaignContext.AutoCaptureScreenshot)
-        {
-            var introOverlay = new TextureRect
-            {
-                Texture = GD.Load<Texture2D>("res://content/art/title/intro_splash.png"),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
-                AnchorsPreset = (int)LayoutPreset.FullRect,
-                MouseFilter = MouseFilterEnum.Stop
-            };
-            AddChild(introOverlay);
-            // Raise to top so it's above all title screen UI
-            MoveChild(introOverlay, GetChildCount() - 1);
-
-            introOverlay.GuiInput += (InputEvent @event) =>
-            {
-                if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left }
-                    || @event is InputEventKey { Pressed: true, KeyLabel: Key.Space or Key.Enter })
-                {
-                    RemoveChild(introOverlay);
-                    introOverlay.QueueFree();
-                    CampaignContext.Settings.IntroSeen = true;
-                    CampaignContext.SaveManager!.SaveSettings(CampaignContext.Settings);
-                    GD.Print("[Main] Intro dismissed — marking seen");
-                }
-            };
-        }
+        // ═══ FABLE-ACCOUNTS-1: OPENING SCREEN (every launch, once) ═══
+        // The Buried Age intro, then the account door: Create account / Sign
+        // in / Play as guest — or "tap to begin" when already signed in. Never
+        // in automated runs (captures, smoke tests, probes), which drive the
+        // title themselves; --capture=start_screen shows it on purpose.
+        if (showStart)
+            StartScreen.Show(this, syncManager);
 
         // Initialize telemetry service
         // FABLE-019e: same as SyncManager — one instance, on the root, for the run.

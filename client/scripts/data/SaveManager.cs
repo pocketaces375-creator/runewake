@@ -193,35 +193,12 @@ public class SaveManager
     /// <summary>Copy a freshly-loaded state into the live mutable state object.</summary>
     private static void CopyInto(ProgressionState from, ProgressionState to)
     {
+        // FABLE-ACCOUNTS-1: copy EVERY field. The hand-written copy this replaces
+        // skipped Delver level/XP, the rune page, tutorial state, shop day, Duel
+        // Arena record and named decks, so those quietly reset on load. The cloud
+        // snapshot is the one list of all fields (AccountsTests checks it by
+        // reflection), so reuse it rather than keep a second list in step.
         to.Version = from.Version;
-        to.Shards = from.Shards;
-        to.DigCharges = from.DigCharges;
-        to.RuneDust = from.RuneDust;
-        to.HasCompletedTutorial = from.HasCompletedTutorial;
-        to.GlobalDiscoveryIndex = from.GlobalDiscoveryIndex;
-
-        to.ClearedNodes.Clear();
-        foreach (var id in from.ClearedNodes) to.ClearedNodes.Add(id);
-
-        to.Collection.Clear();
-        foreach (var (k, v) in from.Collection) to.Collection[k] = v;
-
-        to.Fragments.Clear();
-        foreach (var (k, v) in from.Fragments) to.Fragments[k] = v;
-
-        to.OwnedRuneIds.Clear();
-        foreach (var id in from.OwnedRuneIds) to.OwnedRuneIds.Add(id);
-
-        to.SeenCardIds.Clear();
-        foreach (var id in from.SeenCardIds) to.SeenCardIds.Add(id);
-
-        to.UnlockedTools.Clear();
-        foreach (var id in from.UnlockedTools) to.UnlockedTools.Add(id);
-
-        to.DiscoveredRelics.Clear();
-        to.DiscoveredRelics.AddRange(from.DiscoveredRelics);
-
-        to.DeckCardIds.Clear();
-        to.DeckCardIds.AddRange(from.DeckCardIds);
+        Runewake.Engine.Supabase.ProgressionSnapshot.FromState(from).ApplyTo(to);
     }
 }

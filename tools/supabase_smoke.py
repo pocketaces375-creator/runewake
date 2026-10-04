@@ -22,6 +22,7 @@ What it checks, in order:
   8. a crash report can be filed and cannot be read back
   9. refresh token works                  (session survives the hour)
  10. relic ledger insert + read own only
+ 11. email + password accounts enabled  (FABLE-ACCOUNTS-1; sends no email)
 
 Exit 0 = every check passed. Exit 1 = the first failing check is named, with
 the HTTP status and body, so the fix is obvious. Nothing here needs the
@@ -159,6 +160,21 @@ def main():
     check(st == 200 and any(r["relic_instance_id"] == rid for r in rows), "    Alice reads her relic back")
     st, rows = c.call("GET", f"/rest/v1/relic_instances?user_id=eq.{alice_id}&select=relic_instance_id", jwt=bob_jwt)
     check(st == 200 and rows == [], "    Bob cannot read Alice's relics", f"{rows}")
+
+    # 11. FABLE-ACCOUNTS-1: email + password accounts (no email is sent by these checks)
+    st, cfg = c.call("GET", "/auth/v1/settings")
+    check(st == 200 and isinstance(cfg, dict), "11. auth settings readable", f"status {st}: {cfg}")
+    check(cfg.get("external", {}).get("email") is True, "    email sign-in is enabled",
+          "→ Dashboard: Authentication → Sign In / Providers → Email must be ON")
+    check(cfg.get("disable_signup") is not True, "    new sign-ups are allowed",
+          "→ Dashboard: Authentication → Sign In / Providers → 'Allow new users to sign up' must be ON")
+    print("  ℹ  Confirm email is " + ("OFF — Create account signs straight in" if cfg.get("mailer_autoconfirm")
+          else "ON — new accounts tap a link in an email, then sign in (the built-in mailer sends only a few emails per hour)"))
+    st, body = c.call("POST", "/auth/v1/token?grant_type=password",
+                      {"email": f"nobody-{uuid.uuid4().hex[:8]}@example.com", "password": "not-a-real-password"})
+    text = json.dumps(body).lower() if not isinstance(body, str) else body.lower()
+    check(st == 400 and "invalid login credentials" in text, "    password sign-in answers (wrong password → 'Invalid login credentials')",
+          f"status {st}: {body}")
 
     # cleanup (rows only; auth users are cleaned by Supabase's own anon-user reaper or by hand)
     if not a.keep:

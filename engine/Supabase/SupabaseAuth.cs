@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -63,6 +64,12 @@ public class SupabaseAuth
         public string Error { get; init; } = string.Empty;
         /// <summary>HTTP status, or 0 when the request never completed.</summary>
         public int Status { get; init; }
+        /// <summary>
+        /// FABLE-ACCOUNTS-1: sign-up accepted, but the project wants the email
+        /// confirmed first (dashboard: Confirm email ON). No session yet — the
+        /// player taps the link in the email, then signs in with the password.
+        /// </summary>
+        public bool NeedsConfirmation { get; init; }
 
         public static AuthResult Success(SupabaseSession s) => new() { Ok = true, Session = s, Status = 200 };
         public static AuthResult Fail(string error, int status = 0) => new() { Ok = false, Error = error, Status = status };
@@ -85,6 +92,7 @@ public class SupabaseAuth
         [JsonPropertyName("email")] public string? Email { get; set; }
         [JsonPropertyName("new_email")] public string? NewEmail { get; set; }
         [JsonPropertyName("is_anonymous")] public bool IsAnonymous { get; set; }
+        [JsonPropertyName("identities")] public List<JsonElement>? Identities { get; set; }
     }
 
     private sealed class ErrorResponse
@@ -167,6 +175,90 @@ public class SupabaseAuth
         return PostForSession("/auth/v1/verify", body, bearer: null);
     }
 
+    // ── FABLE-ACCOUNTS-1: email + password ───────────────────────────────
+
+    /// <summary>Supabase's default minimum. The server has the final say.</summary>
+    public const int MinPasswordLength = 6;
+
+    /// <summary>
+    /// Create an account with an email and a password. POST /auth/v1/signup.
+    ///
+    /// Two good outcomes, depending on the dashboard's "Confirm email":
+    ///   OFF → a session straight away (Ok, Session set).
+    ///   ON  → no session; Supabase emails a confirmation link
+    ///         (Ok, NeedsConfirmation). The player taps it, then signs in.
+    ///
+    /// With Confirm email ON, Supabase does not say "already registered" (it
+    /// would let anyone test which emails have accounts); it returns a user
+    /// with an EMPTY identities list instead. That case is reported here, so
+    /// nobody waits for an email that is never coming.
+    /// </summary>
+    public async Task<AuthResult> SignUpWithPassword(string email, string password)
+    {
+        email = (email ?? string.Empty).Trim();
+        password ??= string.Empty;
+        if (!LooksLikeEmail(email)) return AuthResult.Fail("That doesn't look like an email address");
+        if (password.Length < MinPasswordLength) return AuthResult.Fail($"Password must be at least {MinPasswordLength} characters");
+        if (!IsConfigured) return AuthResult.Fail("Accounts not configured");
+
+        var body = JsonSerializer.Serialize(new { email, password }, JsonOpts);
+        var (status, json) = await Send(HttpMethod.Post, "/auth/v1/signup", body, null).ConfigureAwait(false);
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
+        if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+
+        var withSession = ParseSession(json, null);
+        if (withSession != null) return AuthResult.Success(withSession);
+
+        UserInfo? user = null;
+        try { user = JsonSerializer.Deserialize<UserInfo>(json, JsonOpts); } catch { /* fall through */ }
+        if (user == null || string.IsNullOrEmpty(user.Id))
+            return AuthResult.Fail("Unreadable reply from server", status);
+        if (user.Identities != null && user.Identities.Count == 0)
+            return AuthResult.Fail("That email already has an account — sign in instead", status);
+        return new AuthResult { Ok = true, NeedsConfirmation = true, Status = status };
+    }
+
+    /// <summary>Sign in with email + password. POST /auth/v1/token?grant_type=password.</summary>
+    public Task<AuthResult> SignInWithPassword(string email, string password)
+    {
+        email = (email ?? string.Empty).Trim();
+        if (!LooksLikeEmail(email)) return Task.FromResult(AuthResult.Fail("That doesn't look like an email address"));
+        if (string.IsNullOrEmpty(password)) return Task.FromResult(AuthResult.Fail("Enter your password"));
+        var body = JsonSerializer.Serialize(new { email, password }, JsonOpts);
+        return PostForSession("/auth/v1/token?grant_type=password", body, bearer: null);
+    }
+
+    /// <summary>Send the sign-up confirmation email again. POST /auth/v1/resend.</summary>
+    public async Task<AuthResult> ResendConfirmation(string email)
+    {
+        email = (email ?? string.Empty).Trim();
+        if (!LooksLikeEmail(email)) return AuthResult.Fail("That doesn't look like an email address");
+        if (!IsConfigured) return AuthResult.Fail("Accounts not configured");
+        var body = JsonSerializer.Serialize(new { type = "signup", email }, JsonOpts);
+        var (status, json) = await Send(HttpMethod.Post, "/auth/v1/resend", body, null).ConfigureAwait(false);
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
+        if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+        return new AuthResult { Ok = true, Status = status };
+    }
+
+    /// <summary>
+    /// Set a new password for the signed-in user. PUT /auth/v1/user. Used after
+    /// "Forgot password?": the player signs in with an emailed code, then
+    /// chooses a new password here.
+    /// </summary>
+    public async Task<AuthResult> SetPassword(SupabaseSession session, string password)
+    {
+        password ??= string.Empty;
+        if (password.Length < MinPasswordLength) return AuthResult.Fail($"Password must be at least {MinPasswordLength} characters");
+        if (!session.IsValid) return AuthResult.Fail("Not signed in");
+        if (!IsConfigured) return AuthResult.Fail("Accounts not configured");
+        var body = JsonSerializer.Serialize(new { password }, JsonOpts);
+        var (status, json) = await Send(HttpMethod.Put, "/auth/v1/user", body, session.AccessToken).ConfigureAwait(false);
+        if (status == 0) return AuthResult.Fail(NoConnection(json));
+        if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
+        return AuthResult.Success(session);
+    }
+
     /// <summary>Best-effort server-side logout. Local session is the caller's to delete.</summary>
     public async Task SignOut(SupabaseSession session)
     {
@@ -184,14 +276,23 @@ public class SupabaseAuth
         if (status == 0) return AuthResult.Fail(NoConnection(json));
         if (status < 200 || status >= 300) return AuthResult.Fail(Describe(json, status), status);
 
+        try { JsonSerializer.Deserialize<TokenResponse>(json, JsonOpts); }
+        catch { return AuthResult.Fail("Unreadable reply from server", status); }
+        var session = ParseSession(json, carryOver);
+        if (session == null)
+            return AuthResult.Fail("Server reply had no session", status);
+        return AuthResult.Success(session);
+    }
+
+    /// <summary>A session from a GoTrue token reply, or null when the reply carries none.</summary>
+    private static SupabaseSession? ParseSession(string json, SupabaseSession? carryOver)
+    {
         TokenResponse? tok;
         try { tok = JsonSerializer.Deserialize<TokenResponse>(json, JsonOpts); }
-        catch { return AuthResult.Fail("Unreadable reply from server", status); }
-
+        catch { return null; }
         if (tok == null || string.IsNullOrEmpty(tok.AccessToken) || tok.User == null || string.IsNullOrEmpty(tok.User.Id))
-            return AuthResult.Fail("Server reply had no session", status);
-
-        var session = new SupabaseSession
+            return null;
+        return new SupabaseSession
         {
             AccessToken = tok.AccessToken!,
             RefreshToken = string.IsNullOrEmpty(tok.RefreshToken) ? (carryOver?.RefreshToken ?? string.Empty) : tok.RefreshToken!,
@@ -200,7 +301,6 @@ public class SupabaseAuth
             IsAnonymous = tok.User.IsAnonymous,
             ExpiresAtUnix = tok.ExpiresAt ?? (DateTimeOffset.UtcNow.ToUnixTimeSeconds() + Math.Max(60, tok.ExpiresIn)),
         };
-        return AuthResult.Success(session);
     }
 
     /// <summary>Returns (status, body). status 0 means the request never got an answer.</summary>
@@ -257,12 +357,22 @@ public class SupabaseAuth
             return "Wrong or expired code";
         if (lower.Contains("token has expired") || lower.Contains("invalid token"))
             return "Wrong or expired code";
-        if (lower.Contains("signups not allowed") || lower.Contains("user not found"))
+        if (lower.Contains("invalid login credentials"))
+            return "Wrong email or password";
+        if (lower.Contains("email not confirmed"))
+            return "Confirm your email first — tap the link we sent you";
+        if (lower.Contains("email logins are disabled") || lower.Contains("email signups are disabled") || lower.Contains("email_provider_disabled"))
+            return "Email sign-in is turned off in the Supabase dashboard";
+        if ((lower.Contains("signups not allowed") && lower.Contains("otp")) || lower.Contains("user not found"))
             return "No account with that email";
+        if (lower.Contains("signups not allowed") || lower.Contains("signup_disabled"))
+            return "New sign-ups are turned off in the Supabase dashboard";
+        if (lower.Contains("same_password") || lower.Contains("should be different from the old"))
+            return "That's already your password";
         if (lower.Contains("rate limit") || status == 429)
             return "Too many attempts — wait a minute";
         if (lower.Contains("already registered") || lower.Contains("already been registered"))
-            return "That email is already linked to another account";
+            return "That email already has an account — sign in instead";
         if (!string.IsNullOrEmpty(raw)) return raw!;
         return status switch
         {
