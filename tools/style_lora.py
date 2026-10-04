@@ -251,12 +251,34 @@ CAPTION_SYSTEM = (
 )
 
 
+SPEND_LOG = HOME.parent / "spend.jsonl"    # FABLE-BATCH-1: one line per paid call (what it was, what OpenRouter charged)
+
+
+def _log_spend(payload, d):
+    """Append what OpenRouter says this call cost. Never lets a logging problem stop a painting."""
+    try:
+        usage = (d or {}).get("usage") or {}
+        content = (payload.get("messages") or [{}])[-1].get("content")
+        sees_image = isinstance(content, list) and any(isinstance(p, dict) and p.get("type") == "image_url" for p in content)
+        kind = "paint" if payload.get("modalities") else ("look" if sees_image else "text")
+        SPEND_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with SPEND_LOG.open("a", encoding="utf-8") as f:
+            f.write(json.dumps({"t": time.strftime("%Y-%m-%d %H:%M:%S"), "kind": kind, "model": payload.get("model"),
+                                "cost": usage.get("cost"), "tag": os.environ.get("SPEND_TAG", "")}) + "\n")
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _openrouter(payload, timeout=180):
+    payload = dict(payload)
+    payload.setdefault("usage", {"include": True})        # asks OpenRouter to report what this call cost
     req = urllib.request.Request(f"{OPENROUTER}/chat/completions", data=json.dumps(payload).encode(),
                                  headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
                                           "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
+        d = json.loads(r.read())
+    _log_spend(payload, d)
+    return d
 
 
 def _data_url(path, max_side=768):
@@ -675,6 +697,13 @@ def _test_prompts(n):
 
 
 def cmd_test(a):
+    # FABLE-BATCH-1: side-by-side comparison sheets paint several tiles per prompt — that is where a lot of the
+    # spend went. The style is chosen now; use `art_screen.py batch` to see real cards instead.
+    if len([m for m in a.modes.split(",") if m.strip()]) > 1 and not (a.compare or os.environ.get("STYLE_ALLOW_COMPARE") == "1"):
+        print("comparison sheets are switched off (each prompt is painted once per mode, and every tile costs money).\n"
+              "To see the new art on real cards: python3 tools/art_screen.py batch\n"
+              "If you really want a comparison anyway, add --compare.")
+        return 1
     prompts = _test_prompts(a.n)
     if not prompts:
         print("no prompts found")
@@ -1210,6 +1239,7 @@ def main():
     te.add_argument("--scale", type=float, default=1.0)
     te.add_argument("--modes", default="lora,refs,flux", help="any of lora, refs, flux, guide")
     te.add_argument("--mock", action="store_true")
+    te.add_argument("--compare", action="store_true", help="allow a multi-mode comparison sheet (off by default — it costs)")
     te.add_argument("--fresh", action="store_true", help="repaint every tile (default: keep tiles already painted)")
     te.add_argument("--modes-in-name", action="store_true", help="name the sheet after the modes too")
     di = sub.add_parser("distill")

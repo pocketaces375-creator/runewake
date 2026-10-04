@@ -35,6 +35,14 @@ COMMANDS
         the whole loop, hands-off: plan fresh concepts → paint (gold references + rotating moods) → screen →
         repaint only the failures (a NEW concept when it was a repeat or off-card, a new mood otherwise) →
         … → install the winners. --max-paintings caps the spend (default 60).
+  art_screen.py batch [ids…] [--n 10] [--max-paintings 14] [--max-usd X]          ← FABLE-BATCH-1, the normal way
+        the preview: 10 cards not yet in the new style, spread over the strata, ONE painting each (gold references
+        + rotating moods + house style), screened; only the failures are repainted, under a hard cap. Ends with
+        ONE sheet — one painting per card, no comparisons — and what the batch cost (OpenRouter's own numbers).
+        artifacts/art_review/preview/preview_<batch>.jpg
+  art_screen.py batch --approve [BATCH]   installs exactly what that sheet showed (default: the last batch)
+  art_screen.py spend              where the money goes: OpenRouter account totals, every logged call by model,
+                                   paintings per run (~/runewake_art_archive/spend.jsonl)
   art_screen.py show <card id>     the screen history of one card
   art_screen.py hook               makes art_director's own `approve` refuse anything the screen hasn't passed
 
@@ -51,6 +59,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.request
 from pathlib import Path
 
 from PIL import Image, ImageFilter, ImageStat
@@ -307,6 +316,13 @@ def _label(cid, res, n=None):
 def cmd_screen(a):
     cards, cache = _cards(), _cache()
     batch_feats, batch_subjects, cells = [], [], []
+    # FABLE-BATCH-1: paintings already kept earlier in this batch count as "the batch" too, so a repaint
+    # can't come back with the subject another card just got
+    for cid, c in getattr(a, "keep", None) or []:
+        if c.get("image"):
+            batch_feats.append((cid, c["image"]))
+        if (c.get("screen") or {}).get("subject"):
+            batch_subjects.append((cid, c["screen"]["subject"]))
     if a.dir:
         led = {"cards": {}}
         try:
@@ -357,6 +373,29 @@ def _best(e, allow_review=False):
     return max(good, key=lambda c: (c["screen"]["verdict"] == "pass", c["screen"]["score"]), default=None)
 
 
+def _install(ad, winners, batch_id=None):
+    """Approve each (card id, candidate) through art_director, remember its subject, re-bake the card faces."""
+    installed = []
+    for cid, b in winners:
+        env = dict(os.environ, ART_FORCE="1") if b["screen"]["verdict"] == "review" else None
+        r = subprocess.run([sys.executable, str(TOOLS / "art_director.py"), "approve", cid, str(b["n"])],
+                           capture_output=True, text=True, env=env)
+        print("   " + (r.stdout or r.stderr).strip().splitlines()[-1] if (r.stdout or r.stderr).strip() else f"   {cid}: approved")
+        if r.returncode == 0:
+            installed.append(cid)
+            led = ad.load_ledger()
+            led["cards"][cid]["screen_subject"] = b["screen"].get("subject", "")
+            led["cards"][cid]["style_v"] = 2
+            if batch_id:
+                led["cards"][cid]["batch"] = batch_id
+            ad.save_ledger(led)
+    bake = REPO / "pipeline" / "bake_cards.py"
+    if installed and bake.exists():
+        r = subprocess.run([sys.executable, str(bake)] + installed, capture_output=True, text=True, cwd=str(REPO))
+        print(f"   re-baked {len(installed)} card face(s)" if r.returncode == 0 else f"   bake failed: {(r.stderr or r.stdout)[-300:]}")
+    return installed
+
+
 def cmd_pick(a):
     ad = _ad()
     led = ad.load_ledger()
@@ -385,21 +424,7 @@ def cmd_pick(a):
     if already:
         print(f"  ({len(already)} card(s) from this run are already in the game)")
     if a.install and winners:
-        installed = []
-        for cid, b in winners:
-            env = dict(os.environ, ART_FORCE="1") if b["screen"]["verdict"] == "review" else None
-            r = subprocess.run([sys.executable, str(TOOLS / "art_director.py"), "approve", cid, str(b["n"])],
-                               capture_output=True, text=True, env=env)
-            print("   " + (r.stdout or r.stderr).strip().splitlines()[-1] if (r.stdout or r.stderr).strip() else f"   {cid}: approved")
-            if r.returncode == 0:
-                installed.append(cid)
-                led = ad.load_ledger()
-                led["cards"][cid]["screen_subject"] = b["screen"].get("subject", "")
-                ad.save_ledger(led)
-        bake = REPO / "pipeline" / "bake_cards.py"
-        if installed and bake.exists():
-            r = subprocess.run([sys.executable, str(bake)] + installed, capture_output=True, text=True, cwd=str(REPO))
-            print(f"   re-baked {len(installed)} card face(s)" if r.returncode == 0 else f"   bake failed: {(r.stderr or r.stdout)[-300:]}")
+        installed = _install(ad, winners)
         print(f"installed {len(installed)} card painting(s); {len(losers)} card(s) still need a painting that passes")
     elif winners:
         print(f"{len(winners)} ready — run again with --install to put them in the game")
@@ -449,7 +474,9 @@ def cmd_cycle(a):
             print("render failed — stopping")
             return 1
         spent += len(todo) * a.candidates
-        cmd_screen(argparse.Namespace(run=None, dir=None, no_vision=False))
+        led = ad.load_ledger()
+        keep = _winners(led, done, a.allow_review)
+        cmd_screen(argparse.Namespace(run=None, dir=None, no_vision=False, keep=keep))
         led = ad.load_ledger()
         nxt, replan = [], set()
         for cid in todo:
@@ -469,6 +496,258 @@ def cmd_cycle(a):
             cmd_pick(argparse.Namespace(run=None, install=True, allow_review=a.allow_review))
     print(f"\ncycle done: {len(done)} card(s) passed, {len(todo)} still failing{': ' + ', '.join(todo) if todo else ''} "
           f"— {spent} painting(s) made")
+    return 0
+
+
+# ──────────────────────────────── spend ───────────────────────────────────────
+BATCHES = sl.HOME.parent / "batches"
+PREVIEW = REPO / "artifacts" / "art_review" / "preview"
+
+
+def account_usage():
+    """What OpenRouter says this key has spent (USD): {'day':…, 'week':…, 'month':…, 'total':…}, or None."""
+    try:
+        sl._env_key("OPENROUTER_API_KEY")
+        req = urllib.request.Request(f"{sl.OPENROUTER}/key", headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            d = (json.loads(r.read()) or {}).get("data") or {}
+        got = {"total": d.get("usage"), "day": d.get("usage_daily"), "week": d.get("usage_weekly"), "month": d.get("usage_monthly")}
+        return got if any(isinstance(v, (int, float)) for v in got.values()) else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _usd(x):
+    return "n/a" if x is None else (f"${x:,.2f}" if abs(x) >= 1 else f"${x:.3f}")
+
+
+def _spend_rows():
+    rows = []
+    try:
+        for line in sl.SPEND_LOG.read_text(encoding="utf-8").splitlines():
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                pass
+    except OSError:
+        pass
+    return rows
+
+
+def cmd_spend(a):
+    print("WHERE THE MONEY GOES — everything below is read from your own records, nothing is guessed\n")
+    u = account_usage()
+    if u:
+        print(f"OpenRouter account (as OpenRouter reports it):  today {_usd(u['day'])} · this week {_usd(u['week'])} · "
+              f"this month {_usd(u['month'])} · all time {_usd(u['total'])}")
+    else:
+        print("OpenRouter account totals: couldn't read them from here — see openrouter.ai/activity (it lists every call, by model)")
+    try:
+        led = _ad().load_ledger()
+    except Exception:  # noqa: BLE001
+        led = {"cards": {}}
+    runs = {}
+    for cid, e in led.get("cards", {}).items():
+        for c in e.get("candidates") or []:
+            runs.setdefault(e.get("run", "?"), [0, set()])
+            runs[e.get("run", "?")][0] += 1
+            runs[e.get("run", "?")][1].add(cid)
+    if runs:
+        print(f"\nPaintings the art ledger still holds: {sum(v[0] for v in runs.values())} across {len(runs)} run(s)  (each is a paid image)")
+        for r, (n, ids) in sorted(runs.items())[-8:]:
+            print(f"   run {r}: {n} painting(s) for {len(ids)} card(s)")
+    rows = _spend_rows()
+    if rows:
+        print(f"\nCalls logged since spend logging began ({rows[0]['t']} →):")
+        by = {}
+        for r in rows:
+            k = (r.get("kind", "?"), str(r.get("model", "?")))
+            b = by.setdefault(k, [0, 0.0, 0])
+            b[0] += 1
+            if isinstance(r.get("cost"), (int, float)):
+                b[1] += r["cost"]
+                b[2] += 1
+        for (kind, model), (n, cost, known) in sorted(by.items(), key=lambda kv: -kv[1][1]):
+            print(f"   {kind:<6} {model:<34} {n:>4} call(s)  {_usd(cost) if known else 'cost not reported'}")
+        tags = {}
+        for r in rows:
+            if r.get("tag") and isinstance(r.get("cost"), (int, float)):
+                tags[r["tag"]] = tags.get(r["tag"], 0) + r["cost"]
+        for t, c in sorted(tags.items())[-6:]:
+            print(f"   batch {t}: {_usd(c)}")
+    else:
+        print("\nNo per-call log yet — it starts with this version. From now on every call is recorded with its cost.")
+    print("\nWhat costs money (the table above has the real amounts once calls are logged):\n"
+          "   1. paintings (Gemini image model with 6 reference pictures attached) — one per candidate per card per round;\n"
+          "      the most expensive call per use\n"
+          "   2. comparison sheets (`style_lora.py test`) — a painting for every mode of every prompt (now switched off)\n"
+          "   3. the art director's planning (an LLM call or more per card, only when a card needs a new concept)\n"
+          "   4. screener looks (a small vision call per painting, cached by picture so it is never paid twice)\n"
+          "   5. Tcgbot's own thinking (deepseek via OpenRouter) — it lands in the same account total\n"
+          "Kaggle training is free.")
+    return 0
+
+
+# ──────────────────────────────── the preview batch ───────────────────────────
+def _pick_batch(cards, n, led, ids=None):
+    """n cards that are not yet in the new style, spread over the strata and card types (stable order)."""
+    if ids:
+        return list(ids)
+    pool = [c for c in cards.values() if (led.get("cards", {}).get(c["id"]) or {}).get("style_v") != 2]
+    by = {}
+    for c in sorted(pool, key=lambda c: hashlib.sha1(c["id"].encode()).hexdigest()):
+        by.setdefault(str(c.get("strata", "")), []).append(c)
+    out, seen_types = [], {}
+    while len(out) < n and any(by.values()):
+        for st in sorted(by):
+            if by[st] and len(out) < n:
+                # prefer a card type this stratum hasn't had yet in the batch
+                pick = next((c for c in by[st] if str(c.get("type", "")) not in seen_types.get(st, set())), by[st][0])
+                by[st].remove(pick)
+                seen_types.setdefault(st, set()).add(str(pick.get("type", "")))
+                out.append(pick["id"])
+    return out
+
+
+def _winners(led, ids, allow_review):
+    return [(cid, b) for cid in ids for b in [_best(led["cards"].get(cid) or {}, allow_review)] if b]
+
+
+def _shown(led, ids):
+    """What the preview sheet shows (and `--approve` installs): each card's best PASS, else its best REVIEW
+    (one score just under the bar — Trikzos is the human who decides those). Never a FAIL."""
+    return _winners(led, ids, True)
+
+
+def _preview_sheet(led, cards, ids, bid):
+    cells = []
+    for cid, b in _shown(led, ids):
+        nm = cards.get(cid, {}).get("name", cid)
+        mark = "" if b["screen"]["verdict"] == "pass" else "  (?)"
+        cells.append((b["path"], f"{nm}{mark}\n{b['screen'].get('subject', '')}"[:110]))
+    if not cells:
+        return None
+    return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s)")
+
+
+def cmd_batch(a):
+    global MOCK
+    MOCK = a.mock
+    ad = _ad()
+    cards = _cards()
+    led = ad.load_ledger()
+    BATCHES.mkdir(parents=True, exist_ok=True)
+
+    if a.approve:
+        path = BATCHES / f"{a.approve}.json" if a.approve != "last" else None
+        if path is None:
+            files = sorted(BATCHES.glob("*.json"))
+            if not files:
+                print("no batch to approve — run `art_screen.py batch` first")
+                return 1
+            path = files[-1]
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        ids = rec["ids"]
+        winners = _shown(led, ids)
+        if not winners:
+            print("nothing in that batch passed — nothing to install")
+            return 1
+        print(f"installing {len(winners)} painting(s) from batch {rec['id']}:")
+        installed = _install(ad, winners, rec["id"])
+        rec["installed"] = installed
+        path.write_text(json.dumps(rec, indent=1), encoding="utf-8")
+        print(f"installed {len(installed)} of {len(ids)} — the rest were not good enough yet")
+        return 0
+
+    ids = _pick_batch(cards, a.n, led, a.ids)
+    bad = [i for i in ids if i not in cards]
+    if bad:
+        print(f"unknown card(s): {', '.join(bad)}")
+        return 1
+    if not ids:
+        print("every card is already in the new style")
+        return 0
+    bid = time.strftime("%Y%m%d-%H%M%S")
+    need_plan = [c for c in ids if a.fresh_concepts or not (led["cards"].get(c) or {}).get("prompt")
+                 or (led["cards"].get(c) or {}).get("mock")]
+    cap = min(a.max_paintings, len(ids) * a.rounds)
+    print(f"PREVIEW BATCH {bid}: {len(ids)} cards, one painting each, then only the failures are repainted.\n"
+          f"  cards: {', '.join(ids)}\n"
+          f"  planned spend: {len(need_plan)} planning call(s) + about {len(ids)} paintings"
+          f" (hard cap {cap}) + one cheap screener look per painting")
+    before = account_usage()
+    os.environ["SPEND_TAG"] = bid
+    spent, todo = 0, list(ids)
+    replan = set(need_plan)
+    for rnd in range(1, a.rounds + 1):
+        if not todo:
+            break
+        if spent >= cap:
+            print(f"stopping: reached the cap of {cap} paintings")
+            break
+        if spent + len(todo) > cap:
+            print(f"only {cap - spent} painting(s) left under the cap — repainting {cap - spent} of {len(todo)}")
+            todo = todo[:cap - spent]
+        if before and a.max_usd:
+            now = account_usage()
+            if now and now.get("total") is not None and before.get("total") is not None \
+                    and now["total"] - before["total"] >= a.max_usd:
+                print(f"stopping: this batch has spent ${now['total'] - before['total']:.2f}, the cap is ${a.max_usd:.2f}")
+                break
+        print(f"\n── round {rnd}: {len(todo)} painting(s) ──", flush=True)
+        led = ad.load_ledger()
+        plan_now = [c for c in todo if c in replan or not (led["cards"].get(c) or {}).get("prompt")
+                    or (led["cards"].get(c) or {}).get("mock")]
+        if plan_now and _ad_cli("plan", *plan_now) not in (0, 2):
+            print("planning failed — stopping")
+            return 1
+        env = dict(os.environ, STYLE_MOOD_SALT=f"{rnd}")
+        if _ad_cli("render", *todo, "--models", "refs", "--candidates", 1, env=env) != 0:
+            print("render failed — stopping")
+            return 1
+        spent += len(todo)
+        led = ad.load_ledger()
+        keep = [(cid, b) for cid, b in _shown(led, [i for i in ids if i not in todo])]
+        cmd_screen(argparse.Namespace(run=None, dir=None, no_vision=False, keep=keep))
+        led = ad.load_ledger()
+        nxt, replan = [], set()
+        for cid in todo:
+            e = led["cards"].get(cid) or {}
+            if _best(e, True):        # a pass, or a near-miss kept for Trikzos to judge (a repaint would overwrite it)
+                continue
+            nxt.append(cid)
+            reasons = " ".join(r for c in e.get("candidates") or [] for r in (c.get("screen") or {}).get("reasons", []))
+            if re.search(r"same subject|looks like|matches card", reasons):
+                replan.add(cid)
+        print(f"round {rnd}: {len(todo) - len(nxt)} good, {len(nxt)} to repaint", flush=True)
+        todo = nxt
+    led = ad.load_ledger()
+    good = [cid for cid, _ in _shown(led, ids)]
+    unsure = [cid for cid, b in _shown(led, ids) if b["screen"]["verdict"] != "pass"]
+    sheet = _preview_sheet(led, cards, ids, bid)
+    after = account_usage()
+    cost = None
+    if before and after and before.get("total") is not None and after.get("total") is not None:
+        cost = after["total"] - before["total"]
+    logged = sum(r["cost"] for r in _spend_rows() if r.get("tag") == bid and isinstance(r.get("cost"), (int, float)))
+    rec = {"id": bid, "ids": ids, "good": good, "unsure": unsure, "paintings": spent,
+           "cost_account_delta": cost, "cost_logged": logged, "sheet": str(sheet) if sheet else None}
+    (BATCHES / f"{bid}.json").write_text(json.dumps(rec, indent=1), encoding="utf-8")
+    print(f"\nbatch {bid}: {len(good)} of {len(ids)} cards have art to show — {spent} painting(s) made")
+    if unsure:
+        print(f"marked (?) on the sheet — just under the bar, your call: {', '.join(unsure)}")
+    if cost is not None:
+        print(f"spent on this batch (OpenRouter's own account total, before vs after): {_usd(cost)}")
+    elif logged:
+        print(f"spent on the calls this batch made (logged): {_usd(logged)}")
+    else:
+        print("spend: OpenRouter didn't report a cost — check openrouter.ai/activity")
+    missing = [c for c in ids if c not in good]
+    if missing:
+        print(f"no passing art yet for: {', '.join(missing)}")
+    if sheet:
+        print(f"ONE SHEET, one painting per card: {sheet}")
+    print(f"if you like them: python3 tools/art_screen.py batch --approve {bid}")
     return 0
 
 
@@ -536,19 +815,29 @@ def main():
     c.add_argument("--stratum")
     c.add_argument("--missing", action="store_true")
     c.add_argument("--rounds", type=int, default=3)
-    c.add_argument("--candidates", type=int, default=2)
+    c.add_argument("--candidates", type=int, default=1)
     c.add_argument("--models", default="refs")
-    c.add_argument("--max-paintings", type=int, default=60)
+    c.add_argument("--max-paintings", type=int, default=30)
     c.add_argument("--fresh-concepts", action="store_true", help="plan a new concept for every card first")
     c.add_argument("--allow-review", action="store_true")
     c.add_argument("--install", action="store_true")
     c.add_argument("--mock", action="store_true", help="art_director --mock (no paid paintings) — for testing")
+    b = sub.add_parser("batch")
+    b.add_argument("ids", nargs="*", help="card ids (default: a spread of cards not yet in the new style)")
+    b.add_argument("--n", type=int, default=10)
+    b.add_argument("--rounds", type=int, default=2, help="1 painting each, then repaint only the failures (default 2 rounds)")
+    b.add_argument("--max-paintings", type=int, default=14, help="hard cap on paintings (default 14)")
+    b.add_argument("--max-usd", type=float, default=0, help="stop between rounds once the account has spent this much on the batch")
+    b.add_argument("--fresh-concepts", action="store_true", help="plan a new concept for every card first")
+    b.add_argument("--approve", nargs="?", const="last", metavar="BATCH", help="install a batch's passing art in the game")
+    b.add_argument("--mock", action="store_true", help="art_director --mock (no paid paintings) — for testing")
+    sub.add_parser("spend")
     hk = sub.add_parser("hook")
     hk.add_argument("--dry-run", action="store_true")
     sh = sub.add_parser("show")
     sh.add_argument("card_id")
     a = ap.parse_args()
-    return {"screen": cmd_screen, "pick": cmd_pick, "cycle": cmd_cycle, "show": cmd_show, "hook": cmd_hook}[a.cmd](a)
+    return {"screen": cmd_screen, "pick": cmd_pick, "cycle": cmd_cycle, "batch": cmd_batch, "spend": cmd_spend, "show": cmd_show, "hook": cmd_hook}[a.cmd](a)
 
 
 if __name__ == "__main__":
