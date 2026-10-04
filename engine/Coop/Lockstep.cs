@@ -184,7 +184,8 @@ public sealed class LockstepSession
     {
         if (_exp.Round == roundBefore && _exp.Outcome == ExpeditionOutcome.Running) return;
         // FABLE-COOP-1: a resolved round is compared by the hash taken as it resolved (see Expedition.Concede).
-        ulong h = _exp.Round != roundBefore ? _exp.LastResolvedHash : _exp.Hash();
+        // FABLE-DROP-1: decided mid-round → compare the deciding board(s) only (see Expedition.DecisiveHash)
+        ulong h = _exp.Round != roundBefore ? _exp.LastResolvedHash : _exp.DecisiveHash();
         _myHashes[roundBefore] = h;
         Outbound?.Invoke(new NetMessage { Type = "hash", Seat = _me, Round = roundBefore, Hash = h.ToString() }.ToJson());
         foreach (var seat in _exp.Boards.Select(b => b.Seat.Seat)) Compare(roundBefore, seat);

@@ -925,6 +925,9 @@ public static class CampaignContext
             foreach (var c in deck.Cards)
                 if (!Progression.Collection.ContainsKey(c))
                     Progression.AddCard(c);
+
+            // FABLE-DROP-1: new card drops reach existing saves (once per slot)
+            DropGrants.Ensure(Progression, SaveManager.CurrentSlot, cid);
         }
 
         /// <summary>The class's signature card id (first-boss reward), or null.</summary>

@@ -27,7 +27,7 @@ public static class KeywordHandlers
     /// <summary>Returns true if the creature is allowed to declare an attack.</summary>
     public static bool CanAttack(CardInstance card)
     {
-        return !card.EffectiveKeywords.Contains("ROOTED");
+        return !card.EffectiveKeywords.Contains("ROOTED") && !card.Stunned;   // FABLE-DROP-1: Stun
     }
 
     /// <summary>
@@ -85,26 +85,18 @@ public static class KeywordHandlers
     /// </summary>
     public static void ResolveVenom(GameState state, int attackerPlayerIndex)
     {
-        var opponent = state.Player(state.OpponentIndex(attackerPlayerIndex));
-        for (int i = 0; i < 5; i++)
+        // FABLE-DROP-1: through the one death path, so a Venom kill fires death triggers and Unearth
+        foreach (int p in new[] { state.OpponentIndex(attackerPlayerIndex), attackerPlayerIndex })
         {
-            var occ = opponent.Lanes[i].Occupant;
-            if (occ is not null && occ.IsVenomed)
+            var player = state.Player(p);
+            for (int i = 0; i < 5; i++)
             {
-                DestroyCreature(opponent.Lanes[i], occ, opponent, state);
-                occ.IsVenomed = false;
-            }
-        }
-
-        // Also check the attacker's own creatures (in case of self-damage reflection)
-        var attacker = state.Player(attackerPlayerIndex);
-        for (int i = 0; i < 5; i++)
-        {
-            var occ = attacker.Lanes[i].Occupant;
-            if (occ is not null && occ.IsVenomed)
-            {
-                DestroyCreature(attacker.Lanes[i], occ, attacker, state);
-                occ.IsVenomed = false;
+                var occ = player.Lanes[i].Occupant;
+                if (occ is not null && occ.IsVenomed)
+                {
+                    occ.IsVenomed = false;
+                    EffectExecutor.KillCreature(occ, state);
+                }
             }
         }
     }
@@ -115,6 +107,16 @@ public static class KeywordHandlers
     /// </summary>
     public static bool OnDeath(CardInstance card, PlayerState owner)
     {
+        // FABLE-DROP-1: the Unearth KEYWORD (rules §8) — six cards had it and it did nothing. It returns
+        // the creature to your hand at the start of your next turn, once (the returned card has used it).
+        if (card.UnearthCost <= 0 && card.EffectiveKeywords.Contains("UNEARTH") && !card.UnearthUsed
+            && card.CardType == Cards.CardType.CREATURE)
+        {
+            card.Zone = Zone.RemovedFromGame;
+            card.UnearthUsed = true;
+            owner.UnearthQueue.Add(card);
+            return true;
+        }
         if (card.UnearthCost > 0)
         {
             // Instead of going to discard, queue for Unearth
@@ -134,6 +136,14 @@ public static class KeywordHandlers
         var remaining = new List<CardInstance>();
         foreach (var card in player.UnearthQueue)
         {
+            if (card.UnearthCost <= 0)
+            {
+                ResetForHand(card);
+                card.UnearthUsed = true;
+                if (player.Hand.Count < player.MaxHandSize) { card.Zone = Zone.Hand; player.Hand.Add(card); }
+                else { card.Zone = Zone.Discard; player.Discard.Add(card); }
+                continue;
+            }
             if (player.Attunement >= card.UnearthCost)
             {
                 player.Attunement -= card.UnearthCost;
@@ -154,14 +164,15 @@ public static class KeywordHandlers
     /// Process Fragile at end of turn: destroy creatures summoned this turn
     /// that have the Fragile keyword. Also resets SummonedThisTurn flags.
     /// </summary>
-    public static void ProcessFragile(PlayerState player)
+    public static void ProcessFragile(PlayerState player, GameState? state = null)
     {
         for (int i = 0; i < 5; i++)
         {
             var occ = player.Lanes[i].Occupant;
             if (occ is not null && occ.SummonedThisTurn && occ.EffectiveKeywords.Contains("FRAGILE"))
             {
-                DestroyCreature(player.Lanes[i], occ, player, null);
+                if (state is not null) EffectExecutor.KillCreature(occ, state);   // FABLE-DROP-1: death triggers fire
+                else DestroyCreature(player.Lanes[i], occ, player, null);
             }
         }
 
@@ -225,6 +236,31 @@ public static class KeywordHandlers
             if (ally is not null)
                 ally.AncestralShieldUsedThisTurn = false;
         }
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: a card going back to a hand (Bounce, Unearth) comes back as printed — no damage, no
+    /// buffs, no granted or silenced keywords, no statuses.
+    /// </summary>
+    public static void ResetForHand(CardInstance card)
+    {
+        card.LaneIndex = null;
+        card.Damage = 0;
+        card.AttackModifier = 0;
+        card.VigorModifier = 0;
+        card.AuraAttack = 0;
+        card.AuraVigor = 0;
+        card.AuraKeywords.Clear();
+        card.GrantedKeywords.Clear();
+        card.RemovedKeywords.Clear();
+        card.TimedMods.Clear();
+        card.DamageShields.Clear();
+        card.WardRemaining = 0;
+        card.IsVenomed = false;
+        card.IsExhausted = false;
+        card.HasAttackedThisTurn = false;
+        card.SummonedThisTurn = false;
+        MechanicOps.ClearStatuses(card);
     }
 
     // ——— Internal helpers ———

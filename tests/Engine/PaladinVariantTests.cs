@@ -190,14 +190,10 @@ public class PaladinVariantTests
             EffectExecutor.Execute(healEffect, slot0.Occupant!, state,
                 new List<ResolvedTarget> { new CreatureTarget(ally, 0, 0) });
 
-            // Fire ON_HEAL for slot 0 — ADD_CHARGE 1
-            // With SELF_ARTIFACT scope for ADD_CHARGE, it resolves to PLAYER_SELF
-            // and adds charge to ALL non-suppressed artifacts
-            TriggerBus.FireArtifactSlot(state, Trigger.ON_HEAL, 0, 0);
-
-            // Both slots gained charge (ADD_CHARGE to SELF_ARTIFACT iterates all slots)
-            Assert.Equal(1, slot0.Charges);
-            Assert.Equal(1, slot1.Charges);
+            // FABLE-DROP-1: the heal itself is the event now — BOTH Mauls hear it, and each one's
+            // ADD_CHARGE (SELF_ARTIFACT → every non-suppressed slot) adds 1 to both slots: 2 each.
+            Assert.Equal(2, slot0.Charges);
+            Assert.Equal(2, slot1.Charges);
         }
         finally
         {

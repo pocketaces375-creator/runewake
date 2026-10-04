@@ -14,15 +14,28 @@ public static class CardValidator
     private static readonly HashSet<string> ValidKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
         "GUARD", "SWIFT", "PIERCE", "WARD", "VENOM", "REACH",
-        "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED"
+        "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED",
+        "EXALTED"   // FABLE-DROP-1 (ARMOR:N and DODGE:N are checked by pattern below)
     };
+
+    // FABLE-DROP-1: parametrized keywords — Armor 1–4, Dodge 10–50%
+    private static readonly Regex ParamKeyword = new(@"^(ARMOR:[1-4]|DODGE:(10|15|20|25|30|35|40|45|50))$", RegexOptions.Compiled);
+    private static bool KeywordOk(string kw) => ValidKeywords.Contains(kw) || ParamKeyword.IsMatch(kw.ToUpperInvariant());
+
+    private static readonly HashSet<string> ValidTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "BEAST", "UNDEAD", "KNIGHT", "ELEMENTAL", "SPIRIT", "CONSTRUCT", "SERPENT", "STARBORN"
+    };
+
+    private static readonly HashSet<string> ValidTrapKinds = new(StringComparer.OrdinalIgnoreCase) { "COUNTER_RITUAL", "AMBUSH" };
 
     private static readonly HashSet<string> ValidTriggers = new(StringComparer.OrdinalIgnoreCase)
     {
         "ON_SUMMON", "ON_DEATH", "ON_ATTACK", "ON_DAMAGED",
         "ON_TURN_START", "ON_TURN_END", "ON_CAST_RITUAL", "ON_EXCAVATE",
         "ON_RELIC_IDENTIFY", "ON_ALLY_DEATH", "ON_LANE_VACATED",
-        "PASSIVE", "ACTIVATED", "RESOLVE"
+        "PASSIVE", "ACTIVATED", "RESOLVE",
+        "ON_ALLY_ATTACKED", "ON_HEAL", "ON_CREATURE_DIES"
     };
 
     private static readonly HashSet<string> ValidOps = new(StringComparer.OrdinalIgnoreCase)
@@ -30,7 +43,10 @@ public static class CardValidator
         "DAMAGE", "HEAL", "BUFF", "DEBUFF", "DESTROY", "DRAW", "DISCARD",
         "EXCAVATE", "BURY", "UNBURY", "SUMMON", "GRANT_KEY", "REMOVE_KEY",
         "SILENCE", "BOUNCE", "ATTUNE", "MOVE_LANE", "IDENTIFY",
-        "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH"
+        "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH",
+        // FABLE-DROP-1
+        "STUN", "BURN", "DRAIN", "LOCK_LANE", "SWAP_STATS", "DOUBLE_STATS", "STEAL", "SET_TRAP", "REDIRECT",
+        "UNEARTH_FROM_GRAVEYARD", "SUPPRESS", "PREVENT_DAMAGE", "SCY", "HEAL_FULL"
     };
 
     private static readonly HashSet<string> ValidScopes = new(StringComparer.OrdinalIgnoreCase)
@@ -41,7 +57,7 @@ public static class CardValidator
 
     private static readonly HashSet<string> ValidDurations = new(StringComparer.OrdinalIgnoreCase)
     {
-        "PERMANENT", "THIS_TURN", "NEXT_TURN", "WHILE_PRESENT"
+        "PERMANENT", "THIS_TURN", "NEXT_TURN", "WHILE_PRESENT", "UNTIL_YOUR_NEXT_TURN"
     };
 
     private static readonly HashSet<string> ValidCondOps = new(StringComparer.OrdinalIgnoreCase)
@@ -49,7 +65,8 @@ public static class CardValidator
         "ALLY_COUNT_GTE", "ENEMY_COUNT_GTE", "BARROW_COUNT_GTE",
         "HAND_COUNT_GTE", "HAND_COUNT_LTE", "TURN_GTE", "VIGOR_LTE",
         "VIGOR_GTE", "ATTUNEMENT_GTE", "CONTROLS_KEYWORD",
-        "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE"
+        "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE",
+        "CREATURE_DIED_THIS_TURN", "DURING_YOUR_TURN", "CONTROLS_TRIBE_GTE", "ALONE", "ENEMY_HAND_LTE"
     };
 
     /// <summary>
@@ -135,8 +152,22 @@ public static class CardValidator
             errors.Add($"max 3 keywords (got {card.Keywords.Count})");
         foreach (var kw in card.Keywords)
         {
-            if (!ValidKeywords.Contains(kw))
+            if (!KeywordOk(kw))
                 errors.Add($"unknown keyword: '{kw}'");
+        }
+
+        // FABLE-DROP-1: types and Tribute
+        foreach (var t in card.Types)
+            if (!ValidTypes.Contains(t))
+                errors.Add($"unknown creature type: '{t}'");
+        if (card.Types.Count > 2)
+            errors.Add($"max 2 creature types (got {card.Types.Count})");
+        if (card.Tribute is int trib)
+        {
+            if (card.Type != CardType.CREATURE)
+                errors.Add("only a CREATURE can have tribute");
+            if (trib < 1 || trib > 2)
+                errors.Add($"tribute must be 1-2 (got {trib})");
         }
 
         // Abilities
@@ -187,8 +218,11 @@ public static class CardValidator
         if (effect.Vigor is not null && (effect.Vigor < -12 || effect.Vigor > 12))
             errors.Add($"vigor modifier must be -12 to 12 (got {effect.Vigor})");
 
-        if (effect.Keyword is not null && !ValidKeywords.Contains(effect.Keyword))
-            errors.Add($"unknown keyword in effect: '{effect.Keyword}'");
+        if (effect.Keyword is not null)
+        {
+            bool ok = effect.Op == Op.SET_TRAP ? ValidTrapKinds.Contains(effect.Keyword) : KeywordOk(effect.Keyword);
+            if (!ok) errors.Add($"unknown keyword in effect: '{effect.Keyword}'");
+        }
 
         if (effect.Duration is not null && !ValidDurations.Contains(effect.Duration.ToString()))
             errors.Add($"unknown duration: '{effect.Duration}'");

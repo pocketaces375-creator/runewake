@@ -19,20 +19,62 @@ public static partial class DuelEngine
     {
         state = state.Clone();
         state.ActionLog.Add(action);
+        state.LastTrapSprung = null;
+        // FABLE-DROP-1: the chain cap is per action. It was never reset, so after the 20th trigger of a
+        // match NOTHING triggered again — no death effects, no artifact charges, for the rest of the game.
+        state.TriggerDepth = 0;
+        Auras.Recompute(state);
 
-        switch (action)
+        var result = action switch
         {
-            case EndTurnAction e:
-                return ApplyEndTurn(state, e);
-            case PlayCardAction p:
-                return ApplyPlayCard(state, p);
-            case AttackAction a:
-                return ApplyAttack(state, a);
-            case TapArtifactAction t:
-                return ApplyTapArtifact(state, t);
-            default:
-                throw new ArgumentException($"Unknown action type: {action.GetType()}");
-        }
+            EndTurnAction e => ApplyEndTurn(state, e),
+            PlayCardAction p => ApplyPlayCard(state, p),
+            AttackAction a => ApplyAttack(state, a),
+            TapArtifactAction t => ApplyTapArtifact(state, t),
+            _ => throw new ArgumentException($"Unknown action type: {action.GetType()}")
+        };
+        result.AimLane = null;
+        if (!result.IsGameOver)
+            Auras.Recompute(result);
+        return result;
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: wear off timed modifiers. <paramref name="endOfTurnOf"/> set = the end of that player's
+    /// turn (THIS_TURN mods, NEXT_TURN mods of that player); <paramref name="startOfTurnOf"/> set = the start
+    /// of that player's turn (UNTIL_YOUR_NEXT_TURN and artifact WHILE_PRESENT mods from that player).
+    /// </summary>
+    internal static void ExpireTimed(GameState state, int? endOfTurnOf, int? startOfTurnOf)
+    {
+        foreach (var p in state.Players)
+            for (int i = 0; i < 5; i++)
+            {
+                var c = p.Lanes[i].Occupant;
+                if (c is null || c.TimedMods.Count == 0) continue;
+                foreach (var m in c.TimedMods.ToList())
+                {
+                    bool gone = false;
+                    if (endOfTurnOf is int e)
+                    {
+                        if (m.EndOfTurn) gone = true;
+                        if (m.ExpiresAtEndOfPlayersTurn == e)
+                        {
+                            if (m.SkipFirstEnd) m.SkipFirstEnd = false;
+                            else gone = true;
+                        }
+                    }
+                    if (startOfTurnOf is int st && m.ExpiresAtStartOfPlayer == st) gone = true;
+                    if (!gone) continue;
+                    c.TimedMods.Remove(m);
+                    c.AttackModifier -= m.Attack;
+                    c.VigorModifier -= m.Vigor;
+                    if (m.Keyword is string kw && !c.TimedMods.Any(o => o.Keyword == kw))
+                        c.GrantedKeywords.Remove(kw);
+                    // losing a buff's Vigor never kills — it leaves the creature on at least 1
+                    if (c.CurrentVigor <= 0 && m.Vigor > 0) c.Damage = Math.Max(0, c.MaxVigorNow - 1);
+                }
+            }
+        EffectExecutor.SweepDead(state);   // a debuff wearing off can't kill; a buff wearing off can't either — safety only
     }
 
     // ——— Action handlers ———
@@ -48,7 +90,9 @@ public static partial class DuelEngine
 
         // 1. End phase — ON_TURN_END triggers, Fragile check, then hand size check
         TriggerBus.Fire(state, Trigger.ON_TURN_END, action.PlayerIndex);
-        KeywordHandlers.ProcessFragile(endingPlayer);
+        KeywordHandlers.ProcessFragile(endingPlayer, state);
+        MechanicOps.OnTurnEnd(state, action.PlayerIndex);
+        ExpireTimed(state, endOfTurnOf: action.PlayerIndex, startOfTurnOf: null);
         TruncateHand(endingPlayer);
 
         // Tick suppression on the ending player's Artifacts (counted in owner's turns)
@@ -81,6 +125,8 @@ public static partial class DuelEngine
                 creature.SummonedThisTurn = false;
             }
         }
+        // FABLE-DROP-1: "until your next turn" ends now
+        ExpireTimed(state, endOfTurnOf: null, startOfTurnOf: state.CurrentPlayerIndex);
 
         // 3. Attune phase — increase attunement and refill
         nextPlayer = state.CurrentPlayer;
@@ -89,6 +135,7 @@ public static partial class DuelEngine
             10);
         nextPlayer.AttunementMax = newMax;
         nextPlayer.Attunement = newMax;
+        MechanicOps.OnTurnStartBeforeDraw(state, nextPlayer);
 
         // 3.5 Cadence phase — cadenced ON_TURN_START artifact passives.
         // Prey marking (order BEFORE_ALL_OTHER_TURN_START_EFFECTS) resolves
@@ -186,10 +233,16 @@ public static partial class DuelEngine
             if (action.LaneIndex is not int laneIdx || laneIdx < 0 || laneIdx > 4)
                 throw new ArgumentException($"Invalid lane index: {action.LaneIndex}.");
             var lane = player.Lanes[laneIdx];
-            if (lane.Occupant is not null)
-                throw new InvalidOperationException($"Lane {laneIdx} is already occupied.");
-            if (lane.IsBuried)
-                throw new InvalidOperationException($"Lane {laneIdx} is buried — nothing can be played there.");
+            // FABLE-DROP-1: Lock and Tribute join Occupied and Buried as lane rules
+            if (MechanicOps.LaneProblem(player, card, laneIdx) is string problem)
+                throw new InvalidOperationException(problem);
+            if (card.Tribute > 0)
+            {
+                foreach (var victim in MechanicOps.TributeVictims(player, card, laneIdx)!)
+                    EffectExecutor.KillCreature(victim, state);
+                if (lane.Occupant is not null)   // an Unearth victim left, a death trigger summoned into it…
+                    throw new InvalidOperationException($"Lane {laneIdx} is already occupied.");
+            }
             lane.Occupant = card;
             card.Zone = Zone.Lane;
             card.LaneIndex = laneIdx;
@@ -199,8 +252,10 @@ public static partial class DuelEngine
                 // Apply keyword effects: Swift, Ward, SummonedThisTurn, etc.
                 KeywordHandlers.OnPlay(card);
 
-                // Fire ON_SUMMON triggers (and any chained triggers, depth-limited)
-                TriggerBus.Fire(state, Trigger.ON_SUMMON, action.PlayerIndex);
+                // FABLE-DROP-1: THIS creature's ON_SUMMON (twice with Echo), then the artifacts and runes
+                // that watch summons. It used to re-run every creature's ON_SUMMON on the board.
+                Auras.Recompute(state);
+                TriggerBus.FireCardEvent(state, Trigger.ON_SUMMON, card, action.PlayerIndex, listenersBothSides: true);
             }
             else if (card.CardType == CardType.RELIC)
             {
@@ -213,9 +268,25 @@ public static partial class DuelEngine
         }
         else if (card.CardType == CardType.RITUAL)
         {
-            // Resolve effects (no-op until P1-05), then discard
+            // FABLE-DROP-1: rituals RESOLVE. This was still the placeholder "no-op until P1-05": all 19
+            // rituals cost their Attunement and did nothing. The lane the ritual was dropped on is its aim
+            // (the creature in that lane, yours or theirs, is the one a single-target effect picks).
+            card.Zone = Zone.RemovedFromGame;   // on the stack: not in hand, not yet in the discard
+            if (!MechanicOps.TryCounter(state, card, action.PlayerIndex))
+            {
+                state.AimLane = action.LaneIndex;
+                foreach (var ability in card.Abilities.ToList())
+                    if (ability.Trigger == Trigger.RESOLVE && !state.IsGameOver)
+                        TriggerBus.RunAbility(state, ability, card, action.PlayerIndex);
+                state.AimLane = null;
+            }
             card.Zone = Zone.Discard;
             player.Discard.Add(card);
+            if (!state.IsGameOver)
+            {
+                TriggerBus.FireSide(state, Trigger.ON_CAST_RITUAL, action.PlayerIndex);
+                TriggerBus.FireSide(state, Trigger.ON_SPELL_CAST, action.PlayerIndex);
+            }
         }
 
         return state;
@@ -241,7 +312,7 @@ public static partial class DuelEngine
 
         // Rooted cannot attack
         if (!KeywordHandlers.CanAttack(attacker))
-            throw new InvalidOperationException("Attacker has Rooted and cannot attack.");
+            throw new InvalidOperationException(attacker.Stunned ? "Attacker is stunned." : "Attacker has Rooted and cannot attack.");
 
         // Resolve target lane (handles Reach targeting)
         int? resolvedTarget = KeywordHandlers.ResolveTargetLane(attacker, action.SourceLane, action.TargetLane);
@@ -260,9 +331,20 @@ public static partial class DuelEngine
         // Fire ON_CREATURE_ATTACKS — set current attacker context for trigger target resolution
         player.CurrentAttackerLaneIndex = action.SourceLane;
         TriggerBus.Fire(state, Trigger.ON_CREATURE_ATTACKS, action.PlayerIndex);
+        // FABLE-DROP-1: "when this attacks" — never fired before (two cards and the Dawnbreaker Maul relied on it)
+        if (!state.IsGameOver && ReferenceEquals(sourceLane.Occupant, attacker))
+            TriggerBus.FireCardEvent(state, Trigger.ON_ATTACK, attacker, action.PlayerIndex, listenersBothSides: false);
         player.CurrentAttackerLaneIndex = null;
+        // FABLE-DROP-1: an AMBUSH Sigil strikes the attacker first
+        if (!state.IsGameOver && ReferenceEquals(sourceLane.Occupant, attacker))
+            MechanicOps.SpringAmbush(state, opponent, attacker);
+        Auras.Recompute(state);
+        // the attack trigger may have ended the game or killed the attacker: then there is no combat
+        if (state.IsGameOver || !ReferenceEquals(sourceLane.Occupant, attacker))
+            return state;
 
         int targetLaneIdx = resolvedTarget.Value;
+        targetLaneIdx = MechanicOps.RedirectAttack(state, opponent, targetLaneIdx);
 
         // Determine final target: creature or face (with Guard redirect)
         var targetLane = opponent.Lanes[targetLaneIdx];
@@ -295,6 +377,28 @@ public static partial class DuelEngine
         if (state.AltarMode && action.SourceLane == 2)
             attackPower += 1;
 
+        if (actualTargetLaneIdx is int tgtIdx0)
+        {
+            // FABLE-DROP-1: "whenever one of your creatures is attacked" — ten artifacts listen for it and it
+            // never fired. It goes before the blow lands; if the defender is gone after it, the attack fizzles.
+            var defender0 = opponent.Lanes[tgtIdx0].Occupant!;
+            opponent.LastAttackedLaneIndex = tgtIdx0;
+            TriggerBus.FireSide(state, Trigger.ON_ALLY_ATTACKED, opponent.Index);
+            Auras.Recompute(state);
+            if (state.IsGameOver || !ReferenceEquals(sourceLane.Occupant, attacker))
+                return state;
+            if (!ReferenceEquals(opponent.Lanes[tgtIdx0].Occupant, defender0))
+            {
+                attacker.HasAttackedThisTurn = true;
+                attacker.IsExhausted = true;
+                return state;
+            }
+            attackPower = attacker.CurrentAttack + (state.AltarMode && action.SourceLane == 2 ? 1 : 0);
+            attackPower = MechanicOps.AttackPowerWithExalted(state, player, attacker, attackPower);
+        }
+        else
+            attackPower = MechanicOps.AttackPowerWithExalted(state, player, attacker, attackPower);
+
         if (actualTargetLaneIdx is int tgtIdx)
         {
             var actualLane = opponent.Lanes[tgtIdx];
@@ -310,6 +414,7 @@ public static partial class DuelEngine
 
             // Ward reduces attacker's damage to defender
             int damageToDefender = KeywordHandlers.ApplyWard(defender, attackPower);
+            damageToDefender = MechanicOps.CombatDamageTo(state, defender, damageToDefender);
 
             // Simultaneous damage (defender hits back with full power unless attacker has STEALTH_STRIKE — R8)
             int atkDamage = defender.CurrentAttack;
@@ -318,10 +423,22 @@ public static partial class DuelEngine
             if (state.AltarMode && action.SourceLane == 2)
                 atkDamage *= 2;
 
-            // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
-            defender.Damage += DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack);
+            // FABLE-DROP-1: the counter-blow goes through Ward too (it used to ignore the attacker's Ward)
             if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
-                attacker.Damage += DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack);
+                atkDamage = MechanicOps.CombatDamageTo(state, attacker, KeywordHandlers.ApplyWard(attacker, atkDamage));
+            // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
+            int dealtToDefender = MechanicOps.ReduceByArmor(defender,
+                DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack));
+            defender.Damage += dealtToDefender;
+            int dealtToAttacker = 0;
+            if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
+            {
+                dealtToAttacker = MechanicOps.ReduceByArmor(attacker,
+                    DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack));
+                attacker.Damage += dealtToAttacker;
+            }
+            MechanicOps.AfterCombatDamage(state, attacker, defender, dealtToDefender, dealtToAttacker);
+            damageToDefender = dealtToDefender;
 
             // Venom marking
             KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);
@@ -332,36 +449,16 @@ public static partial class DuelEngine
             bool defenderKilled = defender.CurrentVigor <= 0;
             if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE") && !hedgeBlockPierce)
             {
-                int neededToKill = defender.BaseVigor + defender.VigorModifier;
+                int neededToKill = defender.MaxVigorNow - (defender.Damage - dealtToDefender);
                 int excessDamage = System.Math.Max(0, attackPower - neededToKill);
                 excessDamage = DamageInterceptor.Reduce(state, opponent, excessDamage, DamageInterceptor.SourceAttack);
                 opponent.Vigor -= excessDamage;
                 CheckGameOver(state, opponent);
             }
 
-            // Remove dead defender (check Unearth first)
+            // Remove dead defender (FABLE-DROP-1: the one death path — Unearth, triggers, counters)
             if (defenderKilled)
-            {
-                state.CreatureDiedThisTurnCount[opponent.Index]++;
-                state.TotalCreatureDiedCount[opponent.Index]++;
-                state.LastDeathPlayerIndex = opponent.Index;
-                OpeningRuleHandler.CheckLiftConditions(state, opponent.Index);
-                bool isUnearthed = false;
-                if (!KeywordHandlers.OnDeath(defender, opponent))
-                {
-                    actualLane.Occupant = null;
-                    defender.Zone = Zone.Discard;
-                    opponent.Discard.Add(defender);
-                }
-                else
-                {
-                    actualLane.Occupant = null;
-                    isUnearthed = true; // card is in UnearthQueue, not discard
-                }
-                // Fire ON_DEATH triggers
-                TriggerBus.FireDeathEvents(state, defender, opponent.Index);
-                TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, opponent.Index);
-            }
+                EffectExecutor.KillCreature(defender, state);
         }
         else
         {
@@ -374,27 +471,12 @@ public static partial class DuelEngine
         // Resolve Venom (destroy any creatures marked by Venom this combat)
         KeywordHandlers.ResolveVenom(state, action.PlayerIndex);
 
-        // Remove dead attacker (check Unearth first)
-        if (attacker.CurrentVigor <= 0)
+        // Remove dead attacker (FABLE-DROP-1: the one death path)
+        if (attacker.Zone == Zone.Lane && attacker.CurrentVigor <= 0)
         {
-            state.CreatureDiedThisTurnCount[player.Index]++;
-            state.TotalCreatureDiedCount[player.Index]++;
-            state.LastDeathPlayerIndex = player.Index;
-            OpeningRuleHandler.CheckLiftConditions(state, player.Index);
-            if (!KeywordHandlers.OnDeath(attacker, player))
-            {
-                sourceLane.Occupant = null;
-                attacker.Zone = Zone.Discard;
-                player.Discard.Add(attacker);
-            }
-            else
-            {
-                sourceLane.Occupant = null;
-            }
-            TriggerBus.FireDeathEvents(state, attacker, player.Index);
-            TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, player.Index);
+            EffectExecutor.KillCreature(attacker, state);
         }
-        else
+        else if (attacker.Zone == Zone.Lane)
         {
             // Mark attacker as used if it survived
             attacker.HasAttackedThisTurn = true;

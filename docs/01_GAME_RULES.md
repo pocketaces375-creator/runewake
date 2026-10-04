@@ -83,10 +83,31 @@ The AI may only use these. Adding a keyword requires an engine change and a vers
 | **Venom** | Any creature damaged by this is destroyed at end of combat. |
 | **Reach** | May attack the opposing lane or lanes adjacent to it. |
 | **Rooted** | Cannot attack. (Used to price up defensive statlines.) |
-| **Unearth N** | When destroyed, returns to its owner's hand next turn at cost N. |
+| **Unearth N** | When destroyed, returns to its owner's hand next turn at cost N. Written without N (`UNEARTH`): it returns once, fresh, at the start of your next turn. |
 | **Echo** | This card's `ON_SUMMON` ability triggers twice. |
 | **Fragile** | Destroyed at end of the turn it was summoned. (Used for tokens and big tempo swings.) |
 | **Sealed** | Cannot be targeted by enemy abilities. |
+| **Exalted** | *(FABLE-DROP-1)* When your first attacker each turn attacks, it gets +1/+1 this turn for each Exalted creature you control. |
+| **Armor N** | *(FABLE-DROP-1)* Damage dealt to this is reduced by N — every hit (Ward stops one hit; Armor shaves all of them). Written `ARMOR:N`, N = 1–4. |
+| **Dodge N%** | *(FABLE-DROP-1)* N% chance to take no combat damage. Seeded RNG — the same game replays the same. Written `DODGE:N`, N = 10–50. |
+
+### 8b. Statuses, lane rules and card rules (FABLE-DROP-1)
+
+| Rule | Text |
+|---|---|
+| **Stun** | A stunned creature can't attack. Stun wears off at the end of its controller's next turn. |
+| **Burn N** | At the start of its controller's turn, it takes N damage, then Burn drops by 1. A player can Burn too. |
+| **Drain N** | That player has N less Attunement at the start of their next turn. |
+| **Lock** | Nothing can be summoned into a locked lane, for N of its owner's turns. |
+| **Tribute N** | To play this creature, destroy N of your creatures (play it onto one of them to choose; the rest are your weakest). Their death effects fire. |
+| **Sigil** | A face-down trap. *Counter*: the next enemy Ritual is negated (still spent). *Ambush N*: the next enemy creature to attack takes N damage first. The count of Sigils is public; what they are is not. |
+| **Redirect** | The next enemy attack this side takes hits that creature instead. |
+| **Take control** | *Until end of turn*: the creature moves to one of your empty lanes, can attack, and goes home at end of turn. |
+| **Swap / Double** | Swap a creature's Attack and Vigor; double them (this turn, unless permanent). |
+| **Creature types** | Beast, Undead, Knight, Elemental, Spirit, Construct, Serpent, Starborn — for "your Beasts get…" effects. |
+| **Aiming Rituals** | A Ritual is played on a lane. A single-target creature effect picks the creature in that lane (theirs, or yours for an ally effect); "opposing"/"diagonal" effects measure from that lane. |
+| **Auras** | A PASSIVE ability on a creature or identified relic is an aura: it applies while the source is on the board and ends the moment it leaves. Losing an aura's Vigor never kills; an aura that takes Vigor away can. |
+| **Durations** | "This turn" ends with the current turn; "until your next turn" ends when its owner's next turn starts. (Before FABLE-DROP-1 every buff was permanent.) |
 
 ## 9. Signature mechanics (the archaeology layer, in-game)
 

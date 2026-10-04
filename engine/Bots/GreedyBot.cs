@@ -181,36 +181,46 @@ public class GreedyBot : IGameBot
         var me = state.Player(playerIndex);
         var enemy = state.Player(state.OpponentIndex(playerIndex));
 
+        if (state.IsGameOver)
+            return state.WinnerIndex == playerIndex ? 10000 : -10000;
+
         int allyScore = me.Vigor;
         int enemyScore = enemy.Vigor;
 
         for (int i = 0; i < 5; i++)
         {
-            // Ally creatures
-            var allyCreature = me.Lanes[i].Occupant;
-            if (allyCreature is not null && allyCreature.CurrentAttack > 0)
-            {
-                allyScore += allyCreature.CurrentAttack + allyCreature.CurrentVigor;
-            }
-            // Also count 0-attack creatures (relics, debuffed creatures) — their vigor still matters
-            else if (allyCreature is not null)
-            {
-                allyScore += allyCreature.CurrentVigor;
-            }
-
-            // Enemy creatures
-            var enemyCreature = enemy.Lanes[i].Occupant;
-            if (enemyCreature is not null && enemyCreature.CurrentAttack > 0)
-            {
-                enemyScore += enemyCreature.CurrentAttack + enemyCreature.CurrentVigor;
-            }
-            else if (enemyCreature is not null)
-            {
-                enemyScore += enemyCreature.CurrentVigor;
-            }
+            allyScore += CreatureValue(me.Lanes[i].Occupant);
+            enemyScore += CreatureValue(enemy.Lanes[i].Occupant);
+            // FABLE-DROP-1: a locked enemy lane is a lane they can't use
+            if (enemy.Lanes[i].LockedTurns > 0 && enemy.Lanes[i].Occupant is null) allyScore += 1;
         }
 
+        // FABLE-DROP-1: cards in hand are options (so drawing is worth something), Sigils, Burn, Drain
+        allyScore += me.Hand.Count + 2 * me.Traps.Count - me.Burn * 2 + enemy.DrainNext;
+        enemyScore += enemy.Hand.Count + 2 * enemy.Traps.Count - enemy.Burn * 2 + me.DrainNext;
+
         return allyScore - enemyScore;
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: what a creature on the board is worth — Attack + Vigor, adjusted for the new statuses:
+    /// a stunned creature's Attack is worth half, Burn eats Vigor, Armor and Dodge make it sturdier, a
+    /// creature borrowed for this turn is worth little (it goes home).
+    /// </summary>
+    private static int CreatureValue(CardInstance? c)
+    {
+        if (c is null) return 0;
+        int atk = c.CurrentAttack, vig = c.CurrentVigor;
+        if (c.Stunned) atk /= 2;
+        int burnLeft = 0;
+        for (int b = c.Burn; b > 0; b--) burnLeft += b;
+        vig = System.Math.Max(0, vig - burnLeft);
+        int v = atk + vig;
+        v += 2 * MechanicOps.KeywordValue(c, "ARMOR") + MechanicOps.KeywordValue(c, "DODGE") / 20;
+        if (c.EffectiveKeywords.Contains("EXALTED")) v += 1;
+        if (c.RedirectCharges > 0) v += 1;
+        if (c.StolenFrom >= 0) v = atk / 2;
+        return v;
     }
 
     /// <summary>
@@ -236,7 +246,8 @@ public class GreedyBot : IGameBot
                 {
                     for (int l = 0; l < 5; l++)
                     {
-                        if (player.Lanes[l].Occupant is null)
+                        // FABLE-DROP-1: the engine's lane rules (locked lanes, Tribute onto own creatures)
+                        if (MechanicOps.LaneProblem(player, card, l) is null)
                         {
                             actions.Add(new PlayCardAction
                             {
@@ -250,14 +261,17 @@ public class GreedyBot : IGameBot
                 }
                 else
                 {
-                    // RITUAL — no lane target needed
-                    actions.Add(new PlayCardAction
+                    // FABLE-DROP-1: a Ritual is aimed by the lane it is played on — try each aim
+                    for (int l = 0; l < 5; l++)
                     {
-                        PlayerIndex = playerIndex,
-                        CardInstanceId = card.InstanceId,
-                        Cost = effectiveCost,
-                        LaneIndex = null,
-                    });
+                        actions.Add(new PlayCardAction
+                        {
+                            PlayerIndex = playerIndex,
+                            CardInstanceId = card.InstanceId,
+                            Cost = effectiveCost,
+                            LaneIndex = l,
+                        });
+                    }
                 }
             }
         }

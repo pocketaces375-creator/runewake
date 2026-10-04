@@ -45,6 +45,19 @@ public sealed class CardDef
     [JsonPropertyName("keywords")]
     public List<string> Keywords { get; set; } = new();
 
+    /// <summary>
+    /// FABLE-DROP-1: creature types for tribal effects, e.g. ["BEAST"], ["UNDEAD", "KNIGHT"].
+    /// </summary>
+    [JsonPropertyName("types")]
+    public List<string> Types { get; set; } = new();
+
+    /// <summary>
+    /// FABLE-DROP-1: Tribute N — to play this creature you destroy N of your own creatures (play it onto
+    /// one of them to choose it; the rest are your weakest).
+    /// </summary>
+    [JsonPropertyName("tribute")]
+    public int? Tribute { get; set; }
+
     /// <summary>Abilities on the card (max 2).</summary>
     [JsonPropertyName("abilities")]
     public List<AbilityDef> Abilities { get; set; } = new();

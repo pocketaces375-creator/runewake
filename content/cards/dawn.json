@@ -731,5 +731,232 @@
       "op": "TURN_GTE",
       "value": 8
     }
+  },
+  {
+    "id": "dwn_c_shieldwall_squire",
+    "set": "class_drop_1",
+    "name": "Shieldwall Squire",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [
+      "GUARD",
+      "ARMOR:1"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "Too young for a sword. Old enough for a very large shield.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_aegis_prayer",
+    "set": "class_drop_1",
+    "name": "Aegis Prayer",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "ARMOR:2",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          },
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Spoken quickly, between the first blow and the second.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_bastion_of_dawn",
+    "set": "class_drop_1",
+    "name": "Bastion of Dawn",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 7,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "vigor": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Stand beside it, and the dawn stands with you.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_oath_of_iron",
+    "set": "class_drop_1",
+    "name": "Oath of Iron",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "vigor": 1
+          },
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "keyword": "ARMOR:1",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Said once, together, and the line does not break.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_r_radiant_justicar",
+    "set": "class_drop_1",
+    "name": "Radiant Justicar",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_ATTACKED",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "LAST_ATTACKED",
+              "count": 1
+            },
+            "keyword": "ARMOR:2",
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Strike any of them and you strike her oath.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_u_lay_on_hands",
+    "set": "class_drop_1",
+    "name": "Lay on Hands",
+    "strata": "DAWN",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "HEAL_FULL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "WARD"
+          }
+        ]
+      }
+    ],
+    "flavor": "Warm hands, a quiet word, and the wound forgets it was ever there.",
+    "content_version": 1
+  },
+  {
+    "id": "dwn_c_lantern_warden",
+    "set": "class_drop_1",
+    "name": "Lantern Warden",
+    "strata": "DAWN",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "ARMOR:1"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "DAMAGED",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Her lantern burns all night so the wounded can find her.",
+    "content_version": 1
   }
 ]

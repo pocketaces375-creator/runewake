@@ -47,7 +47,9 @@
           "additionalProperties": false
         },
         "power_score": { "type": "number" },
-        "content_version": { "type": "integer", "minimum": 1 }
+        "content_version": { "type": "integer", "minimum": 1 },
+        "types": { "type": "array", "maxItems": 2, "items": { "enum": ["BEAST", "UNDEAD", "KNIGHT", "ELEMENTAL", "SPIRIT", "CONSTRUCT", "SERPENT", "STARBORN"] } },
+        "tribute": { "type": "integer", "minimum": 1, "maximum": 2 }
       },
       "allOf": [
         {
@@ -67,20 +69,22 @@
     },
     "strata": { "enum": ["VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN"] },
     "keyword": {
-      "enum": ["GUARD", "SWIFT", "PIERCE", "WARD", "VENOM", "REACH",
-               "ROOTED", "UNEARTH", "ECHO", "FRAGILE", "SEALED"]
+      "type": "string",
+      "pattern": "^(GUARD|SWIFT|PIERCE|WARD|VENOM|REACH|ROOTED|UNEARTH|ECHO|FRAGILE|SEALED|EXALTED|ARMOR:[1-4]|DODGE:(10|15|20|25|30|35|40|45|50)|COUNTER_RITUAL|AMBUSH)$"
     },
     "trigger": {
       "enum": ["ON_SUMMON", "ON_DEATH", "ON_ATTACK", "ON_DAMAGED",
                "ON_TURN_START", "ON_TURN_END", "ON_CAST_RITUAL", "ON_EXCAVATE",
                "ON_RELIC_IDENTIFY", "ON_ALLY_DEATH", "ON_LANE_VACATED",
-               "PASSIVE", "ACTIVATED", "RESOLVE"]
+               "PASSIVE", "ACTIVATED", "RESOLVE", "ON_ALLY_ATTACKED", "ON_HEAL", "ON_CREATURE_DIES"]
     },
     "op": {
       "enum": ["DAMAGE", "HEAL", "BUFF", "DEBUFF", "DESTROY", "DRAW", "DISCARD",
                "EXCAVATE", "BURY", "UNBURY", "SUMMON", "GRANT_KEY", "REMOVE_KEY",
                "SILENCE", "BOUNCE", "ATTUNE", "MOVE_LANE", "IDENTIFY",
-               "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH"]
+               "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH",
+               "STUN", "BURN", "DRAIN", "LOCK_LANE", "SWAP_STATS", "DOUBLE_STATS", "STEAL", "SET_TRAP", "REDIRECT",
+               "UNEARTH_FROM_GRAVEYARD", "SUPPRESS", "PREVENT_DAMAGE", "SCY", "HEAL_FULL"]
     },
     "scope": {
       "enum": ["SELF", "ALLY_CREATURE", "ENEMY_CREATURE", "ANY_CREATURE",
@@ -88,7 +92,7 @@
     },
     "filter": {
       "type": "string",
-      "pattern": "^(ANY|ADJACENT|OPPOSING|SAME_LANE|EDGE_LANE|CENTER_LANE|RANDOM|LOWEST_VIGOR|HIGHEST_ATTACK|LOWEST_COST|HIGHEST_COST|DAMAGED|UNDAMAGED|CHOSEN|STRATA:(VERDANT|EMBER|TIDE|HOLLOW|DAWN)|KEYWORD:(GUARD|SWIFT|PIERCE|WARD|VENOM|REACH|ROOTED|UNEARTH|ECHO|FRAGILE|SEALED)|TYPE:(CREATURE|RITUAL|RELIC|CURSE|TOKEN))$"
+      "pattern": "^((ANY|ADJACENT|OPPOSING|SAME_LANE|EDGE_LANE|CENTER_LANE|RANDOM|LOWEST_VIGOR|HIGHEST_VIGOR|HIGHEST_ATTACK|LOWEST_COST|HIGHEST_COST|DAMAGED|UNDAMAGED|CHOSEN|DIAGONAL|OPPOSING_AND_DIAGONAL|LEFT|RIGHT|OTHER|AIM|STUNNED|BURNING|LAST_ATTACKED|ENEMY_EMPTY|ENEMY_ANY|LANES:[0-4](-[0-4])?|TRIBE:[A-Z]+|STRATA:(VERDANT|EMBER|TIDE|HOLLOW|DAWN)|KEYWORD:[A-Z]+|TYPE:(CREATURE|RITUAL|RELIC|CURSE|TOKEN))\\+?)+$"
     },
     "target": {
       "type": "object",
@@ -109,9 +113,12 @@
           "enum": ["ALLY_COUNT_GTE", "ENEMY_COUNT_GTE", "BARROW_COUNT_GTE",
                    "HAND_COUNT_GTE", "HAND_COUNT_LTE", "TURN_GTE", "VIGOR_LTE",
                    "VIGOR_GTE", "ATTUNEMENT_GTE", "CONTROLS_KEYWORD",
-                   "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE"]
+                   "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE",
+                   "CREATURE_DIED_THIS_TURN", "DURING_YOUR_TURN", "CONTROLS_TRIBE_GTE", "ALONE", "ENEMY_HAND_LTE"]
         },
         "value": { "type": ["integer", "string", "boolean"] },
+        "side": { "enum": ["ALLY", "ENEMY", "ANY"] },
+        "tribe": { "type": "string" },
         "all": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/condition" } },
         "any": { "type": "array", "maxItems": 3, "items": { "$ref": "#/$defs/condition" } }
       }
@@ -128,7 +135,8 @@
         "vigor": { "type": "integer", "minimum": -12, "maximum": 12 },
         "keyword": { "$ref": "#/$defs/keyword" },
         "token_id": { "type": "string" },
-        "duration": { "enum": ["PERMANENT", "THIS_TURN", "NEXT_TURN", "WHILE_PRESENT"] }
+        "duration": { "enum": ["PERMANENT", "THIS_TURN", "NEXT_TURN", "WHILE_PRESENT", "UNTIL_YOUR_NEXT_TURN"] },
+        "value": { "type": "integer" }
       }
     },
     "ability": {

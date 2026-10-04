@@ -749,5 +749,501 @@
     },
     "attack": 5,
     "vigor": 4
+  },
+  {
+    "id": "tid_c_spellwake_adept",
+    "set": "class_drop_1",
+    "name": "Spellwake Adept",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every spell she casts leaves a little of itself behind in her.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_mirrorward_sigil",
+    "set": "class_drop_1",
+    "name": "Mirrorward Sigil",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "COUNTER_RITUAL"
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Cast at it, and the tide answers in your own voice.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_riptide_rebuke",
+    "set": "class_drop_1",
+    "name": "Riptide Rebuke",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "SCY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The sea gives nothing back. It only returns.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_null_current",
+    "set": "class_drop_1",
+    "name": "Null Current",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUPPRESS",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A cold current that drowns enchantments first.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_stormglass_battlemage",
+    "set": "class_drop_1",
+    "name": "Stormglass Battlemage",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "WARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "RANDOM",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Lightning in a glass gauntlet, uncorked one spell at a time.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_phantom_lure",
+    "set": "class_drop_1",
+    "name": "Phantom Lure",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "tid_t_phantom"
+          },
+          {
+            "op": "REDIRECT",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:SPIRIT",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "It looks exactly like you. It does not mind being stabbed.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_riptide_sigil",
+    "set": "class_drop_1",
+    "name": "Riptide Sigil",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "AMBUSH",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "The water by the gate is calm. That is the trap.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_star_reader",
+    "set": "class_drop_1",
+    "name": "Star Reader",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "LOCK_LANE",
+            "target": {
+              "scope": "LANE",
+              "filter": "OPPOSING"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She reads the sky and tells you where not to stand.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_falling_star",
+    "set": "class_drop_1",
+    "name": "Falling Star",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 3
+          },
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DIAGONAL",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Make a wish. Then duck.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_eclipse_seer",
+    "set": "class_drop_1",
+    "name": "Eclipse Seer",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING_AND_DIAGONAL",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "In her shadow, even the bold forget how to strike.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_inversion",
+    "set": "class_drop_1",
+    "name": "Inversion",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SWAP_STATS",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "Up is down. Strong is weak. Brave is very, very confused.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_gravity_well",
+    "set": "class_drop_1",
+    "name": "Gravity Well",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAIN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The stars lean closer, and everything gets heavy.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_constellation_titan",
+    "set": "class_drop_1",
+    "name": "Constellation Titan",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 7,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "tribute": 1,
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "LOCK_LANE",
+            "target": {
+              "scope": "LANE",
+              "filter": "ENEMY_EMPTY",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Drawn in the sky long ago, it finally stepped down.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_oracle_of_closed_skies",
+    "set": "class_drop_1",
+    "name": "Oracle of Closed Skies",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DIAGONAL",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "When she shuts her eyes, the heavens close with them.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_void_tether",
+    "set": "class_drop_1",
+    "name": "Void Tether",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "DRAIN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Cut the tether and the dark comes due.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_t_phantom",
+    "set": "class_drop_1",
+    "name": "Phantom",
+    "strata": "TIDE",
+    "type": "TOKEN",
+    "rarity": "COMMON",
+    "cost": 0,
+    "attack": 0,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "SPIRIT"
+    ],
+    "abilities": [],
+    "flavor": "Not really there. Very convincing.",
+    "content_version": 1
   }
 ]

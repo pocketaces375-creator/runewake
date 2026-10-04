@@ -25,6 +25,10 @@ public sealed class ConditionDef
     [JsonPropertyName("side")]
     public string? Side { get; set; }
 
+    /// <summary>FABLE-DROP-1: the creature type for CONTROLS_TRIBE_GTE, e.g. "BEAST".</summary>
+    [JsonPropertyName("tribe")]
+    public string? Tribe { get; set; }
+
     /// <summary>All of these sub-conditions must be true (AND).</summary>
     [JsonPropertyName("all")]
     public List<ConditionDef>? All { get; set; }

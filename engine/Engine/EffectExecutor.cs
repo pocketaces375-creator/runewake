@@ -21,22 +21,28 @@ public static class EffectExecutor
     {
         var player = state.Player(source.Controller);
         var opponent = state.Player(state.OpponentIndex(source.Controller));
+        bool healed = false;
 
         foreach (var target in targets)
         {
+            if (state.IsGameOver) break;
+            // FABLE-DROP-1: a creature an earlier target's effect destroyed is no longer a target
+            if (target is CreatureTarget gone && gone.Card.Zone != Zone.Lane && effect.Op != Op.BOUNCE) continue;
             switch (effect.Op)
             {
                 case Op.DAMAGE:
                     ApplyDamage(target, effect.Amount ?? 0, state);
                     break;
                 case Op.HEAL:
-                    ApplyHeal(target, effect.Amount ?? 0);
+                    // R13: only a heal that restores at least 1 Vigor is a heal event (overheal isn't)
+                    healed |= ApplyHeal(target, effect.Amount ?? 0) > 0;
                     break;
                 case Op.BUFF:
-                    ApplyBuff(target, effect.Attack ?? 0, effect.Vigor ?? 0, effect.Duration);
+                    ApplyBuff(target, effect.Attack ?? 0, effect.Vigor ?? 0, effect.Duration, source, state);
                     break;
                 case Op.DEBUFF:
-                    ApplyBuff(target, -(effect.Attack ?? 0), -(effect.Vigor ?? 0), effect.Duration);
+                    // FABLE-DROP-1: a DEBUFF's numbers are a size — "attack": -1 used to GIVE +1
+                    ApplyBuff(target, -Math.Abs(effect.Attack ?? 0), -Math.Abs(effect.Vigor ?? 0), effect.Duration, source, state);
                     break;
                 case Op.DESTROY:
                     ApplyDestroy(target, state);
@@ -60,7 +66,7 @@ public static class EffectExecutor
                     ApplySummon(target, effect, source, state);
                     break;
                 case Op.GRANT_KEY:
-                    ApplyGrantKey(target, effect.Keyword ?? "");
+                    ApplyGrantKey(target, effect.Keyword ?? "", effect.Duration, source, state);
                     break;
                 case Op.REMOVE_KEY:
                     ApplyRemoveKey(target, effect.Keyword ?? "");
@@ -125,7 +131,35 @@ public static class EffectExecutor
                 case Op.UNEARTH_FROM_GRAVEYARD:
                     ApplyUnearthFromGraveyard(target, effect, source, state);
                     break;
+                default:
+                    MechanicOps.Execute(effect, source, state, target);
+                    break;
             }
+        }
+
+        // FABLE-DROP-1: stat changes can leave a creature at 0 Vigor — it dies now, not "eventually"
+        if (effect.Op is Op.DEBUFF or Op.SET_STAT or Op.BUFF || MechanicOps.ChangesStats(effect.Op))
+            SweepDead(state);
+        if (healed && !state.IsGameOver)
+            TriggerBus.FireSide(state, Trigger.ON_HEAL, source.Controller);
+        if (effect.Op == Op.EXCAVATE && !state.IsGameOver)
+            TriggerBus.FireSide(state, Trigger.ON_EXCAVATE, source.Controller);
+    }
+
+    /// <summary>FABLE-DROP-1: destroy every creature at 0 Vigor or less (relics are 0/3 shells, never swept).</summary>
+    public static void SweepDead(GameState state)
+    {
+        for (int guard = 0; guard < 10 && !state.IsGameOver; guard++)
+        {
+            CardInstance? dead = null;
+            foreach (var p in state.Players)
+                for (int i = 0; i < 5 && dead is null; i++)
+                {
+                    var c = p.Lanes[i].Occupant;
+                    if (c is not null && c.CardType != CardType.RELIC && c.CurrentVigor <= 0) dead = c;
+                }
+            if (dead is null) return;
+            KillCreature(dead, state);
         }
     }
 
@@ -135,8 +169,11 @@ public static class EffectExecutor
     {
         if (target is CreatureTarget ct)
         {
+            // FABLE-DROP-1: Ward stops the next instance of ANY damage (rules §8), not only combat
+            amount = KeywordHandlers.ApplyWard(ct.Card, amount);
             // Spell/ability damage is intercepted by PREVENT_DAMAGE shields (source SPELL).
             amount = DamageInterceptor.Reduce(state, ct.Card, amount, DamageInterceptor.SourceSpell);
+            amount = MechanicOps.ReduceByArmor(ct.Card, amount);
             ct.Card.Damage += amount;
             // ANCESTRAL_SHIELD: clamp ally vigor to at least 1 after spell damage (R1)
             KeywordHandlers.TryAncestralShieldClamp(ct.Card, state);
@@ -155,28 +192,56 @@ public static class EffectExecutor
         }
     }
 
-    private static void ApplyHeal(ResolvedTarget target, int amount)
+    private static int ApplyHeal(ResolvedTarget target, int amount)
     {
+        if (amount <= 0) return 0;
         if (target is CreatureTarget ct)
         {
             // Reduce damage, but not below 0
+            int before = ct.Card.Damage;
             ct.Card.Damage = Math.Max(0, ct.Card.Damage - amount);
+            return before - ct.Card.Damage;
         }
-        else if (target is PlayerTarget pt)
+        if (target is PlayerTarget pt)
         {
+            int before = pt.Player.Vigor;
             pt.Player.Vigor = Math.Min(pt.Player.MaxVigor, pt.Player.Vigor + amount);
+            return Math.Max(0, pt.Player.Vigor - before);
         }
+        return 0;
     }
 
-    private static void ApplyBuff(ResolvedTarget target, int attack, int vigor, Duration? duration)
+    private static void ApplyBuff(ResolvedTarget target, int attack, int vigor, Duration? duration, CardInstance source, GameState state)
     {
         if (target is CreatureTarget ct)
         {
             ct.Card.AttackModifier += attack;
             ct.Card.VigorModifier += vigor;
+            // FABLE-DROP-1: buffs that wear off. Before this every "this turn" buff lasted forever.
+            var timed = MakeTimed(duration, source, state);
+            if (timed is not null)
+            {
+                timed.Attack = attack;
+                timed.Vigor = vigor;
+                ct.Card.TimedMods.Add(timed);
+            }
         }
-        // Duration tracking (PERMANENT/THIS_TURN) would be handled by a future buff system
     }
+
+    /// <summary>
+    /// FABLE-DROP-1: THIS_TURN ends with the current turn. UNTIL_YOUR_NEXT_TURN — and WHILE_PRESENT, which
+    /// artifact passives re-apply at the start of every one of their owner's turns — end when the source's
+    /// controller starts their next turn. NEXT_TURN lasts through the source controller's next turn.
+    /// PERMANENT / WHILE_ATTACKING / none: permanent (as before).
+    /// </summary>
+    internal static TimedMod? MakeTimed(Duration? duration, CardInstance source, GameState state) => duration switch
+    {
+        Duration.THIS_TURN => new TimedMod { EndOfTurn = true },
+        Duration.UNTIL_YOUR_NEXT_TURN => new TimedMod { ExpiresAtStartOfPlayer = source.Controller },
+        Duration.WHILE_PRESENT when source.CardType == CardType.ARTIFACT => new TimedMod { ExpiresAtStartOfPlayer = source.Controller },
+        Duration.NEXT_TURN => new TimedMod { ExpiresAtEndOfPlayersTurn = source.Controller, SkipFirstEnd = state.CurrentPlayerIndex == source.Controller },
+        _ => null
+    };
 
     private static void ApplyDestroy(ResolvedTarget target, GameState state)
     {
@@ -346,18 +411,31 @@ public static class EffectExecutor
                     IsExhausted = true
                 };
                 if (!string.IsNullOrEmpty(effect.Keyword))
-                    token.Keywords.Add(effect.Keyword);
+                    token.Keywords.Add(effect.Keyword.ToUpperInvariant());
+                MechanicOps.ApplyTokenDef(token, tokenId, effect);
                 player.Lanes[i].Occupant = token;
+                KeywordHandlers.OnPlay(token);    // FABLE-DROP-1: a summoned Swift or Ward token works
                 return;
             }
         }
         // No empty lane — summon fails silently
     }
 
-    private static void ApplyGrantKey(ResolvedTarget target, string keyword)
+    private static void ApplyGrantKey(ResolvedTarget target, string keyword, Duration? duration, CardInstance source, GameState state)
     {
-        if (target is CreatureTarget ct && !string.IsNullOrEmpty(keyword))
-            ct.Card.GrantedKeywords.Add(keyword);
+        if (target is not CreatureTarget ct || string.IsNullOrEmpty(keyword)) return;
+        keyword = keyword.ToUpperInvariant();     // a rune grants "Ward"; every check reads "WARD"
+        bool hadIt = ct.Card.EffectiveKeywords.Contains(keyword);
+        ct.Card.GrantedKeywords.Add(keyword);
+        ct.Card.RemovedKeywords.Remove(keyword);
+        // FABLE-DROP-1: a granted Ward is a real Ward (it used to be a word with no shield behind it)
+        if (keyword == "WARD" && ct.Card.WardRemaining < 1) ct.Card.WardRemaining = 1;
+        var timed = MakeTimed(duration, source, state);
+        if (timed is not null && !hadIt)
+        {
+            timed.Keyword = keyword;
+            ct.Card.TimedMods.Add(timed);
+        }
     }
 
     private static void ApplyRemoveKey(ResolvedTarget target, string keyword)
@@ -382,9 +460,23 @@ public static class EffectExecutor
         {
             var lane = state.Player(ct.PlayerIndex).Lanes[ct.LaneIndex];
             lane.Occupant = null;
+            var owner = state.Player(ct.PlayerIndex);
+            // FABLE-DROP-1: a token can't go to a hand — it is gone; a card comes back fresh
+            if (ct.Card.CardType == CardType.TOKEN)
+            {
+                ct.Card.Zone = Zone.RemovedFromGame;
+                ct.Card.LaneIndex = null;
+                return;
+            }
+            KeywordHandlers.ResetForHand(ct.Card);
+            if (owner.Hand.Count >= owner.MaxHandSize)
+            {
+                ct.Card.Zone = Zone.Discard;     // full hand: it is discarded instead
+                owner.Discard.Add(ct.Card);
+                return;
+            }
             ct.Card.Zone = Zone.Hand;
-            ct.Card.LaneIndex = null;
-            state.Player(ct.PlayerIndex).Hand.Add(ct.Card);
+            owner.Hand.Add(ct.Card);
         }
     }
 
@@ -873,15 +965,34 @@ public static class EffectExecutor
 
     // ——— Helpers ———
 
-    private static void KillCreature(CardInstance card, GameState state)
+    /// <summary>
+    /// FABLE-DROP-1: THE one way a creature dies — combat, Venom, Fragile, spells and stat loss all come
+    /// here, so death triggers, Unearth and the death counters are never skipped (Venom and Fragile used
+    /// to remove creatures without any of them).
+    /// </summary>
+    public static void KillCreature(CardInstance card, GameState state)
     {
         if (card.Zone != Zone.Lane) return;
         var owner = state.Player(card.Controller);
         var lane = owner.Lanes[card.LaneIndex ?? 0];
+        if (!ReferenceEquals(lane.Occupant, card)) return;
 
         // Increment death counter (side-aware: count under the dead card's controller)
         state.CreatureDiedThisTurnCount[card.Controller]++;
+        state.TotalCreatureDiedCount[card.Controller]++;
         state.LastDeathPlayerIndex = card.Controller;
+        OpeningRuleHandler.CheckLiftConditions(state, card.Controller);
+        card.IsVenomed = false;
+        if (card.CardType == CardType.TOKEN)
+        {
+            // a token never goes to the discard pile
+            lane.Occupant = null;
+            card.Zone = Zone.RemovedFromGame;
+            TriggerBus.FireDeathEvents(state, card, owner.Index);
+            TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, owner.Index);
+            FirePreyDestroyed(card, state);
+            return;
+        }
 
         // Check Unearth first
         if (!KeywordHandlers.OnDeath(card, owner))
@@ -894,10 +1005,15 @@ public static class EffectExecutor
         {
             lane.Occupant = null;
         }
+        // (LaneIndex is kept: "when this dies, hit the creature opposite it" still knows where it stood)
         TriggerBus.FireDeathEvents(state, card, owner.Index);
         // Fire global ON_CREATURE_DIES for all abilities (Artifact triggers, etc.)
         TriggerBus.Fire(state, Trigger.ON_CREATURE_DIES, owner.Index);
+        FirePreyDestroyed(card, state);
+    }
 
+    private static void FirePreyDestroyed(CardInstance card, GameState state)
+    {
         // Fire ON_PREY_DESTROYED if this creature was marked as Prey for either player
         for (int pi = 0; pi < state.Players.Length; pi++)
         {

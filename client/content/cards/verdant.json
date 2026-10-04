@@ -672,5 +672,245 @@
     },
     "attack": 6,
     "vigor": 6
+  },
+  {
+    "id": "vrd_c_thicket_wolf",
+    "set": "class_drop_1",
+    "name": "Thicket Wolf",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT+TRIBE:BEAST",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Never alone. Where there is one, the thicket hides three.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_grove_tender",
+    "set": "class_drop_1",
+    "name": "Grove Tender",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "She hums to the wounded until the moss closes over the cut.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_alpha_stag",
+    "set": "class_drop_1",
+    "name": "Alpha Stag",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:BEAST+OTHER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "When it lifts its head, the whole forest listens.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_verdant_circle",
+    "set": "class_drop_1",
+    "name": "Verdant Circle",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "LANES:1-3",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Stand inside the ring of mushrooms and grow.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_heartgrove_ancient",
+    "set": "class_drop_1",
+    "name": "Heartgrove Ancient",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 7,
+    "keywords": [
+      "ROOTED"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "LANES:1-3+OTHER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Its roots run under the whole battlefield. Everything above them thrives.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_packcaller",
+    "set": "class_drop_1",
+    "name": "Packcaller",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "vrd_t_wolf_cub"
+          }
+        ]
+      }
+    ],
+    "flavor": "One howl, and the brush answers.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_mother_of_the_hunt",
+    "set": "class_drop_1",
+    "name": "Mother of the Hunt",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "vrd_t_wolf_cub"
+          }
+        ]
+      }
+    ],
+    "flavor": "For every one that falls, another comes out of the dark.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_t_wolf_cub",
+    "set": "class_drop_1",
+    "name": "Wolf Cub",
+    "strata": "VERDANT",
+    "type": "TOKEN",
+    "rarity": "COMMON",
+    "cost": 0,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [],
+    "flavor": "Small teeth. Big ideas.",
+    "content_version": 1
   }
 ]

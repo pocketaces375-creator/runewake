@@ -25,6 +25,11 @@ public sealed class LaneState
     /// </summary>
     public bool IsBuried { get; set; }
 
+    /// <summary>
+    /// FABLE-DROP-1: Lock — nothing can be summoned into this lane for this many of its owner's turns.
+    /// </summary>
+    public int LockedTurns { get; set; }
+
     public LaneState(int index)
     {
         Index = index;
@@ -35,6 +40,8 @@ public sealed class LaneState
         Index = other.Index;
         Occupant = other.Occupant?.Clone();
         AttachedCurseIds = new List<int>(other.AttachedCurseIds);
+        IsBuried = other.IsBuried;          // FABLE-DROP-1: a buried lane un-buried itself on every action
+        LockedTurns = other.LockedTurns;
     }
 
     /// <summary>

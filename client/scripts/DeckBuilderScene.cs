@@ -58,9 +58,10 @@ public partial class DeckBuilderScene : Control
     private readonly HashSet<string> _lockedCardIds = new();
     private List<string>? _pendingCoreCards;
 
-    private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
-    private static readonly string[] StrataLabels = { "All", "Verdant", "Ember", "Tide", "Hollow", "Dawn" };
-    private static readonly Color[] StrataColors = { Gold, StrataVerdant, StrataEmber, StrataTide, StrataHollow, StrataDawn };
+    // FABLE-DROP-1: "Synergy" = the High-synergy shelf — every card that suits your class, best first
+    private static readonly string[] StrataOptions = { "ALL", "SYNERGY", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
+    private static readonly string[] StrataLabels = { "All", "Synergy", "Verdant", "Ember", "Tide", "Hollow", "Dawn" };
+    private static readonly Color[] StrataColors = { Gold, Gold, StrataVerdant, StrataEmber, StrataTide, StrataHollow, StrataDawn };
 
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
     private static readonly Color MutedInk = new(0.62f, 0.57f, 0.47f);
@@ -598,6 +599,14 @@ public partial class DeckBuilderScene : Control
             _gridScroll.ScrollVertical = value;
     }
 
+    /// <summary>FABLE-DROP-1: the class whose High-synergy shelf the "Synergy" chip shows.</summary>
+    private static string SynergyClass()
+    {
+        string c = CampaignContext.ChosenClass;
+        if (string.IsNullOrEmpty(c) && CampaignContext.Profiles.Count > 0) c = CampaignContext.Profiles[0].ClassId;
+        return string.IsNullOrEmpty(c) ? "warrior" : c.ToLowerInvariant();
+    }
+
     private void RefreshCardGrid(bool preserveScroll = false)
     {
         int keepScroll = preserveScroll && _gridScroll != null ? _gridScroll.ScrollVertical : 0;
@@ -607,16 +616,20 @@ public partial class DeckBuilderScene : Control
 
         string strata = StrataOptions[_selectedStrataIdx];
 
-        var filtered = _allCards
-            .Where(c => strata == "ALL" || c.Strata.ToString() == strata)
+        bool synergy = strata == "SYNERGY";
+        IEnumerable<CardDef> source = _allCards.Where(c => c.Type != CardType.TOKEN);
+        if (synergy)
+            source = Synergy.Shelf(SynergyClass(), source);
+        var filtered = source
+            .Where(c => synergy || strata == "ALL" || c.Strata.ToString() == strata)
             .Where(c => string.IsNullOrEmpty(_searchText) ||
                 c.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
-                c.Id.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(c => c.Cost)
-            .ThenBy(c => c.Name)
-            .ToList();
+                c.Id.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+        if (!synergy)
+            filtered = filtered.OrderBy(c => c.Cost).ThenBy(c => c.Name);
+        var filteredList = filtered.ToList();
 
-        if (filtered.Count == 0)
+        if (filteredList.Count == 0)
         {
             var emptyLabel = new Label
             {
@@ -624,6 +637,7 @@ public partial class DeckBuilderScene : Control
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
+            if (synergy) emptyLabel.Text = "No cards suit your class yet — new drops land here first.";
             emptyLabel.AddThemeColorOverride("font_color", TextMuted);
             emptyLabel.CustomMinimumSize = new Vector2(200, 60);
             _cardGrid.AddChild(emptyLabel);
@@ -645,7 +659,7 @@ public partial class DeckBuilderScene : Control
         _cardGrid.AddThemeConstantOverride("separation", 30);
         _cardGrid.AddChild(new Control { CustomMinimumSize = new Vector2(0, 14), MouseFilter = MouseFilterEnum.Ignore });
 
-        for (int i = 0; i < filtered.Count; i += columns)
+        for (int i = 0; i < filteredList.Count; i += columns)
         {
             // CenterContainer horizontally centers its single child (the HBox row)
             var rowOuter = new CenterContainer();
@@ -656,9 +670,9 @@ public partial class DeckBuilderScene : Control
             row.AddThemeConstantOverride("separation", Mathf.RoundToInt(gap));
             rowOuter.AddChild(row);
 
-            for (int j = 0; j < columns && i + j < filtered.Count; j++)
+            for (int j = 0; j < columns && i + j < filteredList.Count; j++)
             {
-                var card = filtered[i + j];
+                var card = filteredList[i + j];
                 int owned = CampaignContext.Progression.Collection.TryGetValue(card.Id, out var ownedCount) ? ownedCount : 0;
                 int inDeck = _deckCardIds.Count(id => id == card.Id);
                 var item = MakeGridCard(card, owned, inDeck, cardW);

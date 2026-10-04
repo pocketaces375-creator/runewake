@@ -32,6 +32,18 @@ public static class RulesTextRenderer
             sb.AppendJoin(", ", card.Keywords.Select(FormatKeyword));
         }
 
+        // FABLE-DROP-1: creature types and Tribute
+        if (card.Types.Count > 0)
+        {
+            if (sb.Length > 0) sb.AppendLine();
+            sb.AppendJoin(" ", card.Types.Select(t => Title(t)));
+        }
+        if (card.Tribute is int trib && trib > 0)
+        {
+            if (sb.Length > 0) sb.AppendLine();
+            sb.Append($"Tribute {trib} (destroy {trib} of your creatures to play this)");
+        }
+
         // Identify condition for relics
         if (card.IdentifyCondition != null)
         {
@@ -45,6 +57,13 @@ public static class RulesTextRenderer
         {
             if (sb.Length > 0) sb.AppendLine();
             sb.Append(RenderAbility(ability));
+        }
+
+        // FABLE-DROP-1: rituals are aimed by the lane they are played on
+        if (card.Type == CardType.RITUAL && card.Abilities.Any(a => a.Effects.Any(IsAimed)))
+        {
+            if (sb.Length > 0) sb.AppendLine();
+            sb.Append("Play it on a lane to aim it.");
         }
 
         // Flavor
@@ -73,6 +92,13 @@ public static class RulesTextRenderer
         return sb.ToString();
     }
 
+    /// <summary>FABLE-DROP-1: a single-target creature effect with no positional rule — the ritual's aim picks it.</summary>
+    public static bool IsAimed(EffectDef e) =>
+        e.Target is { } t && t.Scope is Scope.ENEMY_CREATURE or Scope.ALLY_CREATURE or Scope.ANY_CREATURE
+        && (t.Count is null || (!t.Count.Value.IsAll && t.Count.Value.Value <= 1))
+        && (string.IsNullOrEmpty(t.Filter) || t.Filter is "ANY" or "CHOSEN")
+        || e.Target is { Scope: Scope.LANE } lt && (lt.Filter is null or "OPPOSING");
+
     // ——— Ability rendering ———
 
     private static string RenderAbility(AbilityDef ability)
@@ -81,11 +107,16 @@ public static class RulesTextRenderer
             ? $"if {RenderCondition(ability.Condition)}, "
             : "";
 
-        string effects = string.Join(". ", ability.Effects.Select(RenderEffect));
+        // FABLE-DROP-1: every sentence starts with a capital ("the enemy discards 1" → "The enemy…"),
+        // except the first one straight after a condition ("if …, give …")
+        var sentences = ability.Effects.Select(RenderEffect).Select(Cap).ToList();
+        if (condition.Length > 0 && sentences.Count > 0)
+            sentences[0] = Uncap(sentences[0]);
+        string effects = string.Join(". ", sentences);
 
         // RESOLVE — no prefix (rituals)
         if (ability.Trigger == Trigger.RESOLVE)
-            return condition + effects;
+            return Cap(condition + effects);
 
         // PASSIVE — just "Passive: effects"
         if (ability.Trigger == Trigger.PASSIVE)
@@ -118,8 +149,30 @@ public static class RulesTextRenderer
         Trigger.ON_RELIC_IDENTIFY => "When this identifies",
         Trigger.ON_ALLY_DEATH => "When an ally dies",
         Trigger.ON_LANE_VACATED => "When a lane becomes empty",
+        Trigger.ON_ALLY_ATTACKED => "When an ally is attacked",
+        Trigger.ON_HEAL => "When you heal",
+        Trigger.ON_CREATURE_DIES => "When a creature dies",
         _ => "?"
     };
+
+    private static string DurationTail(Duration? d) => d switch
+    {
+        Duration.THIS_TURN => " this turn",
+        Duration.UNTIL_YOUR_NEXT_TURN => " until your next turn",
+        Duration.NEXT_TURN => " until the end of your next turn",
+        _ => ""
+    };
+
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Uncap(string s) => s.Length > 1 && char.IsUpper(s[0]) && !char.IsUpper(s[1]) ? char.ToLowerInvariant(s[0]) + s[1..] : s;
+
+    private static string TribePlural(string tribe)
+    {
+        string t = Title(tribe);
+        return t is "Undead" or "Starborn" ? t : t + "s";
+    }
+
+    private static string Title(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].ToLowerInvariant();
 
     // ——— Effect rendering ———
 
@@ -150,15 +203,64 @@ public static class RulesTextRenderer
             {
                 string bonus = RenderStatBonus(effect.Attack, effect.Vigor, true);
                 string tgt = RenderTargetPhrase(target);
-                return $"Give {tgt} {bonus}";
+                return $"Give {tgt} {bonus}{DurationTail(effect.Duration)}";
             }
 
             case Op.DEBUFF:
             {
-                string bonus = RenderStatBonus(effect.Attack, effect.Vigor, false);
+                // FABLE-DROP-1: a debuff always takes away, whatever sign the data uses
+                string bonus = RenderStatBonus(effect.Attack is int a ? -Math.Abs(a) : null,
+                    effect.Vigor is int v ? -Math.Abs(v) : null, false);
                 string tgt = RenderTargetPhrase(target);
-                return $"Give {tgt} {bonus}";
+                return $"Give {tgt} {bonus}{DurationTail(effect.Duration)}";
             }
+
+            // ——— FABLE-DROP-1 ———
+            case Op.STUN:
+                return target?.Count is { IsAll: true } or { Value: > 1 }
+                    ? $"Stun {RenderTargetPhrase(target)} (they can't attack on their next turn)"
+                    : $"Stun {RenderTargetPhrase(target)} (it can't attack on its next turn)";
+            case Op.BURN:
+                return scope == Scope.PLAYER_ENEMY
+                    ? $"Burn the enemy for {effect.Amount ?? 1} (it fades by 1 each turn)"
+                    : $"Give {RenderTargetPhrase(target)} Burn {effect.Amount ?? 1} (damage at the start of each of its turns, fading by 1)";
+            case Op.DRAIN:
+                return $"The enemy has {effect.Amount ?? 1} less Attunement next turn";
+            case Op.LOCK_LANE:
+            {
+                int n = effect.Amount ?? 1;
+                string which = target?.Filter switch
+                {
+                    "ENEMY_EMPTY" => "every empty enemy lane",
+                    "ENEMY_ANY" => "every enemy lane",
+                    _ => "the opposing enemy lane"
+                };
+                return $"Lock {which} for {n} turn{(n == 1 ? "" : "s")} (nothing can be summoned there)";
+            }
+            case Op.SWAP_STATS:
+                return $"Swap the Attack and Vigor of {RenderTargetPhrase(target)}";
+            case Op.DOUBLE_STATS:
+                return $"Double the Attack and Vigor of {RenderTargetPhrase(target)}{(effect.Duration == Duration.PERMANENT ? "" : " this turn")}";
+            case Op.STEAL:
+                return effect.Duration == Duration.THIS_TURN
+                    ? $"Take control of {RenderTargetPhrase(target)} until end of turn. It can attack"
+                    : $"Take control of {RenderTargetPhrase(target)}";
+            case Op.SET_TRAP:
+                return (effect.Keyword ?? "COUNTER_RITUAL").ToUpperInvariant() == "AMBUSH"
+                    ? $"Set a Sigil: the next enemy creature to attack takes {effect.Amount ?? 0} damage first"
+                    : "Set a Sigil: counter the next enemy Ritual";
+            case Op.REDIRECT:
+                return target?.Filter is string rf && rf.StartsWith("TRIBE:") && !rf.Contains('+')
+                    ? $"The next enemy attack hits the {Title(rf[6..])} instead"
+                    : $"The next enemy attack hits {RenderTargetPhrase(target)} instead";
+            case Op.UNEARTH_FROM_GRAVEYARD:
+                return effect.Value is > 0
+                    ? $"Return your strongest dead creature costing {effect.Value} or less to play"
+                    : "Return your strongest dead creature to play";
+            case Op.HEAL_FULL:
+                return $"Fully heal {RenderTargetPhrase(target)}";
+            case Op.SUPPRESS:
+                return $"Suppress the enemy's artifacts for {effect.Amount ?? 1} turn{((effect.Amount ?? 1) == 1 ? "" : "s")}";
 
             case Op.DESTROY:
             {
@@ -200,7 +302,7 @@ public static class RulesTextRenderer
             {
                 string key = effect.Keyword ?? "?";
                 string tgt = RenderTargetPhrase(target);
-                return $"Grant {tgt} {FormatKeyword(key)}";
+                return $"Grant {tgt} {FormatKeyword(key.ToUpperInvariant())}{DurationTail(effect.Duration)}";
             }
 
             case Op.REMOVE_KEY:
@@ -351,28 +453,17 @@ public static class RulesTextRenderer
             _ => "?"
         };
 
-        // Filter adjective
-        string adjective = "";
-        if (!string.IsNullOrEmpty(target.Filter))
+        // Filter adjective (FABLE-DROP-1: filters chain with "+"; lanes read as "in lanes 2–4" after the noun)
+        var parts = string.IsNullOrEmpty(target.Filter) ? new List<string>() : target.Filter.Split('+').Select(f => f.Trim()).ToList();
+        string lanesTail = string.Concat(parts.Where(f => f.StartsWith("LANES:")).Select(f =>
         {
-            adjective = target.Filter switch
-            {
-                "ANY" => "",
-                "DAMAGED" => "damaged ",
-                "ADJACENT" => "adjacent ",
-                "EXHAUSTED" => "exhausted ",
-                "CHOSEN" => "chosen ",
-                "FIRST_ATTACKER" => "first attacker ",
-                "SECOND_ATTACKER" => "second attacker ",
-                "CURRENT_ATTACKER" => "attacking ",
-                // FABLE-031: artifact filters used to print raw ("has_not_attacked ally creatures").
-                "HAS_NOT_ATTACKED" => "unattacked ",
-                "FIRST_ATTACKED" => "first-attacked ",
-                "MOST_WOUNDED" => "most wounded ",
-                var s when s.StartsWith("ATTACK_LTE:") => $"attack ≤ {s[11..]} ",
-                _ => target.Filter.ToLowerInvariant() + " "
-            };
-        }
+            var r = LaneRange(f[6..]);
+            return r.Contains('–') ? $" in lanes {r}" : $" in lane {r}";
+        }));
+        parts.RemoveAll(f => f.StartsWith("LANES:"));
+        string adjective = string.Concat(parts.Where(f => !f.StartsWith("TRIBE:") && f != "OTHER").Select(FilterAdjective));
+        bool other = parts.Contains("OTHER");
+        string? tribe = parts.FirstOrDefault(f => f.StartsWith("TRIBE:"))?[6..];
 
         // Count
         bool plural = false;
@@ -389,14 +480,66 @@ public static class RulesTextRenderer
                 countPrefix = target.Count.Value.Value + " ";
                 plural = true;
             }
-            else
-            {
-                // Could add "a"/"an" but not strictly necessary
-            }
         }
 
+        // FABLE-DROP-1: "your other Undead", "your adjacent Beasts" read better than "all beast ally creatures"
+        if (tribe is not null && plural && target.Count!.Value.IsAll)
+            return (scope == Scope.ENEMY_CREATURE ? "enemy " : scope == Scope.ALLY_CREATURE ? "your " : "all ")
+                + (other ? "other " : "") + adjective + TribePlural(tribe) + lanesTail;
+        if (tribe is not null)
+            adjective = (other ? "other " : "") + adjective + Title(tribe) + " ";
+        else if (other)
+            adjective = "other " + adjective;
+
         string noun = plural ? baseNoun + "s" : baseNoun;
-        return countPrefix + adjective + noun;
+        return countPrefix + adjective + noun + lanesTail;
+    }
+
+    private static string FilterAdjective(string filter) => filter switch
+    {
+                "ANY" => "",
+                "DAMAGED" => "damaged ",
+                "ADJACENT" => "adjacent ",
+                "EXHAUSTED" => "exhausted ",
+                "CHOSEN" => "chosen ",
+                "FIRST_ATTACKER" => "first attacker ",
+                "SECOND_ATTACKER" => "second attacker ",
+                "CURRENT_ATTACKER" => "attacking ",
+                // FABLE-031: artifact filters used to print raw ("has_not_attacked ally creatures").
+                "HAS_NOT_ATTACKED" => "unattacked ",
+                "FIRST_ATTACKED" => "first-attacked ",
+                "MOST_WOUNDED" => "most wounded ",
+                var s when s.StartsWith("ATTACK_LTE:") => $"attack ≤ {s[11..]} ",
+                // FABLE-DROP-1
+                "OPPOSING" => "opposing ",
+                "DIAGONAL" => "diagonal ",
+                "OPPOSING_AND_DIAGONAL" => "opposing and diagonal ",
+                "LEFT" => "left-hand ",
+                "RIGHT" => "right-hand ",
+                "OTHER" => "other ",
+                "STUNNED" => "stunned ",
+                "LAST_ATTACKED" => "attacked ",
+                "BURNING" => "burning ",
+                "RANDOM" => "random ",
+                "HIGHEST_ATTACK" => "strongest ",
+                "LOWEST_VIGOR" => "weakest ",
+                "HIGHEST_VIGOR" => "toughest ",
+                "UNDAMAGED" => "undamaged ",
+                "SAME_LANE" => "same-lane ",
+                "EDGE_LANE" => "edge-lane ",
+                "CENTER_LANE" => "center-lane ",
+                var s when s.StartsWith("TRIBE:") => Title(s[6..]) + " ",
+                var s when s.StartsWith("KEYWORD:") => FormatKeyword(s[8..]) + " ",
+                var s when s.StartsWith("LANES:") => $"lane {LaneRange(s[6..])} ",
+                _ => filter.ToLowerInvariant() + " "
+    };
+
+    private static string LaneRange(string r)
+    {
+        var p = r.Split('-');
+        int lo = int.TryParse(p[0], out var a) ? a + 1 : 1;
+        int hi = p.Length > 1 && int.TryParse(p[1], out var b) ? b + 1 : lo;
+        return lo == hi ? $"{lo}" : $"{lo}–{hi}";
     }
 
     // ——— Helpers ———
@@ -470,9 +613,15 @@ public static class RulesTextRenderer
             ConditionOp.SPELLS_CAST_THIS_TURN_EQ => $"you cast exactly {RenderCondValue(condition.Value)} spells this turn",
             ConditionOp.NO_ATTACKERS_LAST_TURN => "you didn't attack on your last turn",
             ConditionOp.CREATURE_DIED_THIS_TURN => RenderCreatureDiedThisTurn(condition),
+            ConditionOp.CONTROLS_TRIBE_GTE => $"you control {Math.Max(1, ParseInt(condition.Value))}+ {Title(condition.Tribe ?? "?")}s",
+            ConditionOp.ALONE => "it's your only creature",
+            ConditionOp.ENEMY_HAND_LTE => $"the enemy has {RenderCondValue(condition.Value)} or fewer cards in hand",
+            ConditionOp.DURING_YOUR_TURN => "it's your turn",
             _ => "?"
         };
     }
+
+    private static int ParseInt(JsonElement? el) => el is JsonElement e && e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) ? n : 0;
 
     private static string RenderCondValue(JsonElement? element)
     {
@@ -506,6 +655,10 @@ public static class RulesTextRenderer
     /// </summary>
     public static string FormatKeyword(string keyword) => keyword switch
     {
+        // FABLE-DROP-1
+        var k when k.StartsWith("ARMOR:") => "Armor " + k[6..],
+        var k when k.StartsWith("DODGE:") => "Dodge " + k[6..] + "%",
+        "EXALTED" => "Exalted",
         "GUARD" => "Guard",
         "SWIFT" => "Swift",
         "PIERCE" => "Pierce",

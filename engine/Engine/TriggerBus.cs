@@ -47,6 +47,90 @@ public static class TriggerBus
                 EffectExecutor.Execute(effect, deadCard, state, targets);
             }
         }
+
+        // FABLE-DROP-1: "whenever an ally dies" — the dead creature's side (it is already off the board)
+        if (!state.IsGameOver)
+            FireSide(state, Trigger.ON_ALLY_DEATH, controller);
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: run one ability of one source (depth cap + condition), resolving each effect's targets.
+    /// </summary>
+    public static void RunAbility(GameState state, AbilityDef ability, CardInstance source, int controller)
+    {
+        if (state.TriggerDepth >= MaxTriggerDepth)
+            return;
+        if (!ConditionMet(ability.Condition, source, controller, state))
+            return;
+        state.TriggerDepth++;
+        var opponent = state.Player(state.OpponentIndex(controller));
+        foreach (var effect in ability.Effects)
+        {
+            if (state.IsGameOver) return;
+            var targets = TargetResolver.Resolve(
+                effect.Target ?? new TargetDef { Scope = Scope.NONE },
+                source,
+                state.Player(controller),
+                opponent,
+                state);
+            EffectExecutor.Execute(effect, source, state, targets);
+        }
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: an event that belongs to ONE card (it entered play, it attacked). Its own abilities
+    /// fire — twice for ON_SUMMON with Echo — and then the off-board listeners (artifacts, rune tokens)
+    /// that watch for that event. Other creatures on the board do NOT fire: before this, summoning any
+    /// creature re-ran the ON_SUMMON of every creature already in play.
+    /// </summary>
+    public static void FireCardEvent(GameState state, Trigger trigger, CardInstance card, int controller, bool listenersBothSides)
+    {
+        int times = trigger == Trigger.ON_SUMMON && card.EffectiveKeywords.Contains("ECHO") ? 2 : 1;
+        for (int t = 0; t < times; t++)
+            foreach (var ability in card.Abilities.ToList())
+                if (ability.Trigger == trigger)
+                    RunAbility(state, ability, card, controller);
+
+        var listeners = new List<(AbilityDef, CardInstance, int, int)>();
+        CollectListeners(state.Player(controller), trigger, listeners);
+        if (listenersBothSides)
+            CollectListeners(state.Player(state.OpponentIndex(controller)), trigger, listeners);
+        foreach (var (ability, source, ctl, _) in listeners)
+            RunAbility(state, ability, source, ctl);
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: an event that belongs to one player's side ("whenever you cast a ritual", "whenever
+    /// one of your creatures dies"): that player's creatures, rune tokens and artifacts only.
+    /// </summary>
+    public static void FireSide(GameState state, Trigger trigger, int playerIndex)
+    {
+        var pending = new List<(AbilityDef, CardInstance, int, int)>();
+        CollectFromPlayer(state.Player(playerIndex), trigger, pending);
+        foreach (var (ability, source, ctl, _) in pending)
+        {
+            if (state.IsGameOver) return;
+            // a creature that left the board since the list was made doesn't act
+            if ((source.CardType == CardType.CREATURE || source.CardType == CardType.TOKEN || source.CardType == CardType.RELIC)
+                && source.Zone != Zone.Lane)
+                continue;
+            RunAbility(state, ability, source, ctl);
+        }
+    }
+
+    private static void CollectListeners(PlayerState player, Trigger trigger, List<(AbilityDef, CardInstance, int, int)> result)
+    {
+        foreach (var token in player.RuneTokens)
+            foreach (var ability in token.Abilities)
+                if (ability.Trigger == trigger)
+                    result.Add((ability, token, player.Index, -1));
+        foreach (var slot in player.ArtifactSlots)
+        {
+            if (slot.Occupant is null || slot.IsSuppressed) continue;
+            foreach (var ability in slot.Occupant.Abilities)
+                if (ability.Trigger == trigger)
+                    result.Add((ability, slot.Occupant, player.Index, -1));
+        }
     }
 
     /// <summary>
@@ -77,6 +161,11 @@ public static class TriggerBus
             // Check trigger depth
             if (state.TriggerDepth >= MaxTriggerDepth)
                 return; // hard stop
+            if (state.IsGameOver)
+                return;
+            // FABLE-DROP-1: a creature destroyed by an earlier trigger in this same list doesn't act
+            if (laneIdx >= 0 && source.Zone != Zone.Lane)
+                continue;
 
             // Check condition
             if (!ConditionMet(ability.Condition, source, controller, state))
@@ -158,7 +247,11 @@ public static class TriggerBus
         CollectFromPlayer(state.Player(eventPlayerIndex), trigger, result);
         // Then the other player's (but not for ON_TURN_START — that's per-player,
         // only the player whose turn it is should have their turn-start abilities fire)
-        if (trigger != Trigger.ON_TURN_START)
+        // FABLE-DROP-1: a CREATURE's "at the end of your turn" fired at the end of BOTH turns before. Now only
+        // the active player's creatures; artifacts and runes on both sides still fire (ruling G1: active first).
+        if (trigger == Trigger.ON_TURN_END)
+            CollectListeners(state.Player(otherPlayer), trigger, result);
+        else if (trigger != Trigger.ON_TURN_START)
             CollectFromPlayer(state.Player(otherPlayer), trigger, result);
 
         return result;
@@ -172,6 +265,8 @@ public static class TriggerBus
         {
             var occ = player.Lanes[i].Occupant;
             if (occ is null) continue;
+            // an unidentified relic is a face-down 0/3: its abilities are not online yet (rules §9)
+            if (occ.CardType == CardType.RELIC && !occ.IsIdentified) continue;
 
             foreach (var ability in occ.Abilities)
             {
@@ -259,10 +354,24 @@ public static class TriggerBus
             ConditionOp.NTH_ATTACKER_ON_PREY_THIS_TURN => player.PreyAttackCountThisTurn,
             ConditionOp.FRIENDLY => state.LastDeathPlayerIndex == controller ? 1 : 0,
             ConditionOp.ENEMY => state.LastDeathPlayerIndex != controller ? 1 : 0,
+            // FABLE-DROP-1
+            ConditionOp.CONTROLS_TRIBE_GTE => Enumerable.Range(0, 5).Count(i =>
+                player.Lanes[i].Occupant?.Types.Contains((condition.Tribe ?? "").ToUpperInvariant()) == true),
+            ConditionOp.ALONE => CountCreaturesOnBoard(player) == 1 ? 1 : 0,
+            ConditionOp.ENEMY_HAND_LTE => opponent.Hand.Count,
             _ => 0
         };
 
-        int threshold = condition.Value?.GetInt32() ?? 0;
+        // FABLE-DROP-1: "value": true (a flag condition) used to crash with "requires an element of type Number"
+        int threshold = condition.Value is System.Text.Json.JsonElement v
+            ? v.ValueKind switch
+            {
+                System.Text.Json.JsonValueKind.Number => v.TryGetInt32(out int n) ? n : 0,
+                System.Text.Json.JsonValueKind.True => 1,
+                System.Text.Json.JsonValueKind.String => int.TryParse(v.GetString(), out int sn) ? sn : 0,
+                _ => 0
+            }
+            : 0;
 
         return condition.Op switch
         {
@@ -293,6 +402,9 @@ public static class TriggerBus
             ConditionOp.NTH_ATTACKER_ON_PREY_THIS_TURN => actual >= threshold,
             ConditionOp.FRIENDLY => actual >= 1,
             ConditionOp.ENEMY => actual >= 1,
+            ConditionOp.CONTROLS_TRIBE_GTE => actual >= Math.Max(1, threshold),
+            ConditionOp.ALONE => actual >= 1,
+            ConditionOp.ENEMY_HAND_LTE => actual <= threshold,
             _ => true
         };
     }
@@ -344,7 +456,7 @@ public static class TriggerBus
     private static bool HasAnyCreatureWithKeyword(PlayerState player, string keyword)
     {
         for (int i = 0; i < 5; i++)
-            if (player.Lanes[i].Occupant?.EffectiveKeywords.Contains(keyword) == true)
+            if (player.Lanes[i].Occupant?.EffectiveKeywords.Any(k => k == keyword || k.StartsWith(keyword + ":")) == true)
                 return true;
         return false;
     }

@@ -28,12 +28,16 @@ public static class StateHash
             // decks disagree here from the very first hash, not three turns later.
             foreach (var c in p.Deck) parts.Add(c.CardDefId);
             parts.Add('|');
+            // FABLE-DROP-1: the class-mechanic state counts too (statuses, locks, traps, burn, drain, unearth)
+            parts.Add(p.Burn); parts.Add(p.DrainNext); parts.Add(p.Traps.Count); parts.Add(p.UnearthQueue.Count);
             foreach (var lane in p.Lanes)
             {
+                parts.Add(lane.LockedTurns); parts.Add(lane.IsBuried);
                 var o = lane.Occupant;
                 if (o == null) { parts.Add('_'); continue; }
-                parts.Add(o.InstanceId); parts.Add(o.CardDefId); parts.Add(o.BaseAttack + o.AttackModifier);
-                parts.Add(o.BaseVigor + o.VigorModifier - o.Damage); parts.Add(o.IsExhausted);
+                parts.Add(o.InstanceId); parts.Add(o.CardDefId); parts.Add(o.CurrentAttack);
+                parts.Add(o.CurrentVigor); parts.Add(o.IsExhausted);
+                parts.Add(o.Stunned); parts.Add(o.Burn); parts.Add(o.RedirectCharges); parts.Add(o.WardRemaining);
             }
             foreach (var slot in p.ArtifactSlots) { parts.Add(slot.Charges); parts.Add(slot.IsSuppressed); parts.Add(slot.Occupant?.InstanceId ?? -1); parts.Add(slot.Occupant?.CardDefId ?? ""); }
         }

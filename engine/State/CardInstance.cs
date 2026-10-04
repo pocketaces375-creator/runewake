@@ -65,14 +65,64 @@ public sealed class CardInstance
     public int VigorModifier { get; set; }
 
     /// <summary>
-    /// Current effective Attack: base + modifier (never below 0).
+    /// FABLE-DROP-1: Attack/Vigor granted by PASSIVE auras (creatures and identified relics on the
+    /// board). Recomputed from scratch after every action by <c>Auras.Recompute</c> — never edited by hand.
     /// </summary>
-    public int CurrentAttack => Math.Max(0, BaseAttack + AttackModifier);
+    public int AuraAttack { get; set; }
+
+    /// <summary>FABLE-DROP-1: Vigor granted by PASSIVE auras (see <see cref="AuraAttack"/>).</summary>
+    public int AuraVigor { get; set; }
+
+    /// <summary>FABLE-DROP-1: keywords granted by PASSIVE auras (see <see cref="AuraAttack"/>).</summary>
+    public HashSet<string> AuraKeywords { get; private set; } = new();
 
     /// <summary>
-    /// Current effective Vigor: base + modifier - damage (never below 0).
+    /// FABLE-DROP-1: buffs, debuffs and keywords that wear off (THIS_TURN, UNTIL_YOUR_NEXT_TURN,
+    /// WHILE_PRESENT artifact passives). Before this, every "this turn" buff was permanent.
     /// </summary>
-    public int CurrentVigor => Math.Max(0, BaseVigor + VigorModifier - Damage);
+    public List<TimedMod> TimedMods { get; private set; } = new();
+
+    /// <summary>FABLE-DROP-1: an Unearth creature returns once; the copy that comes back has used it.</summary>
+    public bool UnearthUsed { get; set; }
+
+    // ——— FABLE-DROP-1: class-mechanic statuses ———
+
+    /// <summary>Creature types (tribal), from the definition.</summary>
+    public List<string> Types { get; set; } = new();
+
+    /// <summary>Tribute N from the definition (0 = none).</summary>
+    public int Tribute { get; set; }
+
+    /// <summary>Stunned: can't attack. Wears off at the end of its controller's next turn.</summary>
+    public bool Stunned { get; set; }
+
+    /// <summary>Stunned during its controller's own turn: survive the first end-of-turn.</summary>
+    public bool StunSkipFirstEnd { get; set; }
+
+    /// <summary>Burn N: at the start of its controller's turn it takes N damage, then Burn drops by 1.</summary>
+    public int Burn { get; set; }
+
+    /// <summary>Redirect: the next enemy attack against this side hits this creature instead.</summary>
+    public int RedirectCharges { get; set; }
+
+    /// <summary>Taken by STEAL until end of turn: who gets it back (-1 = not stolen / stolen for good).</summary>
+    public int StolenFrom { get; set; } = -1;
+
+    /// <summary>The lane it was taken from (returned there if it is empty).</summary>
+    public int StolenFromLane { get; set; } = -1;
+
+    /// <summary>
+    /// Current effective Attack: base + modifier + aura (never below 0).
+    /// </summary>
+    public int CurrentAttack => Math.Max(0, BaseAttack + AttackModifier + AuraAttack);
+
+    /// <summary>Maximum Vigor right now: base + modifier + aura (before damage).</summary>
+    public int MaxVigorNow => BaseVigor + VigorModifier + AuraVigor;
+
+    /// <summary>
+    /// Current effective Vigor: base + modifier + aura - damage (never below 0).
+    /// </summary>
+    public int CurrentVigor => Math.Max(0, BaseVigor + VigorModifier + AuraVigor - Damage);
 
     /// <summary>True if this card has attacked this turn.</summary>
     public bool HasAttackedThisTurn { get; set; }
@@ -145,6 +195,7 @@ public sealed class CardInstance
         {
             var effective = new HashSet<string>(Keywords);
             effective.UnionWith(GrantedKeywords);
+            effective.UnionWith(AuraKeywords);
             effective.ExceptWith(RemovedKeywords);
             return effective;
         }
@@ -199,6 +250,19 @@ public sealed class CardInstance
         IsVenomed = other.IsVenomed;
         UnearthCost = other.UnearthCost;
         IsIdentified = other.IsIdentified;
+        AuraAttack = other.AuraAttack;
+        AuraVigor = other.AuraVigor;
+        AuraKeywords = new HashSet<string>(other.AuraKeywords);
+        TimedMods = other.TimedMods.ConvertAll(m => m.Clone());
+        UnearthUsed = other.UnearthUsed;
+        Types = new List<string>(other.Types);
+        Tribute = other.Tribute;
+        Stunned = other.Stunned;
+        StunSkipFirstEnd = other.StunSkipFirstEnd;
+        Burn = other.Burn;
+        RedirectCharges = other.RedirectCharges;
+        StolenFrom = other.StolenFrom;
+        StolenFromLane = other.StolenFromLane;
         Keywords = new List<string>(other.Keywords);
         GrantedKeywords = new HashSet<string>(other.GrantedKeywords);
         RemovedKeywords = new HashSet<string>(other.RemovedKeywords);
@@ -208,6 +272,7 @@ public sealed class CardInstance
             Trigger = a.Trigger,
             Condition = a.Condition,
             ActivationCost = a.ActivationCost,
+            Timing = a.Timing,
             Effects = a.Effects.ConvertAll(e => new EffectDef
             {
                 Op = e.Op, Target = e.Target, Amount = e.Amount,
@@ -216,7 +281,8 @@ public sealed class CardInstance
                 Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
                 Condition = e.Condition,
                 AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks,
-                Cadence = e.Cadence, Order = e.Order
+                Cadence = e.Cadence, Order = e.Order,
+                SpendFrom = e.SpendFrom, Spend = e.Spend, PerCharge = e.PerCharge
             })
         });
         IdentifyCondition = other.IdentifyCondition is not null ? CopyCondition(other.IdentifyCondition) : null;
@@ -229,6 +295,8 @@ public sealed class CardInstance
         {
             Op = c.Op,
             Value = c.Value,
+            Side = c.Side,
+            Tribe = c.Tribe,
             All = c.All?.ConvertAll(s => CopyCondition(s)),
             Any = c.Any?.ConvertAll(s => CopyCondition(s))
         };
@@ -238,4 +306,64 @@ public sealed class CardInstance
     /// Returns a deep clone of this card instance.
     /// </summary>
     public CardInstance Clone() => new(this);
+
+    /// <summary>
+    /// FABLE-DROP-1: the ONE way to make a playable instance from a card definition — every field the
+    /// engine reads (types, tribute, every effect field). Copies made by hand in three places had each
+    /// dropped different fields (the tutorial's cards had no abilities at all).
+    /// </summary>
+    public static CardInstance FromDef(CardDef def, int instanceId, int controller, Zone zone = Zone.Deck)
+    {
+        var c = new CardInstance(instanceId, def.Id, controller)
+        {
+            CardType = def.Type,
+            Cost = def.Cost,
+            Strata = def.Strata,
+            BaseAttack = def.Attack ?? 0,
+            BaseVigor = def.Vigor ?? 0,
+            Zone = zone,
+            Tribute = def.Tribute ?? 0,
+        };
+        c.Keywords.AddRange(def.Keywords.Select(k => k.ToUpperInvariant()));
+        c.Types.AddRange(def.Types.Select(t => t.ToUpperInvariant()));
+        c.Abilities.AddRange(def.Abilities.Select(CloneAbility));
+        c.IdentifyCondition = def.IdentifyCondition;
+        return c;
+    }
+
+    public static AbilityDef CloneAbility(AbilityDef a) => new()
+    {
+        Trigger = a.Trigger, Condition = a.Condition, ActivationCost = a.ActivationCost, Timing = a.Timing,
+        Effects = a.Effects.Select(CloneEffect).ToList()
+    };
+
+    public static EffectDef CloneEffect(EffectDef e) => new()
+    {
+        Op = e.Op, Target = e.Target, Amount = e.Amount,
+        Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
+        TokenId = e.TokenId, Duration = e.Duration,
+        Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
+        Condition = e.Condition,
+        AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks,
+        Cadence = e.Cadence, Order = e.Order,
+        SpendFrom = e.SpendFrom, Spend = e.Spend, PerCharge = e.PerCharge
+    };
+}
+
+/// <summary>
+/// FABLE-DROP-1: a modifier that wears off. <see cref="EndOfTurn"/> = gone when the current turn ends;
+/// <see cref="ExpiresAtStartOfPlayer"/> = gone when that player's next turn starts (-1 = not used).
+/// </summary>
+public sealed class TimedMod
+{
+    public int Attack { get; set; }
+    public int Vigor { get; set; }
+    public string? Keyword { get; set; }
+    public bool EndOfTurn { get; set; }
+    public int ExpiresAtStartOfPlayer { get; set; } = -1;
+    /// <summary>NEXT_TURN: gone at the end of this player's turn (-1 = not used)…</summary>
+    public int ExpiresAtEndOfPlayersTurn { get; set; } = -1;
+    /// <summary>…but not the end of the turn it was made in, when that is already their turn.</summary>
+    public bool SkipFirstEnd { get; set; }
+    public TimedMod Clone() => (TimedMod)MemberwiseClone();
 }

@@ -701,5 +701,208 @@
     },
     "attack": 4,
     "vigor": 3
+  },
+  {
+    "id": "emb_c_oathsworn_vanguard",
+    "set": "class_drop_1",
+    "name": "Oathsworn Vanguard",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "EXALTED"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "He swore to stand alone at the gate. The gate is still standing.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ashdrum_herald",
+    "set": "class_drop_1",
+    "name": "Ashdrum Herald",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "EXALTED"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HIGHEST_ATTACK+OTHER",
+              "count": 1
+            },
+            "attack": 2,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Every beat of the ash-drum is a promise of violence.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_bloodrage",
+    "set": "class_drop_1",
+    "name": "Bloodrage",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DOUBLE_STATS",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "For one red moment, a soldier becomes a legend.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_forgeborn_champion",
+    "set": "class_drop_1",
+    "name": "Forgeborn Champion",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [
+      "EXALTED",
+      "ARMOR:1"
+    ],
+    "types": [
+      "KNIGHT"
+    ],
+    "abilities": [],
+    "flavor": "Hammered out of a single ingot and a single oath.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_banner_of_the_lone_charge",
+    "set": "class_drop_1",
+    "name": "Banner of the Lone Charge",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "EXALTED"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER+KEYWORD:EXALTED",
+              "count": "ALL"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It has only ever flown over one rider at a time.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_titans_cleave",
+    "set": "class_drop_1",
+    "name": "Titan's Cleave",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 7
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            },
+            "attack": 2,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "The mountain split. The giant who did it was only warming up.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_lone_warlord",
+    "set": "class_drop_1",
+    "name": "The Lone Warlord",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 3
+          }
+        ],
+        "condition": {
+          "op": "ALONE"
+        }
+      }
+    ],
+    "flavor": "An army of one, because the others could not keep up.",
+    "content_version": 1
   }
 ]

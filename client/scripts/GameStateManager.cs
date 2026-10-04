@@ -218,11 +218,9 @@ public partial class GameStateManager : Node
         bool goesInALane = card.CardType == CardType.CREATURE || card.CardType == CardType.RELIC;
         if (goesInALane)
         {
-            var lane = player.Lanes[laneIndex];
-            if (lane.Occupant is not null)
-                return Error($"Lane {laneIndex + 1} is already occupied.");
-            if (lane.IsBuried)
-                return Error($"Lane {laneIndex + 1} is buried.");
+            // FABLE-DROP-1: the engine's own lane rules (occupied, buried, locked, tribute)
+            if (MechanicOps.LaneProblem(player, card, laneIndex) is string problem)
+                return Error(problem);
         }
 
         var action = new PlayCardAction
@@ -465,7 +463,8 @@ public partial class GameStateManager : Node
                     IsExhausted = occ.IsExhausted,
                     IsIdentified = occ.IsIdentified,
                     CardDefId = occ.CardDefId,
-                    Strata = def?.Strata ?? Strata.VERDANT
+                    Strata = def?.Strata ?? Strata.VERDANT,
+                    Status = StatusText(occ)
                 });
             }
             else
@@ -473,11 +472,23 @@ public partial class GameStateManager : Node
                 infos.Add(new LaneInfo
                 {
                     LaneIndex = lane.Index,
-                    IsEmpty = true
+                    IsEmpty = true,
+                    LockedTurns = lane.LockedTurns
                 });
             }
         }
         return infos;
+    }
+
+    /// <summary>FABLE-DROP-1: the short status line under a creature (Stunned, Burn 2, Decoy).</summary>
+    private static string StatusText(CardInstance c)
+    {
+        var bits = new List<string>();
+        if (c.Stunned) bits.Add("STUNNED");
+        if (c.Burn > 0) bits.Add($"BURN {c.Burn}");
+        if (c.RedirectCharges > 0) bits.Add("DECOY");
+        if (c.StolenFrom >= 0) bits.Add("BORROWED");
+        return string.Join(" · ", bits);
     }
 
     /// <summary>
@@ -494,7 +505,9 @@ public partial class GameStateManager : Node
             Attunement = p.Attunement,
             AttunementMax = p.AttunementMax,
             DeckCount = p.Deck.Count,
-            HandCount = p.Hand.Count
+            HandCount = p.Hand.Count,
+            Traps = p.Traps.Count,
+            Burn = p.Burn
         };
     }
 
@@ -586,6 +599,10 @@ public struct LaneInfo
     public bool IsIdentified;
     public string CardDefId;
     public Strata Strata;
+    /// <summary>FABLE-DROP-1: statuses ("STUNNED · BURN 2"), empty when none.</summary>
+    public string Status;
+    /// <summary>FABLE-DROP-1: an empty lane that is Locked for this many turns.</summary>
+    public int LockedTurns;
 }
 
 public struct PlayerHudInfo
@@ -596,6 +613,9 @@ public struct PlayerHudInfo
     public int AttunementMax;
     public int DeckCount;
     public int HandCount;
+    /// <summary>FABLE-DROP-1: face-down Sigils (the count is public, not what they are).</summary>
+    public int Traps;
+    public int Burn;
 }
 
 /// <summary>

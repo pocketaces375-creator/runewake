@@ -168,6 +168,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "Pierce\n" + 
             "Deal 2 damage to enemy creature\n" +
+            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
             "\"A spear of fire, thrown from the heart of the forge.\"",
             RulesTextRenderer.Render(card));
     }
@@ -278,7 +279,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "2/5 — Ward\n" +
             "When this enters play: Excavate 3\n" +
-            "At the start of your turn: if your barrow has 4+ cards, Draw 1 card\n" +
+            "At the start of your turn: if your barrow has 4+ cards, draw 1 card\n" +
             "\"She read the riverbed the way her mother read faces.\"",
             RulesTextRenderer.Render(card));
     }
@@ -376,7 +377,7 @@ public class RulesTextSnapshotTests
         var card = LoadById("tid_r_flood_of_secrets");
         Assert.Equal(
             "Echo\n" + 
-            "the enemy discards 2\n" +
+            "The enemy discards 2\n" +
             "\"The tide washes away all hidden things.\"",
             RulesTextRenderer.Render(card));
     }
@@ -444,6 +445,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "Echo\n" + 
             "Deal 3 damage to enemy creature\n" +
+            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
             "\"The dead do not miss.\"",
             RulesTextRenderer.Render(card));
     }
@@ -507,6 +509,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "Echo\n" + 
             "Silence enemy creature. Deal 2 damage to enemy creature\n" +
+            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
             "\"Words that bind the soul and break the will.\"",
             RulesTextRenderer.Render(card));
     }
@@ -543,6 +546,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "Ward\n" + 
             "Grant chosen ally creature Ward. Heal 2 from chosen ally creature\n" +
+            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
             "\"The wardens did not build doors. They built reasons not to open them.\"",
             RulesTextRenderer.Render(card));
     }
@@ -585,6 +589,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "Ward\n" + 
             "Silence enemy creature\n" +
+            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
             "\"Light purges corruption.\"",
             RulesTextRenderer.Render(card));
     }

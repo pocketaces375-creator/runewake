@@ -488,9 +488,7 @@ public class RulingClericRangerTests
         Assert.NotNull(allyAfter);
         Assert.Equal(0, allyAfter.Damage);
 
-        // Simulate the Icon's ON_HEAL trigger: grant +1 attack to the healed creature
-        var iconSource = state.Players[0].ArtifactSlots[0].Occupant!;
-        TriggerBus.FireArtifactSlot(state, Trigger.ON_HEAL, 0, 0);
+        // FABLE-DROP-1: the engine fires the Icon's ON_HEAL itself now (it used to need simulating)
 
         // The healed creature now has +1 attack from the Icon's ON_HEAL effect
         var allyAfterBuff = FindCreature(state, ally.InstanceId);
@@ -764,8 +762,7 @@ public class RulingClericRangerTests
         // Prey died
         Assert.Null(state.Players[1].Lanes[0].Occupant);
 
-        // Simulate ON_PREY_DESTROYED trigger: Bow draws 1
-        TriggerBus.FireArtifactSlot(state, Trigger.ON_PREY_DESTROYED, 0, 0);
+        // FABLE-DROP-1: combat deaths go through the one death path, which fires ON_PREY_DESTROYED itself
 
         // Player drew 1 card
         Assert.Equal(handBefore + 1, state.Players[0].Hand.Count);

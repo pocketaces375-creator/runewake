@@ -705,5 +705,425 @@
     },
     "attack": 3,
     "vigor": 3
+  },
+  {
+    "id": "hol_c_bonecaller",
+    "set": "class_drop_1",
+    "name": "Bonecaller",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          }
+        ]
+      }
+    ],
+    "flavor": "He keeps his old bones in a sack, in case he needs them again.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_grave_tithe",
+    "set": "class_drop_1",
+    "name": "Grave Tithe",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The barrow always collects. It pays in secrets.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_ossuary_colossus",
+    "set": "class_drop_1",
+    "name": "Ossuary Colossus",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 6,
+    "vigor": 6,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 1,
+    "abilities": [],
+    "flavor": "A cathedral of bones that learned to walk.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_rotbloom_acolyte",
+    "set": "class_drop_1",
+    "name": "Rotbloom Acolyte",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Where she walks, the flowers come up black.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_lich_of_the_barrow",
+    "set": "class_drop_1",
+    "name": "Lich of the Barrow",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 1,
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 4
+          }
+        ]
+      }
+    ],
+    "flavor": "It traded one life for a thousand borrowed ones.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_rot_tide",
+    "set": "class_drop_1",
+    "name": "Rot Tide",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 1
+          },
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "A green fog that eats slowly and never forgets.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_marrow_king",
+    "set": "class_drop_1",
+    "name": "The Marrow King",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "PASSIVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:UNDEAD+OTHER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "His crown is a jawbone. His subjects do not complain.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_shadow_cutpurse",
+    "set": "class_drop_1",
+    "name": "Shadow Cutpurse",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT",
+      "DODGE:30"
+    ],
+    "abilities": [],
+    "flavor": "You will notice your purse is missing tomorrow.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_nightblade",
+    "set": "class_drop_1",
+    "name": "Nightblade",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "VENOM",
+      "DODGE:25"
+    ],
+    "abilities": [],
+    "flavor": "The blade is dark so you never see it coming. Neither does the moon.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_pilfer",
+    "set": "class_drop_1",
+    "name": "Pilfer",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "What was yours is mine. What was mine is still mine.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_saboteur",
+    "set": "class_drop_1",
+    "name": "Saboteur",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SUPPRESS",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A little sand in the gears. A little knife in the strap.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_borrowed_blade",
+    "set": "class_drop_1",
+    "name": "Borrowed Blade",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "STEAL",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Just for tonight. They will get it back. Mostly.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_veilwalker",
+    "set": "class_drop_1",
+    "name": "Veilwalker",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT",
+      "DODGE:30"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She steps through the veil and out of your pocket.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_smokescreen",
+    "set": "class_drop_1",
+    "name": "Smokescreen",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "DODGE:50",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Strike the smoke all you like.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_t_risen_bones",
+    "set": "class_drop_1",
+    "name": "Risen Bones",
+    "strata": "HOLLOW",
+    "type": "TOKEN",
+    "rarity": "COMMON",
+    "cost": 0,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [],
+    "flavor": "Back for one more fight.",
+    "content_version": 1
   }
 ]

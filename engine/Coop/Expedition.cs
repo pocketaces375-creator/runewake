@@ -149,7 +149,10 @@ public sealed class Expedition
     public bool Submit(int seat, int round, GameAction action, out string error)
     {
         error = "";
-        if (Outcome != ExpeditionOutcome.Running) { error = "expedition is over"; return false; }
+        // FABLE-DROP-1: a move made in the round the expedition was decided is still applied (to its own
+        // board — nothing resolves any more). One phone can decide the fight before the other phone's
+        // in-flight moves for that round arrive; refusing them left the two phones' boards different.
+        if (Outcome != ExpeditionOutcome.Running && round != Round) { error = "expedition is over"; return false; }
         if (round != Round) { error = $"move for round {round}, expedition is on round {Round}"; return false; }
         var board = _boards.FirstOrDefault(b => b.Seat.Seat == seat);
         if (board == null) { error = $"no seat {seat}"; return false; }
@@ -294,6 +297,23 @@ public sealed class Expedition
 
     /// <summary>FABLE-COOP-1: <see cref="Hash"/> as the last round resolved (see ResolveRound). Lockstep compares this per round.</summary>
     public ulong LastResolvedHash { get; private set; }
+
+    /// <summary>
+    /// FABLE-DROP-1: the hash phones compare when the fight is decided in the middle of a round: the outcome
+    /// and the board(s) that decided it — not the other boards, whose last in-flight moves of that round
+    /// may not have reached every phone yet.
+    /// </summary>
+    public ulong DecisiveHash()
+    {
+        var parts = new List<object> { (int)Outcome };
+        var won = _boards.Where(b => b.Won).OrderBy(b => b.Seat.Seat).ToList();
+        foreach (var b in won.Count > 0 ? won : _boards.OrderBy(b => b.Seat.Seat).ToList())
+        {
+            parts.Add(b.Seat.Seat);
+            parts.Add(StateHash.Of(b.State));
+        }
+        return StableHash.Of(parts.ToArray());
+    }
 
     /// <summary>One number for the whole expedition. Phones compare it every round to catch a desync.</summary>
     public ulong Hash()

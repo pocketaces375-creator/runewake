@@ -1,6 +1,6 @@
 # Runewake — Class Identities & Mechanics Plan v1.0
 
-**Author:** Fable · **Date:** 2026-10-03 · **Status:** DESIGN. Trikzos's direction, captured for the next card drop (~100 cards), which comes AFTER the art style is locked.
+**Author:** Fable · **Date:** 2026-10-03 · **Status:** BUILT in FABLE-DROP-1 (50 cards, every mechanic below except Phasing) — see §5. Trikzos's direction, captured for the next card drop (~100 cards), which comes AFTER the art style is locked.
 
 > Trikzos: "Cards automatically sort themselves. You can leave a 'high synergy' section … Any class can play any card, but it would suck in the wrong play style."
 
@@ -81,3 +81,24 @@ Every new keyword bumps the closed keyword list in 01_GAME_RULES §8. Everything
 4. **~100 cards**, about 14 per class, built on each class's love-list, plus shared cards. The bot learns the new mechanics (the GreedyBot scoring).
 5. **Art** in the locked style, through the gold-set pipeline.
 6. Balance sims (sim project) per class before ship.
+
+## 5. FABLE-DROP-1 — what was built (2026-10-04)
+
+Trikzos: "New skills all in this drop. 50 cards is good, all new stuff though."
+
+- **Engine foundations fixed first** (each bug reproduced before the fix): Rituals did nothing; "when this enters
+  play" re-fired every time anything was summoned; "this turn" buffs never wore off; "when this attacks" never
+  fired; the Unearth keyword did nothing; after the 20th trigger of a match nothing ever triggered again;
+  creature/relic PASSIVE auras did nothing; relics never identified; Venom and Fragile kills skipped death
+  triggers; spells ignored Ward; a buried lane un-buried itself; ten artifacts' "when an ally is attacked" never
+  fired; a debuff written as -1 gave +1.
+- **Every mechanic in §3** (Phasing excepted) is in the engine with a rules test: tests/Engine/DropMechanicsTests.cs.
+- **50 cards** (7 per class, 8 Astrologist) + 3 tokens, set `class_drop_1`, in the strata packs. Generator kept
+  out of the repo; the cards are plain JSON.
+- **High-synergy shelf**: engine/Cards/Synergy.cs tags every card from its keywords/types/effects; the Deck Forge
+  has a "Synergy" chip that lists the cards that suit your class, best first.
+- **Existing saves** get one copy of every drop card (two of their own class's) once — client/scripts/DropGrants.cs.
+- **Bot** knows the new rules (aims rituals, tributes, avoids locked lanes, values statuses).
+- **Balance** (GreedyBot sims, class cards ×2 in a deck of the stratum's best base cards vs every stratum):
+  see the drop's handoff note. The base strata themselves are uneven under the bot (Dawn strong, Ember weak) —
+  that predates this drop.

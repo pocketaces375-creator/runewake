@@ -40,6 +40,15 @@ public sealed class GameState
     public int TriggerDepth { get; set; }
 
     /// <summary>
+    /// FABLE-DROP-1: while a ritual resolves, the lane it was played on (its aim). Transient: set and
+    /// cleared inside one action, never cloned.
+    /// </summary>
+    public int? AimLane { get; set; }
+
+    /// <summary>FABLE-DROP-1: "trapDefId>victimDefId" when a Sigil sprang during the last action (for the UI).</summary>
+    public string? LastTrapSprung { get; set; }
+
+    /// <summary>
     /// True when the game has ended (a player reached 0 Vigor).
     /// </summary>
     public bool IsGameOver { get; set; }
@@ -193,29 +202,7 @@ public sealed class GameState
                 var def = Cards.CardRegistry.Get(cardId)
                     ?? throw new InvalidOperationException($"Card definition '{cardId}' not found in registry.");
 
-                var instance = new CardInstance(state.NextInstanceId++, cardId, p)
-                {
-                    CardType = def.Type,
-                    Cost = def.Cost,
-                    Strata = def.Strata,
-                    BaseAttack = def.Attack ?? 0,
-                    BaseVigor = def.Vigor ?? 0,
-                    Zone = Zone.Deck,
-                };
-                instance.Keywords.AddRange(def.Keywords);
-                instance.Abilities.AddRange(def.Abilities.Select(a => new Cards.AbilityDef
-                {
-                    Trigger = a.Trigger, Condition = a.Condition, ActivationCost = a.ActivationCost,
-                    Effects = a.Effects.Select(e => new Cards.EffectDef
-                    {
-                        Op = e.Op, Target = e.Target, Amount = e.Amount,
-                        Attack = e.Attack, Vigor = e.Vigor, Keyword = e.Keyword,
-                        TokenId = e.TokenId, Duration = e.Duration,
-                        Source = e.Source, Frequency = e.Frequency, Filter = e.Filter,
-                        Condition = e.Condition,
-                        AppliesTo = e.AppliesTo, Value = e.Value, Stacks = e.Stacks
-                    }).ToList()
-                }));
+                var instance = CardInstance.FromDef(def, state.NextInstanceId++, p);   // FABLE-DROP-1
 
                 player.Deck.Add(instance);
             }
@@ -396,6 +383,7 @@ public sealed class GameState
         StartingVigor20 = other.StartingVigor20;
         InvokeMode = other.InvokeMode;
         AltarMode = other.AltarMode;
+        LastTrapSprung = other.LastTrapSprung;
     }
 
     /// <summary>

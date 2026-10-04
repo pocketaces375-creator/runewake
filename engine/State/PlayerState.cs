@@ -167,6 +167,20 @@ public sealed class PlayerState
     /// </summary>
     public List<CostMod> CostMods { get; } = new();
 
+    // ——— FABLE-DROP-1 ———
+
+    /// <summary>Burn on the player: N damage at the start of their turn, then it drops by 1.</summary>
+    public int Burn { get; set; }
+
+    /// <summary>Drain: this much less Attunement at the start of the player's next turn.</summary>
+    public int DrainNext { get; set; }
+
+    /// <summary>Face-down traps (Sigils) this player has set.</summary>
+    public List<TrapInstance> Traps { get; } = new();
+
+    /// <summary>Lane of this player's creature that was attacked last (for ON_ALLY_ATTACKED targets).</summary>
+    public int? LastAttackedLaneIndex { get; set; }
+
     public PlayerState(int index, int startingVigor = 25)
     {
         Index = index;
@@ -225,10 +239,26 @@ public sealed class PlayerState
         FirstAttackedLaneIndex = other.FirstAttackedLaneIndex;
         DamageShields = other.DamageShields.ConvertAll(s => s.Clone());
         CostMods = other.CostMods.ConvertAll(m => m.Clone());
+        Burn = other.Burn;
+        DrainNext = other.DrainNext;
+        Traps = other.Traps.ConvertAll(t => t.Clone());
+        LastAttackedLaneIndex = other.LastAttackedLaneIndex;
     }
 
     /// <summary>
     /// Returns a deep clone of this player state.
     /// </summary>
     public PlayerState Clone() => new(this);
+}
+
+/// <summary>
+/// FABLE-DROP-1: a face-down trap. COUNTER_RITUAL negates the next enemy ritual; AMBUSH deals
+/// <see cref="Amount"/> damage to the next enemy creature that attacks, before it strikes.
+/// </summary>
+public sealed class TrapInstance
+{
+    public string Kind { get; set; } = "COUNTER_RITUAL";
+    public int Amount { get; set; }
+    public string SourceDefId { get; set; } = string.Empty;
+    public TrapInstance Clone() => (TrapInstance)MemberwiseClone();
 }

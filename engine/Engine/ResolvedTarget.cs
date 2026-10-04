@@ -23,3 +23,8 @@ public sealed record PlayerTarget(PlayerState Player) : ResolvedTarget
 {
     public override int OwnerIndex => Player.Index;
 }
+/// <summary>FABLE-DROP-1: a lane (for Lock), occupied or not.</summary>
+public sealed record LaneTarget(int PlayerIndex, int LaneIndex) : ResolvedTarget
+{
+    public override int OwnerIndex => PlayerIndex;
+}

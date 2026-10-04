@@ -77,9 +77,13 @@ public class BossOpeningRuleSimulationTests : IDisposable
     /// </summary>
     private static List<string> BuildPlayerDeck()
     {
+        // FABLE-DROP-1: the pool this test was calibrated on — a new card drop must not reshuffle the random
+        // deck that measures the opening rule's seat symmetry
         var allCardIds = CardRegistry.GetAll()
+            .Where(d => d.Set != "class_drop_1")
             .Where(d => d.Cost <= 3)
             .Select(d => d.Id)
+            .OrderBy(id => id, StringComparer.Ordinal)   // the registry is a hash map: its order moved whenever cards were added
             .Distinct()
             .ToList();
 

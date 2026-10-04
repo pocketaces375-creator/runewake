@@ -2404,6 +2404,7 @@ public partial class DuelScene : Control
             enemySlot.Row = 0;
             enemySlot.LaneIndex = i;
             enemySlot.LaneTapped += OnLaneTapped;
+            enemySlot.CardDropped += OnCardDropped;   // FABLE-DROP-1: rituals are aimed at the enemy's lanes too
             // TASK-CARD-TEXT-1: Long-press for rules slab on enemy lane cards
             enemySlot.CardLongPressStarted += ShowRulesSlab;
             enemySlot.LongPressEnded += HideRulesSlab;
@@ -2544,6 +2545,9 @@ public partial class DuelScene : Control
 
         // Get the current state from GSM
         var state = _gsm.State;
+
+        // FABLE-DROP-1: Sigils — say when one is set (face down) or springs
+        try { AnnounceSigils(state); } catch (Exception ex) { GD.PrintErr($"[SIGIL] {ex.Message}"); }
 
         // Compute excavate card count BEFORE render (hand state before update)
         int excavateCount = 0;
@@ -3022,6 +3026,28 @@ public partial class DuelScene : Control
         ft.ShowLargeAt(prefixAndAmount, color, pos);
     }
 
+    private int _lastFoeTraps, _lastMyTraps;
+
+    /// <summary>FABLE-DROP-1: a toast when a Sigil is set or springs (traps are face down — only the count shows).</summary>
+    private void AnnounceSigils(GameState? state)
+    {
+        if (state == null) return;
+        int foe = _gsm.GetPlayerHud(1).Traps, mine = _gsm.GetPlayerHud(0).Traps;
+        if (state.LastTrapSprung is string sprung)
+        {
+            var parts = sprung.Split('>');
+            string trap = CardRegistry.Get(parts[0])?.Name ?? "A Sigil";
+            string victim = parts.Length > 1 ? CardRegistry.Get(parts[1])?.Name ?? "the card" : "the card";
+            ShowToast($"{trap} sprang on {victim}!", new Color(0.75f, 0.85f, 1f));
+        }
+        else if (foe > _lastFoeTraps)
+            ShowToast("The enemy set a Sigil face down.", new Color(0.75f, 0.85f, 1f));
+        else if (mine > _lastMyTraps)
+            ShowToast("Sigil set face down — it springs on the enemy's turn.", new Color(0.75f, 0.85f, 1f));
+        _lastFoeTraps = foe;
+        _lastMyTraps = mine;
+    }
+
     private void RenderHud()
     {
         // FABLE-041: the first StateChanged fires from _gsm.Initialize, BEFORE BuildSideHud has made
@@ -3299,10 +3325,15 @@ public partial class DuelScene : Control
         {
             var info = enemyLanes[i];
             if (info.IsEmpty)
+            {
                 _enemySlots[i].SetEmpty();
+                _enemySlots[i].SetLocked(info.LockedTurns);
+            }
             else
             {
                 _enemySlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                _enemySlots[i].SetLocked(0);
+                _enemySlots[i].SetStatus(info.Status);
                 GD.Print($"[BOARD] side=1 lane={i} card={info.CardDefId}");
             }
         }
@@ -3313,10 +3344,15 @@ public partial class DuelScene : Control
         {
             var info = playerLanes[i];
             if (info.IsEmpty)
+            {
                 _playerSlots[i].SetEmpty();
+                _playerSlots[i].SetLocked(info.LockedTurns);
+            }
             else
             {
                 _playerSlots[i].SetCard(info.CardDefId, info.Name, info.Attack, info.Vigor, info.IsExhausted);
+                _playerSlots[i].SetLocked(0);
+                _playerSlots[i].SetStatus(info.Status);
                 GD.Print($"[BOARD] side=0 lane={i} card={info.CardDefId}");
             }
         }
@@ -3466,6 +3502,18 @@ public partial class DuelScene : Control
 
         bool isPlayerLane = _playerSlots.Exists(s => s.LaneIndex == laneIndex);
         bool isEnemyLane = _enemySlots.Exists(s => s.LaneIndex == laneIndex);
+
+        // FABLE-DROP-1: a selected Ritual goes to whatever lane is tapped (that lane is its aim); a Tribute
+        // creature may be played onto one of your creatures
+        var selectedDef = _input.State == InputController.InputState.SelectingLane && _input.SelectedCardId != null
+            ? CardRegistry.Get(_input.SelectedCardId) : null;
+        if (selectedDef?.Type == Runewake.Engine.Cards.CardType.RITUAL
+            || (selectedDef?.Tribute is > 0 && isPlayerLane && !isEmpty))
+        {
+            _input.SelectTargetLane(laneIndex);
+            HideRulesSlab();
+            return;
+        }
 
         if (_input.State == InputController.InputState.SelectingLane)
         {

@@ -22,6 +22,8 @@ public partial class LaneSlot : PanelContainer
     private NodeState _state = NodeState.Empty;
     private InputController? _input;
     private Label _faceLabel;
+    // FABLE-DROP-1: statuses on a creature (Stunned, Burn 2…) and "Locked" on an empty lane
+    private Label? _statusLabel;
 
     private float _cardWidth;
     private float _cardHeight;
@@ -105,6 +107,23 @@ public partial class LaneSlot : PanelContainer
         _faceLabel.MouseFilter = MouseFilterEnum.Ignore;
         _faceLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         content.AddChild(_faceLabel);
+
+        // FABLE-DROP-1: a small status band across the top of the card / lane
+        _statusLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Top,
+            Visible = false,
+            Modulate = new Color(1f, 0.82f, 0.45f, 1f),
+            AutowrapMode = TextServer.AutowrapMode.Word
+        };
+        _statusLabel.AddThemeFontSizeOverride("font_size", 11);
+        _statusLabel.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.9f));
+        _statusLabel.AddThemeConstantOverride("outline_size", 4);
+        _statusLabel.MouseFilter = MouseFilterEnum.Ignore;
+        _statusLabel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+        _statusLabel.OffsetTop = 2;
+        content.AddChild(_statusLabel);
 
         // Connect touch area for touch input
         var touchArea = GetNodeOrNull<Control>("TouchArea");
@@ -219,6 +238,30 @@ public partial class LaneSlot : PanelContainer
     /// <summary>
     /// Clear this lane slot back to empty.
     /// </summary>
+    /// <summary>FABLE-DROP-1: the status line on an occupied lane ("" hides it).</summary>
+    public void SetStatus(string? text)
+    {
+        if (_statusLabel == null) return;
+        _statusLabel.Text = text ?? "";
+        _statusLabel.Visible = !string.IsNullOrEmpty(text);
+    }
+
+    /// <summary>FABLE-DROP-1: an empty lane that can't be summoned into.</summary>
+    public void SetLocked(int turns)
+    {
+        SetStatus(turns > 0 ? $"LOCKED\n{turns} turn{(turns == 1 ? "" : "s")}" : "");
+        if (_statusLabel != null && turns > 0)
+        {
+            _statusLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            _statusLabel.VerticalAlignment = VerticalAlignment.Center;
+        }
+        else if (_statusLabel != null)
+        {
+            _statusLabel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
+            _statusLabel.VerticalAlignment = VerticalAlignment.Top;
+        }
+    }
+
     public void SetEmpty()
     {
         _currentCardId = "";
@@ -430,12 +473,21 @@ public partial class LaneSlot : PanelContainer
 
     public override bool _CanDropData(Vector2 atPosition, Variant data)
     {
-        if (Row != 1 || _state == NodeState.Occupied)
-            return false;
         if (data.VariantType != Variant.Type.Dictionary)
             return false;
         var dict = data.AsGodotDictionary();
-        return dict.ContainsKey("type") && dict["type"].AsString() == "hand_card";
+        if (!dict.ContainsKey("type") || dict["type"].AsString() != "hand_card")
+            return false;
+        // FABLE-DROP-1: a Ritual can be dropped on ANY lane — the lane is its aim. A Tribute creature can
+        // be dropped onto one of your own creatures (that one is the tribute).
+        var def = dict.ContainsKey("card_id") ? CardRegistry.Get(dict["card_id"].AsString()) : null;
+        if (def?.Type == CardType.RITUAL)
+            return true;
+        if (Row != 1)
+            return false;
+        if (_state == NodeState.Occupied)
+            return def?.Tribute is > 0;
+        return true;
     }
 
     public override void _DropData(Vector2 atPosition, Variant data)

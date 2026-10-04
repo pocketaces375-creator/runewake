@@ -39,19 +39,60 @@ public static class TargetResolver
             Scope.PLAYER_SELF => new List<ResolvedTarget> { new PlayerTarget(sourcePlayer) },
             Scope.PLAYER_ENEMY => new List<ResolvedTarget> { new PlayerTarget(opponent) },
             Scope.SELF_ARTIFACT => new List<ResolvedTarget> { new PlayerTarget(sourcePlayer) },
-            Scope.LANE => new List<ResolvedTarget>(), // Not directly resolved as a target type for effects
+            Scope.LANE => LanePool(target.Filter, source, sourcePlayer, opponent, state),
             Scope.NONE => new List<ResolvedTarget>(),
             _ => new List<ResolvedTarget>()
         };
 
-        // Apply filter (with tiebreak baked into sort filters)
-        if (!string.IsNullOrEmpty(target.Filter) && target.Filter != "ANY")
-            pool = ApplyFilter(pool, target.Filter, target.Tiebreak, source, sourcePlayer);
+        // Apply filter (with tiebreak baked into sort filters). Filters chain with "+": "TRIBE:BEAST+OTHER".
+        if (!string.IsNullOrEmpty(target.Filter) && target.Filter != "ANY" && target.Scope != Scope.LANE)
+            foreach (var f in target.Filter.Split('+'))
+                pool = ApplyFilter(pool, f.Trim(), target.Tiebreak, source, sourcePlayer, state);
+
+        // FABLE-DROP-1: a ritual's aim. A single-target creature effect with no positional rule picks the
+        // creature in the lane the ritual was played on, if there is one there that qualifies.
+        if (state.AimLane is int aim && target.Scope is Scope.ENEMY_CREATURE or Scope.ALLY_CREATURE or Scope.ANY_CREATURE
+            && (target.Count is null || (!target.Count.Value.IsAll && target.Count.Value.Value <= 1))
+            && (string.IsNullOrEmpty(target.Filter) || target.Filter is "ANY" or "CHOSEN"))
+        {
+            var aimed = pool.OfType<CreatureTarget>()
+                .Where(t => t.LaneIndex == aim)
+                .OrderBy(t => t.PlayerIndex == sourcePlayer.Index ? 1 : 0)   // the enemy's first for ANY_CREATURE
+                .FirstOrDefault();
+            if (aimed is not null)
+            {
+                pool.Remove(aimed);
+                pool.Insert(0, aimed);
+            }
+        }
 
         // Apply count
         pool = ApplyCount(pool, target.Count);
 
         return pool;
+    }
+
+    /// <summary>
+    /// FABLE-DROP-1: lanes for Lock. OPPOSING (default) = the enemy lane across from the source, or the
+    /// ritual's aim; ENEMY_EMPTY = every empty enemy lane; ENEMY_ANY = every enemy lane.
+    /// </summary>
+    private static List<ResolvedTarget> LanePool(string? filter, CardInstance source, PlayerState me, PlayerState enemy, GameState state)
+    {
+        int? at = source.Zone == Zone.Lane ? source.LaneIndex : state.AimLane;
+        var list = new List<ResolvedTarget>();
+        switch (filter ?? "OPPOSING")
+        {
+            case "ENEMY_EMPTY":
+                for (int i = 0; i < 5; i++) if (enemy.Lanes[i].Occupant is null) list.Add(new LaneTarget(enemy.Index, i));
+                break;
+            case "ENEMY_ANY":
+                for (int i = 0; i < 5; i++) list.Add(new LaneTarget(enemy.Index, i));
+                break;
+            default:
+                if (at is int a && a >= 0 && a <= 4) list.Add(new LaneTarget(enemy.Index, a));
+                break;
+        }
+        return list;
     }
 
     // ——— Pool builders ———
@@ -82,19 +123,45 @@ public static class TargetResolver
         string filter,
         string? tiebreak,
         CardInstance source,
-        PlayerState sourcePlayer)
+        PlayerState sourcePlayer,
+        GameState state)
     {
-        // Positional filters require knowing the source lane
-        int? srcLane = source.LaneIndex;
+        // Positional filters require knowing the source lane. FABLE-DROP-1: a ritual (not on the board)
+        // measures from its aim — "the enemy creature opposite, and the two diagonal to it".
+        int? srcLane = source.Zone == Zone.Lane || source.CardType is CardType.CREATURE or CardType.TOKEN or CardType.RELIC
+            ? source.LaneIndex : state.AimLane;
 
         return filter switch
         {
             "ADJACENT" => pool.Where(t => t is CreatureTarget ct && srcLane is not null
                 && System.Math.Abs(ct.LaneIndex - srcLane.Value) == 1).ToList(),
             "OPPOSING" => pool.Where(t => t is CreatureTarget ct
-                && ct.LaneIndex == (source.LaneIndex ?? 0)).ToList(),
+                && ct.LaneIndex == (srcLane ?? 0)).ToList(),
             "SAME_LANE" => pool.Where(t => t is CreatureTarget ct
-                && ct.LaneIndex == (source.LaneIndex ?? -1)).ToList(),
+                && ct.LaneIndex == (srcLane ?? -1)).ToList(),
+            // ——— FABLE-DROP-1: directions ———
+            "DIAGONAL" => pool.Where(t => t is CreatureTarget ct && srcLane is not null
+                && System.Math.Abs(ct.LaneIndex - srcLane.Value) == 1 && ct.PlayerIndex != sourcePlayer.Index).ToList(),
+            "OPPOSING_AND_DIAGONAL" => pool.Where(t => t is CreatureTarget ct && srcLane is not null
+                && System.Math.Abs(ct.LaneIndex - srcLane.Value) <= 1 && ct.PlayerIndex != sourcePlayer.Index).ToList(),
+            "LEFT" => pool.Where(t => t is CreatureTarget ct && srcLane is not null && ct.LaneIndex == srcLane.Value - 1).ToList(),
+            "RIGHT" => pool.Where(t => t is CreatureTarget ct && srcLane is not null && ct.LaneIndex == srcLane.Value + 1).ToList(),
+            "OTHER" => pool.Where(t => t is not CreatureTarget ct || !ReferenceEquals(ct.Card, source)).ToList(),
+            "AIM" => pool.Where(t => t is CreatureTarget ct && ct.LaneIndex == (state.AimLane ?? -1)).ToList(),
+            "STUNNED" => pool.Where(t => t is CreatureTarget ct && ct.Card.Stunned).ToList(),
+            "LAST_ATTACKED" => pool.Where(t => t is CreatureTarget ct
+                && ct.LaneIndex == (state.Player(ct.PlayerIndex).LastAttackedLaneIndex ?? -1)).ToList(),
+            "BURNING" => pool.Where(t => t is CreatureTarget ct && ct.Card.Burn > 0).ToList(),
+            var s when s.StartsWith("LANES:") => pool.Where(t =>
+            {
+                if (t is not CreatureTarget ct) return false;
+                var parts = s[6..].Split('-');
+                int lo = int.TryParse(parts[0], out var a) ? a : 0;
+                int hi = parts.Length > 1 && int.TryParse(parts[1], out var b) ? b : lo;
+                return ct.LaneIndex >= lo && ct.LaneIndex <= hi;
+            }).ToList(),
+            var s when s.StartsWith("TRIBE:") => pool.Where(t =>
+                t is CreatureTarget ct && ct.Card.Types.Contains(s[6..])).ToList(),
             "EDGE_LANE" => pool.Where(t => t is CreatureTarget ct
                 && (ct.LaneIndex == 0 || ct.LaneIndex == 4)).ToList(),
             "CENTER_LANE" => pool.Where(t => t is CreatureTarget ct
@@ -118,14 +185,16 @@ public static class TargetResolver
             var s when s.StartsWith("KEYWORD:") => pool.Where(t =>
             {
                 var kw = s[8..];
-                return t is CreatureTarget ct && ct.Card.EffectiveKeywords.Contains(kw);
+                // FABLE-DROP-1: KEYWORD:ARMOR matches "ARMOR:2"
+                return t is CreatureTarget ct && ct.Card.EffectiveKeywords.Any(k => k == kw || k.StartsWith(kw + ":"));
             }).ToList(),
             var s when s.StartsWith("TYPE:") => pool.Where(t =>
             {
                 var typeStr = s[5..];
                 return t is CreatureTarget ct && ct.Card.CardType.ToString() == typeStr;
             }).ToList(),
-            "RANDOM" => pool, // Ordering done later, select top N
+            // FABLE-DROP-1: really random (seeded — the same game replays the same), it used to be "the first"
+            "RANDOM" => Shuffled(pool, state),
             "HIGHEST_VIGOR" => pool.OrderByDescending(t => t is CreatureTarget ct ? ct.Card.CurrentVigor : 0)
                 .ThenBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue)
                 .ToList(),
@@ -176,6 +245,17 @@ public static class TargetResolver
                 .ToList(),
             _ => pool
         };
+    }
+
+    private static List<ResolvedTarget> Shuffled(List<ResolvedTarget> pool, GameState state)
+    {
+        var list = new List<ResolvedTarget>(pool);
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = state.Rng.NextInt(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+        return list;
     }
 
     // ——— Count ———
