@@ -641,6 +641,9 @@ def paint_refs(prompt, out, refs=None, cid=None, card=None, n=0):
                 "references for brushwork, painterly finish, glowing light, level of detail and sense of wonder. "
                 "Follow the text for the scene, the time of day, the lighting and the colour palette — those are "
                 "this card's own. Paint a completely new scene, not a copy. ")
+    # FABLE-BATCH-5: the cheaper image models sometimes paint a whole trading card — say plainly that we don't want one
+    lead += ("Artwork only: no card frame, no border, no title banner, no text box and no lettering anywhere — "
+             "the game adds its own frame. ")
     content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
               [{"type": "image_url", "image_url": {"url": _data_url(r, 1024)}} for r in refs]
     try:

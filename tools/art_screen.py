@@ -195,8 +195,10 @@ def originality(path, cid, led, batch_feats):
 
 # ──────────────────────────────── 3. art director (vision) ────────────────────
 LOOK = """You are the strict art director of a fantasy trading-card game. You approve only art that is beautiful
-and FINISHED. You are shown one painting meant for the card described below. The painting is shown inside a card
-frame: about 6% of every edge is covered by the frame's rim and the bottom 15% sits behind the stat band.
+and FINISHED. You are shown one painting meant for the card described below. It must be ARTWORK ONLY: the game draws its own
+card frame around it later (that frame will cover about 6% of every edge, and the bottom 15% sits behind the stat
+band). A frame, border, title banner, name bar, text box, mana/cost symbols or any lettering PAINTED INTO the image
+is a serious defect — the painting must not look like a finished trading card.
 House style: {style}
 
 Judge it and reply as JSON only:
@@ -205,6 +207,7 @@ Judge it and reply as JSON only:
                                     edge in a way that loses its head, wings, weapon, or most of its body),
   "cut_off": "what is cut off, or empty",
   "fits_card_window": true/false    (false if the important part sits under the rim or the bottom stat band),
+  "looks_like_a_card": true/false   (true if the image itself shows a card frame, title bar, text box or border),
   "defects": [any of: "extra or missing limbs", "mangled hands", "distorted face", "melted or broken geometry",
               "text or lettering", "watermark or signature", "frame or border", "collage or split panels",
               "blurry or unfinished", "photographic look", "duplicated subject"],
@@ -260,6 +263,9 @@ def decide(tech_fail, tech_warn, dup, v, subject_repeat):
             reasons.append("subject cut off" + (f" — {v['cut_off']}" if v.get("cut_off") else ""))
         if v.get("fits_card_window") is False:
             reasons.append("important part hidden by the card frame")
+        if v.get("looks_like_a_card") is True:
+            # FABLE-BATCH-5: Flash Lite sometimes paints a whole trading card (frame, title, text box)
+            reasons.append("painted as a card (frame / title / text box) — artwork only")
         bad = [x for x in v.get("defects") or [] if x in SEVERE]
         if bad:
             reasons.append("defects: " + ", ".join(bad))
@@ -763,7 +769,9 @@ def cmd_batch(a):
         return 0
     bid = time.strftime("%Y%m%d-%H%M%S")
     need_plan = [c for c in ids if a.fresh_concepts or not (led["cards"].get(c) or {}).get("prompt")
-                 or (led["cards"].get(c) or {}).get("mock")]
+                 or (led["cards"].get(c) or {}).get("mock")
+                 # FABLE-BATCH-5: finishing a set, a card whose earlier paintings all failed gets a NEW concept
+                 or (set_all and (led["cards"].get(c) or {}).get("candidates"))]
     # FABLE-BATCH-4: a preview batch is capped at 14; finishing a set allows ~30% repaints by default
     max_p = a.max_paintings if a.max_paintings is not None else (-(-len(ids) * 13 // 10) if a.set else 14)
     cap = min(max_p, len(ids) * a.rounds)
@@ -900,6 +908,25 @@ def cmd_hook(a):
     return 0
 
 
+def cmd_reject(a):
+    """FABLE-BATCH-5: Trikzos says no — these cards' current paintings fail (they leave the sheet, --approve skips
+    them, and `batch --set …` repaints them with a new concept)."""
+    ad = _ad()
+    led = ad.load_ledger()
+    for cid in a.card_ids:
+        e = led.get("cards", {}).get(cid)
+        if not e or not e.get("candidates"):
+            print(f"  {cid}: no painting to reject")
+            continue
+        for c in e["candidates"]:
+            s = c.setdefault("screen", {})
+            s.update({"verdict": "fail", "reasons": ["rejected by Trikzos — " + (a.why or "redo")]})
+        e["prompt"] = None          # the next run plans a fresh concept for it
+        print(f"  {cid}: rejected")
+    ad.save_ledger(led)
+    return 0
+
+
 def cmd_show(a):
     led = _ad().load_ledger()
     e = led.get("cards", {}).get(a.card_id)
@@ -951,10 +978,13 @@ def main():
     sub.add_parser("spend")
     hk = sub.add_parser("hook")
     hk.add_argument("--dry-run", action="store_true")
+    rj = sub.add_parser("reject", help="fail these cards' current paintings (a new concept next run)")
+    rj.add_argument("card_ids", nargs="+")
+    rj.add_argument("--why", default="")
     sh = sub.add_parser("show")
     sh.add_argument("card_id")
     a = ap.parse_args()
-    return {"screen": cmd_screen, "pick": cmd_pick, "cycle": cmd_cycle, "batch": cmd_batch, "spend": cmd_spend, "show": cmd_show, "hook": cmd_hook}[a.cmd](a)
+    return {"screen": cmd_screen, "pick": cmd_pick, "cycle": cmd_cycle, "batch": cmd_batch, "spend": cmd_spend, "reject": cmd_reject, "show": cmd_show, "hook": cmd_hook}[a.cmd](a)
 
 
 if __name__ == "__main__":
