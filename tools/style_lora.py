@@ -113,7 +113,13 @@ GAME_ART = REPO / "client" / "content" / "art"
 
 TRIGGER = os.environ.get("STYLE_LORA_TRIGGER", "rnwk style")
 CAPTION_MODEL = os.environ.get("STYLE_CAPTION_MODEL", "google/gemini-2.5-flash")
-REFS_MODEL = os.environ.get("STYLE_REFS_MODEL", "google/gemini-3-pro-image")
+REFS_MODEL_DEFAULT = "google/gemini-3-pro-image"
+
+
+def refs_model():
+    """FABLE-BATCH-3: the painting model — STYLE_REFS_MODEL from the environment or ~/.hermes/.env
+    (Trikzos chose Gemini 3.1 Flash Image: about half the price per painting), else Gemini 3 Pro Image."""
+    return _env_key("STYLE_REFS_MODEL", required=False) or REFS_MODEL_DEFAULT
 FLUX_MODEL = os.environ.get("STYLE_FLUX_MODEL", "black-forest-labs/flux.2-pro")
 DISTILL_MODEL = os.environ.get("STYLE_DISTILL_MODEL", "google/gemini-2.5-pro")
 TRAINER = "fal-ai/flux-lora-fast-training"
@@ -635,7 +641,7 @@ def paint_refs(prompt, out, refs=None, cid=None, card=None, n=0):
     content = [{"type": "text", "text": lead + with_guide(prompt)}] + \
               [{"type": "image_url", "image_url": {"url": _data_url(r, 1024)}} for r in refs]
     try:
-        d = _openrouter({"model": REFS_MODEL, "modalities": ["image", "text"],
+        d = _openrouter({"model": refs_model(), "modalities": ["image", "text"],
                          "image_config": {"aspect_ratio": "2:3"},
                          "messages": [{"role": "user", "content": content}]}, timeout=300)
         msg = d["choices"][0]["message"]

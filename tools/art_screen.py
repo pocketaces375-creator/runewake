@@ -595,7 +595,16 @@ def _pick_batch(cards, n, led, ids=None):
     """n cards that are not yet in the new style, spread over the strata and card types (stable order)."""
     if ids:
         return list(ids)
-    pool = [c for c in cards.values() if (led.get("cards", {}).get(c["id"]) or {}).get("style_v") != 2]
+    # FABLE-BATCH-3: a card already painted in an earlier preview batch (approved or still waiting) is not
+    # picked again — every batch shows new cards
+    seen = set()
+    for f in BATCHES.glob("*.json"):
+        try:
+            seen.update(json.loads(f.read_text(encoding="utf-8")).get("ids", []))
+        except (OSError, ValueError):
+            pass
+    pool = [c for c in cards.values() if (led.get("cards", {}).get(c["id"]) or {}).get("style_v") != 2
+            and c["id"] not in seen]
     by = {}
     for c in sorted(pool, key=lambda c: hashlib.sha1(c["id"].encode()).hexdigest()):
         by.setdefault(str(c.get("strata", "")), []).append(c)
@@ -629,7 +638,8 @@ def _preview_sheet(led, cards, ids, bid):
         cells.append((b["path"], f"{nm}{mark} — {b['screen'].get('subject', '')}"[:110]))
     if not cells:
         return None
-    return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s)")
+    model = sl.refs_model().split("/")[-1]
+    return sl.grid(cells, 5, PREVIEW / f"preview_{bid}.jpg", 300, 440, 70, f"New art — {len(cells)} card(s) · {model}")
 
 
 def _batch_file(name):
@@ -699,7 +709,7 @@ def cmd_batch(a):
     need_plan = [c for c in ids if a.fresh_concepts or not (led["cards"].get(c) or {}).get("prompt")
                  or (led["cards"].get(c) or {}).get("mock")]
     cap = min(a.max_paintings, len(ids) * a.rounds)
-    print(f"PREVIEW BATCH {bid}: {len(ids)} cards, one painting each, then only the failures are repainted.\n"
+    print(f"PREVIEW BATCH {bid} on {sl.refs_model()}: {len(ids)} cards, one painting each, then only the failures are repainted.\n"
           f"  cards: {', '.join(ids)}\n"
           f"  planned spend: {len(need_plan)} planning call(s) + about {len(ids)} paintings"
           f" (hard cap {cap}) + one cheap screener look per painting")
@@ -758,7 +768,7 @@ def cmd_batch(a):
     if before and after and before.get("total") is not None and after.get("total") is not None:
         cost = after["total"] - before["total"]
     logged = sum(r["cost"] for r in _spend_rows() if r.get("tag") == bid and isinstance(r.get("cost"), (int, float)))
-    rec = {"id": bid, "ids": ids, "good": good, "unsure": unsure, "paintings": spent,
+    rec = {"id": bid, "ids": ids, "good": good, "unsure": unsure, "paintings": spent, "model": sl.refs_model(),
            "cost_account_delta": cost, "cost_logged": logged, "sheet": str(sheet) if sheet else None}
     (BATCHES / f"{bid}.json").write_text(json.dumps(rec, indent=1), encoding="utf-8")
     print(f"\nbatch {bid}: {len(good)} of {len(ids)} cards have art to show — {spent} painting(s) made")
