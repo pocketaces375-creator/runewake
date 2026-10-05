@@ -73,7 +73,7 @@
         ]
       }
     ],
-    "flavor": "Knowledge flows like water \u2014 endlessly, unstoppably.",
+    "flavor": "Knowledge flows like water — endlessly, unstoppably.",
     "power_score": 5.5,
     "content_version": 1
   },
@@ -116,9 +116,7 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 1,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -194,9 +192,7 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 2,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -280,6 +276,18 @@
             "amount": 1
           }
         ]
+      },
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
       }
     ],
     "flavor": "Every drop that falls tells her a story.",
@@ -294,9 +302,7 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 4,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -393,7 +399,7 @@
         ]
       }
     ],
-    "flavor": "She reads the sky the way others read a map \u2014 every star a signpost.",
+    "flavor": "She reads the sky the way others read a map — every star a signpost.",
     "power_score": 4.5,
     "content_version": 1
   },
@@ -500,12 +506,25 @@
     "type": "CREATURE",
     "rarity": "UNCOMMON",
     "cost": 3,
-    "attack": 4,
+    "attack": 3,
     "vigor": 4,
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "EXCAVATE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "She reads the tide, and the tide obeys.",
     "content_version": 1,
     "art": {},
@@ -573,7 +592,20 @@
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "It dances on waves that no one else sees.",
     "content_version": 1,
     "art": {
@@ -613,7 +645,20 @@
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "She reads the kelp like scrolls.",
     "content_version": 1,
     "art": {
@@ -690,9 +735,7 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 3,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -738,6 +781,18 @@
               "count": "ALL"
             },
             "attack": 1
+          }
+        ]
+      },
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
           }
         ]
       }

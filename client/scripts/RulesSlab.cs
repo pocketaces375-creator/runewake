@@ -280,7 +280,7 @@ public partial class RulesSlab : Control
         _rulesLabel.Text = rules;
         _rulesLabel.AddThemeFontSizeOverride("font_size", bodyFs);
 
-        string kwReminders = BuildKeywordReminders(card.Keywords);
+        string kwReminders = string.Join("\n", RulesTextRenderer.KeywordReminderLines(card));   // FABLE-SKILLS-1
         _keywordsLabel.Text = kwReminders;
         _keywordsLabel.AddThemeFontSizeOverride("font_size", kwFs);
 
@@ -392,35 +392,10 @@ public partial class RulesSlab : Control
         _fadeTween.TweenCallback(Callable.From(() => base.Hide()));
     }
 
-    private static string BuildKeywordReminders(List<string> keywords)
-    {
-        if (keywords == null || keywords.Count == 0) return "";
-        var lines = new System.Collections.Generic.List<string>();
-        foreach (var kw in keywords)
-        {
-            string display = RulesTextRenderer.FormatKeyword(kw);
-            string reminder = kw switch
-            {
-                "GUARD" => "May block for adjacent allies.",
-                "SWIFT" => "May attack the turn it is played.",
-                "PIERCE" => "Excess damage carries over to the enemy player.",
-                "WARD" => "Negate the first enemy ability that targets this creature.",
-                "VENOM" => "Deals 1 extra damage to the target.",
-                "REACH" => "May attack any lane.",
-                "ROOTED" => "Cannot be moved or returned to hand.",
-                "UNEARTH" => "Return to hand when this dies.",
-                "ECHO" => "Copy the last ability played.",
-                "FRAGILE" => "Dies when it takes damage.",
-                "SEALED" => "Starts unidentified; revealed when its condition is met.",
-                "ANCESTRAL_SHIELD" => "Once per turn, clamp ally Vigor to 1 when hit by an enemy spell.",
-                "STEALTH_STRIKE" => "Deals no counter-damage when attacking.",
-                _ => ""
-            };
-            if (!string.IsNullOrEmpty(reminder))
-                lines.Add($"{display}: {reminder}");
-            else
-                lines.Add($"{display}");
-        }
-        return string.Join("\n", lines);
-    }
+    /// <summary>
+    /// FABLE-053: the one-line reminder for a keyword, shared with the Deck Forge inspector.
+    /// FABLE-SKILLS-1: now from the engine's single source (RulesTextRenderer.KeywordReminder) —
+    /// the table that used to live here was wrong for most keywords.
+    /// </summary>
+    internal static string KeywordReminder(string kw, CardType type = CardType.CREATURE) => RulesTextRenderer.KeywordReminder(kw, type);
 }

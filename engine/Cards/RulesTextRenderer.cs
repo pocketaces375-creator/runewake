@@ -656,6 +656,76 @@ public static class RulesTextRenderer
     }
 
     /// <summary>
+    /// FABLE-SKILLS-1: what a keyword DOES, in one plain sentence — the single source for
+    /// every place a card is shown (duel slab, Reliquary page, Deck Forge card view).
+    /// Written from the engine's behaviour and docs/01_GAME_RULES.md §8, so the words can't
+    /// drift from the rules again (the duel slab used to say Reach hits "any lane" and Venom
+    /// deals "1 extra damage"). Empty for an unknown keyword.
+    /// </summary>
+    public static string KeywordReminder(string keyword, CardType cardType = CardType.CREATURE)
+    {
+        var k = (keyword ?? "").ToUpperInvariant();
+        if (k.StartsWith("ARMOR:")) return $"Takes {k[6..]} less damage from every hit.";
+        if (k.StartsWith("DODGE:")) return $"{k[6..]}% chance to take no combat damage.";
+        if (k.StartsWith("UNEARTH:")) return $"When it dies, it comes back to your hand next turn, costing {k[8..]}.";
+        return k switch
+        {
+            "GUARD" => "While it's on the board, enemies must attack its lane.",
+            "SWIFT" => "Can attack the turn it's played.",
+            "PIERCE" => "When it destroys a creature in combat, the leftover damage hits the enemy player.",
+            "WARD" => "The first damage it would take is blocked.",
+            "VENOM" => "Any creature it damages is destroyed.",
+            "REACH" => "Can attack the lane opposite it or either lane beside that one.",
+            "ROOTED" => "Can't attack.",
+            "UNEARTH" => "When it dies, it comes back to your hand at the start of your next turn (once).",
+            "ECHO" => cardType == CardType.RITUAL
+                ? "Its effect happens twice."
+                : "Its \"when this enters play\" effect happens twice.",
+            "FRAGILE" => "Destroyed at the end of the turn it was played.",
+            "SEALED" => "Enemy abilities can't target it.",
+            "EXALTED" => "When your first attacker each turn attacks, it gets +1/+1 this turn for each Exalted creature you control.",
+            "ANCESTRAL_SHIELD" => "Once per turn, an enemy spell can't take an ally below 1 Vigor.",
+            "STEALTH_STRIKE" => "Takes no damage back when it attacks.",
+            _ => "",
+        };
+    }
+
+    /// <summary>
+    /// "Reach: Can attack…" — one line per keyword on the card, then one per game term its
+    /// abilities use that isn't plain English (Excavate, Bury, Burn, Stun, Sigil, Tribute…), for
+    /// any card view.
+    /// </summary>
+    public static List<string> KeywordReminderLines(CardDef card)
+    {
+        var lines = new List<string>();
+        foreach (var kw in card.Keywords)
+        {
+            var r = KeywordReminder(kw, card.Type);
+            lines.Add(string.IsNullOrEmpty(r) ? FormatKeyword(kw) : $"{FormatKeyword(kw)}: {r}");
+        }
+        var terms = new List<string>();
+        if (card.Tribute is > 0) terms.Add("Tribute: to play this, destroy that many of your creatures (play it onto one to choose which).");
+        foreach (var a in card.Abilities)
+            foreach (var e in a.Effects)
+            {
+                string? t = e.Op switch
+                {
+                    Op.EXCAVATE => "Excavate: look at the top cards of your deck, put one in your hand and bury the rest.",
+                    Op.BURY => "Bury: put cards from the top of your deck face down in your Barrow, where some cards can bring them back.",
+                    Op.BURN => "Burn: takes that much damage at the start of its controller's turn, then the Burn drops by 1.",
+                    Op.DRAIN => "Drain: that player has that much less Attunement next turn.",
+                    Op.STUN => "Stun: can't attack until the end of its controller's next turn.",
+                    Op.LOCK_LANE => "Lock: nothing can be played into that lane for a few turns.",
+                    Op.SET_TRAP => "Sigil: a hidden trap. Counter stops the next enemy Ritual; Ambush hits the next enemy attacker first.",
+                    _ => null,
+                };
+                if (t != null && !terms.Contains(t)) terms.Add(t);
+            }
+        lines.AddRange(terms);
+        return lines;
+    }
+
+    /// <summary>
     /// Format a keyword constant to display form.
     /// </summary>
     public static string FormatKeyword(string keyword) => keyword switch
@@ -675,6 +745,8 @@ public static class RulesTextRenderer
         "ECHO" => "Echo",
         "FRAGILE" => "Fragile",
         "SEALED" => "Sealed",
+        "ANCESTRAL_SHIELD" => "Ancestral Shield",
+        "STEALTH_STRIKE" => "Stealth Strike",
         _ => keyword
     };
 }

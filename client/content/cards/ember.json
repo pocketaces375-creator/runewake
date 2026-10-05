@@ -80,7 +80,7 @@
       "PIERCE"
     ],
     "abilities": [],
-    "flavor": "He fights like the fire \u2014 without mercy, without memory.",
+    "flavor": "He fights like the fire — without mercy, without memory.",
     "power_score": 5.5,
     "content_version": 1
   },
@@ -283,7 +283,20 @@
       "UNEARTH",
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "From ash, she rises. From ash, she burns again.",
     "power_score": 9.5,
     "content_version": 1
@@ -496,7 +509,7 @@
         ]
       }
     ],
-    "flavor": "The ember never dies\u2014it only waits for kindling.",
+    "flavor": "The ember never dies—it only waits for kindling.",
     "content_version": 1,
     "art": {},
     "power_score": 8.45

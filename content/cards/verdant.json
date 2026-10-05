@@ -629,13 +629,26 @@
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1
+          }
+        ]
+      }
+    ],
     "flavor": "It moves between the trees like a shadow.",
     "content_version": 1,
     "art": {
       "file": "vrd_u_forest_stalker.webp"
     },
-    "attack": 6,
+    "attack": 4,
     "vigor": 4
   },
   {

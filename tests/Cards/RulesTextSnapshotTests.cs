@@ -254,6 +254,7 @@ public class RulesTextSnapshotTests
         var card = LoadById("emb_r_phoenix_ash");
         Assert.Equal(
             "4/4 — Unearth, Echo\n" +
+            "When this enters play: Deal 1 damage to the enemy\n" +
             "\"From ash, she rises. From ash, she burns again.\"",
             RulesTextRenderer.Render(card));
     }
@@ -311,7 +312,6 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_c_abyssal_gaze");
         Assert.Equal(
-            "Echo\n" + 
             "Excavate 2\n" +
             "\"The depths see you as clearly as you see them.\"",
             RulesTextRenderer.Render(card));
@@ -343,7 +343,6 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_u_memory_tides");
         Assert.Equal(
-            "Echo\n" + 
             "Excavate 2. Discard 1\n" +
             "\"The tide brings, and the tide takes away.\"",
             RulesTextRenderer.Render(card));
@@ -367,6 +366,7 @@ public class RulesTextSnapshotTests
         Assert.Equal(
             "2/3 — Echo\n" +
             "When an ally dies: Draw 1 card\n" +
+            "When this enters play: Bury 1\n" +
             "\"Every drop that falls tells her a story.\"",
             RulesTextRenderer.Render(card));
     }
@@ -376,7 +376,6 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("tid_r_flood_of_secrets");
         Assert.Equal(
-            "Echo\n" + 
             "The enemy discards 2\n" +
             "\"The tide washes away all hidden things.\"",
             RulesTextRenderer.Render(card));
@@ -443,9 +442,8 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_c_bone_shard_volley");
         Assert.Equal(
-            "Echo\n" + 
             "Deal 3 damage to enemy creature\n" +
-            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
+            "Play it on a lane to aim it.\n" +
             "\"The dead do not miss.\"",
             RulesTextRenderer.Render(card));
     }
@@ -466,7 +464,6 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_u_soul_harvest");
         Assert.Equal(
-            "Echo\n" + 
             "Destroy exhausted ally creature. Gain 3 attunement\n" +
             "\"The barrow gives. And takes.\"",
             RulesTextRenderer.Render(card));
@@ -507,9 +504,8 @@ public class RulesTextSnapshotTests
     {
         var card = LoadById("hol_r_curse_of_binding");
         Assert.Equal(
-            "Echo\n" + 
             "Silence enemy creature. Deal 2 damage to enemy creature\n" +
-            "Play it on a lane to aim it.\n" +   // FABLE-DROP-1: rituals are aimed
+            "Play it on a lane to aim it.\n" +
             "\"Words that bind the soul and break the will.\"",
             RulesTextRenderer.Render(card));
     }

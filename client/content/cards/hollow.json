@@ -96,9 +96,7 @@
     "type": "RITUAL",
     "rarity": "COMMON",
     "cost": 2,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -158,9 +156,7 @@
     "type": "RITUAL",
     "rarity": "UNCOMMON",
     "cost": 1,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -250,9 +246,7 @@
     "type": "RITUAL",
     "rarity": "RARE",
     "cost": 3,
-    "keywords": [
-      "ECHO"
-    ],
+    "keywords": [],
     "abilities": [
       {
         "trigger": "RESOLVE",
@@ -360,7 +354,20 @@
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "It burrows into the marrow and waits.",
     "content_version": 1,
     "art": {},
@@ -507,7 +514,7 @@
         ]
       }
     ],
-    "flavor": "The rhythm of the grave\u2014steady, patient, inevitable.",
+    "flavor": "The rhythm of the grave—steady, patient, inevitable.",
     "content_version": 1,
     "art": {},
     "power_score": 7.95
@@ -563,13 +570,26 @@
     "keywords": [
       "ECHO"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "Everything has a price in the barrow.",
     "content_version": 1,
     "art": {
       "file": "hol_c_bone_trader.webp"
     },
-    "attack": 3,
+    "attack": 2,
     "vigor": 2
   },
   {
@@ -664,13 +684,26 @@
       "ECHO",
       "VENOM"
     ],
-    "abilities": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
     "flavor": "She serves a god whose name is only spoken once.",
     "content_version": 1,
     "art": {
       "file": "hol_u_nightshade_priest.webp"
     },
-    "attack": 5,
+    "attack": 4,
     "vigor": 4
   },
   {

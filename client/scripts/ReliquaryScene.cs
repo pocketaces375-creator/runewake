@@ -566,6 +566,18 @@ public partial class ReliquaryScene : Control
             int lines = 1 + rules.Count(ch => ch == '\n') + rules.Length / 70;
             float rh = Mathf.Clamp(lines * 40f + 10f, 50f, 230f);
             Put(canvas, rl, tx, y, tw, rh); y += rh + 14;
+            // FABLE-SKILLS-1: say what each keyword DOES, not just its name
+            var kwLines = RulesTextRenderer.KeywordReminderLines(card);
+            if (kwLines.Count > 0)
+            {
+                string kwText = string.Join("\n", kwLines);
+                var kl = Body(kwText, 26, new Color(0.80f, 0.74f, 0.60f));
+                kl.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+                kl.VerticalAlignment = VerticalAlignment.Top;
+                int klLines = kwLines.Sum(l => 1 + l.Length / 80);
+                float kh = Mathf.Clamp(klLines * 36f + 8f, 40f, 200f);
+                Put(canvas, kl, tx, y, tw, kh); y += kh + 12;
+            }
             if (!string.IsNullOrWhiteSpace(card.Flavor))
             {
                 var fl = Body($"“{card.Flavor.Trim()}”", 27, MutedInk);

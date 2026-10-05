@@ -84,12 +84,14 @@ The AI may only use these. Adding a keyword requires an engine change and a vers
 | **Reach** | May attack the opposing lane or lanes adjacent to it. |
 | **Rooted** | Cannot attack. (Used to price up defensive statlines.) |
 | **Unearth N** | When destroyed, returns to its owner's hand next turn at cost N. Written without N (`UNEARTH`): it returns once, fresh, at the start of your next turn. |
-| **Echo** | This card's `ON_SUMMON` ability triggers twice. |
+| **Echo** | This card's `ON_SUMMON` ability triggers twice. Creatures only, and only on a creature that has one *(FABLE-SKILLS-1: it had been printed on 10 creatures with no entry effect and 7 rituals, where it did nothing — those creatures gained small entry effects, the rituals lost the word; tests/Cards/KeywordExplanationTests.cs keeps it so)*. |
 | **Fragile** | Destroyed at end of the turn it was summoned. (Used for tokens and big tempo swings.) |
 | **Sealed** | Cannot be targeted by enemy abilities. |
 | **Exalted** | *(FABLE-DROP-1)* When your first attacker each turn attacks, it gets +1/+1 this turn for each Exalted creature you control. |
 | **Armor N** | *(FABLE-DROP-1)* Damage dealt to this is reduced by N — every hit (Ward stops one hit; Armor shaves all of them). Written `ARMOR:N`, N = 1–4. |
 | **Dodge N%** | *(FABLE-DROP-1)* N% chance to take no combat damage. Seeded RNG — the same game replays the same. Written `DODGE:N`, N = 10–50. |
+
+Every keyword's player-facing explanation lives in one place, `RulesTextRenderer.KeywordReminder`, and every card view (duel slab, Reliquary page, Deck Forge hold-to-read) shows it. A new keyword without one fails `KeywordExplanationTests`.
 
 ### 8b. Statuses, lane rules and card rules (FABLE-DROP-1)
 
