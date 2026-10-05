@@ -102,7 +102,9 @@ public class PasswordAccountsTests
             (await Auth(new Fake { Route = (r, b) => (status, body) }).SignUpWithPassword("a@b.co", "hunter22")).Error;
         Assert.Equal("New sign-ups are turned off in the Supabase dashboard", await Err(422, "{\"msg\":\"Signups not allowed for this instance\"}"));
         Assert.Equal("Email sign-in is turned off in the Supabase dashboard", await Err(422, "{\"error_code\":\"email_provider_disabled\",\"msg\":\"Email signups are disabled\"}"));
-        Assert.Equal("Too many attempts — wait a minute", await Err(429, "{\"msg\":\"email rate limit exceeded\"}"));
+        // FABLE-ACCOUNTS-2: the email limit is per HOUR, and saying "wait a minute" sent people round in circles.
+        Assert.StartsWith("The game can only send a few emails an hour", await Err(429, "{\"code\":429,\"error_code\":\"over_email_send_rate_limit\",\"msg\":\"email rate limit exceeded\"}"));
+        Assert.Equal("Too many attempts — wait a minute", await Err(429, "{\"msg\":\"Request rate limit reached\"}"));
         Assert.Equal("Password should contain at least one character of each", await Err(422, "{\"error_code\":\"weak_password\",\"msg\":\"Password should contain at least one character of each\"}"));
         var offline = await Auth(new Fake { Offline = true }).SignUpWithPassword("a@b.co", "hunter22");
         Assert.True(offline.Error.StartsWith("No connection") && offline.Status == 0);

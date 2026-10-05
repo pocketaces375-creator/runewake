@@ -16,6 +16,7 @@ config/version="0.1.0"
 run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [autoload]
 

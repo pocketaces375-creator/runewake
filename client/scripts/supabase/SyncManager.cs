@@ -399,6 +399,7 @@ public partial class SyncManager : Node
     {
         if (_auth == null || !_config.IsConfigured) return SupabaseAuth.AuthResult.Fail("Accounts not configured in this build");
         var r = await _auth.SignUpWithPassword(email, password).ConfigureAwait(false);
+        if (r.Ok && r.NeedsConfirmation) RememberPendingSignup(email, password);
         if (!r.Ok || r.NeedsConfirmation || r.Session == null) return r;
         await AdoptAccount(r.Session).ConfigureAwait(false);
         return r;
@@ -412,6 +413,64 @@ public partial class SyncManager : Node
         if (!r.Ok || r.Session == null) return r;
         await AdoptAccount(r.Session).ConfigureAwait(false);
         return r;
+    }
+
+    // ── FABLE-ACCOUNTS-2: a sign-up waiting on its confirmation email ─────
+    //
+    // Remembered on disk (the email only — never the password), so that
+    // leaving the game to open the email — or Android closing it meanwhile —
+    // does not lose the player's place: the opening screen says "Almost done"
+    // and Sign In comes up with the email filled in. The password is kept in
+    // memory only, so the game can finish signing in by itself when the
+    // player comes back from the email app.
+
+    private const string PendingSignupPath = "user://pending_signup.json";
+    private string? _pendingPassword;
+
+    /// <summary>The email of a sign-up whose confirmation link hasn't been tapped yet, or null.</summary>
+    public string? PendingSignupEmail
+    {
+        get
+        {
+            try
+            {
+                var json = ReadTextOrNull(PendingSignupPath);
+                if (json == null) return null;
+                var e = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                return e != null && e.TryGetValue("email", out var v) && !string.IsNullOrWhiteSpace(v) ? v : null;
+            }
+            catch { return null; }
+        }
+    }
+
+    private void RememberPendingSignup(string email, string password)
+    {
+        _pendingPassword = password;
+        try { WriteText(PendingSignupPath, JsonSerializer.Serialize(new Dictionary<string, string> { ["email"] = email.Trim() })); }
+        catch (Exception ex) { GD.PrintErr($"[SyncManager] pending sign-up: {ex.Message}"); }
+    }
+
+    private void ForgetPendingSignup()
+    {
+        _pendingPassword = null;
+        try
+        {
+            if (Godot.FileAccess.FileExists(PendingSignupPath))
+                DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(PendingSignupPath));
+        }
+        catch { /* best effort */ }
+    }
+
+    /// <summary>
+    /// Try to finish a pending sign-up quietly (the player is back from the
+    /// email app). Null when there is nothing to try; otherwise the sign-in
+    /// result — "Confirm your email first" just means not yet.
+    /// </summary>
+    public async Task<SupabaseAuth.AuthResult?> TryFinishPendingSignup()
+    {
+        var email = PendingSignupEmail;
+        if (email == null || string.IsNullOrEmpty(_pendingPassword) || HasAccount) return null;
+        return await SignInWithPassword(email, _pendingPassword!).ConfigureAwait(false);
     }
 
     public Task<SupabaseAuth.AuthResult> ResendConfirmation(string email)
@@ -445,6 +504,7 @@ public partial class SyncManager : Node
     {
         if (_cloud == null) return;
         WaitingForChoice = false;
+        ForgetPendingSignup();      // FABLE-ACCOUNTS-2: signed in — nothing is waiting any more
         await _gate.WaitAsync().ConfigureAwait(false);
         try
         {

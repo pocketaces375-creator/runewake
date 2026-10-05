@@ -35,6 +35,12 @@ public partial class AccountPanel : Control
     private Label _errorLine = null!;
     private Action? _firstScreen;
     private bool _busy;
+    /// <summary>FABLE-ACCOUNTS-2: what Android's Back does on the current screen (null = close).</summary>
+    private Action? _back;
+    /// <summary>FABLE-ACCOUNTS-2: set while "Check your email" is showing — a quiet sign-in attempt.</summary>
+    private Func<Task>? _autoCheck;
+    private Godot.Timer? _autoTimer;
+    private int _autoTries;
 
     /// <summary>FABLE-ACCOUNTS-1: raised once the phone is signed in to an account (created, or signed in).</summary>
     public event Action? AccountReady;
@@ -54,7 +60,7 @@ public partial class AccountPanel : Control
     public static AccountPanel OpenCreate(Control host, SyncManager sync) => Open(host, sync, p => p.CreateScreen());
 
     /// <summary>Open straight onto "Sign in".</summary>
-    public static AccountPanel OpenSignIn(Control host, SyncManager sync) => Open(host, sync, p => p.SignInScreen());
+    public static AccountPanel OpenSignIn(Control host, SyncManager sync) => Open(host, sync, p => p.SignInScreen(sync.PendingSignupEmail ?? ""));
 
     private static AccountPanel Open(Control host, SyncManager sync, Action<AccountPanel>? first)
     {
@@ -81,7 +87,9 @@ public partial class AccountPanel : Control
         var dim = new ColorRect { Color = new Color(BgDark.R, BgDark.G, BgDark.B, 0.86f), MouseFilter = MouseFilterEnum.Stop };
         dim.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         AddChild(dim);
-        dim.GuiInput += e => { if (e is InputEventMouseButton { Pressed: true }) Close(); };
+        // FABLE-ACCOUNTS-2: tapping outside the panel no longer closes it. On a phone that tap is
+        // usually someone dismissing the keyboard, and it threw away the half-filled form or the
+        // "Check your email" screen. Every screen has its own Back / Close button.
 
         var centre = new CenterContainer { MouseFilter = MouseFilterEnum.Ignore };
         centre.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
@@ -100,6 +108,10 @@ public partial class AccountPanel : Control
         _body.AddThemeConstantOverride("separation", 12);
         pad.AddChild(_body);
 
+        _autoTimer = new Godot.Timer { WaitTime = 15, OneShot = false, Autostart = true };
+        _autoTimer.Timeout += () => _ = AutoCheck();
+        AddChild(_autoTimer);
+
         _sync.StatusChanged += OnStatusChanged;
         if (_firstScreen != null && _sync.PendingConflict == null) _firstScreen();
         else Rebuild();
@@ -114,6 +126,29 @@ public partial class AccountPanel : Control
     private void OnStatusChanged(string s)
     {
         if (_statusLine != null && IsInstanceValid(_statusLine)) _statusLine.Text = s;
+    }
+
+    public override void _Notification(int what)
+    {
+        // FABLE-ACCOUNTS-2: back from the email app → see if the link was tapped, at once.
+        if (what == NotificationApplicationFocusIn) _ = AutoCheck();
+        // Android Back (button or edge swipe) steps back inside the panel instead of quitting the game.
+        if (what == NotificationWMGoBackRequest && !_busy)
+        {
+            if (_back != null) _back();
+            else Close();
+        }
+    }
+
+    /// <summary>Quietly try to finish a pending sign-up. Not yet confirmed = say nothing and wait.</summary>
+    private async Task AutoCheck()
+    {
+        if (_autoCheck == null || _busy || !IsInstanceValid(this)) return;
+        if (++_autoTries > 40) return;      // ~10 minutes of 15 s checks, plus every return to the game
+        _busy = true;
+        try { await _autoCheck(); }
+        catch (Exception ex) { GD.PrintErr($"[AccountPanel] auto-check: {ex.Message}"); }
+        finally { _busy = false; }
     }
 
     private void Close()
@@ -170,7 +205,7 @@ public partial class AccountPanel : Control
                 ? "You're playing as a guest. Make an account to keep your progress safe — everything on this phone moves into it."
                 : "Not signed in. Make an account or sign in to save your progress to it.", TextMuted);
         Buttons(("Create an account", CreateScreen),
-                ("Sign in", SignInScreen));
+                ("Sign in", () => SignInScreen(_sync.PendingSignupEmail ?? "")));
         if (_sync.IsSignedIn) Row(("Close", () => QueueFree()));
         else Row(("Play as guest", () => { _sync.ContinueAsGuest(); QueueFree(); }), ("Close", () => QueueFree()));
     }
@@ -195,17 +230,24 @@ public partial class AccountPanel : Control
         email.TextSubmitted += _ => pass.GrabFocus();
         pass.TextSubmitted += _ => Submit();
         Buttons(("Create account", Submit));
-        Row(("I have an account", SignInScreen), ("Back", Rebuild));
+        Row(("I have an account", () => SignInScreen(email.Text)), ("Back", Rebuild));
+        _back = Rebuild;
     }
 
-    private void SignInScreen()
+    private void SignInScreen() => SignInScreen("");
+
+    private void SignInScreen(string prefill)
     {
         ClearBody();
         Header("SIGN IN");
-        Body("Sign in to load your account's progress on this phone.", TextMuted);
+        var pending = _sync.PendingSignupEmail;
+        Body(pending != null && !_sync.HasAccount
+                ? $"Almost done: tap the link we emailed to {pending}, then sign in here with your password."
+                : "Sign in to load your account's progress on this phone.", TextMuted);
         ErrorLine();
 
         var email = Field("Email", LineEdit.VirtualKeyboardTypeEnum.EmailAddress);
+        email.Text = prefill ?? "";
         var pass = Field("Password", LineEdit.VirtualKeyboardTypeEnum.Password, secret: true);
         void Submit() => _ = Run(async () =>
         {
@@ -218,21 +260,28 @@ public partial class AccountPanel : Control
         pass.TextSubmitted += _ => Submit();
         Buttons(("Sign in", Submit));
         Row(("Forgot password?", () => ForgotScreen(email.Text)), ("Back", Rebuild));
+        _back = Rebuild;
     }
 
     private void ConfirmEmailScreen(string email, string password)
     {
         ClearBody();
         Header("CHECK YOUR EMAIL");
-        Body($"We sent a link to {email}. Tap it, then come back here. If the page it opens shows an error, that's fine — your email is confirmed.", TextMuted);
+        Body($"We sent a link to {email}. Open your email, tap the link, then come back to the game — it signs you in by itself. (If the page the link opens shows an error, that's fine.)", TextMuted);
         ErrorLine();
-        Buttons(("I've confirmed — sign in", () => _ = Run(async () =>
-                {
-                    var r = await _sync.SignInWithPassword(email, password);
-                    if (!IsInstanceValid(this)) return;
-                    if (!r.Ok) { ShowError(r.Error); return; }
-                    Done();
-                })));
+
+        async Task Attempt(bool quiet)
+        {
+            var r = await _sync.SignInWithPassword(email, password);
+            if (!IsInstanceValid(this)) return;
+            if (r.Ok) { Done(); return; }
+            bool notYet = r.Error.StartsWith("Confirm your email first");
+            if (!quiet || !notYet) ShowError(notYet ? "Not confirmed yet — tap the link in the email first." : r.Error);
+        }
+        _autoTries = 0;
+        _autoCheck = () => Attempt(quiet: true);
+
+        Buttons(("I've confirmed — sign in", () => _ = Run(() => Attempt(quiet: false))));
         Row(("Send it again", () => _ = Run(async () =>
                 {
                     var r = await _sync.ResendConfirmation(email);
@@ -240,6 +289,7 @@ public partial class AccountPanel : Control
                     ShowError(r.Ok ? "Sent. Check spam if it's slow." : r.Error, good: r.Ok);
                 })),
             ("Back", CreateScreen));
+        _back = CreateScreen;
     }
 
     private void ForgotScreen(string prefill)
@@ -260,7 +310,8 @@ public partial class AccountPanel : Control
         });
         email.TextSubmitted += _ => Submit();
         Buttons(("Send code", Submit));
-        Row(("Back", SignInScreen));
+        Row(("Back", () => SignInScreen(email.Text)));
+        _back = () => SignInScreen(email.Text);
     }
 
     private void CodeScreen(string email)
@@ -283,6 +334,7 @@ public partial class AccountPanel : Control
         code.TextSubmitted += _ => Submit();
         Buttons(("Confirm", Submit));
         Row(("Back", () => ForgotScreen(email)));
+        _back = () => ForgotScreen(email);
     }
 
     private void NewPasswordScreen()
@@ -303,6 +355,7 @@ public partial class AccountPanel : Control
         pass.TextSubmitted += _ => Submit();
         Buttons(("Save password", Submit));
         Row(("Not now", Done));
+        _back = Done;
     }
 
     private void ConflictScreen(SyncManager.ConflictInfo c)
@@ -324,6 +377,8 @@ public partial class AccountPanel : Control
     /// <summary>Remove now, free later: a QueueFree'd child still occupies the VBox until end of frame.</summary>
     private void ClearBody()
     {
+        _back = null;
+        _autoCheck = null;
         foreach (var c in _body.GetChildren()) { _body.RemoveChild(c); c.QueueFree(); }
     }
 

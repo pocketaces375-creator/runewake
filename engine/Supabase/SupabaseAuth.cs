@@ -369,6 +369,8 @@ public class SupabaseAuth
             return "New sign-ups are turned off in the Supabase dashboard";
         if (lower.Contains("same_password") || lower.Contains("should be different from the old"))
             return "That's already your password";
+        if (lower.Contains("email rate limit") || lower.Contains("over_email_send_rate_limit"))
+            return "The game can only send a few emails an hour, and that limit was just reached. Try again in an hour — or sign in if you already confirmed";
         if (lower.Contains("rate limit") || status == 429)
             return "Too many attempts — wait a minute";
         if (lower.Contains("already registered") || lower.Contains("already been registered"))

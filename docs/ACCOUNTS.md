@@ -50,6 +50,20 @@ Accounts are **email + password** (`SupabaseAuth.SignUpWithPassword`,
   (`SyncManager.WaitingForChoice`). Automated runs (any command-line
   argument) skip the screen and behave exactly as before.
 
+**FABLE-ACCOUNTS-2 (first phone test: "can't get past account creation"):**
+reproduced in the sandbox — a tap outside the account panel closed it (on a
+phone that tap is usually dismissing the keyboard), and Android's Back (button
+or edge swipe) quit the whole game (`quit_on_go_back` defaulted to true), so
+the player landed back on the opening screen with the form or the "Check your
+email" screen gone. Now: the panel only closes from its own buttons; Back
+steps back inside it (`application/config/quit_on_go_back=false`); a pending
+sign-up is remembered in `user://pending_signup.json` (email only), the
+opening screen says "Almost done", and Sign In comes up pre-filled; coming
+back from the email app finishes the sign-in by itself (focus-in + a 15 s
+check while "Check your email" shows). The built-in mailer's hourly limit now
+says so instead of "wait a minute". Turning **Confirm email** off in the
+dashboard removes the email step entirely.
+
 What happens to the progress on the phone when someone signs in or creates an
 account (`CloudSaveSync.DecideOnSignIn`, pure, tested):
 

@@ -223,6 +223,11 @@ public partial class StartScreen : Control
             return;
         }
 
+        // FABLE-ACCOUNTS-2: a sign-up still waiting on its email survives leaving the game (or Android
+        // closing it): say so, and Sign In comes up with the email filled in.
+        if (_sync.PendingSignupEmail is string pending)
+            _bottom.AddChild(MakeLabel($"Almost done — tap the link we emailed to {pending}, then Sign In.", 28, TextSecondary, header: false));
+
         var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 28);
         _bottom.AddChild(row);
@@ -256,6 +261,23 @@ public partial class StartScreen : Control
         b.AddThemeColorOverride("font_color", TextPrimary);
         b.Pressed += () => { Click(); act(); };
         return b;
+    }
+
+    public override void _Notification(int what)
+    {
+        // FABLE-ACCOUNTS-2: back from the email app with the panel closed — finish the sign-up quietly.
+        if (what == NotificationApplicationFocusIn && _sync != null && !_leaving && !_sync.HasAccount)
+            _ = FinishPending();
+    }
+
+    private async System.Threading.Tasks.Task FinishPending()
+    {
+        try
+        {
+            var r = await _sync!.TryFinishPendingSignup();
+            if (r != null && r.Ok && IsInstanceValid(this)) Leave();
+        }
+        catch (Exception ex) { GD.PrintErr($"[StartScreen] finish sign-up: {ex.Message}"); }
     }
 
     private void OnAccountReady()
