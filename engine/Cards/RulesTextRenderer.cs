@@ -52,12 +52,18 @@ public static class RulesTextRenderer
             sb.Append(RenderCondition(card.IdentifyCondition));
         }
 
-        // Abilities
-        foreach (var ability in card.Abilities)
+        // Abilities — FABLE-054: an artifact with printed text shows exactly that
+        if (!string.IsNullOrEmpty(card.PrintedText))
         {
             if (sb.Length > 0) sb.AppendLine();
-            sb.Append(RenderAbility(ability));
+            sb.Append(card.PrintedText);
         }
+        else
+            foreach (var ability in card.Abilities)
+            {
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(RenderAbility(ability));
+            }
 
         // FABLE-DROP-1: rituals are aimed by the lane they are played on
         if (card.Type == CardType.RITUAL && card.Abilities.Any(a => a.Effects.Any(IsAimed)))
@@ -79,10 +85,25 @@ public static class RulesTextRenderer
     }
 
     /// <summary>
+    /// FABLE-054: an artifact as a card for any card view (rules slab, Deck Forge inspector). Its printed
+    /// text is used word for word when it has one; older artifacts fall back to rendering their abilities.
+    /// </summary>
+    public static CardDef ArtifactAsCard(ArtifactDef a)
+    {
+        var card = new CardDef { Id = a.Id, Name = a.Name, Type = CardType.ARTIFACT, Flavor = a.Flavor, PrintedText = a.Text, Abilities = new List<AbilityDef>() };
+        if (a.Passive is { } p && !(p.Op == Op.HEAL && p.Target?.Scope == Scope.NONE))
+            card.Abilities.Add(new AbilityDef { Trigger = Trigger.PASSIVE, Effects = new List<EffectDef> { p } });
+        if (a.Trigger is { Effects.Count: > 0 } t) card.Abilities.Add(t);
+        if (a.ExtraTriggers != null) card.Abilities.AddRange(a.ExtraTriggers);
+        return card;
+    }
+
+    /// <summary>
     /// Render only the ability text portion of a card (no stats, keywords, flavor, or identify).
     /// </summary>
     public static string RenderAbilityTextOnly(CardDef card)
     {
+        if (!string.IsNullOrEmpty(card.PrintedText)) return card.PrintedText!;
         var sb = new StringBuilder();
         foreach (var ability in card.Abilities)
         {
@@ -722,6 +743,41 @@ public static class RulesTextRenderer
                 if (t != null && !terms.Contains(t)) terms.Add(t);
             }
         lines.AddRange(terms);
+        return lines;
+    }
+
+    /// <summary>
+    /// FABLE-054: the reminder lines for an artifact — every keyword it hands out and every term it uses
+    /// (Burn, Stun, Sigil, Suppressed, Charges…), so the Deck Forge can explain it in full.
+    /// </summary>
+    public static List<string> ArtifactReminderLines(ArtifactDef a)
+    {
+        var all = new List<AbilityDef>();
+        if (a.Trigger != null) all.Add(a.Trigger);
+        if (a.ExtraTriggers != null) all.AddRange(a.ExtraTriggers);
+        if (a.FullCharge is { Count: > 0 }) all.Add(new AbilityDef { Trigger = Trigger.ON_CHARGE_FULL, Effects = a.FullCharge });
+        var effects = all.SelectMany(x => x.Effects).ToList();
+        var card = new CardDef
+        {
+            Type = CardType.CREATURE, Abilities = all,
+            Keywords = effects.Where(e => e.Op == Op.GRANT_KEY && !string.IsNullOrEmpty(e.Keyword)).Select(e => e.Keyword!.ToUpperInvariant()).Distinct().ToList(),
+        };
+        // keywords the printed text names without handing them out ("Guard creatures heal 2", "a Squire with Guard")
+        foreach (var kw in new[] { "GUARD", "WARD", "VENOM", "PIERCE", "SWIFT", "REACH", "EXALTED" })
+            if (!card.Keywords.Contains(kw) && (a.Text ?? "").Contains(FormatKeyword(kw))) card.Keywords.Add(kw);
+        var lines = KeywordReminderLines(card);
+        void Add(string t) { if (!lines.Contains(t)) lines.Add(t); }
+        if (a.Charges is { Max: > 0 }) Add("Charges: the artifact fills up as it says. When it is full, the effect happens and it starts again from empty.");
+        foreach (var e in effects)
+            switch (e.Op)
+            {
+                case Op.SUPPRESS: Add("Suppressed: an artifact that does nothing at all for that long."); break;
+                case Op.BOUNCE: Add("Return to hand: the creature leaves the board and goes back to its owner's hand, to be played again."); break;
+                case Op.SWAP_STATS: Add("Swap: its Attack and Vigor trade places."); break;
+                case Op.STEAL: Add("Take control: the creature fights for you until the end of the turn, then goes home."); break;
+                case Op.REFRESH: Add("Attack again: a creature that already attacked this turn is ready to attack once more."); break;
+                case Op.UNEARTH_FROM_GRAVEYARD: Add("Rises again: the creature comes back from your discard pile into an empty lane."); break;
+            }
         return lines;
     }
 

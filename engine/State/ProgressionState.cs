@@ -52,6 +52,15 @@ public class ProgressionState
     public Dictionary<string, List<string>> SavedDecks { get; } = new();
 
     /// <summary>
+    /// FABLE-054: each saved deck's two artifact picks. Key = deck name (as in SavedDecks). A deck with no
+    /// entry uses its class's Forge defaults.
+    /// </summary>
+    public Dictionary<string, List<string>> DeckArtifacts { get; } = new();
+
+    /// <summary>FABLE-054: the artifacts the active (forged) deck brings to duels.</summary>
+    public List<string> ActiveArtifacts { get; } = new();
+
+    /// <summary>
     /// Global discovery index counter. Incremented each time a relic is minted.
     /// per card_id. The discovery_index on a relic is the value at mint time.
     /// </summary>

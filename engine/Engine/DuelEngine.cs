@@ -386,6 +386,10 @@ public static partial class DuelEngine
             // never fired. It goes before the blow lands; if the defender is gone after it, the attack fizzles.
             var defender0 = opponent.Lanes[tgtIdx0].Occupant!;
             opponent.LastAttackedLaneIndex = tgtIdx0;
+            // FABLE-054: mark the first creature attacked BEFORE its listeners run. It used to be set after, so
+            // "the first creature attacked each enemy turn" (Shield, Unbroken Bulwark) found no one on the first blow.
+            if (opponent.FirstAttackedLaneIndex is null)
+                opponent.FirstAttackedLaneIndex = tgtIdx0;
             TriggerBus.FireSide(state, Trigger.ON_ALLY_ATTACKED, opponent.Index);
             Auras.Recompute(state);
             if (state.IsGameOver || !ReferenceEquals(sourceLane.Occupant, attacker))

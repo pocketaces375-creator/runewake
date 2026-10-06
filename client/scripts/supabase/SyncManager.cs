@@ -115,12 +115,14 @@ public partial class SyncManager : Node
         _auth = new SupabaseAuth(config, Http.Create(15));
         _cloud = new CloudSaveSync(config, Http.Create(20));
         _relics = new RelicLedgerSync(config, Http.Create(10));
+        _profiles = new ProfileSync(config, Http.Create(10));
         _deviceId = ReadOrCreateDeviceId();
         _meta = ReadMeta();
         Session = ReadSession();
+        Username = ReadUsername(Session?.UserId);
         if (_relics != null && Session != null) _relics.AccessToken = Session.AccessToken;
         if (!config.IsConfigured) SetStatus("Accounts not configured in this build");
-        else SetStatus(Session == null ? "Not signed in yet" : "Signed in · " + Session.DisplayLabel());
+        else SetStatus(Session == null ? "Not signed in yet" : "Signed in · " + Label(Session));
     }
 
     /// <summary>
@@ -165,6 +167,7 @@ public partial class SyncManager : Node
         try
         {
             if (!await EnsureSession().ConfigureAwait(false)) return;
+            if (HasAccount) _ = RefreshUsername();
             await CompareWithCloud().ConfigureAwait(false);
             await SyncRelicsWithLedger().ConfigureAwait(false);
         }
@@ -225,7 +228,7 @@ public partial class SyncManager : Node
                     Emit(SignalName.ConflictDetected);
                     break;
                 case CloudSaveSync.Decision.NoOp:
-                    SetStatus("Backed up · " + Session!.DisplayLabel());
+                    SetStatus("Backed up · " + Label(Session));
                     break;
             }
             _cloudSettled = decision != CloudSaveSync.Decision.Conflict;
@@ -329,7 +332,7 @@ public partial class SyncManager : Node
             _meta.LastSyncedAt = (r.UpdatedAt ?? DateTimeOffset.UtcNow).ToString("o");
             _meta.LastError = null;
             WriteMeta();
-            SetStatus("Backed up · " + Session.DisplayLabel());
+            SetStatus("Backed up · " + Label(Session));
             GD.Print($"[SyncManager] pushed save ({bundle.Slots.Count} slot(s)) at {_meta.LastSyncedAt}");
         }
         else
@@ -375,7 +378,7 @@ public partial class SyncManager : Node
         if (r.Ok)
         {
             AdoptSession(r.Session!);
-            SetStatus("Linked · " + r.Session!.DisplayLabel());
+            SetStatus("Linked · " + Label(r.Session));
             // Make sure the cloud has the save under the now-recoverable account.
             _ = Task.Run(async () =>
             {
@@ -522,13 +525,13 @@ public partial class SyncManager : Node
                 // Never push blind: the account may hold a save we could not
                 // see. The next launch's startup sync asks if both moved.
                 RecordError(fetch.Error);
-                SetStatus("Signed in · " + account.DisplayLabel() + " — could not fetch save: " + fetch.Error);
+                SetStatus("Signed in · " + Label(account) + " — could not fetch save: " + fetch.Error);
                 return;
             }
 
             var local = BuildLocalBundle();
             var decision = CloudSaveSync.DecideOnSignIn(fetch.Save, local);
-            GD.Print($"[SyncManager] signed in as {account.DisplayLabel()} — {decision}");
+            GD.Print($"[SyncManager] signed in as {Label(account)} — {decision}");
             switch (decision)
             {
                 case CloudSaveSync.SignInDecision.PushLocal:
@@ -542,7 +545,7 @@ public partial class SyncManager : Node
                     _meta.LastSyncedAt = fetch.Save!.UpdatedAt.ToString("o");
                     _meta.LastError = null;
                     WriteMeta();
-                    SetStatus("Backed up · " + account.DisplayLabel());
+                    SetStatus("Backed up · " + Label(account));
                     break;
                 case CloudSaveSync.SignInDecision.Ask:
                     PendingConflict = new ConflictInfo
@@ -559,6 +562,7 @@ public partial class SyncManager : Node
         }
         finally { _gate.Release(); }
         await SyncRelicsAfterSignIn().ConfigureAwait(false);
+        _ = RefreshUsername();   // FABLE-054
     }
 
     private async Task SyncRelicsAfterSignIn()
@@ -591,6 +595,7 @@ public partial class SyncManager : Node
         if (_auth != null && Session != null) await _auth.SignOut(Session).ConfigureAwait(false);
         ArchiveSession();
         Session = null;
+        Username = null;
         _cloudSettled = false;
         WaitingForChoice = true;   // FABLE-ACCOUNTS-1: no silent guest after signing out; the panel offers the choice
         _meta = new SyncMeta { Dirty = !IsLocalEmpty() };
@@ -618,7 +623,7 @@ public partial class SyncManager : Node
             foreach (var r in server) if (localIds.Add(r.RelicInstanceId)) { prog.AddRelic(r); merged++; }
             var localOnly = prog.DiscoveredRelics.Where(r => server.All(s => s.RelicInstanceId != r.RelicInstanceId)).ToList();
             if (localOnly.Count > 0) await _relics.SyncRelics(Session.UserId, localOnly).ConfigureAwait(false);
-            if (merged > 0) _save.Save();
+            if (merged > 0) OnMainThread(() => _save.Save());   // FABLE-055: never save from a background thread
             GD.Print($"[SyncManager] relics: {merged} merged from server, {localOnly.Count} pushed");
         }
         catch (Exception ex) { GD.PrintErr($"[SyncManager] relic sync failed: {ex.Message}"); }
@@ -689,8 +694,10 @@ public partial class SyncManager : Node
                 if (!b.Slots.TryGetValue(slot.ToString(), out var snap)) continue;
                 if (slot == active && _save != null)
                 {
-                    snap.ApplyTo(_save.State);
-                    _save.Save();                     // NotifySaved fires — harmless, meta is cleaned below
+                    // FABLE-055: change and save the live state on the main thread, where the game also
+                    // changes it — doing it here raced the game ("collection was modified", "database is locked")
+                    var save = _save; var restored = snap;
+                    OnMainThread(() => { restored.ApplyTo(save.State); save.Save(); });
                 }
                 else
                 {
@@ -714,7 +721,7 @@ public partial class SyncManager : Node
             _meta.LastSyncedAt = cloud.UpdatedAt.ToString("o");
             _meta.LastError = null;
             WriteMeta();
-            SetStatus("Restored from cloud · " + (Session?.DisplayLabel() ?? ""));
+            SetStatus("Restored from cloud · " + Label(Session));
             GD.Print($"[SyncManager] applied cloud save from {cloud.UpdatedAt:u} ({b.Slots.Count} slot(s))");
             Emit(SignalName.CloudSaveApplied);
         }
@@ -850,6 +857,110 @@ public partial class SyncManager : Node
     // ═════════════════════════════════════════════════════════════════════
     //  Main-thread plumbing
     // ═════════════════════════════════════════════════════════════════════
+
+    // ═════════════════════════════════════════════════════════════════════
+    //  FABLE-054: usernames — what other players see (never the email)
+    // ═════════════════════════════════════════════════════════════════════
+
+    private ProfileSync? _profiles;
+    private const string UsernamePath = "user://username.json";
+    private const string UsernameToClaimPath = "user://username_to_claim.txt";
+
+    /// <summary>This account's username, or null when it hasn't picked one.</summary>
+    public string? Username { get; private set; }
+
+    /// <summary>What this phone shows for the signed-in player: the username, else a masked email, else "Guest 3F2A".</summary>
+    public string PublicLabel => Label(Session);
+
+    /// <summary>What other players see in lobbies and challenges: the username, or a plain "Delver".</summary>
+    public string NameForOthers => string.IsNullOrEmpty(Username) ? "Delver" : Username!;
+
+    private string Label(SupabaseSession? s)
+    {
+        if (!string.IsNullOrEmpty(Username)) return Username!;
+        if (s == null) return "";
+        if (!string.IsNullOrEmpty(s.Email)) return Usernames.MaskEmail(s.Email);
+        return s.DisplayLabel();
+    }
+
+    private static string? ReadUsername(string? userId)
+    {
+        if (string.IsNullOrEmpty(userId)) return null;
+        try
+        {
+            var json = ReadTextOrNull(UsernamePath);
+            if (json == null) return null;
+            var d = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+            return d != null && d.TryGetValue("user_id", out var u) && u == userId && d.TryGetValue("name", out var n) ? n : null;
+        }
+        catch (JsonException) { return null; }
+    }
+
+    private void WriteUsername()
+    {
+        try { WriteText(UsernamePath, JsonSerializer.Serialize(new Dictionary<string, string> { ["user_id"] = Session?.UserId ?? "", ["name"] = Username ?? "" })); }
+        catch (Exception ex) { GD.PrintErr($"[SyncManager] could not keep the username: {ex.Message}"); }
+    }
+
+    /// <summary>A name chosen while creating an account that still waits on email confirmation: claimed at the first sign-in.</summary>
+    public void RememberUsernameToClaim(string name)
+    {
+        try { WriteText(UsernameToClaimPath, name.Trim()); } catch (Exception ex) { GD.PrintErr($"[SyncManager] {ex.Message}"); }
+    }
+
+    public void ForgetUsernameToClaim()
+    {
+        try { if (Godot.FileAccess.FileExists(UsernameToClaimPath)) DirAccess.RemoveAbsolute(ProjectSettings.GlobalizePath(UsernameToClaimPath)); } catch { }
+    }
+
+    /// <summary>Ask the server for this account's username (and claim a remembered one if it has none).</summary>
+    public async Task RefreshUsername()
+    {
+        if (_profiles == null || Session == null || !HasAccount) return;
+        var name = await _profiles.MyUsername(Session).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(name) && ReadTextOrNull(UsernameToClaimPath) is string wanted && wanted.Trim().Length > 0)
+        {
+            var (claim, _) = await _profiles.ClaimUsername(Session, wanted).ConfigureAwait(false);
+            if (claim == ProfileSync.Claim.Ok) name = wanted.Trim();
+            if (claim != ProfileSync.Claim.Missing && claim != ProfileSync.Claim.Failed) ForgetUsernameToClaim();
+        }
+        if (name == null || name == Username) return;
+        Username = name.Length > 0 ? name : null;
+        WriteUsername();
+        CallDeferred(nameof(SetStatusDeferred), "Signed in · " + PublicLabel);
+    }
+
+    private void SetStatusDeferred(string s) => SetStatus(s);
+
+    /// <summary>FABLE-055: run on the main thread (now if already there, else at the next idle frame).</summary>
+    private static void OnMainThread(Action act)
+    {
+        if (System.Threading.Thread.CurrentThread.ManagedThreadId == MainThreadId) act();
+        else Callable.From(act).CallDeferred();
+    }
+
+    private static readonly int MainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
+    /// <summary>Pick or change the username. Ok, or a sentence saying why not.</summary>
+    public async Task<(bool ok, string error)> SetUsername(string name)
+    {
+        if (_profiles == null || Session == null || !HasAccount) return (false, "Sign in to an account first.");
+        var (claim, error) = await _profiles.ClaimUsername(Session, name).ConfigureAwait(false);
+        if (claim != ProfileSync.Claim.Ok) return (false, error);
+        Username = name.Trim();
+        WriteUsername();
+        CallDeferred(nameof(SetStatusDeferred), "Signed in · " + PublicLabel);
+        return (true, "");
+    }
+
+    public Task<string?> ChallengePlayer(string username, string expeditionId)
+        => _profiles == null || Session == null ? Task.FromResult<string?>("Sign in first.") : _profiles.ChallengePlayer(Session, username, expeditionId);
+
+    public Task<List<ProfileSync.Challenge>> MyChallenges()
+        => _profiles == null || Session == null || !HasAccount ? Task.FromResult(new List<ProfileSync.Challenge>()) : _profiles.MyChallenges(Session);
+
+    public Task<string?> AnswerChallenge(string id, bool accept)
+        => _profiles == null || Session == null ? Task.FromResult<string?>(null) : _profiles.AnswerChallenge(Session, id, accept);
 
     private void SetStatus(string s)
     {

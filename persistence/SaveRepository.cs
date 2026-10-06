@@ -31,6 +31,20 @@ public sealed class SaveRepository
     /// </summary>
     public List<string> RepairLog { get; } = new();
 
+    /// <summary>FABLE-055: why the last Save() failed (null after a good save).</summary>
+    public string? LastSaveError { get; private set; }
+
+    /// <summary>FABLE-055: how long a save waits for another save holding the file before giving up.</summary>
+    public int BusyTimeoutMs { get; init; } = 5000;
+
+    /// <summary>
+    /// FABLE-055: one save or load of a given file at a time, across every repository object and thread in
+    /// the process. The cloud sync saves from a background thread while the game saves on the main one;
+    /// two writers at once failed with "database is locked" — and a failed save used to delete the file.
+    /// </summary>
+    private static readonly Dictionary<string, object> FileGates = new();
+    private object Gate { get { lock (FileGates) { if (!FileGates.TryGetValue(_dbPath, out var g)) FileGates[_dbPath] = g = new object(); return g; } } }
+
     /// <summary>Create a repository rooted at the given SQLite file path.</summary>
     public SaveRepository(string dbPath)
     {
@@ -114,6 +128,11 @@ public sealed class SaveRepository
     /// </summary>
     public ProgressionState Load()
     {
+        lock (Gate) return LoadLocked();
+    }
+
+    private ProgressionState LoadLocked()
+    {
         RepairLog.Clear();
         try
         {
@@ -140,43 +159,56 @@ public sealed class SaveRepository
     /// </summary>
     public bool Save(ProgressionState state)
     {
-        try
+        lock (Gate)
         {
-            // Try a normal save first
-            if (TrySaveInternal(state))
-                return true;
-
-            // The DB file is corrupt or unreadable — delete and recreate
-            RepairLog.Add("Save failed — deleting corrupted database file and recreating.");
-            TryDeleteFile(_dbPath);
-            TryDeleteFile(_dbPath + "-wal");
-            TryDeleteFile(_dbPath + "-shm");
-
-            // Retry the save on a fresh file
-            return TrySaveInternal(state);
-        }
-        catch (Exception ex)
-        {
-            RepairLog.Add($"Save failed after retry: {ex.GetType().Name}: {ex.Message}. Progress will NOT persist this session.");
-            System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save failed after retry: {ex.GetType().Name}: {ex.Message}");
-            return false;
+            // FABLE-055: a failed save NEVER deletes the file any more. It used to delete-and-retry on any
+            // failure, so one awkward value (a relic listed twice) or a moment of contention cost the whole
+            // save. Only a file SQLite itself calls corrupt is set aside — renamed, not deleted — and remade.
+            var first = TrySaveInternal(state);
+            if (first == null) { LastSaveError = null; return true; }
+            if (!IsCorruptFile(first))
+            {
+                LastSaveError = Describe(first);
+                RepairLog.Add($"Save failed: {LastSaveError}. The save file was left as it was.");
+                return false;
+            }
+            RepairLog.Add($"Save file is damaged ({Describe(first)}) — set aside as .damaged and started fresh.");
+            SetAside(_dbPath);
+            var second = TrySaveInternal(state);
+            LastSaveError = second == null ? null : Describe(second);
+            return second == null;
         }
     }
 
-    /// <summary>Internal save attempt — does NOT retry on failure.</summary>
-    private bool TrySaveInternal(ProgressionState state)
+    private static string Describe(Exception ex) => ex is SqliteException se
+        ? $"SQLite {se.SqliteErrorCode}: {se.Message}"
+        : $"{ex.GetType().Name}: {ex.Message}";
+
+    /// <summary>SQLITE_CORRUPT (11) or SQLITE_NOTADB (26): the file itself is broken.</summary>
+    private static bool IsCorruptFile(Exception ex) => ex is SqliteException { SqliteErrorCode: 11 or 26 };
+
+    private static void SetAside(string path)
+    {
+        string stamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+        foreach (var ext in new[] { "", "-wal", "-shm" })
+            try { if (File.Exists(path + ext)) File.Move(path + ext, $"{path}.damaged_{stamp}{ext}", overwrite: true); }
+            catch { TryDeleteFile(path + ext); }
+    }
+
+    /// <summary>Internal save attempt — does NOT retry. Null on success, else the exception.</summary>
+    private Exception? TrySaveInternal(ProgressionState state)
     {
         try
         {
             using var conn = OpenConnection();
             EnsureSchema(conn);
             SaveTo(conn, state);
-            return true;
+            return null;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[SaveRepository] Save attempt failed: {ex.GetType().Name}: {ex.Message}");
-            return false;
+            return ex;
         }
     }
 
@@ -186,6 +218,11 @@ public sealed class SaveRepository
     /// button to surface SQLite errors to the player.
     /// </summary>
     public (bool Success, string? ErrorMessage) TestReadWrite()
+    {
+        lock (Gate) return TestReadWriteLocked();
+    }
+
+    private (bool Success, string? ErrorMessage) TestReadWriteLocked()
     {
         try
         {
@@ -230,6 +267,11 @@ public sealed class SaveRepository
     /// </summary>
     public void SaveSettings(SettingsState settings)
     {
+        lock (Gate) SaveSettingsLocked(settings);
+    }
+
+    private void SaveSettingsLocked(SettingsState settings)
+    {
         using var conn = OpenConnection();
         EnsureSchema(conn);
 
@@ -258,6 +300,11 @@ public sealed class SaveRepository
     /// Missing keys get default values.
     /// </summary>
     public SettingsState LoadSettings()
+    {
+        lock (Gate) return LoadSettingsLocked();
+    }
+
+    private SettingsState LoadSettingsLocked()
     {
         var s = new SettingsState();
         try
@@ -316,8 +363,16 @@ public sealed class SaveRepository
         // which prevents the auto-repair retry (deleting a corrupted file and
         // recreating it) from working. No measurable performance difference
         // for a single-user game save system.
-        var conn = new SqliteConnection($"Data Source={_dbPath};Pooling=False");
+        var conn = new SqliteConnection($"Data Source={_dbPath};Pooling=False;Default Timeout={Math.Max(1, BusyTimeoutMs / 1000)}");
         conn.Open();
+        try
+        {
+            // FABLE-055: wait for another writer instead of failing at once with "database is locked"
+            using var busy = conn.CreateCommand();
+            busy.CommandText = $"PRAGMA busy_timeout={BusyTimeoutMs}";
+            busy.ExecuteNonQuery();
+        }
+        catch { /* best effort */ }
         try
         {
             // WAL-mode: faster reads, supports concurrent readers — but not all
@@ -448,6 +503,18 @@ public sealed class SaveRepository
                     case "arena_losses": if (int.TryParse(value, out var al) && al >= 0) state.ArenaLosses = al; break;
                     case "seen_card_ids":
                         foreach (var id in value.Split(',', StringSplitOptions.RemoveEmptyEntries)) state.SeenCardIds.Add(id);
+                        break;
+                    // FABLE-054: each deck's two artifacts, and the active deck's
+                    case "active_artifacts":
+                        state.ActiveArtifacts.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                        break;
+                    case "deck_artifacts":
+                        try
+                        {
+                            var da = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(value);
+                            if (da != null) foreach (var kv in da) if (kv.Value != null) state.DeckArtifacts[kv.Key] = kv.Value;
+                        }
+                        catch (System.Text.Json.JsonException) { /* a bad row loses only the picks; defaults step in */ }
                         break;
                 }
             }
@@ -599,12 +666,14 @@ public sealed class SaveRepository
             InsertMeta(conn, "arena_wins", state.ArenaWins.ToString());
             InsertMeta(conn, "arena_losses", state.ArenaLosses.ToString());
             InsertMeta(conn, "seen_card_ids", string.Join(",", state.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal)));
+            InsertMeta(conn, "active_artifacts", string.Join(",", state.ActiveArtifacts));
+            InsertMeta(conn, "deck_artifacts", System.Text.Json.JsonSerializer.Serialize(state.DeckArtifacts));
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT INTO cleared_nodes (node_id) VALUES (@id)";
+                cmd.CommandText = "INSERT OR REPLACE INTO cleared_nodes (node_id) VALUES (@id)";
                 cmd.Parameters.AddWithValue("@id", nodeId);
                 cmd.ExecuteNonQuery();
             }
@@ -613,7 +682,7 @@ public sealed class SaveRepository
             foreach (var (cardId, count) in state.Collection)
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT INTO collection (card_id, count) VALUES (@id, @c)";
+                cmd.CommandText = "INSERT OR REPLACE INTO collection (card_id, count) VALUES (@id, @c)";
                 cmd.Parameters.AddWithValue("@id", cardId);
                 cmd.Parameters.AddWithValue("@c", count);
                 cmd.ExecuteNonQuery();
@@ -623,7 +692,7 @@ public sealed class SaveRepository
             foreach (var (strata, count) in state.Fragments)
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT INTO fragments (strata, count) VALUES (@s, @c)";
+                cmd.CommandText = "INSERT OR REPLACE INTO fragments (strata, count) VALUES (@s, @c)";
                 cmd.Parameters.AddWithValue("@s", strata);
                 cmd.Parameters.AddWithValue("@c", count);
                 cmd.ExecuteNonQuery();
@@ -633,7 +702,7 @@ public sealed class SaveRepository
             foreach (var runeId in state.OwnedRuneIds)
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT INTO owned_runes (rune_id) VALUES (@id)";
+                cmd.CommandText = "INSERT OR REPLACE INTO owned_runes (rune_id) VALUES (@id)";
                 cmd.Parameters.AddWithValue("@id", runeId);
                 cmd.ExecuteNonQuery();
             }
@@ -642,13 +711,14 @@ public sealed class SaveRepository
             foreach (var toolId in state.UnlockedTools)
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT INTO unlocked_tools (tool_id) VALUES (@id)";
+                cmd.CommandText = "INSERT OR REPLACE INTO unlocked_tools (tool_id) VALUES (@id)";
                 cmd.Parameters.AddWithValue("@id", toolId);
                 cmd.ExecuteNonQuery();
             }
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM discovered_relics"; cmd.ExecuteNonQuery(); }
-            foreach (var relic in state.DiscoveredRelics)
+            // FABLE-055: a relic listed twice (or with a missing field) used to fail every save from then on
+            foreach (var relic in state.DiscoveredRelics.Where(r => !string.IsNullOrEmpty(r?.RelicInstanceId)).GroupBy(r => r.RelicInstanceId).Select(g => g.First()))
             {
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = """
@@ -657,12 +727,12 @@ public sealed class SaveRepository
                     VALUES (@id, @cid, @name, @date, @site, @idx, @style)
                     """;
                 cmd.Parameters.AddWithValue("@id", relic.RelicInstanceId);
-                cmd.Parameters.AddWithValue("@cid", relic.CardId);
-                cmd.Parameters.AddWithValue("@name", relic.AcquirerName);
-                cmd.Parameters.AddWithValue("@date", relic.AcquiredAt);
-                cmd.Parameters.AddWithValue("@site", relic.Site);
+                cmd.Parameters.AddWithValue("@cid", relic.CardId ?? "");
+                cmd.Parameters.AddWithValue("@name", relic.AcquirerName ?? "");
+                cmd.Parameters.AddWithValue("@date", relic.AcquiredAt ?? "");
+                cmd.Parameters.AddWithValue("@site", relic.Site ?? "");
                 cmd.Parameters.AddWithValue("@idx", relic.DiscoveryIndex);
-                cmd.Parameters.AddWithValue("@style", relic.EngravingStyle);
+                cmd.Parameters.AddWithValue("@style", relic.EngravingStyle ?? "default");
                 cmd.ExecuteNonQuery();
             }
 
@@ -673,13 +743,13 @@ public sealed class SaveRepository
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "INSERT INTO saved_deck (position, card_id) VALUES (@pos, @id)";
                 cmd.Parameters.AddWithValue("@pos", i);
-                cmd.Parameters.AddWithValue("@id", state.DeckCardIds[i]);
+                cmd.Parameters.AddWithValue("@id", state.DeckCardIds[i] ?? "");
                 cmd.ExecuteNonQuery();
             }
 
             // Named decks (schema v2)
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM named_decks"; cmd.ExecuteNonQuery(); }
-            foreach (var (deckName, cardIds) in state.SavedDecks)
+            foreach (var (deckName, cardIds) in state.SavedDecks.Where(kv => kv.Key != null && kv.Value != null))
             {
                 for (int i = 0; i < cardIds.Count; i++)
                 {
@@ -687,7 +757,7 @@ public sealed class SaveRepository
                     cmd.CommandText = "INSERT INTO named_decks (deck_name, position, card_id) VALUES (@name, @pos, @id)";
                     cmd.Parameters.AddWithValue("@name", deckName);
                     cmd.Parameters.AddWithValue("@pos", i);
-                    cmd.Parameters.AddWithValue("@id", cardIds[i]);
+                    cmd.Parameters.AddWithValue("@id", cardIds[i] ?? "");
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -704,9 +774,9 @@ public sealed class SaveRepository
     private static void InsertMeta(SqliteConnection conn, string key, string value)
     {
         using var cmd = conn.CreateCommand();
-        cmd.CommandText = "INSERT INTO meta (key, value) VALUES (@k, @v)";
+        cmd.CommandText = "INSERT OR REPLACE INTO meta (key, value) VALUES (@k, @v)";
         cmd.Parameters.AddWithValue("@k", key);
-        cmd.Parameters.AddWithValue("@v", value);
+        cmd.Parameters.AddWithValue("@v", value ?? "");     // FABLE-055: a missing value is "", never a failed save
         cmd.ExecuteNonQuery();
     }
 

@@ -1,5 +1,5 @@
 {
-  "comment": "Audio manifest — maps string IDs to resource paths, bus assignments, and default volumes. Missing IDs log a warning and are safely ignored.",
+  "comment": "Audio manifest \u2014 maps string IDs to resource paths, bus assignments, and default volumes. Missing IDs log a warning and are safely ignored.",
   "music": {
     "ambient_reach": {
       "path": "res://content/audio/music/ambient_reach.ogg",
@@ -20,6 +20,31 @@
       "path": "res://content/audio/music/stones_and_dust.ogg",
       "bus": "Music",
       "volume": -3.5
+    },
+    "gilded_court": {
+      "path": "res://content/audio/music/gilded_court.ogg",
+      "bus": "Music",
+      "volume": 0.0
+    },
+    "sands_of_the_old_age": {
+      "path": "res://content/audio/music/sands_of_the_old_age.ogg",
+      "bus": "Music",
+      "volume": 0.0
+    },
+    "barrow_hymn": {
+      "path": "res://content/audio/music/barrow_hymn.ogg",
+      "bus": "Music",
+      "volume": 0.0
+    },
+    "hearthfire_reckoning": {
+      "path": "res://content/audio/music/hearthfire_reckoning.ogg",
+      "bus": "Music",
+      "volume": 0.0
+    },
+    "the_long_ascent": {
+      "path": "res://content/audio/music/the_long_ascent.ogg",
+      "bus": "Music",
+      "volume": 0.0
     }
   },
   "sfx": {

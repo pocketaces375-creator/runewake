@@ -78,7 +78,7 @@ public static class ArtifactRegistry
     /// (Rogues really do carry two daggers: their launch pair shares the "dagger" pool.)
     /// </summary>
     private static string[] LaunchPair(string classId) => _artifacts.Values
-        .Where(a => a.Class == classId)
+        .Where(a => a.Class == classId && !a.Forge)
         .Take(2)
         .OrderBy(a => a.SlotPool, StringComparer.Ordinal)
         .Select(a => a.Id)
@@ -195,7 +195,7 @@ public static class ArtifactRegistry
     private static string[] PickPerPool(string classId, HashSet<string> exclude, SeededRng rng)
     {
         var pools = _artifacts.Values
-            .Where(a => a.Class == classId && !string.IsNullOrEmpty(a.SlotPool))
+            .Where(a => a.Class == classId && !a.Forge && !string.IsNullOrEmpty(a.SlotPool))
             .GroupBy(a => a.SlotPool)
             .OrderBy(g => g.Key, System.StringComparer.Ordinal)
             .ToList();
@@ -224,5 +224,77 @@ public static class ArtifactRegistry
         }
 
         return result.ToArray();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  FABLE-054: the Deck Forge pool — every deck picks two of its class's
+    // ══════════════════════════════════════════════════════════════════════
+
+    /// <summary>How many artifacts a deck carries.</summary>
+    public const int LoadoutSize = 2;
+
+    /// <summary>The class's Deck Forge artifacts, in content order.</summary>
+    public static IReadOnlyList<ArtifactDef> ForgePool(string? classId) => _artifacts.Values
+        .Where(a => a.Forge && a.Class == (classId ?? ""))
+        .ToList();
+
+    /// <summary>The two a fresh deck of this class starts with (the pool's defaults, else its first two).</summary>
+    public static string[] ForgeDefaults(string? classId)
+    {
+        var pool = ForgePool(classId);
+        var picks = pool.Where(a => a.IsDefault).Select(a => a.Id).ToList();
+        foreach (var a in pool) { if (picks.Count >= LoadoutSize) break; if (!picks.Contains(a.Id)) picks.Add(a.Id); }
+        return picks.Take(LoadoutSize).ToArray();
+    }
+
+    /// <summary>
+    /// True when these ids are a legal Deck Forge loadout for the class: exactly two, different,
+    /// registered, in that class's pool.
+    /// </summary>
+    public static bool IsValidLoadout(string? classId, IReadOnlyList<string>? ids) =>
+        ids is { Count: LoadoutSize } && ids.Distinct().Count() == LoadoutSize
+        && ids.All(id => Get(id) is { Forge: true } a && a.Class == classId);
+
+    /// <summary>
+    /// What a player brings: their deck's picks when legal, else the class's Forge defaults, else
+    /// (no Forge content loaded) the old launch pair. Never returns an illegal pair.
+    /// </summary>
+    public static string[] PlayerLoadout(string? classId, IReadOnlyList<string>? chosen)
+    {
+        if (IsValidLoadout(classId, chosen)) return chosen!.ToArray();
+        var d = ForgeDefaults(classId);
+        return d.Length == LoadoutSize ? d : DefaultLoadoutFor(classId ?? "");
+    }
+
+    /// <summary>
+    /// An AI opponent's class and two Forge artifacts: a class other than the player's unless the content
+    /// names one, two different artifacts from its pool, chosen from the duel seed so a replay matches.
+    /// Falls back to <see cref="OpponentLoadout"/> when no Forge pool is loaded.
+    /// </summary>
+    public static (string ClassId, string[] Artifacts) OpponentForgeLoadout(
+        string? explicitClass, string playerClassId, string encounterId, ulong seed)
+    {
+        var classes = _artifacts.Values.Where(a => a.Forge).Select(a => a.Class).Distinct()
+            .OrderBy(c => c, System.StringComparer.Ordinal).ToList();
+        if (classes.Count == 0)
+            return OpponentLoadout(explicitClass, playerClassId, System.Array.Empty<string>(), encounterId, seed);
+
+        var rng = new SeededRng(seed ^ StableHash("forge:" + (encounterId ?? string.Empty)));
+        string classId;
+        if (!string.IsNullOrEmpty(explicitClass) && classes.Contains(explicitClass!))
+            classId = explicitClass!;
+        else
+        {
+            var others = classes.Where(c => c != playerClassId).ToList();
+            var from = others.Count > 0 ? others : classes;
+            classId = from[rng.NextInt(from.Count)];
+        }
+        var pool = ForgePool(classId).Select(a => a.Id).ToList();
+        if (pool.Count < LoadoutSize)
+            return OpponentLoadout(classId, playerClassId, System.Array.Empty<string>(), encounterId, seed);
+        int first = rng.NextInt(pool.Count);
+        int second = rng.NextInt(pool.Count - 1);
+        if (second >= first) second++;
+        return (classId, new[] { pool[first], pool[second] });
     }
 }

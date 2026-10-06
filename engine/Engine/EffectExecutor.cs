@@ -108,7 +108,7 @@ public static class EffectExecutor
                     ApplySuppress(target, effect.Amount ?? 1, source, state);
                     break;
                 case Op.ADD_CHARGE:
-                    ApplyAddCharge(target, effect.Amount ?? 1, source, state);
+                    ApplyAddCharge(target, effect.Amount ?? 1, source, state, OnlySourceSlot(effect, source));
                     break;
                 case Op.SET_PREY:
                     ApplySetPrey(target, source, state);
@@ -123,7 +123,7 @@ public static class EffectExecutor
                     ApplyCostMod(target, effect, source, state);
                     break;
                 case Op.RESET_CHARGES:
-                    ApplyResetCharges(target, state);
+                    ApplyResetCharges(target, state, OnlySourceSlot(effect, source));
                     break;
                 case Op.FORGE:
                     ApplyForge(target, effect, source, state);
@@ -652,7 +652,7 @@ public static class EffectExecutor
     /// Immediate ON_CHARGE_FULL fires as before when no timing modifier is set.
     /// Suppressed artifacts are skipped (G3 — charge freeze under suppression).
     /// </summary>
-    private static void ApplyAddCharge(ResolvedTarget target, int amount, CardInstance source, GameState state)
+    private static void ApplyAddCharge(ResolvedTarget target, int amount, CardInstance source, GameState state, int? onlyInstance = null)
     {
         PlayerState? player = target switch
         {
@@ -671,6 +671,8 @@ public static class EffectExecutor
         foreach (var slot in player.ArtifactSlots)
         {
             if (slot.MaxCharges <= 0 || slot.Occupant is null || slot.IsSuppressed)
+                continue;
+            if (onlyInstance is int only && slot.Occupant.InstanceId != only)
                 continue;
 
             int before = slot.Charges;
@@ -708,7 +710,14 @@ public static class EffectExecutor
     /// RESET_CHARGES: Reset Charges on an Artifact slot to 0.
     /// Target should be PLAYER_SELF (resets all slots) or a specific slot.
     /// </summary>
-    private static void ApplyResetCharges(ResolvedTarget target, GameState state)
+    /// <summary>
+    /// FABLE-054: an artifact's own SELF_ARTIFACT charge effects touch ITS slot only. SELF_ARTIFACT used to
+    /// resolve to the whole player, so an artifact resetting "its" Charges also emptied its partner's.
+    /// </summary>
+    private static int? OnlySourceSlot(EffectDef effect, CardInstance source) =>
+        effect.Target?.Scope == Scope.SELF_ARTIFACT && source.CardType == CardType.ARTIFACT ? source.InstanceId : null;
+
+    private static void ApplyResetCharges(ResolvedTarget target, GameState state, int? onlyInstance = null)
     {
         PlayerState? player = target switch
         {
@@ -722,7 +731,7 @@ public static class EffectExecutor
         {
             // Suppressed artifacts' Charges are frozen (G3: no gain, no spend, no loss) —
             // a reset while suppressed would be a loss, so skip suppressed slots.
-            if (slot.Occupant is not null && !slot.IsSuppressed)
+            if (slot.Occupant is not null && !slot.IsSuppressed && (onlyInstance is not int only || slot.Occupant.InstanceId == only))
             {
                 slot.ResetCharges();
             }

@@ -604,6 +604,18 @@ public partial class Main : Control
             GD.Print($"No variant artifact files: {ex.Message}");
         }
 
+        // FABLE-054: the Deck Forge artifacts (every deck picks two of its class's four)
+        try
+        {
+            string forgeJson = Godot.FileAccess.GetFileAsString($"{artifactsDir}/forge_artifacts.json");
+            if (!string.IsNullOrEmpty(forgeJson))
+                GD.Print($"Loaded {ArtifactLoader.LoadFromString(forgeJson)} Deck Forge artifacts");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Failed to load forge_artifacts.json: {ex.Message}");
+        }
+
         _statusLabel.Text = "Loading encounters...";
 
         // Load encounter definitions
@@ -646,7 +658,10 @@ public partial class Main : Control
         // Check for save errors and show persistent warning if DB is not functional
         if (!CampaignContext.SaveManager.IsFunctional)
         {
-            string warn = "⚠ Save unavailable — progress won't be saved this session";
+            // FABLE-055: say why, so a screenshot of it tells us what broke
+            string why = CampaignContext.SaveManager.LastError ?? "";
+            if (why.Length > 90) why = why.Substring(0, 89) + "…";
+            string warn = "⚠ Your last save didn't go through" + (why.Length > 0 ? $" ({why})" : "") + " — the game will keep trying";
             _saveWarningLabel.Text = warn;
             _saveWarningLabel.Modulate = new Color(1f, 0.6f, 0.1f); // orange
             _saveWarningLabel.Visible = true;

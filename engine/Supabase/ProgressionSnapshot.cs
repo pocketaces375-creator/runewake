@@ -48,6 +48,8 @@ public class ProgressionSnapshot
     [JsonPropertyName("relics")] public List<RelicDto> DiscoveredRelics { get; set; } = new();
     [JsonPropertyName("deck_card_ids")] public List<string> DeckCardIds { get; set; } = new();
     [JsonPropertyName("saved_decks")] public Dictionary<string, List<string>> SavedDecks { get; set; } = new();
+    [JsonPropertyName("deck_artifacts")] public Dictionary<string, List<string>> DeckArtifacts { get; set; } = new();
+    [JsonPropertyName("active_artifacts")] public List<string> ActiveArtifacts { get; set; } = new();
     [JsonPropertyName("global_discovery_index")] public int GlobalDiscoveryIndex { get; set; }
     [JsonPropertyName("has_completed_tutorial")] public bool HasCompletedTutorial { get; set; }
     [JsonPropertyName("delver_level")] public int DelverLevel { get; set; } = 1;
@@ -104,6 +106,8 @@ public class ProgressionSnapshot
             }).ToList(),
             DeckCardIds = new List<string>(s.DeckCardIds),
             SavedDecks = s.SavedDecks.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
+            DeckArtifacts = s.DeckArtifacts.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
+            ActiveArtifacts = new List<string>(s.ActiveArtifacts),
             GlobalDiscoveryIndex = s.GlobalDiscoveryIndex,
             HasCompletedTutorial = s.HasCompletedTutorial,
             DelverLevel = s.DelverLevel,
@@ -153,6 +157,8 @@ public class ProgressionSnapshot
 
         s.DeckCardIds.Clear(); s.DeckCardIds.AddRange(DeckCardIds);
         s.SavedDecks.Clear(); foreach (var kv in SavedDecks) s.SavedDecks[kv.Key] = new List<string>(kv.Value);
+        s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value);
+        s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts);
 
         s.GlobalDiscoveryIndex = GlobalDiscoveryIndex;
         s.HasCompletedTutorial = HasCompletedTutorial;
@@ -205,6 +211,8 @@ public class ProgressionSnapshot
         snap.DiscoveredRelics ??= new();
         snap.DeckCardIds ??= new();
         snap.SavedDecks ??= new();
+        snap.DeckArtifacts ??= new();
+        snap.ActiveArtifacts ??= new();
         snap.SeenCardIds ??= new();
         if (snap.DelverLevel < 1) snap.DelverLevel = 1;
         return snap;

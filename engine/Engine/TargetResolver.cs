@@ -148,6 +148,14 @@ public static class TargetResolver
             "RIGHT" => pool.Where(t => t is CreatureTarget ct && srcLane is not null && ct.LaneIndex == srcLane.Value + 1).ToList(),
             "OTHER" => pool.Where(t => t is not CreatureTarget ct || !ReferenceEquals(ct.Card, source)).ToList(),
             "AIM" => pool.Where(t => t is CreatureTarget ct && ct.LaneIndex == (state.AimLane ?? -1)).ToList(),
+            // ——— FABLE-054: the creature the current event is about (see GameState.EventCreature) ———
+            "EVENT" => pool.Where(t => t is CreatureTarget ct && state.EventCreature is { } ev && ReferenceEquals(ct.Card, ev)).ToList(),
+            "EVENT_ADJACENT" => pool.Where(t => t is CreatureTarget ct && state.EventCreature is { Zone: Zone.Lane, LaneIndex: int el } ev
+                && ct.PlayerIndex == ev.Controller && System.Math.Abs(ct.LaneIndex - el) == 1).ToList(),
+            "EARLIEST_SUMMONED" => pool.Where(t => t is CreatureTarget ct && ct.Card.SummonedThisTurn)
+                .OrderBy(t => t is CreatureTarget ct ? ct.Card.InstanceId : int.MaxValue).Take(1).ToList(),
+            "ATTACK_ABOVE_VIGOR" => pool.Where(t => t is CreatureTarget ct && ct.Card.CurrentAttack > ct.Card.CurrentVigor).ToList(),
+            "HAS_ATTACKED" => pool.Where(t => t is CreatureTarget ct && ct.Card.HasAttackedThisTurn).ToList(),
             "STUNNED" => pool.Where(t => t is CreatureTarget ct && ct.Card.Stunned).ToList(),
             "LAST_ATTACKED" => pool.Where(t => t is CreatureTarget ct
                 && ct.LaneIndex == (state.Player(ct.PlayerIndex).LastAttackedLaneIndex ?? -1)).ToList(),

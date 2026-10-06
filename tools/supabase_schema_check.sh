@@ -47,3 +47,13 @@ if [ -f "$ROOT/supabase/online_play.sql" ]; then
   echo "$OUT3" | grep -q "ALL FABLE-038 SUPABASE CHECKS PASSED" || { echo "  ✗ online play checks did not finish"; exit 1; }
   echo "  ✓ supabase/online_play.sql: every online-play assertion holds"
 fi
+
+# FABLE-054: usernames + challenge by name.
+if [ -f "$ROOT/supabase/usernames.sql" ]; then
+  $P -d rw -f "$ROOT/supabase/usernames.sql" 2>&1 | grep -v NOTICE || true
+  $P -d rw -f "$ROOT/supabase/usernames.sql" 2>&1 | grep -v NOTICE || true
+  OUT4=$($P -d rw -tA -f "$ROOT/supabase/usernames_test.sql" 2>&1) || { echo "$OUT4" | tail -5; echo "  ✗ username checks failed"; exit 1; }
+  echo "$OUT4" | grep -E "OK:" | sed 's/^psql:[^:]*:[0-9]*: NOTICE:  //; s/^/  /'
+  echo "$OUT4" | grep -q "ALL FABLE-054 SUPABASE CHECKS PASSED" || { echo "  ✗ username checks did not finish"; exit 1; }
+  echo "  ✓ supabase/usernames.sql: every username/challenge assertion holds"
+fi

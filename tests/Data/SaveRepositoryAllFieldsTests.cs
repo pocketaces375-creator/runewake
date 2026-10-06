@@ -34,6 +34,9 @@ public class SaveRepositoryAllFieldsTests
         s.UnlockedTools.Add("tool_pick");
         s.DeckCardIds.AddRange(new[] { "vrd_c_root_warden", "vrd_c_root_warden" });
         s.SavedDecks["Main"] = new() { "vrd_c_root_warden" };
+        s.SavedDecks["Unfinished one"] = new() { "emb_c_ember_hound" };      // FABLE-054: an unfinished deck saves too
+        s.DeckArtifacts["Main"] = new() { "artf_druid_heartroot_totem", "artf_druid_grovewing_moth" };
+        s.ActiveArtifacts.AddRange(new[] { "artf_druid_heartroot_totem", "artf_druid_grovewing_moth" });
         s.SeenCardIds.Add("vrd_c_root_warden"); s.SeenCardIds.Add("emb_c_ember_hound");
         s.AddRelic(new LostRelicInstance { RelicInstanceId = "rel-1", CardId = "relic_x", AcquirerName = "Trik", AcquiredAt = "2026-10-04", Site = "site", DiscoveryIndex = 1, EngravingStyle = "plain" });
 

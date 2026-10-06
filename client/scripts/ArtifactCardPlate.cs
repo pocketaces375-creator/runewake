@@ -475,6 +475,8 @@ public partial class ArtifactCardPlate : Control
     public void SetArt(string artId)
     {
         if (_artRect == null) return;
+        // FABLE-054: Forge artifacts reuse an existing painting (art_id)
+        artId = Runewake.Engine.Cards.ArtifactRegistry.Get(artId)?.ArtKey ?? artId;
 
         // B3: diagnostic print for vanish debugging
         string webpPath = $"res://content/art/artifacts/{artId}.webp";

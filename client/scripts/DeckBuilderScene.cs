@@ -79,6 +79,10 @@ public partial class DeckBuilderScene : Control
 
     private bool _captureMode;
     private bool _modified;
+    // FABLE-054: the deck's two artifacts (from its class's Deck Forge pool)
+    private readonly string[] _artifacts = new string[ArtifactRegistry.LoadoutSize];
+    private string? _inspectArtifact;
+    private string? _loadedName;   // the saved deck this one came from (Save overwrites it without asking)
 
     public override void _Ready() => SceneGuard.Build(this, "DeckBuilderScene", Build, "res://scenes/main/Main.tscn", "Back to title");
 
@@ -97,6 +101,10 @@ public partial class DeckBuilderScene : Control
 
         if (CampaignContext.Progression.DeckCardIds.Count > 0)
             _deckCardIds.AddRange(CampaignContext.Progression.DeckCardIds);
+        // FABLE-054: open on the active deck under its own name, with the artifacts it brings
+        var active = CampaignContext.Progression.SavedDecks.FirstOrDefault(kv => kv.Value != null && kv.Value.SequenceEqual(_deckCardIds));
+        if (active.Key != null) { _deckName = active.Key; _deckNameLabel.Text = _deckName; _loadedName = active.Key; }
+        SetArtifacts(CampaignContext.Progression.ActiveArtifacts);
 
         if (_deckCardIds.Count == 0 && CampaignContext.AutoCaptureScreenshot && CampaignContext.CaptureDeckBuilderScreenshot)
         {
@@ -420,7 +428,12 @@ public partial class DeckBuilderScene : Control
         var pair = new HBoxContainer();
         pair.AddThemeConstantOverride("separation", 12);
         btnSec.AddChild(pair);
-        var loadBtn = Plate("Load a deck", false, 64); loadBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        // FABLE-054: Save keeps a deck at any size, without making it the active one
+        var saveBtn = Plate("Save", false, 64); saveBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        saveBtn.AddThemeFontSizeOverride("font_size", 28);
+        saveBtn.Pressed += () => { Click(); OnSaveDraft(); };
+        pair.AddChild(saveBtn);
+        var loadBtn = Plate("Decks", false, 64); loadBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         loadBtn.AddThemeFontSizeOverride("font_size", 28);
         loadBtn.Pressed += () => { Click(); ShowLoadDialog(); };
         pair.AddChild(loadBtn);
@@ -839,7 +852,11 @@ public partial class DeckBuilderScene : Control
         {
             // slim bar: title, a fanned stack of the deck, open slots, SHOW DECK
             Text($"YOUR DECK  ·  {deck.Count} / {max}", GetHeaderFont(22), 22, Gold, new Vector2(26, 0), new Vector2(300, size.Y));
-            float mh = size.Y - 22f, mw = mh * 416f / 608f, x0 = 340f;
+            // FABLE-054: the two artifacts ride along in the slim bar too
+            float aS = size.Y - 18f;
+            for (int a = 0; a < _artifacts.Length; a++)
+                _tray.AddChild(ArtifactSlotTile(a, new Vector2(300 + a * (aS + 10), 9f), aS, compact: true));
+            float mh = size.Y - 22f, mw = mh * 416f / 608f, x0 = 300f + 2 * (aS + 10) + 30f;
             float room = size.X - 240f - 200f - x0;   // leave space for the open-slots note and SHOW DECK
             float step = deck.Count > 1 ? Mathf.Min(mw - 8f, (room - mw) / (deck.Count - 1)) : mw;
             for (int i = 0; i < deck.Count; i++)
@@ -863,6 +880,17 @@ public partial class DeckBuilderScene : Control
         Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32));
         ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
 
+        // FABLE-054: the deck's two artifacts, framed beside the count where they can't be missed
+        float slashW = GetHeaderFont(32).GetStringSize($"/ {max}", HorizontalAlignment.Left, -1, 32).X;
+        float aL = Mathf.Max(30 + cw + 14 + slashW + 30, 200f), aR = bx - 18f;
+        float aSize = Mathf.Clamp((aR - aL - 14f) / 2f, 56f, 140f);
+        float aTop = 40f;
+        if (aR - aL < 2 * 56f + 14f) { aL = 30f; aTop = 150f; aSize = 56f; }   // narrow screen: under the count instead
+        var cap = Text("◆  ARTIFACTS  ◆", GetHeaderFont(17), 17, Gold, new Vector2(aL, aTop - 30f), new Vector2(2 * aSize + 14f, 24));
+        cap.HorizontalAlignment = HorizontalAlignment.Center;
+        for (int a = 0; a < _artifacts.Length; a++)
+            _tray.AddChild(ArtifactSlotTile(a, new Vector2(aL + a * (aSize + 14f), aTop), aSize, compact: false));
+
         for (int i = 0; i < cols * rows; i++)
         {
             int r = i / cols, c = i % cols;
@@ -880,6 +908,204 @@ public partial class DeckBuilderScene : Control
                 _tray.AddChild(slot);
             }
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  FABLE-054: artifacts — two per deck, from the class's pool of four
+    // ════════════════════════════════════════════════════════════════
+
+    /// <summary>Take these picks if they're a legal pair for the class, else the class's defaults.</summary>
+    private void SetArtifacts(IReadOnlyList<string>? picks)
+    {
+        var use = ArtifactRegistry.PlayerLoadout(SynergyClass(), picks);
+        for (int i = 0; i < _artifacts.Length; i++) _artifacts[i] = i < use.Length ? use[i] : "";
+    }
+
+    private static Texture2D? ArtifactArt(string id)
+    {
+        var def = ArtifactRegistry.Get(id);
+        if (def == null) return null;
+        string p = $"res://content/art/artifacts/{def.ArtKey}.webp";
+        return ResourceLoader.Exists(p) ? ResourceLoader.Load<Texture2D>(p) : null;
+    }
+
+    private static StyleBoxFlat Frame(Color border, int width, int radius, float glow = 0f) => new()
+    {
+        BgColor = new Color(0, 0, 0, 0), BorderColor = border,
+        BorderWidthLeft = width, BorderWidthRight = width, BorderWidthTop = width, BorderWidthBottom = width,
+        CornerRadiusTopLeft = radius, CornerRadiusTopRight = radius, CornerRadiusBottomLeft = radius, CornerRadiusBottomRight = radius,
+        ShadowColor = new Color(0.95f, 0.78f, 0.35f, glow), ShadowSize = glow > 0 ? 12 : 0,
+    };
+
+    /// <summary>One artifact in a gilded double frame. Tap it to choose which artifact fills that slot.</summary>
+    private Control ArtifactSlotTile(int slot, Vector2 pos, float size, bool compact)
+    {
+        string id = _artifacts[slot];
+        var def = ArtifactRegistry.Get(id);
+        var b = new Button { Name = $"ArtifactSlot{slot}", Position = pos, Size = new Vector2(size, size), FocusMode = FocusModeEnum.None, ClipContents = true, MouseDefaultCursorShape = CursorShape.PointingHand,
+            TooltipText = def?.Name ?? "" };
+        var clear = new StyleBoxEmpty();
+        foreach (var st in new[] { "normal", "hover", "pressed", "disabled", "focus" }) b.AddThemeStyleboxOverride(st, clear);
+        var back = new Panel { Size = new Vector2(size, size), MouseFilter = MouseFilterEnum.Ignore };
+        back.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0.07f, 0.06f, 0.05f), CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+            ShadowColor = new Color(0.95f, 0.78f, 0.35f, compact ? 0f : 0.30f), ShadowSize = compact ? 0 : 14 });   // the glow sits behind the painting
+        b.AddChild(back);
+        int inset = compact ? 3 : 7;
+        var art = new TextureRect { Texture = ArtifactArt(id), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, MouseFilter = MouseFilterEnum.Ignore };
+        art.Position = new Vector2(inset, inset); art.Size = new Vector2(size - 2 * inset, size - 2 * inset);
+        b.AddChild(art);
+        if (!compact && def != null)
+        {
+            // the name on a dark band across the foot of the painting
+            var band = new ColorRect { Color = new Color(0.03f, 0.025f, 0.02f, 0.80f), Position = new Vector2(inset, size - inset - 38), Size = new Vector2(size - 2 * inset, 38), MouseFilter = MouseFilterEnum.Ignore };
+            b.AddChild(band);
+            var nm = new Label { Text = def.Name, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, ClipText = true,
+                Position = band.Position, Size = band.Size, MouseFilter = MouseFilterEnum.Ignore };
+            nm.AddThemeFontOverride("font", GetHeaderFont(14)); nm.AddThemeFontSizeOverride("font_size", 14);
+            nm.AddThemeConstantOverride("line_spacing", -4);
+            nm.AddThemeColorOverride("font_color", Color.FromHtml("#F3DE95"));
+            b.AddChild(nm);
+        }
+        // gilded double frame: a bright outer rule with a soft glow, a faint inner rule
+        var outer = new Panel { Size = new Vector2(size, size), MouseFilter = MouseFilterEnum.Ignore };
+        outer.AddThemeStyleboxOverride("panel", Frame(Gold, compact ? 2 : 3, 10));
+        b.AddChild(outer);
+        if (!compact)
+        {
+            var inner = new Panel { Position = new Vector2(inset - 2, inset - 2), Size = new Vector2(size - 2 * inset + 4, size - 2 * inset + 4), MouseFilter = MouseFilterEnum.Ignore };
+            inner.AddThemeStyleboxOverride("panel", Frame(new Color(0.95f, 0.85f, 0.55f, 0.45f), 1, 6));
+            b.AddChild(inner);
+        }
+        b.MouseEntered += () => b.Modulate = new Color(1.15f, 1.1f, 1f);
+        b.MouseExited += () => b.Modulate = Colors.White;
+        b.Pressed += () => { Click(); ShowArtifactPicker(slot); };
+        return b;
+    }
+
+    /// <summary>All four of the class's artifacts, full text and all. Tap one to put it in this slot.</summary>
+    private void ShowArtifactPicker(int slot)
+    {
+        string cls = SynergyClass();
+        var pool = ArtifactRegistry.ForgePool(cls);
+        if (pool.Count == 0) { Toast("No artifacts for this class yet."); return; }
+        var (overlay, body) = Modal(1760, 940);
+        body.AddThemeConstantOverride("separation", 14);
+        body.AddChild(ModalTitle($"{cls.ToUpperInvariant()} ARTIFACTS"));
+        var sub = ModalText($"Your deck brings two. Choose one for slot {slot + 1}.");
+        sub.AddThemeFontSizeOverride("font_size", 26); sub.AddThemeColorOverride("font_color", MutedInk);
+        body.AddChild(sub);
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("separation", 22);
+        body.AddChild(row);
+        float colW = (1760 - 96 - 3 * 22) / 4f;
+        foreach (var a in pool)
+        {
+            int at = Array.IndexOf(_artifacts, a.Id);
+            bool here = at == slot, other = at >= 0 && at != slot;
+            var col = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(colW, 610), MouseDefaultCursorShape = CursorShape.PointingHand, ClipContents = true };
+            var box = new StyleBoxFlat { BgColor = here ? new Color(0.79f, 0.66f, 0.30f, 0.14f) : new Color(1, 1, 1, 0.03f), BorderColor = here ? Gold : new Color(0.79f, 0.66f, 0.30f, 0.28f),
+                BorderWidthLeft = here ? 3 : 1, BorderWidthRight = here ? 3 : 1, BorderWidthTop = here ? 3 : 1, BorderWidthBottom = here ? 3 : 1,
+                CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14 };
+            var hov = (StyleBoxFlat)box.Duplicate(); hov.BorderColor = Gold; hov.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.10f);
+            col.AddThemeStyleboxOverride("normal", box); col.AddThemeStyleboxOverride("hover", hov); col.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed()); col.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            row.AddChild(col);
+            var v = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            v.SetAnchorsPreset(LayoutPreset.FullRect);
+            v.OffsetLeft = 18; v.OffsetRight = -18; v.OffsetTop = 18; v.OffsetBottom = -14;
+            v.AddThemeConstantOverride("separation", 8);
+            col.AddChild(v);
+            float artS = colW - 36;
+            var artBox = new Control { CustomMinimumSize = new Vector2(artS, artS * 0.6f), MouseFilter = MouseFilterEnum.Ignore };
+            var art = new TextureRect { Texture = ArtifactArt(a.Id), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, MouseFilter = MouseFilterEnum.Ignore };
+            art.SetAnchorsPreset(LayoutPreset.FullRect);
+            artBox.AddChild(art);
+            var fr = new Panel { MouseFilter = MouseFilterEnum.Ignore }; fr.SetAnchorsPreset(LayoutPreset.FullRect);
+            fr.AddThemeStyleboxOverride("panel", Frame(Gold, 2, 8));
+            artBox.AddChild(fr);
+            v.AddChild(artBox);
+            var nm = new Label { Text = a.Name, HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
+            nm.AddThemeFontOverride("font", GetCardNameFont(30)); nm.AddThemeFontSizeOverride("font_size", 30);
+            nm.AddThemeColorOverride("font_color", Gold);
+            v.AddChild(nm);
+            string tag = here ? $"IN SLOT {slot + 1}" : other ? $"IN SLOT {at + 1} · TAP TO SWAP" : a.IsDefault ? "STARTER" : "";
+            if (tag != "")
+            {
+                var t = new Label { Text = tag, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                t.AddThemeFontOverride("font", GetHeaderFont(16)); t.AddThemeFontSizeOverride("font_size", 16);
+                t.AddThemeColorOverride("font_color", here ? Color.FromHtml("#F3DE95") : MutedInk);
+                v.AddChild(t);
+            }
+            var tx = new Label { Text = a.Text ?? "", AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
+            tx.AddThemeFontOverride("font", GetBodyFont(25)); tx.AddThemeFontSizeOverride("font_size", 25);
+            tx.AddThemeColorOverride("font_color", Parchment);
+            v.AddChild(tx);
+            foreach (var line in RulesTextRenderer.ArtifactReminderLines(a).Take(2))
+            {
+                var r = new Label { Text = line, AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = MouseFilterEnum.Ignore };
+                r.AddThemeFontOverride("font", ItalicFont ?? GetBodyFont(19)); r.AddThemeFontSizeOverride("font_size", 19);
+                r.AddThemeColorOverride("font_color", MutedInk);
+                v.AddChild(r);
+            }
+            string pick = a.Id;
+            col.Pressed += () =>
+            {
+                Click();
+                int was = Array.IndexOf(_artifacts, pick);
+                if (was >= 0 && was != slot) _artifacts[was] = _artifacts[slot];   // swap the two
+                if (_artifacts[slot] != pick) _modified = true;
+                if (was != slot) _modified = true;
+                _artifacts[slot] = pick;
+                overlay.QueueFree();
+                _inspectArtifact = pick; _selectedId = null;
+                ShowInspector();
+                RefreshDeckList();
+            };
+        }
+        var rowB = ButtonRow(body);
+        var close = Plate("Done", true, 76, 280); close.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(close);
+    }
+
+    /// <summary>The inspector, showing an artifact: its painting, what it does, and every term explained.</summary>
+    private void ShowArtifactInInspector(string id)
+    {
+        var a = ArtifactRegistry.Get(id);
+        if (a == null) return;
+        float w = InspW - 52f;
+        var artBox = new Control { CustomMinimumSize = new Vector2(w, w * 0.78f), MouseFilter = MouseFilterEnum.Ignore };
+        var glow = new Panel { MouseFilter = MouseFilterEnum.Ignore }; glow.SetAnchorsPreset(LayoutPreset.FullRect);
+        glow.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0.07f, 0.06f, 0.05f), ShadowColor = new Color(0.95f, 0.78f, 0.35f, 0.25f), ShadowSize = 14, CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10 });
+        artBox.AddChild(glow);
+        var art = new TextureRect { Texture = ArtifactArt(id), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, MouseFilter = MouseFilterEnum.Ignore };
+        art.SetAnchorsPreset(LayoutPreset.FullRect);
+        artBox.AddChild(art);
+        var fr = new Panel { MouseFilter = MouseFilterEnum.Ignore }; fr.SetAnchorsPreset(LayoutPreset.FullRect);
+        fr.AddThemeStyleboxOverride("panel", Frame(Gold, 3, 10));
+        artBox.AddChild(fr);
+        _inspBody.AddChild(artBox);
+        var meta = new Label { Text = $"{a.Class.ToUpperInvariant()}  ·  ARTIFACT", HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        meta.AddThemeFontOverride("font", GetHeaderFont(18)); meta.AddThemeFontSizeOverride("font_size", 18);
+        meta.AddThemeColorOverride("font_color", MutedInk);
+        _inspBody.AddChild(meta);
+        var nm = new Label { Text = a.Name, HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(w, 0), MouseFilter = MouseFilterEnum.Ignore };
+        nm.AddThemeFontOverride("font", GetCardNameFont(40)); nm.AddThemeFontSizeOverride("font_size", 40);
+        nm.AddThemeColorOverride("font_color", Gold);
+        _inspBody.AddChild(nm);
+        var tx = new Label { Text = a.Text ?? "", HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(w, 0), MouseFilter = MouseFilterEnum.Ignore };
+        tx.AddThemeFontOverride("font", GetBodyFont(26)); tx.AddThemeFontSizeOverride("font_size", 26);
+        tx.AddThemeColorOverride("font_color", Parchment);
+        _inspBody.AddChild(tx);
+        foreach (var line in RulesTextRenderer.ArtifactReminderLines(a))
+        {
+            var r = new Label { Text = line, HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(w, 0), MouseFilter = MouseFilterEnum.Ignore };
+            r.AddThemeFontOverride("font", ItalicFont ?? GetBodyFont(21)); r.AddThemeFontSizeOverride("font_size", 21);
+            r.AddThemeColorOverride("font_color", MutedInk);
+            _inspBody.AddChild(r);
+        }
+        _inspBody.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        int slot = Math.Max(0, Array.IndexOf(_artifacts, id));
+        var change = Plate("Change artifact", true, 76);
+        change.Pressed += () => { Click(); ShowArtifactPicker(slot); };
+        _inspBody.AddChild(change);
     }
 
     /// <summary>A small card face in the tray. Tap to take one copy out (core cards stay).</summary>
@@ -988,6 +1214,7 @@ public partial class DeckBuilderScene : Control
     {
         if (_inspBody == null) return;
         foreach (var c in _inspBody.GetChildren()) c.QueueFree();
+        if (_selectedId == null && _inspectArtifact != null) { ShowArtifactInInspector(_inspectArtifact); return; }
         var def = _selectedId != null ? LookupCard(_selectedId) : null;
         float w = InspW - 52f;
         float availH = _inspector.Size.Y - 52f;
@@ -1183,19 +1410,30 @@ public partial class DeckBuilderScene : Control
     private void OnBack()
     {
         if (!_modified) { GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); return; }
-        var (overlay, body) = Modal(1000, 420);
+        var (overlay, body) = Modal(1180, 440);
         body.AddChild(ModalTitle("LEAVE THE FORGE?"));
-        body.AddChild(ModalText("This deck has changes you haven't forged. Leave now and they're lost."));
+        body.AddChild(ModalText("This deck has changes you haven't saved. Save it to keep working on it later — it doesn't have to be finished."));
         var rowB = ButtonRow(body);
-        var keep = Plate("Keep working", true, 84, 380); keep.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(keep);
-        var leave = Plate("Leave anyway", false, 84, 380); leave.Pressed += () => { Click(); overlay.QueueFree(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
+        var keep = Plate("Keep working", false, 84, 330); keep.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(keep);
+        var save = Plate("Save and leave", true, 84, 330);
+        save.Pressed += () => { Click(); overlay.QueueFree(); OnSaveDraft(leaveAfter: true); };
+        rowB.AddChild(save);
+        var leave = Plate("Leave anyway", false, 84, 330); leave.Pressed += () => { Click(); overlay.QueueFree(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
     }
 
     private void OnSaveDeck()
     {
         var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
-        if (!validation.IsValid) { Toast(validation.Errors.FirstOrDefault() ?? "The deck isn't ready."); return; }
-        ShowSaveNameDialog();
+        if (!validation.IsValid) { Toast((validation.Errors.FirstOrDefault() ?? "The deck isn't ready.") + " — Save keeps it for later."); return; }
+        ShowSaveNameDialog(forge: true);
+    }
+
+    /// <summary>FABLE-054: keep this deck at any size, under its name, without making it the active one.</summary>
+    private void OnSaveDraft(bool leaveAfter = false)
+    {
+        if (_deckCardIds.Count == 0) { Toast("Add a card first — there's nothing to save yet."); return; }
+        if (_loadedName != null && _loadedName == _deckName) { PersistDraft(); if (leaveAfter) GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); return; }
+        ShowSaveNameDialog(forge: false, leaveAfter: leaveAfter);
     }
 
     private void ShowRenameDialog()
@@ -1207,31 +1445,19 @@ public partial class DeckBuilderScene : Control
         var rowB = ButtonRow(body);
         var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
         var ok = Plate("Rename", true, 84, 300);
-        void Commit() { string n = edit.Text.Trim(); if (n.Length == 0) return; _deckName = n; _deckNameLabel.Text = n; _modified = true; overlay.QueueFree(); }
-        ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
-        edit.TextSubmitted += _ => Commit();
-        edit.CallDeferred(Control.MethodName.GrabFocus);
-        edit.SelectAll();
-    }
-
-    private void ShowSaveNameDialog()
-    {
-        var (overlay, body) = Modal(1000, 460);
-        body.AddChild(ModalTitle("FORGE THIS DECK"));
-        body.AddChild(ModalText("Give it a name. It becomes your active deck and shows up in the Arena and online."));
-        var edit = ModalEdit(_deckName);
-        body.AddChild(edit);
-        var rowB = ButtonRow(body);
-        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
-        var ok = Plate("Forge", true, 84, 300);
         void Commit()
         {
-            string n = edit.Text.Trim();
-            if (n.Length == 0) return;
-            _deckName = n; _deckNameLabel.Text = n;
-            overlay.QueueFree();
-            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName)) ShowOverwriteConfirmDialog();
-            else PersistDeck();
+            string n = edit.Text.Trim(); if (n.Length == 0) return;
+            var prog = CampaignContext.Progression;
+            // renaming a saved deck moves it (cards and artifacts) to the new name
+            if (_loadedName != null && _loadedName != n && prog.SavedDecks.TryGetValue(_loadedName, out var cards) && !prog.SavedDecks.ContainsKey(n))
+            {
+                prog.SavedDecks.Remove(_loadedName); prog.SavedDecks[n] = cards;
+                if (prog.DeckArtifacts.Remove(_loadedName, out var arts)) prog.DeckArtifacts[n] = arts;
+                CampaignContext.SaveManager.Save();
+                _loadedName = n;
+            }
+            _deckName = n; _deckNameLabel.Text = n; _modified = true; overlay.QueueFree();
         }
         ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
         edit.TextSubmitted += _ => Commit();
@@ -1239,24 +1465,68 @@ public partial class DeckBuilderScene : Control
         edit.SelectAll();
     }
 
-    private void ShowOverwriteConfirmDialog()
+    private void ShowSaveNameDialog(bool forge, bool leaveAfter = false)
+    {
+        var (overlay, body) = Modal(1000, 480);
+        body.AddChild(ModalTitle(forge ? "FORGE THIS DECK" : "SAVE THIS DECK"));
+        body.AddChild(ModalText(forge
+            ? "Give it a name. It becomes your active deck and shows up in the Arena and online."
+            : $"{_deckCardIds.Count} of {DeckRules.MaxSize} cards. Open it again from Decks whenever you like."));
+        var edit = ModalEdit(_deckName);
+        body.AddChild(edit);
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate(forge ? "Forge" : "Save", true, 84, 300);
+        void Commit()
+        {
+            string n = edit.Text.Trim();
+            if (n.Length == 0) return;
+            _deckName = n; _deckNameLabel.Text = n;
+            overlay.QueueFree();
+            if (CampaignContext.Progression.SavedDecks.ContainsKey(_deckName) && _deckName != _loadedName) ShowOverwriteConfirmDialog(forge, leaveAfter);
+            else Persist(forge, leaveAfter);
+        }
+        ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
+        edit.TextSubmitted += _ => Commit();
+        edit.CallDeferred(Control.MethodName.GrabFocus);
+        edit.SelectAll();
+    }
+
+    private void Persist(bool forge, bool leaveAfter)
+    {
+        if (forge) PersistDeck(); else PersistDraft();
+        if (leaveAfter) GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+    }
+
+    private void ShowOverwriteConfirmDialog(bool forge, bool leaveAfter = false)
     {
         var (overlay, body) = Modal(1000, 420);
         body.AddChild(ModalTitle("REPLACE IT?"));
-        body.AddChild(ModalText($"You already have a deck called \"{_deckName}\". Forging replaces it."));
+        body.AddChild(ModalText($"You already have a deck called \"{_deckName}\". {(forge ? "Forging" : "Saving")} replaces it."));
         var rowB = ButtonRow(body);
         var cancel = Plate("Keep the old one", false, 84, 380); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
-        var ok = Plate("Replace", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); PersistDeck(); }; rowB.AddChild(ok);
+        var ok = Plate("Replace", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); Persist(forge, leaveAfter); }; rowB.AddChild(ok);
     }
 
+    private static Button RowButton(float h)
+    {
+        var b = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(0, h), MouseDefaultCursorShape = CursorShape.PointingHand, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var box = new StyleBoxFlat { BgColor = new Color(1, 1, 1, 0.03f), BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.22f), BorderWidthLeft = 1, BorderWidthRight = 1, BorderWidthTop = 1, BorderWidthBottom = 1, CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12 };
+        var hov = (StyleBoxFlat)box.Duplicate(); hov.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.10f); hov.BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.5f);
+        b.AddThemeStyleboxOverride("normal", box); b.AddThemeStyleboxOverride("hover", hov); b.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed()); b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        return b;
+    }
+
+    /// <summary>FABLE-054: every deck you've saved — finished or not — to open, start fresh, or throw away.</summary>
     private void ShowLoadDialog()
     {
-        var saved = CampaignContext.Progression.SavedDecks;
-        var (overlay, body) = Modal(1100, 760);
-        body.AddChild(ModalTitle("YOUR SAVED DECKS"));
+        var prog = CampaignContext.Progression;
+        var saved = prog.SavedDecks;
+        var (overlay, body) = Modal(1240, 820);
+        body.AddChild(ModalTitle("YOUR DECKS"));
         if (saved.Count == 0)
         {
-            body.AddChild(ModalText("Nothing forged yet. Build a deck of 30 and press Forge deck."));
+            body.AddChild(ModalText("No decks saved yet. Save one at any size, or build 30 and forge it."));
             body.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
         }
         else
@@ -1270,29 +1540,95 @@ public partial class DeckBuilderScene : Control
             _savedDrag = DragScroll.Attach(scroll);
             foreach (var (deckName, cardIds) in saved.OrderBy(k => k.Key))
             {
-                var b = new Button { FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(0, 84), MouseDefaultCursorShape = CursorShape.PointingHand };
-                var box = new StyleBoxFlat { BgColor = new Color(1, 1, 1, 0.03f), BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.22f), BorderWidthLeft = 1, BorderWidthRight = 1, BorderWidthTop = 1, BorderWidthBottom = 1, CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12 };
-                var hov = (StyleBoxFlat)box.Duplicate(); hov.BgColor = new Color(0.79f, 0.66f, 0.30f, 0.10f); hov.BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.5f);
-                b.AddThemeStyleboxOverride("normal", box); b.AddThemeStyleboxOverride("hover", hov); b.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed()); b.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
-                list.AddChild(b);
+                var line = new HBoxContainer();
+                line.AddThemeConstantOverride("separation", 12);
+                list.AddChild(line);
+                var b = RowButton(88);
+                line.AddChild(b);
                 var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
                 inner.SetAnchorsPreset(LayoutPreset.FullRect);
                 inner.OffsetLeft = 26; inner.OffsetRight = -26;
+                inner.AddThemeConstantOverride("separation", 18);
                 b.AddChild(inner);
-                var nm = new Label { Text = deckName, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                // the deck's two artifacts, small
+                var picks = ArtifactRegistry.PlayerLoadout(SynergyClass(), prog.DeckArtifacts.TryGetValue(deckName, out var da) ? da : null);
+                foreach (var aid in picks)
+                {
+                    var ic = new TextureRect { Texture = ArtifactArt(aid), CustomMinimumSize = new Vector2(56, 56), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+                    inner.AddChild(ic);
+                }
+                var nm = new Label { Text = deckName, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis, MouseFilter = MouseFilterEnum.Ignore };
                 nm.AddThemeFontOverride("font", GetBodyFont(32)); nm.AddThemeFontSizeOverride("font_size", 32);
                 nm.AddThemeColorOverride("font_color", Parchment);
                 inner.AddChild(nm);
-                var ct = new Label { Text = $"{cardIds.Count} cards", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                bool isActive = cardIds.SequenceEqual(prog.DeckCardIds);
+                bool ready = DeckValidator.Validate(cardIds, LookupCard).IsValid;
+                string tag = isActive ? "ACTIVE" : ready ? "READY TO FORGE" : "UNFINISHED";
+                var tg = new Label { Text = tag, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+                tg.AddThemeFontOverride("font", GetHeaderFont(17)); tg.AddThemeFontSizeOverride("font_size", 17);
+                tg.AddThemeColorOverride("font_color", isActive ? Color.FromHtml("#F3DE95") : ready ? Moss : MutedInk);
+                inner.AddChild(tg);
+                var ct = new Label { Text = $"{cardIds.Count} / {DeckRules.MaxSize}", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore, CustomMinimumSize = new Vector2(96, 0), HorizontalAlignment = HorizontalAlignment.Right };
                 ct.AddThemeFontOverride("font", GetBodyFont(26)); ct.AddThemeFontSizeOverride("font_size", 26);
                 ct.AddThemeColorOverride("font_color", MutedInk);
                 inner.AddChild(ct);
                 string cn = deckName; var cc = cardIds;
                 b.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); overlay.QueueFree(); LoadDeck(cn, cc); };
+                var del = Quiet("✕", 88, 88, 30);
+                del.TooltipText = "Delete this deck";
+                del.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); ConfirmDelete(cn, overlay); };
+                line.AddChild(del);
             }
         }
         var rowB = ButtonRow(body);
+        var fresh = Plate("New deck", false, 84, 300); fresh.Pressed += () => { Click(); overlay.QueueFree(); StartNewDeck(); }; rowB.AddChild(fresh);
         var close = Plate("Close", true, 84, 300); close.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(close);
+    }
+
+    private void ConfirmDelete(string deckName, Control listOverlay)
+    {
+        var (overlay, body) = Modal(1000, 420);
+        body.AddChild(ModalTitle("DELETE THIS DECK?"));
+        body.AddChild(ModalText($"\"{deckName}\" goes for good. Your cards stay in your collection."));
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Keep it", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Delete", true, 84, 300);
+        ok.Pressed += () =>
+        {
+            Click(); overlay.QueueFree();
+            var prog = CampaignContext.Progression;
+            prog.SavedDecks.Remove(deckName); prog.DeckArtifacts.Remove(deckName);
+            CampaignContext.SaveManager.Save();
+            if (_loadedName == deckName) { _loadedName = null; _modified = _deckCardIds.Count > 0; }
+            if (IsInstanceValid(listOverlay)) listOverlay.QueueFree();
+            ShowLoadDialog();
+            Toast($"Deleted {deckName}");
+        };
+        rowB.AddChild(ok);
+    }
+
+    /// <summary>FABLE-054: start another deck alongside the ones you have (the core cards stay in).</summary>
+    private void StartNewDeck()
+    {
+        void Go()
+        {
+            _deckCardIds.Clear();
+            foreach (var id in _lockedCardIds) _deckCardIds.Add(id);
+            int n = 1; string name;
+            do name = n == 1 ? "New Deck" : $"New Deck {n}"; while (CampaignContext.Progression.SavedDecks.ContainsKey(name) && ++n < 100);
+            _deckName = name; _deckNameLabel.Text = name; _loadedName = null;
+            SetArtifacts(null);
+            _modified = false; _inspectArtifact = null; _selectedId = null;
+            RefreshCardGrid(); RefreshDeckList(); RefreshCurve(); UpdateCount(); ShowInspector();
+            Toast("A fresh deck — save it whenever you like.");
+        }
+        if (!_modified) { Go(); return; }
+        var (overlay, body) = Modal(1000, 420);
+        body.AddChild(ModalTitle("START A NEW DECK?"));
+        body.AddChild(ModalText("The deck you're working on has changes you haven't saved. They'll be lost."));
+        var rowB = ButtonRow(body);
+        var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
+        var ok = Plate("Start fresh", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); Go(); }; rowB.AddChild(ok);
     }
 
     private void LoadDeck(string deckName, List<string> cardIds)
@@ -1300,7 +1636,7 @@ public partial class DeckBuilderScene : Control
         if (!_modified) { DoLoadDeck(deckName, cardIds); return; }
         var (overlay, body) = Modal(1000, 420);
         body.AddChild(ModalTitle("LOAD THIS DECK?"));
-        body.AddChild(ModalText("The deck you're working on has changes you haven't forged. They'll be lost."));
+        body.AddChild(ModalText("The deck you're working on has changes you haven't saved. They'll be lost."));
         var rowB = ButtonRow(body);
         var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
         var ok = Plate("Load it", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); DoLoadDeck(deckName, cardIds); }; rowB.AddChild(ok);
@@ -1312,12 +1648,29 @@ public partial class DeckBuilderScene : Control
         _deckCardIds.AddRange(cardIds);
         _deckName = deckName;
         _deckNameLabel.Text = deckName;
+        _loadedName = deckName;
+        SetArtifacts(CampaignContext.Progression.DeckArtifacts.TryGetValue(deckName, out var arts) ? arts : null);
         _modified = false;
+        _inspectArtifact = null;
         RefreshCardGrid();
         RefreshDeckList();
         RefreshCurve();
         UpdateCount();
+        ShowInspector();
         Toast($"Loaded {deckName}");
+    }
+
+    /// <summary>FABLE-054: save without forging — any size, not the active deck.</summary>
+    private void PersistDraft()
+    {
+        var prog = CampaignContext.Progression;
+        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
+        prog.DeckArtifacts[_deckName] = _artifacts.ToList();
+        CampaignContext.SaveManager.Save();
+        _loadedName = _deckName;
+        _modified = false;
+        bool ready = DeckValidator.Validate(_deckCardIds, LookupCard).IsValid;
+        Toast(ready ? $"Saved {_deckName}. Forge it to play it." : $"Saved {_deckName} ({_deckCardIds.Count}/{DeckRules.MaxSize}).");
     }
 
     private void PersistDeck()
@@ -1328,6 +1681,9 @@ public partial class DeckBuilderScene : Control
 
         var prog = CampaignContext.Progression;
         prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
+        prog.DeckArtifacts[_deckName] = _artifacts.ToList();
+        prog.ActiveArtifacts.Clear();
+        prog.ActiveArtifacts.AddRange(_artifacts);
         prog.DeckCardIds.Clear();
         prog.DeckCardIds.AddRange(_deckCardIds);
         CampaignContext.PlayerDeckIds.Clear();
@@ -1340,6 +1696,7 @@ public partial class DeckBuilderScene : Control
             CampaignContext.SaveCampaignProfile();
         }
         CampaignContext.SaveManager.Save();
+        _loadedName = _deckName;
         _modified = false;
         Toast($"{_deckName} forged — it's your active deck now.");
     }

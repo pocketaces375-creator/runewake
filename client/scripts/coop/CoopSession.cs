@@ -93,7 +93,7 @@ public sealed class CoopSession
             {
                 Seat = 0, DisplayName = "You", ClassId = CampaignContext.ChosenClass ?? "",
                 Deck = new List<string>(CampaignContext.PlayerDeckIds),
-                Artifacts = ArtifactRegistry.DefaultLoadoutFor(CampaignContext.ChosenClass ?? ""),
+                Artifacts = ArtifactRegistry.PlayerLoadout(CampaignContext.ChosenClass ?? "", CampaignContext.Progression?.ActiveArtifacts),
             },
         };
         var starters = StarterDecks().Where(s => s.cls != CampaignContext.ChosenClass).ToList();
@@ -104,7 +104,7 @@ public sealed class CoopSession
             seats.Add(new SeatConfig
             {
                 Seat = i + 1, DisplayName = $"{names[i]} the {Capital(cls)}", ClassId = cls, Deck = deck,
-                Artifacts = ArtifactRegistry.DefaultLoadoutFor(cls),
+                Artifacts = ArtifactRegistry.PlayerLoadout(cls, null),
             });
         }
         string bossClass = floor.Raid.BossClass ?? boss.Encounter!.Class ?? "";

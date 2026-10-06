@@ -262,7 +262,43 @@ public partial class AudioManager : Node
     // Keyed by the scene's ROOT NODE NAME, which matches the script name for
     // every scene in this project.
 
-    public const string TrackTitle = "hall_of_runes";
+    public const string TrackTitle = "hall_of_runes";   // the original title theme — kept, and still choosable
+
+    // ── FABLE-055: the title music is a choice (Settings → Title music) ──
+    public static readonly (string Id, string Name)[] TitleTracks =
+    {
+        ("gilded_court", "The Gilded Court"),
+        ("hall_of_runes", "Hall of Runes (original)"),
+        ("sands_of_the_old_age", "Sands of the Old Age"),
+        ("barrow_hymn", "Barrow Hymn"),
+        ("hearthfire_reckoning", "Hearthfire Reckoning"),
+        ("the_long_ascent", "The Long Ascent"),
+    };
+    private const string TitleChoicePath = "user://title_music.txt";
+
+    /// <summary>The track the title screens play: the player's pick, else The Gilded Court.</summary>
+    public static string TitleTrack
+    {
+        get
+        {
+            try
+            {
+                if (Godot.FileAccess.FileExists(TitleChoicePath))
+                {
+                    string id = Godot.FileAccess.GetFileAsString(TitleChoicePath).Trim();
+                    if (System.Array.Exists(TitleTracks, t => t.Id == id)) return id;
+                }
+            }
+            catch { }
+            return TitleTracks[0].Id;
+        }
+        set
+        {
+            try { using var f = Godot.FileAccess.Open(TitleChoicePath, Godot.FileAccess.ModeFlags.Write); f?.StoreString(value); } catch { }
+        }
+    }
+
+    public static string TitleTrackName(string id) => System.Array.Find(TitleTracks, t => t.Id == id).Name ?? id;
     public const string TrackDuel = "thorn_reach";
     public const string TrackQuiet = "stones_and_dust";
 
@@ -295,6 +331,7 @@ public partial class AudioManager : Node
         _lastSceneName = name;
 
         string id = SceneTracks.TryGetValue(name, out var mapped) ? mapped : TrackQuiet;
+        if (id == TrackTitle) id = TitleTrack;   // FABLE-055: the chosen title music
         GD.Print($"[AudioManager] scene '{name}' -> music '{id}'");
         CrossfadeMusic(id, 1.6f);
     }

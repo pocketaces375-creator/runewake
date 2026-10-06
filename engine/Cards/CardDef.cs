@@ -67,6 +67,10 @@ public sealed class CardDef
     public ConditionDef? IdentifyCondition { get; set; }
 
     /// <summary>Flavor text (max 140 characters).</summary>
+    /// <summary>FABLE-054: printed rules text that replaces the rendered abilities (artifacts shown as cards). Never in card JSON.</summary>
+    [JsonIgnore]
+    public string? PrintedText { get; set; }
+
     [JsonPropertyName("flavor")]
     public string? Flavor { get; set; }
 

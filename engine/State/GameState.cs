@@ -49,6 +49,12 @@ public sealed class GameState
     public string? LastTrapSprung { get; set; }
 
     /// <summary>
+    /// FABLE-054: the creature an event is about while its listeners run ("whenever you summon a creature" —
+    /// this one). Set and cleared inside one trigger, never cloned. Targets read it with the EVENT filters.
+    /// </summary>
+    public CardInstance? EventCreature { get; set; }
+
+    /// <summary>
     /// True when the game has ended (a player reached 0 Vigor).
     /// </summary>
     public bool IsGameOver { get; set; }
@@ -239,87 +245,8 @@ public sealed class GameState
 
         // ——— Initialize Artifacts ———
         for (int p = 0; p < 2; p++)
-        {
-            var player = state.Players[p];
-            var artifactIds = p == 0 ? config.Player0ArtifactIds : config.Player1ArtifactIds;
-            var className = p == 0 ? config.Player0Class : config.Player1Class;
-
-            if (artifactIds.Length == 0) continue;
-
-            player.ArtifactClass = className;
-            player.ArtifactDefIds = artifactIds;
-            player.ArtifactSlots = new ArtifactSlot[artifactIds.Length];
-            player.AttackCountThisTurn = 0;
-            player.SpellCastCountThisTurn = 0;
-            player.HasAttackedThisTurn = false;
-
-            for (int slotIdx = 0; slotIdx < artifactIds.Length; slotIdx++)
-            {
-                var slot = new ArtifactSlot(slotIdx);
-                var artDef = Cards.ArtifactRegistry.Get(artifactIds[slotIdx])
-                    ?? throw new InvalidOperationException($"Artifact definition '{artifactIds[slotIdx]}' not found.");
-
-                var instance = new CardInstance(state.NextInstanceId++, artifactIds[slotIdx], p)
-                {
-                    CardType = CardType.ARTIFACT,
-                    Zone = Zone.ArtifactSlot,
-                    ArtifactSlotIndex = slotIdx,
-                    ArtifactClass = artDef.Class,
-                    SlotPool = artDef.SlotPool,
-                    Cost = 0,
-                    BaseAttack = 0,
-                    BaseVigor = 0,
-                };
-
-                // Build the passive effect into an ability
-                var passiveAbility = new AbilityDef
-                {
-                    Trigger = Trigger.PASSIVE,
-                    Effects = new List<EffectDef> { artDef.Passive }
-                };
-
-                // Build the trigger ability
-                var triggerAbility = artDef.Trigger;
-
-                instance.Abilities.Add(passiveAbility);
-                if (triggerAbility is not null)
-                    instance.Abilities.Add(triggerAbility);
-
-                // If the artifact has a dedicated full_charge effects list,
-                // add an ON_CHARGE_FULL ability for them. This lets the trigger
-                // handle charge-gain events while the full-charge effect is separate.
-                if (artDef.FullCharge is { Count: > 0 })
-                {
-                    instance.Abilities.Add(new AbilityDef
-                    {
-                        Trigger = Trigger.ON_CHARGE_FULL,
-                        Effects = artDef.FullCharge
-                    });
-                }
-
-                // Initialize Charges if configured
-                if (artDef.Charges is { } chargeCfg)
-                {
-                    slot.MaxCharges = chargeCfg.Max;
-                    slot.Charges = 0;
-                    slot.ChargeConfigMaxPerTurn = chargeCfg.MaxPerTurn;
-                    slot.ChargeConfigMaxPerCreaturePerTurn = chargeCfg.MaxPerCreaturePerTurn;
-
-                    // Store auto-charge gain trigger from ChargeConfig
-                    string? gainOn = chargeCfg.GainOn;
-                    if (!string.IsNullOrEmpty(gainOn) && (gainOn == "on_turn_start" || gainOn == "on_turn_end"))
-                        slot.AutoChargeGainOn = gainOn;
-                }
-
-                // Determine if this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN
-                slot.HasDeferredChargeFull = artDef.Trigger is not null
-                    && artDef.Trigger.Trigger == Trigger.ON_CHARGE_FULL
-                    && artDef.Trigger.Timing == "END_OF_TURN";
-
-                slot.Occupant = instance;
-                player.ArtifactSlots[slotIdx] = slot;
-            }
-        }
+            InstallArtifacts(state, p, p == 0 ? config.Player0Class : config.Player1Class,
+                p == 0 ? config.Player0ArtifactIds : config.Player1ArtifactIds);
 
         // Fire ON_ARTIFACT_REVEAL triggers for all Artifacts (open info, before mulligans)
         for (int p = 0; p < 2; p++)
@@ -411,6 +338,93 @@ public sealed class GameState
     /// Returns the opposing player index.
     /// </summary>
     public int OpponentIndex(int playerIndex) => 1 - playerIndex;
+
+    /// <summary>
+    /// Put a player's Artifacts into their slots (game start). FABLE-054: pulled out of Initialize so a test
+    /// can arm a board with any loadout without building a whole match.
+    /// </summary>
+    public static void InstallArtifacts(GameState state, int p, string? className, string[] artifactIds)
+    {
+        var player = state.Players[p];
+        if (artifactIds.Length == 0) return;
+
+        player.ArtifactClass = className;
+        player.ArtifactDefIds = artifactIds;
+        player.ArtifactSlots = new ArtifactSlot[artifactIds.Length];
+        player.AttackCountThisTurn = 0;
+        player.SpellCastCountThisTurn = 0;
+        player.HasAttackedThisTurn = false;
+
+        for (int slotIdx = 0; slotIdx < artifactIds.Length; slotIdx++)
+        {
+            var slot = new ArtifactSlot(slotIdx);
+            var artDef = Cards.ArtifactRegistry.Get(artifactIds[slotIdx])
+                ?? throw new InvalidOperationException($"Artifact definition '{artifactIds[slotIdx]}' not found.");
+
+            var instance = new CardInstance(state.NextInstanceId++, artifactIds[slotIdx], p)
+            {
+                CardType = CardType.ARTIFACT,
+                Zone = Zone.ArtifactSlot,
+                ArtifactSlotIndex = slotIdx,
+                ArtifactClass = artDef.Class,
+                SlotPool = artDef.SlotPool,
+                Cost = 0,
+                BaseAttack = 0,
+                BaseVigor = 0,
+            };
+
+            // Build the passive effect into an ability
+            var passiveAbility = new AbilityDef
+            {
+                Trigger = Trigger.PASSIVE,
+                Effects = new List<EffectDef> { artDef.Passive }
+            };
+
+            // Build the trigger ability
+            var triggerAbility = artDef.Trigger;
+
+            instance.Abilities.Add(passiveAbility);
+            if (triggerAbility is not null)
+                instance.Abilities.Add(triggerAbility);
+            if (artDef.ExtraTriggers is { Count: > 0 } extra)
+                instance.Abilities.AddRange(extra);
+
+            // If the artifact has a dedicated full_charge effects list,
+            // add an ON_CHARGE_FULL ability for them. This lets the trigger
+            // handle charge-gain events while the full-charge effect is separate.
+            if (artDef.FullCharge is { Count: > 0 })
+            {
+                instance.Abilities.Add(new AbilityDef
+                {
+                    Trigger = Trigger.ON_CHARGE_FULL,
+                    Effects = artDef.FullCharge
+                });
+            }
+
+            // Initialize Charges if configured
+            if (artDef.Charges is { } chargeCfg)
+            {
+                slot.MaxCharges = chargeCfg.Max;
+                slot.Charges = 0;
+                slot.ChargeConfigMaxPerTurn = chargeCfg.MaxPerTurn;
+                slot.ChargeConfigMaxPerCreaturePerTurn = chargeCfg.MaxPerCreaturePerTurn;
+
+                // Store auto-charge gain trigger from ChargeConfig
+                string? gainOn = chargeCfg.GainOn;
+                if (!string.IsNullOrEmpty(gainOn) && (gainOn == "on_turn_start" || gainOn == "on_turn_end"))
+                    slot.AutoChargeGainOn = gainOn;
+            }
+
+            // Determine if this artifact's ON_CHARGE_FULL trigger has timing END_OF_TURN
+            slot.HasDeferredChargeFull = artDef.Trigger is not null
+                && artDef.Trigger.Trigger == Trigger.ON_CHARGE_FULL
+                && artDef.Trigger.Timing == "END_OF_TURN";
+
+            slot.Occupant = instance;
+            player.ArtifactSlots[slotIdx] = slot;
+        }
+    }
+
 
     /// <summary>
     /// Computes a deterministic 64-bit hash of the entire game state.

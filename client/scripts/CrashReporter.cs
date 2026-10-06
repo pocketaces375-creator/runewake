@@ -183,6 +183,15 @@ public partial class CrashReporter : Node
         }
     }
 
+    /// <summary>
+    /// FABLE-055: record a problem that didn't crash the game (a save that failed), so it reaches the
+    /// crash_reports table with the next upload. No recovery screen. Safe from any thread.
+    /// </summary>
+    public static void ReportNonFatal(Exception ex)
+    {
+        lock (Lock) WriteJsonReport(ex, DateTime.UtcNow.ToString("yyyyMMdd_HHmmss_fff") + "_nonfatal");
+    }
+
     private static void WriteJsonReport(Exception ex, string timestamp)
     {
         try

@@ -156,6 +156,18 @@ public partial class SettingsScene : Control
         _ambientSlider = SliderRow(left, "Ambience");
         Spacer(left, 6);
         _muteSwitch = SwitchRow(left, "Mute all sound", null, OnMuteToggled);
+        // FABLE-055: pick the title music (tap to hear the next one)
+        Label? musicLabel = null;
+        musicLabel = ActionRow(left, "Title music:  " + AudioManager.TitleTrackName(AudioManager.TitleTrack), false, () =>
+        {
+            Click();
+            var list = AudioManager.TitleTracks;
+            int i = System.Array.FindIndex(list, t => t.Id == AudioManager.TitleTrack);
+            var next = list[(i + 1) % list.Length];
+            AudioManager.TitleTrack = next.Id;
+            musicLabel!.Text = "Title music:  " + next.Name;
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.CrossfadeMusic(next.Id, 1.0f);   // hear it now
+        });
 
         // divider
         cols.AddChild(new ColorRect { Color = Rule, CustomMinimumSize = new Vector2(2, 0), SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
@@ -357,7 +369,7 @@ public partial class SettingsScene : Control
         return sw;
     }
 
-    private void ActionRow(VBoxContainer col, string label, bool danger, Action onPress)
+    private Label ActionRow(VBoxContainer col, string label, bool danger, Action onPress)
     {
         var wrap = new MarginContainer();
         wrap.AddThemeConstantOverride("margin_left", (int)(Pad - 20));
@@ -397,6 +409,7 @@ public partial class SettingsScene : Control
         inner.AddChild(RowLabel("›", 44, danger ? EmberText : Gold));
 
         b.Pressed += () => onPress();
+        return l;
     }
 
     private static void StyleSlider(HSlider s)
@@ -644,7 +657,7 @@ public partial class SettingsScene : Control
             st.UnlockedTools.Clear();
             st.DiscoveredRelics.Clear();
             st.DeckCardIds.Clear();
-            st.SavedDecks.Clear();
+            st.SavedDecks.Clear(); st.DeckArtifacts.Clear(); st.ActiveArtifacts.Clear();
             st.SavedRunePageJson = "";
             st.Tutorial = null;
             CampaignContext.Progression.Collection.Clear();

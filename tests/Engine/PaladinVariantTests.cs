@@ -190,10 +190,11 @@ public class PaladinVariantTests
             EffectExecutor.Execute(healEffect, slot0.Occupant!, state,
                 new List<ResolvedTarget> { new CreatureTarget(ally, 0, 0) });
 
-            // FABLE-DROP-1: the heal itself is the event now — BOTH Mauls hear it, and each one's
-            // ADD_CHARGE (SELF_ARTIFACT → every non-suppressed slot) adds 1 to both slots: 2 each.
-            Assert.Equal(2, slot0.Charges);
-            Assert.Equal(2, slot1.Charges);
+            // FABLE-DROP-1: the heal itself is the event now — BOTH Mauls hear it.
+            // FABLE-054: SELF_ARTIFACT means the artifact's OWN slot (it used to mean every slot, so each Maul
+            // charged both and they read 2 each). Each Maul charges itself once: 1 each, as rule G8 says.
+            Assert.Equal(1, slot0.Charges);
+            Assert.Equal(1, slot1.Charges);
         }
         finally
         {

@@ -95,8 +95,14 @@ public static class TriggerBus
         CollectListeners(state.Player(controller), trigger, listeners);
         if (listenersBothSides)
             CollectListeners(state.Player(state.OpponentIndex(controller)), trigger, listeners);
-        foreach (var (ability, source, ctl, _) in listeners)
-            RunAbility(state, ability, source, ctl);
+        var outer = state.EventCreature;
+        state.EventCreature = card;
+        try
+        {
+            foreach (var (ability, source, ctl, _) in listeners)
+                RunAbility(state, ability, source, ctl);
+        }
+        finally { state.EventCreature = outer; }
     }
 
     /// <summary>

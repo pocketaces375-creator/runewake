@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Godot;
 using Runewake.Engine.Cards;
+using Runewake.Engine.Coop;
 using Runewake.Engine.Supabase;
 
 namespace Runewake.Client;
@@ -45,6 +46,13 @@ public partial class OnlineLobbyScene : Control
     private Label _title = null!, _status = null!, _codeLabel = null!, _players = null!, _kicker = null!;
     private LineEdit _nameEdit = null!, _codeEdit = null!;
     private Button _startBtn = null!, _readyBtn = null!, _leaveBtn = null!;
+    // FABLE-054: challenge by username
+    private LineEdit _challengeEdit = null!;
+    private Control _challengeRow = null!, _inviteBanner = null!;
+    private Label _inviteText = null!;
+    private ProfileSync.Challenge? _invite;
+    private double _invitePoll = 3;
+    private bool _invitePolling;
     private string _coopTarget = "";
     private string _coopTitle = "";
 
@@ -83,13 +91,32 @@ public partial class OnlineLobbyScene : Control
         var nameRow = new HBoxContainer { Position = new Vector2(vp.X / 2f - 380, 190), Size = new Vector2(760, 70), Alignment = BoxContainer.AlignmentMode.Center };
         nameRow.AddThemeConstantOverride("separation", 20);
         _menu.AddChild(nameRow);
-        var nameLbl = new Label { Text = "Your name", VerticalAlignment = VerticalAlignment.Center };
+        bool hasUsername = !string.IsNullOrEmpty(_sm?.Username);
+        var nameLbl = new Label { Text = hasUsername ? "Playing as" : "Your name", VerticalAlignment = VerticalAlignment.Center };
         nameLbl.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(32)); nameLbl.AddThemeFontSizeOverride("font_size", 32);
         nameLbl.AddThemeColorOverride("font_color", Parchment);
         nameRow.AddChild(nameLbl);
-        _nameEdit = new LineEdit { Text = LoadName(), CustomMinimumSize = new Vector2(440, 64), MaxLength = 18, PlaceholderText = "Delver" };
+        // FABLE-054: your username when you have one (others never see an email); otherwise a filtered name
+        _nameEdit = new LineEdit { Text = hasUsername ? _sm!.Username! : LoadName(), CustomMinimumSize = new Vector2(440, 64), MaxLength = Usernames.MaxLength, PlaceholderText = "Delver", Editable = !hasUsername };
         StyleEdit(_nameEdit);
         nameRow.AddChild(_nameEdit);
+
+        // an invitation from a friend, by username
+        _inviteBanner = new PanelContainer { Position = new Vector2(vp.X / 2f - 560, vp.Y - 270), Size = new Vector2(1120, 84), Visible = false, ZIndex = 5 };
+        _inviteBanner.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0.10f, 0.16f, 0.15f, 0.96f), BorderColor = ThemeTokens.Gold, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2, CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14, ContentMarginLeft = 24, ContentMarginRight = 12 });
+        AddChild(_inviteBanner);
+        var inv = new HBoxContainer(); inv.AddThemeConstantOverride("separation", 16);
+        _inviteBanner.AddChild(inv);
+        _inviteText = new Label { SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true };
+        _inviteText.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(32)); _inviteText.AddThemeFontSizeOverride("font_size", 32);
+        _inviteText.AddThemeColorOverride("font_color", new Color(0.95f, 0.88f, 0.66f));
+        inv.AddChild(_inviteText);
+        var accept = Plate("Accept", true, 220); accept.CustomMinimumSize = new Vector2(220, 64);
+        accept.Pressed += () => _ = AnswerInvite(true);
+        inv.AddChild(accept);
+        var decline = Plate("Decline", false, 220); decline.CustomMinimumSize = new Vector2(220, 64);
+        decline.Pressed += () => _ = AnswerInvite(false);
+        inv.AddChild(decline);
 
         var col = new VBoxContainer { Position = new Vector2(vp.X / 2f - 300, 290), Size = new Vector2(600, 500), Alignment = BoxContainer.AlignmentMode.Begin };
         col.AddThemeConstantOverride("separation", 22);
@@ -143,6 +170,19 @@ public partial class OnlineLobbyScene : Control
         _players.AddThemeColorOverride("font_color", Parchment);
         _lobbyPane.AddChild(_players);
 
+        // FABLE-054: the host can challenge a friend by username
+        var cr = new HBoxContainer { Position = new Vector2(vp.X / 2f - 460, vp.Y - 400), Size = new Vector2(920, 90), Alignment = BoxContainer.AlignmentMode.Center };
+        cr.AddThemeConstantOverride("separation", 16);
+        _challengeRow = cr;
+        _lobbyPane.AddChild(cr);
+        _challengeEdit = new LineEdit { CustomMinimumSize = new Vector2(520, 80), MaxLength = Usernames.MaxLength, PlaceholderText = "Friend's username", Alignment = HorizontalAlignment.Center };
+        StyleEdit(_challengeEdit, 34);
+        cr.AddChild(_challengeEdit);
+        var chBtn = Plate("Challenge", false, 300);
+        chBtn.Pressed += () => _ = Challenge(_challengeEdit.Text.Trim());
+        _challengeEdit.TextSubmitted += t => _ = Challenge(t.Trim());
+        cr.AddChild(chBtn);
+
         var row = new HBoxContainer { Position = new Vector2(vp.X / 2f - 520, vp.Y - 260), Size = new Vector2(1040, 100), Alignment = BoxContainer.AlignmentMode.Center };
         row.AddThemeConstantOverride("separation", 30);
         _lobbyPane.AddChild(row);
@@ -161,11 +201,17 @@ public partial class OnlineLobbyScene : Control
 
         if (_sync == null) SetStatus("Online play needs the cloud connection — it isn't set up on this build.");
         else if (_sm?.Session?.IsValid != true) SetStatus("Not signed in yet. Give it a moment, or check your connection.");
-        else SetStatus($"Signed in as {_sm.Session.DisplayLabel()}");
+        else SetStatus($"Signed in as {_sm.PublicLabel}");
     }
 
     public override void _Process(double delta)
     {
+        // FABLE-054: on the menu, look for challenges every few seconds
+        if (_view == View.Menu && _sm?.HasAccount == true && !_invitePolling)
+        {
+            _invitePoll += delta;
+            if (_invitePoll >= 4) { _invitePoll = 0; _ = PollInvites(); }
+        }
         if (_view != View.Lobby || _started || string.IsNullOrEmpty(_id)) return;
         _poll += delta;
         if (_poll < 1.5 || _polling) return;
@@ -177,8 +223,10 @@ public partial class OnlineLobbyScene : Control
 
     private (string name, string cls, List<string> deck)? MyLoadout()
     {
-        string name = _nameEdit.Text.Trim();
-        if (string.IsNullOrEmpty(name)) name = _sm?.Session?.DisplayLabel() ?? "Delver";
+        // FABLE-054: never an email — your username, or a name that passes the filter, or "Delver"
+        string name = !string.IsNullOrEmpty(_sm?.Username) ? _sm!.Username! : _nameEdit.Text.Trim();
+        if (string.IsNullOrEmpty(name)) name = "Delver";
+        if (Usernames.Problem(name) is string bad && name != "Delver") { SetStatus("Your name: " + bad); return null; }
         SaveName(name);
         string cls = CampaignContext.ChosenClass;
         var deck = CampaignContext.PlayerDeckIds;
@@ -187,8 +235,52 @@ public partial class OnlineLobbyScene : Control
             SetStatus("Start a campaign first so you have a class and a deck to bring.");
             return null;
         }
-        return (name, cls, new List<string>(deck));
+        // FABLE-054: the deck's two artifacts travel with it (see SeatConfig.FromPosted)
+        var arts = ArtifactRegistry.PlayerLoadout(cls, CampaignContext.Progression?.ActiveArtifacts);
+        return (name, cls, SeatConfig.ToPosted(deck, arts));
     }
+
+    // ── FABLE-054: challenges by username ───────────────────────────────────
+
+    private async Task Challenge(string username)
+    {
+        if (_sm == null || string.IsNullOrEmpty(_id)) return;
+        if (username.Length == 0) { SetStatus("Type your friend's username."); return; }
+        SetStatus($"Challenging {username}…");
+        var err = await _sm.ChallengePlayer(username, _id).ConfigureAwait(false);
+        CallDeferred(nameof(SetStatus), err ?? $"Challenge sent. {username} sees it on their Online screen.");
+    }
+
+    private async Task PollInvites()
+    {
+        if (_sm == null) return;
+        _invitePolling = true;
+        var list = await _sm.MyChallenges().ConfigureAwait(false);
+        _invitePolling = false;
+        _invite = list.FirstOrDefault();
+        CallDeferred(nameof(ShowInvite));
+    }
+
+    private void ShowInvite()
+    {
+        if (_inviteBanner == null) return;
+        _inviteBanner.Visible = _view == View.Menu && _invite != null;
+        if (_invite != null) _inviteText.Text = $"{_invite.FromName} challenges you to a duel";
+    }
+
+    private async Task AnswerInvite(bool accept)
+    {
+        var inv = _invite;
+        if (_sm == null || inv == null) return;
+        _invite = null;
+        CallDeferred(nameof(ShowInvite));
+        var code = await _sm.AnswerChallenge(inv.Id, accept).ConfigureAwait(false);
+        if (!accept) return;
+        if (string.IsNullOrEmpty(code)) { CallDeferred(nameof(SetStatus), "That lobby has closed."); return; }
+        CallDeferred(nameof(JoinDeferred), code);
+    }
+
+    private void JoinDeferred(string code) => _ = Join(code);
 
     private async Task Host(string kind, string target)
     {
@@ -320,6 +412,8 @@ public partial class OnlineLobbyScene : Control
         _lobbyPane.Visible = true;
         _codeLabel.Text = _code;
         _players.Text = "…";
+        _challengeRow.Visible = _host && _kind == "pvp1v1";
+        if (_inviteBanner != null) _inviteBanner.Visible = false;
         _title.Text = _kind == "coop" ? "Co-op lobby" : "Duel lobby";
         _kicker.Text = _host ? "YOUR LOBBY  ·  SHARE THIS CODE" : "LOBBY CODE";
         _poll = 10;   // poll at once

@@ -74,3 +74,18 @@ Music normalized to ~-18 LUFS.
 | blade_01.ogg..blade_03.ogg | `content/audio/sfx/` | mono, ~-6 dBFS, short |
 | book_01.ogg..book_04.ogg | `content/audio/sfx/` | mono, ~-6 dBFS, short |
 | ... (all 80 CC0 SFX) | `content/audio/sfx/` | mono, ~-6 dBFS, short |
+---
+
+## Original score (FABLE-055)
+
+Composed for Runewake (MIDI rendered through FluidR3 GM, original procedural wind and tide, mixed and mastered to -18 LUFS, seamless loops). Original work, no third-party samples beyond the FluidR3 GM soundfont (MIT).
+
+| File | Title | Feel |
+|------|-------|------|
+| gilded_court.ogg | The Gilded Court | Renaissance court: lute, harp, recorder, viola, cello drone (default title music) |
+| sands_of_the_old_age.ogg | Sands of the Old Age | Arabian desert, rushing wind, oud, ney, sitar |
+| barrow_hymn.ogg | Barrow Hymn | Ancient choir, rune bells, taiko heartbeat |
+| hearthfire_reckoning.ogg | Hearthfire Reckoning | Folk jig with a buried music-box interlude |
+| the_long_ascent.ogg | The Long Ascent | Lone cello over harp and tide, building |
+
+The original title theme, hall_of_runes.ogg, is kept and can be picked again in Settings → Title music.

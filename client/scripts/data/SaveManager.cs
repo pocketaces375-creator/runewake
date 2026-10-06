@@ -42,6 +42,9 @@ public class SaveManager
     /// <summary>True if the most recent load performed any repair or migration.</summary>
     public bool WasRepaired => _repository.RepairLog.Count > 0;
 
+    /// <summary>FABLE-055: raised when saving starts failing (the reason) or works again (null).</summary>
+    public static event Action<string?>? SaveProblem;
+
     /// <summary>FABLE-047: which save file (runewake_save_slot{N}.db) this manager reads and writes.</summary>
     public int CurrentSlot { get; private set; }
 
@@ -144,12 +147,19 @@ public class SaveManager
         bool ok = _repository.Save(State);
         if (!ok)
         {
+            // FABLE-055: keep the real reason (it used to be a bare "see log"), and send it home once
+            string why = _repository.LastSaveError ?? "unknown reason";
+            bool firstTime = IsFunctional;
             IsFunctional = false;
-            LastError ??= "Save failed (see log)";
-            GD.PrintErr("[SaveManager] Save failed");
+            LastError = "Save failed — " + why;
+            GD.PrintErr("[SaveManager] " + LastError);
+            if (firstTime) CrashReporter.ReportNonFatal(new InvalidOperationException(LastError));
+            SaveProblem?.Invoke(LastError);
         }
         else
         {
+            // FABLE-055: one failed save no longer marks the whole session unsaveable
+            if (!IsFunctional) { IsFunctional = true; LastError = null; SaveProblem?.Invoke(null); }
             // FABLE-018: every local save is a candidate for the cloud. The
             // SyncManager coalesces bursts and pushes once things go quiet.
             // Best-effort, never throws, no-op when accounts are off.

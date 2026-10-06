@@ -213,7 +213,7 @@ public partial class StartScreen : Control
         if (_sync == null || !_sync.IsConfigured || _sync.HasAccount)
         {
             if (_sync != null && _sync.HasAccount)
-                _bottom.AddChild(MakeLabel("Signed in as " + _sync.Session!.DisplayLabel(), 30, TextSecondary, header: false));
+                _bottom.AddChild(MakeLabel("Signed in as " + _sync.PublicLabel, 30, TextSecondary, header: false));
             var begin = MakeLabel("Tap to begin", 36, Gold, header: true);
             _bottom.AddChild(begin);
             var pulse = CreateTween().SetLoops();

@@ -113,12 +113,8 @@ public sealed class OnlineMatch
         return new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, session, null, coop);
     }
 
-    private static SeatConfig ToSeat(OnlinePlaySync.Member m) => new()
-    {
-        Seat = m.Seat, DisplayName = m.DisplayName, ClassId = m.ClassId,
-        Deck = new List<string>(m.Deck),
-        Artifacts = ArtifactRegistry.DefaultLoadoutFor(m.ClassId),
-    };
+    // FABLE-054: the posted deck carries the member's two artifact picks (see SeatConfig.FromPosted)
+    private static SeatConfig ToSeat(OnlinePlaySync.Member m) => SeatConfig.FromPosted(m.Seat, m.DisplayName, m.ClassId, m.Deck);
 
     // ── the local player ────────────────────────────────────────────────────
 

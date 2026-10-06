@@ -194,7 +194,12 @@ public partial class AccountPanel : Control
         if (_sync.HasAccount)
         {
             Body("Your progress is saved to this account. Sign in with it on any phone to pick up where you left off.", TextMuted);
+            // FABLE-054: the name other players see — never the email
+            Body(string.IsNullOrEmpty(_sync.Username)
+                ? "No username yet. Other players see \"Delver\" until you pick one."
+                : $"Username: {_sync.Username}", string.IsNullOrEmpty(_sync.Username) ? TextMuted : Gold);
             Buttons(("Sync now", () => _ = Run(() => _sync.SyncNow())),
+                    (string.IsNullOrEmpty(_sync.Username) ? "Pick a username" : "Change username", UsernameScreen),
                     ("Change password", NewPasswordScreen));
             Row(("Sign out", () => _ = Run(async () => { await _sync.SignOut(); if (IsInstanceValid(this)) Rebuild(); })),
                 ("Close", () => QueueFree()));
@@ -219,18 +224,51 @@ public partial class AccountPanel : Control
 
         var email = Field("Email", LineEdit.VirtualKeyboardTypeEnum.EmailAddress);
         var pass = Field($"Password ({SupabaseAuth.MinPasswordLength}+ characters)", LineEdit.VirtualKeyboardTypeEnum.Password, secret: true);
+        // FABLE-054: optional — what other players see instead of the email
+        var uname = Field("Username (optional — others see this)", LineEdit.VirtualKeyboardTypeEnum.Default);
+        uname.MaxLength = Usernames.MaxLength;
         void Submit() => _ = Run(async () =>
         {
+            string wanted = uname.Text.Trim();
+            if (wanted.Length > 0 && Usernames.Problem(wanted) is string bad) { ShowError("Username: " + bad); return; }
+            // remembered first: an account that signs straight in claims it as part of signing in
+            if (wanted.Length > 0) _sync.RememberUsernameToClaim(wanted);
             var r = await _sync.CreateAccount(email.Text, pass.Text);
             if (!IsInstanceValid(this)) return;
-            if (!r.Ok) { ShowError(r.Error); return; }
+            if (!r.Ok) { if (wanted.Length > 0) _sync.ForgetUsernameToClaim(); ShowError(r.Error); return; }
             if (r.NeedsConfirmation) { ConfirmEmailScreen(email.Text.Trim(), pass.Text); return; }
             Done();
         });
         email.TextSubmitted += _ => pass.GrabFocus();
-        pass.TextSubmitted += _ => Submit();
+        pass.TextSubmitted += _ => uname.GrabFocus();
+        uname.TextSubmitted += _ => Submit();
         Buttons(("Create account", Submit));
         Row(("I have an account", () => SignInScreen(email.Text)), ("Back", Rebuild));
+        _back = Rebuild;
+    }
+
+    /// <summary>FABLE-054: pick or change the name other players see.</summary>
+    private void UsernameScreen()
+    {
+        ClearBody();
+        Header("USERNAME");
+        Body($"Other players see this on lobbies, challenges and duels — never your email. {Usernames.MinLength}–{Usernames.MaxLength} letters, numbers, spaces, _ or -.", TextMuted);
+        ErrorLine();
+        var name = Field("Username", LineEdit.VirtualKeyboardTypeEnum.Default);
+        name.MaxLength = Usernames.MaxLength;
+        name.Text = _sync.Username ?? "";
+        name.TextChanged += t => ShowError(t.Trim().Length == 0 ? "" : Usernames.Problem(t) ?? "");
+        void Submit() => _ = Run(async () =>
+        {
+            var (ok, error) = await _sync.SetUsername(name.Text);
+            if (!IsInstanceValid(this)) return;
+            if (!ok) { ShowError(error); return; }
+            Rebuild();
+            ShowError($"You're {_sync.Username} now.", good: true);
+        });
+        name.TextSubmitted += _ => Submit();
+        Buttons(("Save username", Submit));
+        Row(("Back", Rebuild));
         _back = Rebuild;
     }
 

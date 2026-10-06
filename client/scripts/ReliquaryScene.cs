@@ -434,7 +434,7 @@ public partial class ReliquaryScene : Control
                     ShadowColor = new Color(0, 0, 0, 0.5f), ShadowSize = 16, ShadowOffset = new Vector2(0, 8),
                 });
                 cell.AddChild(frame);
-                string artPath = $"res://content/art/artifacts/{a.Id}.webp";
+                string artPath = $"res://content/art/artifacts/{a.ArtKey}.webp";
                 if (ResourceLoader.Exists(artPath))
                 {
                     var art = new TextureRect { Texture = ResourceLoader.Load<Texture2D>(artPath), StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, MouseFilter = MouseFilterEnum.Ignore, Position = new Vector2(4, 4), Size = new Vector2(tileW - 8, artH - 8) };

@@ -176,6 +176,14 @@ def main():
     check(st == 400 and "invalid login credentials" in text, "    password sign-in answers (wrong password → 'Invalid login credentials')",
           f"status {st}: {body}")
 
+    # FABLE-054: usernames + challenges. Informational — the game works without them (names stay "Delver").
+    st, body = c.call("POST", "/rest/v1/rpc/username_free", {"p_name": "Delver"}, jwt=alice_jwt)
+    if st == 200:
+        check(body in (True, False), "12. usernames are switched on (supabase/usernames.sql)", f"status {st}: {body}")
+    else:
+        print("  ℹ  12. usernames are NOT switched on yet — paste supabase/usernames.sql into the SQL editor and run it once"
+              f" (status {st}). Until then nobody can pick a username or challenge by name; everything else works.")
+
     # cleanup (rows only; auth users are cleaned by Supabase's own anon-user reaper or by hand)
     if not a.keep:
         c.call("DELETE", f"/rest/v1/relic_instances?relic_instance_id=eq.{rid}", jwt=alice_jwt)

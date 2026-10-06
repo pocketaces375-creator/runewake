@@ -76,6 +76,34 @@ public sealed class ArtifactDef
     public List<EffectDef>? FullCharge { get; set; }
 
     /// <summary>
+    /// FABLE-054: true = this artifact is in its class's Deck Forge pool (pick any two per deck).
+    /// Forge artifacts never take part in the old launch-pair / slot-pool picks, so content and
+    /// tests built on those keep behaving exactly as before.
+    /// </summary>
+    [JsonPropertyName("forge")]
+    public bool Forge { get; set; }
+
+    /// <summary>FABLE-054: which painting to show (content/art/artifacts/{art_id}); defaults to the id.</summary>
+    [JsonPropertyName("art_id")]
+    public string? ArtId { get; set; }
+
+    /// <summary>The art file key: art_id when set, else the id.</summary>
+    [JsonIgnore]
+    public string ArtKey => string.IsNullOrEmpty(ArtId) ? Id : ArtId!;
+
+    /// <summary>FABLE-054: one of the two a new deck of this class starts with.</summary>
+    [JsonPropertyName("default")]
+    public bool IsDefault { get; set; }
+
+    /// <summary>FABLE-054: the player-facing rules text. When set, every view shows this.</summary>
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
+
+    /// <summary>FABLE-054: more triggered abilities (an artifact that charges on one event and acts on another).</summary>
+    [JsonPropertyName("extra_triggers")]
+    public List<AbilityDef>? ExtraTriggers { get; set; }
+
+    /// <summary>
     /// Version of the content schema this artifact targets.</summary>
     [JsonPropertyName("content_version")]
     public int ContentVersion { get; set; } = 1;

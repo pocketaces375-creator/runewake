@@ -179,3 +179,23 @@ build machine. `client/supabase_config.example.json` is the template.
 | `tests/Supabase/AccountsTests.cs` | 9 tests / 93 assertions, mock HTTP |
 | `tools/supabase_smoke.py` | 21 live checks against the real project |
 | `tools/supabase_schema_check.sh` | schema + RLS on a throwaway local Postgres |
+
+
+## Usernames and challenges by name (FABLE-054)
+
+Other players see your **username**, never your email. Before this change, a lobby showed the email when the name box was left empty.
+
+**Picking a name:**
+
+- You can choose one while creating an account (it's optional), or later from the Account panel with "Pick a username" or "Change username".
+- 3–16 letters, numbers, spaces, `_` or `-`. Names are unique, ignoring case.
+- A word filter blocks heavy profanity, slurs and crude words, including l33t and spaced-out spellings. It leaves ordinary words alone (Scunthorpe, Dickens, Cassandra). The filter is `engine/Supabase/Usernames.cs`.
+- With no username, other players see "Delver". Your own screens show a masked email (`t•••@gmail.com`).
+
+**Challenge by name:** host a duel, type a friend's username and press Challenge. Within a few seconds their Online screen shows "<name> challenges you to a duel" with Accept and Decline. Accept joins the lobby.
+
+**One-time server step:** paste `supabase/usernames.sql` into the Supabase SQL editor and run it once. It is idempotent.
+
+- Until then, names can't be picked and challenges can't be sent. Everything else works.
+- A name typed at sign-up is kept on the phone and claimed once the SQL is in.
+- `tools/supabase_smoke.py` check 12 reports whether the step has been done. `tools/supabase_schema_check.sh` tests the SQL against a local Postgres.

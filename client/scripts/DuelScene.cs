@@ -604,10 +604,11 @@ public partial class DuelScene : Control
             // One seed for the whole duel, so the opponent's relics replay with it.
             ulong duelSeed = CampaignContext.DebugSeed ?? (ulong)GD.Randi();
 
-            // Player 0: tutorial artifacts if set, else DefaultLoadoutFor(ChosenClass)
+            // Player 0: tutorial artifacts if set, else the forged deck's picks
+            // FABLE-054: the forged deck's two artifacts (its class's Forge defaults if it has none)
             string[] p0Artifacts = CampaignContext.TutorialPlayerArtifactIds.Length > 0
                 ? CampaignContext.TutorialPlayerArtifactIds
-                : ArtifactRegistry.DefaultLoadoutFor(CampaignContext.ChosenClass);
+                : ArtifactRegistry.PlayerLoadout(CampaignContext.ChosenClass, CampaignContext.Progression?.ActiveArtifacts);
             string p0Class = CampaignContext.TutorialPlayerClass.Length > 0
                 ? CampaignContext.TutorialPlayerClass
                 : CampaignContext.ChosenClass;
@@ -629,8 +630,8 @@ public partial class DuelScene : Control
             }
             else
             {
-                var opponent = ArtifactRegistry.OpponentLoadout(
-                    encounter.Class, p0Class, p0Artifacts, encounter.Id, duelSeed);
+                // FABLE-054: AI opponents bring Forge artifacts too (a different class, two of its four)
+                var opponent = ArtifactRegistry.OpponentForgeLoadout(encounter.Class, p0Class, encounter.Id, duelSeed);
                 p1Class = opponent.ClassId;
                 p1Artifacts = opponent.Artifacts;
             }
@@ -2221,6 +2222,8 @@ public partial class DuelScene : Control
             {
                 int loaded = ArtifactLoader.LoadFromString(artJson);
                 GD.Print($"[DUEL] Loaded {loaded} artifact definitions");
+                string forgeJson = Godot.FileAccess.GetFileAsString("res://content/artifacts/forge_artifacts.json");
+                if (!string.IsNullOrEmpty(forgeJson)) ArtifactLoader.LoadFromString(forgeJson);   // FABLE-054
             }
             else
             {
@@ -3768,32 +3771,7 @@ public partial class DuelScene : Control
     }
 
     /// <summary>Convert an ArtifactDef to a CardDef for rules slab display.</summary>
-    private static CardDef ArtifactDefToCardDef(ArtifactDef artDef)
-    {
-        var card = new CardDef
-        {
-            Id = artDef.Id,
-            Name = artDef.Name,
-            Type = CardType.ARTIFACT,
-            Flavor = artDef.Flavor,
-            Abilities = new System.Collections.Generic.List<AbilityDef>(),
-        };
-        // Wrap passive as an ability with PASSIVE trigger
-        if (artDef.Passive != null)
-        {
-            card.Abilities.Add(new AbilityDef
-            {
-                Trigger = Trigger.PASSIVE,
-                Effects = new System.Collections.Generic.List<EffectDef> { artDef.Passive },
-            });
-        }
-        // Add trigger ability (it's already an AbilityDef)
-        if (artDef.Trigger != null && artDef.Trigger.Effects.Count > 0)
-        {
-            card.Abilities.Add(artDef.Trigger);
-        }
-        return card;
-    }
+    private static CardDef ArtifactDefToCardDef(ArtifactDef artDef) => RulesTextRenderer.ArtifactAsCard(artDef);
 
     /// <summary>
     /// Show the card detail popup for a hand card.

@@ -1,0 +1,1148 @@
+[
+  {
+    "id": "artf_warrior_warbrand",
+    "class": "warrior",
+    "slot_pool": "sword",
+    "name": "Warbrand",
+    "forge": true,
+    "art_id": "artf_warrior_sword",
+    "text": "Your first attacker each turn gets +3 Attack this turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_ATTACKS",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "CURRENT_ATTACKER",
+            "count": 1
+          },
+          "attack": 3,
+          "vigor": 0,
+          "duration": "THIS_TURN"
+        }
+      ],
+      "condition": {
+        "all": [
+          {
+            "op": "DURING_YOUR_TURN"
+          },
+          {
+            "op": "ATTACKERS_THIS_TURN_EQ",
+            "value": 1
+          }
+        ]
+      }
+    },
+    "default": true,
+    "flavor": "Whoever swings first decides how the fight is remembered."
+  },
+  {
+    "id": "artf_warrior_bloodied_standard",
+    "class": "warrior",
+    "slot_pool": "banner",
+    "name": "Bloodied Standard",
+    "forge": true,
+    "art_id": "artf_paladin_rallying_standard",
+    "text": "At the end of your turn, each of your damaged creatures gets +1/+1 for good.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_END",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "DAMAGED",
+            "count": "ALL"
+          },
+          "attack": 1,
+          "vigor": 1,
+          "duration": "PERMANENT"
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "default": true,
+    "flavor": "Every tear in the cloth is a battle it walked away from."
+  },
+  {
+    "id": "artf_warrior_champions_oath",
+    "class": "warrior",
+    "slot_pool": "sword",
+    "name": "Champion's Oath",
+    "forge": true,
+    "art_id": "artf_warrior_duelists_edge",
+    "text": "Start of your turn: if you control exactly one creature, it gets +1/+1 for good.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "count": "ALL"
+          },
+          "attack": 1,
+          "vigor": 1,
+          "duration": "PERMANENT"
+        }
+      ],
+      "condition": {
+        "op": "ALONE"
+      }
+    },
+    "flavor": "One sword. One name. No one standing behind it."
+  },
+  {
+    "id": "artf_warrior_twinblade",
+    "class": "warrior",
+    "slot_pool": "blade",
+    "name": "Twinblade",
+    "forge": true,
+    "art_id": "artf_warrior_executioners_blade",
+    "text": "Gain a Charge whenever one of your creatures attacks. At 2: your strongest creature that already attacked may attack again, with +2 Attack this turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_ATTACKS",
+      "effects": [
+        {
+          "op": "ADD_CHARGE",
+          "target": {
+            "scope": "SELF_ARTIFACT"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "charges": {
+      "max": 2,
+      "gain_on": "",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "BUFF",
+        "target": {
+          "scope": "ALLY_CREATURE",
+          "filter": "HAS_ATTACKED+HIGHEST_ATTACK",
+          "count": 1
+        },
+        "attack": 2,
+        "vigor": 0,
+        "duration": "THIS_TURN"
+      },
+      {
+        "op": "REFRESH",
+        "target": {
+          "scope": "ALLY_CREATURE",
+          "filter": "HAS_ATTACKED+HIGHEST_ATTACK",
+          "count": 1
+        }
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Two blades, one hand, no patience."
+  },
+  {
+    "id": "artf_battlemage_spellwake_focus",
+    "class": "battlemage",
+    "slot_pool": "wand",
+    "name": "Spellwake Focus",
+    "forge": true,
+    "art_id": "artf_battlemage_focusing_wand",
+    "text": "Whenever you cast a Ritual, deal 2 damage to the enemy creature with the highest Attack.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CAST_RITUAL",
+      "effects": [
+        {
+          "op": "DAMAGE",
+          "target": {
+            "scope": "ENEMY_CREATURE",
+            "filter": "HIGHEST_ATTACK",
+            "count": 1
+          },
+          "amount": 2
+        }
+      ]
+    },
+    "default": true,
+    "flavor": "Every spell leaves a wake. Stand in it at your peril."
+  },
+  {
+    "id": "artf_battlemage_tidecallers_vigil",
+    "class": "battlemage",
+    "slot_pool": "candles",
+    "name": "Tidecaller's Vigil",
+    "forge": true,
+    "art_id": "artf_battlemage_ward_mantle",
+    "text": "The first time you cast a Ritual each turn, draw a card and your creatures get +1 Attack this turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CAST_RITUAL",
+      "effects": [
+        {
+          "op": "DRAW",
+          "target": {
+            "scope": "PLAYER_SELF"
+          },
+          "amount": 1
+        },
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "count": "ALL"
+          },
+          "attack": 1,
+          "vigor": 0,
+          "duration": "THIS_TURN"
+        }
+      ],
+      "condition": {
+        "op": "SPELLS_CAST_THIS_TURN_EQ",
+        "value": 1
+      }
+    },
+    "default": true,
+    "flavor": "Twelve candles for twelve drowned scholars. They still take questions."
+  },
+  {
+    "id": "artf_battlemage_null_sigil",
+    "class": "battlemage",
+    "slot_pool": "sigil",
+    "name": "Null Sigil",
+    "forge": true,
+    "art_id": "artf_battlemage_aura",
+    "text": "Gain a Charge at the end of each of your turns. At 2: the enemy's artifacts are Suppressed for their next turn, and you set a Counter Sigil.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": null,
+    "charges": {
+      "max": 2,
+      "gain_on": "on_turn_end",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "SUPPRESS",
+        "target": {
+          "scope": "PLAYER_ENEMY"
+        },
+        "amount": 1
+      },
+      {
+        "op": "SET_TRAP",
+        "target": {
+          "scope": "PLAYER_SELF"
+        },
+        "keyword": "COUNTER_RITUAL"
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Light goes in. Nothing comes out."
+  },
+  {
+    "id": "artf_battlemage_undertow_ring",
+    "class": "battlemage",
+    "slot_pool": "ring",
+    "name": "Undertow Ring",
+    "forge": true,
+    "art_id": "artf_battlemage_tidal_veil",
+    "text": "Gain a Charge whenever you cast a Ritual. At 2: return the enemy's highest-cost creature to its owner's hand.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CAST_RITUAL",
+      "effects": [
+        {
+          "op": "ADD_CHARGE",
+          "target": {
+            "scope": "SELF_ARTIFACT"
+          },
+          "amount": 1
+        }
+      ]
+    },
+    "charges": {
+      "max": 2,
+      "gain_on": "",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "BOUNCE",
+        "target": {
+          "scope": "ENEMY_CREATURE",
+          "filter": "HIGHEST_COST",
+          "count": 1
+        }
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "The sea gives back what it takes. Eventually."
+  },
+  {
+    "id": "artf_necromancer_bone_reliquary",
+    "class": "necromancer",
+    "slot_pool": "reliquary",
+    "name": "Bone Reliquary",
+    "forge": true,
+    "art_id": "artf_necromancer_ritual_piece",
+    "text": "Gain a Charge whenever one of your creatures dies. At 4: your strongest dead creature costing 3 or less rises again.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_DIES",
+      "effects": [
+        {
+          "op": "ADD_CHARGE",
+          "target": {
+            "scope": "SELF_ARTIFACT"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "FRIENDLY"
+      }
+    },
+    "default": true,
+    "charges": {
+      "max": 4,
+      "gain_on": "",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "UNEARTH_FROM_GRAVEYARD",
+        "target": {
+          "scope": "PLAYER_SELF"
+        },
+        "value": 3
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Every bone is filed, labelled and waiting."
+  },
+  {
+    "id": "artf_necromancer_gravecallers_skull",
+    "class": "necromancer",
+    "slot_pool": "skull",
+    "name": "Gravecaller's Skull",
+    "forge": true,
+    "art_id": "artf_necromancer_skull",
+    "text": "At the end of your turn, if one of your creatures died this turn, raise a 1/1 Risen Bones.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_END",
+      "effects": [
+        {
+          "op": "SUMMON",
+          "target": {
+            "scope": "PLAYER_SELF"
+          },
+          "token_id": "hol_t_risen_bones"
+        }
+      ],
+      "condition": {
+        "all": [
+          {
+            "op": "DURING_YOUR_TURN"
+          },
+          {
+            "op": "CREATURE_DIED_THIS_TURN",
+            "side": "ALLY"
+          }
+        ]
+      }
+    },
+    "default": true,
+    "flavor": "Its candles never go out. Neither does what they call."
+  },
+  {
+    "id": "artf_necromancer_blighthorn_skull",
+    "class": "necromancer",
+    "slot_pool": "skull",
+    "name": "Blighthorn Skull",
+    "forge": true,
+    "art_id": "artf_necromancer_grinning_skull",
+    "text": "Start of your turn: give the enemy creature with the most Vigor Burn 2.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "BURN",
+          "target": {
+            "scope": "ENEMY_CREATURE",
+            "filter": "HIGHEST_VIGOR",
+            "count": 1
+          },
+          "amount": 2
+        }
+      ]
+    },
+    "flavor": "The beast is long gone. The rot it carried stayed."
+  },
+  {
+    "id": "artf_necromancer_soul_jar",
+    "class": "necromancer",
+    "slot_pool": "jar",
+    "name": "Soul Jar",
+    "forge": true,
+    "art_id": "artf_necromancer_whispering_skull",
+    "text": "Whenever one of your creatures dies, deal 1 damage to the enemy.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_DIES",
+      "effects": [
+        {
+          "op": "DAMAGE",
+          "target": {
+            "scope": "PLAYER_ENEMY"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "FRIENDLY"
+      }
+    },
+    "flavor": "Nothing is wasted. Not even you."
+  },
+  {
+    "id": "artf_paladin_aegis_of_sunspire",
+    "class": "paladin",
+    "slot_pool": "shield",
+    "name": "Aegis of Sunspire",
+    "forge": true,
+    "art_id": "artf_warrior_shield",
+    "text": "The first creature you summon each turn gets +0/+2 for good.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_SUMMON",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "EARLIEST_SUMMONED+EVENT",
+            "count": 1
+          },
+          "attack": 0,
+          "vigor": 2,
+          "duration": "PERMANENT"
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "default": true,
+    "flavor": "Sunspire's oldest shield has never once been lowered."
+  },
+  {
+    "id": "artf_paladin_oathkeepers_banner",
+    "class": "paladin",
+    "slot_pool": "banner",
+    "name": "Oathkeeper's Banner",
+    "forge": true,
+    "art_id": "artf_paladin_banner",
+    "text": "At the end of your turn, heal each of your creatures 1. Guard creatures heal 2.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_END",
+      "effects": [
+        {
+          "op": "HEAL",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "count": "ALL"
+          },
+          "amount": 1
+        },
+        {
+          "op": "HEAL",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "KEYWORD:GUARD",
+            "count": "ALL"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "default": true,
+    "flavor": "Plant it, and the line holds."
+  },
+  {
+    "id": "artf_paladin_unbroken_bulwark",
+    "class": "paladin",
+    "slot_pool": "shield",
+    "name": "Unbroken Bulwark",
+    "forge": true,
+    "art_id": "artf_warrior_spiked_buckler",
+    "text": "The first time each enemy turn one of your creatures is attacked, prevent 2 of the damage it would take.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_ALLY_ATTACKED",
+      "effects": [
+        {
+          "op": "PREVENT_DAMAGE",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "FIRST_ATTACKED",
+            "count": 1
+          },
+          "amount": 2,
+          "frequency": "ONCE_PER_ENEMY_TURN"
+        }
+      ]
+    },
+    "flavor": "Dented, scarred, and still standing."
+  },
+  {
+    "id": "artf_paladin_knight_commanders_hammer",
+    "class": "paladin",
+    "slot_pool": "hammer",
+    "name": "Knight-Commander's Hammer",
+    "forge": true,
+    "art_id": "artf_paladin_hammer",
+    "text": "Start of your turn: if you control a Knight, summon a 1/2 Squire with Guard.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "SUMMON",
+          "target": {
+            "scope": "PLAYER_SELF"
+          },
+          "token_id": "dwn_t_squire"
+        }
+      ],
+      "condition": {
+        "op": "CONTROLS_TRIBE_GTE",
+        "value": 1,
+        "tribe": "KNIGHT"
+      }
+    },
+    "flavor": "Where two knights stand, a third is already on the way."
+  },
+  {
+    "id": "artf_druid_heartroot_totem",
+    "class": "druid",
+    "slot_pool": "idol",
+    "name": "Heartroot Totem",
+    "forge": true,
+    "art_id": "artf_druid_wild_pact",
+    "text": "Start of your turn: your most wounded creature gets +1/+1 for good and heals 2.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "DAMAGED+MOST_WOUNDED",
+            "count": 1
+          },
+          "attack": 1,
+          "vigor": 1,
+          "duration": "PERMANENT"
+        },
+        {
+          "op": "HEAL",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "DAMAGED+MOST_WOUNDED",
+            "count": 1
+          },
+          "amount": 2
+        }
+      ]
+    },
+    "default": true,
+    "flavor": "Roots grow strongest around a wound."
+  },
+  {
+    "id": "artf_druid_grove_seedbook",
+    "class": "druid",
+    "slot_pool": "book",
+    "name": "Grove Seedbook",
+    "forge": true,
+    "art_id": "artf_druid_seedbook",
+    "text": "Gain a Charge at the start of each of your turns. At 3: +1 Attunement for the rest of the duel.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": null,
+    "default": true,
+    "charges": {
+      "max": 3,
+      "gain_on": "on_turn_start",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "ATTUNE",
+        "target": {
+          "scope": "PLAYER_SELF"
+        },
+        "amount": 1
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Plant it and wait. The wait is the point."
+  },
+  {
+    "id": "artf_druid_grovewing_moth",
+    "class": "druid",
+    "slot_pool": "charm",
+    "name": "Grovewing Moth",
+    "forge": true,
+    "art_id": "artf_druid_grove_link",
+    "text": "Whenever you summon a creature, the creatures in the lanes beside it get +1/+1 for good.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_SUMMON",
+      "effects": [
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "EVENT_ADJACENT",
+            "count": "ALL"
+          },
+          "attack": 1,
+          "vigor": 1,
+          "duration": "PERMANENT"
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "flavor": "Nothing in the grove grows alone."
+  },
+  {
+    "id": "artf_druid_wildheart_grimoire",
+    "class": "druid",
+    "slot_pool": "book",
+    "name": "Wildheart Grimoire",
+    "forge": true,
+    "art_id": "artf_druid_grimoire_of_thorns",
+    "text": "Gain a Charge at the start of each of your turns. At 2: if you control a Beast, a 2/1 Wolf Cub joins it.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CHARGE_FULL",
+      "effects": [
+        {
+          "op": "SUMMON",
+          "target": {
+            "scope": "PLAYER_SELF"
+          },
+          "token_id": "vrd_t_wolf_cub"
+        }
+      ],
+      "condition": {
+        "op": "CONTROLS_TRIBE_GTE",
+        "value": 1,
+        "tribe": "BEAST"
+      }
+    },
+    "charges": {
+      "max": 2,
+      "gain_on": "on_turn_start",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Its pages are bark, its spine is antler, and every chapter howls."
+  },
+  {
+    "id": "artf_rogue_venomfang",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Venomfang",
+    "forge": true,
+    "art_id": "artf_rogue_dagger_dusk",
+    "text": "Your first attacker each turn gets +1 Attack and Venom this turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_ATTACKS",
+      "effects": [
+        {
+          "op": "GRANT_KEY",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "CURRENT_ATTACKER",
+            "count": 1
+          },
+          "keyword": "VENOM",
+          "duration": "THIS_TURN"
+        },
+        {
+          "op": "BUFF",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "CURRENT_ATTACKER",
+            "count": 1
+          },
+          "attack": 1,
+          "vigor": 0,
+          "duration": "THIS_TURN"
+        }
+      ],
+      "condition": {
+        "all": [
+          {
+            "op": "DURING_YOUR_TURN"
+          },
+          {
+            "op": "ATTACKERS_THIS_TURN_EQ",
+            "value": 1
+          }
+        ]
+      }
+    },
+    "default": true,
+    "flavor": "One nick is all it ever needed."
+  },
+  {
+    "id": "artf_rogue_cutpurse_dagger",
+    "class": "rogue",
+    "slot_pool": "dagger",
+    "name": "Cutpurse Dagger",
+    "forge": true,
+    "art_id": "artf_rogue_dagger_whisper",
+    "text": "Gain a Charge the first time one of your creatures attacks each turn. At 2: the enemy discards a random card and you draw 1.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_CREATURE_ATTACKS",
+      "effects": [
+        {
+          "op": "ADD_CHARGE",
+          "target": {
+            "scope": "SELF_ARTIFACT"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "default": true,
+    "charges": {
+      "max": 2,
+      "gain_on": "",
+      "spend_on": "on_charge_full",
+      "max_per_turn": 1
+    },
+    "full_charge": [
+      {
+        "op": "DISCARD",
+        "target": {
+          "scope": "PLAYER_ENEMY",
+          "filter": "RANDOM"
+        },
+        "amount": 1
+      },
+      {
+        "op": "DRAW",
+        "target": {
+          "scope": "PLAYER_SELF"
+        },
+        "amount": 1
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "It takes the coin, then the purse, then the plan."
+  },
+  {
+    "id": "artf_rogue_gloom_hook",
+    "class": "rogue",
+    "slot_pool": "hook",
+    "name": "Gloom Hook",
+    "forge": true,
+    "art_id": "artf_rogue_gloomblade",
+    "text": "The first creature you summon each turn gains Dodge 30%.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_SUMMON",
+      "effects": [
+        {
+          "op": "GRANT_KEY",
+          "target": {
+            "scope": "ALLY_CREATURE",
+            "filter": "EARLIEST_SUMMONED+EVENT",
+            "count": 1
+          },
+          "keyword": "DODGE:30"
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "flavor": "Now you see them."
+  },
+  {
+    "id": "artf_rogue_saboteurs_spike",
+    "class": "rogue",
+    "slot_pool": "spike",
+    "name": "Saboteur's Spike",
+    "forge": true,
+    "art_id": "artf_rogue_lockpick",
+    "text": "Gain a Charge at the start of each of your turns. At 3: the enemy's artifacts are Suppressed for a turn, and you take control of their cheapest creature this turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": null,
+    "charges": {
+      "max": 3,
+      "gain_on": "on_turn_start",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "SUPPRESS",
+        "target": {
+          "scope": "PLAYER_ENEMY"
+        },
+        "amount": 1
+      },
+      {
+        "op": "STEAL",
+        "target": {
+          "scope": "ENEMY_CREATURE",
+          "filter": "LOWEST_COST",
+          "count": 1
+        },
+        "duration": "THIS_TURN"
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "Driven into the right crack, it stops the whole machine."
+  },
+  {
+    "id": "artf_astrologist_stillwater_orb",
+    "class": "astrologist",
+    "slot_pool": "orb",
+    "name": "Stillwater Orb",
+    "forge": true,
+    "art_id": "artf_astrologist_orb",
+    "text": "Gain a Charge at the start of each of your turns. At 2: Stun the three enemy creatures with the highest Attack.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": null,
+    "default": true,
+    "charges": {
+      "max": 2,
+      "gain_on": "on_turn_start",
+      "spend_on": "on_charge_full"
+    },
+    "full_charge": [
+      {
+        "op": "STUN",
+        "target": {
+          "scope": "ENEMY_CREATURE",
+          "filter": "HIGHEST_ATTACK",
+          "count": 3
+        }
+      },
+      {
+        "op": "RESET_CHARGES",
+        "target": {
+          "scope": "SELF_ARTIFACT"
+        }
+      }
+    ],
+    "flavor": "It shows the future. The future is mostly people not moving."
+  },
+  {
+    "id": "artf_astrologist_lockstar_astrolabe",
+    "class": "astrologist",
+    "slot_pool": "astrolabe",
+    "name": "Lockstar Astrolabe",
+    "forge": true,
+    "art_id": "artf_astrologist_constellation_starlight",
+    "text": "Start of your turn: Lock one empty enemy lane, and the enemy creature with the highest Attack gets -2 Attack until your next turn.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "LOCK_LANE",
+          "target": {
+            "scope": "LANE",
+            "filter": "ENEMY_EMPTY",
+            "count": 1
+          },
+          "amount": 1
+        },
+        {
+          "op": "DEBUFF",
+          "target": {
+            "scope": "ENEMY_CREATURE",
+            "filter": "HIGHEST_ATTACK",
+            "count": 1
+          },
+          "attack": 2,
+          "vigor": 0,
+          "duration": "UNTIL_YOUR_NEXT_TURN"
+        }
+      ]
+    },
+    "default": true,
+    "flavor": "Every lane has a star above it. Some stars say no."
+  },
+  {
+    "id": "artf_astrologist_gravity_sphere",
+    "class": "astrologist",
+    "slot_pool": "sphere",
+    "name": "Gravity Sphere",
+    "forge": true,
+    "art_id": "artf_astrologist_eclipse_sphere",
+    "text": "At the end of each of your turns: Drain 1 (the enemy has 1 less Attunement next turn).",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_END",
+      "effects": [
+        {
+          "op": "DRAIN",
+          "target": {
+            "scope": "PLAYER_ENEMY"
+          },
+          "amount": 1
+        }
+      ],
+      "condition": {
+        "op": "DURING_YOUR_TURN"
+      }
+    },
+    "flavor": "It measures the pull of heavy stars, and lends it out."
+  },
+  {
+    "id": "artf_astrologist_inverted_sky",
+    "class": "astrologist",
+    "slot_pool": "orb",
+    "name": "Inverted Sky",
+    "forge": true,
+    "art_id": "artf_astrologist_twin_stars",
+    "text": "Start of your turn: every enemy creature with more Attack than Vigor has them swapped, then their creature with the highest Attack gets -1 Attack for good.",
+    "passive": {
+      "op": "HEAL",
+      "target": {
+        "scope": "NONE"
+      }
+    },
+    "trigger": {
+      "trigger": "ON_TURN_START",
+      "effects": [
+        {
+          "op": "SWAP_STATS",
+          "target": {
+            "scope": "ENEMY_CREATURE",
+            "filter": "ATTACK_ABOVE_VIGOR",
+            "count": "ALL"
+          }
+        },
+        {
+          "op": "DEBUFF",
+          "target": {
+            "scope": "ENEMY_CREATURE",
+            "filter": "HIGHEST_ATTACK",
+            "count": 1
+          },
+          "attack": 1,
+          "vigor": 0,
+          "duration": "PERMANENT"
+        }
+      ]
+    },
+    "flavor": "Look up long enough and down starts to feel like a suggestion."
+  }
+]

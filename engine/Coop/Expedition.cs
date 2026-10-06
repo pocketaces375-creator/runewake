@@ -47,6 +47,30 @@ public sealed class SeatConfig
     public string ClassId { get; init; } = "";
     public List<string> Deck { get; init; } = new();
     public string[] Artifacts { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// FABLE-054: a seat from what a lobby member posted. The posted deck list carries the deck's two artifact
+    /// picks as extra "artf_" entries (no server change needed); they come off the deck here, and the seat
+    /// brings them if they're a legal pair for the class — else the class's Forge defaults. Both phones and the
+    /// PC bot build seats through this, so they always agree.
+    /// </summary>
+    public static SeatConfig FromPosted(int seat, string displayName, string classId, IEnumerable<string> posted)
+    {
+        var list = posted.ToList();
+        var picks = list.Where(IsArtifactEntry).ToList();
+        return new SeatConfig
+        {
+            Seat = seat, DisplayName = displayName, ClassId = classId,
+            Deck = list.Where(id => !IsArtifactEntry(id)).ToList(),
+            Artifacts = Runewake.Engine.Cards.ArtifactRegistry.PlayerLoadout(classId, picks),
+        };
+    }
+
+    /// <summary>The list a phone posts: its deck, then its two artifact picks.</summary>
+    public static List<string> ToPosted(IEnumerable<string> deck, IEnumerable<string>? artifacts) =>
+        deck.Where(id => !IsArtifactEntry(id)).Concat(artifacts ?? Enumerable.Empty<string>()).ToList();
+
+    public static bool IsArtifactEntry(string id) => id.StartsWith("artf_", StringComparison.Ordinal);
 }
 
 public sealed class ExpeditionConfig

@@ -60,6 +60,9 @@ public static class PvpBot
         if (File.Exists(artPath)) ArtifactLoader.LoadPack(artPath);
         var variants = Path.Combine(content, "artifacts", "variants");
         if (Directory.Exists(variants)) ArtifactLoader.LoadAllVariants(variants);
+        // FABLE-054: the Deck Forge artifacts, so seats carrying artifact picks build the same duel as the phone
+        var forge = Path.Combine(content, "artifacts", "forge_artifacts.json");
+        if (File.Exists(forge)) ArtifactLoader.LoadPack(forge);
         using var starterDoc = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "client", "content", "decks", "starter_decks.json")));
         var starters = starterDoc.RootElement.GetProperty("starters").EnumerateArray()
             .ToDictionary(s => s.GetProperty("class_id").GetString()!, s => s.GetProperty("cards").EnumerateArray().Select(x => x.GetString()!).ToList());
@@ -77,7 +80,7 @@ public static class PvpBot
         var f = await sync.Find(session, code);
         if (!f.ok || f.found == null) { Console.Error.WriteLine($"[bot] no open lobby has code {code}: {f.error}"); return 1; }
         if (f.found.Kind != "pvp1v1") { Console.Error.WriteLine($"[bot] that lobby is {f.found.Kind}; the bot only plays 1v1 duels"); return 1; }
-        var j = await sync.Join(session, f.found.Id, name, cls, deck);
+        var j = await sync.Join(session, f.found.Id, name, cls, SeatConfig.ToPosted(deck, ArtifactRegistry.ForgeDefaults(cls)));
         if (!j.ok) { Console.Error.WriteLine($"[bot] could not join: {j.error}"); return 1; }
         await sync.SetReady(session, f.found.Id, true);
         Console.WriteLine($"[bot] joined {f.found.HostName}'s lobby in seat {j.seat}. Waiting for the host to start…");
@@ -97,7 +100,7 @@ public static class PvpBot
         if (lobby == null || lobby.State != "running" || lobby.Seed is not long seed) { Console.WriteLine("[bot] gave up waiting"); return 1; }
 
         var seats = lobby.Members.Where(m => m.Status != "left").OrderBy(m => m.Seat)
-            .Select(m => new SeatConfig { Seat = m.Seat, DisplayName = m.DisplayName, ClassId = m.ClassId, Deck = new List<string>(m.Deck), Artifacts = ArtifactRegistry.DefaultLoadoutFor(m.ClassId) })
+            .Select(m => SeatConfig.FromPosted(m.Seat, m.DisplayName, m.ClassId, m.Deck))
             .ToList();
         int me = lobby.Mine!.Seat;
         var duel = new PvpDuel((ulong)seed, seats[0], seats[1]);
