@@ -28,11 +28,12 @@ public class ClassDropTests
     }
 
     // FABLE-DROP-2: both drops — class_drop_1 (50 cards) and class_drop_2 (100 cards)
-    private static List<CardDef> Drop() => LoadAll().Where(c => c.Set is "class_drop_1" or "class_drop_2").ToList();
+    private static List<CardDef> Drop() => LoadAll().Where(c => c.Set is "class_drop_1" or "class_drop_2" or "class_drop_3").ToList();
 
     [Theory]
     [InlineData("class_drop_1", 50, 3)]
     [InlineData("class_drop_2", 100, 1)]
+    [InlineData("class_drop_3", 100, 0)]   // FABLE-DROP-3
     public void Each_Drop_Has_Its_Cards_Plus_Tokens(string set, int cards, int tokens)
     {
         var drop = LoadAll().Where(c => c.Set == set).ToList();

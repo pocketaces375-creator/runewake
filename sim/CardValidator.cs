@@ -35,7 +35,8 @@ public static class CardValidator
         "ON_TURN_START", "ON_TURN_END", "ON_CAST_RITUAL", "ON_EXCAVATE",
         "ON_RELIC_IDENTIFY", "ON_ALLY_DEATH", "ON_LANE_VACATED",
         "PASSIVE", "ACTIVATED", "RESOLVE",
-        "ON_ALLY_ATTACKED", "ON_HEAL", "ON_CREATURE_DIES"
+        "ON_ALLY_ATTACKED", "ON_HEAL", "ON_CREATURE_DIES",
+        "ON_ALLY_SUMMON"   // FABLE-DROP-3
     };
 
     private static readonly HashSet<string> ValidOps = new(StringComparer.OrdinalIgnoreCase)
@@ -46,7 +47,8 @@ public static class CardValidator
         "GAIN_VIGOR", "LOSE_VIGOR", "COPY", "SET_STAT", "REFRESH",
         // FABLE-DROP-1
         "STUN", "BURN", "DRAIN", "LOCK_LANE", "SWAP_STATS", "DOUBLE_STATS", "STEAL", "SET_TRAP", "REDIRECT",
-        "UNEARTH_FROM_GRAVEYARD", "SUPPRESS", "PREVENT_DAMAGE", "SCY", "HEAL_FULL"
+        "UNEARTH_FROM_GRAVEYARD", "SUPPRESS", "PREVENT_DAMAGE", "SCY", "HEAL_FULL",
+        "ADD_CHARGE"   // FABLE-DROP-3: a card feeding your artifacts
     };
 
     private static readonly HashSet<string> ValidScopes = new(StringComparer.OrdinalIgnoreCase)
@@ -66,7 +68,9 @@ public static class CardValidator
         "HAND_COUNT_GTE", "HAND_COUNT_LTE", "TURN_GTE", "VIGOR_LTE",
         "VIGOR_GTE", "ATTUNEMENT_GTE", "CONTROLS_KEYWORD",
         "CONTROLS_STRATA", "DAMAGED_THIS_TURN", "RITUALS_CAST_GTE",
-        "CREATURE_DIED_THIS_TURN", "DURING_YOUR_TURN", "CONTROLS_TRIBE_GTE", "ALONE", "ENEMY_HAND_LTE"
+        "CREATURE_DIED_THIS_TURN", "DURING_YOUR_TURN", "CONTROLS_TRIBE_GTE", "ALONE", "ENEMY_HAND_LTE",
+        // FABLE-DROP-3: turn counters cards may read too
+        "ATTACKERS_THIS_TURN_GTE", "SPELLS_CAST_THIS_TURN_GTE", "SPELLS_CAST_THIS_TURN_EQ"
     };
 
     /// <summary>

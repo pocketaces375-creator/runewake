@@ -1418,5 +1418,483 @@
     ],
     "flavor": "When it runs, the pack runs with it. No one waits.",
     "content_version": 1
+  },
+  {
+    "id": "vrd_c_moss_nurturer",
+    "set": "class_drop_3",
+    "name": "Moss Nurturer",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT_ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Moss creeps from her feet toward every newcomer's neighbors.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_burrow_badger",
+    "set": "class_drop_3",
+    "name": "Burrow Badger",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "It digs in, and the soil around it knits closed.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_rootsurge_bloom",
+    "set": "class_drop_3",
+    "name": "Rootsurge Bloom",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "One flower, and the whole creature grows to match it.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_pack_runt",
+    "set": "class_drop_3",
+    "name": "Pack Runt",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ],
+        "condition": {
+          "op": "CONTROLS_TRIBE_GTE",
+          "value": 2,
+          "tribe": "BEAST"
+        }
+      }
+    ],
+    "flavor": "Alone it's a pup. With the pack it's a wolf.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_seed_keeper",
+    "set": "class_drop_3",
+    "name": "Seed Keeper",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She waters the relics too. They grow in their own way.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_c_fern_sprite",
+    "set": "class_drop_3",
+    "name": "Fern Sprite",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 0,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Wherever it sleeps, the neighbors wake up a little sturdier.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_alpha_hound",
+    "set": "class_drop_3",
+    "name": "Alpha Hound",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:BEAST",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Every new howl makes the whole pack hungrier.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_heartwood_sentinel",
+    "set": "class_drop_3",
+    "name": "Heartwood Sentinel",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 2,
+    "vigor": 6,
+    "keywords": [
+      "GUARD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Each arrival is a new ring in its trunk, and the grove breathes easier.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_verdant_awakening",
+    "set": "class_drop_3",
+    "name": "Verdant Awakening",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "ATTUNE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          },
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "vrd_t_verdant_bud"
+          }
+        ]
+      }
+    ],
+    "flavor": "The forest stretches, and so does your reach.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_thornhide_elk",
+    "set": "class_drop_3",
+    "name": "Thornhide Elk",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 6,
+    "keywords": [
+      "REACH"
+    ],
+    "types": [
+      "BEAST"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "ADJACENT",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Its antlers shelter half the herd.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_u_circle_of_life",
+    "set": "class_drop_3",
+    "name": "Circle of Life",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "HEAL_FULL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "What withers, returns.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_grove_patriarch",
+    "set": "class_drop_3",
+    "name": "Grove Patriarch",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 4,
+    "vigor": 8,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The oldest tree in the grove, and every sapling's grandfather.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_call_of_the_wild",
+    "set": "class_drop_3",
+    "name": "Call of the Wild",
+    "strata": "VERDANT",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "vrd_t_wolf_cub"
+          },
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "vrd_t_wolf_cub"
+          }
+        ]
+      },
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "TRIBE:BEAST",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Answer it once, and the woods answer back.",
+    "content_version": 1
+  },
+  {
+    "id": "vrd_r_ancient_bloom",
+    "set": "class_drop_3",
+    "name": "Ancient Bloom",
+    "strata": "VERDANT",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 7,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "ATTUNE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      },
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "HEAL",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "It flowered once in the Old Age. It is flowering again.",
+    "content_version": 1
   }
 ]

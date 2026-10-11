@@ -1326,5 +1326,501 @@
     ],
     "flavor": "Eight gates fell before her. She walked through the ninth alone.",
     "content_version": 1
+  },
+  {
+    "id": "emb_c_battle_herald",
+    "set": "class_drop_3",
+    "name": "Battle Herald",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Every new blade at his side makes his own swing louder.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_forge_runner",
+    "set": "class_drop_3",
+    "name": "Forge Runner",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She runs the coals from the forge to the front, and the relics drink them.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_scarred_veteran",
+    "set": "class_drop_3",
+    "name": "Scarred Veteran",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 2,
+            "vigor": 0
+          }
+        ]
+      }
+    ],
+    "flavor": "Each scar taught him where to hit next.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_ashen_duelist",
+    "set": "class_drop_3",
+    "name": "Ashen Duelist",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "EXALTED"
+    ],
+    "abilities": [],
+    "flavor": "She asks for no one. She needs no one.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_second_charge",
+    "set": "class_drop_3",
+    "name": "Second Charge",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HAS_ATTACKED+HIGHEST_ATTACK",
+              "count": 1
+            }
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "HAS_ATTACKED+HIGHEST_ATTACK",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Again. Harder.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_cinder_whelp",
+    "set": "class_drop_3",
+    "name": "Cinder Whelp",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Small enough to pet. Hot enough to regret it.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_c_warpath_scout",
+    "set": "class_drop_3",
+    "name": "Warpath Scout",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "First over the ridge, first into the shields.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_warbanner_bearer",
+    "set": "class_drop_3",
+    "name": "Warbanner Bearer",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 0
+          }
+        ]
+      }
+    ],
+    "flavor": "Under her banner, recruits arrive already angry.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_blood_oath",
+    "set": "class_drop_3",
+    "name": "Blood Oath",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          },
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "Swear it on the blade, then swing it again.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_iron_tempest",
+    "set": "class_drop_3",
+    "name": "Iron Tempest",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "When he charges, the whole line flinches.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_anvil_sergeant",
+    "set": "class_drop_3",
+    "name": "Anvil Sergeant",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_END",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ],
+        "condition": {
+          "op": "ATTACKERS_THIS_TURN_GTE",
+          "value": 2
+        }
+      }
+    ],
+    "flavor": "Two blows struck, and the anvils ring for him.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_u_berserker_pit",
+    "set": "class_drop_3",
+    "name": "Berserker Pit",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "amount": 1
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 3,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Throw them in hurt. They climb out furious.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_titanblade_marshal",
+    "set": "class_drop_3",
+    "name": "Titanblade Marshal",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER",
+              "count": "ALL"
+            }
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "OTHER",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "\"You've already fought today? Good. Fight again.\"",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_emberheart_colossus",
+    "set": "class_drop_3",
+    "name": "Emberheart Colossus",
+    "strata": "EMBER",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 5,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_DAMAGED",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Crack its shell and the fire inside goes looking for you.",
+    "content_version": 1
+  },
+  {
+    "id": "emb_r_last_stand",
+    "set": "class_drop_3",
+    "name": "Last Stand",
+    "strata": "EMBER",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 2
+          }
+        ]
+      },
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DOUBLE_STATS",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "duration": "THIS_TURN"
+          },
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "PIERCE",
+            "duration": "THIS_TURN"
+          }
+        ],
+        "condition": {
+          "op": "ALONE"
+        }
+      }
+    ],
+    "flavor": "When you are the last one standing, stand twice as tall.",
+    "content_version": 1
   }
 ]

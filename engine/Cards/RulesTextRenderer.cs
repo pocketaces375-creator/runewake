@@ -173,6 +173,7 @@ public static class RulesTextRenderer
         Trigger.ON_ALLY_ATTACKED => "When an ally is attacked",
         Trigger.ON_HEAL => "When you heal",
         Trigger.ON_CREATURE_DIES => "When a creature dies",
+        Trigger.ON_ALLY_SUMMON => "When you summon another creature",   // FABLE-DROP-3
         _ => "?"
     };
 
@@ -218,6 +219,7 @@ public static class RulesTextRenderer
                 string amt = effect.Amount?.ToString() ?? "?";
                 if (scope == Scope.PLAYER_SELF)
                     return $"You heal {amt}";   // FABLE-DROP-2: was "Heal 2 from you"
+                if (scope == Scope.SELF) return $"This heals {amt}";   // FABLE-DROP-3: was "Heal 2 from itself"
                 string tgt = RenderTargetPhrase(target);
                 return $"Heal {amt} from {tgt}";
             }
@@ -225,6 +227,7 @@ public static class RulesTextRenderer
             case Op.BUFF:
             {
                 string bonus = RenderStatBonus(effect.Attack, effect.Vigor, true);
+                if (scope == Scope.SELF) return $"This gets {bonus}{DurationTail(effect.Duration)}";   // FABLE-DROP-3: was "Give itself +1/+0"
                 string tgt = RenderTargetPhrase(target);
                 return $"Give {tgt} {bonus}{DurationTail(effect.Duration)}";
             }
@@ -372,8 +375,10 @@ public static class RulesTextRenderer
 
             case Op.REFRESH:
             {
+                // FABLE-DROP-3: "Refresh ally creature" read like jargon — say what it does
                 string tgt = RenderTargetPhrase(target);
-                return $"Refresh {tgt}";
+                if (string.IsNullOrEmpty(tgt)) return "Attack again";
+                return $"{char.ToUpperInvariant(tgt[0])}{tgt[1..]} can attack again";
             }
 
             case Op.IDENTIFY:
@@ -403,6 +408,13 @@ public static class RulesTextRenderer
 
             case Op.RESET_CHARGES:
                 return "Reset Charges";
+
+            // FABLE-DROP-3: a card feeding your artifacts
+            case Op.ADD_CHARGE:
+            {
+                int n = effect.Amount ?? 1;
+                return n == 1 ? "Give each of your artifacts a Charge" : $"Give each of your artifacts {n} Charges";
+            }
 
             default:
                 return $"?{effect.Op}";
@@ -467,6 +479,9 @@ public static class RulesTextRenderer
         if (scope == Scope.SELF) return "itself";
         if (scope == Scope.LANE) return "the lane";
 
+        // FABLE-DROP-3: the creature an event is about ("When you summon another creature: give it +1/+1")
+        if (target.Filter == "EVENT") return "it";
+
         // Creature scopes
         string baseNoun = scope switch
         {
@@ -487,6 +502,11 @@ public static class RulesTextRenderer
         // FABLE-DROP-2: "enemy creatures with 2 or less attack" reads better than "attack ≤ 2 enemy creatures"
         lanesTail += string.Concat(parts.Where(f => f.StartsWith("ATTACK_LTE:")).Select(f => $" with {f[11..]} or less attack"));
         parts.RemoveAll(f => f.StartsWith("ATTACK_LTE:"));
+        // FABLE-DROP-3: phrases that read after the noun
+        if (parts.Remove("EVENT_ADJACENT")) lanesTail += " beside it";
+        if (parts.Remove("HAS_ATTACKED")) lanesTail += " that attacked this turn";
+        if (parts.Remove("ATTACK_ABOVE_VIGOR")) lanesTail += " with more attack than vigor";
+        if (parts.Remove("EARLIEST_SUMMONED")) lanesTail += " you summoned first this turn";
         string adjective = string.Concat(parts.Where(f => !f.StartsWith("TRIBE:") && f != "OTHER").Select(FilterAdjective));
         bool other = parts.Contains("OTHER");
         string? tribe = parts.FirstOrDefault(f => f.StartsWith("TRIBE:"))?[6..];
@@ -738,6 +758,7 @@ public static class RulesTextRenderer
                     Op.STUN => "Stun: can't attack until the end of its controller's next turn.",
                     Op.LOCK_LANE => "Lock: nothing can be played into that lane for a few turns.",
                     Op.SET_TRAP => "Sigil: a hidden trap. Counter stops the next enemy Ritual; Ambush hits the next enemy attacker first.",
+                    Op.ADD_CHARGE => "Charge: one step toward an artifact's charged effect (artifacts that count Charges, like Twinblade or Bone Reliquary) — a full one fires and starts again.",
                     _ => null,
                 };
                 if (t != null && !terms.Contains(t)) terms.Add(t);

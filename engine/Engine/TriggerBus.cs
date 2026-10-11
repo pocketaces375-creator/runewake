@@ -101,6 +101,26 @@ public static class TriggerBus
         {
             foreach (var (ability, source, ctl, _) in listeners)
                 RunAbility(state, ability, source, ctl);
+            // FABLE-DROP-3: creatures already on the board hear their side summon another creature
+            if (trigger == Trigger.ON_SUMMON && !state.IsGameOver)
+            {
+                var side = state.Player(controller);
+                var hearers = new List<(AbilityDef, CardInstance)>();
+                for (int i = 0; i < 5; i++)
+                {
+                    var occ = side.Lanes[i].Occupant;
+                    if (occ is null || ReferenceEquals(occ, card)) continue;
+                    if (occ.CardType == CardType.RELIC && !occ.IsIdentified) continue;
+                    foreach (var ab in occ.Abilities)
+                        if (ab.Trigger == Trigger.ON_ALLY_SUMMON) hearers.Add((ab, occ));
+                }
+                foreach (var (ab, src) in hearers)
+                {
+                    if (state.IsGameOver) break;
+                    if (src.Zone != Zone.Lane) continue;   // removed by an earlier hearer
+                    RunAbility(state, ab, src, controller);
+                }
+            }
         }
         finally { state.EventCreature = outer; }
     }

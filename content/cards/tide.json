@@ -2158,5 +2158,921 @@
     ],
     "flavor": "She speaks for the ninth star, and the ninth star is not kind.",
     "content_version": 1
+  },
+  {
+    "id": "tid_c_arcane_apprentice",
+    "set": "class_drop_3",
+    "name": "Arcane Apprentice",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 0
+          }
+        ]
+      }
+    ],
+    "flavor": "Every spell she watches, she learns to throw harder.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_tidal_glyph",
+    "set": "class_drop_3",
+    "name": "Tidal Glyph",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A small rune. A sharp one.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_mana_skimmer",
+    "set": "class_drop_3",
+    "name": "Mana Skimmer",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It sips the spill of every spell and pours it into your relics.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_undertow_snare",
+    "set": "class_drop_3",
+    "name": "Undertow Snare",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "The tide takes it back to where it came from.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_spellguard_adept",
+    "set": "class_drop_3",
+    "name": "Spellguard Adept",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "COUNTER_RITUAL"
+          }
+        ]
+      }
+    ],
+    "flavor": "She has already written the answer to your spell.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_wavecaller",
+    "set": "class_drop_3",
+    "name": "Wavecaller",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ],
+        "condition": {
+          "op": "SPELLS_CAST_THIS_TURN_GTE",
+          "value": 1
+        }
+      }
+    ],
+    "flavor": "Cast first, then call her. She brings the next card with her.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_echoing_scholar",
+    "set": "class_drop_3",
+    "name": "Echoing Scholar",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ],
+        "condition": {
+          "op": "SPELLS_CAST_THIS_TURN_EQ",
+          "value": 2
+        }
+      }
+    ],
+    "flavor": "The second spell of the day is the one he writes down.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_null_lance",
+    "set": "class_drop_3",
+    "name": "Null Lance",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUPPRESS",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "One clean thrust and their relics go quiet.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_riptide_adept",
+    "set": "class_drop_3",
+    "name": "Riptide Adept",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Each spell sends a wave at whoever hits hardest.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_mirror_tide",
+    "set": "class_drop_3",
+    "name": "Mirror Tide",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Pull them back, send them out again, fresh as the first time.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_arc_conduit",
+    "set": "class_drop_3",
+    "name": "Arc Conduit",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "A coil of drowned copper. Every spell arcs straight to the enemy.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_ambush_ward",
+    "set": "class_drop_3",
+    "name": "Ambush Ward",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "AMBUSH",
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "The water looks calm. It isn't.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_archmage_of_the_deep",
+    "set": "class_drop_3",
+    "name": "Archmage of the Deep",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 6,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      },
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She speaks to the relics in the language they were made in.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_tempest_crown",
+    "set": "class_drop_3",
+    "name": "Tempest Crown",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 2
+          },
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "The storm strikes everything, then carries the biggest away.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_spellstorm_elemental",
+    "set": "class_drop_3",
+    "name": "Spellstorm Elemental",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "ELEMENTAL"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_CAST_RITUAL",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It is made of every spell you have ever cast near it.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_star_gazer",
+    "set": "class_drop_3",
+    "name": "Star Gazer",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "LOCK_LANE",
+            "target": {
+              "scope": "LANE",
+              "filter": "OPPOSING"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She reads the sky over the enemy's lane, and the sky says no.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_comet_shard",
+    "set": "class_drop_3",
+    "name": "Comet Shard",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING_AND_DIAGONAL",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It lands in one lane and splashes into two more.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_orbit_warden",
+    "set": "class_drop_3",
+    "name": "Orbit Warden",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "DIAGONAL",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Its slow circle drags at everything beside its path.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_gravity_pulse",
+    "set": "class_drop_3",
+    "name": "Gravity Pulse",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAIN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Heavy for a moment. Heavy enough.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_astral_tether",
+    "set": "class_drop_3",
+    "name": "Astral Tether",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SWAP_STATS",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "It ties the creature across from it to the wrong end of the sky.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_c_lunar_acolyte",
+    "set": "class_drop_3",
+    "name": "Lunar Acolyte",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "attack": 2,
+            "vigor": 0,
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Under her moon, blades feel heavier.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_eclipse_herald",
+    "set": "class_drop_3",
+    "name": "Eclipse Herald",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Each new star in the sky winds the orrery a little further.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_null_orbit",
+    "set": "class_drop_3",
+    "name": "Null Orbit",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ATTACK_ABOVE_VIGOR",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "The reckless ones freeze first.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_star_lattice",
+    "set": "class_drop_3",
+    "name": "Star Lattice",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "HIGHEST_ATTACK",
+              "count": 1
+            }
+          }
+        ],
+        "condition": {
+          "op": "CONTROLS_TRIBE_GTE",
+          "value": 2,
+          "tribe": "STARBORN"
+        }
+      }
+    ],
+    "flavor": "With two stars aligned, the lattice catches whatever moves fastest.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_falling_heavens",
+    "set": "class_drop_3",
+    "name": "Falling Heavens",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DAMAGE",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "ATTACK_ABOVE_VIGOR",
+              "count": "ALL"
+            },
+            "amount": 3
+          },
+          {
+            "op": "DRAIN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "The sky falls hardest on the ones reaching too high.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_u_constellation_scribe",
+    "set": "class_drop_3",
+    "name": "Constellation Scribe",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DRAIN",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "She writes their fortune small, and their strength follows it.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_celestial_arbiter",
+    "set": "class_drop_3",
+    "name": "Celestial Arbiter",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 6,
+    "vigor": 7,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "tribute": 1,
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "STUN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "When it lands, the whole battlefield holds its breath.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_inverted_heavens",
+    "set": "class_drop_3",
+    "name": "Inverted Heavens",
+    "strata": "TIDE",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 5,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SWAP_STATS",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "Up is down. Strong is fragile. The stars find it funny.",
+    "content_version": 1
+  },
+  {
+    "id": "tid_r_voidstar_titan",
+    "set": "class_drop_3",
+    "name": "Voidstar Titan",
+    "strata": "TIDE",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 8,
+    "vigor": 8,
+    "keywords": [],
+    "types": [
+      "STARBORN"
+    ],
+    "tribute": 2,
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DEBUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "PERMANENT"
+          }
+        ]
+      }
+    ],
+    "flavor": "A dead star that walks, and everything near it dims.",
+    "content_version": 1
   }
 ]

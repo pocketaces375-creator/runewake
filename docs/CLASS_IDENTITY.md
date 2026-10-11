@@ -118,3 +118,25 @@ Trikzos: "We're green light to do 100 cards."
 - Synergy tags gained ENRAGE / EXTRA_ATTACK (Warrior) and SPELL_DAMAGE (Battlemage); conditions count too
   ("if it's your only creature" → Exalted players).
 - Existing saves get the drop once (two copies of the cards that suit their class).
+
+## 7. FABLE-DROP-3 — 100 more cards on the Forge engine (2026-10-07)
+
+Trikzos: "Can we make another 100 cards sheet with our new engine please and build them into the game?"
+
+- **100 cards** (15 Warrior and Battlemage, 14 for each other class), set `class_drop_3`, built on the FABLE-054
+  engine pieces (artifact Charges, the event creature, "first attacker / attacked this turn" filters). No new tokens.
+- New in the engine: **"When you summon another creature"** (`ON_ALLY_SUMMON`) — a creature on the board hears
+  each creature its controller summons (not itself, not the enemy's; tokens made by Summon don't count), and
+  "it" (`EVENT`) is the new creature. **Cards can hand out artifact Charges** (`ADD_CHARGE`, tag ARTIFACT_CHARGE
+  for every class): they only feed artifacts that count Charges (Twinblade, Undertow Ring, Null Sigil, Bone
+  Reliquary, Grove Seedbook, Wildheart Grimoire, Cutpurse Dagger, Saboteur's Spike, Stillwater Orb). Paladin has
+  no charging artifact, so its drop has no Charge card.
+- Null Sigil and Saboteur's Spike now gain at most 1 Charge a turn: with the Charge cards they were firing every
+  turn (Null Sigil + Undertow Ring went from 49% to 72% in the pair sims; 66% after the cap).
+- Wording: "Give itself +1/+0" → "This gets +1/+0", "Heal 2 from itself" → "This heals 2", "Refresh X" →
+  "X can attack again".
+- Balance (80 games per pairing, default artifacts, bot decks built by synergy): 45–55% overall per class, from
+  43–58% before the drop. Paladin vs Battlemage stays lopsided (98%), as it was before (100%) — flagged, not
+  touched here.
+- Existing saves get the drop once (two copies of the cards that suit their class). Faces are baked on a dark
+  placeholder until the art batch runs (`tools/run_art_drop3.sh`).

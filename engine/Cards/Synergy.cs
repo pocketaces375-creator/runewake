@@ -11,13 +11,13 @@ public static class Synergy
     /// <summary>The classes' love-lists (CLASS_IDENTITY.md §2).</summary>
     public static readonly IReadOnlyDictionary<string, string[]> Loves = new Dictionary<string, string[]>
     {
-        ["warrior"] = new[] { "ATTACK_BUFF", "EXALTED", "DOUBLE_STATS", "HEAVY_DAMAGE", "HASTE", "ENRAGE", "EXTRA_ATTACK" },
-        ["battlemage"] = new[] { "BOUNCE", "SUPPRESS", "COUNTER", "SPELL_TRIGGERED", "DRAW", "REDIRECT", "SPELL_DAMAGE" },
-        ["necromancer"] = new[] { "RESURRECT", "TOKENS", "TRIBUTE", "ON_DEATH", "VENOM", "BURN", "TRIBAL_UNDEAD" },
-        ["paladin"] = new[] { "GUARD", "DEFENSE_BUFF", "PREVENT", "NEGATE", "STALL", "HEAL", "TRIBAL_KNIGHT" },
-        ["druid"] = new[] { "HEAL", "ADJACENT_BUFF", "SPATIAL_BUFF", "RAMP", "TRIBAL_BEAST" },
-        ["rogue"] = new[] { "SUPPRESS", "DODGE", "VENOM", "TAKE_CONTROL", "DISCARD", "HASTE" },
-        ["astrologist"] = new[] { "LANE_LOCK", "TRIBUTE", "DIAGONAL", "SPATIAL_DEBUFF", "STUN", "FLIP", "ATTUNE_DOWN", "TRIBAL_STARBORN" },
+        ["warrior"] = new[] { "ATTACK_BUFF", "EXALTED", "DOUBLE_STATS", "HEAVY_DAMAGE", "HASTE", "ENRAGE", "EXTRA_ATTACK", "ARTIFACT_CHARGE" },
+        ["battlemage"] = new[] { "BOUNCE", "SUPPRESS", "COUNTER", "SPELL_TRIGGERED", "DRAW", "REDIRECT", "SPELL_DAMAGE", "ARTIFACT_CHARGE" },
+        ["necromancer"] = new[] { "RESURRECT", "TOKENS", "TRIBUTE", "ON_DEATH", "VENOM", "BURN", "TRIBAL_UNDEAD", "ARTIFACT_CHARGE" },
+        ["paladin"] = new[] { "GUARD", "DEFENSE_BUFF", "PREVENT", "NEGATE", "STALL", "HEAL", "TRIBAL_KNIGHT", "ARTIFACT_CHARGE" },
+        ["druid"] = new[] { "HEAL", "ADJACENT_BUFF", "SPATIAL_BUFF", "RAMP", "TRIBAL_BEAST", "ARTIFACT_CHARGE" },
+        ["rogue"] = new[] { "SUPPRESS", "DODGE", "VENOM", "TAKE_CONTROL", "DISCARD", "HASTE", "ARTIFACT_CHARGE" },
+        ["astrologist"] = new[] { "LANE_LOCK", "TRIBUTE", "DIAGONAL", "SPATIAL_DEBUFF", "STUN", "FLIP", "ATTUNE_DOWN", "TRIBAL_STARBORN", "ARTIFACT_CHARGE" },
     };
 
     public static IEnumerable<string> ClassIds => Loves.Keys;
@@ -96,6 +96,7 @@ public static class Synergy
                             foreach (var tt in td.Types) tags.Add("TRIBAL_" + tt.ToUpperInvariant());
                         break;
                     case Op.BURN: tags.Add("BURN"); break;
+                    case Op.ADD_CHARGE: tags.Add("ARTIFACT_CHARGE"); break;   // FABLE-DROP-3: every class carries artifacts
                     case Op.PREVENT_DAMAGE: tags.Add("PREVENT"); break;
                     case Op.HEAL: case Op.HEAL_FULL: tags.Add("HEAL"); break;
                     case Op.ATTUNE: tags.Add("RAMP"); break;

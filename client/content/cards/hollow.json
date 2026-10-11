@@ -1978,5 +1978,876 @@
     ],
     "flavor": "Forged for one throat. It has never needed a second try.",
     "content_version": 1
+  },
+  {
+    "id": "hol_c_grave_tender",
+    "set": "class_drop_3",
+    "name": "Grave Tender",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "When he falls, the reliquary hums a little louder.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_bone_rattler",
+    "set": "class_drop_3",
+    "name": "Bone Rattler",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 1,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          }
+        ]
+      }
+    ],
+    "flavor": "Break it and the pieces stand back up.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_crypt_lantern",
+    "set": "class_drop_3",
+    "name": "Crypt Lantern",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "It burns brightest when the crypt fills.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_marrow_feast",
+    "set": "class_drop_3",
+    "name": "Marrow Feast",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Nothing is wasted. Not the meat, not the marrow, not you.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_rot_swarm",
+    "set": "class_drop_3",
+    "name": "Rot Swarm",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "filter": "OPPOSING",
+              "count": 1
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "A cloud of flies that eats from the inside out.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_gravedust",
+    "set": "class_drop_3",
+    "name": "Gravedust",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "amount": 3
+          }
+        ]
+      }
+    ],
+    "flavor": "A pinch of it, and the living start to rot.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_ossuary_warden",
+    "set": "class_drop_3",
+    "name": "Ossuary Warden",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 4,
+    "keywords": [
+      "GUARD"
+    ],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "SELF"
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every bone added to the ossuary is added to him.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_raise_the_fallen",
+    "set": "class_drop_3",
+    "name": "Raise the Fallen",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 3
+          },
+          {
+            "op": "BURY",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Up. Your war isn't over.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_plague_bearer",
+    "set": "class_drop_3",
+    "name": "Plague Bearer",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 3,
+    "vigor": 3,
+    "keywords": [
+      "VENOM"
+    ],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "BURN",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": "ALL"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Kill it if you like. Then breathe.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_soul_tithe",
+    "set": "class_drop_3",
+    "name": "Soul Tithe",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 1
+          }
+        ],
+        "condition": {
+          "op": "CREATURE_DIED_THIS_TURN",
+          "side": "ANY"
+        }
+      }
+    ],
+    "flavor": "A death today buys a stronger servant tonight.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_gravebound_horde",
+    "set": "class_drop_3",
+    "name": "Gravebound Horde",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 1,
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          },
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          }
+        ]
+      }
+    ],
+    "flavor": "Feed it one corpse and it brings two friends.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_lich_ascendant",
+    "set": "class_drop_3",
+    "name": "Lich Ascendant",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 6,
+    "attack": 5,
+    "vigor": 5,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_DEATH",
+        "effects": [
+          {
+            "op": "SUMMON",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "token_id": "hol_t_risen_bones"
+          }
+        ]
+      }
+    ],
+    "flavor": "Every ally that falls rises again as his.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_necrotic_tide",
+    "set": "class_drop_3",
+    "name": "Necrotic Tide",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "DESTROY",
+            "target": {
+              "scope": "ANY_CREATURE",
+              "filter": "ATTACK_LTE:2",
+              "count": "ALL"
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "The weak drown first. The Necromancer counts on it.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_bone_colossus",
+    "set": "class_drop_3",
+    "name": "Bone Colossus",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 7,
+    "attack": 8,
+    "vigor": 8,
+    "keywords": [],
+    "types": [
+      "UNDEAD"
+    ],
+    "tribute": 2,
+    "abilities": [
+      {
+        "trigger": "ON_DEATH",
+        "effects": [
+          {
+            "op": "UNEARTH_FROM_GRAVEYARD",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "value": 4
+          }
+        ]
+      }
+    ],
+    "flavor": "Built from a hundred dead. When it falls, one of them gets up.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_street_shiv",
+    "set": "class_drop_3",
+    "name": "Street Shiv",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 1,
+    "attack": 1,
+    "vigor": 1,
+    "keywords": [
+      "SWIFT",
+      "VENOM"
+    ],
+    "abilities": [],
+    "flavor": "Small, fast, and it only needs to scratch.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_fence_runner",
+    "set": "class_drop_3",
+    "name": "Fence Runner",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "By the time you notice the empty pocket, he's sold what was in it.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_shadow_step",
+    "set": "class_drop_3",
+    "name": "Shadow Step",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            },
+            "keyword": "DODGE:50",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Now you see her. Half the time.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_tripwire",
+    "set": "class_drop_3",
+    "name": "Tripwire",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "COMMON",
+    "cost": 1,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SET_TRAP",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "keyword": "AMBUSH",
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "Stretched across the doorway, ankle-high, waiting.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_quickfinger",
+    "set": "class_drop_3",
+    "name": "Quickfinger",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 2,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "ADD_CHARGE",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Every pocket she picks winds the clockwork in your relics.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_c_alley_lookout",
+    "set": "class_drop_3",
+    "name": "Alley Lookout",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "COMMON",
+    "cost": 2,
+    "attack": 1,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_TURN_START",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ],
+        "condition": {
+          "op": "ENEMY_HAND_LTE",
+          "value": 2
+        }
+      }
+    ],
+    "flavor": "When their hands are empty, she brings you the news.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_smoke_veil_tosser",
+    "set": "class_drop_3",
+    "name": "Smoke-Veil Tosser",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_SUMMON",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": "ALL"
+            },
+            "keyword": "DODGE:20",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "One bottle, one cough, and nobody can find anybody.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_poisoners_den",
+    "set": "class_drop_3",
+    "name": "Poisoners' Den",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 3,
+    "attack": 2,
+    "vigor": 3,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "GRANT_KEY",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT",
+              "count": 1
+            },
+            "keyword": "VENOM",
+            "duration": "UNTIL_YOUR_NEXT_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Every new member is issued a vial and no questions.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_cutpurse_gang",
+    "set": "class_drop_3",
+    "name": "Cutpurse Gang",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "UNCOMMON",
+    "cost": 5,
+    "attack": 3,
+    "vigor": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Four thieves, one target, and nothing left in the bag.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_turncoat",
+    "set": "class_drop_3",
+    "name": "Turncoat",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "STEAL",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "duration": "THIS_TURN"
+          },
+          {
+            "op": "BUFF",
+            "target": {
+              "scope": "ENEMY_CREATURE",
+              "count": 1
+            },
+            "attack": 1,
+            "vigor": 0,
+            "duration": "THIS_TURN"
+          }
+        ]
+      }
+    ],
+    "flavor": "Gold changes hands. So does loyalty, for an afternoon.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_u_vanishing_act",
+    "set": "class_drop_3",
+    "name": "Vanishing Act",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "UNCOMMON",
+    "cost": 2,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "BOUNCE",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "count": 1
+            }
+          },
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "Gone in a puff of smoke. Back for an encore.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_guildmaster_of_knives",
+    "set": "class_drop_3",
+    "name": "Guildmaster of Knives",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 5,
+    "attack": 4,
+    "vigor": 4,
+    "keywords": [
+      "SWIFT"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ALLY_SUMMON",
+        "effects": [
+          {
+            "op": "REFRESH",
+            "target": {
+              "scope": "ALLY_CREATURE",
+              "filter": "EVENT",
+              "count": 1
+            }
+          }
+        ]
+      }
+    ],
+    "flavor": "In her guild, nobody waits to be told twice.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_blackout",
+    "set": "class_drop_3",
+    "name": "Blackout",
+    "strata": "HOLLOW",
+    "type": "RITUAL",
+    "rarity": "RARE",
+    "cost": 4,
+    "keywords": [],
+    "abilities": [
+      {
+        "trigger": "RESOLVE",
+        "effects": [
+          {
+            "op": "SUPPRESS",
+            "target": {
+              "scope": "PLAYER_ENEMY"
+            },
+            "amount": 2
+          },
+          {
+            "op": "DISCARD",
+            "target": {
+              "scope": "PLAYER_ENEMY",
+              "filter": "RANDOM"
+            },
+            "amount": 2
+          }
+        ]
+      }
+    ],
+    "flavor": "The lamps go out, the relics go dark, and the cards go missing.",
+    "content_version": 1
+  },
+  {
+    "id": "hol_r_phantom_thief",
+    "set": "class_drop_3",
+    "name": "Phantom Thief",
+    "strata": "HOLLOW",
+    "type": "CREATURE",
+    "rarity": "RARE",
+    "cost": 3,
+    "attack": 3,
+    "vigor": 2,
+    "keywords": [
+      "SWIFT",
+      "DODGE:50"
+    ],
+    "abilities": [
+      {
+        "trigger": "ON_ATTACK",
+        "effects": [
+          {
+            "op": "DRAW",
+            "target": {
+              "scope": "PLAYER_SELF"
+            },
+            "amount": 1
+          }
+        ]
+      }
+    ],
+    "flavor": "No one has ever seen her face. Plenty have seen their purse leave.",
+    "content_version": 1
   }
 ]

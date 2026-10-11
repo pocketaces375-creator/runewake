@@ -31,7 +31,9 @@ public enum Trigger
     ON_ARTIFACT_SUPPRESS, ON_ARTIFACT_UNSUPPRESS,
     ON_CREATURE_ATTACKS, ON_CREATURE_DIES, ON_SPELL_CAST,
     ON_PREY_MARKED, ON_PREY_DESTROYED, ON_HEAL,
-    ON_NO_ATTACK_TURN, ON_TURN_END_NO_ATTACK
+    ON_NO_ATTACK_TURN, ON_TURN_END_NO_ATTACK,
+    // FABLE-DROP-3: a creature on the board hearing its controller summon ANOTHER creature (GameState.EventCreature = that one)
+    ON_ALLY_SUMMON
 }
 
 // ——— Effect Operation ———

@@ -257,7 +257,7 @@
     "name": "Null Sigil",
     "forge": true,
     "art_id": "artf_battlemage_aura",
-    "text": "Gain a Charge at the end of each of your turns. At 2: the enemy's artifacts are Suppressed for their next turn, and you set a Counter Sigil.",
+    "text": "Gain a Charge at the end of each of your turns (at most 1 a turn). At 2: the enemy's artifacts are Suppressed for their next turn, and you set a Counter Sigil.",
     "passive": {
       "op": "HEAL",
       "target": {
@@ -268,7 +268,8 @@
     "charges": {
       "max": 2,
       "gain_on": "on_turn_end",
-      "spend_on": "on_charge_full"
+      "spend_on": "on_charge_full",
+      "max_per_turn": 1
     },
     "full_charge": [
       {
@@ -954,7 +955,7 @@
     "name": "Saboteur's Spike",
     "forge": true,
     "art_id": "artf_rogue_lockpick",
-    "text": "Gain a Charge at the start of each of your turns. At 3: the enemy's artifacts are Suppressed for a turn, and you take control of their cheapest creature this turn.",
+    "text": "Gain a Charge at the start of each of your turns (at most 1 a turn). At 3: the enemy's artifacts are Suppressed for a turn, and you take control of their cheapest creature this turn.",
     "passive": {
       "op": "HEAL",
       "target": {
@@ -965,7 +966,8 @@
     "charges": {
       "max": 3,
       "gain_on": "on_turn_start",
-      "spend_on": "on_charge_full"
+      "spend_on": "on_charge_full",
+      "max_per_turn": 1
     },
     "full_charge": [
       {

@@ -18,7 +18,7 @@ public static class DropGrants
     private const string FilePath = "user://drop_grants.json";
 
     /// <summary>The drops, oldest first: the card set name, and the class each card was built for.</summary>
-    private static readonly string[] Drops = { "class_drop_1", "class_drop_2" };
+    private static readonly string[] Drops = { "class_drop_1", "class_drop_2", "class_drop_3" };
 
     public static void Ensure(ProgressionState progression, int saveSlot, string classId)
     {
