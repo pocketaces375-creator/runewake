@@ -92,6 +92,7 @@ import json
 import os
 import re
 import shutil
+import ssl
 import sys
 import time
 import urllib.error
@@ -284,8 +285,22 @@ def _openrouter(payload, timeout=180):
     req = urllib.request.Request(f"{OPENROUTER}/chat/completions", data=json.dumps(payload).encode(),
                                  headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
                                           "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        d = json.loads(r.read())
+    # FABLE-057: a handshake that times out (or a dropped connection) happens before OpenRouter has the request,
+    # so it costs nothing to try again. Wait a little longer each time; give up after four tries.
+    # An HTTP answer (402 out of credit, 4xx, 5xx) is never retried here — callers handle those.
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                d = json.loads(r.read())
+            break
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, ConnectionError, ssl.SSLError) as e:
+            if attempt == 3:
+                raise
+            wait = 5 * (attempt + 1)
+            print(f"  network hiccup ({str(e)[:90]}) — trying again in {wait}s", flush=True)
+            time.sleep(wait)
     _log_spend(payload, d)
     return d
 
@@ -666,7 +681,9 @@ def paint_refs(prompt, out, refs=None, cid=None, card=None, n=0):
             print("  OpenRouter: 402 Payment Required — the account is out of credit. Stopping.", flush=True)
             sys.exit(OUT_OF_CREDIT)
         print(f"  refs paint failed: HTTP {e.code} {str(e)[:160]}")
-    except (urllib.error.URLError, ValueError, KeyError, IndexError) as e:
+    except (urllib.error.URLError, ValueError, KeyError, IndexError, OSError) as e:
+        # FABLE-057: OSError covers a read that timed out after the request went out (TimeoutError, ssl errors);
+        # one failed painting must not end a 100-card run — the batch repaints failures in its next round
         print(f"  refs paint failed: {str(e)[:200]}")
     return False
 
