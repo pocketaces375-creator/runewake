@@ -200,6 +200,10 @@ public partial class ChooseYourPathScene : Control
         // ── 3. Begin button (fixed height, centered, with margin) ──
         BuildBeginButton();
 
+        // FABLE-056: a way back. "New Campaign" no longer makes a campaign until Begin, so leaving here costs
+        // nothing — but there was no button for it, and Android Back doesn't quit any more.
+        BuildBackButton();
+
         // Load classes
         LoadClasses();
 
@@ -257,6 +261,45 @@ public partial class ChooseYourPathScene : Control
                 GetTree().Quit(0);
             };
         }
+    }
+
+    private void BuildBackButton()
+    {
+        var back = new Button
+        {
+            Text = "\u2190  Back",
+            FocusMode = FocusModeEnum.None,
+            Position = new Vector2(28, 24),
+            CustomMinimumSize = new Vector2(220, 72),
+            MouseDefaultCursorShape = CursorShape.PointingHand,
+        };
+        back.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(34));
+        back.AddThemeFontSizeOverride("font_size", 34);
+        back.AddThemeColorOverride("font_color", new Color(0.95f, 0.88f, 0.65f));
+        StyleBoxFlat Box(float a) => new()
+        {
+            BgColor = new Color(0.08f, 0.07f, 0.06f, a),
+            BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.55f),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+        };
+        back.AddThemeStyleboxOverride("normal", Box(0.72f));
+        back.AddThemeStyleboxOverride("hover", Box(0.9f));
+        back.AddThemeStyleboxOverride("pressed", Box(0.95f));
+        back.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        back.Pressed += GoBack;
+        AddChild(back);
+    }
+
+    private void GoBack()
+    {
+        GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMGoBackRequest) GoBack();
     }
 
     // ════════════════════════════════════════════════

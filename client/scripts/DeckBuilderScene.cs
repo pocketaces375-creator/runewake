@@ -1873,7 +1873,9 @@ public partial class DeckBuilderScene : Control
         l.AddThemeColorOverride("font_color", Color.FromHtml("#F2DFA6"));
         toast.AddChild(l);
         AddChild(toast);
-        toast.CallDeferred(nameof(CenterToast));
+        // FABLE-056: this asked the TOAST to run CenterToast (it has no such method), so every toast — "Saved
+        // My Deck" included — sat in the top-left corner over the title for two seconds and was easy to miss
+        Callable.From(() => CenterToast(toast)).CallDeferred();
         void Fade()
         {
             var tween = toast.CreateTween();
@@ -1884,10 +1886,9 @@ public partial class DeckBuilderScene : Control
         Fade();
     }
 
-    private void CenterToast()
+    private void CenterToast(Control toast)
     {
-        var toast = GetNodeOrNull<Control>("Toast");
-        if (toast == null) return;
+        if (!IsInstanceValid(toast)) return;
         var vp = GetViewportRect().Size;
         toast.Position = new Vector2(_midX + (_midW - toast.Size.X) / 2, _tray.Position.Y - toast.Size.Y - 24);
     }

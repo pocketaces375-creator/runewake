@@ -238,7 +238,10 @@ public class ProgressionSnapshot
     public bool HasPlayed =>
         ClearedNodes.Count > 0 || DelverLevel > 1 || DelverXp > 0
         || DiscoveredRelics.Count > 0 || ArenaWins + ArenaLosses > 0
-        || HasCompletedTutorial;
+        || HasCompletedTutorial
+        // FABLE-056: decks the player saved are play too — signing in used to replace a phone that only had
+        // decks on it with the account's save without asking, and the decks were gone
+        || SavedDecks.Count > 0;
 }
 
 /// <summary>

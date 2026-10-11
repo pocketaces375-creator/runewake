@@ -1530,8 +1530,8 @@ public partial class Main : Control
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
 
-        // Create new empty profile and go to ChooseYourPath
-        CampaignContext.AddOrUpdateProfile("", "");
+        // FABLE-056: no empty placeholder campaign any more — Choose Your Path creates the real one on Begin,
+        // and backing out of it leaves nothing behind
         CampaignContext.ChosenClass = "";
         CampaignContext.ChosenTown = "";
         GD.Print($"[Main] Starting new campaign");

@@ -541,7 +541,7 @@ public partial class AccountsCarouselScene : Control
         {
             // Empty account — go to ChooseYourPath
             GD.Print("[AccountsCarousel] Empty account selected — starting new campaign");
-            CampaignContext.AddOrUpdateProfile("", "");
+            // FABLE-056: no empty placeholder campaign — Choose Your Path makes the real one on Begin
             CampaignContext.ChosenClass = "";
             CampaignContext.ChosenTown = "";
             GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
@@ -564,8 +564,8 @@ public partial class AccountsCarouselScene : Control
         GD.Print("[AccountsCarousel] Creating new account");
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
 
-        // Create new empty profile — the slot index auto-assigns
-        CampaignContext.AddOrUpdateProfile("", "");
+        // FABLE-056: no empty placeholder campaign any more — Choose Your Path creates the real one on Begin,
+        // and backing out of it leaves nothing behind
         CampaignContext.ChosenClass = "";
         CampaignContext.ChosenTown = "";
 

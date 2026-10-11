@@ -566,6 +566,15 @@ public static class CampaignContext
         /// <summary>Add or update a profile in the list (max 3 slots).</summary>
         public static void AddOrUpdateProfile(string classId, string townName, int slot = -1, string? portraitVariant = null)
         {
+            // FABLE-056: "New Campaign" used to add an EMPTY campaign first and Choose Your Path then added the
+            // real one — every new campaign left a ghost behind, and the ghost's fresh file wiped whatever was in
+            // it (the decks built before the first campaign). A ghost left by an older build is finished here
+            // instead of adding a second campaign next to it.
+            if (slot < 0 && !string.IsNullOrEmpty(classId))
+            {
+                int ghost = Profiles.FindIndex(p => string.IsNullOrEmpty(p.ClassId));
+                if (ghost >= 0) slot = ghost;
+            }
             if (slot >= 0 && slot < Profiles.Count)
             {
                 // Update existing — save current progression to old slot, then switch
@@ -598,8 +607,14 @@ public static class CampaignContext
             }
             // FABLE-047: a brand-new campaign gets a save file nobody else uses, emptied first — so it can
             // never open with a deleted campaign's cards.
-            int newSaveId = FreeSaveId();
-            DeleteSaveFiles(newSaveId);
+            // FABLE-056: EXCEPT the file that is open with no campaign on it (Decks, the Arena and online play
+            // all work before the first campaign). That one holds what the player made there — their decks —
+            // so the new campaign keeps it instead of emptying it.
+            int open = SaveManager.CurrentSlot;
+            bool keepOpenFile = ActiveProfileSlot < 0 && SaveManager.IsLoaded && SaveManager.IsFunctional
+                                && !Profiles.Select((p, i) => SaveIdOf(i)).Contains(open);
+            int newSaveId = keepOpenFile ? open : FreeSaveId();
+            if (!keepOpenFile) DeleteSaveFiles(newSaveId);
 
             var profile = new CampaignProfile
             {
@@ -615,7 +630,8 @@ public static class CampaignContext
             };
 
             // Switch SaveManager to this campaign's file before adding to list (the one being left is saved first)
-            SaveManager.SwitchSlot(newSaveId, saveCurrent: ActiveProfileSlot >= 0);
+            if (keepOpenFile) SaveManager.Save();
+            else SaveManager.SwitchSlot(newSaveId, saveCurrent: ActiveProfileSlot >= 0);
             Profiles.Add(profile);
             ActiveProfileSlot = Profiles.Count - 1;
             ChosenClass = classId;
@@ -922,9 +938,29 @@ public static class CampaignContext
                 PlayerDeckIds = new List<string>(deck.Cards);
 
             // Starter cards belong to the collection so the Forge can edit freely
+            bool changed = false;
             foreach (var c in deck.Cards)
                 if (!Progression.Collection.ContainsKey(c))
-                    Progression.AddCard(c);
+                { Progression.AddCard(c); changed = true; }
+
+            // FABLE-056: the deck you play with is the deck the Deck Forge opens on, and it is in Your Decks.
+            // Before this the starter deck only lived in decks.json: the Forge opened a new campaign on its 4
+            // core cards ("4 / 30"), Your Decks didn't list the deck the map said you were using, and a relaunch
+            // that skipped the class's deck rebuilt one from the first 30 cards of the collection.
+            var prog = Progression;
+            if (deck.Cards.Count >= DeckRules.MinSize && prog.DeckCardIds.Count < DeckRules.MinSize)
+            {
+                prog.DeckCardIds.Clear();
+                prog.DeckCardIds.AddRange(deck.Cards);
+                changed = true;
+            }
+            if (deck.Cards.Count > 0 && !string.IsNullOrEmpty(deck.Name) && !prog.SavedDecks.ContainsKey(deck.Name)
+                && prog.DeckCardIds.SequenceEqual(deck.Cards))
+            {
+                prog.SavedDecks[deck.Name] = new List<string>(deck.Cards);
+                changed = true;
+            }
+            if (changed && SaveManager.IsLoaded) SaveManager.Save();
 
             // FABLE-DROP-1: new card drops reach existing saves (once per slot)
             DropGrants.Ensure(Progression, SaveManager.CurrentSlot, cid);
