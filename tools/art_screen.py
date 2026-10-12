@@ -702,6 +702,18 @@ def cmd_batch(a):
     led = ad.load_ledger()
     BATCHES.mkdir(parents=True, exist_ok=True)
 
+    # FABLE-058: two copies of a painting run at once paint the same cards twice (the drop-3 run cost $7.70 for a
+    # $4 job). Only one run that paints may go at a time; a second one stops here before spending anything.
+    if not (a.sheet or a.approve):
+        import fcntl
+        global _RUN_LOCK
+        _RUN_LOCK = open(BATCHES.parent / "batch.lock", "w")
+        try:
+            fcntl.flock(_RUN_LOCK, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            print("another painting run is already going — not starting a second one (nothing spent)")
+            return 43
+
     if a.sheet:
         # FABLE-BATCH-2: rebuild a batch's sheet from paintings already made — no painting, no cost
         path = _batch_file(a.sheet)

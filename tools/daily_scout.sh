@@ -6,6 +6,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LOG_FILE="$REPO_ROOT/docs/SCOUT_LOG.md"
 DATE="$(date '+%Y-%m-%d')"
+# FABLE-058: Trikzos — keep the research, but consolidated. The full report goes to docs/SCOUT_LOG.md;
+# the chat gets a digest of at most 5 lines (top 3 new repos, one audit line only when the audit changed).
+exec 3>&1 >/dev/null
 
 echo "═══════════════════════════════════════════════════"
 echo "  DAILY SCOUT — $DATE"
@@ -118,8 +121,27 @@ fi
 echo "$DIGEST" >> "$LOG_FILE"
 echo "  Logged to $LOG_FILE"
 
-# ─── Output for cron delivery ──────────────────────────────────────────────
-echo ""
-echo "═══════════════════════════════════════════════════"
-echo "$DIGEST"
-echo "═══════════════════════════════════════════════════"
+# ─── Output for cron delivery: the short digest only (fd 3 = the real stdout) ─────────
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/runewake"; mkdir -p "$STATE_DIR"
+AUDIT_SUM=$(printf '%s\n' "${AUDIT_LINES[@]}" | sha1sum | cut -c1-12)
+AUDIT_PREV=$(cat "$STATE_DIR/scout_audit.sum" 2>/dev/null || echo "")
+echo "$AUDIT_SUM" > "$STATE_DIR/scout_audit.sum"
+{
+  echo "Scout $DATE — top new repos this week (full report: docs/SCOUT_LOG.md):"
+  printf '%s\n%s\n%s\n' "$GODOT_TRENDING" "$LLM_TRENDING" "$IMG_TRENDING" | python3 -c "
+import re, sys
+seen, rows = set(), []
+for line in sys.stdin:
+    m = re.match(r'\s*• (\S+) — (\d+)★ — (.*)', line)
+    if m and m.group(1) not in seen:
+        seen.add(m.group(1)); rows.append((int(m.group(2)), m.group(1), m.group(3).strip()))
+rows.sort(reverse=True)
+for stars, name, desc in rows[:3]:
+    print(f'• {name} ({stars}★) — {desc[:80]}')
+if not rows:
+    print('• nothing new worth a look today')
+"
+  if [ -n "$AUDIT_PREV" ] && [ "$AUDIT_PREV" != "$AUDIT_SUM" ]; then
+    echo "Audit changed since last run — see docs/SCOUT_LOG.md"
+  fi
+} >&3

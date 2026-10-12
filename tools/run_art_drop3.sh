@@ -4,7 +4,6 @@
 # dies on a network error is simply repeated (up to 4 passes, a minute apart). Out of credit stops it for good.
 cd /home/fictive/runewake || exit 1
 SEND=~/.local/bin/hermes
-: > ~/art_drop3.log
 rc=1
 for pass in 1 2 3 4; do
   echo "=== pass $pass $(date '+%F %T') ===" >> ~/art_drop3.log
@@ -12,11 +11,14 @@ for pass in 1 2 3 4; do
   rc=$?
   [ "$rc" = 0 ] && break
   [ "$rc" = 42 ] && break
+  [ "$rc" = 43 ] && break
   $SEND -p tcgbot send --to telegram:-5481648844 "Drop-3 art: pass $pass stopped (exit $rc) — trying again in a minute" >/dev/null 2>&1
   sleep 60
 done
 if [ "$rc" = 42 ]; then
   $SEND -p tcgbot send --to telegram:-5481648844 "STOP: Drop-3 art ran out of OpenRouter credit — add credit at openrouter.ai/credits, then run tools/run_art_drop3.sh again (it carries on where it stopped)"
+elif [ "$rc" = 43 ]; then
+  $SEND -p tcgbot send --to telegram:-5481648844 "Drop-3 art: a painting run is already going, so I did not start a second one"
 elif [ "$rc" != 0 ]; then
   $SEND -p tcgbot send --to telegram:-5481648844 "STOP: Drop-3 art still failing after 4 passes (exit $rc) — last log lines: $(tail -n 6 ~/art_drop3.log | tr "\n" " ")"
 else
