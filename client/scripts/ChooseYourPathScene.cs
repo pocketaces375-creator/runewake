@@ -294,7 +294,7 @@ public partial class ChooseYourPathScene : Control
     private void GoBack()
     {
         GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
     }
 
     public override void _Notification(int what)
@@ -1086,6 +1086,6 @@ public partial class ChooseYourPathScene : Control
         CampaignContext.AddOrUpdateProfile(cls.Id, cls.Town, portraitVariant: variant);
 
         CampaignContext.EnsureStarterDeck(cls.Id);
-        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
     }
 }

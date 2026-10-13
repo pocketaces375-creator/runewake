@@ -134,7 +134,7 @@ public partial class CardShopScene : Control
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             var back = CampaignContext.ShopReturnScenePath ?? "res://scenes/reliquary/ReliquaryScene.tscn";
             CampaignContext.ShopReturnScenePath = null;
-            GetTree().ChangeSceneToFile(back);
+            LoadScreen.Go(GetTree(), back);
         };
         AddChild(_backButton);
 

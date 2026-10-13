@@ -44,7 +44,7 @@ public static class SceneGuard
                 btn.Pressed += () =>
                 {
                     DuelScene.ExitTrace($"{name}: escape → {escapePath.GetFile()}");
-                    scene.GetTree().ChangeSceneToFile(escapePath);
+                    scene.LoadScreen.Go(GetTree(), escapePath);
                 };
                 scene.AddChild(btn);
             }

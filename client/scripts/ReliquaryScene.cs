@@ -97,7 +97,7 @@ public partial class ReliquaryScene : Control
 
         var back = Plate("◀  Back", false, 76, 260);
         back.Position = new Vector2(40, (TopH - 76) / 2);
-        back.Pressed += () => { Click(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); };
+        back.Pressed += () => { Click(); LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); };
         top.AddChild(back);
 
         var kicker = new Label { Text = "THE CODEX OF RUNES", HorizontalAlignment = HorizontalAlignment.Center, Position = new Vector2(0, 14), Size = new Vector2(vp.X, 26), MouseFilter = MouseFilterEnum.Ignore };
@@ -111,7 +111,7 @@ public partial class ReliquaryScene : Control
 
         var shop = Plate("Shop  ▶", true, 76, 260);
         shop.Position = new Vector2(vp.X - 40 - 260, (TopH - 76) / 2);
-        shop.Pressed += () => { Click(); GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn"); };
+        shop.Pressed += () => { Click(); LoadScreen.Go(GetTree(), "res://scenes/shop/CardShopScene.tscn"); };
         top.AddChild(shop);
         _dustLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = new Vector2(vp.X - 40 - 260 - 24 - 360, 0), Size = new Vector2(360, TopH), MouseFilter = MouseFilterEnum.Ignore };
         _dustLabel.AddThemeFontOverride("font", GetBodyFont(30)); _dustLabel.AddThemeFontSizeOverride("font_size", 30);

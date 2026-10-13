@@ -1113,7 +1113,7 @@ public partial class DuelScene : Control
                             var navTimer = new Godot.Timer();
                             navTimer.OneShot = true;
                             navTimer.WaitTime = 0.1f;
-                            navTimer.Timeout += () => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                            navTimer.Timeout += () => LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                             GetTree().Root.AddChild(navTimer);
                             navTimer.Start();
                             return;
@@ -1135,7 +1135,7 @@ public partial class DuelScene : Control
                         {
                             GD.Print("[CAPTURE] Flow test: capture complete — navigating to map to prove round-trip");
                             CampaignContext.CaptureFlowTestMap = true;
-                            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                             return;
                         }
                         // TASK-AUDIO-VERIFY-1: Write audio verification report
@@ -4057,7 +4057,7 @@ public partial class DuelScene : Control
                     navTimer.Timeout += () =>
                     {
                         if (GodotObject.IsInstanceValid(GetTree()))
-                            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                     };
                     GetTree().Root.AddChild(navTimer);
                     navTimer.Start();
@@ -4082,7 +4082,7 @@ public partial class DuelScene : Control
                         if (CampaignContext.CurrentNodeId != null)
                             CampaignContext.Progression.MarkNodeCleared(CampaignContext.CurrentNodeId);
                         CampaignContext.SaveManager.Save();
-                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                         return;
                     }
                     GetTree().Quit();
@@ -5956,6 +5956,7 @@ public partial class DuelScene : Control
         try
         {
             ExitTrace("frames drawn — loading scene");
+            LoadScreen.ShowForSwap(tree);
             // FABLE-011: load EXPLICITLY, then swap to the loaded resource, so a
             // null PackedScene (the scene is the problem) and a failed swap (the
             // swap is the problem) are two different, readable answers.
@@ -5997,6 +5998,7 @@ public partial class DuelScene : Control
 
             // From this line on, THIS NODE IS OUT OF THE TREE. Touch nothing
             // that needs it: no GetTree(), no GetNode(), no overlay.
+            LoadScreen.HideSoon(tree);
             _swapRequested = true;
             StartExitWatchdog(tree, scenePath, oldSceneId);
         }

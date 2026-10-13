@@ -314,14 +314,14 @@ public partial class Main : Control
         var reliquaryButton = Quiet("Reliquary");
         reliquaryButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/reliquary/ReliquaryScene.tscn");
         };
         buttonRow.AddChild(reliquaryButton);
 
         var arenaButton = Quiet("Duel Arena");
         arenaButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/arena/ArenaScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/arena/ArenaScene.tscn");
         };
         buttonRow.AddChild(arenaButton);
 
@@ -329,14 +329,14 @@ public partial class Main : Control
         var onlineButton = Quiet("Play Online");
         onlineButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile(OnlineLobbyScene.ScenePath);
+            LoadScreen.Go(GetTree(), OnlineLobbyScene.ScenePath);
         };
         buttonRow.AddChild(onlineButton);
 
         var settingsButton = Quiet("Settings");
         settingsButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/settings/SettingsScene.tscn");
         };
         buttonRow.AddChild(settingsButton);
 
@@ -882,7 +882,7 @@ public partial class Main : Control
                 CampaignContext.ActiveProfileSlot = 0;
                 CampaignContext.SaveCampaignProfile();
                 // Schedule deferred navigation so the title screen renders first
-                Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/accounts/AccountsCarouselScene.tscn")).CallDeferred();
+                Callable.From(() => LoadScreen.Go(GetTree(), "res://scenes/accounts/AccountsCarouselScene.tscn")).CallDeferred();
                 return;
             }
             if (CampaignContext.CaptureTitleTestScreenshot)
@@ -989,7 +989,7 @@ public partial class Main : Control
                     // Now navigate to deck builder for the tome capture
                     GD.Print("[Main] Navigating to deck builder for tome capture");
                     CampaignContext.CaptureDeckBuilderScreenshot = true;
-                    GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
+                    LoadScreen.Go(GetTree(), "res://scenes/deck/DeckBuilderScene.tscn");
                 };
                 AddChild(titleCapTimer);
                 titleCapTimer.Start();
@@ -997,12 +997,12 @@ public partial class Main : Control
             else if (CampaignContext.CaptureMapScreenshot)
             {
                 // Navigate to map for map capture
-                Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
+                Callable.From(() => LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn")).CallDeferred();
             }
             else if (CampaignContext.CaptureDeckBuilderScreenshot)
             {
                 // Navigate to deck builder for deck capture
-                Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn")).CallDeferred();
+                Callable.From(() => LoadScreen.Go(GetTree(), "res://scenes/deck/DeckBuilderScene.tscn")).CallDeferred();
             }
             else if (CampaignContext.CaptureChoosePathScreenshot)
             {
@@ -1010,7 +1010,7 @@ public partial class Main : Control
                 GD.Print("[Main] Navigating to ChooseYourPath for carousel capture");
                 Callable.From(() =>
                 {
-                    GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+                    LoadScreen.Go(GetTree(), "res://scenes/choose_path/ChooseYourPathScene.tscn");
                 }).CallDeferred();
             }
             else if (CampaignContext.CaptureSettingsScreenshot)
@@ -1019,7 +1019,7 @@ public partial class Main : Control
                 GD.Print("[Main] Navigating to Settings for capture");
                 Callable.From(() =>
                 {
-                    GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+                    LoadScreen.Go(GetTree(), "res://scenes/settings/SettingsScene.tscn");
                 }).CallDeferred();
             }
             else if (CampaignContext.CaptureDigScreenshot)
@@ -1028,21 +1028,21 @@ public partial class Main : Control
                 GD.Print("[Main] Navigating to Dig scene for capture");
                 Callable.From(() =>
                 {
-                    GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
+                    LoadScreen.Go(GetTree(), "res://scenes/dig/DigScene.tscn");
                 }).CallDeferred();
             }
             else if (CampaignContext.CaptureReliquaryScreenshot)
             {
                 // Navigate to reliquary for collection browser capture — direct call, not deferred
                 GD.Print("[Main] Navigating to Reliquary for capture");
-                GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+                LoadScreen.Go(GetTree(), "res://scenes/reliquary/ReliquaryScene.tscn");
             }
             else if (CampaignContext.CaptureShopScreenshot)
             {
                 // Navigate to card shop for rotating shop capture
                 GD.Print("[Main] Navigating to Card Shop for capture");
                 CardShopScene.SetUpShopTest();
-                GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn");
+                LoadScreen.Go(GetTree(), "res://scenes/shop/CardShopScene.tscn");
             }
             else if (CampaignContext.SoakActive)
             {
@@ -1050,11 +1050,11 @@ public partial class Main : Control
                 GD.Print("[Main] Soak loop mode active — starting campaign");
                 if (CampaignContext.HasSavedCampaign)
                 {
-                    Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn")).CallDeferred();
+                    Callable.From(() => LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn")).CallDeferred();
                 }
                 else
                 {
-                    Callable.From(() => GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn")).CallDeferred();
+                    Callable.From(() => LoadScreen.Go(GetTree(), "res://scenes/choose_path/ChooseYourPathScene.tscn")).CallDeferred();
                 }
             }
             else
@@ -1071,7 +1071,7 @@ public partial class Main : Control
                 // DebugCapture.SetUpTutorialEncounter / TutorialRunner.SetupEncounter.
                 // Use direct call (not CallDeferred) in headless so the scene change
                 // fires immediately without waiting for the next idle frame.
-                GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+                LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");
             }
         }
     }
@@ -1520,7 +1520,7 @@ public partial class Main : Control
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
         GD.Print("[Main] Opening accounts carousel");
-        GetTree().ChangeSceneToFile("res://scenes/accounts/AccountsCarouselScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/accounts/AccountsCarouselScene.tscn");
     }
 
     /// <summary>
@@ -1535,7 +1535,7 @@ public partial class Main : Control
         CampaignContext.ChosenClass = "";
         CampaignContext.ChosenTown = "";
         GD.Print($"[Main] Starting new campaign");
-        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/choose_path/ChooseYourPathScene.tscn");
     }
 
     /// <summary>
@@ -1566,7 +1566,7 @@ public partial class Main : Control
 
         // Ensure starter deck exists for this class
         CampaignContext.EnsureStarterDeck(profile.ClassId);
-        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
     }
 
     /// <summary>
@@ -1686,19 +1686,19 @@ public partial class Main : Control
     private void OnOpenRunePage()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/rune/RunePageScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/rune/RunePageScene.tscn");
     }
 
     private void OnOpenDecks()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/deck/DeckBuilderScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/deck/DeckBuilderScene.tscn");
     }
 
     private void OnOpenForge()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/forge/ForgeScene.tscn");
     }
 
     // ═══════════════════════════════════════════════════

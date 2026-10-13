@@ -96,7 +96,7 @@ public partial class ShrineScene : Control
     private void Leave(string why)
     {
         DuelScene.ExitTrace($"shrine: {why} → MapScene");
-        GetTree().ChangeSceneToFile(CampaignRun.MapScenePath);
+        LoadScreen.Go(GetTree(), CampaignRun.MapScenePath);
     }
 
     private Label Text(string text, float x, float y, int size, Font font, Color color)

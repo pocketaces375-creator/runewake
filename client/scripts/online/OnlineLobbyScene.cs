@@ -145,7 +145,7 @@ public partial class OnlineLobbyScene : Control
 
         var back = new Button { Text = "◀  Back to title", Position = new Vector2(80, vp.Y - 120), Size = new Vector2(360, 84) };
         WorldMapScene.StyleButton(back);
-        back.Pressed += () => GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        back.Pressed += () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         AddChild(back);
 
         // ── lobby ──
@@ -399,7 +399,7 @@ public partial class OnlineLobbyScene : Control
             CampaignContext.IsArenaDuel = false;
             CampaignContext.DebugSeed = null;
             DuelScene.ExitTrace($"online: {l.Kind} {_id} seat {match.LocalSeat} → DuelScene");
-            GetTree().ChangeSceneToFile(CampaignRun.DuelScenePath);
+            LoadScreen.Go(GetTree(), CampaignRun.DuelScenePath);
         }
     }
 

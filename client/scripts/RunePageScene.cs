@@ -190,7 +190,7 @@ public partial class RunePageScene : Control
         _backButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
         };
         AddChild(_backButton);
 
@@ -206,7 +206,7 @@ public partial class RunePageScene : Control
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             CampaignContext.SaveCurrentRunePage();
             CampaignContext.SaveManager.Save();
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
         };
         AddChild(saveButton);
 

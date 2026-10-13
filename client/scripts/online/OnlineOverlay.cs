@@ -127,7 +127,7 @@ public partial class OnlineOverlay : Control
         leave.AddThemeStyleboxOverride("hover", MenuButtons.PrimaryHover());
         leave.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed());
         leave.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
-        leave.Pressed += () => GetTree().ChangeSceneToFile(OnlineLobbyScene.ScenePath);
+        leave.Pressed += () => LoadScreen.Go(GetTree(), OnlineLobbyScene.ScenePath);
         row.AddChild(leave);
         AddChild(root);
         _brokenPanel = root;

@@ -25,6 +25,7 @@ CrashReporter="*res://scripts/CrashReporter.cs"
 DebugCapture="*res://scripts/DebugCapture.cs"
 LoopSmokeTest="*res://scripts/LoopSmokeTest.cs"
 AudioManager="*res://scripts/audio/AudioManager.cs"
+LoadScreen="*res://scripts/LoadScreen.cs"
 
 [crash_reporter]
 

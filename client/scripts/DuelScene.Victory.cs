@@ -287,7 +287,7 @@ public partial class DuelScene
                 {
                     CampaignContext.SoakDefeatHasRetried = true;
                     GD.Print("[DUELSOAK] Defeat test — pressing Try Again to retry");
-                    GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+                    LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");
                 }
                 else
                 {
@@ -302,7 +302,7 @@ public partial class DuelScene
                     }
                     else
                     {
-                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                     }
                 }
             };

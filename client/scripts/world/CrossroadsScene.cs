@@ -142,6 +142,6 @@ public partial class CrossroadsScene : Control
     private void Go(string path)
     {
         DuelScene.ExitTrace($"crossroads → {path.GetFile()}");
-        GetTree().ChangeSceneToFile(path);
+        LoadScreen.Go(GetTree(), path);
     }
 }

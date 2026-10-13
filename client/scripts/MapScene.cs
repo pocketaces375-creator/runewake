@@ -306,7 +306,7 @@ public partial class MapScene : Control
                         CampaignContext.SaveManager.Save();
                         GD.Print($"[MAPSOAK] Dig site {targetId} resolved — marking cleared, returning to map");
                         // Reload map to re-evaluate unlock state
-                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                     };
                     AddChild(digTimer);
                     digTimer.Start();
@@ -329,7 +329,7 @@ public partial class MapScene : Control
                         CampaignContext.Progression.MarkNodeCleared(targetId);
                         CampaignContext.SaveManager.Save();
                         // Reload map to re-evaluate unlock state
-                        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+                        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
                         return;
                     }
                     GD.Print($"[MAPSOAK] Auto-pressing Challenge for node: {targetId}");
@@ -510,7 +510,7 @@ public partial class MapScene : Control
         StyleButton(_backButton, goldText: true);
         _backButton.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         };
         AddChild(_backButton);
 
@@ -615,7 +615,7 @@ public partial class MapScene : Control
             StyleButton(crossBtn, goldText: true);
             crossBtn.Pressed += () => {
                 GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                GetTree().ChangeSceneToFile(WorldService.CrossroadsScenePath);
+                LoadScreen.Go(GetTree(), WorldService.CrossroadsScenePath);
             };
             AddChild(crossBtn);
         }
@@ -629,7 +629,7 @@ public partial class MapScene : Control
         StyleButton(_forgeBtn, goldText: false);
         _forgeBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/forge/ForgeScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/forge/ForgeScene.tscn");
         };
         AddChild(_forgeBtn);
 
@@ -642,7 +642,7 @@ public partial class MapScene : Control
         StyleButton(_runePageBtn, goldText: false);
         _runePageBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/runepage/RunePageScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/runepage/RunePageScene.tscn");
         };
         AddChild(_runePageBtn);
 
@@ -655,7 +655,7 @@ public partial class MapScene : Control
         StyleButton(_reliquaryBtn, goldText: false);
         _reliquaryBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/reliquary/ReliquaryScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/reliquary/ReliquaryScene.tscn");
         };
         AddChild(_reliquaryBtn);
 
@@ -668,7 +668,7 @@ public partial class MapScene : Control
         StyleButton(_settingsBtn, goldText: false);
         _settingsBtn.Pressed += () => {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/settings/SettingsScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/settings/SettingsScene.tscn");
         };
         AddChild(_settingsBtn);
     }
@@ -1154,14 +1154,14 @@ public partial class MapScene : Control
         if (mapNode.Type == MapNodeType.Dig)
         {
             CampaignContext.CurrentDigSiteId = mapNode.Encounter ?? "region_01_dig";
-            GetTree().ChangeSceneToFile("res://scenes/dig/DigScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/dig/DigScene.tscn");
             return;
         }
 
         // FABLE-030: the Shrine is its own screen; the Merchant opens the card shop and comes back here.
         if (mapNode.Type == MapNodeType.Shrine)
         {
-            GetTree().ChangeSceneToFile(ShrineScene.ScenePath);
+            LoadScreen.Go(GetTree(), ShrineScene.ScenePath);
             return;
         }
         if (mapNode.Type == MapNodeType.Merchant)
@@ -1169,7 +1169,7 @@ public partial class MapScene : Control
             CampaignContext.Progression.MarkNodeCleared(mapNode.Id);
             try { CampaignContext.SaveManager?.Save(); } catch (System.Exception ex) { GD.PrintErr($"[MapScene] save failed: {ex.Message}"); }
             CampaignContext.ShopReturnScenePath = CampaignRun.MapScenePath;
-            GetTree().ChangeSceneToFile("res://scenes/shop/CardShopScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/shop/CardShopScene.tscn");
             return;
         }
 
@@ -1186,7 +1186,7 @@ public partial class MapScene : Control
         // Vigor is always 25 — no dial needed.
         CampaignContext.MatchConfig = new MatchConfig();
         GD.Print($"[MapScene] Transitioning to duel (StartingVigor=25)");
-        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");
     }
 
     /// <summary>

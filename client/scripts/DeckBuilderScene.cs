@@ -1409,7 +1409,7 @@ public partial class DeckBuilderScene : Control
 
     private void OnBack()
     {
-        if (!_modified) { GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); return; }
+        if (!_modified) { LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); return; }
         var (overlay, body) = Modal(1180, 440);
         body.AddChild(ModalTitle("LEAVE THE FORGE?"));
         body.AddChild(ModalText("This deck has changes you haven't saved. Save it to keep working on it later — it doesn't have to be finished."));
@@ -1418,7 +1418,7 @@ public partial class DeckBuilderScene : Control
         var save = Plate("Save and leave", true, 84, 330);
         save.Pressed += () => { Click(); overlay.QueueFree(); OnSaveDraft(leaveAfter: true); };
         rowB.AddChild(save);
-        var leave = Plate("Leave anyway", false, 84, 330); leave.Pressed += () => { Click(); overlay.QueueFree(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
+        var leave = Plate("Leave anyway", false, 84, 330); leave.Pressed += () => { Click(); overlay.QueueFree(); LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
     }
 
     private void OnSaveDeck()
@@ -1432,7 +1432,7 @@ public partial class DeckBuilderScene : Control
     private void OnSaveDraft(bool leaveAfter = false)
     {
         if (_deckCardIds.Count == 0) { Toast("Add a card first — there's nothing to save yet."); return; }
-        if (_loadedName != null && _loadedName == _deckName) { PersistDraft(); if (leaveAfter) GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); return; }
+        if (_loadedName != null && _loadedName == _deckName) { PersistDraft(); if (leaveAfter) LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); return; }
         ShowSaveNameDialog(forge: false, leaveAfter: leaveAfter);
     }
 
@@ -1495,7 +1495,7 @@ public partial class DeckBuilderScene : Control
     private void Persist(bool forge, bool leaveAfter)
     {
         if (forge) PersistDeck(); else PersistDraft();
-        if (leaveAfter) GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        if (leaveAfter) LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
     }
 
     private void ShowOverwriteConfirmDialog(bool forge, bool leaveAfter = false)

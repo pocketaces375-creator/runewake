@@ -593,7 +593,7 @@ public partial class WorldMapScene : Control
     private void Go(string path)
     {
         DuelScene.ExitTrace($"world map → {path.GetFile()}");
-        GetTree().ChangeSceneToFile(path);
+        LoadScreen.Go(GetTree(), path);
     }
 
     internal static void StyleButton(Button b, bool gold = false)

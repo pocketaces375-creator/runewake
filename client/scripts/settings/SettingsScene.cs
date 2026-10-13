@@ -196,7 +196,7 @@ public partial class SettingsScene : Control
         {
             Click();
             if (_dirty) Persist();
-            GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         };
         AddChild(_backBtn);
 
@@ -746,7 +746,7 @@ public partial class SettingsScene : Control
         // FABLE-ACCOUNTS-1: the opening screen plays on every launch now; replay it right away.
         StartScreen.ShownThisRun = false;
         GD.Print("[Settings] Replaying the opening screen.");
-        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
     }
 
     private void OnReplayTutorial()
@@ -764,7 +764,7 @@ public partial class SettingsScene : Control
             ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
         if (profile != null)
             profile.TutorialDone = false;
-        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");
     }
 
     private static void ApplyAudioSettings(SettingsState s)

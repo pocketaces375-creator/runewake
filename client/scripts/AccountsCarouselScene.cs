@@ -544,7 +544,7 @@ public partial class AccountsCarouselScene : Control
             // FABLE-056: no empty placeholder campaign — Choose Your Path makes the real one on Begin
             CampaignContext.ChosenClass = "";
             CampaignContext.ChosenTown = "";
-            GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/choose_path/ChooseYourPathScene.tscn");
             return;
         }
 
@@ -556,7 +556,7 @@ public partial class AccountsCarouselScene : Control
         CampaignContext.PortraitVariant = account.PortraitVariant;
 
         // Navigate back to title screen
-        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
     }
 
     private void OnNewAccount()
@@ -570,7 +570,7 @@ public partial class AccountsCarouselScene : Control
         CampaignContext.ChosenTown = "";
 
         // Go to ChooseYourPath
-        GetTree().ChangeSceneToFile("res://scenes/choose_path/ChooseYourPathScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/choose_path/ChooseYourPathScene.tscn");
     }
 
     private void OnDeleteAccount(int accountIdx)
@@ -607,7 +607,7 @@ public partial class AccountsCarouselScene : Control
     private void OnBack()
     {
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-        GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
     }
 
     // ═══════════════════════════════════════════════════

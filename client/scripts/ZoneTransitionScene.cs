@@ -130,7 +130,7 @@ public partial class ZoneTransitionScene : Control
             DuelScene.ExitTrace($"zone transition: {why} → {path.GetFile()}");
             DuelScene.StartHangCheck(path);
             GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
-            var err = GetTree().ChangeSceneToFile(path);
+            var err = LoadScreen.Go(GetTree(), path);
             if (err != Error.Ok)
             {
                 DuelScene.ExitTrace($"zone transition: change failed ({err})");

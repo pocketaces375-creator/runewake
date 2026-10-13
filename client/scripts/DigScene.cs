@@ -44,7 +44,7 @@ public partial class DigScene : Control
         if (siteId == null || !CampaignContext.DigSiteIndex.TryGetValue(siteId, out DigSiteDef? digSiteDef))
         {
             GD.PrintErr($"[DigScene] Unknown dig site: {siteId}");
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
             return;
         }
         _siteDef = digSiteDef!;
@@ -295,13 +295,13 @@ public partial class DigScene : Control
             prog.MarkNodeCleared(CampaignContext.CurrentNodeId);
 
         // Return to map
-        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
     }
 
     private void OnBackPressed()
     {
         // No rewards — just go back
-        GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
     }
 
     // ─── Visual helpers ───

@@ -105,7 +105,7 @@ public partial class TowerScene : Control
 
         var back = new Button { Text = "◀  Crossroads", Position = new Vector2(30, 30), Size = new Vector2(250, 70) };
         WorldMapScene.StyleButton(back);
-        back.Pressed += () => GetTree().ChangeSceneToFile(WorldService.CrossroadsScenePath);
+        back.Pressed += () => LoadScreen.Go(GetTree(), WorldService.CrossroadsScenePath);
         AddChild(back);
 
         var canvas = new Control { Position = _mapRect.Position, Size = _mapRect.Size };
@@ -293,7 +293,7 @@ public partial class TowerScene : Control
             return;
         }
         Arm(p);
-        GetTree().ChangeSceneToFile(CampaignRun.DuelScenePath);
+        LoadScreen.Go(GetTree(), CampaignRun.DuelScenePath);
     }
 
     private void Arm(TowerPlaceDef p)
@@ -310,7 +310,7 @@ public partial class TowerScene : Control
     {
         Arm(boss);
         CoopSession.StartLocalRaid(_floor, boss, allies);
-        GetTree().ChangeSceneToFile(CampaignRun.DuelScenePath);
+        LoadScreen.Go(GetTree(), CampaignRun.DuelScenePath);
     }
 
     /// <summary>Called by CampaignRun after a Tower fight is won.</summary>

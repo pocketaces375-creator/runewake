@@ -100,7 +100,7 @@ public partial class ForgeScene : Control
         backBtn.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            GetTree().ChangeSceneToFile("res://scenes/map/MapScene.tscn");
+            LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");
         };
         AddChild(backBtn);
 
