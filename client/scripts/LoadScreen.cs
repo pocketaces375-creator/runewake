@@ -43,10 +43,11 @@ public partial class LoadScreen : CanvasLayer
 
     /// <summary>True when an automated check is running and the overlay must stay out of the picture.</summary>
     public static bool Suppressed =>
-        OS.HasFeature("headless")
+        (OS.HasFeature("headless")
         || CampaignContext.AutoCaptureScreenshot
         || CampaignContext.LoopSmokeTest
-        || CampaignContext.UxWalk;
+        || CampaignContext.UxWalk)
+        && Environment.GetEnvironmentVariable("LOADSCREEN_FORCE_SHOW") != "1";
 
     public override void _Ready()
     {
