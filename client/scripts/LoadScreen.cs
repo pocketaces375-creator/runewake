@@ -56,28 +56,26 @@ public partial class LoadScreen : CanvasLayer
             AnchorLeft = 0, AnchorRight = 1, AnchorTop = 0, AnchorBottom = 1,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered,
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-            MouseFilter = MouseFilterEnum.Ignore,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
             Visible = false,
         };
         AddChild(_art);
     }
 
     /// <summary>Scene-change entry point. Shows a load screen, swaps, then hides it.</summary>
-    public static void Go(SceneTree tree, string path)
+    public static Error Go(SceneTree tree, string path)
     {
-        if (tree == null) return;
+        if (tree == null) return Error.Failed;
         if (Suppressed)
         {
-            tree.ChangeSceneToFile(path);
-            return;
+            return tree.ChangeSceneToFile(path);
         }
         try
         {
             var ls = tree.Root.GetNodeOrNull<LoadScreen>("LoadScreen");
             if (ls == null || ls._art == null)
             {
-                tree.ChangeSceneToFile(path);
-                return;
+                return tree.ChangeSceneToFile(path);
             }
             ls.ShowPick();
             // One short timer so the overlay actually renders before the swap frees the old scene.
@@ -96,11 +94,12 @@ public partial class LoadScreen : CanvasLayer
                     try { tree.ChangeSceneToFile(path); } catch { }
                 }
             };
+            return Error.Ok;
         }
         catch (System.Exception ex)
         {
             GD.PrintErr($"[LoadScreen] Go failed: {ex.Message}");
-            try { tree.ChangeSceneToFile(path); } catch { }
+            try { return tree.ChangeSceneToFile(path); } catch { return Error.Failed; }
         }
     }
 
