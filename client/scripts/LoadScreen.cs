@@ -47,7 +47,7 @@ public partial class LoadScreen : CanvasLayer
         || CampaignContext.AutoCaptureScreenshot
         || CampaignContext.LoopSmokeTest
         || CampaignContext.UxWalk)
-        && Environment.GetEnvironmentVariable("LOADSCREEN_FORCE_SHOW") != "1";
+        && System.Environment.GetEnvironmentVariable("LOADSCREEN_FORCE_SHOW") != "1";
 
     public override void _Ready()
     {
