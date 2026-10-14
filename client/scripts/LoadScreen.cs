@@ -14,6 +14,11 @@ namespace Runewake.Client;
 /// autoload. Show -> one frame for the overlay to render -> swap -> hide after
 /// the new scene has had time to build.
 ///
+/// TIMING: the hide timer is armed at SHOW time, so every load screen holds
+/// DisplaySeconds from the moment it appears — the swap's own build time does
+/// not extend it. Rapid successive shows bump a generation counter so a stale
+/// timer can never hide a newer load screen early.
+///
 /// TEST-SAFE: in headless, capture, loop-smoke, or UX-walk mode the overlay is
 /// suppressed entirely and Go() is a plain scene change, so every automated
 /// check and screenshot sees exactly what it saw before.
@@ -23,8 +28,8 @@ public partial class LoadScreen : CanvasLayer
     /// <summary>The FIRST load screen — always shown first, then excluded from the random pool.</summary>
     public const string MainScreen = "res://content/art/load/load_main.webp";
 
-    /// <summary>How long the load screen stays up after a scene change.</summary>
-    public const double DisplaySeconds = 4.0;
+    /// <summary>How long the load screen stays up after appearing.</summary>
+    public const double DisplaySeconds = 3.0;
 
     private static readonly string[] Pool =
     {
@@ -43,6 +48,7 @@ public partial class LoadScreen : CanvasLayer
     private static bool _firstShown;
     private static int _lastPick = -1;
     private TextureRect? _art;
+    private long _gen;
 
     /// <summary>True when an automated check is running and the overlay must stay out of the picture.</summary>
     public static bool Suppressed =>
@@ -89,8 +95,9 @@ public partial class LoadScreen : CanvasLayer
                 try
                 {
                     tree.ChangeSceneToFile(path);
-                    var t2 = tree.CreateTimer(DisplaySeconds, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
-                    t2.Timeout += ls.Hide;
+                    // The hide timer was already armed at show time by ShowPick, so
+                    // every load screen holds DisplaySeconds from the moment it
+                    // appears, no matter how long the swap itself took.
                 }
                 catch (System.Exception ex)
                 {
@@ -119,18 +126,13 @@ public partial class LoadScreen : CanvasLayer
         catch { }
     }
 
-    /// <summary>Hide the overlay shortly from now (used by DuelScene.DoSwap after its own swap).</summary>
+    /// <summary>
+    /// No-op — the hide timer is armed by ShowPick at display time, so every load
+    /// screen holds DisplaySeconds from the moment it appears. Kept so DoSwap's
+    /// call site reads as a complete sequence: show -> (swap) -> done.
+    /// </summary>
     public static void HideSoon(SceneTree tree)
     {
-        if (Suppressed || tree == null) return;
-        try
-        {
-            var ls = tree.Root.GetNodeOrNull<LoadScreen>("LoadScreen");
-            if (ls == null) return;
-            var t2 = tree.CreateTimer(DisplaySeconds, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
-            t2.Timeout += ls.Hide;
-        }
-        catch { }
     }
 
     public void Hide()
@@ -163,5 +165,13 @@ public partial class LoadScreen : CanvasLayer
         }
         _art.Texture = tex;
         _art.Visible = true;
+        var gen = ++_gen;
+        var t = GetTree().CreateTimer(DisplaySeconds, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+        t.Timeout += () =>
+        {
+            // Stale timer from a previous display — a newer load screen is up.
+            if (gen != _gen) return;
+            Hide();
+        };
     }
 }
