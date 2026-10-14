@@ -23,6 +23,9 @@ public partial class LoadScreen : CanvasLayer
     /// <summary>The FIRST load screen — always shown first, then excluded from the random pool.</summary>
     public const string MainScreen = "res://content/art/load/load_main.webp";
 
+    /// <summary>How long the load screen stays up after a scene change.</summary>
+    public const double DisplaySeconds = 4.0;
+
     private static readonly string[] Pool =
     {
         "res://content/art/load/load_gold_dawn.webp",
@@ -86,7 +89,7 @@ public partial class LoadScreen : CanvasLayer
                 try
                 {
                     tree.ChangeSceneToFile(path);
-                    var t2 = tree.CreateTimer(0.35, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+                    var t2 = tree.CreateTimer(DisplaySeconds, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
                     t2.Timeout += ls.Hide;
                 }
                 catch (System.Exception ex)
@@ -124,7 +127,7 @@ public partial class LoadScreen : CanvasLayer
         {
             var ls = tree.Root.GetNodeOrNull<LoadScreen>("LoadScreen");
             if (ls == null) return;
-            var t2 = tree.CreateTimer(0.35, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
+            var t2 = tree.CreateTimer(DisplaySeconds, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
             t2.Timeout += ls.Hide;
         }
         catch { }
