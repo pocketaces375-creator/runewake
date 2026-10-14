@@ -5897,6 +5897,9 @@ public partial class DuelScene : Control
     {
         ExitTrace($"swap scheduled → {scenePath.GetFile()}");
         StartHangCheck(scenePath);
+        // FABLE-060: the load screen goes up HERE, before the two frames below, so it is drawn before the
+        // load freezes the phone. In DoSwap it went up in the same frame as the load and was only seen after.
+        LoadScreen.ShowForSwap(tree);
         try
         {
             var t1 = tree.CreateTimer(0.0, processAlways: true, processInPhysics: false, ignoreTimeScale: true);
@@ -5956,7 +5959,6 @@ public partial class DuelScene : Control
         try
         {
             ExitTrace("frames drawn — loading scene");
-            LoadScreen.ShowForSwap(tree);
             // FABLE-011: load EXPLICITLY, then swap to the loaded resource, so a
             // null PackedScene (the scene is the problem) and a failed swap (the
             // swap is the problem) are two different, readable answers.

@@ -127,7 +127,7 @@ public partial class ArenaScene : Control
 
         var back = Plate("◀  Back to title", false, 360, 84);
         back.Position = new Vector2(80, vp.Y - 120);
-        back.Pressed += () => { Click(); GetTree().ChangeSceneToFile("res://scenes/main/Main.tscn"); };
+        back.Pressed += () => { Click(); LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); };   // FABLE-060: same load screen as everywhere
         AddChild(back);
 
         _status = new Label
@@ -418,7 +418,7 @@ public partial class ArenaScene : Control
         CampaignContext.IsWardenOpponent = foe.Warden;
         CampaignContext.CurrentNodeId = "arena_duel";
         GD.Print($"[ArenaScene] Starting arena duel: {_deck.Name} vs {foe.Def.Name} (warden={foe.Warden})");
-        GetTree().ChangeSceneToFile("res://scenes/duel/DuelScene.tscn");
+        LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");   // FABLE-060: same load screen as everywhere
     }
 
     /// <summary>After an arena duel ends (any road out), clear the arena flags.</summary>
