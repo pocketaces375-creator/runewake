@@ -63,6 +63,9 @@ public class ProgressionSnapshot
     [JsonPropertyName("seen_card_ids")] public List<string> SeenCardIds { get; set; } = new();
     /// <summary>FABLE-059: daily rewards. Absent in older saves (null → a fresh calendar).</summary>
     [JsonPropertyName("daily")] public DailyRewardState? Daily { get; set; }
+    /// <summary>FABLE-061: unopened packs and opened pack ids. Absent in older saves.</summary>
+    [JsonPropertyName("pending_packs")] public List<PendingPack> PendingPacks { get; set; } = new();
+    [JsonPropertyName("opened_pack_ids")] public List<string> OpenedPackIds { get; set; } = new();
 
     public class RelicDto
     {
@@ -122,6 +125,8 @@ public class ProgressionSnapshot
             ArenaLosses = s.ArenaLosses,
             SeenCardIds = s.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal).ToList(),
             Daily = s.Daily?.Clone(),
+            PendingPacks = s.PendingPacks.Select(x => x.Clone()).ToList(),
+            OpenedPackIds = new List<string>(s.OpenedPackIds),
         };
     }
 
@@ -184,6 +189,8 @@ public class ProgressionSnapshot
         s.ArenaLosses = ArenaLosses;
         s.SeenCardIds.Clear(); foreach (var x in SeenCardIds) s.SeenCardIds.Add(x);
         s.Daily = Daily?.Clone() ?? new DailyRewardState();
+        s.PendingPacks.Clear(); foreach (var x in PendingPacks) if (x != null) s.PendingPacks.Add(x.Clone());
+        s.OpenedPackIds.Clear(); s.OpenedPackIds.AddRange(OpenedPackIds);
     }
 
     // ── json ──────────────────────────────────────────────────────────────
@@ -218,6 +225,8 @@ public class ProgressionSnapshot
         snap.DeckArtifacts ??= new();
         snap.ActiveArtifacts ??= new();
         snap.SeenCardIds ??= new();
+        snap.PendingPacks ??= new();
+        snap.OpenedPackIds ??= new();
         if (snap.DelverLevel < 1) snap.DelverLevel = 1;
         return snap;
     }
@@ -245,7 +254,9 @@ public class ProgressionSnapshot
         || HasCompletedTutorial
         // FABLE-056: decks the player saved are play too — signing in used to replace a phone that only had
         // decks on it with the account's save without asking, and the decks were gone
-        || SavedDecks.Count > 0;
+        || SavedDecks.Count > 0
+        // FABLE-061: bought packs are never silently replaced either
+        || PendingPacks.Count > 0 || OpenedPackIds.Count > 0;
 }
 
 /// <summary>

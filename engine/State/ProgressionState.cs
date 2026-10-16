@@ -179,6 +179,12 @@ public class ProgressionState
     /// <summary>FABLE-059: daily login calendar, today's match goals and what was claimed (see DailyRewards).</summary>
     public DailyRewardState Daily { get; set; } = new();
 
+    /// <summary>FABLE-061: packs bought but not opened yet (their cards were rolled by the server).</summary>
+    public List<PendingPack> PendingPacks { get; } = new();
+
+    /// <summary>FABLE-061: ids of packs already opened, so a pack the server sends twice is never opened twice.</summary>
+    public List<string> OpenedPackIds { get; } = new();
+
     /// <summary>RuneDust value per card rarity (C/U/R/M).</summary>
     private static readonly Dictionary<Rarity, int> RuneDustValues = new()
     {

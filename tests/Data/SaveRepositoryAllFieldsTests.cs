@@ -40,6 +40,8 @@ public class SaveRepositoryAllFieldsTests
         s.SeenCardIds.Add("vrd_c_root_warden"); s.SeenCardIds.Add("emb_c_ember_hound");
         s.Daily = new DailyRewardState { LastSeenDate = "2026-10-14", LoginClaimedDate = "2026-10-14", LoginDaysClaimed = 3,
             TotalLoginClaims = 10, MatchDate = "2026-10-14", MatchesToday = 4, WinsToday = 2, ClaimedToday = new() { "play1", "play3" } };   // FABLE-059
+        s.PendingPacks.Add(new PendingPack { Id = "g1", Cards = new() { "a", "b", "c" }, Rarities = new() { "COMMON", "UNCOMMON", "RARE" } });   // FABLE-061
+        s.OpenedPackIds.Add("g0");
         s.AddRelic(new LostRelicInstance { RelicInstanceId = "rel-1", CardId = "relic_x", AcquirerName = "Trik", AcquiredAt = "2026-10-04", Site = "site", DiscoveryIndex = 1, EngravingStyle = "plain" });
 
         var path = Path.Combine(Path.GetTempPath(), $"rw_allfields_{Guid.NewGuid():N}.db");

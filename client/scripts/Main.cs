@@ -316,6 +316,16 @@ public partial class Main : Control
         buttonRow.AddChild(rewardsButton);
         _rewardsButton = rewardsButton;      // its badge waits for the save to load (below)
 
+        // FABLE-061: card packs; the badge counts unopened packs
+        var packsButton = Quiet("Packs");
+        packsButton.Name = "PacksButton";
+        packsButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            LoadScreen.Go(GetTree(), PackShopScene.ScenePath);
+        };
+        buttonRow.AddChild(packsButton);
+        _packsButton = packsButton;
+
         var decksButton = Quiet("Decks");
         decksButton.Pressed += OnOpenDecks;
         buttonRow.AddChild(decksButton);
@@ -413,6 +423,7 @@ public partial class Main : Control
 
         // FABLE-059: the Rewards badge counts from the loaded save, so it is drawn only now
         if (_rewardsButton != null) AddRewardsBadge(_rewardsButton);
+        if (_packsButton != null) AddCountBadge(_packsButton, CampaignContext.Progression.PendingPacks.Count, "PacksBadge");
 
         // Persistent save warning label (hidden until/unless a save error occurs)
         _saveWarningLabel = new Label
@@ -535,6 +546,7 @@ public partial class Main : Control
         => System.Array.Exists(OS.GetCmdlineUserArgs(), a => a.StartsWith("--capture=start_screen"));
 
     private Button? _rewardsButton;
+    private Button? _packsButton;
 
     /// <summary>FABLE-059: the gold count on the Rewards plate — how many claim buttons are lit.</summary>
     private static void AddRewardsBadge(Button button)
@@ -542,10 +554,16 @@ public partial class Main : Control
         int ready;
         try { ready = Runewake.Engine.State.DailyRewards.ReadyCount(CampaignContext.Progression, DateOnly.FromDateTime(DateTime.Now)); }
         catch (Exception ex) { GD.PrintErr($"[Main] rewards badge: {ex.Message}"); return; }
+        AddCountBadge(button, ready, "RewardsBadge");
+    }
+
+    /// <summary>A pulsing gold count in the top-right corner of a title plate (nothing when 0).</summary>
+    private static void AddCountBadge(Button button, int ready, string name)
+    {
         if (ready <= 0) return;
         var badge = new Panel
         {
-            Name = "RewardsBadge", MouseFilter = Control.MouseFilterEnum.Ignore,
+            Name = name, MouseFilter = Control.MouseFilterEnum.Ignore,
             AnchorLeft = 1, AnchorRight = 1, AnchorTop = 0, AnchorBottom = 0,
             OffsetLeft = -30, OffsetRight = 10, OffsetTop = -14, OffsetBottom = 26,
         };
@@ -848,6 +866,8 @@ public partial class Main : Control
             var tree = GetTree();
             Callable.From(() => { if (tree != null && IsInstanceValid(sm) && sm.GetParent() == null) tree.Root.AddChild(sm); }).CallDeferred();
         }
+        // FABLE-061: paid packs — connect Google Play billing once per run (a purchase can finish any time)
+        if (freshSync) PackStore.Init();
         syncManager!.StatusChanged += status =>
         {
             if (!IsInstanceValid(this)) return;

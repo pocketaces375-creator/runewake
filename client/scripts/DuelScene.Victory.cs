@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
 using static ThemeTokens;
@@ -80,7 +81,25 @@ public partial class DuelScene
     {
         if (_gameOverSettled) return;
         _gameOverSettled = true;
+        ReportDiscoveries();
         if (_gameOverOverlay == null && _gsm != null && _gsm.IsGameOver) OnStateChanged();
+    }
+
+    /// <summary>
+    /// FABLE-061: cards won from a map place (or a Tower place) are "discovered" — the first discovery by
+    /// anyone starts the 90 days until a card can come from packs. Not the arena, online play or tutorials.
+    /// </summary>
+    private void ReportDiscoveries()
+    {
+        try
+        {
+            if (!_isCampaignEncounter || _arenaDuelEnded || _onlineRewarded || _loot.Count == 0) return;
+            var enc = CampaignContext.CurrentEncounter;
+            if (enc == null || enc.IsTutorial) return;
+            string source = enc.Id.StartsWith("tower:", StringComparison.Ordinal) ? "tower" : "map";
+            PackStore.Report(_loot.Select(l => l.CardId), source);
+        }
+        catch (Exception ex) { GD.Print($"[DuelScene] discovery report skipped: {ex.Message}"); }
     }
 
     // ── Layout, in the 2316×1080 design space ────────────────────────────────

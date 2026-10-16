@@ -514,6 +514,18 @@ public sealed class SaveRepository
                         catch (System.Text.Json.JsonException) { state.Daily = new(); }
                         state.Daily.ClaimedToday ??= new();
                         break;
+                    // FABLE-061: unopened packs + the ids already opened
+                    case "pending_packs":
+                        try
+                        {
+                            var pk = System.Text.Json.JsonSerializer.Deserialize<List<PendingPack>>(value);
+                            if (pk != null) state.PendingPacks.AddRange(pk.Where(x => x != null && !string.IsNullOrEmpty(x.Id)));
+                        }
+                        catch (System.Text.Json.JsonException) { }
+                        break;
+                    case "opened_pack_ids":
+                        state.OpenedPackIds.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries));
+                        break;
                     case "deck_artifacts":
                         try
                         {
@@ -674,6 +686,8 @@ public sealed class SaveRepository
             InsertMeta(conn, "seen_card_ids", string.Join(",", state.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal)));
             InsertMeta(conn, "active_artifacts", string.Join(",", state.ActiveArtifacts));
             InsertMeta(conn, "deck_artifacts", System.Text.Json.JsonSerializer.Serialize(state.DeckArtifacts));
+            InsertMeta(conn, "pending_packs", System.Text.Json.JsonSerializer.Serialize(state.PendingPacks));
+            InsertMeta(conn, "opened_pack_ids", string.Join(",", state.OpenedPackIds));
             InsertMeta(conn, "daily_rewards", System.Text.Json.JsonSerializer.Serialize(state.Daily ?? new DailyRewardState()));
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
