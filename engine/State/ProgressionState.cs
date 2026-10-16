@@ -176,6 +176,9 @@ public class ProgressionState
     /// <summary>Arena duel loss count.</summary>
     public int ArenaLosses { get; set; }
 
+    /// <summary>FABLE-059: daily login calendar, today's match goals and what was claimed (see DailyRewards).</summary>
+    public DailyRewardState Daily { get; set; } = new();
+
     /// <summary>RuneDust value per card rarity (C/U/R/M).</summary>
     private static readonly Dictionary<Rarity, int> RuneDustValues = new()
     {

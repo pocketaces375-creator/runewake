@@ -286,7 +286,7 @@ public partial class Main : Control
         // and the full-width account plate covered a third of the hall; this is a single row.
         var buttonRow = new HBoxContainer
         {
-            AnchorLeft = 0.15f, AnchorRight = 0.85f,     // FABLE-038: five plates now, a touch wider
+            AnchorLeft = 0.10f, AnchorRight = 0.90f,     // FABLE-038: five plates; FABLE-059: six (Rewards)
             AnchorTop = 0.815f, AnchorBottom = 0.885f,
             Alignment = BoxContainer.AlignmentMode.Center,
         };
@@ -305,6 +305,16 @@ public partial class Main : Control
             b.AddThemeStyleboxOverride("disabled", MenuButtons.QuietNormal());
             return b;
         }
+
+        // FABLE-059: every daily reward on one page; a gold badge counts what is ready to claim.
+        var rewardsButton = Quiet("Rewards");
+        rewardsButton.Name = "RewardsButton";
+        rewardsButton.Pressed += () => {
+            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
+            LoadScreen.Go(GetTree(), RewardsScene.ScenePath);
+        };
+        buttonRow.AddChild(rewardsButton);
+        _rewardsButton = rewardsButton;      // its badge waits for the save to load (below)
 
         var decksButton = Quiet("Decks");
         decksButton.Pressed += OnOpenDecks;
@@ -400,6 +410,9 @@ public partial class Main : Control
 
         // Refresh slot picker to show current state
         BuildSlotPicker();
+
+        // FABLE-059: the Rewards badge counts from the loaded save, so it is drawn only now
+        if (_rewardsButton != null) AddRewardsBadge(_rewardsButton);
 
         // Persistent save warning label (hidden until/unless a save error occurs)
         _saveWarningLabel = new Label
@@ -520,6 +533,47 @@ public partial class Main : Control
     /// <summary>--capture=start_screen: show the opening screen even though this is a capture run.</summary>
     private static bool ForceStartScreen()
         => System.Array.Exists(OS.GetCmdlineUserArgs(), a => a.StartsWith("--capture=start_screen"));
+
+    private Button? _rewardsButton;
+
+    /// <summary>FABLE-059: the gold count on the Rewards plate — how many claim buttons are lit.</summary>
+    private static void AddRewardsBadge(Button button)
+    {
+        int ready;
+        try { ready = Runewake.Engine.State.DailyRewards.ReadyCount(CampaignContext.Progression, DateOnly.FromDateTime(DateTime.Now)); }
+        catch (Exception ex) { GD.PrintErr($"[Main] rewards badge: {ex.Message}"); return; }
+        if (ready <= 0) return;
+        var badge = new Panel
+        {
+            Name = "RewardsBadge", MouseFilter = Control.MouseFilterEnum.Ignore,
+            AnchorLeft = 1, AnchorRight = 1, AnchorTop = 0, AnchorBottom = 0,
+            OffsetLeft = -30, OffsetRight = 10, OffsetTop = -14, OffsetBottom = 26,
+        };
+        badge.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = Color.FromHtml("#D9B04E"), BorderColor = Color.FromHtml("#2A1E0E"),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 20, CornerRadiusTopRight = 20, CornerRadiusBottomLeft = 20, CornerRadiusBottomRight = 20,
+            ShadowColor = new Color(0.95f, 0.75f, 0.3f, 0.5f), ShadowSize = 8,
+        });
+        var n = new Label
+        {
+            Text = ready.ToString(), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        n.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        n.AddThemeFontSizeOverride("font_size", 24);
+        // Inter, not Cinzel: Cinzel's "1" reads as a roman "I"
+        var f = ResourceLoader.Load<FontFile>(ThemeTokens.FontInter);
+        if (f != null) n.AddThemeFontOverride("font", f);
+        n.AddThemeColorOverride("font_color", Color.FromHtml("#2A1E0E"));
+        badge.AddChild(n);
+        button.AddChild(badge);
+        var t = badge.CreateTween().SetLoops();
+        t.TweenProperty(badge, "scale", new Vector2(1.12f, 1.12f), 0.7f).SetTrans(Tween.TransitionType.Sine);
+        t.TweenProperty(badge, "scale", Vector2.One, 0.7f).SetTrans(Tween.TransitionType.Sine);
+        badge.PivotOffset = new Vector2(20, 20);
+    }
 
     private void LoadGameData()
     {

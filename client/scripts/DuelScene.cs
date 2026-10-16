@@ -5323,6 +5323,28 @@ public partial class DuelScene : Control
     /// <summary>Display name of the card granted by this victory (null = none).</summary>
     private string? _grantedCardName;
 
+    private bool _dailyCounted;
+
+    /// <summary>
+    /// FABLE-059: one finished duel for the daily match goals — campaign, Duel Arena or online alike.
+    /// Not a tutorial, not a capture run, and not a match conceded before it really began.
+    /// </summary>
+    private void RecordDailyMatch(bool won)
+    {
+        if (_dailyCounted) return;
+        _dailyCounted = true;
+        try
+        {
+            if (CampaignContext.CaptureVictoryOverlay || CampaignContext.CaptureDefeatOverlay) return;
+            if (_isCampaignEncounter && CampaignContext.CurrentEncounter?.IsTutorial == true) return;
+            if ((_gsm?.TurnNumber ?? 0) < DailyRewards.MinTurnsForMatch) return;
+            DailyRewards.RecordMatch(CampaignContext.Progression, won, DateOnly.FromDateTime(DateTime.Now));
+            CampaignContext.SaveManager.Save();
+            GD.Print($"[DuelScene] daily match counted (won={won}): {CampaignContext.Progression.Daily.MatchesToday} today");
+        }
+        catch (Exception ex) { GD.PrintErr($"[DuelScene] daily match not counted: {ex.Message}"); }
+    }
+
     private void OnGameOver(int winnerIndex)
     {
         _turnLabel.Text = winnerIndex == 0 ? "You Win!" : "You Lose!";
@@ -5333,6 +5355,9 @@ public partial class DuelScene : Control
         // TASK-AUDIO-HOOK-1: Victory/defeat sound
         var audio = GetNode<AudioManager>("/root/AudioManager");
         audio.PlaySfx(winnerIndex == 0 ? "victory" : "defeat");
+
+        // FABLE-059: every finished duel counts toward today's match goals on the Rewards page.
+        RecordDailyMatch(winnerIndex == 0);
 
         // ═══ TASK-DUEL-ARENA-1: Arena duel reward handling ═══
         if (CampaignContext.IsArenaDuel && !_isGameOverHandled)

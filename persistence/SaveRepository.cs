@@ -508,6 +508,12 @@ public sealed class SaveRepository
                     case "active_artifacts":
                         state.ActiveArtifacts.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries));
                         break;
+                    // FABLE-059: daily rewards (meta is key/value: an older save simply lacks the key)
+                    case "daily_rewards":
+                        try { state.Daily = System.Text.Json.JsonSerializer.Deserialize<DailyRewardState>(value) ?? new(); }
+                        catch (System.Text.Json.JsonException) { state.Daily = new(); }
+                        state.Daily.ClaimedToday ??= new();
+                        break;
                     case "deck_artifacts":
                         try
                         {
@@ -668,6 +674,7 @@ public sealed class SaveRepository
             InsertMeta(conn, "seen_card_ids", string.Join(",", state.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal)));
             InsertMeta(conn, "active_artifacts", string.Join(",", state.ActiveArtifacts));
             InsertMeta(conn, "deck_artifacts", System.Text.Json.JsonSerializer.Serialize(state.DeckArtifacts));
+            InsertMeta(conn, "daily_rewards", System.Text.Json.JsonSerializer.Serialize(state.Daily ?? new DailyRewardState()));
 
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM cleared_nodes"; cmd.ExecuteNonQuery(); }
             foreach (var nodeId in state.ClearedNodes)

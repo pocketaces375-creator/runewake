@@ -61,6 +61,8 @@ public class ProgressionSnapshot
     [JsonPropertyName("arena_wins")] public int ArenaWins { get; set; }
     [JsonPropertyName("arena_losses")] public int ArenaLosses { get; set; }
     [JsonPropertyName("seen_card_ids")] public List<string> SeenCardIds { get; set; } = new();
+    /// <summary>FABLE-059: daily rewards. Absent in older saves (null → a fresh calendar).</summary>
+    [JsonPropertyName("daily")] public DailyRewardState? Daily { get; set; }
 
     public class RelicDto
     {
@@ -119,6 +121,7 @@ public class ProgressionSnapshot
             ArenaWins = s.ArenaWins,
             ArenaLosses = s.ArenaLosses,
             SeenCardIds = s.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal).ToList(),
+            Daily = s.Daily?.Clone(),
         };
     }
 
@@ -180,6 +183,7 @@ public class ProgressionSnapshot
         s.ArenaWins = ArenaWins;
         s.ArenaLosses = ArenaLosses;
         s.SeenCardIds.Clear(); foreach (var x in SeenCardIds) s.SeenCardIds.Add(x);
+        s.Daily = Daily?.Clone() ?? new DailyRewardState();
     }
 
     // ── json ──────────────────────────────────────────────────────────────
