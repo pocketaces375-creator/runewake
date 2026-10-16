@@ -227,6 +227,11 @@ public sealed class CardInstance
         Zone = Zone.Deck;
     }
 
+    /// <summary>FABLE-062: a copy under a new instance id (co-op gives the one shared enemy its own id range).</summary>
+    public CardInstance CloneWithId(int instanceId) => new(this, instanceId);
+
+    private CardInstance(CardInstance other, int instanceId) : this(other) { InstanceId = instanceId; }
+
     private CardInstance(CardInstance other)
     {
         InstanceId = other.InstanceId;

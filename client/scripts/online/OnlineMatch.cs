@@ -94,7 +94,7 @@ public sealed class OnlineMatch
             return match;
         }
 
-        // co-op: everyone fights their own copy of the target encounter; first to win wins for all
+        // co-op (FABLE-062): everyone keeps their own board, all facing ONE enemy scaled to the team
         if (!CampaignContext.EncounterIndex.TryGetValue(lobby.Target, out var enc)) return null;
         string bossClass = enc.Class ?? "";
         string[] bossArts = enc.Artifacts is { Count: > 0 } ? enc.Artifacts.ToArray()
@@ -263,7 +263,8 @@ public sealed class OnlineMatch
                 foreach (var row in m.rows)
                 {
                     _cursor = Math.Max(_cursor, row.Id);
-                    if (row.Seat == LocalSeat) continue;
+                    // FABLE-062: co-op needs its OWN moves back too — they are applied in the server's order
+                    if (row.Seat == LocalSeat && Pvp != null) continue;
                     _inbound.Enqueue(row.Payload);
                 }
             }

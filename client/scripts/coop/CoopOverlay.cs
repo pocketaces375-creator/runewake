@@ -44,6 +44,7 @@ public partial class CoopOverlay : Control
     private int _lastRound;
     private double _aiClock;
     private bool _finished;
+    private long _lastExternal;
     private bool _faulted;
     private Label _roundLabel = null!;
     private Label? _banner;
@@ -59,7 +60,7 @@ public partial class CoopOverlay : Control
     public static float BandBottom(float viewportHeight, float k) => viewportHeight - BandFoot * k;
 
     /// <summary>The fight is still on and this phone hasn't given up yet.</summary>
-    public bool CanConcede => !_finished && _s.Expedition.Outcome == ExpeditionOutcome.Running && !_s.Expedition.HasConceded(_s.LocalSeat);
+    public bool CanConcede => !_finished && _s.Expedition.Outcome == ExpeditionOutcome.Running && !_s.View.HasConceded(_s.LocalSeat);
 
     public static CoopOverlay? Attach(Control duel, GameStateManager gsm, BotController bot)
     {
@@ -68,7 +69,7 @@ public partial class CoopOverlay : Control
         bot.Detach();
         gsm.DeferGameOver = true;
         gsm.ActionSink = a => s.SubmitLocal(a);
-        gsm.SetState(s.Local.State);
+        gsm.SetState(s.LocalView);
         var o = new CoopOverlay { _s = s, _gsm = gsm, _duel = duel as DuelScene, Name = "CoopOverlay", MouseFilter = MouseFilterEnum.Ignore, ZIndex = 50 };
         o.SetAnchorsPreset(LayoutPreset.FullRect);
         duel.AddChild(o);
@@ -80,6 +81,13 @@ public partial class CoopOverlay : Control
     {
         _viewing = _s.LocalSeat;
         _lastRound = _s.Expedition.Round;
+        _lastExternal = _s.ExternalVersion;
+        if (_s.Network != null)
+            _s.Network.LocalMoveRejected += (_, why) => Guard("rejected", () =>
+            {
+                Banner("An ally got there first — that move didn't happen.");
+                DuelScene.ExitTrace($"co-op: local move overtaken by an ally's ({why})");
+            });
         var vp = GetViewportRect().Size;
         _k = vp.Y / 1080f;
 
@@ -176,15 +184,30 @@ public partial class CoopOverlay : Control
 
         if (x.Round != _lastRound || x.Outcome != ExpeditionOutcome.Running)
         {
+            bool resolved = x.Round != _lastRound;
             _lastRound = x.Round;
-            // The round resolved: the enemy acted on every board. Show ours.
-            _gsm.SetState(_s.Local.State);
+            _lastExternal = _s.ExternalVersion;
+            // The round resolved: the one enemy took its turn. Show our board as it is now.
+            _gsm.SetState(_s.LocalView);
+            if (resolved && x.Outcome == ExpeditionOutcome.Running && x.LastFocusSeat >= 0 && x.Boards.Count > 1)
+            {
+                string foe = x.Config.Encounter.Name is { Length: > 0 } n ? n : "The enemy";
+                var focus = x.Board(x.LastFocusSeat);
+                GD.Print($"[Coop] round {x.Round - 1} resolved: the enemy turned on seat {x.LastFocusSeat} ({CoopSession.SeatLabel(focus.Seat)})");
+                Banner(focus.Seat.Seat == _s.LocalSeat ? $"{foe} turned on you!" : $"{foe} turned on {CoopSession.SeatLabel(focus.Seat)}");
+            }
             if (_s.Local.IsOut && x.Outcome == ExpeditionOutcome.Running && _viewing == _s.LocalSeat)
             {
                 Banner("You're down — your team fights on.");
                 var ally = x.Boards.FirstOrDefault(b => b.Active);
                 if (ally != null) View(ally.Seat.Seat);
             }
+        }
+        else if (_s.ExternalVersion != _lastExternal)
+        {
+            // FABLE-062: an ally's move changed the shared enemy (or one of ours was overtaken): redraw our board
+            _lastExternal = _s.ExternalVersion;
+            if (_viewing == _s.LocalSeat) _gsm.SetState(_s.LocalView);
         }
 
         if (x.Outcome != ExpeditionOutcome.Running)
@@ -195,8 +218,8 @@ public partial class CoopOverlay : Control
         RefreshTabs();
         if (_viewing != _s.LocalSeat)
         {
-            var b = x.Board(_viewing);
-            _duel?.Spectate(b.State, b.Seat.DisplayName);
+            var v = _s.View;
+            _duel?.Spectate(v.ViewState(_viewing), CoopSession.SeatLabel(v.Board(_viewing).Seat));
         }
     }
 
@@ -213,7 +236,7 @@ public partial class CoopOverlay : Control
         // the expedition's boards must never be edited here.
         _gsm.ActionSink = null;
         _gsm.DeferGameOver = true;
-        var mine = _s.Local.State.Clone();
+        var mine = _s.Expedition.Board(_s.LocalSeat).State.Clone();
         mine.IsGameOver = true;
         mine.WinnerIndex = won ? 0 : 1;
         _gsm.SetState(mine);
@@ -233,7 +256,7 @@ public partial class CoopOverlay : Control
         {
             _s.Concede();
             OnlineMatch.Current?.FlushOutbound();
-            Finish(false, $"co-op: {_s.Local.Seat.DisplayName} conceded in round {_s.Expedition.Round} (expedition {_s.Expedition.Outcome})");
+            Finish(false, $"co-op: {CoopSession.SeatLabel(_s.Local.Seat)} conceded in round {_s.Expedition.Round} (expedition {_s.Expedition.Outcome})");
         });
     }
 
@@ -268,7 +291,7 @@ public partial class CoopOverlay : Control
 
     private void RefreshTabs()
     {
-        var x = _s.Expedition;
+        var x = _s.View;
         _roundLabel.Text = x.PoolRemaining is int p ? $"ROUND {x.Round}  ·  POOL {p}/{x.PoolMax}" : $"ROUND {x.Round}";
         for (int i = 0; i < x.Boards.Count && i < _tabs.GetChildCount(); i++)
         {
@@ -281,7 +304,10 @@ public partial class CoopOverlay : Control
             var p0 = b.State.Players[0];
             var name = (Label)tab.GetNode("L");
             var line = (Label)tab.GetNode("S");
-            name.Text = mine ? "YOU" : b.Seat.DisplayName;
+            // FABLE-062: "Trikzos · Battlemage" — name first, then class (your own tab is the gold one)
+            name.Text = CoopSession.SeatLabel(b.Seat);
+            int fs = name.Text.Length > 24 ? 17 : name.Text.Length > 19 ? 19 : 22;
+            name.AddThemeFontSizeOverride("font_size", (int)(fs * _k));
             line.Text = $"♥ {Math.Max(0, p0.Vigor)}/{p0.MaxVigor}   {state}";
             bool dim = b.IsOut || gaveUp;
             name.AddThemeColorOverride("font_color", dim ? new Color(0.6f, 0.45f, 0.45f) : new Color(0.95f, 0.90f, 0.80f));
@@ -308,11 +334,12 @@ public partial class CoopOverlay : Control
     {
         if (_finished || seat == _s.LocalSeat) { CloseViewer(); return; }
         _viewing = seat;
-        var b = _s.Expedition.Board(seat);
+        var v = _s.View;
+        var b = v.Board(seat);
         _blocker.Visible = true;
-        _watchBanner.Text = $"Watching {b.Seat.DisplayName}   ·   ◀ back to my board";
+        _watchBanner.Text = $"Watching {CoopSession.SeatLabel(b.Seat)}   ·   ◀ back to my board";
         _watchBanner.Visible = true;
-        _duel?.Spectate(b.State, b.Seat.DisplayName);
+        _duel?.Spectate(v.ViewState(seat), CoopSession.SeatLabel(b.Seat));
         RefreshTabs();
     }
 

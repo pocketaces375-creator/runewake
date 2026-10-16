@@ -41,16 +41,45 @@ public sealed class CoopSession
         LocalSeat = localSeat;
     }
 
-    public SeatBoard Local => Expedition.Board(LocalSeat);
+    /// <summary>
+    /// FABLE-062: what this phone draws — the real expedition plus this phone's own moves still on their
+    /// way to the server (so your plays show at once, and everyone else's show in the server's order).
+    /// </summary>
+    public Expedition View => Network?.Predicted ?? Expedition;
 
-    /// <summary>The player's own move. Returns their board's new state, or null if refused.</summary>
+    /// <summary>Your board as drawn (shown as the enemy's turn once you have ended yours).</summary>
+    public SeatBoard Local => View.Board(LocalSeat);
+    public GameState LocalView => View.ViewState(LocalSeat);
+
+    /// <summary>
+    /// FABLE-062: bumps when the shared picture changed because of someone else — an ally's move (the one
+    /// enemy is shared, so it changes your board too), the enemy's turn, or one of your moves being overtaken.
+    /// </summary>
+    public long ExternalVersion => Network?.ExternalVersion ?? _localExternal;
+    private long _localExternal;
+
+    /// <summary>The player's own move. Returns their board's new state (as drawn), or null if refused.</summary>
     public GameState? SubmitLocal(GameAction action)
     {
         bool ok = Network != null
             ? Network.Local(action, out var err)
             : Expedition.Submit(LocalSeat, Expedition.Round, action, out err);
         if (!ok) { GD.PrintErr($"[Coop] move refused: {err}"); return null; }
-        return Local.State;
+        return LocalView;
+    }
+
+    /// <summary>
+    /// FABLE-062 (Trikzos: "name first — Trikzos or whatever it is — then class"): "Trikzos · Battlemage".
+    /// A seat with no real name shows its class alone; an AI ally's name already carries its class.
+    /// </summary>
+    public static string SeatLabel(SeatConfig s)
+    {
+        string cls = Capital(s.ClassId);
+        string name = (s.DisplayName ?? "").Trim();
+        if (name.Length == 0 || name.Equals("Delver", StringComparison.OrdinalIgnoreCase) || name.Equals("You", StringComparison.OrdinalIgnoreCase))
+            return cls.Length > 0 ? cls : "Delver";
+        if (cls.Length == 0 || name.Contains(cls, StringComparison.OrdinalIgnoreCase)) return name;
+        return $"{name} · {cls}";
     }
 
     /// <summary>
@@ -59,7 +88,7 @@ public sealed class CoopSession
     /// </summary>
     public bool Concede()
     {
-        if (Expedition.HasConceded(LocalSeat) || !Local.Active) return false;
+        if (View.HasConceded(LocalSeat) || !Local.Active) return false;
         bool ok = Network != null
             ? Network.LocalConcede(out var err)
             : Expedition.Concede(LocalSeat, Expedition.Round, out err);
@@ -77,6 +106,7 @@ public sealed class CoopSession
             var a = Bot.ChooseAction(b.State, 0) ?? new EndTurnAction { PlayerIndex = 0 };
             if (!Expedition.Submit(seat, Expedition.Round, a, out var err))
                 Expedition.Submit(seat, Expedition.Round, new EndTurnAction { PlayerIndex = 0 }, out _);
+            _localExternal++;      // an AI ally's move can change the shared enemy on your board too
             return true;
         }
         return false;
@@ -91,7 +121,7 @@ public sealed class CoopSession
         {
             new()
             {
-                Seat = 0, DisplayName = "You", ClassId = CampaignContext.ChosenClass ?? "",
+                Seat = 0, DisplayName = CampaignContext.SyncManager?.Username ?? "", ClassId = CampaignContext.ChosenClass ?? "",
                 Deck = new List<string>(CampaignContext.PlayerDeckIds),
                 Artifacts = ArtifactRegistry.PlayerLoadout(CampaignContext.ChosenClass ?? "", CampaignContext.Progression?.ActiveArtifacts),
             },

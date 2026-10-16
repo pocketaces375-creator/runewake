@@ -15,8 +15,8 @@ namespace Runewake.Client;
 ///   Host a duel     → a six-letter code appears; the friend types it in; when they have
 ///                     joined, the host presses Start and both phones open the duel.
 ///   Join with code  → type the code, land in the host's lobby, wait for Start.
-///   Host a co-op    → same lobby, up to five, everyone fights their own copy of a boss;
-///                     the first to win wins for all (engine/Coop Expedition).
+///   Host a co-op    → same lobby, up to five, everyone keeps their own board, all facing ONE boss scaled to the team (FABLE-062);
+///                     when it falls the team wins (engine/Coop Expedition).
 ///
 /// The lobby is one Supabase call (lobby) polled every 1.5 s. When it says "running" and
 /// carries the seed, both phones build the same match (OnlineMatch.FromLobby) and go.
