@@ -32,6 +32,8 @@ public enum FxKind
     Effect,
     /// <summary>A face-down Sigil sprang (Tag = COUNTER_RITUAL or AMBUSH).</summary>
     Sigil,
+    /// <summary>FABLE-067: a player's turn begins (TargetSide = whose turn; Amount = turn number).</summary>
+    TurnStart,
 }
 
 /// <summary>

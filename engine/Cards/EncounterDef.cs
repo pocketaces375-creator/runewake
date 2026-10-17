@@ -28,6 +28,10 @@ public class EncounterDef
     public string Name { get; set; } = string.Empty;
 
     /// <summary>Path to the wielder's portrait asset (e.g. "res://art/portraits/wayfarer.png").</summary>
+    /// <summary>FABLE-068: a shorter name for the map label (null = <see cref="Name"/>).</summary>
+    [JsonPropertyName("short_name")]
+    public string? ShortName { get; set; }
+
     [JsonPropertyName("portrait")]
     public string? Portrait { get; set; }
 
@@ -107,6 +111,13 @@ public class EncounterDef
     /// <summary>FABLE-020: extra Attunement the encounter starts with (0 = normal).</summary>
     [JsonPropertyName("enemy_attunement")]
     public int EnemyBonusAttunement { get; set; }
+
+    /// <summary>
+    /// FABLE-068: a one-card lesson shown before the fight ([title, text]) — the class starting zones
+    /// teach one idea per location. Null = none.
+    /// </summary>
+    [JsonPropertyName("lesson")]
+    public List<string>? Lesson { get; set; }
 
     /// <summary>Drop table: card_id + probability entries, rolled on victory.</summary>
     [JsonPropertyName("drops")]

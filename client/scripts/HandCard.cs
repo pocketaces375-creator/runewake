@@ -149,6 +149,7 @@ public partial class HandCard : PanelContainer
         _cardPlate.Setup(CardId, CardAttack, CardVigor, w, h, cost, artTexture: _artRect.Texture);
 
         LoadArt(cardId);
+        CardContrast.Apply(this, strata);   // FABLE-067: lift the card off the board
     }
 
     private void LoadArt(string cardId)
@@ -232,6 +233,14 @@ public partial class HandCard : PanelContainer
             tween.TweenProperty(this, "rotation", _storedRotation, 0.1f);
             tween.TweenProperty(this, "scale", Vector2.One, 0.1f);
             tween.TweenProperty(this, "modulate", new Color(1.15f, 1.1f, 1.0f, 1), 0.12f);
+            // FABLE-067: a quick pop so a tap feels like picking the card up (it settles back to size,
+            // keeping the lane row clear — see the gap note above)
+            if (!CampaignContext.ReduceMotion)
+            {
+                var pop = CreateTween();
+                pop.TweenProperty(this, "scale", new Vector2(1.14f, 1.14f), 0.08f).SetEase(Tween.EaseType.Out);
+                pop.TweenProperty(this, "scale", Vector2.One, 0.16f).SetEase(Tween.EaseType.InOut);
+            }
         }
         else
         {

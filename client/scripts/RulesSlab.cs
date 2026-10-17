@@ -59,6 +59,10 @@ public partial class RulesSlab : Control
         Face: new Color(0.08f, 0.05f, 0.14f, 0.95f));
     private Label _kickerLabel = default!;
     private StyleBoxFlat _faceStyle = default!;
+    /// <summary>FABLE-067: the card itself, big, beside its rules (Trikzos: "your card's art should also be
+    /// displayed next to what's telling you about what it does").</summary>
+    private TextureRect _art = default!;
+    private Panel _artFrame = default!;
 
     public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
 
@@ -116,6 +120,15 @@ public partial class RulesSlab : Control
         };
         _bgPanel.AddThemeStyleboxOverride("panel", _faceStyle);
         AddChild(_bgPanel);
+
+        _art = new TextureRect
+        {
+            Name = "RulesSlabArt", MouseFilter = MouseFilterEnum.Ignore, Visible = false,
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+        };
+        AddChild(_art);
+        _artFrame = new Panel { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+        AddChild(_artFrame);
 
         // Kept for layout compatibility (the parchment is gone; this rect is now invisible).
         _gradientRect = new TextureRect { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
@@ -235,10 +248,17 @@ public partial class RulesSlab : Control
         _vpSize = viewportSize;
 
         float k = viewportSize.Y / RefVh;
-        float slabW = SlabW1080 * k;
-        float slabH = SlabH1080 * k;
-        float slabX = 24f * k;
-        float slabY = Mathf.Round((viewportSize.Y - slabH) / 2f);   // FABLE-048: centred on the left edge, between the artifact pairs
+        // FABLE-067: the card's own art sits beside the text. To make room the text column is a little
+        // narrower, and the pair sits HIGH on the left (over the enemy row), so the lanes you are about to
+        // summon into stay visible while you read.
+        var artTex = ArtFor(card);
+        bool withArt = artTex != null;
+        float slabH = (withArt ? 430f : SlabH1080) * k;
+        float slabW = (withArt ? 460f : SlabW1080) * k;
+        float artH = slabH, artW = withArt ? Mathf.Round(artH * 350f / 512f) : 0f;
+        float gap = withArt ? 12f * k : 0f;
+        float slabX = 24f * k + artW + gap;
+        float slabY = withArt ? Mathf.Round(64f * k) : Mathf.Round((viewportSize.Y - slabH) / 2f);
         float padTop = ScalePx(InnerPadTop);
         float padSide = ScalePx(InnerPadSides);
         float contentW = slabW - 2 * padSide - 8f;
@@ -324,6 +344,23 @@ public partial class RulesSlab : Control
         Position = new Vector2(slabX, slabY);
         Size = new Vector2(slabW, slabH);
         CustomMinimumSize = new Vector2(slabW, slabH);
+        _art.Visible = withArt; _artFrame.Visible = withArt;
+        if (withArt)
+        {
+            // children are placed relative to the slab: the art hangs off its left side
+            _art.Texture = artTex;
+            _art.Position = new Vector2(-artW - gap, 0);
+            _art.Size = new Vector2(artW, artH);
+            _artFrame.Position = _art.Position - new Vector2(3, 3);
+            _artFrame.Size = _art.Size + new Vector2(6, 6);
+            _artFrame.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                DrawCenter = false, BorderColor = pal.Rim,
+                BorderWidthLeft = 3, BorderWidthTop = 3, BorderWidthRight = 3, BorderWidthBottom = 3,
+                CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+                ShadowColor = new Color(0, 0, 0, 0.75f), ShadowSize = (int)(26 * k), ShadowOffset = new Vector2(0, 10 * k),
+            });
+        }
         // C1: height fits content, measured per-line
         float H(Label l) => l.Visible ? l.GetLineCount() * l.GetLineHeight() : 0f;
         float ruleH = _rulesLabel.Visible ? _rulesLabel.GetLineHeight() * 0.5f : 0f;
@@ -380,6 +417,17 @@ public partial class RulesSlab : Control
         _fadeTween.TweenProperty(this, "modulate", Colors.White, 0.12f);
         Visible = true;
         ZIndex = 100;
+    }
+
+    /// <summary>The card as the player knows it: its baked face (artifacts: their painting).</summary>
+    private static Texture2D? ArtFor(CardDef card)
+    {
+        string[] paths = card.Type == CardType.ARTIFACT
+            ? new[] { $"res://content/art/artifacts/{ArtifactRegistry.Get(card.Id)?.ArtKey ?? card.Id}.webp" }
+            : new[] { $"res://content/art/cards_baked/{card.Id}.webp", $"res://content/art/{card.Id}.webp" };
+        foreach (var p in paths)
+            if (ResourceLoader.Exists(p)) return ResourceLoader.Load<Texture2D>(p);
+        return null;
     }
 
     public new void Hide()

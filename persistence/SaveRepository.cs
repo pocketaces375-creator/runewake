@@ -317,6 +317,7 @@ public sealed class SaveRepository
         InsertSetting(conn, "ambient_volume", settings.AmbientVolume.ToString());
         InsertSetting(conn, "master_mute", settings.MasterMute ? "1" : "0");
         InsertSetting(conn, "reduce_motion", settings.ReduceMotion ? "1" : "0");
+        InsertSetting(conn, "card_style", settings.CardStyle.ToString());
         InsertSetting(conn, "large_text", settings.LargeText ? "1" : "0");
         InsertSetting(conn, "high_contrast", settings.HighContrast ? "1" : "0");
         InsertSetting(conn, "intro_seen", settings.IntroSeen ? "1" : "0");
@@ -362,6 +363,7 @@ public sealed class SaveRepository
             if (dict.TryGetValue("ambient_volume", out var ambv) && float.TryParse(ambv, out var ambf)) s.AmbientVolume = ambf;
             if (dict.TryGetValue("master_mute", out var mm)) s.MasterMute = mm == "1";
             if (dict.TryGetValue("reduce_motion", out var rm)) s.ReduceMotion = rm == "1";
+            if (dict.TryGetValue("card_style", out var cs) && int.TryParse(cs, out var csv)) s.CardStyle = Math.Clamp(csv, 0, 3);
             if (dict.TryGetValue("large_text", out var lt)) s.LargeText = lt == "1";
             if (dict.TryGetValue("high_contrast", out var hc)) s.HighContrast = hc == "1";
             if (dict.TryGetValue("intro_seen", out var ins)) s.IntroSeen = ins == "1";

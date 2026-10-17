@@ -181,6 +181,13 @@ public partial class TutorialRunner : Node
     /// Set up the duel state based on the tutorial script.
     /// Returns a GameConfig for the DuelScene to use.
     /// </summary>
+    /// <summary>FABLE-068: the guided duel's lines name "The Wayfarer"; each class's first foe has its own name.</summary>
+    private static string Foe(string line)
+    {
+        string? name = CampaignContext.CurrentEncounter?.Name;
+        return string.IsNullOrEmpty(name) || name == "The Wayfarer" ? line : line.Replace("The Wayfarer", name).Replace("the Wayfarer", name);
+    }
+
     public void SetupEncounter()
     {
         if (_script == null) return;
@@ -1093,7 +1100,7 @@ public partial class TutorialRunner : Node
 
         // FABLE-002: narrate what the opponent is doing
         if (_coach != null && !string.IsNullOrEmpty(action.Label))
-            _coach.ShowNarration(action.Label!);
+            _coach.ShowNarration(Foe(action.Label!));
 
         try
         {

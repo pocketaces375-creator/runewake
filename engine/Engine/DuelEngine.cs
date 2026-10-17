@@ -112,6 +112,8 @@ public static partial class DuelEngine
         state.CurrentPlayerIndex = state.OpponentIndex(action.PlayerIndex);
         if (state.CurrentPlayerIndex == 0)
             state.TurnNumber++;
+        // FABLE-067: the screen announces whose turn it is before that turn's start-of-turn effects play
+        Fx.Emit(state, Fx.New(FxKind.TurnStart).ToFace(state.CurrentPlayerIndex).N(state.TurnNumber));
 
         // 2.5 Refresh phase — ready all of the next player's creatures
         // Per rules §5-6: creatures summoned on a previous turn are Ready

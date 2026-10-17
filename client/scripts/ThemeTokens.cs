@@ -467,6 +467,14 @@ public static class ThemeTokens
     {
         return skinId.ToLowerInvariant() switch
         {
+            // FABLE-068: the class starting zones — soft tints, so each land reads differently without drowning the art
+            "start_ember" => new Color(1.0f, 0.82f, 0.66f, 1.0f),
+            "start_tide" => new Color(0.74f, 0.90f, 1.0f, 1.0f),
+            "start_dawn" => new Color(1.0f, 0.94f, 0.74f, 1.0f),
+            "start_verdant" => new Color(0.80f, 1.0f, 0.78f, 1.0f),
+            "start_hollow" => new Color(0.80f, 0.76f, 0.92f, 1.0f),
+            "start_dusk" => new Color(0.86f, 0.78f, 0.84f, 1.0f),
+            "start_astral" => new Color(0.80f, 0.82f, 1.0f, 1.0f),
             "ember" or "backdrop_ember" or "plate_ember" => new Color(1.0f, 0.6f, 0.3f, 1.0f), // warm ember tint
             "tide" or "backdrop_tide" or "plate_tide" => new Color(0.23f, 0.62f, 0.77f, 1.0f), // cool tide tint
             "dawn" or "backdrop_dawn" or "plate_dawn" => new Color(0.78f, 0.65f, 0.25f, 1.0f), // warm dawn gold tint

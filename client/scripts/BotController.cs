@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Godot;
 using Runewake.Engine.Engine;
@@ -22,10 +23,22 @@ public partial class BotController : Node
     public int PlayerIndex { get => _playerIndex; set => _playerIndex = value; }
 
     /// <summary>Delay before the bot makes its first action each turn (seconds).</summary>
-    public float ThinkDelay { get; set; } = 1.5f;
+    public float ThinkDelay { get; set; } = 1.1f;
 
-    /// <summary>Delay between consecutive bot actions in the same turn (seconds).</summary>
-    public float ActionInterval { get; set; } = 0.6f;
+    /// <summary>Delay between consecutive bot actions in the same turn (seconds), counted after the screen has shown the last one.</summary>
+    public float ActionInterval { get; set; } = 0.45f;
+
+    /// <summary>
+    /// FABLE-067: true while the screen is still showing what the last action did (the duel's effects layer).
+    /// The bot waits for it, so each enemy move is seen before the next one starts (Trikzos: "it just feels
+    /// like a blur that hits you"). Null = never wait (tests, soak runs).
+    /// </summary>
+    public Func<bool>? ScreenBusy { get; set; }
+
+    /// <summary>FABLE-068: true while the player must read something first (the foe's intro card).</summary>
+    public Func<bool>? Paused { get; set; }
+    private int _pausedWaits;
+    private int _busyWaits;
 
     /// <summary>True while the bot is actively taking its turn.</summary>
     public bool IsThinking { get; private set; }
@@ -161,6 +174,24 @@ public partial class BotController : Node
             try
             {
                 if (_gsm == null || !_pendingAction) return;
+
+                // FABLE-068: a card the player must read first (the foe's intro) holds the bot — up to 2 minutes
+                if (Paused?.Invoke() == true && _pausedWaits < 480)
+                {
+                    _pausedWaits++;
+                    _timer?.Start(0.25f);
+                    return;
+                }
+                _pausedWaits = 0;
+
+                // FABLE-067: let the last move finish playing on screen first (at most ~6 s, never stuck)
+                if (ScreenBusy?.Invoke() == true && _busyWaits < 40)
+                {
+                    _busyWaits++;
+                    _timer?.Start(0.15f);
+                    return;
+                }
+                _busyWaits = 0;
 
                 var state = _gsm.State;
                 if (state.IsGameOver || state.CurrentPlayerIndex != _playerIndex)

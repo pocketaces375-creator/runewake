@@ -206,6 +206,7 @@ public partial class LaneSlot : PanelContainer
 
         // Visual: exhausted creatures get subtle desaturation
         Modulate = isExhausted ? new Color(0.85f, 0.85f, 0.85f, 1f) : Colors.White;
+        CardContrast.Apply(this, def?.Strata ?? Strata.DAWN);   // FABLE-067: lift the card off the board
     }
 
     private static string PrettyTokenName(string id)
@@ -273,6 +274,7 @@ public partial class LaneSlot : PanelContainer
         if (_cardPlate != null)
             _cardPlate.Hide();
         Modulate = Colors.White;
+        CardContrast.Apply(this, Strata.DAWN, show: false);
         // Apply warm-gold keyline socket style for empty slots
         if (_emptySlotStyle != null)
             AddThemeStyleboxOverride("panel", _emptySlotStyle);

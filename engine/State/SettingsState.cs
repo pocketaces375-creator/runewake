@@ -24,6 +24,9 @@ public class SettingsState
     /// <summary>Reduce motion: skip scale/fade animations.</summary>
     public bool ReduceMotion { get; set; } = false;
 
+    /// <summary>FABLE-067: how cards stand out from the board — 0 off, 1 shadow &amp; rim, 2 colour glow, 3 dark stage.</summary>
+    public int CardStyle { get; set; } = 1;
+
     /// <summary>Large text: base font scale ×1.3.</summary>
     public bool LargeText { get; set; } = false;
 

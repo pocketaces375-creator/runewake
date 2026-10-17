@@ -7,8 +7,8 @@
       "id": "region_04_n01",
       "type": "Duel",
       "position": [
-        400,
-        80
+        743,
+        190
       ],
       "encounter": "region_04_duel_early_1",
       "rewards": [
@@ -23,8 +23,8 @@
       "id": "region_04_n02",
       "type": "Duel",
       "position": [
-        240,
-        190
+        467,
+        241
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -45,8 +45,8 @@
       "id": "region_04_n03",
       "type": "Duel",
       "position": [
-        560,
-        190
+        1018,
+        241
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -67,8 +67,8 @@
       "id": "region_04_n04",
       "type": "Duel",
       "position": [
-        160,
-        340
+        330,
+        312
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -90,8 +90,8 @@
       "id": "region_04_n05",
       "type": "Duel",
       "position": [
-        560,
-        340
+        1018,
+        312
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -113,8 +113,8 @@
       "id": "region_04_n06",
       "type": "Elite",
       "position": [
-        320,
-        480
+        605,
+        378
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -137,8 +137,8 @@
       "id": "region_04_n07",
       "type": "Elite",
       "position": [
-        640,
-        480
+        1156,
+        378
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -161,8 +161,8 @@
       "id": "region_04_dig",
       "type": "Dig",
       "position": [
-        480,
-        480
+        880,
+        378
       ],
       "rewards": [
         "shard:20"
@@ -187,8 +187,8 @@
       "id": "region_04_n08",
       "type": "Duel",
       "position": [
-        320,
-        600
+        605,
+        435
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -210,8 +210,8 @@
       "id": "region_04_n09",
       "type": "Duel",
       "position": [
-        560,
-        600
+        1018,
+        435
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -233,8 +233,8 @@
       "id": "region_04_n10",
       "type": "Warden",
       "position": [
-        440,
-        720
+        811,
+        491
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -256,8 +256,8 @@
       "id": "region_04_n11",
       "type": "WardenBoss",
       "position": [
-        440,
-        820
+        811,
+        538
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -275,8 +275,8 @@
       "id": "region_04_n12",
       "type": "Duel",
       "position": [
-        320,
-        920
+        605,
+        586
       ],
       "unlock": {
         "op": "NODES_CLEARED",

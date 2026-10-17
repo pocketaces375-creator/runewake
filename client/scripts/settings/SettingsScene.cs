@@ -181,6 +181,15 @@ public partial class SettingsScene : Control
             CampaignContext.Settings.ReduceMotion = on;
             MarkChanged(true);
         });
+        // FABLE-067: how cards stand out from the board
+        Label? styleLabel = null;
+        styleLabel = ActionRow(right, "Card style:  " + CardContrast.Names[Math.Clamp(CampaignContext.Settings.CardStyle, 0, 3)], false, () =>
+        {
+            Click();
+            CampaignContext.Settings.CardStyle = (CampaignContext.Settings.CardStyle + 1) % 4;
+            if (styleLabel != null) styleLabel.Text = "Card style:  " + CardContrast.Names[CampaignContext.Settings.CardStyle];
+            MarkChanged(true);
+        });
         Spacer(right, 14);
         SectionHeader(right, "HELP & STORY");
         ActionRow(right, "Symbol key — what every sign in a fight means", false, () => { Click(); if (_dirty) Persist(); LoadScreen.Go(GetTree(), SymbolKeyScene.ScenePath); });

@@ -111,6 +111,19 @@ public class CombatEventTests
     }
 
     [Fact]
+    public void Ending_a_turn_announces_whose_turn_it_is_first()
+    {
+        var s = Fresh();
+        var c = Place(s, 1, 0, 1, 5);
+        c.Burn = 1;
+        var after = DuelEngine.Apply(s, new EndTurnAction { PlayerIndex = 0 });
+        var turn = after.Events.First(e => e.Kind == FxKind.TurnStart);
+        Assert.Equal(1, turn.TargetSide);
+        // the banner comes before that turn's start-of-turn effects (the burn tick)
+        Assert.True(turn.Seq < after.Events.First(e => e.Kind == FxKind.Damage && e.Tag == "BURN").Seq);
+    }
+
+    [Fact]
     public void Burn_ticks_and_fatigue_are_damage_with_a_cause()
     {
         var s = Fresh();

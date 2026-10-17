@@ -41,7 +41,9 @@ public class ClientContentMirrorTests
         foreach (var (id, s) in src)
         {
             if (!shipped.TryGetValue(id, out var c)) { problems.Add($"{id}: missing from client/content/encounters"); continue; }
-            foreach (var key in new[] { "drops", "shard_reward", "dig_charge_reward", "fragment_reward", "card_reward", "opening_rule" })
+            foreach (var key in new[] { "drops", "shard_reward", "dig_charge_reward", "fragment_reward", "card_reward", "opening_rule",
+                                         // FABLE-068: 064's easier enemies never reached the phone — enemy_vigor lived only in content/
+                                         "enemy_vigor", "modifier", "deck", "name", "class", "is_tutorial", "lesson", "dialogue_intro" })
             {
                 string a = s.TryGetProperty(key, out var sv) ? sv.GetRawText() : "";
                 string b = c.TryGetProperty(key, out var cv) ? cv.GetRawText() : "";
@@ -49,5 +51,13 @@ public class ClientContentMirrorTests
             }
         }
         Assert.True(problems.Count == 0, string.Join("\n", problems.Take(12)));
+    }
+
+    [Fact]
+    public void Start_Zones_Ship_Identically()
+    {
+        string root = WorldGeneratorTests.Root();
+        Assert.Equal(File.ReadAllText(Path.Combine(root, "content", "start_zones.json")),
+                     File.ReadAllText(Path.Combine(root, "client", "content", "start_zones.json")));
     }
 }

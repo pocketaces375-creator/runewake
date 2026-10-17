@@ -170,7 +170,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "r1_elite_ashkeeper",
@@ -208,7 +209,6 @@
         "dwn_u_purifying_light",
         "dwn_c_sunblade_recruit"
       ],
-      "modifier": "All creatures have +1 attack",
       "dialogue_intro": [
         "The air grows hot. The soil is cracked and blackened, as though a fire passed through and never left.",
         "A man stands at the center of the scorched earth. His skin is scarred, his eyes glow faintly orange.",
@@ -344,7 +344,8 @@
           "card_id": "hol_x_the_black_barrow",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

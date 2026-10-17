@@ -1831,6 +1831,15 @@ public partial class Main : Control
             }
         }
 
+        // 3b. FABLE-068: every class starting zone's encounters must resolve
+        foreach (var (cls, zone) in CampaignContext.StartZones.Zones)
+            foreach (var (nodeId, encId) in zone.Encounters)
+                if (!CampaignContext.EncounterIndex.ContainsKey(encId))
+                {
+                    GD.PrintErr($"[ContentValidation] START ZONE '{cls}' node '{nodeId}' references unknown encounter '{encId}'");
+                    errors++;
+                }
+
         // 4. Every dig site headline reward relic reference should resolve
         foreach (var site in CampaignContext.DigSiteIndex.Values)
         {

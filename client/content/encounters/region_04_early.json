@@ -45,7 +45,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -168,7 +168,8 @@
           "card_id": "tid_u_abyss_watcher",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_duel_early_2",
@@ -215,7 +216,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -338,7 +339,8 @@
           "card_id": "vrd_c_leaf_mender",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

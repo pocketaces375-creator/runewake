@@ -678,8 +678,7 @@ public partial class MapScene : Control
     private void BuildMap()
     {
         string regionId = CampaignContext.GetRegionIdForMap();
-        string json = Godot.FileAccess.GetFileAsString($"res://content/map/{regionId}.json");
-        _region = MapLoader.LoadRegionFromString(json);
+        _region = CampaignRun.LoadRegion(regionId);   // FABLE-068: dressed as the class's starting zone
         if (_region == null) return;
 
         // Store the region's board skin for DuelScene to use
@@ -705,7 +704,7 @@ public partial class MapScene : Control
 
             string displayName;
             if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
-                displayName = enc.Name;
+                displayName = enc.ShortName ?? enc.Name;   // FABLE-068
             else
                 displayName = mapNode.Type.ToString();
 

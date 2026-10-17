@@ -45,7 +45,8 @@ public partial class CombatFx : Control
     private float _s = 1f;   // UI scale (viewport height / 1080)
     private static readonly Dictionary<string, Texture2D?> _glyphs = new();
 
-    public bool Driving => _queue.Count > 0;
+    /// <summary>True while anything is queued or the last beat is still playing (the bot waits for this).</summary>
+    public bool Driving => _queue.Count > 0 || _wait > 0.05f;
 
     public override void _Ready()
     {
@@ -124,7 +125,7 @@ public partial class CombatFx : Control
     public override void _Process(double delta)
     {
         _lastClock += delta;
-        if (_queue.Count == 0) return;
+        if (_queue.Count == 0) { if (_wait > 0f) _wait = Mathf.Max(0f, _wait - (float)delta); return; }
         _wait -= (float)delta;
         int guard = 0;
         while (_wait <= 0f && _queue.Count > 0 && guard++ < 8)
@@ -151,7 +152,9 @@ public partial class CombatFx : Control
             case FxKind.Damage: return PlayDamage(e, rm);
             case FxKind.Heal: return PlayHeal(e, rm);
             case FxKind.Death: return PlayDeath(e, rm);
-            case FxKind.Summon: return e.Tag == "TOKEN" ? Callout(TargetPoint(e), "SUMMONED", Gold, "rune", rm, 0.05f) : 0f;
+            case FxKind.Summon: return e.Tag == "TOKEN" ? Callout(TargetPoint(e), "SUMMONED", Gold, "rune", rm, 0.05f)
+                                    : e.Tag == "PLAY" && View(e.Side) == 1 ? PlayEnemySummon(e, rm) : 0f;
+            case FxKind.TurnStart: return PlayTurnBanner(e, rm);
             case FxKind.Cast: return PlayCast(e, false, rm);
             case FxKind.Countered: return PlayCast(e, true, rm);
             case FxKind.Trigger: return PlayTrigger(e, rm);
@@ -169,9 +172,100 @@ public partial class CombatFx : Control
         var from = SourcePoint(e);
         var to = TargetPoint(e);
         var src = SlotOf(View(e.Side), e.SourceLane);
-        if (!rm && src != null) Punch(src, 1.08f, 0.16f);
-        if (!rm && from is Vector2 a && to is Vector2 b) Beam(a, b, StrataOf(e.SourceDefId), 7f * _s, 0.28f);
-        return rm ? 0.05f : 0.16f;
+        bool enemy = View(e.Side) == 1;
+        if (rm) return 0.05f;
+        // FABLE-067: a wind-up you can read — the attacker rears toward its target, then strikes
+        if (src != null && from is Vector2 a0 && to is Vector2 b0)
+        {
+            var dir = (b0 - a0).Normalized();
+            var home = src.Position;
+            src.PivotOffset = src.Size / 2f;
+            var tw = src.CreateTween();
+            tw.TweenProperty(src, "scale", new Vector2(1.12f, 1.12f), enemy ? 0.16f : 0.1f).SetEase(Tween.EaseType.Out);
+            tw.Parallel().TweenProperty(src, "position", home - dir * 10f * _s, enemy ? 0.16f : 0.1f);
+            tw.TweenProperty(src, "position", home + dir * 26f * _s, 0.08f).SetEase(Tween.EaseType.In);
+            tw.TweenProperty(src, "position", home, 0.14f).SetEase(Tween.EaseType.Out);
+            tw.Parallel().TweenProperty(src, "scale", Vector2.One, 0.14f);
+        }
+        if (from is Vector2 a && to is Vector2 b)
+        {
+            float delay = enemy ? 0.16f : 0.1f;
+            var tw = CreateTween();
+            tw.TweenInterval(delay);
+            tw.TweenCallback(Callable.From(() => { if (IsInsideTree()) Beam(a, b, StrataOf(e.SourceDefId), 8f * _s, 0.3f); }));
+        }
+        return enemy ? 0.36f : 0.22f;
+    }
+
+    /// <summary>FABLE-067: the enemy's creature is shown arriving — its card flies from the enemy to the lane.</summary>
+    private float PlayEnemySummon(CombatEvent e, bool rm)
+    {
+        var slot = SlotOf(1, e.TargetLane);
+        if (slot == null || rm) return 0.05f;
+        var art = ArtFor(e.SourceDefId);
+        if (art == null) return 0.05f;
+        var dest = Center(slot);
+        var size = slot.Size * slot.Scale;
+        var card = new TextureRect { Texture = art, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, Size = size, PivotOffset = size / 2f, MouseFilter = MouseFilterEnum.Ignore };
+        var from = ToLocal(CastOrigin(1));
+        card.Position = from - size / 2f;
+        card.Scale = new Vector2(0.5f, 0.5f);
+        card.Rotation = 0.4f;
+        AddChild(card);
+        slot.Modulate = new Color(1, 1, 1, 0);   // the board already shows it; reveal it when the card lands
+        var tw = CreateTween().SetParallel();
+        tw.TweenProperty(card, "position", ToLocal(dest) - size / 2f, 0.34f).SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
+        tw.TweenProperty(card, "scale", new Vector2(1.18f, 1.18f), 0.34f).SetEase(Tween.EaseType.Out);
+        tw.TweenProperty(card, "rotation", 0f, 0.34f);
+        tw.SetParallel(false);
+        tw.TweenProperty(card, "scale", Vector2.One, 0.08f);
+        tw.TweenCallback(Callable.From(() =>
+        {
+            if (IsInstanceValid(slot)) { slot.Modulate = Colors.White; if (slot is LaneSlot ls) ls.PlaySummonEffect(); }
+            card.QueueFree();
+            Sfx?.Invoke("card_play");
+        }));
+        return 0.5f;
+    }
+
+    /// <summary>FABLE-067: "ENEMY TURN" / "YOUR TURN" sweeps across the board, so the change of turn reads.</summary>
+    private float PlayTurnBanner(CombatEvent e, bool rm)
+    {
+        bool mine = View(e.TargetSide) == 0;
+        string text = mine ? "YOUR TURN" : "ENEMY TURN";
+        var color = mine ? new Color(0.55f, 0.95f, 0.85f) : new Color(1f, 0.5f, 0.4f);
+        var vs = GetViewportRect().Size;
+        var c = ToLocal(BoardCenter());
+        float h = 120f * _s;
+        var band = new ColorRect { Color = new Color(0.02f, 0.015f, 0.02f, 0.78f), Size = new Vector2(vs.X, h), Position = new Vector2(0, c.Y - h / 2f), MouseFilter = MouseFilterEnum.Ignore };
+        var edgeTop = new ColorRect { Color = new Color(color, 0.85f), Size = new Vector2(vs.X, 3f * _s), Position = Vector2.Zero, MouseFilter = MouseFilterEnum.Ignore };
+        var edgeBot = new ColorRect { Color = new Color(color, 0.85f), Size = new Vector2(vs.X, 3f * _s), Position = new Vector2(0, h - 3f * _s), MouseFilter = MouseFilterEnum.Ignore };
+        band.AddChild(edgeTop); band.AddChild(edgeBot);
+        var label = MakeLabel(text, color, 64, header: true);
+        label.AddThemeConstantOverride("outline_size", Mathf.Max(5, (int)(9 * _s)));
+        band.AddChild(label);
+        AddChild(band);
+        Fit(label);
+        label.Position = new Vector2(vs.X / 2f - label.Size.X / 2f, h / 2f - label.Size.Y / 2f);
+        if (rm)
+        {
+            var t0 = band.CreateTween();
+            t0.TweenInterval(0.6f);
+            t0.TweenProperty(band, "modulate:a", 0f, 0.2f);
+            t0.TweenCallback(Callable.From(band.QueueFree));
+            return 0.5f;
+        }
+        band.Scale = new Vector2(1f, 0f);
+        band.PivotOffset = new Vector2(vs.X / 2f, h / 2f);
+        label.Position += new Vector2(mine ? -260f * _s : 260f * _s, 0);
+        var tw = band.CreateTween();
+        tw.TweenProperty(band, "scale", Vector2.One, 0.14f).SetEase(Tween.EaseType.Out);
+        tw.Parallel().TweenProperty(label, "position:x", vs.X / 2f - label.Size.X / 2f, 0.22f).SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Back);
+        tw.TweenInterval(0.42f);
+        tw.TweenProperty(band, "modulate:a", 0f, 0.2f);
+        tw.TweenCallback(Callable.From(band.QueueFree));
+        Sfx?.Invoke(mine ? "card_draw" : "metal_clink");
+        return 0.62f;
     }
 
     private float PlayDamage(CombatEvent e, bool rm)

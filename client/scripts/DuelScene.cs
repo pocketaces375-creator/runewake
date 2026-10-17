@@ -122,6 +122,8 @@ public partial class DuelScene : Control
 
     // TASK-CARD-TEXT-1: Rules slab — press-and-hold to show card info
     private RulesSlab _rulesSlab = default!;
+    /// <summary>FABLE-067: the slab is up because a hand card was tapped (it stays while a lane is chosen).</summary>
+    private bool _slabFromTap;
     private bool _rulesSlabVisible;
     private string? _slabCardId;
 
@@ -137,6 +139,8 @@ public partial class DuelScene : Control
     private BoardSnapshot[] _prevEnemyBoard = new BoardSnapshot[5];
     private BoardSnapshot[] _prevPlayerBoard = new BoardSnapshot[5];
     private int _prevEnemyVigor = -1;
+    /// <summary>FABLE-068: the "meet the foe" card while it is up.</summary>
+    private EncounterIntro? _intro;
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
@@ -265,7 +269,7 @@ public partial class DuelScene : Control
             {
                 boardBg.Texture = plateTex;
                 boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
-                boardBg.Modulate = ThemeTokens.GetSkinTint(skinId);
+                boardBg.Modulate = CardContrast.BoardTint(ThemeTokens.GetSkinTint(skinId));   // FABLE-067
             }
         }
         else
@@ -314,6 +318,10 @@ public partial class DuelScene : Control
         // Create bot controller
         _bot = new BotController();
         AddChild(_bot);
+        // FABLE-067: each enemy move plays out before the next (not in automated soak/smoke runs)
+        if (!CampaignContext.BotDuelTest && !CampaignContext.SoakActive && !CampaignContext.LoopSmokeTest && !CampaignContext.UxWalk)
+            _bot.ScreenBusy = () => _fx != null && IsInstanceValid(_fx) && _fx.Driving;
+        _bot.Paused = () => _intro != null && IsInstanceValid(_intro);
         _bot.BotTurnStarted += OnBotTurnStarted;
         _bot.BotTurnEnded += OnBotTurnEnded;
 
@@ -519,6 +527,10 @@ public partial class DuelScene : Control
         // ═══ END TASK-CARD-TEXT-1 ═══
 
         var encounter = CampaignContext.CurrentEncounter;
+        // FABLE-068: --introtest=<encounter id> (screenshots of the foe's intro card on a capture duel)
+        foreach (var a in OS.GetCmdlineArgs())
+            if (a.StartsWith("--introtest=") && CampaignContext.EncounterIndex.TryGetValue(a.Substring(12), out var introTest))
+                CampaignContext.CurrentEncounter = encounter = introTest;
         _isCampaignEncounter = encounter != null;
 
         // Record duel start for telemetry
@@ -669,6 +681,14 @@ public partial class DuelScene : Control
             _gsm.Initialize(config);
             if (blessing != null)
                 Callable.From(() => ShowToast(ShrineBlessing.Describe(blessing.Value), ThemeTokens.Gold)).CallDeferred();
+            // FABLE-068: meet the foe first — portrait, who they are, and the lesson this location teaches
+            if (!_isTutorialScriptMode && CoopSession.Current == null && EncounterIntro.ShouldShow(encounter, CampaignContext.CurrentNodeId))
+            {
+                var introEnc = encounter;
+                string? zone = CampaignRun.RegionOfNode(CampaignContext.CurrentNodeId ?? "") == CampaignContext.StartZones.BaseRegion
+                    ? CampaignContext.StartZones.For(CampaignContext.StartZoneClass)?.Name : null;
+                Callable.From(() => { if (IsInsideTree()) _intro = EncounterIntro.Show(this, introEnc, zone); }).CallDeferred();
+            }
             GD.Print($"[DUEL-INIT] P0 artifacts={string.Join(",", config.Player0ArtifactIds)} P1 artifacts={string.Join(",", config.Player1ArtifactIds)} P0 class={config.Player0Class} P1 class={config.Player1Class}");
 
             // FABLE-020: a co-op expedition / raid: this board becomes one seat of
@@ -3782,6 +3802,7 @@ public partial class DuelScene : Control
             _selectedHandIndex = -1;
             ShowToast("Deselected.", Color.FromHtml("#8A7A3A"));
             UpdateSelectionVisuals();
+            HideRulesSlab();
             return;
         }
 
@@ -3809,7 +3830,7 @@ public partial class DuelScene : Control
         }
         else
         {
-            // Idle — enter lane-selection mode (tap-to-summon), no detail popup
+            // Idle — enter lane-selection mode (tap-to-summon)
             _input.SelectCardForPlay(card.CardId);
             _selectedHandIndex = card.HandIndex;
             ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
@@ -3817,6 +3838,17 @@ public partial class DuelScene : Control
             UpdatePlayHighlights();
             UpdateSelectionVisuals();
         }
+        // FABLE-067: a tap shows the card the way press-and-hold does — big, with its rules beside it —
+        // and keeps it up while you choose a lane (it closes when you play, deselect or cancel)
+        PeekSelected(card);
+    }
+
+    private void PeekSelected(HandCard card)
+    {
+        var def = CardRegistry.Get(card.CardId);
+        if (def == null) return;
+        ShowRulesSlab(def);
+        _slabFromTap = true;
     }
 
         // ——— Public methods for UX walkthrough ———
@@ -3841,6 +3873,7 @@ public partial class DuelScene : Control
 
     private void HideRulesSlab()
     {
+        _slabFromTap = false;
         if (_rulesSlabVisible)
         {
             _rulesSlab.Hide();
@@ -3941,6 +3974,7 @@ public partial class DuelScene : Control
 
     private void OnSelectionCancelled()
     {
+        if (_slabFromTap) HideRulesSlab();   // FABLE-067
         foreach (var slot in _enemySlots) slot.Unhighlight();
         foreach (var slot in _playerSlots) slot.Unhighlight();
         UpdateSelectionVisuals();

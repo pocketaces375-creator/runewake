@@ -70,6 +70,14 @@ public partial class PackShopScene : Control
         Render();
         _ = PackStore.Refresh();
         MenuButtons.BreatheTitle(title);
+        // FABLE-067: --packrite = open a free preview pack straight away (debug builds only; for tuning the rite)
+        if (System.Array.IndexOf(OS.GetCmdlineArgs(), "--packrite") >= 0 && PackStore.PreviewMode)
+        {
+            if (CardRegistry.GetAll().Count == 0)
+                foreach (var set in new[] { "verdant", "ember", "tide", "hollow", "dawn" })
+                    CardRegistry.RegisterRange(CardLoader.LoadPackFromString(Godot.FileAccess.GetFileAsString($"res://content/cards/{set}.json")));
+            Callable.From(() => { PackStore.Buy("rw_pack_1"); OpenNext(); }).CallDeferred();
+        }
         MenuButtons.RevealStagger(new Control[] { kicker, title, _content });
     }
 
@@ -253,84 +261,12 @@ public partial class PackShopScene : Control
         ShowOpening(pack, before);
     }
 
+    /// <summary>FABLE-067: the Drachma Rite — flick a coin into the deep, the runes rise with your cards.</summary>
     private void ShowOpening(PendingPack pack, Dictionary<string, int> ownedBefore)
     {
         _opening?.QueueFree();
-        var vp = GetViewportRect().Size;
-        var veil = new Control { Name = "PackOpening", ZIndex = 800, MouseFilter = MouseFilterEnum.Stop };
-        veil.SetAnchorsPreset(LayoutPreset.FullRect);
-        var shade = new ColorRect { Color = new Color(0.02f, 0.015f, 0.04f, 0.92f), MouseFilter = MouseFilterEnum.Ignore };
-        shade.SetAnchorsPreset(LayoutPreset.FullRect);
-        veil.AddChild(shade);
-        AddChild(veil);
-        _opening = veil;
-        GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
-        Lbl(veil, pack.Source == "preview" ? "PREVIEW PACK" : "YOUR PACK", 0, 40, vp.X, 26, ThemeTokens.GetHeaderFont(26), Kicker, true);
-
-        const float cw = 380f, ch = 551f, gap = 70f;
-        float x0 = (vp.X - (3 * cw + 2 * gap)) / 2;
-        var back = ResourceLoader.Exists("res://content/art/card_back.webp") ? GD.Load<Texture2D>("res://content/art/card_back.webp") : null;
-        for (int i = 0; i < pack.Cards.Count; i++)
-        {
-            string id = pack.Cards[i];
-            string rarity = i < pack.Rarities.Count ? pack.Rarities[i] : "";
-            var slot = new Control { Position = new Vector2(x0 + i * (cw + gap), 120), Size = new Vector2(cw, ch), PivotOffset = new Vector2(cw / 2, ch / 2), MouseFilter = MouseFilterEnum.Ignore };
-            veil.AddChild(slot);
-            var face = new TextureRect
-            {
-                Texture = back, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-                Size = new Vector2(cw, ch), MouseFilter = MouseFilterEnum.Ignore,
-            };
-            slot.AddChild(face);
-            var col = RarityColor(rarity);
-            var under = Lbl(veil, "", slot.Position.X, 120 + ch + 14, cw, 30, ThemeTokens.GetCardNameFont(30), col, true);
-            var name = Lbl(veil, "", slot.Position.X, 120 + ch + 54, cw, 26, ThemeTokens.GetBodyFont(26), Parchment, true);
-            bool isNew = ownedBefore.TryGetValue(id, out var had) && had == 0;
-            var def = CardRegistry.Get(id);
-            string artPath = $"res://content/art/cards_baked/{id}.webp";
-            var art = ResourceLoader.Exists(artPath) ? GD.Load<Texture2D>(artPath) : null;
-
-            var tw = slot.CreateTween();
-            tw.TweenInterval(0.35 + i * 0.55);
-            tw.TweenProperty(slot, "scale:x", 0.02f, 0.16).SetTrans(Tween.TransitionType.Sine);
-            tw.TweenCallback(Callable.From(() =>
-            {
-                if (art != null && def != null)
-                {
-                    // the same card plate as the Forge: baked face + live cost / attack / vigor numerals
-                    face.Visible = false;
-                    var plate = new CardPlate();
-                    slot.AddChild(plate);
-                    plate.Setup(id, def.Attack, def.Vigor, cw, ch, def.Cost);
-                }
-                else
-                {
-                    face.Texture = art ?? back;
-                    if (art == null) Lbl(slot, def?.Name ?? id, 10, ch / 2 - 30, cw - 20, 34, ThemeTokens.GetCardNameFont(34), Parchment, true);
-                }
-                under.Text = (rarity == "" ? "" : rarity) + (isNew ? "  ·  NEW" : "");
-                name.Text = def?.Name ?? id;
-                if (rarity is "RARE" or "RELIC") AddGlow(slot, col, cw, ch);
-                GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
-            }));
-            tw.TweenProperty(slot, "scale:x", 1f, 0.18).SetTrans(Tween.TransitionType.Back).SetEase(Tween.EaseType.Out);
-        }
-
         int left = CampaignContext.Progression.PendingPacks.Count;
-        var done = Plate("Done", left == 0, 320, 84);
-        done.Position = new Vector2(vp.X / 2 - (left > 0 ? 340 : 160), vp.Y - 130);
-        done.Pressed += () => { Click(); CloseOpening(); };
-        veil.AddChild(done);
-        if (left > 0)
-        {
-            var more = Plate($"Open next ({left} left)", true, 420, 84);
-            more.Position = new Vector2(vp.X / 2 + 20, vp.Y - 130);
-            more.Name = "OpenNext";
-            more.Pressed += () => { Click(); OpenNext(); };
-            veil.AddChild(more);
-        }
-        veil.Modulate = new Color(1, 1, 1, 0);
-        veil.CreateTween().TweenProperty(veil, "modulate:a", 1f, 0.25f);
+        _opening = DrachmaRite.Play(this, pack, ownedBefore, left, onDone: CloseOpening, onNext: left > 0 ? OpenNext : null);
     }
 
     private static void AddGlow(Control slot, Color col, float w, float h)

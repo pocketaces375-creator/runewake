@@ -1087,7 +1087,9 @@ public static class CampaignContext
             "res://content/encounters/region_04_early.json",
             "res://content/encounters/region_04_mid.json",
             "res://content/encounters/region_04_late.json",
-            "res://content/encounters/region_04_boss.json"
+            "res://content/encounters/region_04_boss.json",
+            // FABLE-068: the seven class starting zones
+            "res://content/encounters/start_zones.json"
         };
 
         foreach (var resPath in packs)
@@ -1291,6 +1293,31 @@ public static class CampaignContext
         /// Each WardenBoss node unlock advances to the next region.
         /// ForceRegionId overrides for capture tests.
         /// </summary>
+        private static StartZoneSet? _startZones;
+
+        /// <summary>FABLE-068: the class starting zones (content/start_zones.json), loaded once.</summary>
+        public static StartZoneSet StartZones
+        {
+            get
+            {
+                if (_startZones != null) return _startZones;
+                try { _startZones = StartZoneSet.Parse(Godot.FileAccess.GetFileAsString("res://content/start_zones.json")); }
+                catch (System.Exception ex) { GD.PrintErr($"[CampaignContext] start_zones.json: {ex.Message}"); _startZones = new StartZoneSet(); }
+                return _startZones;
+            }
+        }
+
+        /// <summary>FABLE-068: the class whose starting zone region_01 shows — the chosen class, or the active profile's.</summary>
+        public static string StartZoneClass
+        {
+            get
+            {
+                foreach (var a in OS.GetCmdlineArgs())     // --startzone=druid: screenshots of each land
+                    if (a.StartsWith("--startzone=")) return a.Substring(12);
+                return !string.IsNullOrEmpty(ChosenClass) ? ChosenClass : (ActiveProfile?.ClassId ?? "");
+            }
+        }
+
         public static string GetRegionIdForMap()
         {
             if (!string.IsNullOrEmpty(ForceRegionId))

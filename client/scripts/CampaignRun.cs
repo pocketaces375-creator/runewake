@@ -81,7 +81,8 @@ public static class CampaignRun
             GD.PrintErr($"[CampaignRun] could not read res://content/map/{regionId}.json");
             return null;
         }
-        return MapLoader.LoadRegionFromString(json);
+        // FABLE-068: the first region is dressed as the player's class's own starting zone
+        return CampaignContext.StartZones.Apply(MapLoader.LoadRegionFromString(json), CampaignContext.StartZoneClass);
     }
 
     /// <summary>

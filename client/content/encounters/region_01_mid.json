@@ -36,7 +36,6 @@
         "emb_c_flame_javelin",
         "tut_c_iron_apprentice"
       ],
-      "modifier": "Starts with a GUARD token",
       "dialogue_intro": [
         "The grove falls silent. Birds, insects, even the wind — gone.",
         "An old woman sits on a throne of woven roots. She does not rise.",
@@ -172,7 +171,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 20
     },
     {
       "id": "r1_duel_wildwood",
@@ -341,7 +341,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 20
     }
   ]
 }
