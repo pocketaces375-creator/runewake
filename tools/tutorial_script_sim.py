@@ -212,11 +212,25 @@ def check_quoted_vigor(text, before, after, beat_id, sim):
             sim.fail(f"beat {beat_id}: copy says Vigor '{a} to {b}' but the sim went {before} to {after}")
 
 
+def tutorial_encounter_vigor():
+    """FABLE-064b: the guided first duel plays the real campaign encounter (the one marked is_tutorial),
+    so the opponent starts on THAT encounter's enemy_vigor - 25 only when it sets none."""
+    for f in sorted(glob.glob(str(ROOT / "content" / "encounters" / "*.json"))):
+        for e in json.load(open(f)).get("encounters", []):
+            if e.get("is_tutorial"):
+                return e.get("enemy_vigor") or 25
+    return 25
+
+
 def run(script_path):
     cards = load_cards()
     script = json.load(open(script_path))
     sim = Sim(cards)
     p0, p1 = sim.p
+    # an empty-deck script (the guided first duel) plays the real tutorial encounter - see TutorialRunner.SetupEncounter
+    if not script.get("player_deck") and not script.get("opponent_deck"):
+        p1.vigor = tutorial_encounter_vigor()
+        sim.log.append(f"opponent starts on the tutorial encounter's Vigor: {p1.vigor}")
     turns = script["turns"]
 
     for ti, turn in enumerate(turns):
