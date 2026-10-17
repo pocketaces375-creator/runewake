@@ -41,6 +41,8 @@ public class SaveManager
 
     /// <summary>FABLE-066: the last load could not read an existing save (a copy of it was kept).</summary>
     public bool LastLoadFailed => _repository.LastLoadFailed;
+    /// <summary>FABLE-069: SQLite could not start on this device; the JSON file is the save.</summary>
+    public bool SavingToFileOnly => _repository.SqliteUnavailable;
 
     /// <summary>FABLE-066: when the last successful save happened (Settings → Save check).</summary>
     public System.DateTime? LastSavedAt { get; private set; }

@@ -74,12 +74,15 @@ public class SaveRobustnessTests : IDisposable
             hold.Open();
             using (var c = hold.CreateCommand()) { c.CommandText = "BEGIN EXCLUSIVE"; c.ExecuteNonQuery(); }
             var s = WithDeck(); s.Shards = 99;
-            Assert.False(repo.Save(s));
-            Assert.Contains("locked", repo.LastSaveError ?? "", StringComparison.OrdinalIgnoreCase);
+            // FABLE-069: the database write fails, but the file save takes it — the save is not lost
+            Assert.True(repo.Save(s));
+            Assert.Contains(repo.RepairLog, l => l.Contains("locked", StringComparison.OrdinalIgnoreCase));
             using (var c = hold.CreateCommand()) { c.CommandText = "ROLLBACK"; c.ExecuteNonQuery(); }
         }
         Assert.True(File.Exists(_path), "the save file was deleted by a failed save");
-        Assert.Equal("My Deck", new SaveRepository(_path).Load().SavedDecks.Keys.Single());
+        var back = new SaveRepository(_path).Load();
+        Assert.Equal("My Deck", back.SavedDecks.Keys.Single());
+        Assert.Equal(99, back.Shards);                      // the newer file save wins over the stale database
         Assert.True(repo.Save(WithDeck()));                 // and the next save simply works
         Assert.Null(repo.LastSaveError);
     }

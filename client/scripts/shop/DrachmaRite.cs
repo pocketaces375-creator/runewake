@@ -40,10 +40,18 @@ public partial class DrachmaRite : Control
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
     private static readonly Color Gold = new(0.95f, 0.80f, 0.42f);
 
-    public static DrachmaRite Play(Node parent, PendingPack pack, Dictionary<string, int> ownedBefore, int left, Action onDone, Action? onNext)
+    private Vector2? _autoFlick;
+    private float _autoPower = 1f;
+
+    /// <summary>The coin rests on the cliff here (the Card Packs page puts its own coin on the same spot).</summary>
+    public static Vector2 CoinSpot(Vector2 vp) => new(vp.X * 0.235f, vp.Y * 0.665f);
+
+    public static DrachmaRite Play(Node parent, PendingPack pack, Dictionary<string, int> ownedBefore, int left, Action onDone, Action? onNext,
+                                   Vector2? flick = null, float power = 1f)
     {
         var r = new DrachmaRite { Name = "PackOpening", ZIndex = 800, MouseFilter = MouseFilterEnum.Stop };
         r._pack = pack; r._ownedBefore = ownedBefore; r._left = left; r._onDone = onDone; r._onNext = onNext;
+        r._autoFlick = flick; r._autoPower = power;   // FABLE-069: flicked on the page itself — the rite picks up mid-flight
         parent.AddChild(r);
         return r;
     }
@@ -55,13 +63,13 @@ public partial class DrachmaRite : Control
         Position = Vector2.Zero;
         Size = _vp;
 
-        AddChild(new Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore });
+        AddChild(new Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore, MoonAt = new Vector2(0.06f, 0.115f) });   // FABLE-069: same sky as the page
 
         var kicker = Text(_pack.Source == "preview" ? "PREVIEW PACK" : "A PACK OF THREE", 0, 30 * _s, _vp.X, 26, Header(26), new Color(0.80f, 0.74f, 0.60f));
         kicker.Modulate = new Color(1, 1, 1, 0.85f);
 
         float coinR = 58f * _s;
-        _coin = new Drachma { Radius = coinR, Position = new Vector2(_vp.X * 0.235f, _vp.Y * 0.665f), MouseFilter = MouseFilterEnum.Ignore };
+        _coin = new Drachma { Radius = coinR, Position = CoinSpot(_vp), MouseFilter = MouseFilterEnum.Ignore };
         AddChild(_coin);
         _bob = _coin.CreateTween().SetLoops();
         _bob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
@@ -75,6 +83,13 @@ public partial class DrachmaRite : Control
         _hintPulse.TweenProperty(_hint, "modulate:a", 0.45f, 0.8f).SetTrans(Tween.TransitionType.Sine);
         _hintPulse.TweenProperty(_hint, "modulate:a", 1f, 0.8f).SetTrans(Tween.TransitionType.Sine);
 
+        if (_autoFlick is Vector2 fd)
+        {
+            // the page underneath is the same cliff: no fade, the coin just keeps going
+            foreach (var n in new[] { _hint, sub }) n.Visible = false;
+            Callable.From(() => Flick(fd, _autoPower)).CallDeferred();
+            return;
+        }
         Modulate = new Color(1, 1, 1, 0);
         CreateTween().TweenProperty(this, "modulate:a", 1f, 0.35f);
         Sfx("unlock");
@@ -373,9 +388,11 @@ public partial class DrachmaRite : Control
     // ── drawn pieces ─────────────────────────────────────────────────────
 
     /// <summary>Night sky, distant peaks, the cliff you stand on, the far wall, mist in the chasm.</summary>
-    private partial class Backdrop : Control
+    public partial class Backdrop : Control
     {
         private readonly float[] _stars = new float[180];
+        /// <summary>FABLE-069: where the moon hangs (fractions of the screen) — the Card Packs page moves it clear of the steles.</summary>
+        public Vector2 MoonAt = new(0.80f, 0.18f);
         public override void _Ready()
         {
             var rng = new RandomNumberGenerator { Seed = 7 };
@@ -399,8 +416,8 @@ public partial class DrachmaRite : Control
                 DrawCircle(p, 0.6f + _stars[i + 2] * 1.6f, new Color(1, 1, 1, 0.25f + _stars[i + 2] * 0.5f));
             }
             // a pale moon
-            DrawCircle(new Vector2(W * 0.80f, H * 0.18f), H * 0.06f, new Color(0.92f, 0.90f, 0.82f, 0.9f));
-            DrawCircle(new Vector2(W * 0.80f, H * 0.18f), H * 0.09f, new Color(0.92f, 0.90f, 0.82f, 0.08f));
+            DrawCircle(new Vector2(W * MoonAt.X, H * MoonAt.Y), H * 0.06f, new Color(0.92f, 0.90f, 0.82f, 0.9f));
+            DrawCircle(new Vector2(W * MoonAt.X, H * MoonAt.Y), H * 0.09f, new Color(0.92f, 0.90f, 0.82f, 0.08f));
             // distant peaks
             DrawColoredPolygon(new[]
             {
@@ -434,11 +451,52 @@ public partial class DrachmaRite : Control
             }, new Color(0.05f, 0.04f, 0.06f));
             DrawPolyline(new[] { new Vector2(0, H * 0.71f), new Vector2(W * 0.12f, H * 0.69f), new Vector2(W * 0.22f, H * 0.705f), new Vector2(W * 0.29f, H * 0.72f), new Vector2(W * 0.325f, H * 0.78f) },
                 new Color(0.80f, 0.74f, 0.90f, 0.55f), 3f, true);
+            DrawShrine(W, H);
+        }
+
+        /// <summary>FABLE-069: on the cliff, a broken Greek portico (two columns, a cracked lintel) and a Norse
+        /// rune stone whose carvings glow faintly — where the offerings are made.</summary>
+        private void DrawShrine(float W, float H)
+        {
+            var stone = new Color(0.10f, 0.09f, 0.12f);
+            var lit = new Color(0.62f, 0.58f, 0.74f, 0.55f);
+            float baseY = H * 0.695f, colW = W * 0.022f, colH = H * 0.30f;
+            foreach (float cx in new[] { W * 0.045f, W * 0.135f })
+            {
+                // shaft, capital, base — with a moonlit edge and three flutes
+                DrawRect(new Rect2(cx - colW / 2, baseY - colH, colW, colH), stone);
+                DrawRect(new Rect2(cx - colW * 0.85f, baseY - colH - H * 0.018f, colW * 1.7f, H * 0.018f), stone);
+                DrawRect(new Rect2(cx - colW * 0.8f, baseY - H * 0.014f, colW * 1.6f, H * 0.014f), stone);
+                DrawLine(new Vector2(cx + colW / 2, baseY - colH), new Vector2(cx + colW / 2, baseY), lit, 2f);
+                for (int f = 1; f <= 3; f++)
+                    DrawLine(new Vector2(cx - colW / 2 + colW * f / 4f, baseY - colH + 4), new Vector2(cx - colW / 2 + colW * f / 4f, baseY - 4), new Color(0, 0, 0, 0.35f), 1.5f);
+            }
+            // the lintel, broken off past the second column
+            float ly = baseY - colH - H * 0.018f - H * 0.03f;
+            DrawColoredPolygon(new[] { new Vector2(W * 0.02f, ly), new Vector2(W * 0.165f, ly), new Vector2(W * 0.172f, ly + H * 0.012f), new Vector2(W * 0.160f, ly + H * 0.03f), new Vector2(W * 0.02f, ly + H * 0.03f) }, stone);
+            DrawLine(new Vector2(W * 0.02f, ly), new Vector2(W * 0.165f, ly), lit, 2f);
+            // a meander carved along it
+            float step = H * 0.012f;
+            for (float x = W * 0.026f; x < W * 0.155f; x += step * 2f)
+            {
+                float y0 = ly + H * 0.009f;
+                DrawPolyline(new[] { new Vector2(x, y0 + step), new Vector2(x, y0), new Vector2(x + step, y0), new Vector2(x + step, y0 + step * 0.6f), new Vector2(x + step * 0.5f, y0 + step * 0.6f) }, new Color(0.85f, 0.70f, 0.38f, 0.55f), 1.5f);
+            }
+            // the rune stone, leaning by the edge
+            var rs = new[] { new Vector2(W * 0.265f, baseY + H * 0.03f), new Vector2(W * 0.262f, baseY - H * 0.13f), new Vector2(W * 0.278f, baseY - H * 0.165f), new Vector2(W * 0.298f, baseY - H * 0.14f), new Vector2(W * 0.302f, baseY + H * 0.035f) };
+            DrawColoredPolygon(rs, new Color(0.09f, 0.085f, 0.11f));
+            DrawPolyline(new[] { rs[1], rs[2], rs[3] }, lit, 2f);
+            var glow = new Color(0.55f, 0.85f, 0.95f, 0.65f);
+            float rx = W * 0.281f, ry = baseY - H * 0.12f, rh = H * 0.10f;
+            DrawLine(new Vector2(rx, ry), new Vector2(rx, ry + rh), glow, 2.5f);
+            DrawLine(new Vector2(rx, ry + rh * 0.15f), new Vector2(rx + W * 0.008f, ry + rh * 0.32f), glow, 2.5f);
+            DrawLine(new Vector2(rx, ry + rh * 0.45f), new Vector2(rx - W * 0.008f, ry + rh * 0.62f), glow, 2.5f);
+            DrawLine(new Vector2(rx, ry + rh * 0.62f), new Vector2(rx + W * 0.008f, ry + rh * 0.80f), glow, 2.5f);
         }
     }
 
     /// <summary>The coin: a gold disc, a rim, an owl-eye rune. Spin turns it edge-on and back.</summary>
-    private partial class Drachma : Control
+    public partial class Drachma : Control
     {
         public float Radius = 50f;
         private float _spin;

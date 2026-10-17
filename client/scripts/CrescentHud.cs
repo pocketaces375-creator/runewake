@@ -274,6 +274,9 @@ public partial class CrescentHud : Control
         sd.CrestValue.Text = vigor.ToString();
         sd.CrestMax.Text = $"/ {maxVigor}";
         sd.NamePlate.Text = (name ?? "").ToUpperInvariant();
+        // FABLE-069: long names step the font down instead of being cut off at both ends
+        int len = sd.NamePlate.Text.Length;
+        sd.NamePlate.AddThemeFontSizeOverride("font_size", Mathf.RoundToInt(17 * S * (len > 18 ? 0.72f : len > 13 ? 0.85f : 1f)));
         sd.AttuneText.Text = $"{attune}/{attuneMax}";
         sd.Tokens[0].value.Text = deck.ToString();
         sd.Tokens[1].value.Text = barrow.ToString();

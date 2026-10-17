@@ -31,7 +31,7 @@ public partial class LaneSlot : PanelContainer
     private StyleBoxFlat? _emptySlotStyle;
 
     /// <summary>Warm-gold border color for empty slots.</summary>
-    private static readonly Color EmptySlotBorder = Color.FromHtml("#C9A84C");
+    private static readonly Color EmptySlotBorder = Color.FromHtml("#E0BC5A");
     /// <summary>Faint translucent stone tint for empty slot background.</summary>
     private static readonly Color EmptySlotBg = Color.FromHtml("#1A1816");
 
@@ -70,12 +70,15 @@ public partial class LaneSlot : PanelContainer
         // Created BEFORE SetEmpty so the initial call applies it immediately.
         _emptySlotStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.10f, 0.09f, 0.07f, 0.10f), // faint translucent stone tint
+            // FABLE-069: a dark pocket inside a brighter gold keyline, so lanes read against the busy board
+            BgColor = new Color(0.04f, 0.035f, 0.03f, 0.42f),
             BorderColor = EmptySlotBorder,
-            BorderWidthLeft = 2,
-            BorderWidthTop = 2,
-            BorderWidthRight = 2,
-            BorderWidthBottom = 2,
+            BorderWidthLeft = 3,
+            BorderWidthTop = 3,
+            BorderWidthRight = 3,
+            BorderWidthBottom = 3,
+            ShadowColor = new Color(0.95f, 0.75f, 0.30f, 0.22f),
+            ShadowSize = 8,
             CornerRadiusTopLeft = 6,
             CornerRadiusTopRight = 6,
             CornerRadiusBottomLeft = 6,

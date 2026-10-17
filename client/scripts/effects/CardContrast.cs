@@ -108,7 +108,22 @@ public static class CardContrast
     }
 
     /// <summary>Dark stage dims the painted board so the cards carry the eye; the other looks leave it alone.</summary>
-    public static Color BoardTint(Color skinTint) => Style == 3 ? skinTint * new Color(0.62f, 0.62f, 0.66f, 1f) : skinTint;
+    /// FABLE-069: every look dims the board a little (Trikzos: "board still needs contrast"); Dark stage the most.
+    public static Color BoardTint(Color skinTint) => skinTint * (Style == 3 ? new Color(0.56f, 0.56f, 0.60f, 1f)
+                                                               : Style == 0 ? Colors.White : new Color(0.70f, 0.70f, 0.74f, 1f));
+
+    /// <summary>FABLE-069: a soft dark vignette over the board's edges, so the eye lands on the lanes.</summary>
+    public static TextureRect Vignette() => new()
+    {
+        Name = "BoardVignette", MouseFilter = Control.MouseFilterEnum.Ignore,
+        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+        AnchorRight = 1, AnchorBottom = 1,
+        Texture = new GradientTexture2D
+        {
+            Gradient = new Gradient { Offsets = new[] { 0f, 0.55f, 1f }, Colors = new[] { new Color(0, 0, 0, 0f), new Color(0, 0, 0, 0.18f), new Color(0, 0, 0, 0.62f) } },
+            Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.5f, 0.48f), FillTo = new Vector2(1.05f, 0.48f), Width = 128, Height = 128,
+        },
+    };
 
     /// <summary>A soft box shadow (or glow) the exact shape of the card: a Panel whose StyleBox only casts.</summary>
     private static Panel BoxShadow(Color color, int size, Vector2 offset, int radius)

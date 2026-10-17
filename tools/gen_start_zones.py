@@ -19,6 +19,7 @@ ramp gently: the second fight is all commons, rares only show up from the Warden
 Run:  python3 tools/gen_start_zones.py      (deterministic; re-running gives identical files)
 """
 import glob
+import math
 import json
 import os
 import random
@@ -70,7 +71,7 @@ LESSONS = {
 ZONES = {
  "battlemage": dict(
     zone="The Drowned Markets", strata="TIDE", strata2="EMBER", skin="start_tide",
-    layout=(330, 480, 66, 108, "E"), lessons=["GUARD", "WARD", "RITUAL", "PIERCE", "HAND"],
+    layout=(330, 440, -8, 152, 112, False), lessons=["GUARD", "WARD", "RITUAL", "PIERCE", "HAND"],
     theme=r"arcane|spell|glyph|mana|wave|tide|brine|riptide|null|echo|mirror|storm|arc|deep|coral|undertow|scholar|adept|current|flood",
     foes={
      "r1_n01": ("Dockside Duelist Wren", "battlemage",
@@ -112,7 +113,7 @@ ZONES = {
     }),
  "necromancer": dict(
     zone="The Ossuary Veils", strata="HOLLOW", strata2="DAWN", skin="start_hollow",
-    layout=(780, 410, 66, 94, "E"), lessons=["GUARD", "UNEARTH", "VENOM", "SWIFT", "HAND"],
+    layout=(1220, 470, 188, 150, 112, False), lessons=["GUARD", "UNEARTH", "VENOM", "SWIFT", "HAND"],
     theme=r"bone|grave|barrow|lich|ossuary|rot|plague|raise|crypt|marrow|death|soul|ghoul|revenant|thrall|wraith|necro|horde|tithe|unearth|putrid",
     foes={
      "r1_n01": ("Gravedigger Hobb", "necromancer",
@@ -154,7 +155,7 @@ ZONES = {
     }),
  "paladin": dict(
     zone="The Sunspire Marches", strata="DAWN", strata2="VERDANT", skin="start_dawn",
-    layout=(1060, 196, 96, 62, "S"), lessons=["GUARD", "WARD", "ARMOR", "SWIFT", "HAND"],
+    layout=(1190, 300, 172, 150, 112, True), lessons=["GUARD", "WARD", "ARMOR", "SWIFT", "HAND"],
     theme=r"dawn|sun|light|oath|knight|squire|templar|vigil|aegis|shield|bastion|herald|lantern|radiant|holy|gleam|bulwark|paladin|guard|warden|bless",
     foes={
      "r1_n01": ("Squire-Captain Bram", "paladin",
@@ -196,7 +197,7 @@ ZONES = {
     }),
  "druid": dict(
     zone="The Mossgrave Wilds", strata="VERDANT", strata2="HOLLOW", skin="start_verdant",
-    layout=(500, 300, 78, 110, "E"), lessons=["GUARD", "SWIFT", "VENOM", "PIERCE", "HAND"],
+    layout=(330, 330, 7, 152, 112, False), lessons=["GUARD", "SWIFT", "VENOM", "PIERCE", "HAND"],
     theme=r"root|moss|bark|grove|thorn|vine|fern|seed|bloom|wild|wood|leaf|thicket|wolf|stag|elk|hound|badger|treant|sprout|canopy|verdant|heart|pack|bramble|sylvan|forest",
     foes={
      "r1_n01": ("Grove-Keeper Tamsin", "druid",
@@ -238,7 +239,7 @@ ZONES = {
     }),
  "rogue": dict(
     zone="The Duskchapel Undercroft", strata="HOLLOW", strata2="EMBER", skin="start_dusk",
-    layout=(180, 380, 66, 104, "E"), lessons=["GUARD", "SWIFT", "VENOM", "PIERCE", "DODGE"],
+    layout=(330, 470, -11, 150, 110, True), lessons=["GUARD", "SWIFT", "VENOM", "PIERCE", "DODGE"],
     theme=r"shadow|cutpurse|shiv|knife|knives|smoke|venom|alley|fence|quickfinger|pilfer|saboteur|turncoat|nightblade|tripwire|lookout|borrowed|vanish|poison|nightshade|blackout|veil|cutpurse|dust|fang",
     foes={
      "r1_n01": ("Fence-Mother Agathe", "rogue",
@@ -280,7 +281,7 @@ ZONES = {
     }),
  "astrologist": dict(
     zone="The Starfall Heights", strata="TIDE", strata2="DAWN", skin="start_astral",
-    layout=(300, 110, 96, 70, "S"), lessons=["GUARD", "WARD", "RITUAL", "SWIFT", "HAND"],
+    layout=(340, 270, 9, 152, 110, True), lessons=["GUARD", "WARD", "RITUAL", "SWIFT", "HAND"],
     theme=r"star|comet|gravity|eclipse|lunar|orbit|heaven|astral|void|celestial|constellation|falling|moon|oracle|omen|inver|gazer|seer|starborn",
     foes={
      "r1_n01": ("Star-Reader Ulla", "astrologist",
@@ -322,7 +323,7 @@ ZONES = {
     }),
  "warrior": dict(
     zone="The Emberhold Passes", strata="EMBER", strata2="DAWN", skin="start_ember",
-    layout=(300, 235, 72, 112, "E"), lessons=["GUARD", "SWIFT", "PIERCE", "ARMOR", "EXALTED"],
+    layout=(1220, 390, 180, 150, 115, True), lessons=["GUARD", "SWIFT", "PIERCE", "ARMOR", "EXALTED"],
     theme=r"forge|anvil|ember|cinder|flame|fire|blaze|furnace|lava|magma|war|berserk|blood|veteran|champion|titan|raider|scout|vanguard|pike|impaler|duelist|charge|banner|warlord|marshal|cleave|sergeant",
     foes={
      "r1_n01": ("Pit-Master Dunn", "warrior",
@@ -506,13 +507,18 @@ def short_name(name):
 
 
 def layout(spec):
-    x0, y0, a, l, d = spec
+    """FABLE-069: the path spans the whole map plate (Trikzos: the first zones were squeezed into a corner).
+    spec = (start x, start y, heading in degrees, step along the path, step across it, mirror)."""
+    x0, y0, angle, along, across, mirror = spec
     shape = list(SHAPE)
-    if d == "E":    # running sideways, labels are wide: step the Warden and the boss off the line so they don't touch
-        shape[10], shape[11] = (-0.55, 5), (0.7, 5.75)
-    return {n: ([round(x0 + v * l), round(y0 + u * a)] if d == "E" else [round(x0 + u * a), round(y0 + v * l)])
-            for n, (u, v) in zip(NODES, shape)}
-
+    shape[10], shape[11] = (0.05, 5.1), (1.05, 5.85)    # the Warden and the boss step off the line so labels don't touch
+    r = math.radians(angle)
+    dx, dy = math.cos(r), math.sin(r)
+    out = {}
+    for n, (u, v) in zip(NODES, shape):
+        if mirror: u = -u
+        out[n] = [round(x0 + v * along * dx - u * across * dy), round(y0 + v * along * dy + u * across * dx)]
+    return out
 
 def main():
     cards = load_cards()

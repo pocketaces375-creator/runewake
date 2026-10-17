@@ -124,6 +124,8 @@ public partial class DuelScene : Control
     private RulesSlab _rulesSlab = default!;
     /// <summary>FABLE-067: the slab is up because a hand card was tapped (it stays while a lane is chosen).</summary>
     private bool _slabFromTap;
+    /// <summary>FABLE-069: a hand card lifted just to read it (too expensive to play right now), or -1.</summary>
+    private int _inspectHandIndex = -1;
     private bool _rulesSlabVisible;
     private string? _slabCardId;
 
@@ -270,6 +272,8 @@ public partial class DuelScene : Control
                 boardBg.Texture = plateTex;
                 boardBg.StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered;
                 boardBg.Modulate = CardContrast.BoardTint(ThemeTokens.GetSkinTint(skinId));   // FABLE-067
+                if (CardContrast.Style != 0 && boardBg.GetNodeOrNull("BoardVignette") == null)
+                    boardBg.AddChild(CardContrast.Vignette());                                     // FABLE-069
             }
         }
         else
@@ -2037,6 +2041,7 @@ public partial class DuelScene : Control
         var me = _gsm.Me;
         var foe = _gsm.Foe;
         string foeName = _enemyNameLabel != null && !string.IsNullOrEmpty(_enemyNameLabel.Text) ? _enemyNameLabel.Text : _encounterName;
+        if (_isCampaignEncounter && CampaignContext.CurrentEncounter?.ShortName is { Length: > 0 } shortFoe) foeName = shortFoe;   // FABLE-069: fits the plate
         _crescent.SetSide(0, _myHudName, me.Vigor, me.MaxVigor, me.Attunement, me.AttunementMax, me.Deck.Count, me.Barrow.Count, me.Hand.Count);
         _crescent.SetSide(1, foeName, foe.Vigor, foe.MaxVigor, foe.Attunement, foe.AttunementMax, foe.Deck.Count, foe.Barrow.Count, foe.Hand.Count);
         if (!_enemyPortraitSet && !string.IsNullOrEmpty(foe.ArtifactClass))
@@ -3751,21 +3756,30 @@ public partial class DuelScene : Control
             return;
         }
 
-        // A2: Unaffordable check — shake, explicit refusal, no select
+        // FABLE-069: an unaffordable card still lifts and shows its rules (Trikzos: "we should still be able to
+        // click cards we don't have enough attunement for") — it just can't be played, and a quiet note says why.
         int currentAttune = _gsm.GetPlayerHud(0).Attunement;
         if (card.CardCost > currentAttune)
         {
-            GD.Print($"[INPUT] unaffordable {card.CardId} cost={card.CardCost} have={currentAttune}");
-            Deny(DenyPopup.NotEnoughAttunement(card.CardName, card.CardCost, currentAttune));
-            var tween = CreateTween();
-            float origX = card.Position.X;
-            tween.TweenProperty(card, "position:x", origX - 6f, 0.04f).SetEase(Tween.EaseType.InOut);
-            tween.TweenProperty(card, "position:x", origX + 6f, 0.04f).SetEase(Tween.EaseType.InOut);
-            tween.TweenProperty(card, "position:x", origX - 4f, 0.04f).SetEase(Tween.EaseType.InOut);
-            tween.TweenProperty(card, "position:x", origX + 4f, 0.04f).SetEase(Tween.EaseType.InOut);
-            tween.TweenProperty(card, "position:x", origX, 0.04f);
+            GD.Print($"[INPUT] unaffordable {card.CardId} cost={card.CardCost} have={currentAttune} — inspect only");
+            bool same = _inspectHandIndex == card.HandIndex;
+            if (_input.State != InputController.InputState.Idle) _input.CancelSelection();
+            _selectedHandIndex = -1;
+            if (same)
+            {
+                _inspectHandIndex = -1;
+                HideRulesSlab();
+                UpdateSelectionVisuals();
+                return;
+            }
+            _inspectHandIndex = card.HandIndex;
+            UpdatePlayHighlights();
+            UpdateSelectionVisuals();
+            PeekSelected(card);
+            ShowCostNote($"Not enough Attunement — {card.CardName} costs {card.CardCost}, you have {currentAttune}. It refills and grows each turn.");
             return;
         }
+        _inspectHandIndex = -1;
 
         // FABLE-002: field-full pre-check — a creature/relic needs an empty lane of ours.
         {
@@ -3843,6 +3857,38 @@ public partial class DuelScene : Control
         PeekSelected(card);
     }
 
+    private Label? _costNote;
+
+    /// <summary>FABLE-069: a quiet one-line note just above the hand (the big refusal box covered the card being read).</summary>
+    private void ShowCostNote(string text)
+    {
+        var vp = GetViewportRect().Size;
+        float k = vp.Y / 1080f;
+        if (_costNote == null || !IsInstanceValid(_costNote))
+        {
+            _costNote = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore, ZIndex = 120 };
+            _costNote.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+            {
+                BgColor = new Color(0.08f, 0.05f, 0.04f, 0.92f), BorderColor = new Color(0.85f, 0.42f, 0.32f, 0.9f),
+                BorderWidthLeft = 2, BorderWidthTop = 2, BorderWidthRight = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10,
+                ContentMarginLeft = 22, ContentMarginRight = 22, ContentMarginTop = 8, ContentMarginBottom = 8,
+            });
+            ThemeTokens.ApplyBodyFont(_costNote, (int)(26 * k));
+            _costNote.AddThemeColorOverride("font_color", new Color(1f, 0.86f, 0.80f));
+            AddChild(_costNote);
+        }
+        _costNote.Text = text;
+        _costNote.Size = new Vector2(Mathf.Min(vp.X - 80, 1300 * k), 56 * k);
+        _costNote.Position = new Vector2((vp.X - _costNote.Size.X) / 2f, vp.Y - 420 * k);
+        MoveChild(_costNote, GetChildCount() - 1);
+        _costNote.Modulate = Colors.White;
+        _costNote.Visible = true;
+        var tw = _costNote.CreateTween();
+        tw.TweenInterval(2.6);
+        tw.TweenProperty(_costNote, "modulate:a", 0f, 0.5f);
+    }
+
     private void PeekSelected(HandCard card)
     {
         var def = CardRegistry.Get(card.CardId);
@@ -3874,6 +3920,7 @@ public partial class DuelScene : Control
     private void HideRulesSlab()
     {
         _slabFromTap = false;
+        if (_inspectHandIndex >= 0) { _inspectHandIndex = -1; Callable.From(UpdateSelectionVisuals).CallDeferred(); }
         if (_rulesSlabVisible)
         {
             _rulesSlab.Hide();
@@ -4068,6 +4115,9 @@ public partial class DuelScene : Control
         if (selectedId == null) _selectedHandIndex = -1;
 
         HandCard? target = null;
+        if (selectedId == null && _inspectHandIndex >= 0)       // FABLE-069: the card being read stays lifted
+            foreach (var hc in _handCards)
+                if (hc.HandIndex == _inspectHandIndex) { target = hc; break; }
         if (selectedId != null)
         {
             foreach (var hc in _handCards)

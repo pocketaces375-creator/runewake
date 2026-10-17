@@ -76,7 +76,7 @@ public partial class DeckBuilderScene : Control
     private static readonly Color[] StrataColors = { Gold, Gold, StrataVerdant, StrataEmber, StrataTide, StrataHollow, StrataDawn };
 
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
-    private static readonly Color MutedInk = new(0.62f, 0.57f, 0.47f);
+    private static readonly Color MutedInk = new(0.74f, 0.68f, 0.56f);   // FABLE-069: brighter
     private static readonly Color Rule = new(0.79f, 0.66f, 0.30f, 0.22f);
     private const float TopH = 104f;
 
@@ -208,14 +208,40 @@ public partial class DeckBuilderScene : Control
         MouseFilter = MouseFilterEnum.Pass;
         var vp = GetViewportRect().Size;
 
-        var bg = new ColorRect { Color = Color.FromHtml("#0B0A09"), MouseFilter = MouseFilterEnum.Ignore };
+        var bg = new ColorRect { Color = Color.FromHtml("#14100C"), MouseFilter = MouseFilterEnum.Ignore };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
+        // FABLE-069: the forge was one flat black (Trikzos: "too consistently dark"). The class's own painting
+        // glows faintly behind everything, warm light falls from the top, and the panels are lifted stone.
+        string clsArt = $"res://content/art/load/load_{(CampaignContext.ChosenClass ?? "").ToLowerInvariant()}.webp";
+        if (!ResourceLoader.Exists(clsArt)) clsArt = "res://content/art/load/load_main.webp";
+        if (ResourceLoader.Exists(clsArt))
+        {
+            var paint = new TextureRect
+            {
+                Texture = GD.Load<Texture2D>(clsArt), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, Modulate = new Color(0.62f, 0.55f, 0.46f, 0.42f),
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            paint.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(paint);
+        }
+        var warm = new TextureRect
+        {
+            MouseFilter = MouseFilterEnum.Ignore, StretchMode = TextureRect.StretchModeEnum.Scale, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            Texture = new GradientTexture2D
+            {
+                Width = 64, Height = 256, FillFrom = new Vector2(0.5f, 0f), FillTo = new Vector2(0.5f, 1f),
+                Gradient = new Gradient { Offsets = new[] { 0f, 0.45f, 1f }, Colors = new[] { new Color(0.55f, 0.40f, 0.20f, 0.30f), new Color(0.10f, 0.07f, 0.04f, 0.15f), new Color(0, 0, 0, 0.55f) } },
+            },
+        };
+        warm.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(warm);
 
         // ── Top bar ──
         var top = new Control { Position = Vector2.Zero, Size = new Vector2(vp.X, TopH), MouseFilter = MouseFilterEnum.Pass };
         AddChild(top);
-        var topBg = new ColorRect { Color = new Color(0.082f, 0.072f, 0.061f), MouseFilter = MouseFilterEnum.Ignore };
+        var topBg = new ColorRect { Color = new Color(0.17f, 0.13f, 0.085f, 0.96f), MouseFilter = MouseFilterEnum.Ignore };
         topBg.SetAnchorsPreset(LayoutPreset.FullRect);
         top.AddChild(topBg);
         top.AddChild(new ColorRect { Color = Rule, Position = new Vector2(0, TopH - 1), Size = new Vector2(vp.X, 1), MouseFilter = MouseFilterEnum.Ignore });
@@ -299,10 +325,21 @@ public partial class DeckBuilderScene : Control
             {
                 Width = 256, Height = 256, Fill = GradientTexture2D.FillEnum.Radial,
                 FillFrom = new Vector2(0.5f, 0.0f), FillTo = new Vector2(0.5f, 1.05f),
-                Gradient = new Gradient { Offsets = new[] { 0f, 1f }, Colors = new[] { new Color(0.55f, 0.44f, 0.26f, 0.20f), new Color(0, 0, 0, 0) } },
+                Gradient = new Gradient { Offsets = new[] { 0f, 1f }, Colors = new[] { new Color(0.85f, 0.66f, 0.34f, 0.34f), new Color(0, 0, 0, 0) } },
             },
         };
         caseLight.SetAnchorsPreset(LayoutPreset.FullRect);
+        // FABLE-069: the display case is a lighter, warm felt so the dark card frames stand off it
+        var felt = new Panel { MouseFilter = MouseFilterEnum.Ignore };
+        felt.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.25f, 0.19f, 0.12f, 0.62f), BorderColor = new Color(0.86f, 0.70f, 0.36f, 0.45f),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16, CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16,
+        });
+        felt.SetAnchorsPreset(LayoutPreset.FullRect);
+        felt.OffsetTop = 14; felt.OffsetBottom = -6; felt.OffsetLeft = -10; felt.OffsetRight = 10;
+        _leftPanel.AddChild(felt);
         _leftPanel.AddChild(caseLight);
 
         _gridScroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled, VerticalScrollMode = ScrollContainer.ScrollMode.Auto };
@@ -1817,8 +1854,9 @@ public partial class DeckBuilderScene : Control
 
     private static StyleBoxFlat Glass(int margin = 0, Color? border = null) => new()
     {
-        BgColor = new Color(0.082f, 0.072f, 0.061f, 0.90f),
-        BorderColor = border ?? new Color(0.79f, 0.66f, 0.30f, 0.38f),
+        // FABLE-069: lifted stone, not a hole — warmer, lighter, with a brighter gold edge
+        BgColor = new Color(0.135f, 0.105f, 0.075f, 0.94f),
+        BorderColor = border ?? new Color(0.86f, 0.70f, 0.36f, 0.62f),
         BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
         CornerRadiusTopLeft = 18, CornerRadiusTopRight = 18, CornerRadiusBottomLeft = 18, CornerRadiusBottomRight = 18,
         ShadowColor = new Color(0, 0, 0, 0.55f), ShadowSize = 24,

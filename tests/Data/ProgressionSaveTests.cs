@@ -398,7 +398,7 @@ public class SaveRepositoryTests : IDisposable
         TryDeleteFile(_dbPath + "-wal");
         TryDeleteFile(_dbPath + "-shm");
 
-        var loaded = repo.Load();
+        var loaded = LoadDbOnly(repo);
 
         // Auto-repair: fresh default profile, never a crash
         Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
@@ -434,7 +434,7 @@ public class SaveRepositoryTests : IDisposable
         TryDeleteFile(_dbPath + "-wal");
         TryDeleteFile(_dbPath + "-shm");
 
-        var loaded = repo.Load();
+        var loaded = LoadDbOnly(repo);
         Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
         Assert.Empty(loaded.Collection);
         Assert.NotEmpty(repo.RepairLog);
@@ -457,7 +457,7 @@ public class SaveRepositoryTests : IDisposable
             cmd.ExecuteNonQuery();
         }
 
-        var loaded = repo.Load();
+        var loaded = LoadDbOnly(repo);
         Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
         // meta corruption throws in LoadFrom → entire load falls back to fresh
         Assert.Equal(0, loaded.Shards);
@@ -519,7 +519,7 @@ public class SaveRepositoryTests : IDisposable
         repo.Save(SampleState());
 
         // First load — clean, no repairs
-        var loaded1 = repo.Load();
+        var loaded1 = LoadDbOnly(repo);
         Assert.Empty(repo.RepairLog);
 
         // Corrupt the db (garbage + nuke WAL)
@@ -535,7 +535,7 @@ public class SaveRepositoryTests : IDisposable
         TryDeleteFile(_dbPath + "-shm");
 
         // Second load — repaired
-        var loaded2 = repo.Load();
+        var loaded2 = LoadDbOnly(repo);
         Assert.NotEmpty(repo.RepairLog);
 
         // Third load — repairing again writes to the SAME log (no stale entries
@@ -857,7 +857,7 @@ public class SaveRepositoryTests : IDisposable
         TryDeleteFile(_dbPath + "-wal");
         TryDeleteFile(_dbPath + "-shm");
 
-        var loaded = repo.Load();
+        var loaded = LoadDbOnly(repo);
         Assert.Equal(SaveRepository.CurrentSchemaVersion, loaded.Version);
         // Repaired save must come up with empty collection (fresh state)
         Assert.Empty(loaded.Collection);
@@ -983,5 +983,12 @@ public class SaveRepositoryTests : IDisposable
         Assert.NotNull(profile);
         // Missing field should default to "m" via property initializer
         Assert.Equal("m", profile.PortraitVariant);
+    }
+
+    /// <summary>FABLE-069: these tests are about repairing the DATABASE, so take the file save out of the picture.</summary>
+    private static ProgressionState LoadDbOnly(SaveRepository r)
+    {
+        try { File.Delete(r.JsonPath); File.Delete(r.JsonPath + ".bak"); } catch { }
+        return r.Load();
     }
 }

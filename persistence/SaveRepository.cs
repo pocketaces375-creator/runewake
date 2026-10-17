@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Data.Sqlite;
 using Runewake.Engine.Cards;
 using Runewake.Engine.State;
+using Runewake.Engine.Supabase;
 
 namespace Runewake.Persistence;
 
@@ -49,6 +50,95 @@ public sealed class SaveRepository
     public SaveRepository(string dbPath)
     {
         _dbPath = dbPath;
+        _jsonPath = dbPath + ".json";
+        _settingsJsonPath = dbPath + ".settings.json";
+    }
+
+    // ── FABLE-069: the file save ─────────────────────────────────────────────────────────────────────
+    // On the phone SQLite never started: "TypeInitializationException: The type initializer for
+    // Microsoft.Data.Sqlite…" — its native library does not load in the Android build — so no progress
+    // was ever written there. Every save now also goes to a plain JSON file (written whole, then renamed
+    // into place, with the previous one kept as .bak), which needs nothing native. Load takes whichever of
+    // the two is newer; if SQLite cannot start at all, the file is the save.
+
+    private readonly string _jsonPath;
+    private readonly string _settingsJsonPath;
+
+    /// <summary>FABLE-069: SQLite could not start in this process (its native library is missing). The JSON file is the save.</summary>
+    public bool SqliteUnavailable { get; private set; }
+
+    /// <summary>FABLE-069: where the file save lives.</summary>
+    public string JsonPath => _jsonPath;
+
+    private sealed class SaveFile
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("saved_at")] public long SavedAt { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("schema")] public int Schema { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("progression")] public string Progression { get; set; } = "";
+    }
+
+    private static bool IsNativeMissing(Exception? ex)
+    {
+        for (var e = ex; e != null; e = e.InnerException)
+            if (e is TypeInitializationException or DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
+                return true;
+        return false;
+    }
+
+    private void NoteFailure(Exception ex)
+    {
+        if (IsNativeMissing(ex)) SqliteUnavailable = true;
+    }
+
+    /// <summary>Write <paramref name="text"/> to <paramref name="path"/> whole: temp file, previous kept as .bak, rename into place.</summary>
+    private static void WriteAtomic(string path, string text)
+    {
+        string? dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+        string tmp = path + ".tmp";
+        using (var f = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
+        using (var w = new StreamWriter(f))
+        {
+            w.Write(text);
+            w.Flush();
+            f.Flush(true);
+        }
+        if (File.Exists(path)) File.Copy(path, path + ".bak", overwrite: true);
+        File.Move(tmp, path, overwrite: true);
+    }
+
+    private Exception? TryWriteJson(ProgressionState state, long savedAt)
+    {
+        try
+        {
+            var file = new SaveFile { SavedAt = savedAt, Schema = CurrentSchemaVersion, Progression = ProgressionSnapshot.FromState(state).ToJson() };
+            WriteAtomic(_jsonPath, System.Text.Json.JsonSerializer.Serialize(file));
+            return null;
+        }
+        catch (Exception ex) { return ex; }
+    }
+
+    /// <summary>The file save, or null. Falls back to the .bak copy if the main file is unreadable.</summary>
+    private ProgressionState? TryLoadJson(out long savedAt)
+    {
+        savedAt = 0;
+        foreach (var path in new[] { _jsonPath, _jsonPath + ".bak" })
+        {
+            try
+            {
+                if (!File.Exists(path)) continue;
+                var file = System.Text.Json.JsonSerializer.Deserialize<SaveFile>(File.ReadAllText(path));
+                var snap = file == null ? null : ProgressionSnapshot.FromJson(file.Progression);
+                if (snap == null) continue;
+                var state = new ProgressionState { Version = CurrentSchemaVersion };
+                snap.ApplyTo(state);
+                savedAt = file!.SavedAt;
+                if (path != _jsonPath) RepairLog.Add("The file save was unreadable — loaded its previous copy (.bak).");
+                return state;
+            }
+            catch { /* try the next copy */ }
+        }
+        return null;
     }
 
     /// <summary>
@@ -139,6 +229,7 @@ public sealed class SaveRepository
         RepairLog.Clear();
         LastLoadFailed = false;
         Exception? last = null;
+        var fromFile = TryLoadJson(out long fileAt);
         // FABLE-066: a moment of contention (the cloud restore writing, the OS still closing the previous
         // connection) used to count as "no save": a fresh profile came back and the next Save wrote it over
         // the player's file. Try a few times first.
@@ -146,20 +237,39 @@ public sealed class SaveRepository
         {
             try
             {
+                if (SqliteUnavailable) break;
                 using var conn = OpenConnection();
                 EnsureSchema(conn);
-                return LoadFrom(conn, RepairLog);
+                var fromDb = LoadFrom(conn, RepairLog);
+                long dbAt = ReadSavedAt(conn);
+                // FABLE-069: whichever save is newer wins (the file is written first on every save)
+                if (fromFile != null && fileAt > dbAt)
+                {
+                    RepairLog.Add("The file save is newer than the database — loaded the file save.");
+                    return fromFile;
+                }
+                return fromDb;
             }
             catch (Exception ex)
             {
                 last = ex;
+                NoteFailure(ex);
+                if (SqliteUnavailable) break;                           // the native library is missing: retrying won't help
                 if (ex is InvalidOperationException) break;            // a newer save format: retrying won't help
                 System.Threading.Thread.Sleep(120 * (attempt + 1));
             }
         }
+        if (fromFile != null)
+        {
+            RepairLog.Add(SqliteUnavailable ? "SQLite is not available on this device — loaded the file save."
+                                            : $"The database could not be read ({last?.GetType().Name}) — loaded the file save.");
+            return fromFile;
+        }
+        if (last == null || SqliteUnavailable)
+            return new ProgressionState { Version = CurrentSchemaVersion };   // nothing saved yet
         LastLoadFailed = true;
         string kept = KeepUnreadableCopy(_dbPath);
-        RepairLog.Add($"Load failed: {last!.GetType().Name}: {last.Message}. Returning fresh default profile."
+        RepairLog.Add($"Load failed: {last.GetType().Name}: {last.Message}. Returning fresh default profile."
                       + (kept.Length > 0 ? $" The unreadable save was kept as {Path.GetFileName(kept)}." : ""));
         return new ProgressionState { Version = CurrentSchemaVersion };
     }
@@ -194,20 +304,42 @@ public sealed class SaveRepository
             // FABLE-055: a failed save NEVER deletes the file any more. It used to delete-and-retry on any
             // failure, so one awkward value (a relic listed twice) or a moment of contention cost the whole
             // save. Only a file SQLite itself calls corrupt is set aside — renamed, not deleted — and remade.
-            var first = TrySaveInternal(state);
+            // FABLE-069: the file save first — it needs nothing native, so it works where SQLite cannot start
+            long savedAt = DateTime.UtcNow.Ticks;
+            var fileError = TryWriteJson(state, savedAt);
+            if (fileError != null) RepairLog.Add($"File save failed: {Describe(fileError)}.");
+            if (SqliteUnavailable)
+            {
+                LastSaveError = fileError == null ? null : Describe(fileError);
+                return fileError == null;
+            }
+            var first = TrySaveInternal(state, savedAt);
             if (first == null) { LastSaveError = null; return true; }
+            NoteFailure(first);
             if (!IsCorruptFile(first))
             {
-                LastSaveError = Describe(first);
-                RepairLog.Add($"Save failed: {LastSaveError}. The save file was left as it was.");
-                return false;
+                RepairLog.Add($"Database save failed: {Describe(first)}. The database was left as it was.");
+                LastSaveError = fileError == null ? null : Describe(first);
+                return fileError == null;
             }
             RepairLog.Add($"Save file is damaged ({Describe(first)}) — set aside as .damaged and started fresh.");
             SetAside(_dbPath);
-            var second = TrySaveInternal(state);
-            LastSaveError = second == null ? null : Describe(second);
-            return second == null;
+            var second = TrySaveInternal(state, savedAt);
+            LastSaveError = second == null || fileError == null ? null : Describe(second);
+            return second == null || fileError == null;
         }
+    }
+
+    /// <summary>FABLE-069: when the database was last written (0 = before this was recorded).</summary>
+    private static long ReadSavedAt(SqliteConnection conn)
+    {
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT value FROM meta WHERE key = 'saved_at'";
+            return cmd.ExecuteScalar() is string v && long.TryParse(v, out var t) ? t : 0;
+        }
+        catch { return 0; }
     }
 
     private static string Describe(Exception ex) => ex is SqliteException se
@@ -226,13 +358,13 @@ public sealed class SaveRepository
     }
 
     /// <summary>Internal save attempt — does NOT retry. Null on success, else the exception.</summary>
-    private Exception? TrySaveInternal(ProgressionState state)
+    private Exception? TrySaveInternal(ProgressionState state, long savedAt = 0)
     {
         try
         {
             using var conn = OpenConnection();
             EnsureSchema(conn);
-            SaveTo(conn, state);
+            SaveTo(conn, state, savedAt == 0 ? DateTime.UtcNow.Ticks : savedAt);
             return null;
         }
         catch (Exception ex)
@@ -249,7 +381,22 @@ public sealed class SaveRepository
     /// </summary>
     public (bool Success, string? ErrorMessage) TestReadWrite()
     {
-        lock (Gate) return TestReadWriteLocked();
+        lock (Gate)
+        {
+            // FABLE-069: the file save is what must work; SQLite is a second copy when it can start
+            string probe = _jsonPath + ".probe";
+            try
+            {
+                WriteAtomic(probe, "ok");
+                bool fileOk = File.ReadAllText(probe) == "ok";
+                TryDeleteFile(probe); TryDeleteFile(probe + ".bak");
+                if (!fileOk) return (false, "File save: read-back mismatch");
+            }
+            catch (Exception ex) { return (false, $"File save: {ex.GetType().Name}: {ex.Message}"); }
+            var db = TestReadWriteLocked();
+            if (!db.Success) NoteFailure(new Exception(db.ErrorMessage));
+            return db.Success ? (true, null) : (true, $"Saving to file (the database is not available here: {db.ErrorMessage})");
+        }
     }
 
     private (bool Success, string? ErrorMessage) TestReadWriteLocked()
@@ -297,7 +444,13 @@ public sealed class SaveRepository
     /// </summary>
     public void SaveSettings(SettingsState settings)
     {
-        lock (Gate) SaveSettingsLocked(settings);
+        lock (Gate)
+        {
+            try { WriteAtomic(_settingsJsonPath, System.Text.Json.JsonSerializer.Serialize(settings)); } catch { }   // FABLE-069
+            if (SqliteUnavailable) return;
+            try { SaveSettingsLocked(settings); }
+            catch (Exception ex) { NoteFailure(ex); }
+        }
     }
 
     private void SaveSettingsLocked(SettingsState settings)
@@ -332,7 +485,21 @@ public sealed class SaveRepository
     /// </summary>
     public SettingsState LoadSettings()
     {
-        lock (Gate) return LoadSettingsLocked();
+        lock (Gate)
+        {
+            // FABLE-069: the settings file is written on every settings save, so it is never older than the table
+            foreach (var path in new[] { _settingsJsonPath, _settingsJsonPath + ".bak" })
+            {
+                try
+                {
+                    if (!File.Exists(path)) continue;
+                    var s = System.Text.Json.JsonSerializer.Deserialize<SettingsState>(File.ReadAllText(path));
+                    if (s != null) { s.CardStyle = Math.Clamp(s.CardStyle, 0, 3); return s; }
+                }
+                catch { }
+            }
+            return LoadSettingsLocked();
+        }
     }
 
     private SettingsState LoadSettingsLocked()
@@ -693,13 +860,14 @@ public sealed class SaveRepository
         return state;
     }
 
-    private static void SaveTo(SqliteConnection conn, ProgressionState state)
+    private static void SaveTo(SqliteConnection conn, ProgressionState state, long savedAt)
     {
         using var tx = conn.BeginTransaction();
         try
         {
             using (var cmd = conn.CreateCommand()) { cmd.CommandText = "DELETE FROM meta"; cmd.ExecuteNonQuery(); }
             InsertMeta(conn, "version", CurrentSchemaVersion.ToString());
+            InsertMeta(conn, "saved_at", savedAt.ToString());   // FABLE-069: compared with the file save on load
             InsertMeta(conn, "shards", state.Shards.ToString());
             InsertMeta(conn, "dig_charges", state.DigCharges.ToString());
             InsertMeta(conn, "tutorial_done", state.HasCompletedTutorial ? "1" : "0");

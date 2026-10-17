@@ -63,6 +63,7 @@ public partial class RulesSlab : Control
     /// displayed next to what's telling you about what it does").</summary>
     private TextureRect _art = default!;
     private Panel _artFrame = default!;
+    private CardPlate _plate = default!;
 
     public string KeywordRemindersText => _keywordsLabel?.Text ?? "";
 
@@ -127,6 +128,10 @@ public partial class RulesSlab : Control
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
         };
         AddChild(_art);
+        // FABLE-069: a real card face (baked art + live cost / Strength / Vigor numerals) — the bare
+        // baked picture showed empty shields
+        _plate = new CardPlate { Name = "RulesSlabPlate", Visible = false };
+        AddChild(_plate);
         _artFrame = new Panel { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
         AddChild(_artFrame);
 
@@ -344,13 +349,21 @@ public partial class RulesSlab : Control
         Position = new Vector2(slabX, slabY);
         Size = new Vector2(slabW, slabH);
         CustomMinimumSize = new Vector2(slabW, slabH);
-        _art.Visible = withArt; _artFrame.Visible = withArt;
+        _art.Visible = withArt; _artFrame.Visible = withArt; _plate.Visible = false;
         if (withArt)
         {
             // children are placed relative to the slab: the art hangs off its left side
             _art.Texture = artTex;
             _art.Position = new Vector2(-artW - gap, 0);
             _art.Size = new Vector2(artW, artH);
+            bool plate = card.Type != CardType.ARTIFACT && ResourceLoader.Exists($"res://content/art/cards_baked/{card.Id}.webp");
+            _plate.Visible = plate;
+            _art.Visible = !plate;
+            if (plate)
+            {
+                _plate.Setup(card.Id, card.Attack, card.Vigor, artW, artH, card.Cost);
+                _plate.Position = _art.Position;
+            }
             _artFrame.Position = _art.Position - new Vector2(3, 3);
             _artFrame.Size = _art.Size + new Vector2(6, 6);
             _artFrame.AddThemeStyleboxOverride("panel", new StyleBoxFlat

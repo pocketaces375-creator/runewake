@@ -206,7 +206,7 @@ public partial class RewardsScene : Control
         Text(panel, "TODAY'S MATCHES", 44, 22, 600, 24, ThemeTokens.GetHeaderFont(24), new Color(0.80f, 0.72f, 0.54f));
         Text(panel, $"{p.Daily.MatchesToday} played  ·  {p.Daily.WinsToday} won today", 44, 48, 700, 34,
             ThemeTokens.GetCardNameFont(34), Parchment);
-        var any = Text(panel, "Any duel counts — campaign, Duel Arena or online.", size.X - 744, 22, 700, 22, ThemeTokens.GetBodyFont(22), Muted);
+        var any = Text(panel, "Any duel counts — campaign or online.", size.X - 744, 22, 700, 22, ThemeTokens.GetBodyFont(22), Muted);
         any.HorizontalAlignment = HorizontalAlignment.Right;
 
         float rowY = 100f, rowH = (size.Y - rowY - 18) / DailyRewards.MatchTiers.Count;

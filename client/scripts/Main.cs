@@ -338,12 +338,7 @@ public partial class Main : Control
         };
         buttonRow.AddChild(reliquaryButton);
 
-        var arenaButton = Quiet("Duel Arena");
-        arenaButton.Pressed += () => {
-            GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-            LoadScreen.Go(GetTree(), "res://scenes/arena/ArenaScene.tscn");
-        };
-        buttonRow.AddChild(arenaButton);
+        // FABLE-069: the Duel Arena is off the menu (Trikzos: "we don't need the duel arena")
 
         // FABLE-038: play with friends — a PvP duel or a co-op fight over the cloud.
         var onlineButton = Quiet("Play Online");
@@ -389,7 +384,7 @@ public partial class Main : Control
         MenuButtons.RevealStagger(new Control[]
         {
             subtitle, decksButton, reliquaryButton,
-            settingsButton, arenaButton, newAccountBtn,
+            settingsButton, newAccountBtn,
         });
 
         // Rune Page button (hidden — accessible from Decks/Settings screens)
@@ -1558,7 +1553,8 @@ public partial class Main : Control
             string className = char.ToUpper(classId[0]) + classId.Substring(1);
             // The real region name ("The Fallow Reach"), not "Region 1".
             string region;
-            try { region = CampaignRun.LoadCurrentRegion()?.Name ?? CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot); }
+            // FABLE-069: dressed for this campaign's class (its own starting zone), even before a class is "chosen" this session
+            try { var r = CampaignRun.LoadCurrentRegion(); region = (r == null ? null : CampaignContext.StartZones.Apply(r, classId).Name) ?? CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot); }
             catch { region = CampaignContext.GetSlotRegion(CampaignContext.ActiveProfileSlot); }
             Line("Continue", 44, ThemeTokens.GetButtonFont(44), Color.FromHtml("#F2DFA6"));
             Line($"{className}  ·  {region}", 24, ThemeTokens.GetBodyFont(24), new Color(0.86f, 0.80f, 0.66f));

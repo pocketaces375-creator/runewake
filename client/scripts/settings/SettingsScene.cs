@@ -594,6 +594,7 @@ public partial class SettingsScene : Control
             $"Last saved: {(sm.LastSavedAt is System.DateTime t ? t.ToString("HH:mm:ss") : "not this session")}"
                 + (sm.IsFunctional ? "" : $" · PROBLEM: {sm.LastError}"),
             sm.LastLoadFailed ? "⚠ The save could not be read at launch — a copy was kept. Tell Fable." : "Save file read fine at launch.",
+            sm.SavingToFileOnly ? "Storage: save file (the database can't start on this phone — the file holds everything)." : "Storage: save file + database.",
             sync == null || !sync.IsConfigured ? "Cloud: accounts are off in this build — progress lives on this phone only."
                 : $"Cloud: {sync.Status} · {(sync.IsLinked ? "signed in" : "GUEST — sign in to keep progress if the app is reinstalled")} · last check: {sync.LastDecision}",
             "",

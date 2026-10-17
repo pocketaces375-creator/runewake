@@ -11,9 +11,11 @@ namespace Runewake.Client;
 /// FABLE-061: the Card Packs page. Buy (Google Play), see exactly what a pack holds (Google Play requires
 /// the odds of random items to be shown before purchase), and open the packs you own.
 ///
-///   ┌ 1 Pack  $0.25 ┬ 5 Packs  $0.99 ┬ Your packs: N  [Open a Pack]       ┐
-///   │  [Buy]        │  [Buy]         │ WHAT'S INSIDE · WHICH CARDS         │
-///   └ ◀ Back                    status line                               ┘
+/// FABLE-069 (Trikzos: "reskin this to have the drachma flipped over a cliff … this is the screen to do
+/// that … thematic and epic, Greek/Nordic"): the page IS the cliff. A pack is a drachma. Your drachmae rest
+/// on the edge beside a broken portico and a rune stone; swipe the coin (or tap it) and it flies out over
+/// the deep — the rite picks up mid-flight and the runes rise with your cards. The offers stand over the
+/// chasm as carved stelae, and a third stele tells what the deep returns (the odds).
 /// </summary>
 public partial class PackShopScene : Control
 {
@@ -21,48 +23,52 @@ public partial class PackShopScene : Control
 
     private static readonly Color Gold = ThemeTokens.Gold;
     private static readonly Color Parchment = new(0.91f, 0.86f, 0.78f);
-    private static readonly Color Muted = new(0.62f, 0.57f, 0.47f);
+    private static readonly Color Muted = new(0.70f, 0.66f, 0.58f);
     private static readonly Color Kicker = new(0.80f, 0.72f, 0.54f);
+    private static readonly Color Silver = new(0.80f, 0.86f, 0.96f);
 
     private Control _content = null!;
     private Label _status = null!;
     private float _statusFade;
     private Control? _opening;
+    private float _s = 1f;
+    private Vector2 _vp;
+    private DrachmaRite.Drachma? _coin;
+    private Tween? _coinBob;
+    private Vector2 _pressAt;
+    private bool _pressing;
 
     public override void _Ready() => SceneGuard.Build(this, "PackShopScene", Build, "res://scenes/main/Main.tscn", "Back to title");
 
     private void Build()
     {
         if (!CampaignContext.SaveManager.IsLoaded) CampaignContext.SaveManager.Initialize();
-        var vp = GetViewportRect().Size;
-        var bg = new ColorRect { Color = new Color(0.05f, 0.045f, 0.035f) };
-        bg.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(bg);
-        var glow = new TextureRect
-        {
-            Texture = new GradientTexture2D
-            {
-                Gradient = Grad(new Color(0.62f, 0.45f, 0.95f, 0.20f), new Color(0.62f, 0.45f, 0.95f, 0f)),
-                Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.3f, 0.35f), FillTo = new Vector2(0.3f, 1f), Width = 64, Height = 64,
-            },
-            StretchMode = TextureRect.StretchModeEnum.Scale, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, MouseFilter = MouseFilterEnum.Ignore,
-        };
-        glow.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(glow);
+        _vp = GetViewportRect().Size;
+        _s = _vp.Y / 1080f;
+        MouseFilter = MouseFilterEnum.Stop;
 
-        var kicker = Lbl(this, "SEALED IN THE OLD AGE", 0, 22, vp.X, 26, ThemeTokens.GetHeaderFont(26), new Color(0.75f, 0.68f, 0.52f), true);
-        var title = Lbl(this, "Card Packs", 0, 52, vp.X, 80, ThemeTokens.GetCardNameFont(80), Gold, true);
+        AddChild(new DrachmaRite.Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore, MoonAt = new Vector2(0.06f, 0.115f) });
+        AddChild(new Meander { Position = Vector2.Zero, Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
+        AddChild(new Meander { Position = new Vector2(0, _vp.Y - 30 * _s), Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
+
+        var kicker = Lbl(this, "CARD PACKS  ·  AN OFFERING TO THE DEEP", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
+        var title = Lbl(this, "The Drachma Cliff", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
+        Outline(kicker); Outline(title);
 
         _content = new Control { MouseFilter = MouseFilterEnum.Ignore };
         _content.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(_content);
 
-        var back = Plate("◀  Back", false, 300, 80);
-        back.Position = new Vector2(120, vp.Y - 104);
+        var back = Plate("◀  Back", false, 260 * _s, 76 * _s);
+        back.Position = new Vector2(36 * _s, _vp.Y - 120 * _s);
         back.Pressed += GoBack;
         AddChild(back);
-        _status = Lbl(this, "", vp.X / 2 - 700, vp.Y - 96, 1400, 30, ThemeTokens.GetBodyFont(30), Gold, true);
+        _status = Lbl(this, "", _vp.X * 0.36f, _vp.Y - 112 * _s, _vp.X * 0.62f, (int)(28 * _s), ThemeTokens.GetBodyFont((int)(28 * _s)), Gold, true);
+        Outline(_status);
 
+        if (CardRegistry.GetAll().Count == 0)
+            foreach (var set in new[] { "verdant", "ember", "tide", "hollow", "dawn" })
+                CardRegistry.RegisterRange(CardLoader.LoadPackFromString(Godot.FileAccess.GetFileAsString($"res://content/cards/{set}.json")));
         PackStore.Init();
         PackStore.Changed += OnChanged;
         PackStore.Notice += Say;
@@ -112,9 +118,38 @@ public partial class PackShopScene : Control
     private void OnArrived(List<PendingPack> packs)
     {
         if (!IsInsideTree()) return;
+        if (packs.Count == 0) { Render(); return; }
         GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
-        Say($"{packs.Count} pack{(packs.Count == 1 ? "" : "s")} added — tap Open a Pack!");
+        Say(packs.Count == 1 ? "A drachma is yours — flick it into the deep!" : $"{packs.Count} drachmae are yours — flick one into the deep!");
         Render();
+    }
+
+    // ── the flick, on the page itself ────────────────────────────────────
+
+    public override void _GuiInput(InputEvent e)
+    {
+        if (_opening != null || _coin == null) return;
+        Vector2? pos = e switch
+        {
+            InputEventScreenTouch t => t.Position,
+            InputEventMouseButton m when m.ButtonIndex == MouseButton.Left => m.Position,
+            _ => null,
+        };
+        if (pos is not Vector2 p) return;
+        bool down = e is InputEventScreenTouch td ? td.Pressed : e is InputEventMouseButton md && md.Pressed;
+        bool nearCoin = (p - _coin.Position).Length() < 170f * _s;
+        if (down) { _pressing = nearCoin; _pressAt = p; return; }
+        if (!_pressing) return;
+        _pressing = false;
+        var swipe = p - _pressAt;
+        if (CampaignContext.Progression.PendingPacks.Count == 0)
+        {
+            Say("You hold no drachmae yet — take one from a stele to make an offering.");
+            return;
+        }
+        Click();
+        OpenNext(swipe.Length() > 60f * _s ? swipe.Normalized() : new Vector2(0.6f, -0.8f), Mathf.Clamp(swipe.Length() / (500f * _s), 0.6f, 1.4f));
+        AcceptEvent();
     }
 
     // ── the page ─────────────────────────────────────────────────────────
@@ -122,135 +157,134 @@ public partial class PackShopScene : Control
     private void Render()
     {
         foreach (var c in _content.GetChildren()) c.QueueFree();
-        var vp = GetViewportRect().Size;
-        const float top = 168f, left = 120f, gap = 28f;
-        float h = vp.Y - 150 - top;
-        float offerW = 520f;
+        _coinBob?.Kill();
         var why = PackStore.CannotBuyReason();
-        for (int i = 0; i < Packs.Products.Count; i++)
-            BuildOffer(Packs.Products[i], new Vector2(left + i * (offerW + gap), top), new Vector2(offerW, h), why, i == 1);
-        float rx = left + 2 * (offerW + gap);
-        BuildYours(new Vector2(rx, top), new Vector2(vp.X - left - rx, h), why);
+        int n = CampaignContext.Progression.PendingPacks.Count;
+
+        // your drachmae, on the cliff
+        float px = _vp.X * 0.015f, pw = _vp.X * 0.31f;
+        Outline(Lbl(_content, "YOUR DRACHMAE", px, _vp.Y * 0.205f, pw, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true));
+        Outline(Lbl(_content, n == 0 ? "None yet" : $"× {n}", px, _vp.Y * 0.245f, pw, (int)(64 * _s), ThemeTokens.GetCardNameFont((int)(64 * _s)), n > 0 ? Gold : Parchment, true));
+        _coin = new DrachmaRite.Drachma { Radius = 58f * _s, Position = DrachmaRite.CoinSpot(_vp), MouseFilter = MouseFilterEnum.Ignore };
+        _coin.Modulate = n > 0 ? Colors.White : new Color(1, 1, 1, 0.28f);
+        _content.AddChild(_coin);
+        if (n > 1)   // the rest of the purse, stacked behind
+            for (int i = 1; i < Math.Min(n, 4); i++)
+            {
+                var spare = new DrachmaRite.Drachma { Radius = 40f * _s, Position = _coin.Position + new Vector2(-70f * _s - i * 18f * _s, 30f * _s - i * 6f * _s), Modulate = new Color(0.85f, 0.85f, 0.85f), MouseFilter = MouseFilterEnum.Ignore };
+                spare.Spin = 0.9f + i * 0.4f;
+                _content.AddChild(spare);
+                _content.MoveChild(spare, _coin.GetIndex());
+            }
+        _coinBob = _coin.CreateTween().SetLoops();
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
+        var hint = Lbl(_content, n > 0 ? "Flick a drachma into the deep" : "Take a drachma from a stele", _vp.X * 0.0f, _vp.Y * 0.775f, _vp.X * 0.34f,
+            (int)(32 * _s), ThemeTokens.GetHeaderFont((int)(32 * _s)), Gold, true);
+        Outline(hint);
+        Outline(Lbl(_content, n > 0 ? "swipe the coin — or tap it" : "then flick it from the edge", 0, _vp.Y * 0.775f + 44 * _s, _vp.X * 0.34f,
+            (int)(24 * _s), ThemeTokens.GetBodyFont((int)(24 * _s)), Kicker, true));
+        if (n > 0)
+        {
+            var pulse = hint.CreateTween().SetLoops();
+            pulse.TweenProperty(hint, "modulate:a", 0.45f, 0.8f).SetTrans(Tween.TransitionType.Sine);
+            pulse.TweenProperty(hint, "modulate:a", 1f, 0.8f).SetTrans(Tween.TransitionType.Sine);
+        }
+
+        // the offers and the odds, standing over the chasm
+        float top = _vp.Y * 0.205f, h = _vp.Y * 0.56f;
+        float x = _vp.X * 0.375f, w = _vp.X * 0.17f, gap = _vp.X * 0.02f;
+        for (int i = 0; i < Packs.Products.Count && i < 2; i++)
+            BuildOffer(Packs.Products[i], new Vector2(x + i * (w + gap), top), new Vector2(w, h), why, i == 1);
+        float ox = x + 2 * (w + gap);
+        BuildOdds(new Vector2(ox, top), new Vector2(_vp.X - ox - _vp.X * 0.015f, h));
+        if (why != null)
+        {
+            var l = Para(_content, why, x, top + h + 16 * _s, _vp.X - x - _vp.X * 0.015f, 64 * _s, (int)(24 * _s), new Color(0.95f, 0.78f, 0.52f), true);
+            Outline(l);
+        }
     }
 
     private void BuildOffer(PackProduct p, Vector2 pos, Vector2 size, string? why, bool bestValue)
     {
-        var panel = Glass(pos, size);
-        _content.AddChild(panel);
+        var stele = new Stele { Position = pos, Size = size, MouseFilter = MouseFilterEnum.Pass, Accent = bestValue ? new Color(0.98f, 0.80f, 0.35f) : new Color(0.80f, 0.70f, 0.48f) };
+        _content.AddChild(stele);
+        float pedH = size.X * 0.30f;
+        // the coins this buys, in the pediment
+        int shown = Math.Min(p.Packs, 5);
+        float cr = (p.Packs == 1 ? 36f : 26f) * _s;
+        for (int i = 0; i < shown; i++)
+        {
+            var c = new DrachmaRite.Drachma { Radius = cr, MouseFilter = MouseFilterEnum.Ignore };
+            float spread = (shown - 1) * cr * 0.9f;
+            c.Position = new Vector2(size.X / 2 - spread / 2 + i * cr * 0.9f, pedH * 0.70f + Math.Abs(i - (shown - 1) / 2f) * 4f * _s);
+            c.Spin = i % 2 == 0 ? 0f : 0.35f;
+            stele.AddChild(c);
+        }
         if (bestValue)
         {
-            var tag = new Panel { Position = new Vector2(size.X - 190, -18), Size = new Vector2(170, 40), MouseFilter = MouseFilterEnum.Ignore };
-            tag.AddThemeStyleboxOverride("panel", Rounded(new Color(0.62f, 0.45f, 0.95f), 20));
-            panel.AddChild(tag);
-            Lbl(tag, "BEST VALUE", 0, 2, 170, 22, ThemeTokens.GetHeaderFont(22), new Color(0.12f, 0.08f, 0.2f), true);
+            var tag = new Panel { Position = new Vector2(size.X / 2 - 95 * _s, -20 * _s), Size = new Vector2(190 * _s, 40 * _s), MouseFilter = MouseFilterEnum.Ignore };
+            tag.AddThemeStyleboxOverride("panel", Rounded(new Color(0.62f, 0.13f, 0.12f), (int)(8 * _s), new Color(0.98f, 0.80f, 0.35f)));
+            stele.AddChild(tag);
+            Lbl(tag, "BEST VALUE", 0, 0, 190 * _s, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), new Color(1f, 0.90f, 0.70f), true);
         }
-        panel.AddChild(PackArt(new Vector2(size.X / 2, 210), p.Packs));
-        Lbl(panel, p.Packs == 1 ? "1 Pack" : $"{p.Packs} Packs", 0, 380, size.X, 46, ThemeTokens.GetCardNameFont(46), Gold, true);
-        Lbl(panel, $"{p.Packs * Packs.CardsPerPack} cards  ·  {p.Packs} guaranteed Rare{(p.Packs == 1 ? "" : "s")}", 0, 440, size.X, 26,
-            ThemeTokens.GetBodyFont(26), Parchment, true);
-        string label = PackStore.PreviewMode ? $"Get (preview)" : $"Buy  {PackStore.PriceOf(p)}";
-        var buy = Plate(label, why == null, size.X - 100, 92);
-        buy.Position = new Vector2(50, size.Y - 92 - 34);
+        float y = pedH + 22 * _s;
+        Lbl(stele, p.Packs == 1 ? "1 Drachma" : $"{p.Packs} Drachmae", 0, y, size.X, (int)(40 * _s), ThemeTokens.GetCardNameFont((int)(40 * _s)), Gold, true);
+        y += 60 * _s;
+        Para(stele, $"{p.Packs * Packs.CardsPerPack} cards\n{p.Packs} Rare{(p.Packs == 1 ? "" : "s")} guaranteed", 12 * _s, y, size.X - 24 * _s, 70 * _s, (int)(24 * _s), Parchment, true);
+        y += 82 * _s;
+        Lbl(stele, PackStore.PreviewMode ? "free (preview)" : PackStore.PriceOf(p), 0, y, size.X, (int)(38 * _s), ThemeTokens.GetCardNameFont((int)(38 * _s)), Silver, true);
+        string label = PackStore.PreviewMode ? "Take it" : $"Buy  {PackStore.PriceOf(p)}";
+        var buy = Plate(label, why == null, size.X - 40 * _s, 78 * _s);
+        buy.Position = new Vector2(20 * _s, size.Y - 78 * _s - 24 * _s);
         buy.Disabled = why != null;
         buy.Name = "Buy_" + p.Id;
         var id = p.Id;
         buy.Pressed += () => { Click(); PackStore.Buy(id); };
-        panel.AddChild(buy);
-        if (!PackStore.PreviewMode)
-            Lbl(panel, PackStore.PriceOf(p), 0, 488, size.X, 34, ThemeTokens.GetCardNameFont(34), new Color(0.80f, 0.70f, 1f), true);
+        stele.AddChild(buy);
     }
 
-    private void BuildYours(Vector2 pos, Vector2 size, string? why)
+    private void BuildOdds(Vector2 pos, Vector2 size)
     {
-        var panel = Glass(pos, size);
-        _content.AddChild(panel);
-        var prog = CampaignContext.Progression;
-        int n = prog.PendingPacks.Count;
-        Lbl(panel, "YOUR PACKS", 44, 24, 500, 24, ThemeTokens.GetHeaderFont(24), Kicker);
-        Lbl(panel, n == 0 ? "No unopened packs" : $"{n} unopened pack{(n == 1 ? "" : "s")}", 44, 54, size.X - 88 - 360, 42,
-            ThemeTokens.GetCardNameFont(42), n > 0 ? Gold : Parchment);
-        var open = Plate(n > 0 ? "Open a Pack" : "Open a Pack", n > 0, 320, 84);
-        open.Position = new Vector2(size.X - 364, 34);
-        open.Disabled = n == 0;
-        open.Name = "OpenPack";
-        open.Pressed += () => { Click(); OpenNext(); };
-        panel.AddChild(open);
-        if (n > 0) Pulse(open);
-
-        var rule = new Panel { Position = new Vector2(44, 146), Size = new Vector2(size.X - 88, 2), MouseFilter = MouseFilterEnum.Ignore };
-        rule.AddThemeStyleboxOverride("panel", Rounded(new Color(0.79f, 0.66f, 0.30f, 0.25f), 1));
-        panel.AddChild(rule);
-
+        var stele = new Stele { Position = pos, Size = size, MouseFilter = MouseFilterEnum.Pass, Accent = new Color(0.55f, 0.85f, 0.95f), Runic = true };
+        _content.AddChild(stele);
         var st = PackStore.Status;
         double relic = st?.RelicChance ?? Packs.RelicChance;
-        float y = 172;
-        Lbl(panel, "WHAT'S INSIDE EVERY PACK", 44, y, 700, 24, ThemeTokens.GetHeaderFont(24), Kicker); y += 40;
+        float pad = 46 * _s, ped = size.X * 0.30f, y = ped * 0.52f;
+        Lbl(stele, "WHAT THE DEEP", pad, y - 14 * _s, size.X - 2 * pad, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), Kicker, true);
+        Lbl(stele, "RETURNS", pad, y + 14 * _s, size.X - 2 * pad, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), Kicker, true);
+        y = ped + 22 * _s;
         foreach (var (name, odds, col) in new[]
         {
-            ("1 Common", "100%", new Color(0.82f, 0.80f, 0.74f)),
+            ("1 Common", "100%", new Color(0.86f, 0.84f, 0.78f)),
             ("1 Uncommon", "100%", new Color(0.45f, 0.75f, 0.95f)),
             ("1 Rare", $"{Math.Round((1 - relic) * 100)}%", Gold),
-            ("   … or a Relic in its place", $"{Math.Round(relic * 100)}%", new Color(0.80f, 0.62f, 1f)),
+            ("  … or a Relic", $"{Math.Round(relic * 100)}%", new Color(0.80f, 0.62f, 1f)),
         })
         {
-            Lbl(panel, name, 60, y, 600, 30, ThemeTokens.GetCardNameFont(30), col);
-            var o = Lbl(panel, odds, size.X - 244, y, 200, 30, ThemeTokens.GetCardNameFont(30), col);
+            Lbl(stele, name, pad, y, size.X - 2 * pad, (int)(27 * _s), ThemeTokens.GetCardNameFont((int)(27 * _s)), col);
+            var o = Lbl(stele, odds, pad, y, size.X - 2 * pad, (int)(27 * _s), ThemeTokens.GetCardNameFont((int)(27 * _s)), col);
             o.HorizontalAlignment = HorizontalAlignment.Right;
-            y += 44;
+            y += 40 * _s;
         }
-        Lbl(panel, "No card twice in one pack.", 60, y, size.X - 120, 24, ThemeTokens.GetBodyFont(24), Muted); y += 50;
-
-        Lbl(panel, "WHICH CARDS", 44, y, 700, 24, ThemeTokens.GetHeaderFont(24), Kicker); y += 38;
-        Para(panel, "Packs only hold older cards: a card joins packs 90 days after it is first discovered on the map. " +
-                    "Cards from the Tower never come from packs, and neither do Lost Relics.",
-            60, y, size.X - 120, 90, 24, Parchment);
-        y += 100;
+        y += 6 * _s;
+        Para(stele, "Every drachma returns three cards — never the same card twice.", pad, y, size.X - 2 * pad, 60 * _s, (int)(21 * _s), Muted);
+        y += 66 * _s;
+        Para(stele, "Only older cards rise: a card joins 90 days after it is first found on the map. Tower cards and Lost Relics never do.",
+            pad, y, size.X - 2 * pad, 100 * _s, (int)(21 * _s), Muted);
+        y += 104 * _s;
         string pool = st == null
-            ? (PackStore.PreviewMode ? "Preview build: packs are rolled from every card, free, for testing." : "Connecting to the shop…")
-            : $"In packs now: {st.Total} cards ({st.Commons} Common · {st.Uncommons} Uncommon · {st.Rares} Rare · {st.Relics} Relic)" +
-              (st.Waiting > 0 && st.NextCardAt is DateTimeOffset at ? $"\n{st.Waiting} more on their way — the next joins on {at.ToLocalTime():MMMM d}." : "");
-        Para(panel, pool, 60, y, size.X - 120, 80, 24, Muted);
-
-        if (why != null)
-        {
-            Para(panel, why, 44, size.Y - 80, size.X - 88, 70, 26, new Color(0.92f, 0.70f, 0.45f), true);
-        }
-    }
-
-    /// <summary>A sealed pack drawn from panels: foil body, wax seal, the number of packs.</summary>
-    private static Control PackArt(Vector2 center, int count)
-    {
-        var root = new Control { Position = center - new Vector2(150, 150), Size = new Vector2(300, 300), MouseFilter = MouseFilterEnum.Ignore };
-        int shown = Math.Min(count, 3);
-        for (int i = shown - 1; i >= 0; i--)
-        {
-            var pack = new Panel { Position = new Vector2(70 + i * 26 - (shown - 1) * 13, 10 + i * 8), Size = new Vector2(160, 240), MouseFilter = MouseFilterEnum.Ignore };
-            pack.RotationDegrees = (i - (shown - 1) / 2f) * 6;
-            pack.PivotOffset = new Vector2(80, 240);
-            var sb = new StyleBoxFlat
-            {
-                BgColor = new Color(0.22f, 0.15f, 0.36f), BorderColor = ThemeTokens.Gold,
-                BorderWidthLeft = 4, BorderWidthRight = 4, BorderWidthTop = 4, BorderWidthBottom = 4,
-                CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12,
-                ShadowColor = new Color(0.55f, 0.35f, 0.95f, 0.35f), ShadowSize = 18,
-            };
-            pack.AddThemeStyleboxOverride("panel", sb);
-            var band = new Panel { Position = new Vector2(0, 92), Size = new Vector2(160, 56), MouseFilter = MouseFilterEnum.Ignore };
-            band.AddThemeStyleboxOverride("panel", Rounded(new Color(0.79f, 0.66f, 0.30f, 0.85f), 0));
-            pack.AddChild(band);
-            var seal = new Panel { Position = new Vector2(52, 90), Size = new Vector2(56, 60), MouseFilter = MouseFilterEnum.Ignore };
-            seal.AddThemeStyleboxOverride("panel", Rounded(new Color(0.58f, 0.13f, 0.12f), 28));
-            pack.AddChild(seal);
-            Lbl(pack, "R", 52, 96, 56, 34, ThemeTokens.GetCardNameFont(34), new Color(0.95f, 0.82f, 0.6f), true);
-            root.AddChild(pack);
-        }
-        if (count > 3) Lbl(root, $"×{count}", 250, 250, 90, 40, ThemeTokens.GetCardNameFont(40), ThemeTokens.Gold, true);
-        return root;
+            ? (PackStore.PreviewMode ? "Preview build: drachmae are free and draw from every card, for testing." : "Reaching the shop…")
+            : $"In the deep now: {st.Total} cards ({st.Commons} C · {st.Uncommons} U · {st.Rares} R · {st.Relics} Relic)" +
+              (st.Waiting > 0 && st.NextCardAt is DateTimeOffset at ? $" — {st.Waiting} more from {at.ToLocalTime():MMM d}." : "");
+        if (y < size.Y - 40 * _s) Para(stele, pool, pad, y, size.X - 2 * pad, size.Y - y - 16 * _s, (int)(20 * _s), new Color(0.60f, 0.78f, 0.84f));
     }
 
     // ── opening ──────────────────────────────────────────────────────────
 
-    private void OpenNext()
+    private void OpenNext() => OpenNext(null, 1f);
+
+    private void OpenNext(Vector2? flick, float power)
     {
         var prog = CampaignContext.Progression;
         var next = prog.PendingPacks.FirstOrDefault();
@@ -258,15 +292,16 @@ public partial class PackShopScene : Control
         var before = next.Cards.ToDictionary(c => c, c => prog.Collection.TryGetValue(c, out var k) ? k : 0);
         var pack = PackStore.Open(next.Id);
         if (pack == null) return;
-        ShowOpening(pack, before);
+        ShowOpening(pack, before, flick, power);
     }
 
     /// <summary>FABLE-067: the Drachma Rite — flick a coin into the deep, the runes rise with your cards.</summary>
-    private void ShowOpening(PendingPack pack, Dictionary<string, int> ownedBefore)
+    private void ShowOpening(PendingPack pack, Dictionary<string, int> ownedBefore, Vector2? flick = null, float power = 1f)
     {
         _opening?.QueueFree();
         int left = CampaignContext.Progression.PendingPacks.Count;
-        _opening = DrachmaRite.Play(this, pack, ownedBefore, left, onDone: CloseOpening, onNext: left > 0 ? OpenNext : null);
+        if (_coin != null && IsInstanceValid(_coin)) _coin.Visible = false;   // the rite's own coin takes off from the same spot
+        _opening = DrachmaRite.Play(this, pack, ownedBefore, left, onDone: CloseOpening, onNext: left > 0 ? OpenNext : null, flick: flick, power: power);
     }
 
     private static void AddGlow(Control slot, Color col, float w, float h)
@@ -321,10 +356,83 @@ public partial class PackShopScene : Control
         return p;
     }
 
-    private static StyleBoxFlat Rounded(Color c, int r) => new()
+    private static StyleBoxFlat Rounded(Color c, int r, Color? border = null)
     {
-        BgColor = c, CornerRadiusTopLeft = r, CornerRadiusTopRight = r, CornerRadiusBottomLeft = r, CornerRadiusBottomRight = r,
-    };
+        var sb = new StyleBoxFlat { BgColor = c, CornerRadiusTopLeft = r, CornerRadiusTopRight = r, CornerRadiusBottomLeft = r, CornerRadiusBottomRight = r };
+        if (border is Color b) { sb.BorderColor = b; sb.BorderWidthLeft = sb.BorderWidthRight = sb.BorderWidthTop = sb.BorderWidthBottom = 2; }
+        return sb;
+    }
+
+    private static void Outline(Label l)
+    {
+        l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.85f));
+        l.AddThemeConstantOverride("outline_size", 5);
+    }
+
+    /// <summary>FABLE-069: a carved stone stele — a Greek pediment on top, a gold rim, and (Runic) a Norse
+    /// knot-line border with glowing rune ticks. Children are its carved text.</summary>
+    private partial class Stele : Control
+    {
+        public Color Accent = new(0.80f, 0.70f, 0.48f);
+        public bool Runic;
+        public override void _Draw()
+        {
+            float W = Size.X, H = Size.Y, ped = W * 0.30f;
+            var body = new[] { new Vector2(0, ped), new Vector2(W / 2, 0), new Vector2(W, ped), new Vector2(W, H), new Vector2(0, H) };
+            // shadow, stone, a lighter face, the rim
+            DrawColoredPolygon(body.Select(v => v + new Vector2(10, 14)).ToArray(), new Color(0, 0, 0, 0.45f));
+            DrawColoredPolygon(body, new Color(0.11f, 0.10f, 0.12f, 0.96f));
+            var face = new[] { new Vector2(14, ped + 8), new Vector2(W / 2, 16), new Vector2(W - 14, ped + 8), new Vector2(W - 14, H - 14), new Vector2(14, H - 14) };
+            DrawColoredPolygon(face, new Color(0.17f, 0.155f, 0.17f, 0.96f));
+            var rim = body.Append(body[0]).ToArray();
+            DrawPolyline(rim, Accent, 3f, true);
+            DrawPolyline(face.Append(face[0]).ToArray(), new Color(Accent, 0.35f), 1.5f, true);
+            // the cornice line under the pediment
+            DrawLine(new Vector2(0, ped), new Vector2(W, ped), new Color(Accent, 0.8f), 2f, true);
+            if (Runic)
+            {
+                var glow = new Color(Accent, 0.55f);
+                for (float y = ped + 30; y < H - 30; y += 46)
+                {
+                    DrawLine(new Vector2(22, y), new Vector2(22, y + 22), glow, 2f);
+                    DrawLine(new Vector2(22, y + 6), new Vector2(30, y + 14), glow, 2f);
+                    DrawLine(new Vector2(W - 22, y), new Vector2(W - 22, y + 22), glow, 2f);
+                    DrawLine(new Vector2(W - 22, y + 10), new Vector2(W - 30, y + 2), glow, 2f);
+                }
+            }
+            else
+            {
+                // a meander along the foot
+                float step = 10f;
+                for (float x = 24; x + step * 2 < W - 24; x += step * 2)
+                {
+                    float y0 = H - 40;
+                    DrawPolyline(new[] { new Vector2(x, y0 + step), new Vector2(x, y0), new Vector2(x + step, y0), new Vector2(x + step, y0 + step * 0.6f), new Vector2(x + step * 0.5f, y0 + step * 0.6f) }, new Color(Accent, 0.45f), 1.5f);
+                }
+            }
+        }
+    }
+
+    /// <summary>FABLE-069: a gold Greek key frieze — the page's top and bottom edge.</summary>
+    private partial class Meander : Control
+    {
+        public override void _Draw()
+        {
+            float H = Size.Y, W = Size.X, u = H / 5f;
+            DrawRect(new Rect2(0, 0, W, H), new Color(0.06f, 0.045f, 0.03f, 0.92f));
+            var gold = new Color(0.86f, 0.70f, 0.36f, 0.85f);
+            DrawLine(new Vector2(0, u * 0.5f), new Vector2(W, u * 0.5f), gold, 2f);
+            DrawLine(new Vector2(0, H - u * 0.5f), new Vector2(W, H - u * 0.5f), gold, 2f);
+            for (float x = 0; x < W; x += u * 4)
+            {
+                DrawPolyline(new[]
+                {
+                    new Vector2(x, H - u * 1.2f), new Vector2(x, u * 1.2f), new Vector2(x + u * 3, u * 1.2f), new Vector2(x + u * 3, H - u * 1.8f),
+                    new Vector2(x + u * 1.2f, H - u * 1.8f), new Vector2(x + u * 1.2f, u * 2.2f), new Vector2(x + u * 2, u * 2.2f),
+                }, gold, 2f);
+            }
+        }
+    }
 
     private static Label Para(Control parent, string text, float x, float y, float w, float h, int size, Color colour, bool center = false)
     {
