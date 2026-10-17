@@ -39,6 +39,12 @@ public class SaveManager
     /// </summary>
     public IReadOnlyList<string> RepairLog => _repository.RepairLog;
 
+    /// <summary>FABLE-066: the last load could not read an existing save (a copy of it was kept).</summary>
+    public bool LastLoadFailed => _repository.LastLoadFailed;
+
+    /// <summary>FABLE-066: when the last successful save happened (Settings → Save check).</summary>
+    public System.DateTime? LastSavedAt { get; private set; }
+
     /// <summary>True if the most recent load performed any repair or migration.</summary>
     public bool WasRepaired => _repository.RepairLog.Count > 0;
 
@@ -160,6 +166,7 @@ public class SaveManager
         {
             // FABLE-055: one failed save no longer marks the whole session unsaveable
             if (!IsFunctional) { IsFunctional = true; LastError = null; SaveProblem?.Invoke(null); }
+            LastSavedAt = System.DateTime.Now;
             // FABLE-018: every local save is a candidate for the cloud. The
             // SyncManager coalesces bursts and pushes once things go quiet.
             // Best-effort, never throws, no-op when accounts are off.

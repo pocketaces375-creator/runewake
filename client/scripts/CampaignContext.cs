@@ -375,12 +375,8 @@ public static class CampaignContext
             {
                 var data = new ProfilesData { Profiles = Profiles, Active = Math.Max(0, ActiveProfileSlot) };
                 string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                using var file = Godot.FileAccess.Open(ProfilesPathV2, Godot.FileAccess.ModeFlags.Write);
-                if (file != null)
-                {
-                    file.StoreString(json);
+                if (WriteTextAtomic(ProfilesPathV2, json))
                     GD.Print($"[CampaignContext] {Profiles.Count} profiles saved");
-                }
                 else
                     GD.PrintErr("[CampaignContext] Failed to save profiles");
             }
@@ -388,6 +384,46 @@ public static class CampaignContext
             {
                 GD.PrintErr($"[CampaignContext] Save profiles failed: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// FABLE-066: write a small user:// file so a crash or a kill mid-write can't leave it half written (the
+        /// campaign list and the deck library were written in place: a cut-off write was an unreadable file,
+        /// which loads as "no campaigns"). Write a temp file, then swap it in.
+        /// </summary>
+        public static bool WriteTextAtomic(string userPath, string text)
+        {
+            string tmp = userPath + ".tmp";
+            using (var f = Godot.FileAccess.Open(tmp, Godot.FileAccess.ModeFlags.Write))
+            {
+                if (f == null) return false;
+                f.StoreString(text);
+                f.Flush();
+            }
+            string abs = ProjectSettings.GlobalizePath(userPath), absTmp = ProjectSettings.GlobalizePath(tmp);
+            try { System.IO.File.Move(absTmp, abs, overwrite: true); return true; }
+            catch (System.Exception ex)
+            {
+                GD.PrintErr($"[CampaignContext] atomic swap failed for {userPath}: {ex.Message} — writing in place");
+                using var f = Godot.FileAccess.Open(userPath, Godot.FileAccess.ModeFlags.Write);
+                if (f == null) return false;
+                f.StoreString(text);
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// FABLE-066: the campaign list (and the deck library) were just replaced on disk — a cloud restore.
+        /// Read them again and reopen the active campaign's save. Before this the title reloaded with the
+        /// campaign list from BEFORE the restore (it is only read once per launch): a fresh install showed
+        /// "New Campaign" over a restored save, and starting one wrote over the restored campaign.
+        /// </summary>
+        public static void ReloadProfilesFromDisk()
+        {
+            _profilesLoaded = false;
+            LoadCampaignProfile();
+            LoadDeckLibrary();
+            GD.Print($"[CampaignContext] profiles reloaded after restore: {Profiles.Count} campaign(s), active {ActiveProfileSlot}");
         }
 
         // ═══ FABLE-047: stable save files per campaign ═══════════════════════════
@@ -750,12 +786,10 @@ public static class CampaignContext
             {
                 var data = new DeckLibraryData { Decks = DeckLibrary };
                 string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                using var file = Godot.FileAccess.Open(DeckLibraryPath, Godot.FileAccess.ModeFlags.Write);
-                if (file != null)
-                {
-                    file.StoreString(json);
+                if (WriteTextAtomic(DeckLibraryPath, json))
                     GD.Print($"[CampaignContext] {DeckLibrary.Count} decks saved");
-                }
+                else
+                    GD.PrintErr("[CampaignContext] Failed to save the deck library");
             }
             catch (System.Exception ex)
             {
@@ -908,6 +942,28 @@ public static class CampaignContext
             string cid = classId.ToLowerInvariant();
             StarterDeckIndex.TryGetValue(cid, out var starter);
 
+            // FABLE-066: the campaign's own save is the truth about its decks. decks.json is shared by every
+            // campaign (and restored from the cloud separately), so it used to pull the map back to an older
+            // deck after an edit. When the save already has a played deck, play it and mirror it outward.
+            if (SaveManager.IsLoaded)
+            {
+                var progNow = Progression;
+                bool repaired = DeckBook.Normalize(progNow);
+                if (DeckBook.ActiveName(progNow) is string playing && progNow.DeckCardIds.Count >= DeckRules.MinSize)
+                {
+                    PlayerDeckIds = new List<string>(progNow.DeckCardIds);
+                    MirrorPlayedDeck(cid, save: false);
+                    bool added = false;
+                    foreach (var c in progNow.DeckCardIds)
+                        if (!progNow.Collection.ContainsKey(c)) { progNow.AddCard(c); added = true; }
+                    if (repaired || added) SaveManager.Save();
+                    DropGrants.Ensure(Progression, SaveManager.CurrentSlot, cid);
+                    GD.Print($"[CampaignContext] playing '{playing}' from the campaign save ({progNow.SavedDecks.Count} deck(s))");
+                    return;
+                }
+                if (repaired) SaveManager.Save();
+            }
+
             // Prefer the profile's own active deck when it exists and matches the class
             var classDecks = GetDecksForClass(cid);
             DeckProfile? deck = null;
@@ -960,10 +1016,39 @@ public static class CampaignContext
                 prog.SavedDecks[deck.Name] = new List<string>(deck.Cards);
                 changed = true;
             }
+            changed |= DeckBook.Normalize(prog);   // FABLE-066: from now on the save names the deck it plays
             if (changed && SaveManager.IsLoaded) SaveManager.Save();
 
             // FABLE-DROP-1: new card drops reach existing saves (once per slot)
             DropGrants.Ensure(Progression, SaveManager.CurrentSlot, cid);
+        }
+
+        /// <summary>
+        /// FABLE-066: after any change to the campaign's decks — the played deck goes to the duel deck, the shared
+        /// deck library (Arena, online) and the profile's ActiveDeckId; then everything is written.
+        /// </summary>
+        public static void MirrorPlayedDeck(string? classId = null, bool save = true)
+        {
+            var prog = Progression;
+            string cid = (classId ?? ChosenClass ?? "").ToLowerInvariant();
+            if (string.IsNullOrEmpty(cid) && ActiveProfile != null) cid = ActiveProfile.ClassId.ToLowerInvariant();
+            var name = DeckBook.ActiveName(prog);
+            if (name != null && prog.DeckCardIds.Count >= DeckRules.MinSize)
+            {
+                PlayerDeckIds = new List<string>(prog.DeckCardIds);
+                if (!string.IsNullOrEmpty(cid))
+                {
+                    string deckId = $"{cid}_{name.ToLowerInvariant().Replace(" ", "_")}";
+                    var lib = DeckLibrary.Find(d => d.DeckId == deckId);
+                    if (lib == null || !lib.Cards.SequenceEqual(prog.DeckCardIds)) SaveDeck(name, cid, prog.DeckCardIds);
+                    if (ActiveProfile != null && ActiveProfile.ActiveDeckId != deckId)
+                    {
+                        ActiveProfile.ActiveDeckId = deckId;
+                        SaveCampaignProfile();
+                    }
+                }
+            }
+            if (save && SaveManager.IsLoaded) SaveManager.Save();
         }
 
         /// <summary>The class's signature card id (first-boss reward), or null.</summary>

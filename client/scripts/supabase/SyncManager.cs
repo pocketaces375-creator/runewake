@@ -194,6 +194,7 @@ public partial class SyncManager : Node
     {
         if (_cloud == null) return;
         {
+            int genAtStart = Volatile.Read(ref _saveGen);
             var fetch = await _cloud.Fetch(Session!).ConfigureAwait(false);
             if (!fetch.Ok)
             {
@@ -205,6 +206,14 @@ public partial class SyncManager : Node
             var lastSynced = ParseIso(_meta.LastSyncedAt);
             bool localEmpty = IsLocalEmpty();
             var decision = CloudSaveSync.Decide(fetch.Save, lastSynced, _meta.Dirty, localEmpty);
+            // FABLE-066: the fetch takes as long as the network does. If the player saved anything meanwhile
+            // (edited a deck, won a fight), a restore would wipe it: ask instead of overwriting.
+            if (decision == CloudSaveSync.Decision.PullCloud && Volatile.Read(ref _saveGen) != genAtStart && !localEmpty)
+            {
+                GD.Print("[SyncManager] the phone saved while the cloud copy was on its way — asking instead of restoring");
+                decision = CloudSaveSync.Decision.Conflict;
+            }
+            LastDecision = $"{decision} · {DateTime.Now:HH:mm}";
             GD.Print($"[SyncManager] startup decision={decision} cloud={(fetch.Save == null ? "none" : fetch.Save.UpdatedAt.ToString("u"))} lastSynced={_meta.LastSyncedAt ?? "never"} dirty={_meta.Dirty} localEmpty={localEmpty}");
 
             switch (decision)
@@ -292,11 +301,19 @@ public partial class SyncManager : Node
     public void NotifySaved()
     {
         _lastSaveUtc = DateTime.UtcNow;
+        Interlocked.Increment(ref _saveGen);
         if (!_meta.Dirty) { _meta.Dirty = true; WriteMeta(); }
         if (!_config.IsConfigured || PendingConflict != null) return;
-        if (Interlocked.Exchange(ref _pushScheduled, 1) == 1) return;
+        if (Interlocked.Exchange(ref _pushScheduled, 1) == 1) { _savedWhileScheduled = true; return; }
         _ = DebouncedPush();
     }
+
+    /// <summary>FABLE-066: counts local saves, so a push or a restore can tell whether the phone moved on meanwhile.</summary>
+    private int _saveGen;
+    private volatile bool _savedWhileScheduled;
+
+    /// <summary>FABLE-066: the last thing the startup comparison decided (shown in Settings → Save check).</summary>
+    public string LastDecision { get; private set; } = "not yet";
 
     private async Task DebouncedPush()
     {
@@ -317,18 +334,31 @@ public partial class SyncManager : Node
             finally { _gate.Release(); }
         }
         catch (Exception ex) { GD.PrintErr($"[SyncManager] push failed: {ex.Message}"); }
-        finally { Interlocked.Exchange(ref _pushScheduled, 0); }
+        finally
+        {
+            Interlocked.Exchange(ref _pushScheduled, 0);
+            // FABLE-066: a save that landed while this push was waiting or running used to be dropped (and the
+            // push then marked the phone clean): the cloud quietly fell behind. Push again for it.
+            if (_savedWhileScheduled && _meta.Dirty)
+            {
+                _savedWhileScheduled = false;
+                if (Interlocked.Exchange(ref _pushScheduled, 1) == 0) _ = DebouncedPush();
+            }
+        }
     }
 
     /// <summary>Upload the whole local bundle. Caller holds the gate and has a session.</summary>
     private async Task PushNow()
     {
         if (_cloud == null || Session == null) return;
+        int gen = Volatile.Read(ref _saveGen);
         var bundle = BuildLocalBundle();
         var r = await _cloud.Push(Session, bundle, _deviceId, AppVersion()).ConfigureAwait(false);
         if (r.Ok)
         {
-            _meta.Dirty = false;
+            // FABLE-066: only clean if nothing was saved since the bundle was built
+            _meta.Dirty = Volatile.Read(ref _saveGen) != gen;
+            if (_meta.Dirty) _savedWhileScheduled = true;
             _meta.LastSyncedAt = (r.UpdatedAt ?? DateTimeOffset.UtcNow).ToString("o");
             _meta.LastError = null;
             WriteMeta();
@@ -717,6 +747,10 @@ public partial class SyncManager : Node
             }
             catch (Exception ex) { GD.PrintErr($"[SyncManager] drop grants reset: {ex.Message}"); }
 
+            // FABLE-066: the campaign list on disk changed — read it again (and reopen the active campaign)
+            // before anything reloads, or the stale in-memory list is written back over the restore.
+            OnMainThread(() => { try { CampaignContext.ReloadProfilesFromDisk(); } catch (Exception ex) { GD.PrintErr($"[SyncManager] profile reload: {ex.Message}"); } });
+
             _meta.Dirty = false;
             _meta.LastSyncedAt = cloud.UpdatedAt.ToString("o");
             _meta.LastError = null;
@@ -841,9 +875,9 @@ public partial class SyncManager : Node
 
     private static void WriteText(string path, string text)
     {
-        using var f = Godot.FileAccess.Open(path, Godot.FileAccess.ModeFlags.Write);
-        if (f == null) throw new IOException($"cannot open {path} for write: {Godot.FileAccess.GetOpenError()}");
-        f.StoreString(text);
+        // FABLE-066: temp file + swap, so a cut-off write never leaves a broken file behind
+        if (!CampaignContext.WriteTextAtomic(path, text))
+            throw new IOException($"cannot open {path} for write: {Godot.FileAccess.GetOpenError()}");
     }
 
     private static string AppVersion()

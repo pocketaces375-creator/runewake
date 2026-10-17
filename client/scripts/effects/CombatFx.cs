@@ -49,8 +49,12 @@ public partial class CombatFx : Control
 
     public override void _Ready()
     {
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        // FABLE-065: explicit size — anchors under a CanvasLayer left this (and every full-screen child) at 0×0,
+        // so the veil and the flashes never covered anything
+        Position = Vector2.Zero;
+        Size = GetViewportRect().Size;
         MouseFilter = MouseFilterEnum.Ignore;
+        GetViewport().SizeChanged += () => { if (IsInstanceValid(this)) Size = GetViewportRect().Size; };
         _s = Mathf.Max(0.5f, GetViewportRect().Size.Y / 1080f);
     }
 
@@ -71,6 +75,15 @@ public partial class CombatFx : Control
         var q = new List<CombatEvent>();
         CombatEvent E(FxKind k, string tag, int side, string src, int srcLane, int tside, string tgt, int tlane, int n = 0, int n2 = 0, CardType st = CardType.CREATURE, int slot = -1) =>
             new() { Kind = k, Tag = tag, Side = side, SourceDefId = src, SourceLane = srcLane, SourceType = st, SourceSlot = slot, TargetSide = tside, TargetDefId = tgt, TargetLane = tlane, Amount = n, Amount2 = n2 };
+        q.Add(E(FxKind.Cast, "", 0, "emb_r_inferno_burst", -1, -1, "", -1, st: CardType.RITUAL));
+        q.Add(E(FxKind.Damage, "SPELL", 0, "emb_r_inferno_burst", -1, 1, "", -1, 3, st: CardType.RITUAL));
+        q.Add(E(FxKind.Damage, "SPELL", 0, "emb_r_inferno_burst", -1, 1, "tid_c_tidal_scholar", 1, 3, st: CardType.RITUAL));
+        q.Add(E(FxKind.Cast, "", 1, "hol_r_kingsbane", -1, -1, "", -1, st: CardType.RITUAL));
+        q.Add(E(FxKind.Effect, "DESTROY", 1, "hol_r_kingsbane", -1, 0, "vrd_c_root_warden", 2, st: CardType.RITUAL));
+        q.Add(E(FxKind.Death, "DESTROY", -1, "", -1, 0, "vrd_c_root_warden", 2));
+        q.Add(E(FxKind.Cast, "", 0, "dwn_u_consecrate", -1, -1, "", -1, st: CardType.RITUAL));
+        q.Add(E(FxKind.Heal, "", 0, "dwn_u_consecrate", -1, 0, "vrd_c_root_warden", 1, 2, st: CardType.RITUAL));
+        q.Add(E(FxKind.Buff, "", 0, "dwn_u_consecrate", -1, 0, "vrd_c_root_warden", 3, 1, 1, st: CardType.RITUAL));
         q.Add(E(FxKind.Cast, "", 0, "tid_u_memory_tides", -1, -1, "", -1, st: CardType.RITUAL));
         q.Add(E(FxKind.Effect, "EXCAVATE", 0, "tid_u_memory_tides", -1, 0, "", -1, 2, st: CardType.RITUAL));
         q.Add(E(FxKind.Effect, "DISCARD", 0, "tid_u_memory_tides", -1, 1, "", -1, 1, st: CardType.RITUAL));
@@ -120,7 +133,8 @@ public partial class CombatFx : Control
             float gap;
             try { gap = Play(e); }
             catch (Exception ex) { GD.PrintErr($"[FX] {e}: {ex.Message}"); gap = 0f; }
-            float hurry = _queue.Count > 20 ? 0.25f : _queue.Count > 8 ? 0.5f : 1f;
+            // a ritual is a set piece: it is never hurried (everything after it waits its turn)
+            float hurry = e.Kind is FxKind.Cast or FxKind.Countered ? 1f : _queue.Count > 20 ? 0.25f : _queue.Count > 8 ? 0.5f : 1f;
             _wait += gap * hurry;
         }
     }
@@ -279,6 +293,8 @@ public partial class CombatFx : Control
 
     private float PlaySigil(CombatEvent e, bool rm)
     {
+        // a counter-Sigil is shown by the COUNTERED set piece that follows it
+        if (e.Tag == "COUNTER_RITUAL" && !rm) return 0f;
         var at = TargetPoint(e);
         if (at is null) return 0f;
         if (!rm) Ring(at.Value, Tide, 10f * _s, 70f * _s, 0.4f);
@@ -293,75 +309,14 @@ public partial class CombatFx : Control
         string name = def?.Name ?? e.SourceDefId;
         var color = StrataOf(e.SourceDefId);
         int view = View(e.Side);
-        Sfx?.Invoke("spell");
         if (rm)
         {
+            Sfx?.Invoke("spell");
             Callout(BoardCenter(), (view == 0 ? "YOU CAST " : "ENEMY CAST ") + name.ToUpperInvariant() + (countered ? " — COUNTERED" : ""), color, "spell", true, 0.5f);
             return 0.5f;
         }
-        var from = CastOrigin(view);
-        var to = BoardCenter();
-        float w = 200f * _s, h = 280f * _s;
-
-        var card = new Control { Size = new Vector2(w, h), PivotOffset = new Vector2(w / 2f, h / 2f), MouseFilter = MouseFilterEnum.Ignore };
-        var art = ArtFor(e.SourceDefId);
-        if (art != null)
-        {
-            card.AddChild(new TextureRect { Texture = art, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, Size = new Vector2(w, h), MouseFilter = MouseFilterEnum.Ignore });
-        }
-        else
-        {
-            var panel = new ColorRect { Color = new Color(0.08f, 0.07f, 0.1f, 0.95f), Size = new Vector2(w, h), MouseFilter = MouseFilterEnum.Ignore };
-            card.AddChild(panel);
-            var nm = MakeLabel(name, color, 22, header: true);
-            nm.Size = new Vector2(w - 12f, h); nm.Position = new Vector2(6f, 0f);
-            nm.AutowrapMode = TextServer.AutowrapMode.Word;
-            card.AddChild(nm);
-        }
-        var frame = new ReferenceRect { EditorOnly = false, BorderColor = color, BorderWidth = 3f * _s, Size = new Vector2(w, h), MouseFilter = MouseFilterEnum.Ignore };
-        card.AddChild(frame);
-
-        // the name and what it does, under the card
-        var caption = MakeLabel(name.ToUpperInvariant(), color, 24, header: true);
-        caption.Size = new Vector2(w * 2.6f, 34f * _s); caption.Position = new Vector2(-w * 0.8f, h + 6f * _s);
-        card.AddChild(caption);
-        var glyphRow = new HBoxContainer { Position = new Vector2(0, h + 42f * _s), Size = new Vector2(w, 30f * _s), Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
-        glyphRow.AddThemeConstantOverride("separation", (int)(8 * _s));
-        foreach (var g in OpGlyphs(def))
-        {
-            var t = Glyph(g);
-            if (t == null) continue;
-            glyphRow.AddChild(new TextureRect { Texture = t, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, CustomMinimumSize = new Vector2(28f * _s, 28f * _s), Modulate = color, MouseFilter = MouseFilterEnum.Ignore });
-        }
-        card.AddChild(glyphRow);
-        if (countered)
-        {
-            var stamp = MakeLabel("COUNTERED", new Color(1f, 0.35f, 0.3f), 30, header: true);
-            stamp.Size = new Vector2(w * 1.6f, 40f * _s); stamp.Position = new Vector2(-w * 0.3f, h * 0.42f);
-            stamp.Rotation = -0.25f; stamp.PivotOffset = stamp.Size / 2f;
-            card.AddChild(stamp);
-        }
-
-        card.Position = ToLocal(from) - card.Size / 2f;
-        card.Scale = new Vector2(0.45f, 0.45f);
-        card.Modulate = new Color(1, 1, 1, 0);
-        AddChild(card);
-        var dest = ToLocal(to) - card.Size / 2f + new Vector2(0, -20f * _s);
-
-        var tw = CreateTween();
-        tw.SetParallel();
-        tw.TweenProperty(card, "position", dest, 0.28f).SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Cubic);
-        tw.TweenProperty(card, "scale", Vector2.One, 0.28f).SetEase(Tween.EaseType.Out).SetTrans(Tween.TransitionType.Back);
-        tw.TweenProperty(card, "modulate:a", 1f, 0.15f);
-        tw.SetParallel(false);
-        tw.TweenCallback(Callable.From(() => { if (IsInsideTree()) Ring(to, color, 30f * _s, 190f * _s, 0.5f, width: 6f * _s); }));
-        tw.TweenInterval(countered ? 0.8f : 0.6f);
-        tw.SetParallel();
-        tw.TweenProperty(card, "modulate:a", 0f, 0.25f);
-        tw.TweenProperty(card, "scale", new Vector2(1.12f, 1.12f), 0.25f);
-        tw.SetParallel(false);
-        tw.TweenCallback(Callable.From(card.QueueFree));
-        return countered ? 1.2f : 1.0f;
+        // FABLE-065: the full set piece (CombatFx.Spell.cs)
+        return PlayCastEpic(e, countered);
     }
 
     private static IEnumerable<string> OpGlyphs(CardDef? def)
@@ -452,7 +407,7 @@ public partial class CombatFx : Control
     {
         if (rm) return Callout(BoardCenter(), $"{title} · {sub}", color, "rune", true, 0.5f);
         var veil = new ColorRect { Color = new Color(0.02f, 0.015f, 0.03f, 0.82f), MouseFilter = MouseFilterEnum.Ignore };
-        veil.SetAnchorsPreset(LayoutPreset.FullRect);
+        FullScreen(veil);
         AddChild(veil);
         var vs = GetViewportRect().Size;
         var icon = Glyph("rune");
@@ -665,6 +620,13 @@ public partial class CombatFx : Control
     // ── geometry and lookups ─────────────────────────────────────────────
 
     private Vector2 ToLocal(Vector2 global) => global - GlobalPosition;
+
+    /// <summary>Cover the whole screen (explicit size: anchors don't resolve on these parents).</summary>
+    private void FullScreen(Control c)
+    {
+        c.Position = Vector2.Zero;
+        c.Size = GetViewportRect().Size;
+    }
 
     private static Vector2 Center(Control c) => c.GlobalPosition + c.Size * c.Scale / 2f;
 

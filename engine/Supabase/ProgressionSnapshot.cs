@@ -50,6 +50,7 @@ public class ProgressionSnapshot
     [JsonPropertyName("saved_decks")] public Dictionary<string, List<string>> SavedDecks { get; set; } = new();
     [JsonPropertyName("deck_artifacts")] public Dictionary<string, List<string>> DeckArtifacts { get; set; } = new();
     [JsonPropertyName("active_artifacts")] public List<string> ActiveArtifacts { get; set; } = new();
+    [JsonPropertyName("active_deck_name")] public string ActiveDeckName { get; set; } = "";
     [JsonPropertyName("global_discovery_index")] public int GlobalDiscoveryIndex { get; set; }
     [JsonPropertyName("has_completed_tutorial")] public bool HasCompletedTutorial { get; set; }
     [JsonPropertyName("delver_level")] public int DelverLevel { get; set; } = 1;
@@ -113,6 +114,7 @@ public class ProgressionSnapshot
             SavedDecks = s.SavedDecks.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
             DeckArtifacts = s.DeckArtifacts.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
             ActiveArtifacts = new List<string>(s.ActiveArtifacts),
+            ActiveDeckName = s.ActiveDeckName ?? "",
             GlobalDiscoveryIndex = s.GlobalDiscoveryIndex,
             HasCompletedTutorial = s.HasCompletedTutorial,
             DelverLevel = s.DelverLevel,
@@ -167,6 +169,7 @@ public class ProgressionSnapshot
         s.SavedDecks.Clear(); foreach (var kv in SavedDecks) s.SavedDecks[kv.Key] = new List<string>(kv.Value);
         s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value);
         s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts);
+        s.ActiveDeckName = ActiveDeckName ?? "";
 
         s.GlobalDiscoveryIndex = GlobalDiscoveryIndex;
         s.HasCompletedTutorial = HasCompletedTutorial;
@@ -224,6 +227,7 @@ public class ProgressionSnapshot
         snap.SavedDecks ??= new();
         snap.DeckArtifacts ??= new();
         snap.ActiveArtifacts ??= new();
+        snap.ActiveDeckName ??= "";
         snap.SeenCardIds ??= new();
         snap.PendingPacks ??= new();
         snap.OpenedPackIds ??= new();

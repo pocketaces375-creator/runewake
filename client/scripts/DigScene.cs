@@ -287,12 +287,11 @@ public partial class DigScene : Control
             }
         }
 
-        // Save progression
-        CampaignContext.SaveManager.Save();
-
-        // Mark node as cleared
+        // Mark node as cleared, THEN save (FABLE-066: it saved first, so a finished dig site came back
+        // uncleared after a restart)
         if (CampaignContext.CurrentNodeId != null)
             prog.MarkNodeCleared(CampaignContext.CurrentNodeId);
+        CampaignContext.SaveManager.Save();
 
         // Return to map
         LoadScreen.Go(GetTree(), "res://scenes/map/MapScene.tscn");

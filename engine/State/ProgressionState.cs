@@ -60,6 +60,9 @@ public class ProgressionState
     /// <summary>FABLE-054: the artifacts the active (forged) deck brings to duels.</summary>
     public List<string> ActiveArtifacts { get; } = new();
 
+    /// <summary>FABLE-066: the name (in SavedDecks) of the deck being played. See <see cref="DeckBook"/>.</summary>
+    public string ActiveDeckName { get; set; } = "";
+
     /// <summary>
     /// Global discovery index counter. Incremented each time a relic is minted.
     /// per card_id. The discovery_index on a relic is the value at mint time.

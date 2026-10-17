@@ -187,6 +187,7 @@ public partial class SettingsScene : Control
         ActionRow(right, "Replay the tutorial", false, OnReplayTutorial);
         ActionRow(right, "Replay the intro", false, OnReplayIntro);
         ActionRow(right, "Audio credits", false, ShowCreditsOverlay);
+        ActionRow(right, "Save check — is my progress safe?", false, ShowSaveCheck);
         right.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
         ActionRow(right, "Reset all progress", true, ShowResetConfirm);
 
@@ -558,6 +559,61 @@ public partial class SettingsScene : Control
             if (_creditsOverlay != null && IsInstanceValid(_creditsOverlay)) _creditsOverlay.QueueFree();
             _creditsOverlay = null;
         };
+        row.AddChild(close);
+    }
+
+    /// <summary>
+    /// FABLE-066: everything about this phone's save in plain words, so "it reset" can be answered with a
+    /// screenshot: which campaign is open, what it holds, when it last saved, what the cloud did.
+    /// </summary>
+    private void ShowSaveCheck()
+    {
+        Click();
+        var (overlay, body) = Modal(1400, 860, false);
+        body.AddChild(ModalTitle("SAVE CHECK", Gold));
+        var sm = CampaignContext.SaveManager;
+        var p = CampaignContext.Progression;
+        var prof = CampaignContext.ActiveProfile;
+        var sync = CampaignContext.SyncManager;
+        string playing = Runewake.Engine.State.DeckBook.ActiveName(p) ?? "—";
+        var lines = new System.Collections.Generic.List<string>
+        {
+            $"Campaign: {(prof != null ? $"{prof.ClassId} (file {sm.CurrentSlot}, {CampaignContext.Profiles.Count} campaign(s) on this phone)" : $"none open (file {sm.CurrentSlot})")}",
+            $"Map: {p.ClearedNodes.Count} places cleared · {p.Shards} shards · Delver level {p.DelverLevel}",
+            $"Decks: {p.SavedDecks.Count} saved · you play \"{playing}\" ({p.DeckCardIds.Count} cards)",
+            $"Collection: {p.Collection.Count} different cards",
+            $"Last saved: {(sm.LastSavedAt is System.DateTime t ? t.ToString("HH:mm:ss") : "not this session")}"
+                + (sm.IsFunctional ? "" : $" · PROBLEM: {sm.LastError}"),
+            sm.LastLoadFailed ? "⚠ The save could not be read at launch — a copy was kept. Tell Fable." : "Save file read fine at launch.",
+            sync == null || !sync.IsConfigured ? "Cloud: accounts are off in this build — progress lives on this phone only."
+                : $"Cloud: {sync.Status} · {(sync.IsLinked ? "signed in" : "GUEST — sign in to keep progress if the app is reinstalled")} · last check: {sync.LastDecision}",
+            "",
+            "Installing a new version over the old one keeps everything. Uninstalling first erases this phone's save —",
+            "only a signed-in account brings it back.",
+        };
+        var text = RowLabel(string.Join("\n", lines), 27, Color.FromHtml("#CFC2A6"));
+        text.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        text.VerticalAlignment = VerticalAlignment.Top;
+        text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        text.SizeFlagsVertical = SizeFlags.ExpandFill;
+        body.AddChild(text);
+        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        row.AddThemeConstantOverride("separation", 24);
+        body.AddChild(row);
+        var saveNow = Plate("Save now", false, 320, 84);
+        saveNow.Pressed += () =>
+        {
+            Click();
+            bool ok = sm.IsLoaded && sm.Save();
+            CampaignContext.SaveCampaignProfile();
+            CampaignContext.SaveDeckLibrary();
+            overlay.QueueFree();
+            ShowSaveCheck();
+            if (!ok) GD.PrintErr("[Settings] Save now failed: " + sm.LastError);
+        };
+        row.AddChild(saveNow);
+        var close = Plate("Close", true, 320, 84);
+        close.Pressed += () => { Click(); overlay.QueueFree(); };
         row.AddChild(close);
     }
 

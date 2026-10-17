@@ -2841,6 +2841,7 @@ public partial class DuelScene : Control
                 return new Vector2(vs.X / 2f, 0f);
             },
             FaceHit = (view, amount) => FaceHitFx(view == 1, amount),
+            ShakeTarget = () => IsInsideTree() ? this : null,
             Sfx = name => { try { GetNode<AudioManager>("/root/AudioManager").PlaySfx(name); } catch { } },
             Log = line => { if (OS.IsDebugBuild()) GD.Print("[FX] " + line); },
         };

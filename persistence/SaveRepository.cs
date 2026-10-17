@@ -131,22 +131,52 @@ public sealed class SaveRepository
         lock (Gate) return LoadLocked();
     }
 
+    /// <summary>FABLE-066: true when the last Load could not read an existing save and returned a fresh state.</summary>
+    public bool LastLoadFailed { get; private set; }
+
     private ProgressionState LoadLocked()
     {
         RepairLog.Clear();
+        LastLoadFailed = false;
+        Exception? last = null;
+        // FABLE-066: a moment of contention (the cloud restore writing, the OS still closing the previous
+        // connection) used to count as "no save": a fresh profile came back and the next Save wrote it over
+        // the player's file. Try a few times first.
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            try
+            {
+                using var conn = OpenConnection();
+                EnsureSchema(conn);
+                return LoadFrom(conn, RepairLog);
+            }
+            catch (Exception ex)
+            {
+                last = ex;
+                if (ex is InvalidOperationException) break;            // a newer save format: retrying won't help
+                System.Threading.Thread.Sleep(120 * (attempt + 1));
+            }
+        }
+        LastLoadFailed = true;
+        string kept = KeepUnreadableCopy(_dbPath);
+        RepairLog.Add($"Load failed: {last!.GetType().Name}: {last.Message}. Returning fresh default profile."
+                      + (kept.Length > 0 ? $" The unreadable save was kept as {Path.GetFileName(kept)}." : ""));
+        return new ProgressionState { Version = CurrentSchemaVersion };
+    }
+
+    /// <summary>FABLE-066: copy (never move) a save that could not be read, so a later write can't destroy it.</summary>
+    private static string KeepUnreadableCopy(string path)
+    {
         try
         {
-            using var conn = OpenConnection();
-            EnsureSchema(conn);
-            var state = LoadFrom(conn, RepairLog);
-            return state;
+            if (!File.Exists(path) || new FileInfo(path).Length == 0) return "";
+            string dest = $"{path}.unreadable_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+            File.Copy(path, dest, overwrite: true);
+            foreach (var ext in new[] { "-wal", "-shm" })
+                if (File.Exists(path + ext)) File.Copy(path + ext, dest + ext, overwrite: true);
+            return dest;
         }
-        catch (Exception ex)
-        {
-            RepairLog.Add($"Load failed: {ex.GetType().Name}: {ex.Message}. Returning fresh default profile.");
-            var fresh = new ProgressionState { Version = CurrentSchemaVersion };
-            return fresh;
-        }
+        catch { return ""; }
     }
 
     /// <summary>
@@ -508,6 +538,7 @@ public sealed class SaveRepository
                     case "active_artifacts":
                         state.ActiveArtifacts.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries));
                         break;
+                    case "active_deck_name": state.ActiveDeckName = value; break;   // FABLE-066
                     // FABLE-059: daily rewards (meta is key/value: an older save simply lacks the key)
                     case "daily_rewards":
                         try { state.Daily = System.Text.Json.JsonSerializer.Deserialize<DailyRewardState>(value) ?? new(); }
@@ -685,6 +716,7 @@ public sealed class SaveRepository
             InsertMeta(conn, "arena_losses", state.ArenaLosses.ToString());
             InsertMeta(conn, "seen_card_ids", string.Join(",", state.SeenCardIds.OrderBy(x => x, StringComparer.Ordinal)));
             InsertMeta(conn, "active_artifacts", string.Join(",", state.ActiveArtifacts));
+            InsertMeta(conn, "active_deck_name", state.ActiveDeckName ?? "");
             InsertMeta(conn, "deck_artifacts", System.Text.Json.JsonSerializer.Serialize(state.DeckArtifacts));
             InsertMeta(conn, "pending_packs", System.Text.Json.JsonSerializer.Serialize(state.PendingPacks));
             InsertMeta(conn, "opened_pack_ids", string.Join(",", state.OpenedPackIds));

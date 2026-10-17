@@ -50,7 +50,10 @@ public partial class DeckBuilderScene : Control
     private Label _countHint = null!;
     private ColorRect _countBar = null!;
     private Control _countTrack = null!;
-    private Button _forgeButton = null!;
+    private Button _forgeButton = null!;      // FABLE-066: "Save deck" (always saves; the played deck stays the played deck)
+    private Button _playButton = null!;       // FABLE-066: "Play this deck" / "✓ You play this deck"
+    private Button _decksButton = null!;      // FABLE-066: "My decks (N)"
+    private Label _playingLabel = null!;
     private Control _leftPanel = null!;
     private Control _rightRail = null!;
     private Control? _savedDecksContainer;   // only inside the Load dialog now
@@ -99,12 +102,21 @@ public partial class DeckBuilderScene : Control
         BuildUI();
         LoadCards();
 
-        if (CampaignContext.Progression.DeckCardIds.Count > 0)
-            _deckCardIds.AddRange(CampaignContext.Progression.DeckCardIds);
-        // FABLE-054: open on the active deck under its own name, with the artifacts it brings
-        var active = CampaignContext.Progression.SavedDecks.FirstOrDefault(kv => kv.Value != null && kv.Value.SequenceEqual(_deckCardIds));
-        if (active.Key != null) { _deckName = active.Key; _deckNameLabel.Text = _deckName; _loadedName = active.Key; }
-        SetArtifacts(CampaignContext.Progression.ActiveArtifacts);
+        // FABLE-066: open on the deck you play, as you last saved it (the campaign save is the truth)
+        var progOpen = CampaignContext.Progression;
+        if (DeckBook.Normalize(progOpen)) CampaignContext.SaveManager.Save();
+        var playing = DeckBook.ActiveName(progOpen);
+        if (playing != null && progOpen.SavedDecks.TryGetValue(playing, out var playingCards))
+        {
+            _deckCardIds.AddRange(playingCards);
+            _deckName = playing; _deckNameLabel.Text = playing; _loadedName = playing;
+            SetArtifacts(progOpen.DeckArtifacts.TryGetValue(playing, out var pa) ? pa : progOpen.ActiveArtifacts);
+        }
+        else
+        {
+            if (progOpen.DeckCardIds.Count > 0) _deckCardIds.AddRange(progOpen.DeckCardIds);
+            SetArtifacts(progOpen.ActiveArtifacts);
+        }
 
         if (_deckCardIds.Count == 0 && CampaignContext.AutoCaptureScreenshot && CampaignContext.CaptureDeckBuilderScreenshot)
         {
@@ -349,6 +361,10 @@ public partial class DeckBuilderScene : Control
         rename.Pressed += () => { Click(); ShowRenameDialog(); };
         nameRow.AddChild(rename);
 
+        _playingLabel = new Label { Text = "", MouseFilter = MouseFilterEnum.Ignore, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis };
+        _playingLabel.AddThemeFontOverride("font", GetHeaderFont(19)); _playingLabel.AddThemeFontSizeOverride("font_size", 19);
+        nameSec.AddChild(_playingLabel);
+
         var countRow = new HBoxContainer { CustomMinimumSize = new Vector2(0, 56) };
         countRow.AddThemeConstantOverride("separation", 14);
         nameSec.AddChild(countRow);
@@ -422,25 +438,34 @@ public partial class DeckBuilderScene : Control
         // plates
         var btnSec = Section(10);
         btnSec.AddThemeConstantOverride("separation", 12);
-        _forgeButton = Plate("Forge deck", true, 72);
-        _forgeButton.Pressed += () => { Click(); OnSaveDeck(); };
-        btnSec.AddChild(_forgeButton);
-        var pair = new HBoxContainer();
-        pair.AddThemeConstantOverride("separation", 12);
-        btnSec.AddChild(pair);
-        // FABLE-054: Save keeps a deck at any size, without making it the active one
-        var saveBtn = Plate("Save", false, 64); saveBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        saveBtn.AddThemeFontSizeOverride("font_size", 28);
-        saveBtn.Pressed += () => { Click(); OnSaveDraft(); };
-        pair.AddChild(saveBtn);
-        var loadBtn = Plate("Decks", false, 64); loadBtn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        loadBtn.AddThemeFontSizeOverride("font_size", 28);
-        loadBtn.Pressed += () => { Click(); ShowLoadDialog(); };
-        pair.AddChild(loadBtn);
-        var back = Plate("◀  Back", false, 64); back.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        back.AddThemeFontSizeOverride("font_size", 28);
-        back.Pressed += () => { Click(); OnBack(); };
-        pair.AddChild(back);
+        // FABLE-066: one Save that always keeps your work — and, for the deck you play, is what you play next.
+        // Picking which deck you play is its own clear button; more decks are one tap away.
+        HBoxContainer Row()
+        {
+            var r = new HBoxContainer();
+            r.AddThemeConstantOverride("separation", 10);
+            btnSec.AddChild(r);
+            return r;
+        }
+        Button Small(HBoxContainer row, string text, Action onPress, float h = 58, int font = 24)
+        {
+            var b = Plate(text, false, h); b.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+            b.AddThemeFontSizeOverride("font_size", font);
+            b.Pressed += () => { Click(); onPress(); };
+            row.AddChild(b);
+            return b;
+        }
+        var row1 = Row();
+        _forgeButton = Plate("Save deck", true, 66);
+        _forgeButton.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        _forgeButton.SizeFlagsStretchRatio = 2.2f;
+        _forgeButton.Pressed += () => { Click(); OnSaveDraft(); };
+        row1.AddChild(_forgeButton);
+        Small(row1, "◀ Back", OnBack, 66, 24);
+        var row2 = Row();
+        _playButton = Small(row2, "▶ Play this", OnPlayThisDeck);
+        _decksButton = Small(row2, "My decks", ShowLoadDialog);
+        Small(row2, "+ New deck", StartNewDeck);
         rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
     }
 
@@ -1356,13 +1381,51 @@ public partial class DeckBuilderScene : Control
         int total = _deckCardIds.Count;
         _countLabel.Text = $"{total} / {DeckRules.MaxSize}";
         var result = DeckValidator.Validate(_deckCardIds, LookupCard);
-        _countHint.Text = result.IsValid ? "ready to forge" : total < DeckRules.MinSize ? $"{DeckRules.MinSize - total} more to go" : result.Errors.FirstOrDefault() ?? "";
+        _countHint.Text = result.IsValid ? "ready to play" : total < DeckRules.MinSize ? $"{DeckRules.MinSize - total} more to go" : result.Errors.FirstOrDefault() ?? "";
         float pct = Mathf.Clamp((float)total / DeckRules.MaxSize, 0f, 1f);
         _countBar.Size = new Vector2(pct * _countTrack.Size.X, 10);
         _countBar.Color = result.IsValid ? Moss : Gold;
         // the track has no width until the first layout pass
         CallDeferred(nameof(FitCountBar));
-        _forgeButton.Disabled = !result.IsValid;
+        _forgeButton.Disabled = total == 0;
+        RefreshPlayState(result.IsValid);
+    }
+
+    /// <summary>FABLE-066: say plainly whether this is the deck you play, and offer to make it so.</summary>
+    private void RefreshPlayState(bool? valid = null)
+    {
+        if (_playButton == null || !IsInstanceValid(_playButton)) return;
+        var prog = CampaignContext.Progression;
+        bool complete = valid ?? DeckValidator.Validate(_deckCardIds, LookupCard).IsValid;
+        string? playing = DeckBook.ActiveName(prog);
+        bool isPlayed = _loadedName != null && _loadedName == playing;
+        if (isPlayed)
+        {
+            _playButton.Text = "✓ Playing";
+            _playButton.Disabled = true;
+            _playingLabel.Text = _modified
+                ? "▶ THE DECK YOU PLAY · unsaved changes"
+                : complete ? "▶ THE DECK YOU PLAY" : "▶ THE DECK YOU PLAY · unfinished — you play its last complete version";
+            _playingLabel.AddThemeColorOverride("font_color", Color.FromHtml("#F3DE95"));
+        }
+        else
+        {
+            _playButton.Text = "▶ Play this";
+            _playButton.Disabled = !complete;
+            _playingLabel.Text = playing != null ? $"You play: {playing}" : "Not played yet";
+            _playingLabel.AddThemeColorOverride("font_color", MutedInk);
+        }
+        int n = prog.SavedDecks.Count + (_loadedName == null && _deckCardIds.Count > 0 ? 1 : 0);
+        _decksButton.Text = n > 1 ? $"Decks ({n})" : "My decks";
+    }
+
+    /// <summary>FABLE-066: save this deck and play it from now on.</summary>
+    private void OnPlayThisDeck()
+    {
+        var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
+        if (!validation.IsValid) { Toast((validation.Errors.FirstOrDefault() ?? "The deck isn't ready.") + " — finish it to play it."); return; }
+        if (_loadedName == null || _loadedName != _deckName) { ShowSaveNameDialog(forge: true); return; }
+        PersistDeck();
     }
 
     private void FitCountBar()
@@ -1421,18 +1484,14 @@ public partial class DeckBuilderScene : Control
         var leave = Plate("Leave anyway", false, 84, 330); leave.Pressed += () => { Click(); overlay.QueueFree(); LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); }; rowB.AddChild(leave);
     }
 
-    private void OnSaveDeck()
-    {
-        var validation = DeckValidator.Validate(_deckCardIds, LookupCard);
-        if (!validation.IsValid) { Toast((validation.Errors.FirstOrDefault() ?? "The deck isn't ready.") + " — Save keeps it for later."); return; }
-        ShowSaveNameDialog(forge: true);
-    }
+    private void OnSaveDeck() => OnPlayThisDeck();
 
     /// <summary>FABLE-054: keep this deck at any size, under its name, without making it the active one.</summary>
     private void OnSaveDraft(bool leaveAfter = false)
     {
         if (_deckCardIds.Count == 0) { Toast("Add a card first — there's nothing to save yet."); return; }
-        if (_loadedName != null && _loadedName == _deckName) { PersistDraft(); if (leaveAfter) LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); return; }
+        if ((_loadedName != null && _loadedName == _deckName) || !CampaignContext.Progression.SavedDecks.ContainsKey(_deckName))
+        { PersistDraft(); if (leaveAfter) LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"); return; }
         ShowSaveNameDialog(forge: false, leaveAfter: leaveAfter);
     }
 
@@ -1449,15 +1508,19 @@ public partial class DeckBuilderScene : Control
         {
             string n = edit.Text.Trim(); if (n.Length == 0) return;
             var prog = CampaignContext.Progression;
-            // renaming a saved deck moves it (cards and artifacts) to the new name
-            if (_loadedName != null && _loadedName != n && prog.SavedDecks.TryGetValue(_loadedName, out var cards) && !prog.SavedDecks.ContainsKey(n))
+            // renaming a saved deck moves it (cards, artifacts, "you play this") to the new name
+            if (_loadedName != null && _loadedName != n)
             {
-                prog.SavedDecks.Remove(_loadedName); prog.SavedDecks[n] = cards;
-                if (prog.DeckArtifacts.Remove(_loadedName, out var arts)) prog.DeckArtifacts[n] = arts;
-                CampaignContext.SaveManager.Save();
-                _loadedName = n;
+                if (prog.SavedDecks.ContainsKey(n)) { Toast($"You already have a deck called \"{n}\"."); return; }
+                if (DeckBook.Rename(prog, _loadedName, n))
+                {
+                    _loadedName = n;
+                    CampaignContext.MirrorPlayedDeck();   // FABLE-066: also saves
+                }
             }
-            _deckName = n; _deckNameLabel.Text = n; _modified = true; overlay.QueueFree();
+            _deckName = n; _deckNameLabel.Text = n; overlay.QueueFree();
+            if (_loadedName == null) _modified = true;
+            RefreshPlayState();
         }
         ok.Pressed += () => { Click(); Commit(); }; rowB.AddChild(ok);
         edit.TextSubmitted += _ => Commit();
@@ -1468,15 +1531,15 @@ public partial class DeckBuilderScene : Control
     private void ShowSaveNameDialog(bool forge, bool leaveAfter = false)
     {
         var (overlay, body) = Modal(1000, 480);
-        body.AddChild(ModalTitle(forge ? "FORGE THIS DECK" : "SAVE THIS DECK"));
+        body.AddChild(ModalTitle(forge ? "PLAY THIS DECK" : "SAVE THIS DECK"));
         body.AddChild(ModalText(forge
-            ? "Give it a name. It becomes your active deck and shows up in the Arena and online."
-            : $"{_deckCardIds.Count} of {DeckRules.MaxSize} cards. Open it again from Decks whenever you like."));
+            ? "Give it a name. It becomes the deck you play — on the map, in the Arena and online."
+            : $"{_deckCardIds.Count} of {DeckRules.MaxSize} cards. It stays in My decks; open it whenever you like."));
         var edit = ModalEdit(_deckName);
         body.AddChild(edit);
         var rowB = ButtonRow(body);
         var cancel = Plate("Cancel", false, 84, 300); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
-        var ok = Plate(forge ? "Forge" : "Save", true, 84, 300);
+        var ok = Plate(forge ? "Play it" : "Save", true, 84, 300);
         void Commit()
         {
             string n = edit.Text.Trim();
@@ -1502,7 +1565,7 @@ public partial class DeckBuilderScene : Control
     {
         var (overlay, body) = Modal(1000, 420);
         body.AddChild(ModalTitle("REPLACE IT?"));
-        body.AddChild(ModalText($"You already have a deck called \"{_deckName}\". {(forge ? "Forging" : "Saving")} replaces it."));
+        body.AddChild(ModalText($"You already have a deck called \"{_deckName}\". Saving replaces it."));
         var rowB = ButtonRow(body);
         var cancel = Plate("Keep the old one", false, 84, 380); cancel.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(cancel);
         var ok = Plate("Replace", true, 84, 300); ok.Pressed += () => { Click(); overlay.QueueFree(); Persist(forge, leaveAfter); }; rowB.AddChild(ok);
@@ -1517,72 +1580,106 @@ public partial class DeckBuilderScene : Control
         return b;
     }
 
-    /// <summary>FABLE-054: every deck you've saved — finished or not — to open, start fresh, or throw away.</summary>
+    /// <summary>
+    /// FABLE-066: every deck in this campaign — the one you play first, marked — to open, play, copy, or
+    /// throw away, and a big New deck. (Trikzos: "I don't easily see the opportunity to create a second deck.")
+    /// </summary>
     private void ShowLoadDialog()
     {
         var prog = CampaignContext.Progression;
-        var saved = prog.SavedDecks;
-        var (overlay, body) = Modal(1240, 820);
-        body.AddChild(ModalTitle("YOUR DECKS"));
-        if (saved.Count == 0)
+        var decks = DeckBook.All(prog, LookupCard).ToList();
+        var (overlay, body) = Modal(1400, 860);
+        body.AddChild(ModalTitle("MY DECKS"));
+        body.AddChild(ModalText(decks.Count <= 1
+            ? "Build as many decks as you like and switch whenever you want. Tap New deck to start another."
+            : "Tap a deck to edit it. ▶ Play picks the deck you take into fights."));
+        var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        body.AddChild(scroll);
+        var list = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        list.AddThemeConstantOverride("separation", 12);
+        scroll.AddChild(list);
+        _savedDecksContainer = list;
+        _savedDrag = DragScroll.Attach(scroll);
+        foreach (var d in decks)
         {
-            body.AddChild(ModalText("No decks saved yet. Save one at any size, or build 30 and forge it."));
-            body.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
-        }
-        else
-        {
-            var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
-            body.AddChild(scroll);
-            var list = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-            list.AddThemeConstantOverride("separation", 12);
-            scroll.AddChild(list);
-            _savedDecksContainer = list;
-            _savedDrag = DragScroll.Attach(scroll);
-            foreach (var (deckName, cardIds) in saved.OrderBy(k => k.Key))
+            var line = new HBoxContainer();
+            line.AddThemeConstantOverride("separation", 10);
+            list.AddChild(line);
+            var b = RowButton(92);
+            if (d.IsActive)
             {
-                var line = new HBoxContainer();
-                line.AddThemeConstantOverride("separation", 12);
-                list.AddChild(line);
-                var b = RowButton(88);
-                line.AddChild(b);
-                var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-                inner.SetAnchorsPreset(LayoutPreset.FullRect);
-                inner.OffsetLeft = 26; inner.OffsetRight = -26;
-                inner.AddThemeConstantOverride("separation", 18);
-                b.AddChild(inner);
-                // the deck's two artifacts, small
-                var picks = ArtifactRegistry.PlayerLoadout(SynergyClass(), prog.DeckArtifacts.TryGetValue(deckName, out var da) ? da : null);
-                foreach (var aid in picks)
-                {
-                    var ic = new TextureRect { Texture = ArtifactArt(aid), CustomMinimumSize = new Vector2(56, 56), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
-                    inner.AddChild(ic);
-                }
-                var nm = new Label { Text = deckName, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis, MouseFilter = MouseFilterEnum.Ignore };
-                nm.AddThemeFontOverride("font", GetBodyFont(32)); nm.AddThemeFontSizeOverride("font_size", 32);
-                nm.AddThemeColorOverride("font_color", Parchment);
-                inner.AddChild(nm);
-                bool isActive = cardIds.SequenceEqual(prog.DeckCardIds);
-                bool ready = DeckValidator.Validate(cardIds, LookupCard).IsValid;
-                string tag = isActive ? "ACTIVE" : ready ? "READY TO FORGE" : "UNFINISHED";
-                var tg = new Label { Text = tag, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-                tg.AddThemeFontOverride("font", GetHeaderFont(17)); tg.AddThemeFontSizeOverride("font_size", 17);
-                tg.AddThemeColorOverride("font_color", isActive ? Color.FromHtml("#F3DE95") : ready ? Moss : MutedInk);
-                inner.AddChild(tg);
-                var ct = new Label { Text = $"{cardIds.Count} / {DeckRules.MaxSize}", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore, CustomMinimumSize = new Vector2(96, 0), HorizontalAlignment = HorizontalAlignment.Right };
-                ct.AddThemeFontOverride("font", GetBodyFont(26)); ct.AddThemeFontSizeOverride("font_size", 26);
-                ct.AddThemeColorOverride("font_color", MutedInk);
-                inner.AddChild(ct);
-                string cn = deckName; var cc = cardIds;
-                b.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); overlay.QueueFree(); LoadDeck(cn, cc); };
-                var del = Quiet("✕", 88, 88, 30);
-                del.TooltipText = "Delete this deck";
-                del.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); ConfirmDelete(cn, overlay); };
-                line.AddChild(del);
+                var hi = new StyleBoxFlat { BgColor = new Color(0.79f, 0.66f, 0.30f, 0.14f), BorderColor = Color.FromHtml("#F3DE95"), BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2, CornerRadiusTopLeft = 12, CornerRadiusTopRight = 12, CornerRadiusBottomLeft = 12, CornerRadiusBottomRight = 12 };
+                b.AddThemeStyleboxOverride("normal", hi);
             }
+            line.AddChild(b);
+            var inner = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+            inner.SetAnchorsPreset(LayoutPreset.FullRect);
+            inner.OffsetLeft = 22; inner.OffsetRight = -22;
+            inner.AddThemeConstantOverride("separation", 16);
+            b.AddChild(inner);
+            var picks = ArtifactRegistry.PlayerLoadout(SynergyClass(), d.Artifacts.Count > 0 ? d.Artifacts : null);
+            foreach (var aid in picks)
+            {
+                var ic = new TextureRect { Texture = ArtifactArt(aid), CustomMinimumSize = new Vector2(56, 56), ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.KeepAspectCovered, SizeFlagsVertical = SizeFlags.ShrinkCenter, MouseFilter = MouseFilterEnum.Ignore };
+                inner.AddChild(ic);
+            }
+            var nm = new Label { Text = d.Name, SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis, MouseFilter = MouseFilterEnum.Ignore };
+            nm.AddThemeFontOverride("font", GetBodyFont(32)); nm.AddThemeFontSizeOverride("font_size", 32);
+            nm.AddThemeColorOverride("font_color", d.IsActive ? Color.FromHtml("#F3DE95") : Parchment);
+            inner.AddChild(nm);
+            string tag = d.IsActive ? "▶ YOU PLAY THIS" : d.IsComplete ? "READY" : "UNFINISHED";
+            var tg = new Label { Text = tag, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+            tg.AddThemeFontOverride("font", GetHeaderFont(17)); tg.AddThemeFontSizeOverride("font_size", 17);
+            tg.AddThemeColorOverride("font_color", d.IsActive ? Color.FromHtml("#F3DE95") : d.IsComplete ? Moss : MutedInk);
+            inner.AddChild(tg);
+            var ct = new Label { Text = $"{d.Cards.Count} / {DeckRules.MaxSize}", VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore, CustomMinimumSize = new Vector2(96, 0), HorizontalAlignment = HorizontalAlignment.Right };
+            ct.AddThemeFontOverride("font", GetBodyFont(26)); ct.AddThemeFontSizeOverride("font_size", 26);
+            ct.AddThemeColorOverride("font_color", MutedInk);
+            inner.AddChild(ct);
+            string cn = d.Name; var cc = d.Cards;
+            b.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); overlay.QueueFree(); LoadDeck(cn, cc); };
+
+            var play = Quiet(d.IsActive ? "✓" : "▶ Play", 150, 92, 26);
+            play.Disabled = d.IsActive || !d.IsComplete;
+            play.TooltipText = d.IsActive ? "You play this deck" : d.IsComplete ? "Play this deck from now on" : "Finish it to play it";
+            play.Pressed += () =>
+            {
+                if (_savedDrag?.Dragged == true) return;
+                Click();
+                if (DeckBook.SetActive(CampaignContext.Progression, cn, LookupCard))
+                {
+                    CampaignContext.MirrorPlayedDeck(DeckClass());
+                    Toast($"You play {cn} now.");
+                }
+                overlay.QueueFree();
+                RefreshPlayState();
+                ShowLoadDialog();
+            };
+            line.AddChild(play);
+            var dup = Quiet("⧉", 88, 92, 30);
+            dup.TooltipText = "Make a copy";
+            dup.Pressed += () =>
+            {
+                if (_savedDrag?.Dragged == true) return;
+                Click();
+                string copy = DeckBook.Duplicate(CampaignContext.Progression, cn);
+                CampaignContext.SaveManager.Save();
+                overlay.QueueFree();
+                RefreshPlayState();
+                ShowLoadDialog();
+                Toast($"Copied to {copy}");
+            };
+            line.AddChild(dup);
+            var del = Quiet("✕", 88, 92, 30);
+            del.TooltipText = "Delete this deck";
+            del.Pressed += () => { if (_savedDrag?.Dragged == true) return; Click(); ConfirmDelete(cn, overlay); };
+            line.AddChild(del);
         }
+        if (decks.Count == 0)
+            list.AddChild(ModalText("No decks yet. Tap New deck, add cards, and Save."));
         var rowB = ButtonRow(body);
-        var fresh = Plate("New deck", false, 84, 300); fresh.Pressed += () => { Click(); overlay.QueueFree(); StartNewDeck(); }; rowB.AddChild(fresh);
-        var close = Plate("Close", true, 84, 300); close.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(close);
+        var fresh = Plate("+  New deck", true, 84, 340); fresh.Pressed += () => { Click(); overlay.QueueFree(); StartNewDeck(); }; rowB.AddChild(fresh);
+        var close = Plate("Close", false, 84, 300); close.Pressed += () => { Click(); overlay.QueueFree(); }; rowB.AddChild(close);
     }
 
     private void ConfirmDelete(string deckName, Control listOverlay)
@@ -1597,9 +1694,14 @@ public partial class DeckBuilderScene : Control
         {
             Click(); overlay.QueueFree();
             var prog = CampaignContext.Progression;
-            prog.SavedDecks.Remove(deckName); prog.DeckArtifacts.Remove(deckName);
-            CampaignContext.SaveManager.Save();
+            if (!DeckBook.Delete(prog, deckName, LookupCard))
+            {
+                Toast("That's the deck you play — make another deck playable first.");
+                return;
+            }
+            CampaignContext.MirrorPlayedDeck(DeckClass());   // the played deck may have moved; also saves
             if (_loadedName == deckName) { _loadedName = null; _modified = _deckCardIds.Count > 0; }
+            RefreshPlayState();
             if (IsInstanceValid(listOverlay)) listOverlay.QueueFree();
             ShowLoadDialog();
             Toast($"Deleted {deckName}");
@@ -1614,13 +1716,12 @@ public partial class DeckBuilderScene : Control
         {
             _deckCardIds.Clear();
             foreach (var id in _lockedCardIds) _deckCardIds.Add(id);
-            int n = 1; string name;
-            do name = n == 1 ? "New Deck" : $"New Deck {n}"; while (CampaignContext.Progression.SavedDecks.ContainsKey(name) && ++n < 100);
+            string name = DeckBook.FreeName(CampaignContext.Progression, "New Deck");
             _deckName = name; _deckNameLabel.Text = name; _loadedName = null;
             SetArtifacts(null);
-            _modified = false; _inspectArtifact = null; _selectedId = null;
+            _modified = _deckCardIds.Count > 0; _inspectArtifact = null; _selectedId = null;
             RefreshCardGrid(); RefreshDeckList(); RefreshCurve(); UpdateCount(); ShowInspector();
-            Toast("A fresh deck — save it whenever you like.");
+            Toast($"{name} — add cards, then Save. Your other decks are safe in My decks.");
         }
         if (!_modified) { Go(); return; }
         var (overlay, body) = Modal(1000, 420);
@@ -1657,48 +1758,49 @@ public partial class DeckBuilderScene : Control
         RefreshCurve();
         UpdateCount();
         ShowInspector();
-        Toast($"Loaded {deckName}");
+        Toast(DeckBook.ActiveName(CampaignContext.Progression) == deckName ? $"{deckName} — the deck you play" : $"Opened {deckName}");
     }
 
-    /// <summary>FABLE-054: save without forging — any size, not the active deck.</summary>
-    private void PersistDraft()
-    {
-        var prog = CampaignContext.Progression;
-        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
-        prog.DeckArtifacts[_deckName] = _artifacts.ToList();
-        CampaignContext.SaveManager.Save();
-        _loadedName = _deckName;
-        _modified = false;
-        bool ready = DeckValidator.Validate(_deckCardIds, LookupCard).IsValid;
-        Toast(ready ? $"Saved {_deckName}. Forge it to play it." : $"Saved {_deckName} ({_deckCardIds.Count}/{DeckRules.MaxSize}).");
-    }
-
-    private void PersistDeck()
+    private static string DeckClass()
     {
         string classId = CampaignContext.ChosenClass;
         if (string.IsNullOrEmpty(classId))
-            classId = CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior";
+            classId = CampaignContext.ActiveProfile?.ClassId ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0].ClassId : "warrior");
+        return classId;
+    }
 
+    /// <summary>
+    /// FABLE-066: keep this deck at any size under its name. When it is the deck you play (or you have none yet)
+    /// and it is complete, it is what you play from the next fight — the old Save left the played deck behind,
+    /// which is why an edited deck seemed to reset.
+    /// </summary>
+    private void PersistDraft()
+    {
         var prog = CampaignContext.Progression;
-        prog.SavedDecks[_deckName] = new List<string>(_deckCardIds);
-        prog.DeckArtifacts[_deckName] = _artifacts.ToList();
-        prog.ActiveArtifacts.Clear();
-        prog.ActiveArtifacts.AddRange(_artifacts);
-        prog.DeckCardIds.Clear();
-        prog.DeckCardIds.AddRange(_deckCardIds);
-        CampaignContext.PlayerDeckIds.Clear();
-        CampaignContext.PlayerDeckIds.AddRange(_deckCardIds);
-        CampaignContext.SaveDeck(_deckName, classId, _deckCardIds);
-        string deckId = $"{classId}_{_deckName.ToLowerInvariant().Replace(" ", "_")}";
-        if (CampaignContext.ActiveProfile != null)
-        {
-            CampaignContext.ActiveProfile.ActiveDeckId = deckId;
-            CampaignContext.SaveCampaignProfile();
-        }
-        CampaignContext.SaveManager.Save();
+        bool wasPlayed = DeckBook.ActiveName(prog) == _deckName;
+        bool plays = DeckBook.Save(prog, _deckName, _deckCardIds, _artifacts, LookupCard);
+        CampaignContext.MirrorPlayedDeck(DeckClass());   // also saves
         _loadedName = _deckName;
         _modified = false;
-        Toast($"{_deckName} forged — it's your active deck now.");
+        bool ready = DeckValidator.Validate(_deckCardIds, LookupCard).IsValid;
+        Toast(plays ? $"Saved {_deckName} — you'll play it in your next fight."
+            : wasPlayed ? $"Saved {_deckName} ({_deckCardIds.Count}/{DeckRules.MaxSize}). You keep playing its last complete version until it has {DeckRules.MaxSize}."
+            : ready ? $"Saved {_deckName}. Tap Play this deck to use it."
+            : $"Saved {_deckName} ({_deckCardIds.Count}/{DeckRules.MaxSize}).");
+        RefreshPlayState(ready);
+    }
+
+    /// <summary>FABLE-066: save this deck and make it the one you play.</summary>
+    private void PersistDeck()
+    {
+        var prog = CampaignContext.Progression;
+        DeckBook.Save(prog, _deckName, _deckCardIds, _artifacts, LookupCard);
+        if (!DeckBook.SetActive(prog, _deckName, LookupCard)) { Toast("Finish the deck to play it."); return; }
+        CampaignContext.MirrorPlayedDeck(DeckClass());   // also saves
+        _loadedName = _deckName;
+        _modified = false;
+        Toast($"You play {_deckName} now.");
+        RefreshPlayState(true);
     }
 
     // ════════════════════════════════════════════════════════════════

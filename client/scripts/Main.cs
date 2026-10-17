@@ -417,6 +417,7 @@ public partial class Main : Control
         // here and throw away anything in memory that had not been written yet; now we flush instead.
         if (!CampaignContext.SaveManager.IsLoaded) CampaignContext.SaveManager.Initialize();
         else CampaignContext.SaveManager.Save();
+        SaveGuardian.Ensure(GetTree());   // FABLE-066: save on the way to the background
 
         // Refresh slot picker to show current state
         BuildSlotPicker();

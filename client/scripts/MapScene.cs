@@ -1367,21 +1367,16 @@ public partial class MapScene : Control
 
     private void UpdateDeckChipText()
     {
-        string deckName = "Deck: —";
-        var profile = CampaignContext.ActiveProfile;
-        if (profile != null && !string.IsNullOrEmpty(profile.ActiveDeckId))
-        {
-            var deck = CampaignContext.DeckLibrary.FirstOrDefault(d => d.DeckId == profile.ActiveDeckId);
-            if (deck != null)
-                deckName = $"Deck: {deck.Name}";
-        }
-        _deckChipLabel.Text = deckName;
+        // FABLE-066: the deck the campaign save says you play
+        var playing = DeckBook.ActiveName(CampaignContext.Progression);
+        _deckChipLabel.Text = playing != null ? $"Deck: {playing}" : "Deck: —";
     }
 
     private void ShowDeckPopup()
     {
         string classId = GetActiveClass();
-        var decks = CampaignContext.GetDecksForClass(classId);
+        // FABLE-066: this campaign's decks (the save is the truth); unfinished ones can't be picked
+        var decks = DeckBook.All(CampaignContext.Progression, id => CardRegistry.Get(id)).ToList();
 
         var popup = new PanelContainer();
         var popupStyle = new StyleBoxFlat
@@ -1438,20 +1433,18 @@ public partial class MapScene : Control
             {
                 var deckBtn = new Button
                 {
-                    Text = $"{deck.Name} ({deck.Cards.Count} cards)",
-                    CustomMinimumSize = new Vector2(0, 28)
+                    Text = deck.IsActive ? $"✓ {deck.Name}" : deck.IsComplete ? deck.Name : $"{deck.Name}  ({deck.Cards.Count}/{DeckRules.MaxSize} — unfinished)",
+                    CustomMinimumSize = new Vector2(0, 28),
+                    Disabled = !deck.IsComplete,
                 };
                 deckBtn.AddThemeFontSizeOverride("font_size", 11);
-                string capturedDeckId = deck.DeckId;
+                string capturedName = deck.Name;
                 deckBtn.Pressed += () =>
                 {
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
-                    if (CampaignContext.ActiveProfile != null)
-                    {
-                        CampaignContext.ActiveProfile.ActiveDeckId = capturedDeckId;
-                        CampaignContext.SaveCampaignProfile();
-                        UpdateDeckChipText();
-                    }
+                    if (DeckBook.SetActive(CampaignContext.Progression, capturedName, id => CardRegistry.Get(id)))
+                        CampaignContext.MirrorPlayedDeck(classId);
+                    UpdateDeckChipText();
                     popup.QueueFree();
                 };
                 vbox.AddChild(deckBtn);
