@@ -51,8 +51,8 @@ public partial class PackShopScene : Control
         AddChild(new Meander { Position = Vector2.Zero, Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
         AddChild(new Meander { Position = new Vector2(0, _vp.Y - 30 * _s), Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
 
-        var kicker = Lbl(this, "CARD PACKS  ·  AN OFFERING TO THE DEEP", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
-        var title = Lbl(this, "The Drachma Cliff", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
+        var kicker = Lbl(this, "CARD PACKS  ·  PAY THE FERRYMAN", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
+        var title = Lbl(this, "The Ferryman's Toll", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
         Outline(kicker); Outline(title);
 
         _content = new Control { MouseFilter = MouseFilterEnum.Ignore };
@@ -120,7 +120,7 @@ public partial class PackShopScene : Control
         if (!IsInsideTree()) return;
         if (packs.Count == 0) { Render(); return; }
         GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
-        Say(packs.Count == 1 ? "A drachma is yours — flick it into the deep!" : $"{packs.Count} drachmae are yours — flick one into the deep!");
+        Say(packs.Count == 1 ? "A drachma is yours — pay the ferryman!" : $"{packs.Count} drachmae are yours — pay the ferryman!");
         Render();
     }
 
@@ -179,10 +179,10 @@ public partial class PackShopScene : Control
         _coinBob = _coin.CreateTween().SetLoops();
         _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
         _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
-        var hint = Lbl(_content, n > 0 ? "Flick a drachma into the deep" : "Take a drachma from a stele", _vp.X * 0.0f, _vp.Y * 0.775f, _vp.X * 0.34f,
+        var hint = Lbl(_content, n > 0 ? "Pay the ferryman — flick a drachma" : "Take a drachma from a stele", _vp.X * 0.0f, _vp.Y * 0.775f, _vp.X * 0.34f,
             (int)(32 * _s), ThemeTokens.GetHeaderFont((int)(32 * _s)), Gold, true);
         Outline(hint);
-        Outline(Lbl(_content, n > 0 ? "swipe the coin — or tap it" : "then flick it from the edge", 0, _vp.Y * 0.775f + 44 * _s, _vp.X * 0.34f,
+        Outline(Lbl(_content, n > 0 ? "swipe the coin into the Styx — or tap it" : "then cast it into the Styx", 0, _vp.Y * 0.775f + 44 * _s, _vp.X * 0.34f,
             (int)(24 * _s), ThemeTokens.GetBodyFont((int)(24 * _s)), Kicker, true));
         if (n > 0)
         {
@@ -251,7 +251,7 @@ public partial class PackShopScene : Control
         var st = PackStore.Status;
         double relic = st?.RelicChance ?? Packs.RelicChance;
         float pad = 46 * _s, ped = size.X * 0.30f, y = ped * 0.52f;
-        Lbl(stele, "WHAT THE DEEP", pad, y - 14 * _s, size.X - 2 * pad, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), Kicker, true);
+        Lbl(stele, "WHAT THE STYX", pad, y - 14 * _s, size.X - 2 * pad, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), Kicker, true);
         Lbl(stele, "RETURNS", pad, y + 14 * _s, size.X - 2 * pad, (int)(22 * _s), ThemeTokens.GetHeaderFont((int)(22 * _s)), Kicker, true);
         y = ped + 22 * _s;
         foreach (var (name, odds, col) in new[]
@@ -268,14 +268,14 @@ public partial class PackShopScene : Control
             y += 40 * _s;
         }
         y += 6 * _s;
-        Para(stele, "Every drachma returns three cards — never the same card twice.", pad, y, size.X - 2 * pad, 60 * _s, (int)(21 * _s), Muted);
+        Para(stele, "Every drachma the Styx accepts returns three cards — never the same card twice.", pad, y, size.X - 2 * pad, 60 * _s, (int)(21 * _s), Muted);
         y += 66 * _s;
         Para(stele, "Only older cards rise: a card joins 90 days after it is first found on the map. Tower cards and Lost Relics never do.",
             pad, y, size.X - 2 * pad, 100 * _s, (int)(21 * _s), Muted);
         y += 104 * _s;
         string pool = st == null
             ? (PackStore.PreviewMode ? "Preview build: drachmae are free and draw from every card, for testing." : "Reaching the shop…")
-            : $"In the deep now: {st.Total} cards ({st.Commons} C · {st.Uncommons} U · {st.Rares} R · {st.Relics} Relic)" +
+            : $"Beneath the Styx now: {st.Total} cards ({st.Commons} C · {st.Uncommons} U · {st.Rares} R · {st.Relics} Relic)" +
               (st.Waiting > 0 && st.NextCardAt is DateTimeOffset at ? $" — {st.Waiting} more from {at.ToLocalTime():MMM d}." : "");
         if (y < size.Y - 40 * _s) Para(stele, pool, pad, y, size.X - 2 * pad, size.Y - y - 16 * _s, (int)(20 * _s), new Color(0.60f, 0.78f, 0.84f));
     }
@@ -378,6 +378,12 @@ public partial class PackShopScene : Control
         public override void _Draw()
         {
             float W = Size.X, H = Size.Y, ped = W * 0.30f;
+            if (StyxArt.Stele is Texture2D painted)       // FABLE-070: the painted stele, its rim lit in the offer's colour
+            {
+                DrawTextureRect(painted, new Rect2(0, 0, W, H), false);
+                DrawRect(new Rect2(W * 0.16f, ped + 6, W * 0.68f, H - ped - 30), new Color(0.05f, 0.04f, 0.04f, 0.38f));   // so carved text stays legible
+                return;
+            }
             var body = new[] { new Vector2(0, ped), new Vector2(W / 2, 0), new Vector2(W, ped), new Vector2(W, H), new Vector2(0, H) };
             // shadow, stone, a lighter face, the rim
             DrawColoredPolygon(body.Select(v => v + new Vector2(10, 14)).ToArray(), new Color(0, 0, 0, 0.45f));

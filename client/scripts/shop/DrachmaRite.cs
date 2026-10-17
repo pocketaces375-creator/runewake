@@ -65,7 +65,7 @@ public partial class DrachmaRite : Control
 
         AddChild(new Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore, MoonAt = new Vector2(0.06f, 0.115f) });   // FABLE-069: same sky as the page
 
-        var kicker = Text(_pack.Source == "preview" ? "PREVIEW PACK" : "A PACK OF THREE", 0, 30 * _s, _vp.X, 26, Header(26), new Color(0.80f, 0.74f, 0.60f));
+        var kicker = Text(_pack.Source == "preview" ? "PREVIEW OFFERING" : "AN OFFERING TO THE STYX", 0, 30 * _s, _vp.X, 26, Header(26), new Color(0.80f, 0.74f, 0.60f));
         kicker.Modulate = new Color(1, 1, 1, 0.85f);
 
         float coinR = 58f * _s;
@@ -75,7 +75,7 @@ public partial class DrachmaRite : Control
         _bob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
         _bob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
 
-        _hint = Text("Flick the drachma into the deep", 0, _vp.Y * 0.84f, _vp.X * 0.5f, 34, Header(34), Gold);
+        _hint = Text("Pay the ferryman — flick the drachma into the Styx", 0, _vp.Y * 0.84f, _vp.X * 0.5f, 34, Header(34), Gold);
         _hint.Position = new Vector2(_vp.X * 0.03f, _vp.Y * 0.80f);
         var sub = Text("swipe it — or tap it", _hint.Position.X, _hint.Position.Y + 48 * _s, _vp.X * 0.5f, 24, Body(26), new Color(0.78f, 0.72f, 0.60f));
         sub.Name = "Sub";
@@ -286,7 +286,7 @@ public partial class DrachmaRite : Control
         AddChild(done);
         if (_left > 0 && _onNext != null)
         {
-            var more = Plate($"Flick another ({_left} left)", true, 460f * _s, 84f * _s);
+            var more = Plate($"Offer another ({_left} left)", true, 460f * _s, 84f * _s);
             more.Position = new Vector2(_vp.X / 2 + 20f * _s, _vp.Y - 130f * _s);
             more.Name = "OpenNext";
             more.Pressed += () => { Sfx("click"); _onNext?.Invoke(); };
@@ -402,6 +402,12 @@ public partial class DrachmaRite : Control
         public override void _Draw()
         {
             var s = Size; float W = s.X, H = s.Y;
+            // FABLE-070: the painted Styx, when it is installed
+            if (StyxArt.Backdrop is Texture2D painting)
+            {
+                DrawTextureRectRegion(painting, new Rect2(Vector2.Zero, s), StyxArt.CoverSource(painting, s));
+                return;
+            }
             // sky: a vertical gradient in bands
             int bands = 24;
             for (int i = 0; i < bands; i++)
@@ -506,6 +512,13 @@ public partial class DrachmaRite : Control
             float squash = Mathf.Abs(Mathf.Cos(_spin));
             float rx = Mathf.Max(Radius * 0.12f, Radius * squash), ry = Radius;
             bool face = Mathf.Cos(_spin) >= 0;
+            if (StyxArt.Coin is Texture2D painted)          // FABLE-070: the painted drachma, turning edge-on as it spins
+            {
+                DrawCircle(Vector2.Zero, Radius * 1.45f, new Color(1f, 0.85f, 0.45f, 0.10f));
+                var tint = face ? Colors.White : new Color(0.80f, 0.80f, 0.86f);
+                DrawTextureRect(painted, new Rect2(-rx, -ry, rx * 2, ry * 2), false, tint);
+                return;
+            }
             DrawSetTransform(Vector2.Zero, 0, new Vector2(rx / Radius, 1f));
             DrawCircle(Vector2.Zero, Radius * 1.35f, new Color(1f, 0.85f, 0.45f, 0.10f));
             DrawCircle(Vector2.Zero, Radius, face ? new Color(0.86f, 0.70f, 0.32f) : new Color(0.74f, 0.74f, 0.78f));
@@ -554,6 +567,12 @@ public partial class DrachmaRite : Control
                 DrawRect(grow, new Color(Color, (ShowFace && !_glowing ? 0.015f : 0.05f + 0.03f * pulse) * (7 - i) / 6f), true);
             }
             if (ShowFace) return;   // the card plate covers the stone now
+            if (StyxArt.Rune is Texture2D painted)       // FABLE-070: the painted rune stone, lit in its rarity's colour
+            {
+                DrawTextureRect(painted, r, false, Colors.White.Lerp(Color, 0.35f));
+                DrawRect(r, new Color(Color, 0.55f + 0.35f * pulse), false, 3f);
+                return;
+            }
             DrawRect(r, new Color(0.08f, 0.075f, 0.09f), true);
             DrawRect(r.Grow(-10f), new Color(0.12f, 0.11f, 0.13f), true);
             DrawRect(r, new Color(Color, 0.9f), false, 4f);
