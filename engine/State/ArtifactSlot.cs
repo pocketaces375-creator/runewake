@@ -286,6 +286,7 @@ public sealed class ArtifactSlot
     /// </summary>
     public void ResetChargeTracking()
     {
+        HasTriggeredThisTurn = false;   // FABLE-064: a new turn, a fresh artifact
         ChargesGainedThisTurn = 0;
         ChargesGainedThisTurnByCreature.Clear();
         PendingChargeFull = false;

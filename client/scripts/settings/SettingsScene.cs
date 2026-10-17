@@ -183,6 +183,7 @@ public partial class SettingsScene : Control
         });
         Spacer(right, 14);
         SectionHeader(right, "HELP & STORY");
+        ActionRow(right, "Symbol key — what every sign in a fight means", false, () => { Click(); if (_dirty) Persist(); LoadScreen.Go(GetTree(), SymbolKeyScene.ScenePath); });
         ActionRow(right, "Replay the tutorial", false, OnReplayTutorial);
         ActionRow(right, "Replay the intro", false, OnReplayIntro);
         ActionRow(right, "Audio credits", false, ShowCreditsOverlay);

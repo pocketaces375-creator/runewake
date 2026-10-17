@@ -169,7 +169,8 @@
           "card_id": "tid_x_tidal_seal",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "r1_warden_aelin",
@@ -346,7 +347,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "r1_boss_warden_aelin",
@@ -526,7 +528,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

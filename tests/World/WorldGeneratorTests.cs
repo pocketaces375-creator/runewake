@@ -210,7 +210,7 @@ public class WorldGeneratorTests
             .Select(b => EncounterForge.For(atlas, page, b, pool))
             .Average(e => e.Deck.Count(id => pool.First(c => c.Id == id).Rarity >= Rarity.RARE));
         double AvgVigor(WorldPage page) => page.Blips.Where(EncounterForge.IsFight)
-            .Select(b => EncounterForge.For(atlas, page, b, pool)).Average(e => e.EnemyVigor ?? 25);
+            .Select(b => EncounterForge.For(atlas, page, b, pool)).Average(e => e.EnemyVigor ?? EncounterForge.BaseVigor);
         Assert.True(AvgRare(deep) > AvgRare(shallow), $"deep decks carry more rares ({AvgRare(deep):F1} vs {AvgRare(shallow):F1})");
         Assert.True(AvgVigor(deep) > AvgVigor(shallow), "deep foes have more Vigor");
         var boss = EncounterForge.For(atlas, deep, deep.Guardian, pool);

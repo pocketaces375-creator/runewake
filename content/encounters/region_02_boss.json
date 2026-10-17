@@ -174,7 +174,8 @@
           "card_id": "dwn_u_purifying_light",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_02_boss",
@@ -216,7 +217,7 @@
       "dig_charge_reward": 5,
       "dialogue_intro": [
         "The mountain itself shudders.",
-        "A great cracking sound \u2014 then silence.",
+        "A great cracking sound — then silence.",
         "And from the silence, a roar:",
         "\"YOU HAVE AWAKENED THE FURY.\"",
         "The forge-city's final guardian stirs."
@@ -352,7 +353,8 @@
           "card_id": "tid_c_silt_reader",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

@@ -174,7 +174,8 @@
           "card_id": "vrd_u_bramble_heart",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_boss",
@@ -216,7 +217,7 @@
       "dig_charge_reward": 5,
       "dialogue_intro": [
         "Beyond the gates, an infinite white expanse.",
-        "At its centre: a shard of the First Dawn \u2014 the covenant's heart.",
+        "At its centre: a shard of the First Dawn — the covenant's heart.",
         "A voice without a speaker fills the space:",
         "\"THE FIRST LIGHT REMEMBERS EVERY PROMISE. AND EVERY BROKEN ONE.\"",
         "The First Dawn ignites."
@@ -352,7 +353,8 @@
           "card_id": "vrd_c_warding_vine",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

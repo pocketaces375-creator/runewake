@@ -35,6 +35,7 @@ public static class TriggerBus
                 continue;
 
             state.TriggerDepth++;
+            Announce(state, ability, deadCard);
 
             foreach (var effect in ability.Effects)
             {
@@ -63,6 +64,7 @@ public static class TriggerBus
         if (!ConditionMet(ability.Condition, source, controller, state))
             return;
         state.TriggerDepth++;
+        Announce(state, ability, source);
         var opponent = state.Player(state.OpponentIndex(controller));
         foreach (var effect in ability.Effects)
         {
@@ -171,6 +173,22 @@ public static class TriggerBus
     }
 
     /// <summary>
+    /// FABLE-064: an ability is about to fire — tell the screen, and mark an artifact as having triggered this
+    /// turn (its SPENT look). A ritual's RESOLVE is its cast, not a trigger; PASSIVE re-application isn't news.
+    /// </summary>
+    private static void Announce(GameState state, AbilityDef ability, CardInstance source)
+    {
+        if (ability.Trigger is Trigger.RESOLVE or Trigger.PASSIVE) return;
+        if (source.CardType == CardType.ARTIFACT)
+        {
+            var owner = state.Player(source.Controller);
+            foreach (var slot in owner.ArtifactSlots)
+                if (ReferenceEquals(slot.Occupant, source)) slot.HasTriggeredThisTurn = true;
+        }
+        Fx.Emit(state, Fx.New(FxKind.Trigger, ability.Trigger.ToString()).From(source).To(source));
+    }
+
+    /// <summary>
     /// Public entry point for evaluating a condition on a card for a player.
     /// Used by the engine for relic identification checks.
     /// </summary>
@@ -209,6 +227,7 @@ public static class TriggerBus
                 continue;
 
             state.TriggerDepth++;
+            Announce(state, ability, source);
 
             // Resolve targets for each effect and execute
             var opponent = state.Player(state.OpponentIndex(controller));
@@ -255,6 +274,7 @@ public static class TriggerBus
                 continue;
 
             state.TriggerDepth++;
+            Announce(state, ability, slot.Occupant);
             var opponent = state.Player(state.OpponentIndex(controller));
             foreach (var effect in ability.Effects)
             {

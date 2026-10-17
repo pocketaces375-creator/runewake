@@ -49,6 +49,19 @@ public sealed class GameState
     public string? LastTrapSprung { get; set; }
 
     /// <summary>
+    /// FABLE-064: what happened during the last action, in order, for the screen (damage dealt, abilities that
+    /// fired, keywords that did something…). Cleared at the start of every action; carried by Clone so a
+    /// co-op round can gather several actions. Never hashed: it changes nothing about the rules.
+    /// </summary>
+    public List<CombatEvent> Events { get; } = new();
+
+    /// <summary>FABLE-064: the sequence number of the last event (screens remember what they have shown).</summary>
+    public int EventSeq { get; set; }
+
+    /// <summary>FABLE-064: while set, nothing is recorded (artifact passives re-applied each turn are not news).</summary>
+    public bool FxMuted { get; set; }
+
+    /// <summary>
     /// FABLE-054: the creature an event is about while its listeners run ("whenever you summon a creature" —
     /// this one). Set and cleared inside one trigger, never cloned. Targets read it with the EVENT filters.
     /// </summary>
@@ -311,6 +324,8 @@ public sealed class GameState
         InvokeMode = other.InvokeMode;
         AltarMode = other.AltarMode;
         LastTrapSprung = other.LastTrapSprung;
+        Events = new List<CombatEvent>(other.Events);
+        EventSeq = other.EventSeq;
     }
 
     /// <summary>

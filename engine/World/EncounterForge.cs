@@ -23,6 +23,11 @@ namespace Runewake.Engine.World;
 /// </summary>
 public static class EncounterForge
 {
+    /// <summary>FABLE-064: every generated foe's starting Vigor before depth and rank (was 25).</summary>
+    public const int BaseVigor = 22;
+    /// <summary>FABLE-064: generated decks aim 15% below the old stat budget.</summary>
+    public const double StatBudget = 0.85;
+
     private static readonly double[] Early = { 0.70, 0.20, 0.10, 0.00 };
     private static readonly double[] Boss = { 0.15, 0.25, 0.35, 0.25 };
     private static readonly Rarity[] Rarities = { Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.RELIC };
@@ -57,7 +62,9 @@ public static class EncounterForge
         // Calibrated with `Runewake.Sim world-soak` against the class starter
         // decks so the first Elvenwood page plays like the authored Fallow
         // Reach (~70% starter win rate) and the climb is felt area by area.
-        int vigor = 25 + Math.Min(40, inst * 2 + page.Address.Page / 3) + blip.Kind switch
+        // FABLE-064 (Trikzos: "make current enemies easier"): the floor is 22, not 25 — three less for
+        // every foe, bosses included; the climb with depth is unchanged.
+        int vigor = BaseVigor + Math.Min(40, inst * 2 + page.Address.Page / 3) + blip.Kind switch
         {
             BlipKind.Elite => 3,
             BlipKind.Warden => 5,
@@ -149,7 +156,7 @@ public static class EncounterForge
         // keeps the one that holds the deck's running average closest to the
         // target, so a generated deck is as strong as its depth says. (PowerScore
         // is missing on many cards, so it cannot be the yardstick.)
-        double targetPower = 5.0 + 2.3 * Math.Clamp(d, 0, 1);
+        double targetPower = (5.0 + 2.3 * Math.Clamp(d, 0, 1)) * StatBudget;   // FABLE-064: 15% leaner decks
         double targetCost = 2.4 + 1.3 * Math.Clamp(d, 0, 1);
         var chosen = new List<string>(DeckSize);
         var used = new HashSet<string>();

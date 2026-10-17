@@ -95,7 +95,7 @@ public static class KeywordHandlers
                 if (occ is not null && occ.IsVenomed)
                 {
                     occ.IsVenomed = false;
-                    EffectExecutor.KillCreature(occ, state);
+                    EffectExecutor.KillCreature(occ, state, "VENOM");
                 }
             }
         }
@@ -171,7 +171,7 @@ public static class KeywordHandlers
             var occ = player.Lanes[i].Occupant;
             if (occ is not null && occ.SummonedThisTurn && occ.EffectiveKeywords.Contains("FRAGILE"))
             {
-                if (state is not null) EffectExecutor.KillCreature(occ, state);   // FABLE-DROP-1: death triggers fire
+                if (state is not null) EffectExecutor.KillCreature(occ, state, "FRAGILE");   // FABLE-DROP-1: death triggers fire
                 else DestroyCreature(player.Lanes[i], occ, player, null);
             }
         }

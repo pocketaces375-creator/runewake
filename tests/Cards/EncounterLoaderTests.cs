@@ -74,14 +74,14 @@ public class EncounterLoaderTests
     }
 
     [Fact]
-    public void EliteEncounters_HaveModifiers()
+    public void EliteEncounters_PromiseNothingTheEngineDoesNotDo()
     {
+        // FABLE-064: a modifier is a promise on the arena card. The engine applies none of the free-text
+        // ones ("All creatures have +1 attack" was a label and nothing else), so an elite may carry a
+        // modifier only when it is an opening rule or boss rule the engine really runs.
         var elites = AllEncounters.Where(e => e.Id.Contains("elite"));
         foreach (var e in elites)
-        {
-            Assert.NotNull(e.Modifier);
-            Assert.NotEmpty(e.Modifier);
-        }
+            Assert.True(string.IsNullOrEmpty(e.Modifier) || e.Modifier is "ELITE" or "WARDEN", $"{e.Id}: '{e.Modifier}' is a modifier the engine never applies");
     }
 
     [Fact]

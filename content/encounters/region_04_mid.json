@@ -45,7 +45,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -168,7 +168,8 @@
           "card_id": "tid_u_tidal_barrier",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_duel_mid_2",
@@ -215,7 +216,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -338,7 +339,8 @@
           "card_id": "dwn_c_sunpearl_healer",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_duel_mid_3",
@@ -385,7 +387,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -508,7 +510,8 @@
           "card_id": "tid_r_hydrokinetic_adept",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_elite_1",
@@ -555,7 +558,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "fragment_reward": "dawn:2",
       "drops": [
@@ -679,7 +682,8 @@
           "card_id": "dwn_r_radiant_prophet",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_04_elite_2",
@@ -726,7 +730,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "fragment_reward": "dawn:2",
       "drops": [
@@ -850,7 +854,8 @@
           "card_id": "emb_c_firecrown_raider",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

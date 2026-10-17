@@ -140,6 +140,11 @@ public partial class DuelScene : Control
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
+    /// <summary>FABLE-064: plays the engine's combat events (numbers, spells, triggers, keywords) over the board.</summary>
+    private CombatFx? _fx;
+    /// <summary>How many new events the last state change brought (the old before/after diffs stand down when > 0).</summary>
+    private int _fxNew;
+
     // TASK-AC2: Previous charge values per artifact slot for pulse detection
     private readonly int[] _prevPlayerCharges = new int[2];
     private readonly int[] _prevEnemyCharges = new int[2];
@@ -302,6 +307,7 @@ public partial class DuelScene : Control
         // Create game state manager
         _gsm = new GameStateManager();
         AddChild(_gsm);
+        BuildCombatFx();
         _gsm.StateChanged += OnStateChanged;
         _gsm.GameOver += OnGameOver;
 
@@ -2664,6 +2670,19 @@ public partial class DuelScene : Control
             _prevTurnNumber = _gsm.TurnNumber;
         }
 
+        // FABLE-064: the engine's own account of what happened drives the numbers and effects; the old
+        // before/after diffs only fill in when a state change carried no events (a tutorial nudge, a resync).
+        if (_fx != null)
+        {
+            if (_firstRender)
+            {
+                _fx.Catchup(state); _fxNew = 0;
+                if (System.Array.IndexOf(OS.GetCmdlineArgs(), "--fxdemo") >= 0)
+                    GetTree().CreateTimer(3.0).Timeout += () => { if (_fx != null && IsInstanceValid(_fx)) _fx.Demo(); };
+            }
+            else _fxNew = _fx.Ingest(state);
+        }
+
         // Compute diffs and trigger animations using the previous snapshot
         if (!_firstRender)
         {
@@ -2782,6 +2801,64 @@ public partial class DuelScene : Control
         _firstRender = false;
     }
 
+    /// <summary>
+    /// FABLE-064: the effects layer sits in its own CanvasLayer so it draws over the board, the hand, the
+    /// Crescent and any popup. It is wired with lookups, not references, so it never holds a freed node.
+    /// </summary>
+    private void BuildCombatFx()
+    {
+        var layer = new CanvasLayer { Name = "FxLayer", Layer = 20 };
+        AddChild(layer);
+        _fx = new CombatFx
+        {
+            Name = "CombatFx",
+            View = side => _gsm.View(side),
+            SlotOf = (view, lane) =>
+            {
+                var list = view == 0 ? _playerSlots : _enemySlots;
+                return lane >= 0 && lane < list.Count && IsInstanceValid(list[lane]) && list[lane].IsInsideTree() ? list[lane] : null;
+            },
+            PlateOf = (view, slot) =>
+            {
+                var arr = view == 0 ? _playerArtifactPlates : _enemyArtifactPlates;
+                return slot >= 0 && slot < arr.Length && arr[slot] != null && IsInstanceValid(arr[slot]) && arr[slot].IsInsideTree() ? arr[slot] : null;
+            },
+            CrestOf = view =>
+            {
+                if (_crescent != null && IsInstanceValid(_crescent) && _crescent.IsInsideTree())
+                    return view == 0 ? _crescent.PlayerCrest : _crescent.EnemyCrest;
+                return view == 0 ? _playerVigorValue : _enemyVigorValue;
+            },
+            CastOrigin = view =>
+            {
+                var vs = GetViewportRect().Size;
+                if (view == 0)
+                    return _handArea != null && _handArea.IsInsideTree()
+                        ? _handArea.GlobalPosition + new Vector2(_handArea.Size.X / 2f, _handArea.Size.Y * 0.8f)
+                        : new Vector2(vs.X / 2f, vs.Y);
+                if (_enemyPortrait != null && IsInstanceValid(_enemyPortrait) && _enemyPortrait.IsInsideTree())
+                    return _enemyPortrait.GlobalPosition + _enemyPortrait.Size / 2f;
+                return new Vector2(vs.X / 2f, 0f);
+            },
+            FaceHit = (view, amount) => FaceHitFx(view == 1, amount),
+            Sfx = name => { try { GetNode<AudioManager>("/root/AudioManager").PlaySfx(name); } catch { } },
+            Log = line => { if (OS.IsDebugBuild()) GD.Print("[FX] " + line); },
+        };
+        layer.AddChild(_fx);
+    }
+
+    /// <summary>A player took damage: the big number at their crest, the Crescent jolt, the edge pulse, the hit sound.</summary>
+    private void FaceHitFx(bool isEnemy, int amount)
+    {
+        if (amount <= 0) return;
+        ShowFaceDamage(isEnemy, amount);
+        Color pulseColor = isEnemy ? Gold : Ember;
+        foreach (var li in _gsm.GetLanes(isEnemy ? 0 : 1))
+            if (!li.IsEmpty) { pulseColor = ThemeTokens.StrataColor(li.Strata); break; }
+        RitualEffects.PlayFaceDamagePulse(this, GetOrCreateScreenEdgePulse(), pulseColor, CampaignContext.ReduceMotion);
+        try { GetNode<AudioManager>("/root/AudioManager").PlaySfx(amount <= 3 ? "hit_light" : "hit_heavy"); } catch { }
+    }
+
     private BoardSnapshot[] CaptureBoard(int playerIndex)
     {
         var lanes = _gsm.GetLanes(playerIndex);
@@ -2826,13 +2903,13 @@ public partial class DuelScene : Control
             else if (!prev.IsEmpty && cur.IsEmpty)
             {
                 slot.PlayDeathEffect(prev.Strata);
-                if (!audioPlayedEnemy)
+                if (!audioPlayedEnemy && _fxNew == 0)
                 {
                     audioPlayedEnemy = true;
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
                 }
             }
-            else if (!prev.IsEmpty && !cur.IsEmpty)
+            else if (!prev.IsEmpty && !cur.IsEmpty && _fxNew == 0)
             {
                 int dmg = prev.Vigor - cur.Vigor;
                 if (dmg > 0 && !CampaignContext.ReduceMotion)
@@ -2867,13 +2944,13 @@ public partial class DuelScene : Control
             else if (!prev.IsEmpty && cur.IsEmpty)
             {
                 slot.PlayDeathEffect(prev.Strata);
-                if (!audioPlayedPlayer)
+                if (!audioPlayedPlayer && _fxNew == 0)
                 {
                     audioPlayedPlayer = true;
                     GetNode<AudioManager>("/root/AudioManager").PlaySfx("death");
                 }
             }
-            else if (!prev.IsEmpty && !cur.IsEmpty)
+            else if (!prev.IsEmpty && !cur.IsEmpty && _fxNew == 0)
             {
                 int dmg = prev.Vigor - cur.Vigor;
                 if (dmg > 0 && !CampaignContext.ReduceMotion)
@@ -2900,7 +2977,7 @@ public partial class DuelScene : Control
         // Use the last non-empty player slot's stratum as the player's attacking colour
         // (simplified: default to gold if no specific attacker)
 
-        if (_prevEnemyVigor >= 0 && enemyHud.Vigor != _prevEnemyVigor)
+        if (_prevEnemyVigor >= 0 && enemyHud.Vigor != _prevEnemyVigor && _fxNew == 0)
         {
             int diff = _prevEnemyVigor - enemyHud.Vigor;
             ShowFaceDamage(true, diff);
@@ -2924,7 +3001,7 @@ public partial class DuelScene : Control
             }
         }
 
-        if (_prevPlayerVigor >= 0 && playerHud.Vigor != _prevPlayerVigor)
+        if (_prevPlayerVigor >= 0 && playerHud.Vigor != _prevPlayerVigor && _fxNew == 0)
         {
             int diff = _prevPlayerVigor - playerHud.Vigor;
             ShowFaceDamage(false, diff);

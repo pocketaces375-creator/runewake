@@ -169,7 +169,8 @@
           "card_id": "vrd_r_natures_renewal",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 18
     },
     {
       "id": "r1_duel_thornbark",
@@ -339,7 +340,8 @@
           "card_id": "vrd_x_heartwood_relic",
           "rate": 0.03
         }
-      ]
+      ],
+      "enemy_vigor": 18
     }
   ]
 }

@@ -350,8 +350,24 @@ public sealed class Expedition
     private void Apply(SeatBoard b, GameAction action)
     {
         Install(b);
-        b.State = DuelEngine.Apply(b.State, action);
+        b.State = Chain(b.State, action);
         Capture(b);
+    }
+
+    /// <summary>
+    /// FABLE-064: one engine action whose story (its combat events) is added after the board's earlier ones,
+    /// so a phone that only sees the board once the round resolves still gets every event of the round.
+    /// </summary>
+    private static GameState Chain(GameState before, GameAction action)
+    {
+        var prior = before.Events.ToList();
+        var after = DuelEngine.Apply(before, action);
+        if (prior.Count > 0)
+        {
+            after.Events.InsertRange(0, prior);
+            if (after.Events.Count > Fx.Keep) after.Events.RemoveRange(0, after.Events.Count - Fx.Keep);
+        }
+        return after;
     }
 
     private void Capture(SeatBoard b)
@@ -435,8 +451,8 @@ public sealed class Expedition
             foreach (var b in active.Where(b => b != focus && b.Active))
             {
                 Install(b);
-                var s = DuelEngine.Apply(b.State, new EndTurnAction { PlayerIndex = 0 });
-                if (!s.IsGameOver && s.CurrentPlayerIndex == 1) s = DuelEngine.Apply(s, new EndTurnAction { PlayerIndex = 1 });
+                var s = Chain(b.State, new EndTurnAction { PlayerIndex = 0 });
+                if (!s.IsGameOver && s.CurrentPlayerIndex == 1) s = Chain(s, new EndTurnAction { PlayerIndex = 1 });
                 _nextId = Math.Max(_nextId, s.NextInstanceId);
                 b.State = s;
             }

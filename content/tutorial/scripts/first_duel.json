@@ -47,7 +47,7 @@
           "prompt_title": "ATTACK",
           "prompt": "Creatures attack straight across their own lane. Tap your Student, then tap the enemy lane directly opposite. That lane is empty, so the blow lands on {opponent} instead.",
           "note_title": "VIGOR",
-          "popup": "2 damage. {opponent}'s Vigor — the number beside their name — dropped from 25 to 23. Bring it to 0 and the duel is yours."
+          "popup": "2 damage. {opponent}'s Vigor — the number beside their name — dropped from 18 to 16. Bring it to 0 and the duel is yours."
         },
         {
           "id": "t1_end",
@@ -126,7 +126,7 @@
           "prompt_title": "ATTACK AGAIN",
           "prompt": "Your Student rested overnight and is ready. Tap it, then tap the enemy lane across from it — still empty, so it hits {opponent} again.",
           "note_title": "ARTIFACTS ARE ALWAYS ON",
-          "popup": "{opponent}'s Vigor 23 → 21. Your Artifacts are working already: they apply every turn, for free, for the rest of the duel. Long-press {artifact_1} to read exactly what it does."
+          "popup": "{opponent}'s Vigor 16 → 14. Your Artifacts are working already: they apply every turn, for free, for the rest of the duel. Long-press {artifact_1} to read exactly what it does."
         },
         {
           "id": "t2_end",
@@ -204,7 +204,7 @@
           "prompt_title": "PRESS THE ADVANTAGE",
           "prompt": "The Sprout that hit your Initiate is gone, so the lane across from it is open. Tap the Initiate, then tap that empty enemy lane.",
           "note_title": "OPEN LANES",
-          "popup": "Another 2 damage — {opponent}'s Vigor 21 → 19. An open lane is an open road to the enemy's Vigor. Keep them open."
+          "popup": "Another 2 damage — {opponent}'s Vigor 14 → 12. An open lane is an open road to the enemy's Vigor. Keep them open."
         },
         {
           "id": "t3_attack_trade",

@@ -45,7 +45,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -168,7 +168,8 @@
           "card_id": "tid_r_flood_of_secrets",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_03_duel_mid_2",
@@ -215,7 +216,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -338,7 +339,8 @@
           "card_id": "dwn_u_steadfast_bulwark",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_03_duel_mid_3",
@@ -385,7 +387,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -508,7 +510,8 @@
           "card_id": "dwn_u_vigil_guardian",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_03_elite_1",
@@ -555,7 +558,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "fragment_reward": "tide:2",
       "drops": [
@@ -679,7 +682,8 @@
           "card_id": "hol_c_deathspeaker",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_03_elite_2",
@@ -726,7 +730,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "fragment_reward": "tide:2",
       "drops": [
@@ -850,7 +854,8 @@
           "card_id": "emb_u_flame_tongue_knight",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

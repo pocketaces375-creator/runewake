@@ -55,6 +55,33 @@ public partial class DuelScene
         };
         MenuButtons.Animate(_concedeBtn);
         AddChild(_concedeBtn);
+
+        // FABLE-064: the Symbol Key, one tap away in any fight
+        var key = new Button
+        {
+            Name = "SymbolKeyButton", Text = "?", FocusMode = FocusModeEnum.None,
+            Position = new Vector2(22f * s, y + 68f * s), Size = new Vector2(60f * s, 52f * s),
+            CustomMinimumSize = new Vector2(60f * s, 52f * s), MouseFilter = MouseFilterEnum.Stop, ZIndex = 60,
+            TooltipText = "Symbol key",
+        };
+        key.AddThemeStyleboxOverride("normal", MenuButtons.QuietNormal());
+        key.AddThemeStyleboxOverride("hover", MenuButtons.Hover());
+        key.AddThemeStyleboxOverride("pressed", MenuButtons.Pressed());
+        key.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+        key.AddThemeFontOverride("font", GetButtonFont((int)(28 * s)));
+        key.AddThemeFontSizeOverride("font_size", (int)(28 * s));
+        key.AddThemeColorOverride("font_color", Color.FromHtml("#CDBE9C"));
+        key.AddThemeColorOverride("font_hover_color", Color.FromHtml("#F2DFA6"));
+        key.Pressed += () =>
+        {
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+            if (GetNodeOrNull("SymbolKeyOverlay") != null) return;
+            // the effects layer draws above everything; it waits (and stays hidden) while the key is open
+            if (_fx != null) { _fx.Visible = false; _fx.ProcessMode = ProcessModeEnum.Disabled; }
+            SymbolKeyScene.Overlay(this, () => { if (_fx != null && IsInstanceValid(_fx)) { _fx.Visible = true; _fx.ProcessMode = ProcessModeEnum.Inherit; } });
+        };
+        MenuButtons.Animate(key);
+        AddChild(key);
     }
 
     private void ShowConcedeConfirm()

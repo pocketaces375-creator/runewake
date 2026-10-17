@@ -45,7 +45,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -168,7 +168,8 @@
           "card_id": "tid_c_deep_one",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_02_duel_late_2",
@@ -215,7 +216,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -338,7 +339,8 @@
           "card_id": "hol_r_curse_of_binding",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_02_duel_late_3",
@@ -385,7 +387,7 @@
       ],
       "dialogue_outro": [
         "The threat fades, leaving only silence.",
-        "The way forward is clear \u2014 for now."
+        "The way forward is clear — for now."
       ],
       "drops": [
         {
@@ -508,7 +510,8 @@
           "card_id": "emb_c_ember_hound",
           "rate": 0.4
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

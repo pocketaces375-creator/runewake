@@ -39,10 +39,10 @@
       "shard_reward": 150,
       "dig_charge_reward": 3,
       "dialogue_intro": [
-        "The water stills \u2014 a terrible pressure builds in the dark.",
+        "The water stills — a terrible pressure builds in the dark.",
         "A voice, ancient and wet, speaks from every bubble:",
         "\"You tread the abyss as though it were a road.\"",
-        "The Abyssal Warden unfolds from the murk \u2014 a crown of coral and eyes that do not blink."
+        "The Abyssal Warden unfolds from the murk — a crown of coral and eyes that do not blink."
       ],
       "dialogue_outro": [
         "The coral crown shatters; the water lightens.",
@@ -174,7 +174,8 @@
           "card_id": "dwn_u_steadfast_bulwark",
           "rate": 0.25
         }
-      ]
+      ],
+      "enemy_vigor": 22
     },
     {
       "id": "region_03_boss",
@@ -215,7 +216,7 @@
       "shard_reward": 300,
       "dig_charge_reward": 5,
       "dialogue_intro": [
-        "The abyss falls silent \u2014 even the currents hold their breath.",
+        "The abyss falls silent — even the currents hold their breath.",
         "A second pulse, deafening, shakes the stone around you.",
         "\"LEVIATHAN STIRS. THE DEEP DEMANDS TRIBUTE.\"",
         "A shape vast as a drowned cathedral rises from the dark."
@@ -351,7 +352,8 @@
           "card_id": "dwn_r_aurora_warden",
           "rate": 0.1
         }
-      ]
+      ],
+      "enemy_vigor": 22
     }
   ]
 }

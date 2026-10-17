@@ -28,14 +28,17 @@ public static class EffectExecutor
             if (state.IsGameOver) break;
             // FABLE-DROP-1: a creature an earlier target's effect destroyed is no longer a target
             if (target is CreatureTarget gone && gone.Card.Zone != Zone.Lane && effect.Op != Op.BOUNCE) continue;
+            // FABLE-064: ops with no event of their own still tell the screen "this did <op> to <target>"
+            if (effect.Op is not (Op.DAMAGE or Op.HEAL or Op.BUFF or Op.DEBUFF or Op.DESTROY or Op.SUMMON))
+                Fx.Emit(state, Fx.New(FxKind.Effect, effect.Op.ToString()).From(source).To(target).N(effect.Amount ?? 0));
             switch (effect.Op)
             {
                 case Op.DAMAGE:
-                    ApplyDamage(target, effect.Amount ?? 0, state);
+                    ApplyDamage(target, effect.Amount ?? 0, state, source);
                     break;
                 case Op.HEAL:
                     // R13: only a heal that restores at least 1 Vigor is a heal event (overheal isn't)
-                    healed |= ApplyHeal(target, effect.Amount ?? 0) > 0;
+                    healed |= ApplyHeal(target, effect.Amount ?? 0, source, state) > 0;
                     break;
                 case Op.BUFF:
                     ApplyBuff(target, effect.Attack ?? 0, effect.Vigor ?? 0, effect.Duration, source, state);
@@ -45,7 +48,7 @@ public static class EffectExecutor
                     ApplyBuff(target, -Math.Abs(effect.Attack ?? 0), -Math.Abs(effect.Vigor ?? 0), effect.Duration, source, state);
                     break;
                 case Op.DESTROY:
-                    ApplyDestroy(target, state);
+                    ApplyDestroy(target, state, source);
                     break;
                 case Op.DRAW:
                     ApplyDraw(target, effect.Amount ?? 1, state);
@@ -159,33 +162,43 @@ public static class EffectExecutor
                     if (c is not null && c.CardType != CardType.RELIC && c.CurrentVigor <= 0) dead = c;
                 }
             if (dead is null) return;
-            KillCreature(dead, state);
+            KillCreature(dead, state, "WITHER");
         }
     }
 
     // ——— Effect implementations ———
 
-    private static void ApplyDamage(ResolvedTarget target, int amount, GameState state)
+    private static void ApplyDamage(ResolvedTarget target, int amount, GameState state, CardInstance? source = null)
     {
         if (target is CreatureTarget ct)
         {
             // FABLE-DROP-1: Ward stops the next instance of ANY damage (rules §8), not only combat
+            int wardBefore = ct.Card.WardRemaining, asked = amount;
             amount = KeywordHandlers.ApplyWard(ct.Card, amount);
+            if (ct.Card.WardRemaining < wardBefore) Fx.Keyword(state, "WARD", source, ct.Card, asked);
             // Spell/ability damage is intercepted by PREVENT_DAMAGE shields (source SPELL).
+            int preShield = amount;
             amount = DamageInterceptor.Reduce(state, ct.Card, amount, DamageInterceptor.SourceSpell);
+            if (amount < preShield) Fx.Keyword(state, "SHIELD", source, ct.Card, preShield - amount);
+            int preArmor = amount;
             amount = MechanicOps.ReduceByArmor(ct.Card, amount);
+            if (amount < preArmor) Fx.Keyword(state, "ARMOR", source, ct.Card, preArmor - amount);
             ct.Card.Damage += amount;
+            if (amount > 0) Fx.Emit(state, Fx.New(FxKind.Damage, "SPELL").From(source).To(ct.Card).N(amount));
             // ANCESTRAL_SHIELD: clamp ally vigor to at least 1 after spell damage (R1)
             KeywordHandlers.TryAncestralShieldClamp(ct.Card, state);
             if (ct.Card.CurrentVigor <= 0)
-                KillCreature(ct.Card, state);
+                KillCreature(ct.Card, state, "SPELL");
             else if (amount > 0)
                 TriggerBus.FireDamaged(state, ct.Card);
         }
         else if (target is PlayerTarget pt)
         {
+            int preShield = amount;
             amount = DamageInterceptor.Reduce(state, pt.Player, amount, DamageInterceptor.SourceSpell);
+            if (amount < preShield) Fx.Emit(state, Fx.New(FxKind.Keyword, "SHIELD").From(source).ToFace(pt.Player.Index).N(preShield - amount));
             pt.Player.Vigor -= amount;
+            if (amount > 0) Fx.Emit(state, Fx.New(FxKind.Damage, "SPELL").From(source).ToFace(pt.Player.Index).N(amount));
             if (pt.Player.Vigor <= 0)
             {
                 state.IsGameOver = true;
@@ -194,23 +207,26 @@ public static class EffectExecutor
         }
     }
 
-    private static int ApplyHeal(ResolvedTarget target, int amount)
+    private static int ApplyHeal(ResolvedTarget target, int amount, CardInstance? source = null, GameState? state = null)
     {
         if (amount <= 0) return 0;
+        int healed = 0;
         if (target is CreatureTarget ct)
         {
             // Reduce damage, but not below 0
             int before = ct.Card.Damage;
             ct.Card.Damage = Math.Max(0, ct.Card.Damage - amount);
-            return before - ct.Card.Damage;
+            healed = before - ct.Card.Damage;
         }
-        if (target is PlayerTarget pt)
+        else if (target is PlayerTarget pt)
         {
             int before = pt.Player.Vigor;
             pt.Player.Vigor = Math.Min(pt.Player.MaxVigor, pt.Player.Vigor + amount);
-            return Math.Max(0, pt.Player.Vigor - before);
+            healed = Math.Max(0, pt.Player.Vigor - before);
         }
-        return 0;
+        if (healed > 0 && state is not null)
+            Fx.Emit(state, Fx.New(FxKind.Heal).From(source).To(target).N(healed));
+        return healed;
     }
 
     private static void ApplyBuff(ResolvedTarget target, int attack, int vigor, Duration? duration, CardInstance source, GameState state)
@@ -219,6 +235,10 @@ public static class EffectExecutor
         {
             ct.Card.AttackModifier += attack;
             ct.Card.VigorModifier += vigor;
+            if (attack != 0 || vigor != 0)
+                Fx.Emit(state, (attack < 0 || vigor < 0
+                        ? Fx.New(FxKind.Debuff).N(Math.Abs(attack), Math.Abs(vigor))
+                        : Fx.New(FxKind.Buff).N(attack, vigor)).From(source).To(ct.Card));
             // FABLE-DROP-1: buffs that wear off. Before this every "this turn" buff lasted forever.
             var timed = MakeTimed(duration, source, state);
             if (timed is not null)
@@ -245,11 +265,12 @@ public static class EffectExecutor
         _ => null
     };
 
-    private static void ApplyDestroy(ResolvedTarget target, GameState state)
+    private static void ApplyDestroy(ResolvedTarget target, GameState state, CardInstance? source = null)
     {
         if (target is CreatureTarget ct)
         {
-            KillCreature(ct.Card, state);
+            Fx.Emit(state, Fx.New(FxKind.Effect, "DESTROY").From(source).To(ct.Card));
+            KillCreature(ct.Card, state, "DESTROY");
         }
     }
 
@@ -277,6 +298,7 @@ public static class EffectExecutor
                 // Fatigue
                 player.FatigueCounter++;
                 player.Vigor -= player.FatigueCounter;
+                Fx.Emit(state, Fx.New(FxKind.Damage, "FATIGUE").ToFace(player.Index).N(player.FatigueCounter));
                 if (player.Vigor <= 0)
                 {
                     state.IsGameOver = true;
@@ -417,6 +439,7 @@ public static class EffectExecutor
                 MechanicOps.ApplyTokenDef(token, tokenId, effect);
                 player.Lanes[i].Occupant = token;
                 KeywordHandlers.OnPlay(token);    // FABLE-DROP-1: a summoned Swift or Ward token works
+                Fx.Emit(state, Fx.New(FxKind.Summon, "TOKEN").From(source).To(token));
                 return;
             }
         }
@@ -785,6 +808,7 @@ public static class EffectExecutor
                     IsExhausted = true
                 };
                 player.Lanes[i].Occupant = token;
+                Fx.Emit(state, Fx.New(FxKind.Summon, "TOKEN").From(source).To(token));
                 return;
             }
         }
@@ -844,6 +868,7 @@ public static class EffectExecutor
         best.LaneIndex = emptyLane;
         best.IsExhausted = true;
         player.Lanes[emptyLane].Occupant = best;
+        Fx.Emit(state, Fx.New(FxKind.Summon, "UNEARTH").From(source).To(best));
     }
 
     /// <summary>
@@ -981,12 +1006,13 @@ public static class EffectExecutor
     /// here, so death triggers, Unearth and the death counters are never skipped (Venom and Fragile used
     /// to remove creatures without any of them).
     /// </summary>
-    public static void KillCreature(CardInstance card, GameState state)
+    public static void KillCreature(CardInstance card, GameState state, string cause = "")
     {
         if (card.Zone != Zone.Lane) return;
         var owner = state.Player(card.Controller);
         var lane = owner.Lanes[card.LaneIndex ?? 0];
         if (!ReferenceEquals(lane.Occupant, card)) return;
+        Fx.Emit(state, Fx.New(FxKind.Death, cause).To(card));
 
         // Increment death counter (side-aware: count under the dead card's controller)
         state.CreatureDiedThisTurnCount[card.Controller]++;
@@ -1006,7 +1032,10 @@ public static class EffectExecutor
         }
 
         // Check Unearth first
-        if (!KeywordHandlers.OnDeath(card, owner))
+        bool unearthed = KeywordHandlers.OnDeath(card, owner);
+        if (unearthed)
+            Fx.Emit(state, Fx.New(FxKind.Keyword, "UNEARTH").From(card).To(card));
+        if (!unearthed)
         {
             lane.Occupant = null;
             card.Zone = Zone.Discard;

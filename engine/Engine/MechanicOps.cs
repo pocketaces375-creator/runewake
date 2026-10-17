@@ -192,6 +192,7 @@ public static class MechanicOps
         if (trap is null) return false;
         enemy.Traps.Remove(trap);
         state.LastTrapSprung = $"{trap.SourceDefId}>{ritual.CardDefId}";
+        Fx.Emit(state, new CombatEvent { Kind = FxKind.Sigil, Tag = "COUNTER_RITUAL", Side = enemy.Index, SourceDefId = trap.SourceDefId, SourceType = CardType.RITUAL }.To(ritual));
         return true;
     }
 
@@ -202,9 +203,11 @@ public static class MechanicOps
         if (trap is null) return;
         defender.Traps.Remove(trap);
         state.LastTrapSprung = $"{trap.SourceDefId}>{attacker.CardDefId}";
+        Fx.Emit(state, new CombatEvent { Kind = FxKind.Sigil, Tag = "AMBUSH", Side = defender.Index, SourceDefId = trap.SourceDefId, SourceType = CardType.RITUAL }.To(attacker).N(trap.Amount));
         int dmg = ReduceByArmor(attacker, KeywordHandlers.ApplyWard(attacker, Math.Max(0, trap.Amount)));
         attacker.Damage += dmg;
-        if (attacker.CurrentVigor <= 0) EffectExecutor.KillCreature(attacker, state);
+        if (dmg > 0) Fx.Emit(state, new CombatEvent { Kind = FxKind.Damage, Tag = "AMBUSH", Side = defender.Index, SourceDefId = trap.SourceDefId, SourceType = CardType.RITUAL }.To(attacker).N(dmg));
+        if (attacker.CurrentVigor <= 0) EffectExecutor.KillCreature(attacker, state, "AMBUSH");
         else if (dmg > 0) TriggerBus.FireDamaged(state, attacker);
     }
 
@@ -297,6 +300,7 @@ public static class MechanicOps
     {
         if (p.DrainNext > 0)
         {
+            Fx.Emit(state, Fx.New(FxKind.Effect, "DRAIN_TICK").ToFace(p.Index).N(Math.Min(p.Attunement, p.DrainNext)));
             p.Attunement = Math.Max(0, p.Attunement - p.DrainNext);
             p.DrainNext = 0;
         }
@@ -304,14 +308,17 @@ public static class MechanicOps
         {
             var c = p.Lanes[i].Occupant;
             if (c is null || c.Burn <= 0) continue;
-            c.Damage += ReduceByArmor(c, c.Burn);
+            int tick = ReduceByArmor(c, c.Burn);
+            c.Damage += tick;
+            if (tick > 0) Fx.Emit(state, Fx.New(FxKind.Damage, "BURN").To(c).N(tick));
             c.Burn--;
-            if (c.CurrentVigor <= 0) EffectExecutor.KillCreature(c, state);
+            if (c.CurrentVigor <= 0) EffectExecutor.KillCreature(c, state, "BURN");
             else TriggerBus.FireDamaged(state, c);
         }
         if (p.Burn > 0 && !state.IsGameOver)
         {
             p.Vigor -= p.Burn;
+            Fx.Emit(state, Fx.New(FxKind.Damage, "BURN").ToFace(p.Index).N(p.Burn));
             p.Burn--;
             if (p.Vigor <= 0)
             {

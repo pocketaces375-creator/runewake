@@ -524,24 +524,21 @@ public partial class ArtifactCardPlate : Control
     /// TASK-ARTF-P2: Brief bright flash when this artifact's trigger fires.
     /// <0.5s golden-white pulse that fades out.
     /// </summary>
+    private Godot.Tween? _flashTween;
+
     public void PlayTriggerFlash()
     {
         if (_triggerFlashOverlay == null || !IsInstanceValid(_triggerFlashOverlay))
             return;
 
-        // Kill any existing flash tween
-        var existing = _triggerFlashOverlay.GetMeta("flash_tween", Variant.From<Godot.Tween?>(null));
-        if (existing.VariantType != Variant.Type.Nil)
-        {
-            var tween = existing.AsGodotObject() as Godot.Tween;
-            if (tween != null && IsInstanceValid(tween))
-                tween.Kill();
-        }
+        // Kill any existing flash tween (FABLE-064: it was stored on the tween, then looked up on the
+        // overlay — so it was never found and every flash logged an error)
+        if (_flashTween != null && IsInstanceValid(_flashTween) && _flashTween.IsValid())
+            _flashTween.Kill();
 
         _triggerFlashOverlay.Modulate = new Color(1.0f, 0.95f, 0.75f, 0.55f);
-        var flash = CreateTween();
-        flash.TweenProperty(_triggerFlashOverlay, "modulate",
+        _flashTween = CreateTween();
+        _flashTween.TweenProperty(_triggerFlashOverlay, "modulate",
             new Color(1.0f, 0.95f, 0.75f, 0.0f), 0.35f);
-        flash.SetMeta("flash_tween", Variant.From(flash));
     }
 }

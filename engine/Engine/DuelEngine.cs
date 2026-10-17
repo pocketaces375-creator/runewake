@@ -20,6 +20,8 @@ public static partial class DuelEngine
         state = state.Clone();
         state.ActionLog.Add(action);
         state.LastTrapSprung = null;
+        state.Events.Clear();   // FABLE-064: this action's story starts here
+        state.FxMuted = false;
         // FABLE-DROP-1: the chain cap is per action. It was never reset, so after the 20th trigger of a
         // match NOTHING triggered again — no death effects, no artifact charges, for the rest of the game.
         state.TriggerDepth = 0;
@@ -239,13 +241,14 @@ public static partial class DuelEngine
             if (card.Tribute > 0)
             {
                 foreach (var victim in MechanicOps.TributeVictims(player, card, laneIdx)!)
-                    EffectExecutor.KillCreature(victim, state);
+                    EffectExecutor.KillCreature(victim, state, "TRIBUTE");
                 if (lane.Occupant is not null)   // an Unearth victim left, a death trigger summoned into it…
                     throw new InvalidOperationException($"Lane {laneIdx} is already occupied.");
             }
             lane.Occupant = card;
             card.Zone = Zone.Lane;
             card.LaneIndex = laneIdx;
+            Fx.Emit(state, Fx.New(FxKind.Summon, "PLAY").From(card).To(card));
 
             if (card.CardType == CardType.CREATURE)
             {
@@ -274,8 +277,11 @@ public static partial class DuelEngine
             // rituals cost their Attunement and did nothing. The lane the ritual was dropped on is its aim
             // (the creature in that lane, yours or theirs, is the one a single-target effect picks).
             card.Zone = Zone.RemovedFromGame;   // on the stack: not in hand, not yet in the discard
-            if (!MechanicOps.TryCounter(state, card, action.PlayerIndex))
+            if (MechanicOps.TryCounter(state, card, action.PlayerIndex))
+                Fx.Emit(state, Fx.New(FxKind.Countered, state.LastTrapSprung?.Split('>')[0] ?? "").From(card));
+            else
             {
+                Fx.Emit(state, Fx.New(FxKind.Cast).From(card).ToLane(-1, action.LaneIndex ?? -1));
                 state.AimLane = action.LaneIndex;
                 foreach (var ability in card.Abilities.ToList())
                     if (ability.Trigger == Trigger.RESOLVE && !state.IsGameOver)
@@ -346,7 +352,12 @@ public static partial class DuelEngine
             return state;
 
         int targetLaneIdx = resolvedTarget.Value;
-        targetLaneIdx = MechanicOps.RedirectAttack(state, opponent, targetLaneIdx);
+        int redirected = MechanicOps.RedirectAttack(state, opponent, targetLaneIdx);
+        if (redirected != targetLaneIdx)
+            Fx.Keyword(state, "REDIRECT", attacker, opponent.Lanes[redirected].Occupant!);
+        targetLaneIdx = redirected;
+        if (attacker.SummonedThisTurn && attacker.EffectiveKeywords.Contains("SWIFT"))
+            Fx.Emit(state, Fx.New(FxKind.Keyword, "SWIFT").From(attacker).To(attacker));
 
         // Determine final target: creature or face (with Guard redirect)
         var targetLane = opponent.Lanes[targetLaneIdx];
@@ -365,6 +376,7 @@ public static partial class DuelEngine
             {
                 // Redirect to Guard lane
                 actualTargetLaneIdx = guardLane;
+                Fx.Keyword(state, "GUARD", attacker, opponent.Lanes[guardLane.Value].Occupant!);
             }
             else
             {
@@ -401,10 +413,13 @@ public static partial class DuelEngine
                 return state;
             }
             attackPower = attacker.CurrentAttack + (state.AltarMode && action.SourceLane == 2 ? 1 : 0);
-            attackPower = MechanicOps.AttackPowerWithExalted(state, player, attacker, attackPower);
+            attackPower = ExaltedPower(state, player, attacker, attackPower);
         }
         else
-            attackPower = MechanicOps.AttackPowerWithExalted(state, player, attacker, attackPower);
+            attackPower = ExaltedPower(state, player, attacker, attackPower);
+        Fx.Emit(state, actualTargetLaneIdx is int atl
+            ? Fx.New(FxKind.Attack).From(attacker).To(opponent.Lanes[atl].Occupant).N(attackPower)
+            : Fx.New(FxKind.Attack).From(attacker).ToFace(opponent.Index).N(attackPower));
 
         if (actualTargetLaneIdx is int tgtIdx)
         {
@@ -420,8 +435,8 @@ public static partial class DuelEngine
                 player.PreyAttackCountThisTurn++;
 
             // Ward reduces attacker's damage to defender
-            int damageToDefender = KeywordHandlers.ApplyWard(defender, attackPower);
-            damageToDefender = MechanicOps.CombatDamageTo(state, defender, damageToDefender);
+            int damageToDefender = WardFx(state, attacker, defender, attackPower);
+            damageToDefender = DodgeFx(state, attacker, defender, damageToDefender);
 
             // Simultaneous damage (defender hits back with full power unless attacker has STEALTH_STRIKE — R8)
             int atkDamage = defender.CurrentAttack;
@@ -432,23 +447,31 @@ public static partial class DuelEngine
 
             // FABLE-DROP-1: the counter-blow goes through Ward too (it used to ignore the attacker's Ward)
             if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
-                atkDamage = MechanicOps.CombatDamageTo(state, attacker, KeywordHandlers.ApplyWard(attacker, atkDamage));
+                atkDamage = DodgeFx(state, defender, attacker, WardFx(state, defender, attacker, atkDamage));
             // Combat damage is intercepted by PREVENT_DAMAGE shields (source ATTACK).
-            int dealtToDefender = MechanicOps.ReduceByArmor(defender,
-                DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack));
+            int dealtToDefender = ArmorFx(state, attacker, defender,
+                ShieldFx(state, attacker, defender, damageToDefender, DamageInterceptor.Reduce(state, defender, damageToDefender, DamageInterceptor.SourceAttack)));
             defender.Damage += dealtToDefender;
+            if (dealtToDefender > 0)
+                Fx.Emit(state, Fx.New(FxKind.Damage, "ATTACK").From(attacker).To(defender).N(dealtToDefender));
             int dealtToAttacker = 0;
             if (!attacker.EffectiveKeywords.Contains("STEALTH_STRIKE"))
             {
-                dealtToAttacker = MechanicOps.ReduceByArmor(attacker,
-                    DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack));
+                dealtToAttacker = ArmorFx(state, defender, attacker,
+                    ShieldFx(state, defender, attacker, atkDamage, DamageInterceptor.Reduce(state, attacker, atkDamage, DamageInterceptor.SourceAttack)));
                 attacker.Damage += dealtToAttacker;
+                if (dealtToAttacker > 0)
+                    Fx.Emit(state, Fx.New(FxKind.Damage, "CLASH").From(defender).To(attacker).N(dealtToAttacker));
             }
+            bool attackerVenomedBefore = attacker.IsVenomed;
             MechanicOps.AfterCombatDamage(state, attacker, defender, dealtToDefender, dealtToAttacker);
+            if (attacker.IsVenomed && !attackerVenomedBefore) Fx.Keyword(state, "VENOM", defender, attacker);
             damageToDefender = dealtToDefender;
 
             // Venom marking
+            bool defenderVenomedBefore = defender.IsVenomed;
             KeywordHandlers.OnCombatDamageDealt(attacker, defender, damageToDefender);
+            if (defender.IsVenomed && !defenderVenomedBefore) Fx.Keyword(state, "VENOM", attacker, defender);
 
             // Pierce: excess damage to defender carries to face
             // TASK-FUN-SIM-1(c): ALTAR mode — edge lanes 0 and 4 block Pierce
@@ -460,12 +483,15 @@ public static partial class DuelEngine
                 int excessDamage = System.Math.Max(0, attackPower - neededToKill);
                 excessDamage = DamageInterceptor.Reduce(state, opponent, excessDamage, DamageInterceptor.SourceAttack);
                 opponent.Vigor -= excessDamage;
+                Fx.Emit(state, Fx.New(FxKind.Keyword, "PIERCE").From(attacker).To(defender).N(excessDamage));
+                if (excessDamage > 0)
+                    Fx.Emit(state, Fx.New(FxKind.Damage, "PIERCE").From(attacker).ToFace(opponent.Index).N(excessDamage));
                 CheckGameOver(state, opponent);
             }
 
             // Remove dead defender (FABLE-DROP-1: the one death path — Unearth, triggers, counters)
             if (defenderKilled)
-                EffectExecutor.KillCreature(defender, state);
+                EffectExecutor.KillCreature(defender, state, "COMBAT");
             else if (dealtToDefender > 0)
                 damagedSurvivors.Add(defender);
             if (dealtToAttacker > 0)
@@ -474,8 +500,13 @@ public static partial class DuelEngine
         else
         {
             // Face damage (intercepted by PREVENT_DAMAGE shields, source ATTACK).
+            int unshielded = attackPower;
             attackPower = DamageInterceptor.Reduce(state, opponent, attackPower, DamageInterceptor.SourceAttack);
+            if (attackPower < unshielded)
+                Fx.Emit(state, Fx.New(FxKind.Keyword, "SHIELD").From(attacker).ToFace(opponent.Index).N(unshielded - attackPower));
             opponent.Vigor -= attackPower;
+            if (attackPower > 0)
+                Fx.Emit(state, Fx.New(FxKind.Damage, "ATTACK").From(attacker).ToFace(opponent.Index).N(attackPower));
             CheckGameOver(state, opponent);
         }
 
@@ -485,7 +516,7 @@ public static partial class DuelEngine
         // Remove dead attacker (FABLE-DROP-1: the one death path)
         if (attacker.Zone == Zone.Lane && attacker.CurrentVigor <= 0)
         {
-            EffectExecutor.KillCreature(attacker, state);
+            EffectExecutor.KillCreature(attacker, state, "COMBAT");
         }
         else if (attacker.Zone == Zone.Lane)
         {
@@ -498,6 +529,43 @@ public static partial class DuelEngine
             TriggerBus.FireDamaged(state, hurt);
 
         return state;
+    }
+
+    // ——— FABLE-064: combat keyword accounting (the rules are unchanged; each helper only records what happened) ———
+
+    private static int WardFx(GameState state, CardInstance src, CardInstance target, int incoming)
+    {
+        int before = target.WardRemaining;
+        int after = KeywordHandlers.ApplyWard(target, incoming);
+        if (target.WardRemaining < before) Fx.Keyword(state, "WARD", src, target, incoming);
+        return after;
+    }
+
+    private static int DodgeFx(GameState state, CardInstance src, CardInstance target, int incoming)
+    {
+        int after = MechanicOps.CombatDamageTo(state, target, incoming);
+        if (incoming > 0 && after == 0) Fx.Keyword(state, "DODGE", src, target, incoming);
+        return after;
+    }
+
+    private static int ArmorFx(GameState state, CardInstance src, CardInstance target, int incoming)
+    {
+        int after = MechanicOps.ReduceByArmor(target, incoming);
+        if (after < incoming) Fx.Keyword(state, "ARMOR", src, target, incoming - after);
+        return after;
+    }
+
+    private static int ShieldFx(GameState state, CardInstance src, CardInstance target, int before, int after)
+    {
+        if (after < before) Fx.Keyword(state, "SHIELD", src, target, before - after);
+        return after;
+    }
+
+    private static int ExaltedPower(GameState state, PlayerState player, CardInstance attacker, int power)
+    {
+        int after = MechanicOps.AttackPowerWithExalted(state, player, attacker, power);
+        if (after > power) Fx.Emit(state, Fx.New(FxKind.Keyword, "EXALTED").From(attacker).To(attacker).N(after - power));
+        return after;
     }
 
     /// <summary>
@@ -604,6 +672,7 @@ public static partial class DuelEngine
             // Fatigue
             player.FatigueCounter++;
             player.Vigor -= player.FatigueCounter;
+            Fx.Emit(state, Fx.New(FxKind.Damage, "FATIGUE").ToFace(player.Index).N(player.FatigueCounter));
             if (player.Vigor <= 0)
             {
                 state.IsGameOver = true;
@@ -690,6 +759,13 @@ public static partial class DuelEngine
     /// (e.g. <see cref="EffectDef.CadenceOnTurnStart"/>) and are skipped here.
     /// </summary>
     private static void ApplyArtifactPassives(GameState state, PlayerState player)
+    {
+        state.FxMuted = true;   // FABLE-064: the same standing buffs every turn are not news
+        try { ApplyArtifactPassivesInner(state, player); }
+        finally { state.FxMuted = false; }
+    }
+
+    private static void ApplyArtifactPassivesInner(GameState state, PlayerState player)
     {
         foreach (var slot in player.ArtifactSlots)
         {
