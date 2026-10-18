@@ -26,11 +26,11 @@ echo "════════════════════════�
 roundtrip() {
     local label="$1" url="$2" expected_sha="$3"
     echo ""
-    echo "  [$label] Verifying: $url"
+    echo "  [$label] Verifying the download (link printed only if it matches)"
     local tmpfile
     tmpfile=$(mktemp /tmp/apk_verify_XXXXXX.apk)
     set +e
-    curl -sL -o "$tmpfile" --connect-timeout 30 --max-time 300 "$url" 2>&1
+    curl -fsL -o "$tmpfile" --connect-timeout 30 --max-time 900 "$url" 2>&1
     local curl_exit=$?
     set -e
     if [ "$curl_exit" -ne 0 ]; then
@@ -62,23 +62,42 @@ HOSTS_SELECTED=0
 UPLOAD_LIMIT="${APK_UPLOAD_SECONDS:-900}"
 
 # GitHub release
+# FABLE-073: the GitHub link is the one that reaches Trikzos's phone, so it is uploaded until it is
+# really there (up to 3 tries) and the link is printed only after a download of it matches the APK.
+# Before this, a failed upload still printed the link and SHIPPED posted a dead 404 (2026-10-18).
 echo ""
 echo "── Preparing GitHub release ──"
+REPO_SLUG="pocketaces375-creator/runewake"
 TAG="alpha-$(date +%F)"
-if timeout 60 gh release view "$TAG" --repo pocketaces375-creator/runewake > /dev/null 2>&1; then
-    echo "  Release $TAG exists — replacing the asset"
-    timeout 120 gh release delete-asset "$TAG" "$APK_NAME" --repo pocketaces375-creator/runewake --yes 2>/dev/null || true
-    timeout "$UPLOAD_LIMIT" gh release upload "$TAG" "$APK" --repo pocketaces375-creator/runewake --clobber 2>&1 || echo "  ⚠ GitHub upload failed or timed out"
-else
-    echo "  Creating release $TAG..."
-    timeout "$UPLOAD_LIMIT" gh release create "$TAG" "$APK" \
-        --repo pocketaces375-creator/runewake \
-        --title "$TAG" \
-        --notes "Automated build. SHA-256: $SHA" 2>&1 || echo "  ⚠ GitHub release failed or timed out"
-fi
-GH_URL="https://github.com/pocketaces375-creator/runewake/releases/download/${TAG}/${APK_NAME}"
-echo "  GitHub: $GH_URL"
-roundtrip "GitHub" "$GH_URL" "$SHA" && HOSTS_SELECTED=$((HOSTS_SELECTED + 1))
+UPLOAD_LIMIT_GH="${APK_GH_UPLOAD_SECONDS:-1200}"
+GH_URL="https://github.com/${REPO_SLUG}/releases/download/${TAG}/${APK_NAME}"
+gh_has_asset() {
+    timeout 60 gh release view "$TAG" --repo "$REPO_SLUG" --json assets,isDraft \
+        -q "select(.isDraft == false) | .assets[] | select(.name == \"$APK_NAME\" and .state == \"uploaded\") | .size" 2>/dev/null \
+        | grep -qx "$SIZE"
+}
+for try in 1 2 3; do
+    if timeout 60 gh release view "$TAG" --repo "$REPO_SLUG" > /dev/null 2>&1; then
+        echo "  [try $try] release $TAG exists — uploading the asset"
+        timeout "$UPLOAD_LIMIT_GH" gh release upload "$TAG" "$APK" --repo "$REPO_SLUG" --clobber 2>&1 | tail -3 \
+            || echo "  ⚠ upload failed or timed out"
+        # a release left as a draft by a failed create is invisible to the phone — publish it
+        timeout 60 gh release edit "$TAG" --repo "$REPO_SLUG" --draft=false > /dev/null 2>&1 || true
+    else
+        echo "  [try $try] creating release $TAG"
+        timeout "$UPLOAD_LIMIT_GH" gh release create "$TAG" "$APK" --repo "$REPO_SLUG" \
+            --title "$TAG" --notes "Automated build. SHA-256: $SHA" 2>&1 | tail -3 \
+            || echo "  ⚠ release create failed or timed out"
+    fi
+    if gh_has_asset && roundtrip "GitHub" "$GH_URL" "$SHA"; then
+        echo "  GitHub: $GH_URL"
+        HOSTS_SELECTED=$((HOSTS_SELECTED + 1))
+        break
+    fi
+    echo "  ⚠ [try $try] the GitHub asset is not downloadable yet"
+    sleep 30
+done
+[ "$HOSTS_SELECTED" -gt 0 ] || echo "  ❌ GITHUB UPLOAD FAILED after 3 tries — no GitHub link this time"
 
 # gofile.io
 echo ""
@@ -149,7 +168,7 @@ if [ "${#FAILED_LINKS[@]}" -gt 0 ]; then
     echo ""
     echo "  ⚠ Failed hosts:"
     for link in "${FAILED_LINKS[@]}"; do
-        echo "    • $link"
+        echo "    • ${link#https://} (dead — do not post)"
     done
 fi
 

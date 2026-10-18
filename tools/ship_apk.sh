@@ -376,7 +376,7 @@ if [ -f "$REPO_ROOT/tools/apk_deliver.sh" ]; then
   # FABLE-063: a time limit, and a log file instead of a pipe (a stalled upload or a background child
   # used to hold the pipe open, so the build was done but "SHIPPED" never came)
   DELIVER_LOG="$REPO_ROOT/artifacts/delivery.log"
-  if ! timeout "${APK_DELIVER_SECONDS:-2400}" bash "$REPO_ROOT/tools/apk_deliver.sh" "$APK" > "$DELIVER_LOG" 2>&1 < /dev/null; then
+  if ! timeout "${APK_DELIVER_SECONDS:-4800}" bash "$REPO_ROOT/tools/apk_deliver.sh" "$APK" > "$DELIVER_LOG" 2>&1 < /dev/null; then
     echo "  ⚠ delivery did not finish cleanly (timed out or a host failed) — the APK is at $REPO_ROOT/exports/$(basename "$APK")"
   fi
   tail -20 "$DELIVER_LOG"
