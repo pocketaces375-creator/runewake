@@ -283,6 +283,10 @@ echo "  ${OUTFILE}  ${SIZE_MB} MB"
 # ─── Install-critical APK facts: blocking, because a build that will not ────
 # install or launches sideways is not testable at all.
 blocking "apk: intact archive" unzip -t "$APK"
+# FABLE-074: the APK must carry THIS checkout's game data. The 072 ship handed over an APK still holding
+# the 070 game (old town names, no 072 code); this catches a stale export before anyone downloads it.
+blocking "apk: built from this checkout" bash -c \
+  "unzip -p '$APK' assets/content/classes.json | cmp -s - '$CLIENT_DIR/content/classes.json'"
 if [ "$MODE" = "release" ] && [ -x /home/fictive/Android/Sdk/build-tools/34.0.0/apksigner ]; then
   blocking "apk: valid signature" /home/fictive/Android/Sdk/build-tools/34.0.0/apksigner verify "$APK"
 fi
@@ -386,7 +390,7 @@ fi
 
 echo ""
 echo "═══════════════════════════════════════════════════"
-echo "  SHIPPED: ${OUTFILE}  ${SIZE_MB} MB   playable=${PLAYABLE}"
+echo "  SHIPPED: ${OUTFILE}  ${SIZE_MB} MB   playable=${PLAYABLE}   built from $(git -C "$REPO_ROOT" log -1 --format='%h %s' | cut -c1-60)"
 if [ "${#WAIVED[@]}" -gt 0 ]; then
   for w in "${WAIVED[@]}"; do echo "  known-broken, shipped anyway: ${w%%|*}"; done
 fi
