@@ -3,10 +3,13 @@
     "id": "battlemage",
     "name": "BATTLEMAGE",
     "strata": "TIDE",
-    "town": "Saltmere",
+    "town": "Sealwick",
     "description": "Arcane and steel. The battlemage wields magic as a weapon, not a study.",
-    "blurb": "In the drowned markets of Saltmere, battlemage aspirants trade spells for secrets and carve their names into the tide.",
-    "starting_items": ["wand", "aura"],
+    "blurb": "On the Hem, where the Void begins and the rain falls upward, sits sleepy Sealwick: a village of mage-raiders who go into the Void in bands, fight what it has made, plant a seal, and come home to dinner.",
+    "starting_items": [
+      "wand",
+      "aura"
+    ],
     "core_cards": [
       "tid_c_tidal_scholar",
       "tid_c_deep_one",
@@ -18,10 +21,13 @@
     "id": "necromancer",
     "name": "NECROMANCER",
     "strata": "HOLLOW",
-    "town": "Palewatch",
+    "town": "Greyvault Undercroft",
     "description": "Bone and bargain. The necromancer commands what others fear to wake.",
-    "blurb": "In the ossuary-veils of Palewatch, the dead do not rest — they serve.",
-    "starting_items": ["skull", "ritual piece"],
+    "blurb": "Under the cathedral of Greyvault lie the catacombs, level on level of the dead. The keepers of the Undercroft learned long ago that the dead down here are not finished — and have never once met the people upstairs.",
+    "starting_items": [
+      "skull",
+      "ritual piece"
+    ],
     "core_cards": [
       "hol_c_gravewrit_thrall",
       "hol_c_skeletal_reaver",
@@ -33,10 +39,13 @@
     "id": "paladin",
     "name": "PALADIN",
     "strata": "DAWN",
-    "town": "Sunspire",
+    "town": "Greyvault Ward",
     "description": "Oath and iron. The paladin is the unbroken wall between the dark and the dawn.",
-    "blurb": "From the golden halls of Sunspire, paladins carry the ancient oaths into every shadow, and the light follows.",
-    "starting_items": ["hammer", "banner"],
+    "blurb": "On the crown of Greyvault the Order of the Vigil keeps the bells ringing and the lanterns lit over the open graves. They know something is under the hill. They stand on top of it, and do not move.",
+    "starting_items": [
+      "hammer",
+      "banner"
+    ],
     "core_cards": [
       "dwn_c_dawn_warder",
       "dwn_c_sunblade_recruit",
@@ -48,10 +57,13 @@
     "id": "druid",
     "name": "DRUID",
     "strata": "VERDANT",
-    "town": "Mossgrave",
+    "town": "The Boughs of Yrmund",
     "description": "Root and renewal. The druid speaks the language of the living earth.",
-    "blurb": "Deep in the canopies of Mossgrave, druids tend the old growth and awaken the deep roots.",
-    "starting_items": ["book of familiar", "elemental bond"],
+    "blurb": "Yrmund is a tree the size of a mountain, and it walks. The Druids live in its boughs and go where it goes, because near the Source the Old Age's language can almost be heard.",
+    "starting_items": [
+      "book of familiar",
+      "elemental bond"
+    ],
     "core_cards": [
       "vrd_c_root_warden",
       "vrd_c_verdant_sproutling",
@@ -63,10 +75,13 @@
     "id": "rogue",
     "name": "ROGUE",
     "strata": "HOLLOW",
-    "town": "Duskchapel",
+    "town": "Tamunet",
     "description": "Shadow and silver. The rogue strikes where the light forgets to look.",
-    "blurb": "From the candle-lit crypts of Duskchapel, rogues move through the silence between heartbeats, taking what the dead no longer need.",
-    "starting_items": ["dagger_dusk", "dagger_whisper"],
+    "blurb": "Tamunet starves. The river that fed its tomb-temples moved in the Old Age and never came back, so its people learned to take — and the clever ones live long enough to become very clever indeed.",
+    "starting_items": [
+      "dagger_dusk",
+      "dagger_whisper"
+    ],
     "core_cards": [
       "hol_u_crypt_crawler",
       "hol_u_soul_harvest",
@@ -78,10 +93,13 @@
     "id": "astrologist",
     "name": "ASTROLOGIST",
     "strata": "TIDE",
-    "town": "Starfall Reach",
+    "town": "Penumbra Camp",
     "description": "Star and prophecy. The astrologist reads the sky and bends fate.",
-    "blurb": "In the observatory-spires of Starfall Reach, astrologists chart the celestial tide and whisper to the constellations.",
-    "starting_items": ["orb", "constellation starlight"],
+    "blurb": "There is a camp on the dark side of the Moon, posted there in the Old Age to watch the deep sky. Its people ride the solar currents between the worlds and are surprised by nothing.",
+    "starting_items": [
+      "orb",
+      "constellation starlight"
+    ],
     "core_cards": [],
     "portrait_placeholder": true
   },
@@ -89,10 +107,13 @@
     "id": "warrior",
     "name": "WARRIOR",
     "strata": "EMBER",
-    "town": "Emberhold",
+    "town": "Harrowfield",
     "description": "Steel and fire. The warrior forges victory from the anvil of battle.",
-    "blurb": "Tempered in the forge-fires of Emberhold, warriors carry the ancient craft of war into every fight.",
-    "starting_items": ["sword", "shield"],
+    "blurb": "Harrowfield is fields to every horizon and nothing to do in the evenings but train — which is how a farm village in the middle of nowhere came to breed the strongest fighters in the known world.",
+    "starting_items": [
+      "sword",
+      "shield"
+    ],
     "core_cards": [
       "emb_c_forgeguard_berserker",
       "emb_c_ember_hound",

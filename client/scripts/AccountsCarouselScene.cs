@@ -687,7 +687,7 @@ public partial class AccountsCarouselScene : Control
         // Phase 0: initial empty carousel already captured
         // Phase 1: create a warrior account
         GD.Print("[AccountsCarousel] Test cycle: creating warrior account");
-        CampaignContext.AddOrUpdateProfile("warrior", "Emberhold");
+        CampaignContext.AddOrUpdateProfile("warrior", "Harrowfield");
         CampaignContext.Progression.AddCard("vrd_c_root_warden");
         CampaignContext.Progression.AddCard("emb_c_ember_hound");
         CampaignContext.SaveManager.Save();

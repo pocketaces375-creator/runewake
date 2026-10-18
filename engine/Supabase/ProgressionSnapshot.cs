@@ -167,8 +167,11 @@ public class ProgressionSnapshot
 
         s.DeckCardIds.Clear(); s.DeckCardIds.AddRange(DeckCardIds);
         s.SavedDecks.Clear(); foreach (var kv in SavedDecks) s.SavedDecks[kv.Key] = new List<string>(kv.Value);
-        s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value);
-        s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts);
+        // FABLE-072: a cloud copy that carries no artifact picks must not erase the ones on this phone
+        if (DeckArtifacts.Count > 0 || s.DeckArtifacts.Count == 0)
+        { s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value); }
+        if (ActiveArtifacts.Count > 0 || s.ActiveArtifacts.Count == 0)
+        { s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts); }
         s.ActiveDeckName = ActiveDeckName ?? "";
 
         s.GlobalDiscoveryIndex = GlobalDiscoveryIndex;

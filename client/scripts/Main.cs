@@ -943,12 +943,12 @@ public partial class Main : Control
                 // Navigate to accounts carousel for capture
                 GD.Print("[Main] Navigating to accounts carousel for capture");
                 // Create a warrior account first so the carousel has content
-                CampaignContext.AddOrUpdateProfile("warrior", "Emberhold");
+                CampaignContext.AddOrUpdateProfile("warrior", "Harrowfield");
                 CampaignContext.Progression.AddCard("vrd_c_root_warden");
                 CampaignContext.Progression.AddCard("emb_c_ember_hound");
                 CampaignContext.SaveManager.Save();
                 CampaignContext.ChosenClass = "warrior";
-                CampaignContext.ChosenTown = "Emberhold";
+                CampaignContext.ChosenTown = "Harrowfield";
                 CampaignContext.ActiveProfileSlot = 0;
                 CampaignContext.SaveCampaignProfile();
                 // Schedule deferred navigation so the title screen renders first
@@ -1689,16 +1689,16 @@ public partial class Main : Control
         GD.Print($"[Main] slots_test{suffix}.png saved (initial empty slots)");
 
         // Phase 2: Create a new campaign (simulate class selection)
-        CampaignContext.AddOrUpdateProfile("warrior", "Emberhold");
+        CampaignContext.AddOrUpdateProfile("warrior", "Harrowfield");
         // Set some progression data
         CampaignContext.Progression.AddCard("vrd_c_root_warden");
         CampaignContext.Progression.AddCard("emb_c_ember_hound");
         CampaignContext.Progression.AddCard("dwn_c_dawn_warder");
         CampaignContext.SaveManager.Save();
         CampaignContext.ChosenClass = "warrior";
-        CampaignContext.ChosenTown = "Emberhold";
+        CampaignContext.ChosenTown = "Harrowfield";
         CampaignContext.ActiveProfileSlot = 0;
-        GD.Print("[Main] Profile created: warrior in Emberhold with 3 cards");
+        GD.Print("[Main] Profile created: warrior in Harrowfield with 3 cards");
 
         // Rebuild picker and capture
         BuildSlotPicker();
@@ -1711,7 +1711,7 @@ public partial class Main : Control
         // Phase 3: Load the slot (trigger a Continue flow) — just verify it works
         CampaignContext.ActiveProfileSlot = 0;
         CampaignContext.ChosenClass = "warrior";
-        CampaignContext.ChosenTown = "Emberhold";
+        CampaignContext.ChosenTown = "Harrowfield";
         GD.Print("[Main] Profile loaded (continue flow)");
 
         // Phase 4: Delete the profile
@@ -1739,6 +1739,13 @@ public partial class Main : Control
         {
             AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
             AudioServer.SetBusMute(masterIdx, s.MasterMute);
+        }
+        // FABLE-072: mute every bus, not only Master — on some Android audio paths a muted Master still let the
+        // child buses through, so "Mute all sound" did nothing you could hear
+        foreach (var bus in new[] { "Music", "SFX", "Ambient" })
+        {
+            int bi = AudioServer.GetBusIndex(bus);
+            if (bi >= 0) AudioServer.SetBusMute(bi, s.MasterMute);
         }
 
         int musicIdx = AudioServer.GetBusIndex("Music");

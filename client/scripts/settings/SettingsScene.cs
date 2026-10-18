@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 using Runewake.Engine.State;
 
 namespace Runewake.Client;
@@ -376,6 +377,8 @@ public partial class SettingsScene : Control
         {
             if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } mb && !sw.GetGlobalRect().HasPoint(mb.GlobalPosition))
                 sw.Flip();
+            else if (e is InputEventScreenTouch { Pressed: false } st && !sw.GetGlobalRect().HasPoint(st.Position))
+                sw.Flip();
         };
         return sw;
     }
@@ -595,6 +598,9 @@ public partial class SettingsScene : Control
                 + (sm.IsFunctional ? "" : $" · PROBLEM: {sm.LastError}"),
             sm.LastLoadFailed ? "⚠ The save could not be read at launch — a copy was kept. Tell Fable." : "Save file read fine at launch.",
             sm.SavingToFileOnly ? "Storage: save file (the database can't start on this phone — the file holds everything)." : "Storage: save file + database.",
+            $"Artifacts you play: {string.Join(", ", p.ActiveArtifacts.Select(a => Runewake.Engine.Cards.ArtifactRegistry.Get(a)?.Name ?? a))} · recorded for {p.DeckArtifacts.Count} deck(s)",
+            "Recent saves:",
+            string.Join("\n", SaveManager.TrailTail(6).Select(l => "  " + l)),
             sync == null || !sync.IsConfigured ? "Cloud: accounts are off in this build — progress lives on this phone only."
                 : $"Cloud: {sync.Status} · {(sync.IsLinked ? "signed in" : "GUEST — sign in to keep progress if the app is reinstalled")} · last check: {sync.LastDecision}",
             "",
@@ -842,6 +848,13 @@ public partial class SettingsScene : Control
             AudioServer.SetBusVolumeDb(masterIdx, Mathf.LinearToDb(s.MasterVolume));
             AudioServer.SetBusMute(masterIdx, s.MasterMute);
         }
+        // FABLE-072: mute every bus, not only Master — on some Android audio paths a muted Master still let the
+        // child buses through, so "Mute all sound" did nothing you could hear
+        foreach (var bus in new[] { "Music", "SFX", "Ambient" })
+        {
+            int bi = AudioServer.GetBusIndex(bus);
+            if (bi >= 0) AudioServer.SetBusMute(bi, s.MasterMute);
+        }
         int musicIdx = AudioServer.GetBusIndex("Music");
         if (musicIdx >= 0) AudioServer.SetBusVolumeDb(musicIdx, Mathf.LinearToDb(s.MusicVolume));
         int sfxIdx = AudioServer.GetBusIndex("SFX");
@@ -879,7 +892,8 @@ public partial class SettingsSwitch : Control
 
     public override void _GuiInput(InputEvent e)
     {
-        if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false })
+        // FABLE-072: a finger as well as a mouse (a touch that is not turned into a mouse event never flipped it)
+        if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } || e is InputEventScreenTouch { Pressed: false })
         {
             Flip();
             AcceptEvent();

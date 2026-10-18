@@ -120,7 +120,7 @@ public partial class MapScene : Control
         if (CampaignContext.CaptureMapScreenshot)
         {
             // Provision a starter deck so the deck chip reads "Deck: Forgeguard Standard"
-            CampaignContext.AddOrUpdateProfile("warrior", "The Fallow Reach");
+            CampaignContext.AddOrUpdateProfile("warrior", "Harrowfield");
             CampaignContext.EnsureStarterDeck("warrior");
             UpdateDeckChipText(); // refresh now that we have a starter deck
 

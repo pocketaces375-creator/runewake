@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using Runewake.Engine.State;
 using Runewake.Persistence;
@@ -124,6 +125,7 @@ public class SaveManager
         {
             var loaded = _repository.Load();
             CopyInto(loaded, State);
+            Trail($"load slot {CurrentSlot}: {Describe(State)}" + (_repository.RepairLog.Count > 0 ? " | " + string.Join("; ", _repository.RepairLog) : ""));
 
             // Log any repairs that occurred
             if (WasRepaired)
@@ -150,9 +152,40 @@ public class SaveManager
     /// Returns true on success. On failure, logs and returns false — the
     /// in-memory state is still valid, it just didn't reach disk.
     /// </summary>
+    /// <summary>FABLE-072: a short on-device diary of saves and loads (user://save_trail.log), shown in Settings → Save check.</summary>
+    public const string TrailPath = "user://save_trail.log";
+
+    public static void Trail(string line)
+    {
+        try
+        {
+            using var f = Godot.FileAccess.Open(TrailPath, Godot.FileAccess.FileExists(TrailPath) ? Godot.FileAccess.ModeFlags.ReadWrite : Godot.FileAccess.ModeFlags.Write);
+            if (f == null) return;
+            f.SeekEnd();
+            f.StoreLine($"{DateTime.Now:MM-dd HH:mm:ss} {line}");
+        }
+        catch { }
+    }
+
+    public static string Describe(ProgressionState s) =>
+        $"deck='{s.ActiveDeckName}' arts=[{string.Join(",", s.ActiveArtifacts)}] decks={s.SavedDecks.Count} recs={s.DeckArtifacts.Count} cleared={s.ClearedNodes.Count} shards={s.Shards}";
+
+    /// <summary>The last <paramref name="n"/> trail lines, newest last.</summary>
+    public static string[] TrailTail(int n)
+    {
+        try
+        {
+            if (!Godot.FileAccess.FileExists(TrailPath)) return Array.Empty<string>();
+            var lines = Godot.FileAccess.GetFileAsString(TrailPath).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            return lines.Skip(Math.Max(0, lines.Length - n)).ToArray();
+        }
+        catch { return Array.Empty<string>(); }
+    }
+
     public bool Save()
     {
         bool ok = _repository.Save(State);
+        Trail($"save slot {CurrentSlot} {(ok ? "ok" : "FAILED " + (_repository.LastSaveError ?? "?"))}{(_repository.SqliteUnavailable ? " (file)" : "")}: {Describe(State)}");
         if (!ok)
         {
             // FABLE-055: keep the real reason (it used to be a bare "see log"), and send it home once

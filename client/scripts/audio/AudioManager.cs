@@ -179,8 +179,20 @@ public partial class AudioManager : Node
     // ════════════════════════════════════════════════════════════════════
 
     /// <summary>Play a music track by manifest ID. No-op if already playing.</summary>
+    /// <summary>FABLE-072: belt and braces for "Mute all sound" — every bus muted/unmuted the moment a track starts.</summary>
+    private static void ApplyMuteFromSettings()
+    {
+        bool mute = CampaignContext.Settings?.MasterMute ?? false;
+        foreach (var bus in new[] { "Master", "Music", "SFX", "Ambient" })
+        {
+            int bi = AudioServer.GetBusIndex(bus);
+            if (bi >= 0 && AudioServer.IsBusMute(bi) != mute) AudioServer.SetBusMute(bi, mute);
+        }
+    }
+
     public void PlayMusic(string id, float fadeInSec = 0.0f)
     {
+        ApplyMuteFromSettings();
         if (!_musicMap.TryGetValue(id, out var entry))
         {
             GD.Print($"[AudioManager] Music '{id}' not in manifest (safe no-op)");
@@ -404,6 +416,7 @@ public partial class AudioManager : Node
     /// <summary>Play a one-shot SFX from the pool. Overlapping calls get separate players.</summary>
     public void PlaySfx(string id)
     {
+        ApplyMuteFromSettings();
         if (!_sfxMap.TryGetValue(id, out var entry))
         {
             GD.Print($"[AudioManager] SFX '{id}' not in manifest (safe no-op)");

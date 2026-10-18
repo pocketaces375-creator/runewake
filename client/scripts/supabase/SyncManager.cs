@@ -727,11 +727,12 @@ public partial class SyncManager : Node
                     // FABLE-055: change and save the live state on the main thread, where the game also
                     // changes it — doing it here raced the game ("collection was modified", "database is locked")
                     var save = _save; var restored = snap;
-                    OnMainThread(() => { restored.ApplyTo(save.State); save.Save(); });
+                    OnMainThread(() => { SaveManager.Trail("cloud restore (sign-in) → " + SaveManager.Describe(save.State)); restored.ApplyTo(save.State); save.Save(); });
                 }
                 else
                 {
                     var st = new ProgressionState();
+                    SaveManager.Trail($"cloud restore from {cloud.UpdatedAt:u}: before {SaveManager.Describe(st)}");
                     snap.ApplyTo(st);
                     new SaveRepository(SlotDbPath(slot)).Save(st);
                 }

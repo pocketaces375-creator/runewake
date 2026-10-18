@@ -3,7 +3,7 @@
  "base_region": "region_01",
  "zones": {
   "battlemage": {
-   "name": "The Drowned Markets",
+   "name": "The Hem",
    "strata": "TIDE",
    "strata2": "EMBER",
    "board_skin": "start_tide",
@@ -70,7 +70,7 @@
    }
   },
   "necromancer": {
-   "name": "The Ossuary Veils",
+   "name": "The Greyvault Undercroft",
    "strata": "HOLLOW",
    "strata2": "DAWN",
    "board_skin": "start_hollow",
@@ -137,7 +137,7 @@
    }
   },
   "paladin": {
-   "name": "The Sunspire Marches",
+   "name": "The Greyvault Ward",
    "strata": "DAWN",
    "strata2": "VERDANT",
    "board_skin": "start_dawn",
@@ -204,7 +204,7 @@
    }
   },
   "druid": {
-   "name": "The Mossgrave Wilds",
+   "name": "The Rootwake",
    "strata": "VERDANT",
    "strata2": "HOLLOW",
    "board_skin": "start_verdant",
@@ -271,7 +271,7 @@
    }
   },
   "rogue": {
-   "name": "The Duskchapel Undercroft",
+   "name": "The Hungry Sands",
    "strata": "HOLLOW",
    "strata2": "EMBER",
    "board_skin": "start_dusk",
@@ -281,48 +281,48 @@
      470
     ],
     "r1_n02": [
-     498,
-     549
+     492,
+     556
     ],
     "r1_n03": [
-     456,
-     333
+     462,
+     342
     ],
     "r1_n04": [
-     651,
-     548
+     642,
+     562
     ],
     "r1_n05": [
-     598,
-     278
+     604,
+     295
     ],
     "r1_n06": [
-     807,
-     528
+     797,
+     552
     ],
     "r1_n07": [
-     735,
-     391
+     733,
+     413
     ],
     "r1_n08": [
-     751,
-     237
+     757,
+     263
     ],
     "r1_n09": [
-     934,
-     431
+     927,
+     462
     ],
     "r1_n10": [
-     903,
-     275
+     905,
+     307
     ],
     "r1_n11": [
-     1080,
-     319
+     1077,
+     360
     ],
     "r1_n12": [
-     1169,
-     189
+     1172,
+     237
     ]
    },
    "encounters": {
@@ -338,7 +338,7 @@
    }
   },
   "astrologist": {
-   "name": "The Starfall Heights",
+   "name": "The Farside",
    "strata": "TIDE",
    "strata2": "DAWN",
    "board_skin": "start_astral",
@@ -405,7 +405,7 @@
    }
   },
   "warrior": {
-   "name": "The Emberhold Passes",
+   "name": "The Long Furrow",
    "strata": "EMBER",
    "strata2": "DAWN",
    "board_skin": "start_ember",

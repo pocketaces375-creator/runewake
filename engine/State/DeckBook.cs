@@ -106,8 +106,16 @@ public static class DeckBook
         p.ActiveDeckName = name;
         p.DeckCardIds.Clear();
         p.DeckCardIds.AddRange(cards);
-        p.ActiveArtifacts.Clear();
-        if (p.DeckArtifacts.TryGetValue(name, out var a)) p.ActiveArtifacts.AddRange(a);
+        // FABLE-072: a deck with no artifact record (an older deck, a cloud copy from before artifacts were kept
+        // per deck) used to wipe the pair you had — every activation went back to the class defaults. Now the
+        // pair you were playing stays, and becomes this deck's record.
+        if (p.DeckArtifacts.TryGetValue(name, out var a) && a.Count > 0)
+        {
+            p.ActiveArtifacts.Clear();
+            p.ActiveArtifacts.AddRange(a);
+        }
+        else if (p.ActiveArtifacts.Count > 0)
+            p.DeckArtifacts[name] = new List<string>(p.ActiveArtifacts);
     }
 
     /// <summary>Rename a deck (cards, artifacts and "active" move with it). False if the new name is taken.</summary>

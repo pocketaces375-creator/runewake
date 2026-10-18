@@ -72,13 +72,13 @@ public partial class ChooseYourPathScene : Control
     // Relic flavour lines — one per class, shown on each carousel panel
     private static readonly Dictionary<string, string> RelicFlavors = new()
     {
-        { "warrior", "A blade quenched in the forge-fires of Emberhold, and a shield that has never once been set down." },
-        { "battlemage", "A wand cut from drowned coral, and an aura that answers the tide before the storm breaks." },
-        { "necromancer", "A skull that still remembers its name, and a fetish that drinks the last breath of the fallen." },
-        { "paladin", "A hammer that rings like an oath kept, and a banner the light follows into every shadow." },
-        { "druid", "A book that whispers back, and a bond older than the deep roots." },
-        { "rogue", "Two fangs of dusk — one to open the silence, and one to close it." },
-        { "astrologist", "An orb that holds tomorrow's tide, and a constellation that falls when it is called." },
+        { "warrior", "A blade beaten out of farm iron at Old Smoke, and a shield that has never once been set down." },
+        { "battlemage", "A wand cut on the Hem of the Void, and an aura that answers the tide before the storm breaks." },
+        { "necromancer", "A skull from the Undercroft that still remembers its name, and a fetish that drinks the last breath of the fallen." },
+        { "paladin", "A hammer that rings like the Greyvault bells, and a lantern the light follows into every shadow." },
+        { "druid", "A leaf of Yrmund that whispers back, and a bond older than the deep roots." },
+        { "rogue", "Two knives from the Gullet of Tamunet — one to open the silence, and one to close it." },
+        { "astrologist", "An orb that holds tomorrow's current, and a constellation that falls when it is called." },
     };
 
     // Carousel drag state
