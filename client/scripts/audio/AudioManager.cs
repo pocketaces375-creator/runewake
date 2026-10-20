@@ -279,6 +279,11 @@ public partial class AudioManager : Node
     // ── FABLE-055: the title music is a choice (Settings → Title music) ──
     public static readonly (string Id, string Name)[] TitleTracks =
     {
+        // FABLE-077: the Lyria themes Trikzos picked lead the list (the first is the default)
+        ("gods_of_old_answer_1", "The Gods of Old Answer"),
+        ("gods_of_old_answer_2", "The Gods of Old Answer (II)"),
+        ("road_beneath_the_world_1", "The Road Beneath the World"),
+        ("road_beneath_the_world_2", "The Road Beneath the World (II)"),
         ("gilded_court", "The Gilded Court"),
         ("hall_of_runes", "Hall of Runes (original)"),
         ("sands_of_the_old_age", "Sands of the Old Age"),
@@ -314,17 +319,61 @@ public partial class AudioManager : Node
     public const string TrackDuel = "thorn_reach";
     public const string TrackQuiet = "stones_and_dust";
 
-    private static readonly Dictionary<string, string> SceneTracks = new()
+    // ── FABLE-077: a theme for each part of the game. Two takes of a theme form a pool; each visit to a screen
+    // plays the next take, so the same corner of the game does not always sound the same. ──
+    public static readonly string[] PoolRoad = { "road_beneath_the_world_1", "road_beneath_the_world_2" };   // the map and the quiet screens
+    public static readonly string[] PoolClash = { "clash_at_the_crossroads_1", "clash_at_the_crossroads_2" };  // PvP: online and arena duels
+    public static readonly string[] PoolOath = { "oath_of_the_old_kings_1", "oath_of_the_old_kings_2" };       // Warden and boss duels
+    public static readonly string[] PoolFaire = { "faire_of_the_long_hall_1", "faire_of_the_long_hall_2" };    // the Merchant and the Forge
+    public static readonly string[] PoolToll = { "ferrymans_toll_1", "ferrymans_toll_2" };                     // Purchase Drachmae — the offering
+    private static readonly string[] PoolTitle = { TrackTitle };
+    private static readonly string[] PoolCampaignDuel = { TrackDuel };
+    /// <summary>Screens that leave whatever is playing alone (Settings is opened from everywhere).</summary>
+    private static readonly string[] PoolKeep = System.Array.Empty<string>();
+
+    private static readonly Dictionary<string, string[]> SceneTracks = new()
     {
-        { "Main", TrackTitle },
-        { "AccountsCarouselScene", TrackTitle },
-        { "MapScene", TrackTitle },
-        { "ChooseYourPathScene", TrackTitle },
-        { "DuelScene", TrackDuel },
-        { "ArenaScene", TrackDuel },
-        // Everything else — deck, shop, reliquary, forge, rune page, dig,
-        // settings — falls through to the quiet bed.
+        { "Main", PoolTitle },
+        { "AccountsCarouselScene", PoolTitle },
+        { "ChooseYourPathScene", PoolTitle },
+        { "MapScene", PoolRoad },
+        { "WorldMapScene", PoolRoad },
+        { "ZoneTransitionScene", PoolRoad },
+        { "DeckBuilderScene", PoolRoad },
+        { "ReliquaryScene", PoolRoad },
+        { "RunePageScene", PoolRoad },
+        { "DigScene", PoolRoad },
+        { "RewardsScene", PoolRoad },
+        { "CardShopScene", PoolFaire },
+        { "ForgeScene", PoolFaire },
+        { "PackShopScene", PoolToll },
+        { "DuelScene", PoolCampaignDuel },   // DuelMusic() picks PvP / boss / campaign
+        { "ArenaScene", PoolClash },
+        { "SettingsScene", PoolKeep },
+        // Anything else plays the road.
     };
+
+    private readonly Dictionary<string, int> _poolTurn = new();
+
+    /// <summary>FABLE-077: what a duel plays — PvP gets the Clash, Wardens and bosses the Oath, the rest the campaign theme.</summary>
+    private static string[] DuelMusic()
+    {
+        if (OnlineMatch.Current != null || CampaignContext.IsArenaDuel) return PoolClash;
+        var enc = CampaignContext.CurrentEncounter;
+        if (enc != null && (enc.Modifier == "WARDEN" || !string.IsNullOrEmpty(enc.OpeningRule))) return PoolOath;
+        return PoolCampaignDuel;
+    }
+
+    /// <summary>The next take from a pool — or the one already playing, so a screen change never restarts it.</summary>
+    private string NextFromPool(string key, string[] pool)
+    {
+        var present = System.Array.FindAll(pool, id => _musicMap.ContainsKey(id));
+        if (present.Length == 0) return pool.Length > 0 ? pool[0] : TrackQuiet;
+        if (_currentMusicId != null && System.Array.IndexOf(present, _currentMusicId) >= 0) return _currentMusicId;
+        int turn = _poolTurn.TryGetValue(key, out var t) ? t : (int)(GD.Randi() % (uint)present.Length);
+        _poolTurn[key] = turn + 1;
+        return present[turn % present.Length];
+    }
 
     private string _lastSceneName = "";
 
@@ -342,8 +391,10 @@ public partial class AudioManager : Node
         if (name == _lastSceneName) return;
         _lastSceneName = name;
 
-        string id = SceneTracks.TryGetValue(name, out var mapped) ? mapped : TrackQuiet;
-        if (id == TrackTitle) id = TitleTrack;   // FABLE-055: the chosen title music
+        var pool = SceneTracks.TryGetValue(name, out var mapped) ? mapped : PoolRoad;
+        if (name == "DuelScene") pool = DuelMusic();
+        if (pool.Length == 0) return;   // Settings: keep what is playing
+        string id = pool == PoolTitle ? TitleTrack : NextFromPool(pool[0], pool);   // FABLE-055: the chosen title music
         GD.Print($"[AudioManager] scene '{name}' -> music '{id}'");
         CrossfadeMusic(id, 1.6f);
     }

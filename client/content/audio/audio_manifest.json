@@ -45,6 +45,66 @@
       "path": "res://content/audio/music/the_long_ascent.ogg",
       "bus": "Music",
       "volume": 0.0
+    },
+    "road_beneath_the_world_1": {
+      "path": "res://content/audio/music/road_beneath_the_world_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "road_beneath_the_world_2": {
+      "path": "res://content/audio/music/road_beneath_the_world_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "clash_at_the_crossroads_1": {
+      "path": "res://content/audio/music/clash_at_the_crossroads_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "clash_at_the_crossroads_2": {
+      "path": "res://content/audio/music/clash_at_the_crossroads_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "gods_of_old_answer_1": {
+      "path": "res://content/audio/music/gods_of_old_answer_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "gods_of_old_answer_2": {
+      "path": "res://content/audio/music/gods_of_old_answer_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "oath_of_the_old_kings_1": {
+      "path": "res://content/audio/music/oath_of_the_old_kings_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "oath_of_the_old_kings_2": {
+      "path": "res://content/audio/music/oath_of_the_old_kings_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "faire_of_the_long_hall_1": {
+      "path": "res://content/audio/music/faire_of_the_long_hall_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "faire_of_the_long_hall_2": {
+      "path": "res://content/audio/music/faire_of_the_long_hall_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "ferrymans_toll_1": {
+      "path": "res://content/audio/music/ferrymans_toll_1.ogg",
+      "bus": "Music",
+      "volume": -1.0
+    },
+    "ferrymans_toll_2": {
+      "path": "res://content/audio/music/ferrymans_toll_2.ogg",
+      "bus": "Music",
+      "volume": -1.0
     }
   },
   "sfx": {
