@@ -8,6 +8,7 @@
   install    copy picked tracks into client/content/audio/music/ and register them in audio_manifest.json.
 
 Generators, tried in this order (keys read from the environment or ~/.hermes/.env):
+  OPENROUTER_API_KEY   Google Lyria 3 Pro via OpenRouter (FABLE-076; the key this machine already has, ~$0.08 a song)
   ELEVENLABS_API_KEY   ElevenLabs Music          (paid plans allow commercial use)
   FAL_KEY              fal.ai ACE-Step           (Apache-2.0 model)
   REPLICATE_API_TOKEN  Replicate ACE-Step / Stable Audio
@@ -15,8 +16,8 @@ Generators, tried in this order (keys read from the environment or ~/.hermes/.en
 Each track's provider is written next to it (<id>.provider.txt) so the credits can say exactly where it came from.
 
   python3 tools/gen_music_ai.py probe
-  python3 tools/gen_music_ai.py generate [--only ferrymans_toll]
-  python3 tools/gen_music_ai.py install ferrymans_toll faire_of_the_long_hall oath_of_the_old_kings
+  python3 tools/gen_music_ai.py generate [--only ferrymans_toll] [--takes 2]
+  python3 tools/gen_music_ai.py install road_beneath_the_world_2 clash_at_the_crossroads_1   (take numbers optional)
 """
 import argparse
 import json
@@ -36,9 +37,40 @@ MANIFEST = REPO / "client" / "content" / "audio" / "audio_manifest.json"
 
 SECONDS = 120
 TRACKS = {
+    # FABLE-076: a theme for each part of the game (Trikzos: "a few different tracks for different parts of the game")
+    "road_beneath_the_world": {
+        "title": "The Road Beneath the World",
+        "use": "World map / exploring the homelands",
+        "prompt": "Adventurous ancient-world exploration theme, instrumental, for the map screen of a fantasy card game. "
+                  "92 BPM in A Dorian. A concert harp and plucked lyre ostinato, a wooden flute and a low whistle "
+                  "carrying a wandering, hopeful melody, warm cello and viola underneath, soft frame drum and hand "
+                  "percussion, a distant horn call answering, gradual swell of strings, a sense of wonder at a vast "
+                  "unmapped land older than its gods, Greek and Nordic colour. Loops smoothly. No vocals.",
+        "tags": "fantasy, exploration, adventure, harp, lyre, flute, low whistle, cello, frame drum, horn, wonder, 92 bpm, instrumental",
+    },
+    "clash_at_the_crossroads": {
+        "title": "Clash at the Crossroads",
+        "use": "Normal duels",
+        "prompt": "Tense tactical battle music for a fantasy card duel, instrumental, sits under gameplay without "
+                  "crowding it. 108 BPM in E minor. A driving low-string ostinato, hurdy-gurdy drone and riff, bodhran "
+                  "and frame drums, plucked oud, short brass stabs, occasional taiko hits on the downbeat, fiddle "
+                  "answering phrases, rising and falling tension like two rivals measuring each other, ancient and "
+                  "focused, steady energy that loops cleanly. No vocals.",
+        "tags": "battle, tactical, tension, ostinato, hurdy-gurdy, bodhran, oud, brass, taiko, fiddle, 108 bpm, instrumental",
+    },
+    "gods_of_old_answer": {
+        "title": "The Gods of Old Answer",
+        "use": "Title screen / the blessing before a fight",
+        "prompt": "Sacred, awe-struck ancient theme, instrumental. Slow 66 BPM in D minor rising to D major. A wordless "
+                  "female and male choir on long vowels, a temple bell and tuned bowls, concert harp arpeggios, deep "
+                  "organ-like strings, a lone duduk, then a radiant swell of brass and choir as if forgotten gods are "
+                  "answering a prayer from far away, vast cathedral and mountain-temple reverb, mythic and luminous. "
+                  "No words.",
+        "tags": "sacred, epic, choir, temple bell, harp, duduk, strings, brass, mythic, awe, 66 bpm, instrumental",
+    },
     "ferrymans_toll": {
         "title": "The Ferryman's Toll",
-        "use": "Card Packs / the Styx offering",
+        "use": "Purchase Drachmae / the offering",
         "prompt": "Epic ancient Greek underworld theme, instrumental. Slow and solemn at 70 BPM in D Phrygian. Deep "
                   "male choir humming, a plucked lyre and concert harp, low frame drums like distant footsteps, a "
                   "lone duduk melody, brass swells and a huge choir climax halfway, rumbling timpani, cavernous "
@@ -47,7 +79,7 @@ TRACKS = {
     },
     "faire_of_the_long_hall": {
         "title": "Faire of the Long Hall",
-        "use": "Map / town / menus",
+        "use": "Merchant / Forge / menus",
         "prompt": "Joyful Renaissance faire dance, instrumental. Lively 6/8 galliard at 120 BPM in G Mixolydian. "
                   "Lute and cittern strumming, recorder and shawm trading the tune, hurdy-gurdy drone, bagpipe "
                   "joining for the second verse, tabor drum and tambourine, hand claps, a stomping tavern crowd feel, "
@@ -56,7 +88,7 @@ TRACKS = {
     },
     "oath_of_the_old_kings": {
         "title": "Oath of the Old Kings",
-        "use": "Duels / boss fights",
+        "use": "Warden and boss duels",
         "prompt": "Epic ancient battle anthem, instrumental. Driving 112 BPM in D Dorian. Thunderous taiko and frame "
                   "drums, a hurdy-gurdy and bowed lyre riff, low brass and horns, war chant of a male choir on vowels, "
                   "fiddle runs, rising strings, a heroic horn melody over the top, relentless and triumphant, Norse "
@@ -93,6 +125,63 @@ def download(url, out, headers=None):
 
 
 # ── providers: each returns the path of the raw audio it saved, or raises ──────────────────────────
+
+def openrouter_lyria(k, t, out):
+    """FABLE-076: Google Lyria 3 Pro through OpenRouter's chat API. Audio output needs streaming: the song arrives
+    as base64 pieces in choices[0].delta.audio.data. Anything unexpected is written to <id>.openrouter_debug.txt."""
+    last = None
+    for model, fmt in [("google/lyria-3-pro-preview", "wav"), ("google/lyria-3-pro-preview", "mp3"), ("google/lyria-3-clip-preview", "mp3")]:
+        payload = {
+            "model": model, "stream": True, "modalities": ["text", "audio"], "audio": {"format": fmt},
+            "messages": [{"role": "user", "content": t["prompt"] + " Instrumental only, no singing, about two minutes."}],
+        }
+        req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=json.dumps(payload).encode(),
+                                     headers={"Content-Type": "application/json", "Authorization": f"Bearer {k['OPENROUTER_API_KEY']}",
+                                              "HTTP-Referer": "https://github.com/pocketaces375-creator/runewake", "X-Title": "Runewake"},
+                                     method="POST")
+        pieces, other = [], []
+        try:
+            with urllib.request.urlopen(req, timeout=900) as r:
+                for raw in r:
+                    line = raw.decode("utf-8", "replace").strip()
+                    if not line.startswith("data:"):
+                        if line and len(other) < 40: other.append(line[:300])
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        break
+                    try:
+                        chunk = json.loads(data)
+                    except ValueError:
+                        continue
+                    for ch in chunk.get("choices") or []:
+                        for part in (ch.get("delta") or {}, ch.get("message") or {}):
+                            a = part.get("audio")
+                            if isinstance(a, dict) and a.get("data"):
+                                pieces.append(a["data"])
+                    if "error" in chunk and len(other) < 40:
+                        other.append(json.dumps(chunk["error"])[:300])
+            if not pieces:
+                raise RuntimeError("no audio in the stream: " + " | ".join(other)[:300])
+            import base64
+            if any(x.endswith("=") for x in pieces[:-1]):   # every piece padded on its own: decode them one by one
+                audio = b"".join(base64.b64decode(x) for x in pieces)
+            else:
+                audio = base64.b64decode("".join(pieces))
+            p = out.with_suffix("." + fmt)
+            p.write_bytes(audio)
+            (out.parent / (out.stem + ".endpoint.txt")).write_text(f"openrouter {model} {fmt}")
+            return p
+        except Exception as e:
+            last = e
+            body = ""
+            if isinstance(e, urllib.error.HTTPError):
+                try: body = e.read().decode("utf-8", "replace")[:600]
+                except Exception: pass
+            (out.parent / (out.stem.replace("_raw", "") + ".openrouter_debug.txt")).write_text(f"{model} {fmt}: {e}\n{body}\n" + "\n".join(other))
+            print(f"   openrouter {model} ({fmt}) failed: {str(e)[:160]} {body[:160]}", flush=True)
+    raise last or RuntimeError("openrouter: nothing worked")
+
 
 def elevenlabs(k, t, out):
     body = http("https://api.elevenlabs.io/v1/music?output_format=mp3_44100_192",
@@ -170,7 +259,8 @@ def huggingface(k, t, out):
     raise last or RuntimeError("huggingface failed")
 
 
-PROVIDERS = [("ELEVENLABS_API_KEY", "ElevenLabs Music", elevenlabs),
+PROVIDERS = [("OPENROUTER_API_KEY", "Google Lyria 3 Pro (OpenRouter)", openrouter_lyria),
+             ("ELEVENLABS_API_KEY", "ElevenLabs Music", elevenlabs),
              ("FAL_KEY", "fal.ai", fal),
              ("REPLICATE_API_TOKEN", "Replicate", replicate),
              ("HF_TOKEN", "Hugging Face MusicGen (non-commercial licence)", huggingface)]
@@ -193,7 +283,7 @@ def probe():
     return have
 
 
-def generate(only):
+def generate(only, takes=1):
     k = keys()
     WORK.mkdir(parents=True, exist_ok=True)
     have = [(n, label, fn) for n, label, fn in PROVIDERS if k.get(n)]
@@ -204,30 +294,33 @@ def generate(only):
     for tid, t in TRACKS.items():
         if only and tid not in only:
             continue
-        for n, label, fn in have:
-            try:
-                print(f"{tid}: trying {label}", flush=True)
-                raw = fn(k, t, WORK / f"{tid}_raw")
-                dur = master(raw, WORK / f"{tid}.ogg")
-                (WORK / f"{tid}.provider.txt").write_text(label)
-                print(f"TRACK {tid} {WORK / (tid + '.ogg')} {dur:.0f}s via {label}", flush=True)
-                made += 1
-                break
-            except Exception as e:
-                print(f"{tid}: {label} failed: {str(e)[:200]}", flush=True)
+        for take in range(1, takes + 1):
+            name = tid if takes == 1 else f"{tid}_{take}"
+            for n, label, fn in have:
+                try:
+                    print(f"{name}: trying {label}", flush=True)
+                    raw = fn(k, t, WORK / f"{name}_raw")
+                    dur = master(raw, WORK / f"{name}.ogg")
+                    (WORK / f"{name}.provider.txt").write_text(label)
+                    print(f"TRACK {name} {WORK / (name + '.ogg')} {dur:.0f}s via {label}", flush=True)
+                    made += 1
+                    break
+                except Exception as e:
+                    print(f"{name}: {label} failed: {str(e)[:200]}", flush=True)
     return 0 if made else 3
 
 
 def install(ids):
     man = json.loads(MANIFEST.read_text())
-    for tid in ids:
-        src = WORK / f"{tid}.ogg"
+    for pick in ids:
+        src = WORK / f"{pick}.ogg"
         if not src.exists():
             sys.exit(f"missing {src}")
-        shutil.copy(src, MUSIC / f"{tid}.ogg")
-        man["music"][tid] = {"path": f"res://content/audio/music/{tid}.ogg", "bus": "Music", "volume": -1.0}
-        prov = (WORK / f"{tid}.provider.txt").read_text().strip() if (WORK / f"{tid}.provider.txt").exists() else "AI generator"
-        print(f"installed {tid} ({TRACKS.get(tid, {}).get('title', tid)}, {prov})")
+        base = pick.rsplit("_", 1)[0] if pick.rsplit("_", 1)[-1].isdigit() and pick not in TRACKS else pick   # "x_2" = take 2 of x
+        shutil.copy(src, MUSIC / f"{base}.ogg")
+        man["music"][base] = {"path": f"res://content/audio/music/{base}.ogg", "bus": "Music", "volume": -1.0}
+        prov = (WORK / f"{pick}.provider.txt").read_text().strip() if (WORK / f"{pick}.provider.txt").exists() else "AI generator"
+        print(f"installed {base} from {pick} ({TRACKS.get(base, {}).get('title', base)}, {prov})")
     MANIFEST.write_text(json.dumps(man, indent=2) + "\n")
 
 
@@ -237,13 +330,14 @@ def main():
     sub.add_parser("probe")
     g = sub.add_parser("generate")
     g.add_argument("--only", default="")
+    g.add_argument("--takes", type=int, default=1)
     i = sub.add_parser("install")
     i.add_argument("ids", nargs="+")
     a = ap.parse_args()
     if a.cmd == "probe":
         probe()
     elif a.cmd == "generate":
-        sys.exit(generate([x for x in a.only.split(",") if x]))
+        sys.exit(generate([x for x in a.only.split(",") if x], a.takes))
     else:
         install(a.ids)
 
