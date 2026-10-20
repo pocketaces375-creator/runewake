@@ -11,6 +11,9 @@ namespace Runewake.Tests.Cards;
 /// FABLE-DROP-1: the 50-card class drop. Every card is valid, reads cleanly, sorts to a class's
 /// High-synergy shelf, and actually does something when played in a real duel.
 /// </summary>
+// FABLE-078: these tests fill the shared CardRegistry, so they must not run beside the ones that clear it
+// (GameStateInitTests etc.). Running in parallel, the registry could empty mid-test: a flaky Echo failure on 2026-10-20.
+[Collection("NonParallel")]
 public class ClassDropTests
 {
     private readonly ITestOutputHelper _out;

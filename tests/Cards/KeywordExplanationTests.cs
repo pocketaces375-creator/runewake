@@ -12,6 +12,9 @@ namespace Runewake.Tests.Cards;
 /// as to be skills. If they are, they should be explained." Echo was printed on 17 cards that had
 /// nothing for it to repeat.
 /// </summary>
+// FABLE-078: these tests fill the shared CardRegistry, so they must not run beside the ones that clear it
+// (GameStateInitTests etc.). Running in parallel, the registry could empty mid-test: a flaky Echo failure on 2026-10-20.
+[Collection("NonParallel")]
 public class KeywordExplanationTests
 {
     private readonly ITestOutputHelper _out;
