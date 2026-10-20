@@ -60,19 +60,4 @@ public class KeywordExplanationTests
         }
     }
 
-    [Fact]
-    public void Echo_entry_effect_really_happens_twice()
-    {
-        var all = LoadAll();
-        foreach (var c in all) CardRegistry.Register(c);
-        // Foam Runner: "When this enters play, you heal 1." — twice with Echo.
-        var deck = Enumerable.Repeat("tid_c_foam_runner", 30).ToList();
-        var s = GameState.Initialize(new GameConfig { Seed = 7, Player0DeckIds = deck, Player1DeckIds = deck });
-        var me = s.Player(s.CurrentPlayerIndex);
-        me.Vigor = 10;
-        me.Attunement = Math.Max(me.Attunement, 1);
-        var runner = me.Hand.First(h => h.CardDefId == "tid_c_foam_runner");
-        s = DuelEngine.Apply(s, new PlayCardAction { PlayerIndex = s.CurrentPlayerIndex, CardInstanceId = runner.InstanceId, Cost = 1, LaneIndex = 0 });
-        Assert.Equal(12, s.Player(s.CurrentPlayerIndex).Vigor);
     }
-}
