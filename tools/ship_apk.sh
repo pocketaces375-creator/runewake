@@ -157,6 +157,10 @@ echo "  SHIP APK (${MODE})   commit ${COMMIT}   code ${FINGERPRINT}   dirty ${DI
 echo "═══════════════════════════════════════════════════"
 
 # ─── Blocking: would this build waste his time? ─────────────────────────────
+# FABLE-075: the checkout must hold everything on GitHub main. On 2026-10-18 the mini PC's copy had quietly
+# fallen behind (local heartbeat commits, a pull that never landed) and two builds shipped the 070 game as "072".
+blocking "checkout has everything on GitHub main" bash -c \
+  "cd '$REPO_ROOT' && timeout 60 git fetch -q origin main && git merge-base --is-ancestor origin/main HEAD"
 blocking "C# build" bash -c \
   "cd '$REPO_ROOT' && dotnet build client/Runewake.Client.csproj -c Debug 2>&1 | grep -q 'Build succeeded'"
 

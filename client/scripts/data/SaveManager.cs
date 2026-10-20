@@ -125,6 +125,9 @@ public class SaveManager
         {
             var loaded = _repository.Load();
             CopyInto(loaded, State);
+            // FABLE-075: one coin — any Rune Dust from before (or from a cloud copy) becomes Shards
+            int swept = State.MergeRuneDustIntoShards();
+            if (swept > 0) Trail($"rune dust folded into shards: +{swept}");
             Trail($"load slot {CurrentSlot}: {Describe(State)}" + (_repository.RepairLog.Count > 0 ? " | " + string.Join("; ", _repository.RepairLog) : ""));
 
             // Log any repairs that occurred
@@ -184,6 +187,7 @@ public class SaveManager
 
     public bool Save()
     {
+        State.MergeRuneDustIntoShards();   // FABLE-075: daily gifts and grinding still pay dust in the engine
         bool ok = _repository.Save(State);
         Trail($"save slot {CurrentSlot} {(ok ? "ok" : "FAILED " + (_repository.LastSaveError ?? "?"))}{(_repository.SqliteUnavailable ? " (file)" : "")}: {Describe(State)}");
         if (!ok)

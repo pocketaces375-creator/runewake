@@ -69,14 +69,14 @@ LESSONS = {
 # and the nine foes: node: (name, opponent class, intro lines, outro lines).  Names and places: docs/LORE.md.
 ZONES = {
  "battlemage": dict(
-    zone="The Hem", strata="TIDE", strata2="EMBER", skin="start_tide",
+    zone="The Unmade Coast", strata="TIDE", strata2="EMBER", skin="start_tide",
     layout=(330, 440, -8, 152, 112, False), lessons=["GUARD", "WARD", "RITUAL", "PIERCE", "HAND"],
     theme=r"arcane|spell|glyph|mana|wave|tide|brine|riptide|null|echo|mirror|storm|arc|deep|coral|undertow|scholar|adept|current|flood",
     foes={
      "r1_n01": ("Sealwright Tamsin Vey", "battlemage",
-                ["Sealwick, on the Hem of the Void. Beyond the last fence the rain falls upward and the river stands on its side.",
+                ["Sealwick, on the Unmade Coast at the edge of the Void. Beyond the last fence the rain falls upward and the river stands on its side.",
                  "A woman in a patched raiding coat chalks a seal on the gatepost without looking up. \"New blood. Good. Hit me — the Void won't wait for you to be ready.\""],
-                ["Tamsin rubs out the chalk and nods. \"You'll do for the Hem. Don't go in alone yet.\""]),
+                ["Tamsin rubs out the chalk and nods. \"You'll do for the Coast. Don't go in alone yet.\""]),
      "r1_n02": ("The Breach Golem", "battlemage",
                 ["Where the Void last pushed through, the ground healed wrong. Something stone and seal-script has stood up out of the scar.",
                  "It was raised by the old raiders to hold the Breach. It still thinks you are the Void."],
@@ -84,7 +84,7 @@ ZONES = {
      "r1_n04": ("Marrow the Breach-Broker", "rogue",
                 ["Not everything that comes out of the Void is a monster. Some of it is for sale.",
                  "A man with a Void-glass eye spreads his wares on a cloth: bottled rain, a knife that is in two places. \"Sealwick pays me not to sell these. You haven't.\""],
-                ["Marrow packs his cloth, careful of the knife. \"Fine. Fine. Keep your Hem. I'll find another edge.\""]),
+                ["Marrow packs his cloth, careful of the knife. \"Fine. Fine. Keep your Coast. I'll find another edge.\""]),
      "r1_n05": ("Brine-Warder Ilsa Crane", "battlemage",
                 ["The Upstairs River runs beside the road, its surface a wall of standing water. A warder paces it with a ward-staff.",
                  "\"The river wards itself; I only help. Strike all you like — it gives back what it takes.\""],
@@ -92,7 +92,7 @@ ZONES = {
      "r1_n06": ("Tidecaller Pell of the Stitchline", "astrologist",
                 ["A seal-tower on the Stitchline, its bell cracked. The caller inside has been reading the Void's tides too long.",
                  "\"It's beautiful in there, you know. It only wants to come through. Who are we to stitch it shut?\""],
-                ["Pell's chant breaks and the tide behind the tower slides back below the Hem. He sits down, very tired."]),
+                ["Pell's chant breaks and the tide behind the tower slides back off the Unmade Coast. He sits down, very tired."]),
      "r1_n09": ("Captain Orran, Who Came Back", "warrior",
                 ["Three seasons ago Captain Orran led a band into the Void. Yesterday he walked out of it alone.",
                  "He is taller than he was. His shadow points the wrong way. \"Sealwick owes me a band,\" he says. \"You'll do as a start.\""],
@@ -108,7 +108,7 @@ ZONES = {
      "r1_n12": ("Seraphine, the First Stitch", "battlemage",
                 ["The Gate opens. Beyond it the Void waits, and Seraphine stands in it as if in her own kitchen.",
                  "\"Sealwick was a city once, not a village. I stitched it shut around the Breach — and I would do it again.\""],
-                ["The Void settles like water. Seraphine kneels on the Hem. \"The road is open past the Gate. Beyond it, the Cinderfall Steps. Go — and come home for dinner.\""]),
+                ["The Void settles like water. Seraphine kneels on the shore. \"The road is open past the Gate. Beyond it, the Cinderfall Steps. Go — and come home for dinner.\""]),
     }),
  "necromancer": dict(
     zone="The Greyvault Undercroft", strata="HOLLOW", strata2="DAWN", skin="start_hollow",
@@ -300,7 +300,7 @@ ZONES = {
                  "\"It spoke to me as it fell. It said you'd be trouble.\""],
                 ["The hermit chuckles. \"It was right, you know. It's always right.\""]),
      "r1_n06": ("Lunar Acolyte Sera", "battlemage",
-                ["An acolyte from the Hem practises her sealing rites on the Lens's terrace, far from home.",
+                ["An acolyte from the Unmade Coast practises her sealing rites on the Lens's terrace, far from home.",
                  "\"The Moon pulls the tide. Let's see what it pulls out of you.\""],
                 ["Sera's rite falls apart in silver dust. \"Next sailing,\" she promises."]),
      "r1_n09": ("The Starborn Colossus", "astrologist",

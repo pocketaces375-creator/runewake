@@ -73,7 +73,7 @@ public partial class ChooseYourPathScene : Control
     private static readonly Dictionary<string, string> RelicFlavors = new()
     {
         { "warrior", "A blade beaten out of farm iron at Old Smoke, and a shield that has never once been set down." },
-        { "battlemage", "A wand cut on the Hem of the Void, and an aura that answers the tide before the storm breaks." },
+        { "battlemage", "A wand cut on the Unmade Coast at the edge of the Void, and an aura that answers the tide before the storm breaks." },
         { "necromancer", "A skull from the Undercroft that still remembers its name, and a fetish that drinks the last breath of the fallen." },
         { "paladin", "A hammer that rings like the Greyvault bells, and a lantern the light follows into every shadow." },
         { "druid", "A leaf of Yrmund that whispers back, and a bond older than the deep roots." },

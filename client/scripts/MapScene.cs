@@ -230,7 +230,7 @@ public partial class MapScene : Control
                         if (CampaignContext.Progression.IsNodeCleared(mapNode.Id)) continue;
                         if (!IsNodeUnlocked(mapNode)) continue;
                         // Skip shrine/merchant nodes that don't have encounters
-                        if (mapNode.Type == MapNodeType.Shrine || mapNode.Type == MapNodeType.Merchant)
+                        if (mapNode.Type is MapNodeType.Shrine or MapNodeType.Merchant or MapNodeType.Cache)
                         {
                             // Mark these auto-cleared and skip
                             CampaignContext.Progression.MarkNodeCleared(mapNode.Id);
@@ -706,7 +706,7 @@ public partial class MapScene : Control
             if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
                 displayName = enc.ShortName ?? enc.Name;   // FABLE-068
             else
-                displayName = mapNode.Type.ToString();
+                displayName = PlaceName(mapNode.Type);
 
             float x = mapNode.Position[0] - centerX;
             float y = mapNode.Position[1] - centerY;
@@ -961,6 +961,23 @@ public partial class MapScene : Control
         _infoCloseButton.Disabled = true;
     }
 
+    /// <summary>FABLE-075: one Shards line (old dig charges are paid as shards), then everything else.</summary>
+    private static IEnumerable<string> PrettyRewards(IEnumerable<string> raw)
+    {
+        int shards = 0;
+        var rest = new List<string>();
+        foreach (var r in raw)
+        {
+            var p = r.Split(':');
+            int n = p.Length > 1 && int.TryParse(p[1], out int v) ? v : 1;
+            if (p[0] == "shard") shards += n;
+            else if (p[0] == "dig_charge") shards += n * Runewake.Engine.Cards.EncounterDef.ShardsPerDigCharge;
+            else rest.Add(PrettifyReward(r));
+        }
+        if (shards > 0) yield return $"{shards} Shards";
+        foreach (var x in rest) yield return x;
+    }
+
     /// <summary>
     /// Turn a raw reward token ("shard:30", "fragment:verdant:2", "dig_charge:1")
     /// into player-readable text.
@@ -975,7 +992,7 @@ public partial class MapScene : Control
             case "dig_charge":
             {
                 string n = parts.Length > 1 ? parts[1] : "1";
-                return n == "1" ? "1 Dig Charge" : $"{n} Dig Charges";
+                return $"{(int.TryParse(n, out int dc) ? dc : 1) * Runewake.Engine.Cards.EncounterDef.ShardsPerDigCharge} Shards";   // FABLE-075
             }
             case "card":
                 return "A Signature Card";
@@ -986,9 +1003,9 @@ public partial class MapScene : Control
                     string strata = parts[1].Length > 0
                         ? char.ToUpperInvariant(parts[1][0]) + parts[1][1..]
                         : parts[1];
-                    return $"{parts[2]} {strata} Fragments";
+                    return $"{parts[2]} {strata} Rune Pieces";   // FABLE-075: never mistaken for Shards
                 }
-                return "Fragments";
+                return "Rune Pieces";
             }
             default:
                 return raw.Replace("_", " ").Replace(":", " ");
@@ -996,6 +1013,38 @@ public partial class MapScene : Control
     }
 
     // ── State updates ────────────────────────────────────────────────────
+
+    /// <summary>FABLE-075: the name a place node wears on the map.</summary>
+    private static string PlaceName(MapNodeType t) => t switch
+    {
+        MapNodeType.Shrine or MapNodeType.Cache => "Supply Cache",
+        _ => t.ToString(),
+    };
+
+    /// <summary>FABLE-075: what a supply cache (the old Shrine node) pays.</summary>
+    private const int CacheShards = 40;
+
+    /// <summary>A short gold line in the middle of the screen that fades away.</summary>
+    private void ShowCacheNote(string text)
+    {
+        var vp = GetViewportRect().Size;
+        float k = vp.Y / 1080f;
+        var l = new Label
+        {
+            Text = text, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(0, vp.Y * 0.42f), Size = new Vector2(vp.X, 80 * k), ZIndex = 50,
+        };
+        ThemeTokens.ApplyHeaderFont(l, (int)(40 * k));
+        l.AddThemeColorOverride("font_color", new Color(0.97f, 0.84f, 0.45f));
+        l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.9f));
+        l.AddThemeConstantOverride("outline_size", (int)(8 * k));
+        AddChild(l);
+        var t = l.CreateTween();
+        t.TweenProperty(l, "modulate:a", 1f, 0.2f).From(0f);
+        t.TweenInterval(1.8);
+        t.TweenProperty(l, "modulate:a", 0f, 0.5f);
+        t.TweenCallback(Callable.From(l.QueueFree));
+    }
 
     private void UpdateAllLockStates()
     {
@@ -1080,7 +1129,7 @@ public partial class MapScene : Control
         else if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
             displayName = enc.Name;
         else
-            displayName = (mapNode.Encounter ?? mapNode.Type.ToString()).Replace("_", " ");
+            displayName = mapNode.Encounter?.Replace("_", " ") ?? PlaceName(mapNode.Type);
 
         _infoName.Text = displayName;
         _infoCloseButton.Disabled = false;   // FABLE-052: it was disabled at idle and never re-enabled — Close was always dead
@@ -1091,8 +1140,7 @@ public partial class MapScene : Control
             MapNodeType.Warden => "WARDEN",
             MapNodeType.WardenBoss => "REGION WARDEN",
             MapNodeType.Dig => "DIG SITE",
-            MapNodeType.Shrine => "SHRINE · REST",
-            MapNodeType.Cache => "CACHE",
+            MapNodeType.Shrine or MapNodeType.Cache => "SUPPLY CACHE · " + CacheShards + " SHARDS",   // FABLE-075
             MapNodeType.Merchant => "MERCHANT · TRADE",
             _ => "DESTINATION",
         };
@@ -1100,7 +1148,7 @@ public partial class MapScene : Control
         // Rewards — hide when none, show pretty list when present
         if (mapNode.Rewards is { Count: > 0 })
         {
-            _infoRewards.Text = string.Join(" \u00B7 ", mapNode.Rewards.Select(PrettifyReward));
+            _infoRewards.Text = string.Join(" \u00B7 ", PrettyRewards(mapNode.Rewards));
             _infoRewardsRow.Show();
         }
         else
@@ -1121,13 +1169,14 @@ public partial class MapScene : Control
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("unlock");
 
         // FABLE-030: Shrines and Merchants are places, not fights — they open their own screens.
-        bool isPlace = mapNode.Type is MapNodeType.Shrine or MapNodeType.Merchant;
+        bool isPlace = mapNode.Type is MapNodeType.Shrine or MapNodeType.Merchant or MapNodeType.Cache;
         _infoGoButton.Disabled = isLocked || (isCleared && !(mapNode.Type == MapNodeType.Merchant)) || (!isDig && !hasEncounter && !isPlace);
 
-        if (isCleared && (isDuel || mapNode.Type == MapNodeType.Shrine))
+        bool isCache = mapNode.Type is MapNodeType.Shrine or MapNodeType.Cache;
+        if (isCleared && (isDuel || isCache))
             _infoGoButton.Text = "Done";
-        else if (mapNode.Type == MapNodeType.Shrine)
-            _infoGoButton.Text = "Rest";
+        else if (isCache)
+            _infoGoButton.Text = "Take";
         else if (mapNode.Type == MapNodeType.Merchant)
             _infoGoButton.Text = "Trade";
         else if (isDig)
@@ -1157,10 +1206,18 @@ public partial class MapScene : Control
             return;
         }
 
-        // FABLE-030: the Shrine is its own screen; the Merchant opens the card shop and comes back here.
-        if (mapNode.Type == MapNodeType.Shrine)
+        // FABLE-075: the Shrine's choices moved to the start of every fight (the Gods of Old answer); its node is
+        // now a supply cache — tap Take, get shards, done. The Merchant opens the card shop and comes back here.
+        if (mapNode.Type is MapNodeType.Shrine or MapNodeType.Cache)
         {
-            LoadScreen.Go(GetTree(), ShrineScene.ScenePath);
+            if (CampaignContext.Progression.IsNodeCleared(mapNode.Id)) return;
+            CampaignContext.Progression.Shards += CacheShards;
+            CampaignContext.Progression.MarkNodeCleared(mapNode.Id);
+            try { CampaignContext.SaveManager?.Save(); } catch (System.Exception ex) { GD.PrintErr($"[MapScene] save failed: {ex.Message}"); }
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
+            UpdateAllLockStates();
+            OnNodeSelected(mapNode.Id);
+            ShowCacheNote($"Supplies someone left for the road. +{CacheShards} shards.");
             return;
         }
         if (mapNode.Type == MapNodeType.Merchant)

@@ -50,13 +50,14 @@ public enum RewardStatus { Locked, Ready, Claimed }
 /// <summary>What one claim gives. Any mix of the four.</summary>
 public sealed record DailyReward(int Shards = 0, int Runes = 0, int DigCharges = 0, Rarity? Card = null)
 {
+    /// <summary>FABLE-075: what the gift is worth in Shards, the one coin (Runes are swept in at the dust rate).</summary>
+    public int TotalShards => Shards + Runes * ProgressionState.ShardsPerRuneDust;
+
     public string Describe()
     {
         var parts = new List<string>();
         if (Card is Rarity r) parts.Add(CardPhrase(r));
-        if (Shards > 0) parts.Add($"{Shards} Shards");
-        if (Runes > 0) parts.Add($"{Runes} Runes");
-        if (DigCharges > 0) parts.Add(DigCharges == 1 ? "1 Dig charge" : $"{DigCharges} Dig charges");
+        if (TotalShards > 0) parts.Add($"{TotalShards} Shards");   // FABLE-075: one coin
         return string.Join(" + ", parts);
     }
 
@@ -89,7 +90,7 @@ public static class DailyRewards
     {
         new DailyReward(Shards: 50),
         new DailyReward(Runes: 15),
-        new DailyReward(DigCharges: 1),
+        new DailyReward(Shards: 75),   // FABLE-075: was a dig charge, which was never spent
         new DailyReward(Shards: 100),
         new DailyReward(Runes: 30),
         new DailyReward(Card: Rarity.UNCOMMON),
@@ -101,7 +102,7 @@ public static class DailyRewards
     {
         new MatchTier("play1", "Play 1 match", 1, false, new DailyReward(Shards: 25)),
         new MatchTier("play3", "Play 3 matches", 3, false, new DailyReward(Runes: 20)),
-        new MatchTier("play5", "Play 5 matches", 5, false, new DailyReward(Shards: 60, DigCharges: 1)),
+        new MatchTier("play5", "Play 5 matches", 5, false, new DailyReward(Shards: 75)),
         new MatchTier("win3", "Win 3 matches", 3, true, new DailyReward(Runes: 15, Card: Rarity.UNCOMMON)),
     };
 

@@ -113,8 +113,8 @@ public partial class RunePageScene : Control
             AnchorTop = 0.02f, AnchorBottom = 0.08f,
             AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled
         };
-        int runeDust = Progression?.RuneDust ?? 0;
-        _runeDustLabel.Text = $"Runes: {runeDust}";
+        int runeDust = Progression?.Shards ?? 0;
+        _runeDustLabel.Text = $"Shards: {runeDust}";
         _runeDustLabel.AddThemeFontSizeOverride("font_size", 14);
         _runeDustLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.5f, 0.9f));
         AddChild(_runeDustLabel);
@@ -255,8 +255,8 @@ public partial class RunePageScene : Control
         };
 
         // Update RuneDust label
-        int runeDust = Progression?.RuneDust ?? 0;
-        _runeDustLabel.Text = $"Runes: {runeDust}";
+        int runeDust = Progression?.Shards ?? 0;
+        _runeDustLabel.Text = $"Shards: {runeDust}";
 
         // Rebuild slot grids
         RebuildGrid(_offensiveGrid, _page.OffensiveSlots, RuneSlotType.OFFENSIVE);

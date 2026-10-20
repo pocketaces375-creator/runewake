@@ -103,7 +103,7 @@ public partial class ArenaScene : Control
         var prog = CampaignContext.Progression;
         var rec = new Label
         {
-            Text = $"{prog.ArenaWins} W  ·  {prog.ArenaLosses} L        ✦ {prog.RuneDust} Rune Dust",
+            Text = $"{prog.ArenaWins} W  ·  {prog.ArenaLosses} L        ✦ {prog.Shards} Shards",
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center,
             Position = new Vector2(vp.X - 880, 52), Size = new Vector2(800, 50), MouseFilter = MouseFilterEnum.Ignore,
         };

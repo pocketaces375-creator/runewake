@@ -129,7 +129,7 @@ def main():
         pass_rule("LANES_VS_STRIP", f"all slot tops >= {strip_bottom:.0f}")
 
     # ── RULE 5: HAND_VS_ROW ──
-    hand_rest_top = scale_ref(732, vh)
+    hand_rest_top = scale_ref(792, vh)   # FABLE-075: DuelScene.HandRestTop
     if hand_cards:
         n = len(hand_cards)
         # centre card is roughly index n/2

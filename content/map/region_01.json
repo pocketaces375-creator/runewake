@@ -45,7 +45,7 @@
     },
     {
       "id": "r1_n03",
-      "type": "Shrine",
+      "type": "Cache",
       "position": [
         560,
         190

@@ -3,7 +3,7 @@
  "base_region": "region_01",
  "zones": {
   "battlemage": {
-   "name": "The Hem",
+   "name": "The Unmade Coast",
    "strata": "TIDE",
    "strata2": "EMBER",
    "board_skin": "start_tide",

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Runewake.Engine.Cards;
 using Runewake.Engine.World;
 
 namespace Runewake.Client;
@@ -151,7 +152,7 @@ public partial class WorldMapScene : Control
         BlipKind.AreaBoss => "Area boss — opens the next area",
         BlipKind.Event => b.Event switch
         {
-            EventKind.Shrine => "Shrine — rest",
+            EventKind.Shrine => "Wayside cairn",
             EventKind.Merchant => "Merchant",
             EventKind.Dig => "Dig site",
             EventKind.Cache => "Hidden cache",
@@ -493,10 +494,10 @@ public partial class WorldMapScene : Control
             default:
                 switch (b.Event)
                 {
-                    case EventKind.Shrine: prog.Shards += 25; text = "You rest at the shrine. +25 shards."; break;
+                    case EventKind.Shrine: prog.Shards += 25; text = "A wayside cairn with an offering bowl someone forgot. +25 shards."; break;
                     case EventKind.Merchant: prog.Shards += 15; text = "A travelling merchant trades you a few shards for news of the road. +15 shards.\n(Proper merchant stock comes with the shop update.)"; break;
-                    case EventKind.Dig: prog.DigCharges += 1; text = "Loose earth and old tools. +1 dig charge."; break;
-                    default: prog.Shards += 40; prog.DigCharges += 1; text = "A cache someone meant to come back for. +40 shards, +1 dig charge."; break;
+                    case EventKind.Dig: prog.Shards += EncounterDef.ShardsPerDigCharge; text = $"Loose earth, and something glinting in it. +{EncounterDef.ShardsPerDigCharge} shards."; break;   // FABLE-075: no dig charges
+                    default: prog.Shards += 40 + EncounterDef.ShardsPerDigCharge; text = $"A cache someone meant to come back for. +{40 + EncounterDef.ShardsPerDigCharge} shards."; break;
                 }
                 break;
         }

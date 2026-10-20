@@ -514,7 +514,8 @@ public partial class LaneSlot : PanelContainer
     /// <summary>DuelScene hooks this to hide the rules slab.</summary>
     public Action? LongPressEnded;
     /// <summary>Current CardDef for this slot (null when empty).</summary>
-    public CardDef? CurrentCardDef { get; private set; }
+    /// <summary>FABLE-075: it was never assigned, so tapping a creature on the board had nothing to show.</summary>
+    public CardDef? CurrentCardDef => string.IsNullOrEmpty(_currentCardId) ? null : CardRegistry.Get(_currentCardId);
 
     // ——— Long-press timer management ———
     private void StartHoldTimer()

@@ -329,8 +329,8 @@ public partial class DigScene : Control
     {
         DigRewardType.SHARD => $"+{reward.Value} Shards",
         DigRewardType.RUNE_FRAGMENT => reward.Value != null
-            ? $"+Rune Fragments ({reward.Value})"
-            : "Rune Fragments",
+            ? $"+Rune Pieces ({reward.Value})"
+            : "Rune Pieces",
         DigRewardType.CODEX_PAGE => $"Codex: {reward.Value}",
         DigRewardType.RELIC => $"Relic found: {reward.Value}",
         DigRewardType.EMPTY => "Nothing here...",

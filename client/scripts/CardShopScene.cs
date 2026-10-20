@@ -8,7 +8,7 @@ using Runewake.Engine.State;
 namespace Runewake.Client;
 
 /// <summary>
-/// Rotating card shop — spend RuneDust to buy new cards for your collection.
+/// Rotating card shop — spend Shards (FABLE-075: the one coin) to buy new cards for your collection.
 /// Shows ~6 cards at a time, priced by rarity:
 ///   Common 5, Uncommon 15, Rare 40, Mythic (RELIC) 120
 /// Rotates per in-game day (ShopRotationDay counter).
@@ -24,10 +24,11 @@ public partial class CardShopScene : Control
     // ── Pricing ──
     private static readonly Dictionary<Rarity, int> CardPrices = new()
     {
-        { Rarity.COMMON, 5 },
-        { Rarity.UNCOMMON, 15 },
-        { Rarity.RARE, 40 },
-        { Rarity.RELIC, 120 },
+        // FABLE-075: priced in Shards, the one coin — the old Rune Dust prices × ShardsPerRuneDust (6)
+        { Rarity.COMMON, 30 },
+        { Rarity.UNCOMMON, 90 },
+        { Rarity.RARE, 240 },
+        { Rarity.RELIC, 720 },
     };
 
     // ── UI ──
@@ -152,7 +153,7 @@ public partial class CardShopScene : Control
         _titleLabel.AddThemeColorOverride("font_color", Color.FromHtml("#D4B84C"));
         AddChild(_titleLabel);
 
-        // ── RuneDust balance (top-right) ──
+        // ── Shards balance (top-right) ──
         _runeDustLabel = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Right,
@@ -237,8 +238,7 @@ public partial class CardShopScene : Control
         BuildOffering();
 
         // Update labels
-        int runeDust = Progression.RuneDust;
-        _runeDustLabel.Text = $"Runes: {runeDust}";
+        _runeDustLabel.Text = $"Shards: {Progression.Shards}";
         _dayLabel.Text = $"Day {Progression.ShopRotationDay}";
 
         // Rebuild grid
@@ -345,12 +345,12 @@ public partial class CardShopScene : Control
         vbox.AddChild(new Control { SizeFlagsVertical = (Control.SizeFlags)3 });
 
         // Price + Buy button
-        int currentDust = Progression?.RuneDust ?? 0;
+        int currentDust = Progression?.Shards ?? 0;
         bool canAfford = currentDust >= price;
 
         var buyBtn = new Button
         {
-            Text = canAfford ? $"Buy — {price} R" : $"Buy — {price} R (need {price - currentDust} more)",
+            Text = canAfford ? $"Buy — {price} Shards" : $"Buy — {price} (need {price - currentDust} more)",
             SizeFlagsHorizontal = (Control.SizeFlags)3,
             CustomMinimumSize = new Vector2(0, 36),
             Disabled = !canAfford
@@ -374,25 +374,25 @@ public partial class CardShopScene : Control
     {
         if (Progression == null) return;
 
-        if (Progression.SpendRuneDust(price, out var shortfall))
+        if (Progression.SpendShards(price, out var shortfall))
         {
             // Add card to collection
             Progression.AddCard(card.Id);
 
             // Refresh UI
-            _runeDustLabel.Text = $"Runes: {Progression.RuneDust}";
+            _runeDustLabel.Text = $"Shards: {Progression.Shards}";
             RebuildGrid();
 
-            GD.Print($"[CardShopScene] Bought {card.Id} for {price} Runes");
+            GD.Print($"[CardShopScene] Bought {card.Id} for {price} Shards");
         }
         else
         {
             // Show shortfall
             string msg = shortfall > 0
-                ? $"Need {shortfall} more {(shortfall == 1 ? "Rune" : "Runes")} for {card.Name}."
+                ? $"Need {shortfall} more {(shortfall == 1 ? "Shard" : "Shards")} for {card.Name}."
                 : $"Cannot afford {card.Name}.";
             ShowShortfall(msg);
-            GD.Print($"[CardShopScene] Insufficient Runes for {card.Id}: need {price}, have {Progression.RuneDust}");
+            GD.Print($"[CardShopScene] Insufficient Shards for {card.Id}: need {price}, have {Progression.Shards}");
         }
 
         // Persist
@@ -416,9 +416,9 @@ public partial class CardShopScene : Control
     public static void SetUpShopTest()
     {
         var progression = CampaignContext.Progression;
-        // Give some RuneDust so the player can afford some cards but not all
-        progression.RuneDust = 100;
+        // Give some Shards so the player can afford some cards but not all
+        progression.Shards = 600;
         progression.ShopRotationDay = 7; // fixed rotation for deterministic capture
-        GD.Print("[CardShopScene] SetUpShopTest: RuneDust=100, RotationDay=7");
+        GD.Print("[CardShopScene] SetUpShopTest: Shards=600, RotationDay=7");
     }
 }

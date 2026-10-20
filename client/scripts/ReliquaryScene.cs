@@ -235,7 +235,7 @@ public partial class ReliquaryScene : Control
         _foundRow.Visible = !_relicsTab;
 
         var progression = CampaignContext.Progression;
-        _dustLabel.Text = $"✦ {progression.RuneDust} Rune Dust";
+        _dustLabel.Text = $"✦ {progression.Shards} Shards";   // FABLE-075: one coin
         int foundAll = _allCards.Count(c => Owned(c.Id) > 0);
         _progressText.Text = $"{foundAll} / {_allCards.Count} runes found";
         CallDeferred(nameof(FitProgress), (float)foundAll / Mathf.Max(1, _allCards.Count));
@@ -611,9 +611,9 @@ public partial class ReliquaryScene : Control
         rowB.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
         if (found && owned > 1)
         {
-            int value = ProgressionState.GetRuneDustValue(card.Rarity);
+            int value = ProgressionState.GetRuneDustValue(card.Rarity) * ProgressionState.ShardsPerRuneDust;   // shown as the shards it becomes
             bool can = CampaignContext.Progression.CanGrindCard(card.Id, CampaignContext.Progression.SavedDecks, out var why);
-            var grind = Plate(can ? $"Grind a copy  ·  +{value} dust" : "Grind a copy", false, 84, 420);
+            var grind = Plate(can ? $"Grind a copy  ·  +{value} shards" : "Grind a copy", false, 84, 420);
             grind.Disabled = !can || value <= 0;
             grind.TooltipText = can ? "" : why ?? "";
             grind.Pressed += () => { Click(); ShowGrindConfirm(card, value); };
@@ -644,7 +644,7 @@ public partial class ReliquaryScene : Control
         body.AddThemeConstantOverride("separation", 20);
         card2.AddChild(body);
         var t = Body("GRIND A COPY", 40, Violet); t.AddThemeFontOverride("font", GetHeaderFont(40)); t.HorizontalAlignment = HorizontalAlignment.Center; body.AddChild(t);
-        var m = Body($"One copy of {card.Name} becomes {value} Rune Dust. You'll still hold the rest.", 30, Parchment); m.AutowrapMode = TextServer.AutowrapMode.WordSmart; m.HorizontalAlignment = HorizontalAlignment.Center; body.AddChild(m);
+        var m = Body($"One copy of {card.Name} becomes {value} Shards. You'll still hold the rest.", 30, Parchment); m.AutowrapMode = TextServer.AutowrapMode.WordSmart; m.HorizontalAlignment = HorizontalAlignment.Center; body.AddChild(m);
         body.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
         var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         row.AddThemeConstantOverride("separation", 28);
@@ -655,6 +655,7 @@ public partial class ReliquaryScene : Control
         {
             Click();
             int added = CampaignContext.Progression.GrindCard(card.Id, CampaignContext.Progression.SavedDecks);
+            if (added > 0) added = CampaignContext.Progression.MergeRuneDustIntoShards();   // FABLE-075
             if (added > 0)
             {
                 CampaignContext.SaveManager?.Save();
@@ -663,7 +664,7 @@ public partial class ReliquaryScene : Control
                 Refresh();
                 if (keepIdx >= 0 && keepIdx < _filteredCards.Count && _filteredCards[keepIdx].Id == card.Id) ShowCardInspect(keepIdx);
                 else DismissInspect();
-                Toast($"+{added} Rune Dust");
+                Toast($"+{added} Shards");
             }
             else over.QueueFree();
         };

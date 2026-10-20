@@ -55,6 +55,14 @@ public class EncounterDef
     [JsonPropertyName("dig_charge_reward")]
     public int DigChargeReward { get; set; }
 
+    /// <summary>FABLE-075: dig charges were never spent anywhere, so the game no longer gives them. Each one an
+    /// encounter still lists is paid as this many shards instead.</summary>
+    public const int ShardsPerDigCharge = 15;
+
+    /// <summary>FABLE-075: what a win actually pays in shards (the shard reward plus the old dig charges).</summary>
+    [JsonIgnore]
+    public int TotalShardReward => ShardReward + DigChargeReward * ShardsPerDigCharge;
+
     /// <summary>Fragment reward string (e.g. "verdant:2").</summary>
     [JsonPropertyName("fragment_reward")]
     public string? FragmentReward { get; set; }

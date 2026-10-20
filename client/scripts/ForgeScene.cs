@@ -80,7 +80,7 @@ public partial class ForgeScene : Control
         // Fragment display
         _fragmentLabel = new Label
         {
-            Text = "Fragments: " + string.Join(", ", _fragmentList.Select(f => $"{f.strata}: {f.count}")),
+            Text = "Rune pieces: " + string.Join(", ", _fragmentList.Select(f => $"{f.strata}: {f.count}")),
             HorizontalAlignment = HorizontalAlignment.Center,
             AnchorLeft = 0.05f, AnchorRight = 0.95f,
             AnchorTop = 0.08f, AnchorBottom = 0.12f,
@@ -136,7 +136,7 @@ public partial class ForgeScene : Control
             // Section header
             var header = new Label
             {
-                Text = $"{strata.ToUpper()} ({fragCount}/4 fragments)",
+                Text = $"{strata.ToUpper()} ({fragCount}/4 rune pieces)",
                 AnchorLeft = 0, AnchorRight = 1
             };
             header.AddThemeFontSizeOverride("font_size", 14);
@@ -185,7 +185,7 @@ public partial class ForgeScene : Control
                         // Refresh
                         GatherFragments();
                         PopulateRuneList();
-                        _fragmentLabel.Text = "Fragments: " + string.Join(", ",
+                        _fragmentLabel.Text = "Rune pieces: " + string.Join(", ",
                             _fragmentList.Select(f => $"{f.strata}: {f.count}"));
                     };
                 }

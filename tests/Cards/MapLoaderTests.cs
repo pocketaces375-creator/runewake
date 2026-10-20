@@ -32,7 +32,7 @@ public class MapLoaderTests
         Assert.Contains(MapNodeType.Warden, types);
         Assert.Contains(MapNodeType.WardenBoss, types);
         Assert.Contains(MapNodeType.Dig, types);
-        Assert.Contains(MapNodeType.Shrine, types);
+        Assert.Contains(MapNodeType.Cache, types);   // FABLE-075: the Shrine became a supply cache
         Assert.Contains(MapNodeType.Merchant, types);
     }
 

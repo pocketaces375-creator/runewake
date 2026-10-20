@@ -98,19 +98,19 @@ and that is the whole of their faith: **stand where you are put, and do not move
 *Design note: the two Greyvault regions share a map plate but never a node. Later, when the open world
 exists, the Sealed Door is a natural place for the two classes to finally meet.*
 
-### Battlemage — Sealwick · region "The Hem" (TIDE)
+### Battlemage — Sealwick · region "The Unmade Coast" (TIDE)
 At the western edge of Ulmaren the ground stops making sense. That is **the Void**: not emptiness but a
 wound in space where the Old Age's cataclysm never finished happening — stairs that climb into last week,
-rain that falls upward, a river that is also a wall. The strip of land along its edge is **the Hem**, and
-on the Hem sits **Sealwick**: a quiet, orderly, almost sleepy village of people whose whole purpose is to
+rain that falls upward, a river that is also a wall. The shore along its edge is **the Unmade Coast** — the
+place where the world stops being finished — and on it sits **Sealwick**: a quiet, orderly, almost sleepy village of people whose whole purpose is to
 keep the Void from spreading. They are mage-raiders: they go *in*, in bands, fight whatever the Void has
 made, plant a seal, and come home to dinner. Nobody in Sealwick talks about it much. It is the job.
-- **Place names:** Sealwick (the village), the Hem (the border strip), the Stitchline (the chain of seals),
+- **Place names:** Sealwick (the village), the Unmade Coast (the shore along the Void), the Stitchline (the chain of seals),
   the Upstairs River, the Breach (where the Void last pushed through), the Quiet Gate.
 - **People:** calm, methodical, dryly funny; magic as a trade, not a mystery. Blade in one hand, spell in
   the other.
 - **Threats:** Void-made things (geometry with teeth); unsealed breaches; raiders who come back changed;
-  the Hem's own warden, who decides who is ready to go in.
+  the Coast's own warden, who decides who is ready to go in.
 - **The Seal:** the first seal on the Stitchline, the one every other seal is anchored to.
 
 ### Druid — the Boughs of Yrmund · region "The Rootwake" (VERDANT)
@@ -164,14 +164,19 @@ neighbours, and the Rogues have robbed them for a thousand years.
 ## 3. How the homelands connect (for later)
 - All seven roads lead, eventually, to **the Crossroads**. Nobody in any homeland has been there.
 - Greyvault's two faces (Paladin / Necromancer) share a hill and a Sealed Door.
-- The Hem (Battlemage) and the Farside (Astrologist) share the TIDE stratum: the Void and the deep sky may
+- The Unmade Coast (Battlemage) and the Farside (Astrologist) share the TIDE stratum: the Void and the deep sky may
   be the same wound seen from two sides.
 - Yrmund (Druid) walks; one day it could arrive at *any* of the others.
 - Harrowfield (Warrior) is "the middle of nowhere" — later, nowhere turns out to be the middle of
   everything: the Crossroads may be nearest to it.
 - Tamunet (Rogue) sits on the Dry River; where the river went is a story.
 
-## 4. Naming conventions
+## 4. The rite before battle (FABLE-075)
+Before every fight the **Gods of Old** answer whoever walks the Buried Age's roads: one blessing, taken at the
+start of the battle — **Endurance** (more Vigor), **Insight** (more cards) or **Attunement** (a deeper well).
+Nobody knows which god it is. Everyone has a theory.
+
+## 5. Naming conventions
 - **Places** are plain Buried-Age words with one old root: Harrowfield, Sealwick, Greyvault, Tamunet,
   Penumbra. No apostrophes, no invented syllable soup.
 - **People** get a trade or a title before the name: Reeve, Keeper, Lantern-Sister, Sealwright,

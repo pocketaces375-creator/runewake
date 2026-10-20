@@ -142,7 +142,11 @@ public partial class DuelScene : Control
     private BoardSnapshot[] _prevPlayerBoard = new BoardSnapshot[5];
     private int _prevEnemyVigor = -1;
     /// <summary>FABLE-068: the "meet the foe" card while it is up.</summary>
+    /// <summary>Where the resting hand's centre card starts, at 1080 tall (tools/layout_lint.py checks the same line).</summary>
+    public const float HandRestTop = 792f;
     private EncounterIntro? _intro;
+    /// <summary>FABLE-075: the blessing picked before a campaign fight (Endurance / Insight / Attunement).</summary>
+    private BoonPicker? _boonPicker;
     private int _prevPlayerVigor = -1;
     private bool _firstRender = true;
 
@@ -325,7 +329,7 @@ public partial class DuelScene : Control
         // FABLE-067: each enemy move plays out before the next (not in automated soak/smoke runs)
         if (!CampaignContext.BotDuelTest && !CampaignContext.SoakActive && !CampaignContext.LoopSmokeTest && !CampaignContext.UxWalk)
             _bot.ScreenBusy = () => _fx != null && IsInstanceValid(_fx) && _fx.Driving;
-        _bot.Paused = () => _intro != null && IsInstanceValid(_intro);
+        _bot.Paused = () => (_intro != null && IsInstanceValid(_intro)) || (_boonPicker != null && IsInstanceValid(_boonPicker));
         _bot.BotTurnStarted += OnBotTurnStarted;
         _bot.BotTurnEnded += OnBotTurnEnded;
 
@@ -504,17 +508,19 @@ public partial class DuelScene : Control
         {
             Name = "NoPlayableBg",
             Color = new Color(0.04f, 0.04f, 0.03f, 0.75f),
-            Size = new Vector2(400f * s, 36f * s),
+            Size = new Vector2(300f * s, 72f * s),
             MouseFilter = MouseFilterEnum.Ignore
         };
         AddChild(noPlayBg);
-        // Centre it horizontally (setting Position after the CenterTop preset used to pin it to x=0).
-        noPlayBg.Position = new Vector2(_laneCenterX - noPlayBg.Size.X / 2f, _handArea != null ? _handArea.Position.Y - 56f * s : 680f * s);
+        // FABLE-075: in the free space of the left column (above your artifacts). Centred over the lanes it sat on
+        // the stat shields of your middle creature once the hand moved down.
+        noPlayBg.Position = new Vector2(24f * s, 706f * s);
         _noPlayLabel = new Label
         {
             Text = "",
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
             MouseFilter = MouseFilterEnum.Ignore
         };
         _noPlayLabel.SetAnchorsPreset(Control.LayoutPreset.FullRect);
@@ -685,13 +691,20 @@ public partial class DuelScene : Control
             _gsm.Initialize(config);
             if (blessing != null)
                 Callable.From(() => ShowToast(ShrineBlessing.Describe(blessing.Value), ThemeTokens.Gold)).CallDeferred();
+            // FABLE-075: then the Gods of Old answer — one blessing for this battle (campaign fights, never a tutorial)
+            bool offerBoon = !_isTutorialScriptMode && !isTutorialEncounter && CoopSession.Current == null && BoonPicker.ShouldOffer();
             // FABLE-068: meet the foe first — portrait, who they are, and the lesson this location teaches
             if (!_isTutorialScriptMode && CoopSession.Current == null && EncounterIntro.ShouldShow(encounter, CampaignContext.CurrentNodeId))
             {
                 var introEnc = encounter;
                 string? zone = CampaignRun.RegionOfNode(CampaignContext.CurrentNodeId ?? "") == CampaignContext.StartZones.BaseRegion
                     ? CampaignContext.StartZones.For(CampaignContext.StartZoneClass)?.Name : null;
-                Callable.From(() => { if (IsInsideTree()) _intro = EncounterIntro.Show(this, introEnc, zone); }).CallDeferred();
+                Action? afterIntro = offerBoon ? OfferBoon : null;
+                Callable.From(() => { if (IsInsideTree()) _intro = EncounterIntro.Show(this, introEnc, zone, afterIntro); }).CallDeferred();
+            }
+            else if (offerBoon)
+            {
+                Callable.From(OfferBoon).CallDeferred();
             }
             GD.Print($"[DUEL-INIT] P0 artifacts={string.Join(",", config.Player0ArtifactIds)} P1 artifacts={string.Join(",", config.Player1ArtifactIds)} P0 class={config.Player0Class} P1 class={config.Player1Class}");
 
@@ -2324,7 +2337,8 @@ public partial class DuelScene : Control
         float safeMargin = vh - safeAreaBottom;
         float bottomGap = Mathf.Max(6f, Mathf.Min(safeMargin + 8f, 20f));
         // B2: Shrink hand if it would be pushed up, rather than moving the hand into lanes
-        float top = 732f * scale;
+        // FABLE-075: 792 (was 732) — the resting hand covered the stat shields of the middle creature in your row
+        float top = HandRestTop * scale;
         float chipBottom = top + _handCardHeight;
         if (chipBottom > safeAreaBottom - 8f * scale)
         {
@@ -2332,7 +2346,7 @@ public partial class DuelScene : Control
             _handCardHeight = Mathf.Max(100f, _handCardHeight - neededShrink);
             GD.Print($"[SAFEAREA] Shrunk hand to {_handCardHeight:F0}px (bottom {top + _handCardHeight:F0} <= safe {safeAreaBottom:F0})");
         }
-        // B1: Hand resting centre-card top at exactly viewport 732 * scale
+        // B1: Hand resting centre-card top at exactly viewport HandRestTop * scale
         _handArea.OffsetTop = -(vh - top);
         GD.Print($"[HAND] resting centre top={top:F0} handCardH={_handCardHeight:F0} OffsetTop={_handArea.OffsetTop:F0}");
 
@@ -2437,7 +2451,7 @@ public partial class DuelScene : Control
             var enemySlot = laneScene.Instantiate<LaneSlot>();
             enemySlot.Row = 0;
             enemySlot.LaneIndex = i;
-            enemySlot.LaneTapped += OnLaneTapped;
+            enemySlot.LaneTapped += (int lane, bool empty) => OnLaneTapped(lane, empty, false);   // FABLE-075: the row is known
             enemySlot.CardDropped += OnCardDropped;   // FABLE-DROP-1: rituals are aimed at the enemy's lanes too
             // TASK-CARD-TEXT-1: Long-press for rules slab on enemy lane cards
             enemySlot.CardLongPressStarted += ShowRulesSlab;
@@ -2460,7 +2474,7 @@ public partial class DuelScene : Control
             var playerSlot = laneScene.Instantiate<LaneSlot>();
             playerSlot.Row = 1;
             playerSlot.LaneIndex = i;
-            playerSlot.LaneTapped += OnLaneTapped;
+            playerSlot.LaneTapped += (int lane, bool empty) => OnLaneTapped(lane, empty, true);
             playerSlot.CardDropped += OnCardDropped;
             // TASK-CARD-TEXT-1: Long-press for rules slab on lane cards
             playerSlot.CardLongPressStarted += ShowRulesSlab;
@@ -3585,11 +3599,16 @@ public partial class DuelScene : Control
 
     // ——— Input event handlers ———
 
-    private void OnLaneTapped(int laneIndex, bool isEmpty)
+    /// <param name="playerRow">FABLE-075: which row was tapped. Both rows number their lanes 0-4, so the lane
+    /// index alone could not tell them apart — a tap on an enemy creature was read as a tap on your own creature in
+    /// the same lane (it tried to ready an attacker instead of showing the enemy card). Null = unknown (tool taps).</param>
+    private void OnLaneTapped(int laneIndex, bool isEmpty, bool? playerRow = null)
     {
         if (OpponentBusy)
         {
             GD.Print($"[DUEL_TRACE] OnLaneTapped: SKIP (opponent busy) lane={laneIndex} isEmpty={isEmpty}");
+            // FABLE-075: a card on the board can always be read, even on the foe's turn
+            if (!isEmpty && LaneCardDef(laneIndex, playerRow) is { } busyDef) { ToggleSlabFor(busyDef); return; }
             GD.Print($"[INPUT] DROPPED (lane tap) OpponentBusy=true");
             Deny(DenyPopup.OpponentActing(_encounterName), hard: false);
             return;
@@ -3606,8 +3625,8 @@ public partial class DuelScene : Control
             _cardDetailVisible = false;
         }
 
-        bool isPlayerLane = _playerSlots.Exists(s => s.LaneIndex == laneIndex);
-        bool isEnemyLane = _enemySlots.Exists(s => s.LaneIndex == laneIndex);
+        bool isPlayerLane = playerRow ?? _playerSlots.Exists(s => s.LaneIndex == laneIndex);
+        bool isEnemyLane = playerRow.HasValue ? !playerRow.Value : _enemySlots.Exists(s => s.LaneIndex == laneIndex);
 
         // FABLE-DROP-1: a selected Ritual goes to whatever lane is tapped (that lane is its aim); a Tribute
         // creature may be played onto one of your creatures
@@ -3675,12 +3694,15 @@ public partial class DuelScene : Control
                     // Tap-again-to-deselect
                     _input.CancelSelection();
                     UpdateAttackHighlights();
+                    HideRulesSlab();
+                    _slabCardId = null;
                 }
                 else
                 {
-                    // Switch attacker to this creature instead
+                    // Switch attacker to this creature instead — and show what it does (FABLE-075)
                     _input.SelectAttacker(laneIndex);
                     UpdateAttackHighlights();
+                    if (LaneCardDef(laneIndex, true) is { } nextDef) { ShowRulesSlab(nextDef); _slabCardId = nextDef.Id; }
                 }
             }
         }
@@ -3693,20 +3715,28 @@ public partial class DuelScene : Control
             // Tap on an ENEMY creature = read its rules slab.
             if (!isEmpty && isPlayerLane)
             {
-                HideRulesSlab();
-                _slabCardId = null;
+                // FABLE-075 (Trikzos: "I need to be able to click cards on the grid to still get their description"):
+                // a tap on your own creature shows what it does AND readies it to attack. A second tap on the same
+                // creature puts both away.
                 var occupant = (laneIndex >= 0 && laneIndex < 5 && _gsm.State != null)
                     ? _gsm.Me.Lanes[laneIndex].Occupant : null;
-                string creatureName = occupant != null
-                    ? (CardRegistry.Get(occupant.CardDefId)?.Name ?? "That creature") : "That creature";
+                var mineDef = LaneCardDef(laneIndex, true);
+                string creatureName = mineDef?.Name ?? "That creature";
+                if (mineDef != null && _slabCardId == mineDef.Id && _rulesSlabVisible)
+                {
+                    HideRulesSlab();
+                    _slabCardId = null;
+                    return;
+                }
+                if (mineDef != null) { ShowRulesSlab(mineDef); _slabCardId = mineDef.Id; }
                 if (occupant != null && occupant.HasAttackedThisTurn)
                 {
-                    Deny(DenyPopup.AlreadyAttacked(creatureName));
+                    ShowToast($"{creatureName} has already attacked this turn.", TextSecondary);
                     return;
                 }
                 if (occupant != null && occupant.IsExhausted)
                 {
-                    Deny(DenyPopup.Resting(creatureName));
+                    ShowToast($"{creatureName} is resting — it can attack next turn.", TextSecondary);
                     return;
                 }
                 _input.SelectAttacker(laneIndex);
@@ -3907,6 +3937,38 @@ public partial class DuelScene : Control
     public System.Collections.Generic.List<HandCard> UxHandCards => _handCards;
     public GameStateManager UxGsm => _gsm;
     public BotController UxBot => _bot;
+
+    // ——— FABLE-075: reading cards on the board ———
+
+    /// <summary>The card in a lane, either side (lane indices are shared between the two rows' lookups).</summary>
+    private CardDef? LaneCardDef(int laneIndex, bool? playerRow)
+    {
+        CardDef? Mine() => _playerSlots.FirstOrDefault(sl => sl.LaneIndex == laneIndex)?.CurrentCardDef;
+        CardDef? Theirs() => _enemySlots.FirstOrDefault(sl => sl.LaneIndex == laneIndex)?.CurrentCardDef;
+        return playerRow switch { true => Mine(), false => Theirs(), _ => Mine() ?? Theirs() };
+    }
+
+    private void ToggleSlabFor(CardDef def)
+    {
+        if (_slabCardId == def.Id && _rulesSlabVisible) { HideRulesSlab(); _slabCardId = null; return; }
+        ShowRulesSlab(def);
+        _slabCardId = def.Id;
+    }
+
+    // ——— FABLE-075: the blessing before the fight ———
+
+    private void OfferBoon()
+    {
+        if (!IsInsideTree() || _gsm?.State == null || (_boonPicker != null && IsInstanceValid(_boonPicker))) return;
+        _boonPicker = BoonPicker.Show(this, boon =>
+        {
+            _boonPicker = null;
+            if (_gsm?.State == null || !BattleBoons.Apply(_gsm.State, 0, boon.Id)) return;
+            GD.Print($"[BOON] took {boon.Id}");
+            OnStateChanged();
+            ShowToast(boon.Toast, ThemeTokens.Gold);
+        });
+    }
 
     // ——— TASK-CARD-TEXT-1: Rules slab show/hide ———
 
@@ -5530,12 +5592,12 @@ public partial class DuelScene : Control
 
             if (winnerIndex == 0)
             {
-                // Player won — award RuneDust
-                int reward = CampaignContext.IsWardenOpponent ? 25 : 10;
-                prog.RuneDust += reward;
-                _arenaRuneDust = reward;   // FABLE-033
+                // Player won — FABLE-075: paid in Shards (the old Rune Dust amount at the dust rate)
+                int reward = (CampaignContext.IsWardenOpponent ? 25 : 10) * ProgressionState.ShardsPerRuneDust;
+                prog.Shards += reward;
+                _arenaRuneDust = reward;   // FABLE-033 (now shards)
                 prog.ArenaWins++;
-                GD.Print($"[DuelScene] Arena victory! +{reward} RuneDust (warden={CampaignContext.IsWardenOpponent})");
+                GD.Print($"[DuelScene] Arena victory! +{reward} Shards (warden={CampaignContext.IsWardenOpponent})");
 
                 // Grant one random card from the opponent's deck as a bonus reward
                 if (CampaignContext.ArenaEncounter?.Deck is { Count: > 0 } oppDeck)
@@ -5584,9 +5646,7 @@ public partial class DuelScene : Control
             var enc = CampaignContext.CurrentEncounter;
             var prog = CampaignContext.Progression;
 
-            prog.Shards += enc.ShardReward;
-            if (enc.DigChargeReward > 0)
-                prog.DigCharges += enc.DigChargeReward;
+            prog.Shards += enc.TotalShardReward;   // FABLE-075: dig charges are paid as shards
             if (enc.FragmentReward != null)
             {
                 var parts = enc.FragmentReward.Split(':');

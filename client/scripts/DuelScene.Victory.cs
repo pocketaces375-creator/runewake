@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Runewake.Engine.Cards;
+using Runewake.Engine.State;
 using static ThemeTokens;
 
 namespace Runewake.Client;
@@ -18,7 +19,7 @@ namespace Runewake.Client;
 ///   VICTORY, and who fell                          — the headline
 ///   the loot, laid across the middle as real cards — every card the fight paid,
 ///                                                   with its art, plus a chip
-///                                                   for shards / dig charges
+///                                                   for shards / rune pieces
 ///   Continue — Next: {what}  ·  Back to the map  ·  Fight again
 ///
 /// The screen is built ONCE, and only after OnGameOver has banked the rewards.
@@ -138,8 +139,8 @@ public partial class DuelScene
         if (OnlineMatch.Current != null && playerWon && !_onlineRewarded && CampaignContext.Progression is { } oprog)
         {
             _onlineRewarded = true;
-            _arenaRuneDust = 15;
-            oprog.RuneDust += 15;
+            _arenaRuneDust = 15 * ProgressionState.ShardsPerRuneDust;   // FABLE-075: paid in Shards, the one coin
+            oprog.Shards += _arenaRuneDust;
             try { CampaignContext.SaveManager?.Save(); } catch (Exception ex) { GD.PrintErr($"[Online] save after win failed: {ex.Message}"); }
         }
         if (string.IsNullOrEmpty(encName)) encName = "your opponent";
@@ -207,6 +208,21 @@ public partial class DuelScene
             outro.AddThemeColorOverride("font_color", TextSecondary);
             _gameOverOverlay.AddChild(outro);
             reveal.Add(outro);
+            _outroLabel = outro;
+        }
+        // FABLE-075: every reward can be tapped for what it is for
+        if (tiles.Count > 0 && tiles[0] is not Label)
+        {
+            var hint = new Label
+            {
+                Text = "Tap a reward to see what it is for", HorizontalAlignment = HorizontalAlignment.Center,
+                MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(cx - 400f * s, 732f * s), Size = new Vector2(800f * s, 34f * s),
+            };
+            hint.AddThemeFontOverride("font", GetBodyFont((int)(23 * s)));
+            hint.AddThemeFontSizeOverride("font_size", (int)(23 * s));
+            hint.AddThemeColorOverride("font_color", TextMuted);
+            _gameOverOverlay.AddChild(hint);
+            reveal.Add(hint);
         }
 
         // ── The way out ──
@@ -339,18 +355,23 @@ public partial class DuelScene
         var tiles = new List<Control>();
         var chips = new List<Control>();
         if (_arenaRuneDust > 0)
-            chips.Add(ChipTile("dust", $"+{_arenaRuneDust}", "RUNE DUST", Violet, s, true));
+            chips.Add(Explained(ChipTile("coin", $"+{_arenaRuneDust}", "SHARDS", Gold, s, true), RewardHelp.Shards));
         if (encounter != null)
         {
-            if (encounter.ShardReward > 0)
-                chips.Add(ChipTile("coin", $"+{encounter.ShardReward}", "SHARDS", Gold, s, playerWon));
-            if (encounter.DigChargeReward > 0)
-                chips.Add(ChipTile("diamond", $"+{encounter.DigChargeReward}", encounter.DigChargeReward == 1 ? "DIG CHARGE" : "DIG CHARGES", Moss, s, playerWon));
+            // FABLE-075: no more dig charges (they were never spent) — they are paid as shards
+            if (encounter.TotalShardReward > 0)
+                chips.Add(Explained(ChipTile("coin", $"+{encounter.TotalShardReward}", "SHARDS", Gold, s, playerWon), RewardHelp.Shards));
             if (!string.IsNullOrEmpty(encounter.FragmentReward))
             {
                 var parts = encounter.FragmentReward.Split(':');
                 if (parts.Length == 2 && int.TryParse(parts[1], out int frag) && frag > 0)
-                    chips.Add(ChipTile("shard", $"+{frag}", parts[0].ToUpperInvariant() + " FRAGMENTS", Amber, s, playerWon));
+                {
+                    string stratum = RewardHelp.Stratum(parts[0]);
+                    int have = CampaignContext.Progression?.Fragments.GetValueOrDefault(parts[0].ToLowerInvariant(), 0) ?? 0;
+                    chips.Add(Explained(ChipTile("shard", $"+{frag}", stratum.ToUpperInvariant() + " RUNE PIECES", Amber, s, playerWon,
+                            playerWon ? RewardHelp.PiecesProgress(have) : null),
+                        RewardHelp.RunePieces(stratum, have)));
+                }
             }
         }
 
@@ -375,7 +396,7 @@ public partial class DuelScene
                 if (cardW > LootCardMinW) cardW = Math.Max(LootCardMinW, cardW - 10f);
                 else shown--;
             }
-            for (int i = 0; i < shown; i++) tiles.Add(CardTile(ordered[i], s, cardW));
+            for (int i = 0; i < shown; i++) tiles.Add(Explained(CardTile(ordered[i], s, cardW), RewardHelp.Card(ordered[i].Tag, ordered[i].Name)));
             int more = ordered.Count - shown;
             if (more > 0) tiles.Add(ChipTile("cards", $"+{more}", more == 1 ? "MORE CARD" : "MORE CARDS", TextSecondary, s, false, "to your collection"));
         }
@@ -395,6 +416,64 @@ public partial class DuelScene
             tiles.Add(none);
         }
         return tiles;
+    }
+
+    // ——— FABLE-075: tap a reward to learn what it is for ———
+    private Label? _outroLabel, _rewardHelp;
+    private int _rewardHelpSeq;
+
+    private Control Explained(Control tile, string help)
+    {
+        tile.MouseFilter = Control.MouseFilterEnum.Stop;
+        tile.GuiInput += e =>
+        {
+            bool tap = e is InputEventMouseButton { Pressed: false, ButtonIndex: MouseButton.Left } || e is InputEventScreenTouch { Pressed: false };
+            if (!tap) return;
+            tile.AcceptEvent();
+            ShowRewardHelp(tile, help);
+        };
+        return tile;
+    }
+
+    /// <summary>The explanation takes the outro line's place for a few seconds, in gold.</summary>
+    private void ShowRewardHelp(Control tile, string help)
+    {
+        if (_gameOverOverlay == null) return;
+        var vp = GetViewportRect().Size;
+        float s = vp.Y / 1080f, cx = vp.X / 2f;
+        if (_rewardHelp == null || !IsInstanceValid(_rewardHelp))
+        {
+            _rewardHelp = new Label
+            {
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart, MouseFilter = Control.MouseFilterEnum.Ignore,
+                Position = new Vector2(cx - 760f * s, 772f * s), Size = new Vector2(1520f * s, 120f * s),
+            };
+            _rewardHelp.AddThemeFontOverride("font", GetBodyFont((int)(30 * s)));
+            _rewardHelp.AddThemeFontSizeOverride("font_size", (int)(30 * s));
+            _rewardHelp.AddThemeColorOverride("font_color", Gold);
+            _gameOverOverlay.AddChild(_rewardHelp);
+        }
+        _rewardHelp.Text = help;
+        _rewardHelp.Visible = true;
+        _rewardHelp.Modulate = new Color(1, 1, 1, 0);
+        _rewardHelp.CreateTween().TweenProperty(_rewardHelp, "modulate:a", 1f, 0.18f);
+        if (_outroLabel != null && IsInstanceValid(_outroLabel)) _outroLabel.Visible = false;
+        GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("click");
+
+        // a small nod from the tile that was tapped
+        tile.PivotOffset = tile.Size / 2f;
+        var bump = tile.CreateTween();
+        bump.TweenProperty(tile, "scale", new Vector2(1.05f, 1.05f), 0.08f);
+        bump.TweenProperty(tile, "scale", Vector2.One, 0.12f);
+
+        int seq = ++_rewardHelpSeq;
+        GetTree().CreateTimer(6.0).Timeout += () =>
+        {
+            if (seq != _rewardHelpSeq) return;
+            if (_rewardHelp != null && IsInstanceValid(_rewardHelp)) _rewardHelp.Visible = false;
+            if (_outroLabel != null && IsInstanceValid(_outroLabel)) _outroLabel.Visible = true;
+        };
     }
 
     /// <summary>A real card plate with a tag pill under it: REWARD, RELIC, NEW or +1.</summary>

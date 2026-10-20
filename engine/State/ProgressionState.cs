@@ -92,6 +92,30 @@ public class ProgressionState
         return true;
     }
 
+    /// <summary>FABLE-075: spend shards and say how many were missing.</summary>
+    public bool SpendShards(int amount, out int shortfall)
+    {
+        shortfall = Shards < amount ? amount - Shards : 0;
+        return SpendShards(amount);
+    }
+
+    /// <summary>
+    /// FABLE-075: ONE coin. Shards are the only currency the player sees; Rune Dust (still paid by older engine
+    /// paths — daily gifts, grinding spare copies) is swept into Shards at this rate whenever the game saves or loads.
+    /// The rate keeps what the dust could buy: the Merchant's prices were multiplied by the same number.
+    /// </summary>
+    public const int ShardsPerRuneDust = 6;
+
+    /// <summary>Move any Rune Dust into Shards. Returns the shards added.</summary>
+    public int MergeRuneDustIntoShards()
+    {
+        if (RuneDust <= 0) return 0;
+        int add = RuneDust * ShardsPerRuneDust;
+        Shards += add;
+        RuneDust = 0;
+        return add;
+    }
+
     /// <summary>Add dig charges (positive) or spend (negative). Returns false if insufficient.</summary>
     public bool SpendDigCharge()
     {

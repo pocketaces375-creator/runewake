@@ -283,7 +283,7 @@ public partial class TowerScene : Control
                     if (kv.Length == 2 && int.TryParse(kv[1], out int n))
                     {
                         if (kv[0] == "shard") prog.Shards += n;
-                        else if (kv[0] == "dig_charge") prog.DigCharges += n;
+                        else if (kv[0] == "dig_charge") prog.Shards += n * Runewake.Engine.Cards.EncounterDef.ShardsPerDigCharge;   // FABLE-075
                     }
                 }
             prog.MarkNodeCleared(NodeId(_floor.Floor, p.Id));

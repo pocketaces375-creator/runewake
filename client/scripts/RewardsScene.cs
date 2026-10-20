@@ -129,7 +129,7 @@ public partial class RewardsScene : Control
         BuildMatches(p, new Vector2(left, rowTop), new Vector2(width - chestW - gap, h));
         BuildChest(p, new Vector2(left + width - chestW, rowTop), new Vector2(chestW, h));
 
-        _balances.Text = $"{p.Shards} Shards   ·   {p.RuneDust} Runes   ·   {p.DigCharges} Dig charges";
+        _balances.Text = $"{p.Shards} Shards";   // FABLE-075: one coin
         UpdateCountdown();
     }
 
@@ -285,6 +285,7 @@ public partial class RewardsScene : Control
     {
         var result = claim();
         if (result == null) { Render(); return; }
+        Prog.MergeRuneDustIntoShards();   // FABLE-075: one coin
         try { CampaignContext.SaveManager.Save(); }
         catch (Exception ex) { GD.PrintErr($"[Rewards] save failed: {ex.Message}"); }
         GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
@@ -356,10 +357,9 @@ public partial class RewardsScene : Control
     /// <summary>A day tile's two lines: the big word/number and what it is ("50" / "Shards").</summary>
     private static (string big, string small) Headline(DailyReward r)
     {
-        if (r.Card is Rarity rr) return ("CARD", r.Runes > 0 ? $"{DailyReward.RarityName(rr)} + {r.Runes} Runes" : DailyReward.RarityName(rr));
-        if (r.DigCharges > 0) return (r.DigCharges.ToString(), r.DigCharges == 1 ? "Dig charge" : "Dig charges");
-        if (r.Runes > 0) return (r.Runes.ToString(), "Runes");
-        return (r.Shards.ToString(), "Shards");
+        // FABLE-075: one coin — Runes are shown as the Shards they become
+        if (r.Card is Rarity rr) return ("CARD", r.TotalShards > 0 ? $"{DailyReward.RarityName(rr)} + {r.TotalShards} Shards" : DailyReward.RarityName(rr));
+        return (r.TotalShards.ToString(), "Shards");
     }
 
     private static Font Inter(int size)
