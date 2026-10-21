@@ -3843,6 +3843,8 @@ public partial class DuelScene : Control
             && _input.SelectedCardId == card.CardId
             && _selectedHandIndex == card.HandIndex)
         {
+            // FABLE-081: 2nd tap hides the card text (it hid the top-left board), 3rd puts the card down
+            if (_rulesSlabVisible) { HideRulesSlab(); ShowToast("Card text hidden - tap a lane to play, or the card to put it back.", Color.FromHtml("#8A7A3A")); return; }
             _input.CancelSelection();
             _selectedHandIndex = -1;
             ShowToast("Deselected.", Color.FromHtml("#8A7A3A"));
