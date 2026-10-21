@@ -590,6 +590,7 @@ public partial class SettingsScene : Control
         string playing = Runewake.Engine.State.DeckBook.ActiveName(p) ?? "—";
         var lines = new System.Collections.Generic.List<string>
         {
+            $"Build: {BuildInfo.Stamp} · {BuildInfo.Device()}",
             $"Campaign: {(prof != null ? $"{prof.ClassId} (file {sm.CurrentSlot}, {CampaignContext.Profiles.Count} campaign(s) on this phone)" : $"none open (file {sm.CurrentSlot})")}",
             $"Map: {p.ClearedNodes.Count} places cleared · {p.Shards} shards · Delver level {p.DelverLevel}",
             $"Decks: {p.SavedDecks.Count} saved · you play \"{playing}\" ({p.DeckCardIds.Count} cards)",

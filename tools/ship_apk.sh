@@ -266,6 +266,10 @@ else
     echo "  ⚠️ No Android source zip at $ANDROID_SOURCE_ZIP — export may fail"
 fi
 
+# FABLE-079: the build names itself (Settings > Save check, and the first line of the stuck-screen trace)
+mkdir -p "$CLIENT_DIR/content/misc"
+printf '{"commit": "%s", "date": "%s", "note": "%s"}\n' "$(git -C "$REPO_ROOT" rev-parse --short HEAD)" "$(date +%F)" \
+  "$(printf '%s' "${NOTE:-}" | tr -d '"\\' | cut -c1-80)" > "$CLIENT_DIR/content/misc/build_info.json"
 echo ""; echo "── Godot export (${PRESET}) ──"
 mkdir -p "$EXPORT_DIR"
 APK="$EXPORT_DIR/$OUTFILE"

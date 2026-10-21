@@ -920,6 +920,14 @@ public partial class Main : Control
         // FABLE-018: was a hard-coded placeholder URL, so this never once
         // delivered a report. Uses the real config now; no-op when unset.
         ShowStuckTraceIfAny();   // FABLE-025: if the last session got stuck, say where, on screen
+        // FABLE-079: every session's trace starts with the build and the phone, and a clean arrival at the title is
+        // written down (without it, coming back to the title after a duel looked like a freeze on the next launch).
+        if (!_sessionTraced)
+        {
+            _sessionTraced = true;
+            DuelScene.ExitTrace($"session start: build {BuildInfo.Stamp} | {BuildInfo.Device()}");
+        }
+        DuelScene.ExitTrace("arrived: Main _Ready done");
 
         if (supabaseConfig.IsConfigured)
         {
@@ -1155,6 +1163,8 @@ public partial class Main : Control
     /// title shows the last lines of user://duel_exit_trace.txt once, in words, so a screenshot
     /// is enough to find the step that failed. Never throws; shows each stuck trace only once.
     /// </summary>
+    private static bool _sessionTraced;
+
     private void ShowStuckTraceIfAny()
     {
         try
@@ -1170,7 +1180,9 @@ public partial class Main : Control
             int lastProblem = list.FindLastIndex(l => l.Contains("FROZEN") || l.Contains("THREW") || l.Contains("EMPTY") || l.Contains("WATCHDOG:"));
             int lastClean = list.FindLastIndex(l => l.Contains("all good") || l.Contains("_Ready done") || l.Contains("— running") || l.Contains("arrived: MapScene _Ready done"));
             bool midTransition = last.Contains("swap scheduled") || last.Contains("loading scene") || last.Contains("ChangeScene")
-                                 || last.Contains("Continue pressed") || last.Contains("_Ready begin") || last.Contains("zone transition");
+                                 || last.Contains("Continue pressed") || last.Contains("_Ready begin") || last.Contains("zone transition")
+                                 // FABLE-079: built but died while drawing its first seconds (a phone that cannot draw the duel)
+                                 || last.Contains("arrived: DuelScene _Ready done") || last.Contains("DuelScene first frame");
             bool stuck = lastProblem > lastClean || midTransition;
             if (!stuck) return;
             const string shownPath = "user://duel_exit_trace.shown";
@@ -1179,6 +1191,9 @@ public partial class Main : Control
             using (var f = Godot.FileAccess.Open(shownPath, Godot.FileAccess.ModeFlags.Write)) f?.StoreString(key);
 
             var tail = string.Join("\n", lines.Skip(Math.Max(0, lines.Length - 12)));
+            // FABLE-079: which build and phone that session was, first — a screenshot must say both
+            string? session = list.LastOrDefault(l => l.Contains("session start:"));
+            tail = (session != null ? session.Trim() : $"this phone: build {BuildInfo.Stamp} | {BuildInfo.Device()}") + "\n" + tail;
             // The engine's own errors from that session (file logging is on since FABLE-022).
             try
             {

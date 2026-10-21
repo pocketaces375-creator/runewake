@@ -216,7 +216,8 @@ public partial class DuelScene : Control
         try
         {
             ReadyBody();
-            ExitTrace("arrived: DuelScene _Ready done");
+            ExitTrace("arrived: DuelScene _Ready done | " + BuildInfo.Memory());
+            TraceFirstSeconds();
         }
         catch (System.Exception ex)
         {
@@ -6306,6 +6307,22 @@ public partial class DuelScene : Control
     /// a cable. Never throws.
     /// </summary>
     public const string ExitTracePath = "user://duel_exit_trace.txt";
+    /// <summary>FABLE-079: the first drawn frame and three seconds in, with memory — so a phone that dies drawing the duel
+    /// (or runs out of memory) shows exactly where, on the next launch's stuck screen.</summary>
+    private async void TraceFirstSeconds()
+    {
+        try
+        {
+            await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+            if (!IsInsideTree()) return;
+            ExitTrace("DuelScene first frame drawn | " + BuildInfo.Memory());
+            await ToSignal(GetTree().CreateTimer(3.0), SceneTreeTimer.SignalName.Timeout);
+            if (!IsInsideTree()) return;
+            ExitTrace("DuelScene — running | " + BuildInfo.Memory());
+        }
+        catch { }
+    }
+
     public static void ExitTrace(string line)
     {
         GD.Print("[DUEL-EXIT] " + line);
