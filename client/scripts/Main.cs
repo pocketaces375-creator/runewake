@@ -1202,6 +1202,14 @@ public partial class Main : Control
                     ? System.IO.Directory.GetFiles(dir, "godot*.log").Where(f => System.IO.Path.GetFileName(f) != "godot.log")
                         .OrderByDescending(System.IO.File.GetLastWriteTimeUtc).FirstOrDefault()
                     : null;
+                // FABLE-080: on phones the newest saved engine log can be weeks old (the S8+ and S23 both showed an
+                // October 6 log under an October 20 trace) — a stale log is worse than none, so say so instead
+                var prevAt = prev != null ? System.IO.File.GetLastWriteTime(prev) : System.DateTime.MinValue;
+                if (prev != null && (System.DateTime.Now - prevAt).TotalHours > 24)
+                {
+                    tail += $"\n— no engine log from that session (the newest saved one is from {prevAt:yyyy-MM-dd}) —";
+                    prev = null;
+                }
                 if (prev != null)
                 {
                     // FABLE-027: the whole end of that session's log, not just error lines — the
@@ -1215,7 +1223,7 @@ public partial class Main : Control
                         if (collapsed.Count > 0 && collapsed[^1].StartsWith(t)) { collapsed[^1] = t + "  (repeated)"; continue; }
                         collapsed.Add(t);
                     }
-                    tail += "\n— that session's log, NEWEST FIRST —\n" + string.Join("\n", collapsed.TakeLast(45).Reverse());
+                    tail += $"\n— that session's log ({prevAt:MM-dd HH:mm}), NEWEST FIRST —\n" + string.Join("\n", collapsed.TakeLast(45).Reverse());
                 }
             }
             catch { /* the trace alone is still worth showing */ }
