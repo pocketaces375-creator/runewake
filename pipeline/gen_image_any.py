@@ -23,7 +23,11 @@ KEY = os.environ.get("OPENROUTER_API_KEY", "")
 CHAT_PATH = ("google/", "openai/")          # models that answer through chat/completions
 
 
+LAST = {}  # FABLE-083: the last OpenRouter answer (its usage.cost is the real price)
+
+
 def _post(path, payload, timeout=300):
+    payload = dict(payload, usage={"include": True})
     req = urllib.request.Request(
         f"{BASE}{path}",
         data=json.dumps(payload).encode(),
@@ -31,7 +35,9 @@ def _post(path, payload, timeout=300):
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode())
+            d = json.loads(r.read().decode())
+            LAST.update(d if isinstance(d, dict) else {})
+            return d
     except urllib.error.HTTPError as e:
         body = e.read().decode()[:400]
         print(f"HTTP {e.code}: {body}", file=sys.stderr)
@@ -171,6 +177,12 @@ def main():
         n = via_chat(a.prompt, a.out, a.model, a.aspect, a.ref)
     else:
         n = via_images(a.prompt, a.out, a.model, a.width, a.height)
+    if LAST:  # FABLE-083: print and log what OpenRouter charged for this image
+        c = (LAST.get("usage") or {}).get("cost")
+        print(f"COST ${c} {a.model}", flush=True)
+        with open(os.path.expanduser("~/runewake_art_archive/spend.jsonl"), "a") as f:
+            f.write(json.dumps({"t": __import__("time").strftime("%Y-%m-%d %H:%M:%S"), "kind": "paint", "model": a.model, "cost": c,
+                                "tag": os.environ.get("SPEND_TAG", ""), "out": os.path.basename(a.out), "id": LAST.get("id")}) + "\n")
     if n:
         print(f"saved {a.out} ({n} bytes) via {a.model}")
         sys.exit(0)

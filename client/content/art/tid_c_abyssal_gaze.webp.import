@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/tid_c_abyssal_gaze.webp-d126ba587983e450a9777
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=true
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

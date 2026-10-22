@@ -44,7 +44,7 @@ public partial class DrachmaRite : Control
     private float _autoPower = 1f;
 
     /// <summary>The coin rests on the cliff here (the Card Packs page puts its own coin on the same spot).</summary>
-    public static Vector2 CoinSpot(Vector2 vp) => new(vp.X * 0.235f, vp.Y * 0.665f);
+    public static Vector2 CoinSpot(Vector2 vp) => StyxArt.Backdrop != null ? new(vp.X * 0.5f, vp.Y * 0.71f) : new(vp.X * 0.235f, vp.Y * 0.665f);   // FABLE-084: the cliffs put the purse over the chasm
 
     public static DrachmaRite Play(Node parent, PendingPack pack, Dictionary<string, int> ownedBefore, int left, Action onDone, Action? onNext,
                                    Vector2? flick = null, float power = 1f)

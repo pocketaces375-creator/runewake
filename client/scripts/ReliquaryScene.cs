@@ -36,6 +36,10 @@ public partial class ReliquaryScene : Control
     private static readonly Color Violet = Color.FromHtml("#9C7BD1");
     private static readonly Color StoneInk = new(0.80f, 0.74f, 0.62f);
     private const float TopH = 104f, BarH = 84f;
+    /// <summary>FABLE-084: the painted open book (content/art/screens/ReliquaryScene.webp): pages from PageL to 1-PageL across,
+    /// down to PageB, the spine Spine wide in the middle.</summary>
+    private static bool Book => ResourceLoader.Exists("res://content/art/screens/ReliquaryScene.webp");
+    private const float PageL = 0.115f, PageB = 0.925f, Spine = 0.06f;
 
     private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
     private static readonly string[] StrataLabels = { "All", "Verdant", "Ember", "Tide", "Hollow", "Dawn" };
@@ -167,6 +171,12 @@ public partial class ReliquaryScene : Control
 
         // ── The shelves ──
         var shelf = new Control { Position = new Vector2(0, TopH + BarH), Size = new Vector2(vp.X, vp.Y - TopH - BarH), MouseFilter = MouseFilterEnum.Pass };
+        if (Book)   // FABLE-084: the open book Trikzos picked — the shelves are its two pages
+        {
+            shelf.Position = new Vector2(vp.X * PageL, TopH + BarH + 6);
+            shelf.Size = new Vector2(vp.X * (1 - 2 * PageL), vp.Y * PageB - TopH - BarH - 6);
+            topBg.Color = new Color(0.082f, 0.072f, 0.061f, 0.55f);
+        }
         AddChild(shelf);
         var light = new TextureRect
         {
@@ -178,7 +188,7 @@ public partial class ReliquaryScene : Control
             },
         };
         light.SetAnchorsPreset(LayoutPreset.FullRect);
-        shelf.AddChild(light);
+        if (!Book) shelf.AddChild(light);
         _gridScroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
         _gridScroll.SetAnchorsPreset(LayoutPreset.FullRect);
         _gridDrag = DragScroll.Attach(_gridScroll);
@@ -265,7 +275,8 @@ public partial class ReliquaryScene : Control
         float avail = vp.X - 80 - 14;
         float gap = 30f;
         int cols = 7;
-        float cardW = Mathf.Min((avail - (cols - 1) * gap) / cols, 300f);
+        if (Book) { cols = 6; avail = vp.X * (1 - 2 * PageL) - 14 - vp.X * Spine; }
+        float cardW = Mathf.Min((avail - (cols - 1) * gap) / cols, Book ? 215f : 300f);   // two rows fit on the pages
         float cardH = cardW * 608f / 416f;
         const float tagH = 40f, capH = 36f;
 
@@ -288,8 +299,13 @@ public partial class ReliquaryScene : Control
             rowOuter.AddChild(row);
             for (int j = 0; j < cols; j++)
             {
-                if (i + j >= _filteredCards.Count) { row.AddChild(new Control { CustomMinimumSize = new Vector2(cardW, 1), MouseFilter = MouseFilterEnum.Ignore }); continue; }
+                if (i + j >= _filteredCards.Count)
+                {
+                    if (Book && j == cols / 2) row.AddChild(new Control { CustomMinimumSize = new Vector2(vp.X * Spine - gap, 1), MouseFilter = MouseFilterEnum.Ignore });
+                    row.AddChild(new Control { CustomMinimumSize = new Vector2(cardW, 1), MouseFilter = MouseFilterEnum.Ignore }); continue;
+                }
                 int idx = i + j;
+                if (Book && j == cols / 2) row.AddChild(new Control { CustomMinimumSize = new Vector2(vp.X * Spine - gap, 1), MouseFilter = MouseFilterEnum.Ignore });   // the spine
                 row.AddChild(CardCell(_filteredCards[idx], idx, cardW, cardH, tagH, capH));
             }
         }

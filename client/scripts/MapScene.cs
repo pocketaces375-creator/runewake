@@ -476,6 +476,14 @@ public partial class MapScene : Control
             AddChild(_regionBanner);
     }
 
+    // FABLE-084: lift the shadows (gamma) and a little exposure, so the painted land reads in daylight
+    private const string MapLiftShader = @"shader_type canvas_item;
+void fragment() {
+    vec4 c = COLOR;
+    vec3 rgb = pow(max(c.rgb, vec3(0.0)), vec3(0.78)) * 1.10;
+    COLOR = vec4(clamp(rgb, 0.0, 1.0), c.a);
+}";
+
     // ── Top bar ──────────────────────────────────────────────────────────
 
     private void BuildTopBar()
@@ -686,7 +694,10 @@ public partial class MapScene : Control
         GD.Print($"[MAP] Loaded region '{_region.Id}' with board_skin '{CampaignContext.CurrentRegionSkinId}'");
 
         // Apply tint to the plate now that we know the skin
-        _platePlate.Modulate = ThemeTokens.GetSkinTint(CampaignContext.CurrentRegionSkinId);
+        // FABLE-084: Trikzos — "brighten this map up": half the tint, and lifted above the painting's own exposure
+        var tint = ThemeTokens.GetSkinTint(CampaignContext.CurrentRegionSkinId).Lerp(Colors.White, 0.5f);
+        _platePlate.Modulate = tint;
+        _platePlate.Material = new ShaderMaterial { Shader = new Shader { Code = MapLiftShader } };
         GD.Print($"[MAP] Applying plate tint for skin '{CampaignContext.CurrentRegionSkinId}'");
 
         var iconScene = GD.Load<PackedScene>("res://scenes/components/MapNodeIcon.tscn");

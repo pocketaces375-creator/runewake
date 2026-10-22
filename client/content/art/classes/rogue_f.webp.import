@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/rogue_f.webp-e5a9c9c6f5c9ead6a107233fcfa1d428
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

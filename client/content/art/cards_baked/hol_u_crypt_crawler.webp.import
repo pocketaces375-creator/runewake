@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/hol_u_crypt_crawler.webp-78553a6346931d3ae3d9
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.9
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

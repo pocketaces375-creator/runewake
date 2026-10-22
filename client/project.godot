@@ -17,9 +17,12 @@ run/main_scene="res://scenes/main/Main.tscn"
 config/features=PackedStringArray("4.3", "C#")
 config/icon="res://icon.svg"
 config/quit_on_go_back=false
+run/max_fps=60
 
 [autoload]
 
+DeviceCompat="*res://scripts/DeviceCompat.cs"
+ScreenSkin="*res://scripts/ScreenSkin.cs"
 TutorialController="*res://scripts/TutorialController.cs"
 CrashReporter="*res://scripts/CrashReporter.cs"
 DebugCapture="*res://scripts/DebugCapture.cs"
@@ -42,7 +45,7 @@ window/size/viewport_width=2316
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
-window/handheld/orientation=0
+window/handheld/orientation=4
 
 [dotnet]
 

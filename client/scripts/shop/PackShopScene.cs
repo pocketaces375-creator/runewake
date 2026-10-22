@@ -48,11 +48,14 @@ public partial class PackShopScene : Control
         MouseFilter = MouseFilterEnum.Stop;
 
         AddChild(new DrachmaRite.Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore, MoonAt = new Vector2(0.06f, 0.115f) });
-        AddChild(new Meander { Position = Vector2.Zero, Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
-        AddChild(new Meander { Position = new Vector2(0, _vp.Y - 30 * _s), Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
+        if (StyxArt.Backdrop == null)   // FABLE-084: the painted cliffs carry their own frame
+        {
+            AddChild(new Meander { Position = Vector2.Zero, Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
+            AddChild(new Meander { Position = new Vector2(0, _vp.Y - 30 * _s), Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
+        }
 
-        var kicker = Lbl(this, "CARD PACKS  ·  PAY THE FERRYMAN", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
-        var title = Lbl(this, "The Ferryman's Toll", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
+        var kicker = Lbl(this, "CARD PACKS  ·  A DRACHMA FOR THE GODS OF OLD", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
+        var title = Lbl(this, "Offering to the Ancient", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
         Outline(kicker); Outline(title);
 
         _content = new Control { MouseFilter = MouseFilterEnum.Ignore };
@@ -120,7 +123,7 @@ public partial class PackShopScene : Control
         if (!IsInsideTree()) return;
         if (packs.Count == 0) { Render(); return; }
         GetNodeOrNull<AudioManager>("/root/AudioManager")?.PlaySfx("unlock");
-        Say(packs.Count == 1 ? "A drachma is yours — pay the ferryman!" : $"{packs.Count} drachmae are yours — pay the ferryman!");
+        Say(packs.Count == 1 ? "A drachma is yours — make your offering!" : $"{packs.Count} drachmae are yours — make your offering!");
         Render();
     }
 
@@ -160,6 +163,7 @@ public partial class PackShopScene : Control
         _coinBob?.Kill();
         var why = PackStore.CannotBuyReason();
         int n = CampaignContext.Progression.PendingPacks.Count;
+        if (StyxArt.Backdrop != null) { RenderCliffs(why, n); return; }
 
         // your drachmae, on the cliff
         float px = _vp.X * 0.015f, pw = _vp.X * 0.31f;
@@ -203,6 +207,38 @@ public partial class PackShopScene : Control
             var l = Para(_content, why, x, top + h + 16 * _s, _vp.X - x - _vp.X * 0.015f, 64 * _s, (int)(24 * _s), new Color(0.95f, 0.78f, 0.52f), true);
             Outline(l);
         }
+    }
+
+    /// <summary>FABLE-084: Trikzos's cliff design — the offers carved on two altars at the cliff edges, the purse and
+    /// the flick in the middle over the chasm, the odds under the title.</summary>
+    private void RenderCliffs(string? why, int n)
+    {
+        var st = PackStore.Status;
+        double relic = st?.RelicChance ?? Packs.RelicChance;
+        Outline(Lbl(_content, $"Each drachma returns 1 Common · 1 Uncommon · 1 Rare {Math.Round((1 - relic) * 100)}%, or a Relic {Math.Round(relic * 100)}%",
+            0, _vp.Y * 0.165f, _vp.X, (int)(26 * _s), ThemeTokens.GetBodyFont((int)(26 * _s)), Parchment, true));
+        float cx = _vp.X * 0.30f, cw = _vp.X * 0.40f;
+        Outline(Lbl(_content, "YOUR DRACHMAE", cx, _vp.Y * 0.835f, cw, (int)(26 * _s), ThemeTokens.GetHeaderFont((int)(26 * _s)), Kicker, true));
+        Outline(Lbl(_content, n == 0 ? "None yet" : $"× {n}", cx, _vp.Y * 0.87f, cw, (int)(56 * _s), ThemeTokens.GetCardNameFont((int)(56 * _s)), n > 0 ? Gold : Parchment, true));
+        _coin = new DrachmaRite.Drachma { Radius = 58f * _s, Position = DrachmaRite.CoinSpot(_vp), MouseFilter = MouseFilterEnum.Ignore };
+        _coin.Modulate = n > 0 ? Colors.White : new Color(1, 1, 1, 0.28f);
+        _content.AddChild(_coin);
+        _coinBob = _coin.CreateTween().SetLoops();
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
+        var hint = Lbl(_content, n > 0 ? "Make your offering — flick a drachma into the mist" : "Take a drachma, then offer it to the Ancient", cx, _vp.Y * 0.50f, cw,
+            (int)(32 * _s), ThemeTokens.GetHeaderFont((int)(32 * _s)), Gold, true);
+        Outline(hint);
+        if (n > 0)
+        {
+            var pulse = hint.CreateTween().SetLoops();
+            pulse.TweenProperty(hint, "modulate:a", 0.45f, 0.8f).SetTrans(Tween.TransitionType.Sine);
+            pulse.TweenProperty(hint, "modulate:a", 1f, 0.8f).SetTrans(Tween.TransitionType.Sine);
+        }
+        var size = new Vector2(_vp.X * 0.19f, _vp.Y * 0.60f);
+        for (int i = 0; i < Packs.Products.Count && i < 2; i++)
+            BuildOffer(Packs.Products[i], new Vector2(i == 0 ? _vp.X * 0.075f : _vp.X * 0.735f, _vp.Y * 0.255f), size, why, i == 1);
+        if (why != null) Outline(Para(_content, why, cx, _vp.Y * 0.58f, cw, 64 * _s, (int)(24 * _s), new Color(0.95f, 0.78f, 0.52f), true));
     }
 
     private void BuildOffer(PackProduct p, Vector2 pos, Vector2 size, string? why, bool bestValue)
@@ -378,6 +414,12 @@ public partial class PackShopScene : Control
         public override void _Draw()
         {
             float W = Size.X, H = Size.Y, ped = W * 0.30f;
+            if (StyxArt.Backdrop != null && StyxArt.Stele == null)   // FABLE-084: on the cliffs the offer floats - no stone, just a pool of shadow under the words
+            {
+                for (int i = 6; i >= 1; i--)
+                    DrawRect(new Rect2(W * (0.5f - 0.08f * i), ped * 0.5f + H * 0.03f * (6 - i), W * 0.16f * i, H - ped * 0.5f - H * 0.06f * (6 - i)), new Color(0.02f, 0.02f, 0.05f, 0.07f));
+                return;
+            }
             if (StyxArt.Stele is Texture2D painted)       // FABLE-070: the painted stele, its rim lit in the offer's colour
             {
                 DrawTextureRect(painted, new Rect2(0, 0, W, H), false);
