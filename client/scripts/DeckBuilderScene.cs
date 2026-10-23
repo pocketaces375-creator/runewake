@@ -203,6 +203,16 @@ public partial class DeckBuilderScene : Control
     //  Layout
     // ════════════════════════════════════════════════════════════════
 
+    // ── FABLE-091: Deck Forge on Trikzos's approved painting (1376x768, stretched to the screen) ──
+    private static bool Art => ScreenSkin.Faithful("DeckBuilderScene");
+    private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
+    /// <summary>The rail's painted boxes: name + count, the two stat plaques, curve, factions, what it does, the buttons (x0, y0, x1, y1, side pad, top pad).</summary>
+    private static readonly (float, float, float, float, int, int)[] RailSlots =
+    {
+        (1062, 94, 1348, 228, 16, 4), (1070, 229, 1340, 290, 0, 2), (1062, 297, 1348, 414, 16, 4),
+        (1062, 418, 1348, 500, 16, 4), (1062, 503, 1348, 640, 16, 4), (1071, 650, 1341, 744, 0, 0),
+    };
+
     private void BuildUI()
     {
         MouseFilter = MouseFilterEnum.Pass;
@@ -303,6 +313,27 @@ public partial class DeckBuilderScene : Control
             _filterChipRow.AddChild(chip);
         }
 
+        if (Art)   // FABLE-091: the painting has its own top bars - the title, search and filters sit on them
+        {
+            topBg.Visible = false;
+            foreach (var c in top.GetChildren()) if (c is ColorRect cr && cr != topBg) cr.Visible = false;
+            void Place(Control c, float x0, float y0, float x1, float y1)
+            {
+                c.GetParent()?.RemoveChild(c);
+                top.AddChild(c);
+                var a = P(vp, x0, y0); var b = P(vp, x1, y1);
+                c.Position = a; c.Size = b - a; c.CustomMinimumSize = Vector2.Zero;
+            }
+            foreach (var c in row.GetChildren()) if (c is not Label && c != _searchField && c != _filterChipRow) ((Control)c).Visible = false;
+            title.AddThemeFontSizeOverride("font_size", 42);
+            Place(title, 26, 8, 222, 56);
+            Place(_searchField, 232, 14, 464, 50);
+            _searchField.AddThemeFontSizeOverride("font_size", 26);
+            _filterChipRow.AddThemeConstantOverride("separation", 6);
+            Place(_filterChipRow, 784, 9, 1356, 53);
+            row.Visible = false;
+        }
+
         // ── FABLE-053 layout: inspector | display case over the deck tray | stats rail ──
         _midX = Mg + InspW + Gp;
         _midW = vp.X - _midX - (RailW + Mg + 16f);
@@ -374,11 +405,26 @@ public partial class DeckBuilderScene : Control
         var rail = new VBoxContainer();
         rail.AddThemeConstantOverride("separation", 0);
         _rightRail.AddChild(rail);
+        // FABLE-091: on the approved painting every block of the rail sits in its own painted box
+        bool art = Art;
+        CurveBars.OnPaper = FactionBar.OnPaper = art;
+        int slotIx = 0;
         VBoxContainer Section(float top = 0)
         {
             var m = new MarginContainer();
             m.AddThemeConstantOverride("margin_left", 32); m.AddThemeConstantOverride("margin_right", 32); m.AddThemeConstantOverride("margin_top", (int)top);
-            rail.AddChild(m);
+            if (art && slotIx < RailSlots.Length)
+            {
+                var (x0, y0, x1, y1, pad, mt) = RailSlots[slotIx++];
+                var a = P(vp, x0, y0); var b = P(vp, x1, y1);
+                m.Position = a; m.Size = b - a; m.ClipContents = true; m.MouseFilter = MouseFilterEnum.Pass;
+                m.AddThemeConstantOverride("margin_left", pad); m.AddThemeConstantOverride("margin_right", pad); m.AddThemeConstantOverride("margin_top", mt);
+                AddChild(m);
+                var vb = new VBoxContainer();
+                vb.AddThemeConstantOverride("separation", 6);
+                m.AddChild(vb);
+                return vb;
+            }
             var v = new VBoxContainer();
             v.AddThemeConstantOverride("separation", 8);
             m.AddChild(v);
@@ -424,11 +470,11 @@ public partial class DeckBuilderScene : Control
 
         // two stat tiles
         var tiles = new HBoxContainer();
-        tiles.AddThemeConstantOverride("separation", 10);
+        tiles.AddThemeConstantOverride("separation", art ? 12 : 10);
         Section(12).AddChild(tiles);
         Label Tile(string caption)
         {
-            var t = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, 78), MouseFilter = MouseFilterEnum.Ignore };
+            var t = new PanelContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, CustomMinimumSize = new Vector2(0, art ? 80 : 78), MouseFilter = MouseFilterEnum.Ignore };
             t.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0, 0, 0, 0.25f), BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.30f), BorderWidthLeft = 1, BorderWidthRight = 1, BorderWidthTop = 1, BorderWidthBottom = 1, CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10 });
             var v = new VBoxContainer { Alignment = BoxContainer.AlignmentMode.Center, MouseFilter = MouseFilterEnum.Ignore };
             v.AddThemeConstantOverride("separation", 0);
@@ -470,17 +516,18 @@ public partial class DeckBuilderScene : Control
         _doesList.AddThemeConstantOverride("separation", 2);
         doesSec.AddChild(_doesList);
 
-        rail.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        if (!art) rail.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        else _rightRail.Visible = false;
 
         // plates
         var btnSec = Section(10);
-        btnSec.AddThemeConstantOverride("separation", 12);
+        btnSec.AddThemeConstantOverride("separation", art ? 0 : 12);
         // FABLE-066: one Save that always keeps your work — and, for the deck you play, is what you play next.
         // Picking which deck you play is its own clear button; more decks are one tap away.
         HBoxContainer Row()
         {
             var r = new HBoxContainer();
-            r.AddThemeConstantOverride("separation", 10);
+            r.AddThemeConstantOverride("separation", art ? 16 : 10);
             btnSec.AddChild(r);
             return r;
         }
@@ -493,17 +540,19 @@ public partial class DeckBuilderScene : Control
             return b;
         }
         var row1 = Row();
-        _forgeButton = Plate("Save deck", true, 66);
+        _forgeButton = Plate("Save deck", true, art ? 56 : 66);
         _forgeButton.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         _forgeButton.SizeFlagsStretchRatio = 2.2f;
         _forgeButton.Pressed += () => { Click(); OnSaveDraft(); };
         row1.AddChild(_forgeButton);
-        Small(row1, "◀ Back", OnBack, 66, 24);
+        Small(row1, "◀ Back", OnBack, art ? 56 : 66, 24);
         var row2 = Row();
-        _playButton = Small(row2, "▶ Play this", OnPlayThisDeck);
-        _decksButton = Small(row2, "My decks", ShowLoadDialog);
-        Small(row2, "+ New deck", StartNewDeck);
-        rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
+        float h2 = art ? 53 : 58;
+        _playButton = Small(row2, "▶ Play this", OnPlayThisDeck, h2);
+        _decksButton = Small(row2, "My decks", ShowLoadDialog, h2);
+        Small(row2, "+ New deck", StartNewDeck, h2);
+        if (art) _forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.86f, 0.92f, 0.86f, 0.72f));
+        if (!art) rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
     }
 
     /// <summary>FABLE-053: size the display case and the tray for the tray's current state.</summary>
@@ -961,9 +1010,10 @@ public partial class DeckBuilderScene : Control
             else
             {
                 var slot = new Panel { Position = pos, Size = new Vector2(sw, sh), MouseFilter = MouseFilterEnum.Ignore };
+                if (Art) slot.SetMeta("skinned", true);   // FABLE-091: the open slots stay visible on the painted wood
                 slot.AddThemeStyleboxOverride("panel", new StyleBoxFlat
                 {
-                    BgColor = new Color(0, 0, 0, 0.18f), BorderColor = new Color(0.79f, 0.66f, 0.30f, 0.22f),
+                    BgColor = new Color(0, 0, 0, Art ? 0.30f : 0.18f), BorderColor = new Color(0.79f, 0.66f, 0.30f, Art ? 0.35f : 0.22f),
                     BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
                     CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6, CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
                 });
@@ -2057,6 +2107,8 @@ public partial class CostDiamond : Control
 /// <summary>FABLE-040: the mana curve as eight rounded bars with counts on top and costs below.</summary>
 public partial class CurveBars : Control
 {
+    /// <summary>FABLE-091: drawn on light parchment (dark ink, bronze bars).</summary>
+    public static bool OnPaper;
     public int[] Counts { get; set; } = new int[8];
     public override void _Draw()
     {
@@ -2072,17 +2124,17 @@ public partial class CurveBars : Control
             float x = i * (w + gap);
             float h = Counts[i] == 0 ? 4f : Mathf.Max(8f, barMax * Counts[i] / max);
             var rect = new Rect2(x, topH + barMax - h, w, h);
-            var box = new StyleBoxFlat { BgColor = Counts[i] == 0 ? new Color(1, 1, 1, 0.08f) : ThemeTokens.Gold, CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3 };
+            var box = new StyleBoxFlat { BgColor = Counts[i] == 0 ? (OnPaper ? new Color(0.25f, 0.15f, 0.06f, 0.25f) : new Color(1, 1, 1, 0.08f)) : (OnPaper ? new Color(0.70f, 0.50f, 0.18f) : ThemeTokens.Gold), CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3 };
             DrawStyleBox(box, rect);
             if (Counts[i] > 0)
             {
                 string t = Counts[i].ToString();
                 var sz = num.GetStringSize(t, HorizontalAlignment.Left, -1, 22);
-                DrawString(num, new Vector2(x + w / 2 - sz.X / 2, rect.Position.Y - 10), t, HorizontalAlignment.Left, -1, 22, new Color(0.96f, 0.93f, 0.86f));
+                DrawString(num, new Vector2(x + w / 2 - sz.X / 2, rect.Position.Y - 10), t, HorizontalAlignment.Left, -1, 22, OnPaper ? new Color(0.22f, 0.13f, 0.05f) : new Color(0.96f, 0.93f, 0.86f));
             }
             string lbl = i == n - 1 ? $"{i}+" : i.ToString();
             var ls = small.GetStringSize(lbl, HorizontalAlignment.Left, -1, 22);
-            DrawString(small, new Vector2(x + w / 2 - ls.X / 2, Size.Y - 4), lbl, HorizontalAlignment.Left, -1, 22, new Color(0.62f, 0.57f, 0.47f));
+            DrawString(small, new Vector2(x + w / 2 - ls.X / 2, Size.Y - 4), lbl, HorizontalAlignment.Left, -1, 22, OnPaper ? new Color(0.36f, 0.24f, 0.12f) : new Color(0.62f, 0.57f, 0.47f));
         }
     }
 }
@@ -2090,13 +2142,14 @@ public partial class CurveBars : Control
 /// <summary>FABLE-053: the deck's faction mix as one rounded bar split by colour.</summary>
 public partial class FactionBar : Control
 {
+    public static bool OnPaper;
     public List<(Color col, int n)> Segments { get; set; } = new();
     public override void _Draw()
     {
         int total = Segments.Sum(s => s.n);
         if (total == 0)
         {
-            DrawStyleBox(new StyleBoxFlat { BgColor = new Color(1, 1, 1, 0.06f), CornerRadiusTopLeft = 7, CornerRadiusTopRight = 7, CornerRadiusBottomLeft = 7, CornerRadiusBottomRight = 7 }, new Rect2(Vector2.Zero, Size));
+            DrawStyleBox(new StyleBoxFlat { BgColor = OnPaper ? new Color(0.25f, 0.15f, 0.06f, 0.22f) : new Color(1, 1, 1, 0.06f), CornerRadiusTopLeft = 7, CornerRadiusTopRight = 7, CornerRadiusBottomLeft = 7, CornerRadiusBottomRight = 7 }, new Rect2(Vector2.Zero, Size));
             return;
         }
         float x = 0;

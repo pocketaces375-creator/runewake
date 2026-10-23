@@ -324,7 +324,20 @@ public partial class SettingsScene : Control
             LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         };
         AddChild(_backBtn);
-        ScreenSkin.Plaque(_backBtn);
+        // FABLE-091: the painting already has a bronze frame here - the word sits in it (no second plaque inside)
+        _backBtn.AddThemeFontSizeOverride("font_size", 32);
+        _backBtn.AddThemeColorOverride("font_color", GoldBright);
+        StyleBoxFlat Wood(Color bg, Color edge) => new()
+        {
+            BgColor = bg, BorderColor = edge, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+            ShadowColor = new Color(0, 0, 0, 0.45f), ShadowSize = 6,
+        };
+        _backBtn.AddThemeStyleboxOverride("normal", Wood(new Color(0.13f, 0.085f, 0.05f, 0.92f), new Color(0.62f, 0.47f, 0.24f)));
+        _backBtn.AddThemeStyleboxOverride("hover", Wood(new Color(0.20f, 0.13f, 0.07f, 0.95f), new Color(0.90f, 0.74f, 0.42f)));
+        _backBtn.AddThemeStyleboxOverride("pressed", Wood(new Color(0.08f, 0.05f, 0.03f, 0.95f), new Color(0.62f, 0.47f, 0.24f)));
+        _backBtn.SetMeta("skinned", true);
+        _backBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.9f, 0.6f));
 
         var s0 = A(vp, 0.305f, 0.806f); var s1 = A(vp, 0.488f, 0.872f);
         _status = new Label { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart,
@@ -334,7 +347,7 @@ public partial class SettingsScene : Control
         _status.AddThemeColorOverride("font_color", Cream);
         AddChild(_status);
 
-        var v0 = A(vp, 0.520f, 0.880f); var v1 = A(vp, 0.806f, 0.905f);
+        var v0 = A(vp, 0.520f, 0.872f); var v1 = A(vp, 0.806f, 0.892f);
         var versionLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = v0, Size = v1 - v0,
             MouseFilter = MouseFilterEnum.Ignore, Text = $"Runewake {VersionString()}" };
         versionLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(17));
@@ -473,7 +486,7 @@ public partial class SettingsScene : Control
         if (hint != null) text.AddChild(RowLabel(hint, 26, Muted));
         row.AddChild(text);
 
-        var sw = new SettingsSwitch { SizeFlagsVertical = SizeFlags.ShrinkCenter };
+        var sw = new SettingsSwitch { SizeFlagsVertical = SizeFlags.ShrinkCenter, Brass = _art };
         sw.Toggled += on => { if (!_loading) { Click(); onToggle(on); } };
         row.AddChild(sw);
 
@@ -532,8 +545,9 @@ public partial class SettingsScene : Control
         return l;
     }
 
-    private static void StyleSlider(HSlider s)
+    private void StyleSlider(HSlider s)
     {
+        if (_art) { StyleBrassSlider(s); return; }
         StyleBoxFlat Track(Color c) => new()
         {
             BgColor = c,
@@ -550,6 +564,61 @@ public partial class SettingsScene : Control
         s.AddThemeIconOverride("grabber", knob);
         s.AddThemeIconOverride("grabber_highlight", Knob(true));
         s.AddThemeIconOverride("grabber_disabled", knob);
+    }
+
+    /// <summary>FABLE-091: the painting's look - a dark inset rail, a bronze fill and a brass knob.</summary>
+    private static void StyleBrassSlider(HSlider s)
+    {
+        StyleBoxFlat Rail(Color c, Color border) => new()
+        {
+            BgColor = c, BorderColor = border, BorderWidthLeft = 1, BorderWidthRight = 1, BorderWidthTop = 1, BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 5, CornerRadiusTopRight = 5, CornerRadiusBottomLeft = 5, CornerRadiusBottomRight = 5,
+            ContentMarginTop = 4, ContentMarginBottom = 4,
+        };
+        var groove = Rail(new Color(0.09f, 0.065f, 0.045f), new Color(0.50f, 0.38f, 0.20f));
+        groove.ShadowColor = new Color(0, 0, 0, 0.45f); groove.ShadowSize = 2;
+        s.AddThemeStyleboxOverride("slider", groove);
+        s.AddThemeStyleboxOverride("grabber_area", Rail(new Color(0.74f, 0.56f, 0.27f), new Color(0.93f, 0.78f, 0.45f)));
+        s.AddThemeStyleboxOverride("grabber_area_highlight", Rail(new Color(0.84f, 0.65f, 0.32f), new Color(1f, 0.86f, 0.52f)));
+        s.AddThemeIconOverride("grabber", Brass(false));
+        s.AddThemeIconOverride("grabber_highlight", Brass(true));
+        s.AddThemeIconOverride("grabber_disabled", Brass(false));
+    }
+
+    private static ImageTexture? _brass, _brassHi;
+
+    /// <summary>A 42px brass knob: dark rim, warm body, light falling from the top left.</summary>
+    internal static ImageTexture Brass(bool hi)
+    {
+        if (hi && _brassHi != null) return _brassHi;
+        if (!hi && _brass != null) return _brass;
+        const int n = 42;
+        var img = Image.CreateEmpty(n, n, false, Image.Format.Rgba8);
+        float c = (n - 1) / 2f, r = 17.5f;
+        var lightP = new Vector2(c - 5, c - 6);
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                var p = new Vector2(x, y);
+                float d = p.DistanceTo(new Vector2(c, c));
+                var px = new Color(0, 0, 0, Mathf.Clamp((r + 3f - p.DistanceTo(new Vector2(c, c + 2))) / 3f, 0, 1) * 0.45f);
+                float a = Mathf.Clamp(r + 0.5f - d, 0, 1);
+                if (a > 0)
+                {
+                    float lt = Mathf.Clamp(1f - p.DistanceTo(lightP) / (r * 1.6f), 0, 1);
+                    var body = new Color(0.46f, 0.31f, 0.13f).Lerp(new Color(0.98f, 0.85f, 0.55f), lt * lt * 0.9f + 0.1f);
+                    if (hi) body = body.Lightened(0.12f);
+                    float rim = Mathf.Clamp((d - (r - 2.6f)) / 2.6f, 0, 1);
+                    body = body.Lerp(new Color(0.24f, 0.15f, 0.06f), rim * 0.85f);
+                    float groove = Mathf.Abs(d - r * 0.55f) < 0.8f ? 0.25f : 0f;   // a turned ring on the face
+                    body = body.Darkened(groove);
+                    px = px.Lerp(new Color(body.R, body.G, body.B, 1), a);
+                }
+                img.SetPixel(x, y, px);
+            }
+        var tex = ImageTexture.CreateFromImage(img);
+        if (hi) _brassHi = tex; else _brass = tex;
+        return tex;
     }
 
     private static ImageTexture? _knob, _knobHi;
@@ -976,6 +1045,8 @@ public partial class SettingsSwitch : Control
 {
     public event Action<bool>? Toggled;
     public bool On { get; private set; }
+    /// <summary>FABLE-091: bronze and rune-teal to match the painted Settings; the old gold pill otherwise.</summary>
+    public bool Brass { get; set; }
     private float _t;   // 0 = off, 1 = on (animated)
 
     public SettingsSwitch()
@@ -1017,6 +1088,7 @@ public partial class SettingsSwitch : Control
 
     public override void _Draw()
     {
+        if (Brass) { DrawBrass(); return; }
         var sz = Size;
         float h = 48, w = 96;
         var o = new Vector2(sz.X - w, (sz.Y - h) / 2);
@@ -1036,6 +1108,25 @@ public partial class SettingsSwitch : Control
         var c = new Vector2(x, o.Y + h / 2);
         DrawCircle(c + new Vector2(0, 2), r + 1, new Color(0, 0, 0, 0.35f));
         DrawCircle(c, r, new Color(0.96f, 0.92f, 0.84f));
+    }
+
+    private void DrawBrass()
+    {
+        var sz = Size;
+        float h = 44, w = 92;
+        var o = new Vector2(sz.X - w, (sz.Y - h) / 2);
+        var box = new StyleBoxFlat
+        {
+            BgColor = new Color(0.10f, 0.07f, 0.05f).Lerp(new Color(0.06f, 0.30f, 0.30f), _t),
+            BorderColor = new Color(0.55f, 0.41f, 0.21f).Lerp(new Color(0.45f, 0.90f, 0.86f), _t),
+            BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 22, CornerRadiusTopRight = 22, CornerRadiusBottomLeft = 22, CornerRadiusBottomRight = 22,
+            ShadowColor = new Color(0.40f, 0.95f, 0.90f, 0.35f * _t), ShadowSize = (int)(10 * _t),
+        };
+        DrawStyleBox(box, new Rect2(o, new Vector2(w, h)));
+        var tex = SettingsScene.Brass(false);
+        float x = Mathf.Lerp(o.X + 3, o.X + w - 3 - h + 2, _t);
+        DrawTextureRect(tex, new Rect2(new Vector2(x, o.Y + 1), new Vector2(h - 2, h - 2)), false);
     }
 }
 

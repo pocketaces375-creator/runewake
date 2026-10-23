@@ -74,6 +74,10 @@ public partial class RewardsScene : Control
 
         var back = Plate("◀  Back", false, 300, 80);
         back.Position = new Vector2(120, vp.Y - 104);
+        if (Art)   // FABLE-091: on the painted plaque, bottom left
+        {
+            back.Position = P(vp, 98, 699); back.Size = back.CustomMinimumSize = P(vp, 276, 750) - back.Position;
+        }
         back.Pressed += GoBack;
         AddChild(back);
 
@@ -118,6 +122,13 @@ public partial class RewardsScene : Control
         _shownDay = DailyRewards.Touch(p, Today);
         foreach (var c in _content.GetChildren()) c.QueueFree();
         var vp = GetViewportRect().Size;
+        if (Art)
+        {
+            RenderArt(p, vp);
+            _balances.Text = $"{p.Shards} Shards";
+            UpdateCountdown();
+            return;
+        }
         const float left = 120f, top = 160f, gap = 24f, loginH = 268f, bottomReserve = 150f;
         float width = vp.X - 2 * left;
 
@@ -275,6 +286,152 @@ public partial class RewardsScene : Control
         btn.Name = "ClaimChest";
         btn.Pressed += () => Claim(() => DailyRewards.ClaimChest(Prog, Today, PickCard), "Daily Chest");
         panel.AddChild(btn);
+    }
+
+    // ── FABLE-091: the approved painting, every word on its own painted strip, stone and plaque ─────────
+    private static bool Art => ScreenSkin.Faithful("RewardsScene");
+    /// <summary>A point of the 1376x768 painting on the screen (the painting is stretched to fill it).</summary>
+    private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
+    private static readonly Color Ink = new(0.21f, 0.13f, 0.06f), InkSoft = new(0.30f, 0.19f, 0.09f), RuneCyan = new(0.80f, 0.97f, 0.96f);
+    private static readonly float[] StoneX = { 172, 303, 425, 547, 669, 791, 913 };
+    private static readonly (float y0, float y1)[] Strips = { (397, 446), (461, 508), (524, 571), (589, 635) };
+
+    private Label ArtText(string text, Vector2 vp, float x, float y, float w, int size, Font font, Color colour, HorizontalAlignment align = HorizontalAlignment.Left, int outline = 0)
+    {
+        var a = P(vp, x, y);
+        var l = Text(_content, text, a.X, a.Y, P(vp, x + w, y).X - a.X, size, font, colour);
+        l.HorizontalAlignment = align;
+        if (outline > 0) { l.AddThemeConstantOverride("outline_size", outline); l.AddThemeColorOverride("font_outline_color", new Color(0.03f, 0.05f, 0.06f, 0.9f)); }
+        l.SetMeta("skinned", true);
+        return l;
+    }
+
+    private Button ArtPlate(string text, bool primary, Vector2 vp, float x0, float y0, float x1, float y1, int font = 32)
+    {
+        var a = P(vp, x0, y0); var b = P(vp, x1, y1);
+        var btn = Plate(text, primary, b.X - a.X, b.Y - a.Y);
+        btn.Position = a;
+        btn.AddThemeFontSizeOverride("font_size", font);
+        btn.AddThemeColorOverride("font_color", primary ? new Color(1f, 0.88f, 0.55f) : new Color(0.88f, 0.80f, 0.64f));
+        btn.AddThemeColorOverride("font_disabled_color", new Color(0.70f, 0.64f, 0.52f));
+        btn.AddThemeConstantOverride("outline_size", 5); btn.AddThemeColorOverride("font_outline_color", new Color(0.05f, 0.03f, 0.02f, 0.85f));
+        _content.AddChild(btn);
+        return btn;
+    }
+
+    private Panel Bar(Vector2 pos, Vector2 size, Color c)
+    {
+        var b = new Panel { Position = pos, Size = size, MouseFilter = MouseFilterEnum.Ignore };
+        b.AddThemeStyleboxOverride("panel", Rounded(c, (int)(size.Y / 2)));
+        b.SetMeta("skinned", true);
+        _content.AddChild(b);
+        return b;
+    }
+
+    private void RenderArt(ProgressionState p, Vector2 vp)
+    {
+        var head = ThemeTokens.GetHeaderFont(24); var card = ThemeTokens.GetCardNameFont(34); var body = ThemeTokens.GetBodyFont(22);
+        var label = new Color(0.86f, 0.78f, 0.58f);
+
+        // daily login
+        var (ticked, ready) = DailyRewards.LoginCalendarView(p, Today);
+        bool claimedToday = ready < 0;
+        int shownDay = claimedToday ? ticked : ready + 1;
+        ArtText("DAILY LOGIN", vp, 108, 118, 400, 23, head, label, outline: 4);
+        ArtText(claimedToday ? $"Day {shownDay} of 7 claimed — see you tomorrow" : $"Day {shownDay} of 7 is waiting", vp, 108, 136, 700, 36,
+            ThemeTokens.GetCardNameFont(36), claimedToday ? Parchment : Gold, outline: 7);
+        ArtText("Missed a day? Your week waits — it never resets.", vp, 900, 120, 392, 21, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
+        for (int i = 0; i < DailyRewards.LoginCalendar.Count && i < StoneX.Length; i++)
+        {
+            var state = i < ticked ? RewardStatus.Claimed : i == ready ? RewardStatus.Ready : RewardStatus.Locked;
+            float cx = StoneX[i];
+            if (state == RewardStatus.Ready)
+            {
+                var g0 = P(vp, cx - 78, 150); var g1 = P(vp, cx + 78, 298);
+                var glow = new TextureRect
+                {
+                    Position = g0, Size = g1 - g0, MouseFilter = MouseFilterEnum.Ignore, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                    Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add },
+                    Texture = new GradientTexture2D
+                    {
+                        Gradient = Grad(new Color(1f, 0.78f, 0.36f, 0.85f), new Color(1f, 0.70f, 0.30f, 0f)),
+                        Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.5f, 0.55f), FillTo = new Vector2(0.5f, 1.02f), Width = 64, Height = 64,
+                    },
+                };
+                glow.SetMeta("skinned", true);
+                _content.AddChild(glow);
+                Pulse(glow);
+            }
+            var (big, small) = Headline(DailyRewards.LoginCalendar[i]);
+            bool lit = state == RewardStatus.Ready;
+            var dayCol = lit ? new Color(0.30f, 0.18f, 0.06f) : new Color(0.80f, 0.88f, 0.88f);
+            var bigCol = lit ? new Color(0.22f, 0.12f, 0.03f) : state == RewardStatus.Claimed ? new Color(0.62f, 0.72f, 0.70f) : RuneCyan;
+            var smallCol = lit ? new Color(0.30f, 0.18f, 0.06f) : new Color(0.92f, 0.88f, 0.78f);
+            int ol = lit ? 0 : 1;   // dark words on the lit stone, outlined light words on the others
+            var ls = new[]
+            {
+                ArtText($"DAY {i + 1}", vp, cx - 60, 190, 120, 20, ThemeTokens.GetHeaderFont(20), dayCol, HorizontalAlignment.Center, 5 * ol),
+                ArtText(big, vp, cx - 62, 206, 124, 42, ThemeTokens.GetCardNameFont(42), bigCol, HorizontalAlignment.Center, 7 * ol),
+                ArtText(small, vp, cx - 70, 248, 140, 19, ThemeTokens.GetBodyFont(19), smallCol, HorizontalAlignment.Center, 5 * ol),
+            };
+            if (state == RewardStatus.Claimed)
+            {
+                foreach (var l in ls) l.Modulate = new Color(1, 1, 1, 0.62f);
+                var tick = ArtText("✓", vp, cx + 14, 168, 36, 34, Inter(34), Moss, HorizontalAlignment.Center, 6);
+                _ = tick;
+            }
+        }
+        var claim = ArtPlate(claimedToday ? "Claimed" : $"Claim Day {shownDay}", !claimedToday, vp, 999, 197, 1286, 266, 36);
+        claim.Disabled = claimedToday;
+        claim.Name = "ClaimLogin";
+        claim.Pressed += () => Claim(() => DailyRewards.ClaimLogin(Prog, Today, PickCard), $"Day {shownDay}");
+        if (!claimedToday) Pulse(claim);
+
+        // today's matches, one painted parchment strip each
+        ArtText("TODAY'S MATCHES", vp, 108, 336, 400, 23, head, label, outline: 4);
+        ArtText($"{p.Daily.MatchesToday} played  ·  {p.Daily.WinsToday} won today", vp, 108, 354, 600, 32, card, Parchment, outline: 6);
+        ArtText("Any duel counts — campaign or online.", vp, 560, 340, 332, 20, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
+        int row = 0;
+        foreach (var t in DailyRewards.MatchTiers)
+        {
+            if (row >= Strips.Length) break;
+            var (y0, y1) = Strips[row++];
+            var st = DailyRewards.TierStatus(p, t, Today);
+            int prog = DailyRewards.Progress(p, t, Today);
+            float mid = (y0 + y1) / 2f;
+            ArtText(t.Title, vp, 124, y0 + 1, 330, 30, ThemeTokens.GetCardNameFont(30), Ink);
+            ArtText(t.Reward.Describe(), vp, 124, mid - 1, 330, 23, ThemeTokens.GetBodyFont(23), InkSoft);
+            var b0 = P(vp, 420, mid - 11); var b1 = P(vp, 700, mid - 5);
+            Bar(b0, b1 - b0, new Color(0.24f, 0.15f, 0.07f, 0.55f));
+            float frac = t.Goal == 0 ? 1 : Mathf.Clamp((float)prog / t.Goal, 0, 1);
+            if (frac > 0) Bar(b0, new Vector2(Mathf.Max(b1.Y - b0.Y, (b1.X - b0.X) * frac), b1.Y - b0.Y), st == RewardStatus.Claimed ? Moss.Darkened(0.2f) : new Color(0.72f, 0.50f, 0.14f));
+            ArtText($"{prog} / {t.Goal}", vp, 420, mid - 3, 280, 22, body, InkSoft, HorizontalAlignment.Center);
+            var btn = ArtPlate(st == RewardStatus.Claimed ? "Claimed" : st == RewardStatus.Ready ? "Claim" : $"{t.Goal - prog} to go",
+                st == RewardStatus.Ready, vp, 727, y0 - 1, 885, y1 + 1, 30);
+            btn.Disabled = st != RewardStatus.Ready;
+            btn.Name = "Claim_" + t.Id;
+            var id = t.Id; var title = t.Title;
+            btn.Pressed += () => Claim(() => DailyRewards.ClaimTier(Prog, id, Today, PickCard), title);
+            if (st == RewardStatus.Ready) Pulse(btn);
+        }
+
+        // the daily chest between its two rune stones
+        var cst = DailyRewards.ChestStatus(p, Today);
+        int total = 1 + DailyRewards.MatchTiers.Count;
+        int done = (DailyRewards.LoginStatus(p, Today) == RewardStatus.Claimed ? 1 : 0)
+                   + DailyRewards.MatchTiers.Count(t => DailyRewards.TierStatus(p, t, Today) == RewardStatus.Claimed);
+        ArtText("DAILY CHEST", vp, 948, 336, 360, 23, head, label, HorizontalAlignment.Center, 4);
+        _content.AddChild(ChestArt(cst, P(vp, 1128, 418)));
+        ArtText(DailyRewards.Chest.Describe(), vp, 948, 488, 360, 30, ThemeTokens.GetCardNameFont(30), Parchment, HorizontalAlignment.Center, 6);
+        var why = ArtText(cst == RewardStatus.Claimed ? "Opened. A new chest arrives tomorrow."
+                : cst == RewardStatus.Ready ? "Everything claimed — open it!"
+                : $"Claim everything else today to open it  ({done} of {total})", vp, 955, 522, 346, 21, body, new Color(0.84f, 0.78f, 0.66f), HorizontalAlignment.Center, 4);
+        why.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        why.Size = new Vector2(why.Size.X, P(vp, 0, 576).Y - P(vp, 0, 522).Y);
+        var open = ArtPlate(cst == RewardStatus.Claimed ? "Opened" : "Open Chest", cst == RewardStatus.Ready, vp, 970, 584, 1285, 640, 34);
+        open.Disabled = cst != RewardStatus.Ready;
+        open.Name = "ClaimChest";
+        open.Pressed += () => Claim(() => DailyRewards.ClaimChest(Prog, Today, PickCard), "Daily Chest");
     }
 
     // ── claiming ─────────────────────────────────────────────────────────

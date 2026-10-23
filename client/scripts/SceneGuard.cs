@@ -11,6 +11,14 @@ namespace Runewake.Client;
 /// </summary>
 public static class SceneGuard
 {
+    /// <summary>FABLE-091: the missing type's name and the inner error, which a bare TypeLoadException message leaves out.</summary>
+    private static string Detail(Exception ex)
+    {
+        string d = ex is TypeLoadException tl && !string.IsNullOrEmpty(tl.TypeName) ? $" [{tl.TypeName}]" : "";
+        if (ex.InnerException is Exception inner) d += $" ({inner.GetType().Name}: {inner.Message})";
+        return d;
+    }
+
     /// <summary>Run the scene's build; on a throw, paint the error and a button to <paramref name="escapePath"/>.</summary>
     public static void Build(Control scene, string name, Action build, string escapePath, string escapeLabel)
     {
@@ -30,7 +38,7 @@ public static class SceneGuard
                 scene.AddChild(bg);
                 var msg = new Label
                 {
-                    Text = $"{name} failed to load: {ex.GetType().Name} — {ex.Message}\n{DuelScene.FirstFrame(ex)}\nScreenshot this for Fable.",
+                    Text = $"{name} failed to load: {ex.GetType().Name}{Detail(ex)} — {ex.Message}\n{DuelScene.FirstFrame(ex)}\nScreenshot this for Fable.",
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     AutowrapMode = TextServer.AutowrapMode.WordSmart,

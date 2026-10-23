@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Godot;
 using Runewake.Engine.Cards;
@@ -58,12 +59,41 @@ public partial class OnlineLobbyScene : Control
 
     public override void _Ready() => SceneGuard.Build(this, "OnlineLobbyScene", Build, "res://scenes/main/Main.tscn", "Back to title");
 
+    // FABLE-091: Play Online died on a phone with "TypeLoadException" while the runtime prepared this screen's one big
+    // build method. The screen is now built in parts, each prepared and run on its own: a part that cannot load is
+    // written to the trace with its full error and named on screen, and the rest of the lobby (and Back) still works.
     private void Build()
     {
         var vp = GetViewportRect().Size;
+        var failed = new System.Collections.Generic.List<string>();
+        try { BuildBackdrop(vp); } catch (Exception ex) { failed.Add(PartFailed("backdrop", ex)); }
+        try { BuildBack(vp); } catch (Exception ex) { failed.Add(PartFailed("back", ex)); }
+        try { BuildSync(); } catch (Exception ex) { failed.Add(PartFailed("cloud", ex)); }
+        try { BuildMenu(vp); } catch (Exception ex) { failed.Add(PartFailed("menu", ex)); }
+        try { BuildLobbyPane(vp); } catch (Exception ex) { failed.Add(PartFailed("lobby", ex)); }
+        try { FinishBuild(); } catch (Exception ex) { failed.Add(PartFailed("status", ex)); }
+        if (failed.Count > 0) SetStatus("Part of this screen could not load (" + string.Join("; ", failed) + "). Screenshot this for Fable.");
+    }
+
+    private static string PartFailed(string part, Exception ex)
+    {
+        DuelScene.ExitTrace($"OnlineLobby part '{part}' THREW: {ex}");
+        string type = ex is TypeLoadException tl && !string.IsNullOrEmpty(tl.TypeName) ? " [" + tl.TypeName + "]" : "";
+        string inner = ex.InnerException != null ? " / " + ex.InnerException.GetType().Name + ": " + ex.InnerException.Message : "";
+        return $"{part}: {ex.GetType().Name}{type} {ex.Message}{inner}";
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildSync()
+    {
         _sm = CampaignContext.SyncManager;
         if (_sm != null && _sm.Config.IsConfigured) _sync = new OnlinePlaySync(_sm.Config, Http.Create(15));
 
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildBackdrop(Vector2 vp)
+    {
         var bg = new ColorRect { Color = new Color(0.05f, 0.045f, 0.035f) };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
@@ -83,6 +113,11 @@ public partial class OnlineLobbyScene : Control
         _title = Text("Online", 60, 84, ThemeTokens.GetCardNameFont(84), ThemeTokens.Gold);
         _status = Text("", vp.Y - 150, 30, ThemeTokens.GetBodyFont(30), new Color(0.86f, 0.76f, 0.56f));
 
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildMenu(Vector2 vp)
+    {
         // ── menu ──
         _menu = new Control { MouseFilter = MouseFilterEnum.Ignore };
         _menu.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -126,7 +161,7 @@ public partial class OnlineLobbyScene : Control
         hostBtn.Pressed += () => _ = Host("pvp1v1", "pvp");
         col.AddChild(hostBtn);
 
-        PickCoopTarget();
+        try { PickCoopTarget(); } catch (Exception ex) { DuelScene.ExitTrace("OnlineLobby: no co-op target: " + ex); }
         var coopBtn = Plate(string.IsNullOrEmpty(_coopTarget) ? "Host a co-op fight" : $"Host a co-op fight  ·  {_coopTitle}", false);
         coopBtn.Disabled = string.IsNullOrEmpty(_coopTarget);
         coopBtn.Pressed += () => _ = Host("coop", _coopTarget);
@@ -143,11 +178,22 @@ public partial class OnlineLobbyScene : Control
         joinBtn.Pressed += () => _ = Join(_codeEdit.Text.Trim());
         joinRow.AddChild(joinBtn);
 
-        var back = new Button { Text = "◀  Back to title", Position = new Vector2(80, vp.Y - 120), Size = new Vector2(360, 84) };
-        WorldMapScene.StyleButton(back);
+        MenuButtons.RevealStagger(new Control[] { _kicker, _title, nameRow, col });
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildBack(Vector2 vp)
+    {
+        var back = Plate("◀  Back to title", false, 380);   // FABLE-091: its own plate (it borrowed the old world map's style)
+        back.Position = new Vector2(80, vp.Y - 120); back.Size = new Vector2(380, 84); back.CustomMinimumSize = new Vector2(380, 84);
         back.Pressed += () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         AddChild(back);
 
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildLobbyPane(Vector2 vp)
+    {
         // ── lobby ──
         _lobbyPane = new Control { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
         _lobbyPane.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -196,13 +242,17 @@ public partial class OnlineLobbyScene : Control
         _startBtn.Pressed += () => _ = Start();
         row.AddChild(_startBtn);
 
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void FinishBuild()
+    {
         MenuButtons.BreatheTitle(_title);
-        MenuButtons.RevealStagger(new Control[] { _kicker, _title, nameRow, col });
 
         if (_sync == null) SetStatus("Online play needs the cloud connection — it isn't set up on this build.");
         else if (_sm?.Session?.IsValid != true) SetStatus("Not signed in yet. Give it a moment, or check your connection.");
         else SetStatus($"Signed in as {_sm.PublicLabel}");
-    }
+        }
 
     public override void _Process(double delta)
     {
