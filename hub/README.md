@@ -23,7 +23,7 @@ Jett is the front desk. Everything else — Claude, the GPU box, the other 13 bo
                                  │ https://fictive-1…ts.net/<secret>/sse
           ┌──────────────────────┼───────────────────────┼──────────┐
           ▼                      ▼                       │          │
-   Claude (web/phone/desktop)  ChatGPT (dev-mode        GPU box (7900 XTX 24GB)
+   Claude (web/phone/desktop)                           GPU box (7900 XTX 24GB)
    custom connector "Hub"      connector "Hub")         LAN-only, direct cable
    = reads every bot chat,     = same tools,            image/music/LoRA/local LLM
      sends to Telegram,          cheap second brain     served to Hermes as an
@@ -58,7 +58,7 @@ Hermes is already an MCP *client* (`~/.hermes/config.yaml` → `mcp_servers`). G
 - **Claude as a *tool* for Jett** — optional later: an `ask_claude` tool (API key, pay-per-use) for the things DeepSeek can't do.
 
 ### Layer 4 — the single conversation
-With 1–3 in place, you only ever talk to Jett. Jett can: read what Claude posted, ask Claude/ChatGPT a question,
+With 1–3 in place, you only ever talk to Jett. Jett can: read what Claude posted, ask Claude a question,
 hand a music job to the GPU box, and report back — all in the same Telegram thread. Claude, when you open it,
 already sees everything via the connector; no pasting.
 
