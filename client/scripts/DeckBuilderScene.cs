@@ -38,6 +38,7 @@ public partial class DeckBuilderScene : Control
     // FABLE-053: inspector (left), deck tray (bottom of the middle), stats rail (right)
     private PanelContainer _inspector = null!;
     private VBoxContainer _inspBody = null!;
+    private Control? _inspArt;   // FABLE-091b: the inspector laid on the painted left panel
     private string? _selectedId;
     private Control _tray = null!;
     private static bool s_trayOpen = true;   // remembered for the session
@@ -207,6 +208,11 @@ public partial class DeckBuilderScene : Control
     private static bool Art => ScreenSkin.Faithful("DeckBuilderScene");
     private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
     /// <summary>The rail's painted boxes: name + count, the two stat plaques, curve, factions, what it does, the buttons (x0, y0, x1, y1, side pad, top pad).</summary>
+    // the twelve painted card slots of the display case (painting pixels)
+    private const float SlotX0 = 380f, SlotY0 = 130f, SlotW = 93f, SlotH = 148f, SlotPitchX = 103.4f, SlotPitchY = 181f;
+    private static readonly Color RuneCyan = new(0.45f, 0.95f, 0.90f);
+    private static float GridRowPitch(Vector2 vp) => P(vp, 0, SlotPitchY).Y;
+    private static float GridRowSep(Vector2 vp) => GridRowPitch(vp) - (P(vp, 0, SlotH).Y + CaptionH);
     private static readonly (float, float, float, float, int, int)[] RailSlots =
     {
         (1062, 94, 1348, 228, 16, 4), (1070, 229, 1340, 290, 0, 2), (1062, 297, 1348, 414, 16, 4),
@@ -345,6 +351,12 @@ public partial class DeckBuilderScene : Control
         _inspBody = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
         _inspBody.AddThemeConstantOverride("separation", 10);
         _inspector.AddChild(_inspBody);
+        if (Art)
+        {
+            _inspArt = new Control { MouseFilter = MouseFilterEnum.Ignore };
+            _inspArt.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(_inspArt);
+        }
 
         // Middle: the display case
         _leftPanel = new Control { Position = new Vector2(_midX, TopH), MouseFilter = MouseFilterEnum.Pass };
@@ -385,6 +397,11 @@ public partial class DeckBuilderScene : Control
         vsb.AddThemeStyleboxOverride("grabber_highlight", grabHi);
         vsb.AddThemeStyleboxOverride("grabber_pressed", grabHi);
         _gridScroll.GuiInput += OnGridScrollInput;
+        if (Art)
+        {
+            _gridScroll.VerticalScrollMode = ScrollContainer.ScrollMode.ShowNever;   // the painted case has no scrollbar; rows snap into the painted slots
+            _gridDrag.Snap = GridRowPitch(vp);
+        }
         _leftPanel.AddChild(_gridScroll);
 
         _cardGrid = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -444,6 +461,7 @@ public partial class DeckBuilderScene : Control
         rename.Pressed += () => { Click(); ShowRenameDialog(); };
         nameRow.AddChild(rename);
 
+        if (art) nameSec.AddChild(new Control { CustomMinimumSize = new Vector2(0, 12), MouseFilter = MouseFilterEnum.Ignore });
         _playingLabel = new Label { Text = "", MouseFilter = MouseFilterEnum.Ignore, ClipText = true, TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis };
         _playingLabel.AddThemeFontOverride("font", GetHeaderFont(19)); _playingLabel.AddThemeFontSizeOverride("font_size", 19);
         nameSec.AddChild(_playingLabel);
@@ -461,7 +479,7 @@ public partial class DeckBuilderScene : Control
         countRow.AddChild(_countHint);
 
         _countTrack = new Control { CustomMinimumSize = new Vector2(0, 10), MouseFilter = MouseFilterEnum.Ignore };
-        var trackBg = new ColorRect { Color = new Color(1, 1, 1, 0.06f), MouseFilter = MouseFilterEnum.Ignore };
+        var trackBg = new ColorRect { Color = art ? new Color(0.22f, 0.13f, 0.05f, 0.25f) : new Color(1, 1, 1, 0.06f), MouseFilter = MouseFilterEnum.Ignore };
         trackBg.SetAnchorsPreset(LayoutPreset.FullRect);
         _countTrack.AddChild(trackBg);
         _countBar = new ColorRect { Color = Gold, Position = Vector2.Zero, Size = new Vector2(0, 10), MouseFilter = MouseFilterEnum.Ignore };
@@ -496,7 +514,7 @@ public partial class DeckBuilderScene : Control
         // curve
         var curveSec = Section(12);
         curveSec.AddChild(SmallHeader("CURVE"));
-        _curve = new CurveBars { CustomMinimumSize = new Vector2(0, 112), MouseFilter = MouseFilterEnum.Ignore };
+        _curve = new CurveBars { CustomMinimumSize = new Vector2(0, art ? 102 : 112), MouseFilter = MouseFilterEnum.Ignore };
         curveSec.AddChild(_curve);
 
         // factions
@@ -561,6 +579,14 @@ public partial class DeckBuilderScene : Control
         var vp = GetViewportRect().Size;
         float trayH = s_trayOpen ? TrayOpenH : TrayClosedH;
         float trayY = vp.Y - 20f - trayH;
+        if (Art)   // FABLE-091b: the case and the tray are the painted ones, whatever the tray's state
+        {
+            _leftPanel.Position = P(vp, SlotX0, SlotY0) - new Vector2(0, GridRowSep(vp));
+            _leftPanel.Size = P(vp, SlotX0 + 5 * SlotPitchX + SlotW, 492) - _leftPanel.Position;
+            _tray.Position = P(vp, 334, 538);
+            _tray.Size = P(vp, 1032, 742) - _tray.Position;
+            return;
+        }
         _leftPanel.Position = new Vector2(_midX, TopH);
         _leftPanel.Size = new Vector2(_midW, trayY - 10f - TopH);
         _tray.Position = new Vector2(_midX, trayY);
@@ -639,7 +665,7 @@ public partial class DeckBuilderScene : Control
         var glowBox = new StyleBoxFlat
         {
             BgColor = new Color(0, 0, 0, 0.0f),
-            ShadowColor = new Color(0.93f, 0.76f, 0.36f, 0.55f), ShadowSize = 26,
+            ShadowColor = Art ? new Color(0.35f, 0.95f, 0.90f, 0.50f) : new Color(0.93f, 0.76f, 0.36f, 0.55f), ShadowSize = 26,
             CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
         };
         var halo = new Panel { MouseFilter = MouseFilterEnum.Ignore };
@@ -660,16 +686,17 @@ public partial class DeckBuilderScene : Control
         if (inDeckCount > 0)
         {
             var pill = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
+            pill.SetMeta("skinned", true);
             pill.AddThemeStyleboxOverride("panel", new StyleBoxFlat
             {
-                BgColor = new Color(0.10f, 0.08f, 0.05f, 0.92f),
-                BorderColor = Gold, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+                BgColor = Art ? new Color(0.03f, 0.12f, 0.13f, 0.94f) : new Color(0.10f, 0.08f, 0.05f, 0.92f),
+                BorderColor = Art ? RuneCyan : Gold, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
                 CornerRadiusTopLeft = 16, CornerRadiusTopRight = 16, CornerRadiusBottomLeft = 16, CornerRadiusBottomRight = 16,
                 ContentMarginLeft = 12, ContentMarginRight = 12, ContentMarginTop = 2, ContentMarginBottom = 2,
             });
             var pl = new Label { Text = $"×{inDeckCount}", HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
             ApplyHeaderFont(pl, Mathf.RoundToInt(gridW * 0.10f));
-            pl.AddThemeColorOverride("font_color", Color.FromHtml("#F2DFA6"));
+            pl.AddThemeColorOverride("font_color", Art ? new Color(0.85f, 1f, 0.98f) : Color.FromHtml("#F2DFA6"));
             pill.AddChild(pl);
             face.AddChild(pill);
             pill.Position = new Vector2(gridW - gridW * 0.30f, gridW * 0.05f);
@@ -683,11 +710,19 @@ public partial class DeckBuilderScene : Control
             ring.OffsetLeft = -7; ring.OffsetTop = -7; ring.OffsetRight = 7; ring.OffsetBottom = 7;
             ring.AddThemeStyleboxOverride("panel", new StyleBoxFlat
             {
-                BgColor = new Color(0, 0, 0, 0), BorderColor = Color.FromHtml("#F3DE95"),
-                BorderWidthLeft = 4, BorderWidthRight = 4, BorderWidthTop = 4, BorderWidthBottom = 4,
+                BgColor = new Color(0, 0, 0, 0), BorderColor = Art ? RuneCyan : Color.FromHtml("#F3DE95"),
+                BorderWidthLeft = Art ? 3 : 4, BorderWidthRight = Art ? 3 : 4, BorderWidthTop = Art ? 3 : 4, BorderWidthBottom = Art ? 3 : 4,
                 CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
             });
             face.AddChild(ring);
+            if (Art)   // a rune-cyan glow behind the chosen card (behind, so it never tints the painting)
+            {
+                halo.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+                {
+                    BgColor = new Color(0, 0, 0, 0), ShadowColor = new Color(0.35f, 0.95f, 0.90f, 0.55f), ShadowSize = 22,
+                    CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
+                });
+            }
         }
 
         // caption under the card
@@ -877,6 +912,15 @@ public partial class DeckBuilderScene : Control
         float byWidth = (availWidth - 5 * gap) / 6f;
         float cardW = Mathf.Clamp(Mathf.Min(byHeight, byWidth), 120f, 416f);
         int columns = Mathf.Clamp(Mathf.FloorToInt((availWidth + gap) / (cardW + gap)), 3, 8);
+        if (Art)   // FABLE-091b: one card per painted slot, captions in the painted gap under it
+        {
+            var vpA = GetViewportRect().Size;
+            cardW = (P(vpA, 0, SlotY0 + SlotH).Y - P(vpA, 0, SlotY0).Y) * 416f / 608f;
+            gap = P(vpA, SlotPitchX, 0).X - cardW;
+            rowSep = GridRowSep(vpA);
+            topPad = 0f;
+            columns = 6;
+        }
         _cardGrid.AddThemeConstantOverride("separation", Mathf.RoundToInt(rowSep));
         _cardGrid.AddChild(new Control { CustomMinimumSize = new Vector2(0, topPad), MouseFilter = MouseFilterEnum.Ignore });
 
@@ -989,7 +1033,8 @@ public partial class DeckBuilderScene : Control
         Text($"/ {max}", GetHeaderFont(32), 32, MutedInk, new Vector2(30 + cw + 14, 80), new Vector2(120, 56));
         Text(open > 0 ? $"{open} open slots" : "Deck full", GetBodyFont(28), 28, new Color(0.80f, 0.74f, 0.61f), new Vector2(30, 150), new Vector2(bx - 50, 36));
         Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32));
-        ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
+        if (Art) ToggleButton("MINIMIZE  ▾", P(GetViewportRect().Size, 340, 704) - _tray.Position, P(GetViewportRect().Size, 455, 735) - P(GetViewportRect().Size, 340, 704));
+        else ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
 
         // FABLE-054: the deck's two artifacts, framed beside the count where they can't be missed
         float slashW = GetHeaderFont(32).GetStringSize($"/ {max}", HorizontalAlignment.Left, -1, 32).X;
@@ -1326,6 +1371,7 @@ public partial class DeckBuilderScene : Control
     {
         if (_inspBody == null) return;
         foreach (var c in _inspBody.GetChildren()) c.QueueFree();
+        if (_inspArt != null) foreach (var c in _inspArt.GetChildren()) c.QueueFree();
         if (_selectedId == null && _inspectArtifact != null) { ShowArtifactInInspector(_inspectArtifact); return; }
         var def = _selectedId != null ? LookupCard(_selectedId) : null;
         float w = InspW - 52f;
@@ -1342,6 +1388,7 @@ public partial class DeckBuilderScene : Control
 
         int owned = OwnedCount(def.Id), inDeck = _deckCardIds.Count(i => i == def.Id);
         bool locked = _lockedCardIds.Contains(def.Id);
+        if (_inspArt != null) { ShowInspectorArt(def, owned, inDeck, locked); return; }
 
         // the card itself
         float pw = 240f, ph = pw * 608f / 416f;
@@ -1449,6 +1496,127 @@ public partial class DeckBuilderScene : Control
             if (flavor != null) flavor.AddThemeFontSizeOverride("font_size", 24 - step);
         }
         if (flavor != null && Total() > availH) flavor.Visible = false;
+    }
+
+    /// <summary>FABLE-091b: the tapped card in the painted recess, its kind and name on the dark band, its words on the parchment, the button on the plaque.</summary>
+    private void ShowInspectorArt(CardDef def, int owned, int inDeck, bool locked)
+    {
+        var vp = GetViewportRect().Size;
+        var host = _inspArt!;
+        var r0 = P(vp, 90, 102); var r1 = P(vp, 241, 341);
+        float ph = r1.Y - r0.Y - 8f, pw = ph * 416f / 608f;
+        var holder = new Control { Position = new Vector2((r0.X + r1.X - pw) / 2f, r0.Y + 4f), Size = new Vector2(pw, ph), MouseFilter = MouseFilterEnum.Ignore };
+        var plate = new CardPlate();
+        holder.AddChild(plate);
+        plate.Setup(def.Id, def.Attack, def.Vigor, pw, ph, def.Cost);
+        if (owned > 0) plate.Showcase(); else plate.Modulate = new Color(0.55f, 0.53f, 0.50f);
+        host.AddChild(holder);
+
+        Label Put(string text, Font font, int px, Color col, Vector2 a, Vector2 b, bool wrap)
+        {
+            var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = a, Size = b - a, MouseFilter = MouseFilterEnum.Ignore };
+            if (wrap) l.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+            l.AddThemeFontOverride("font", font); l.AddThemeFontSizeOverride("font_size", px);
+            l.AddThemeColorOverride("font_color", col);
+            l.SetMeta("skinned", true);
+            host.AddChild(l);
+            return l;
+        }
+        int si = Array.IndexOf(StrataOptions, def.Strata.ToString());
+        Color sc = si > 0 ? StrataColors[si].Lightened(0.45f) : Gold;
+        string type = def.Type switch { CardType.RITUAL => "RITUAL", CardType.RELIC => "RELIC", CardType.ARTIFACT => "ARTIFACT", CardType.TOKEN => "TOKEN", _ => "CREATURE" };
+        string stats = def.Attack.HasValue && def.Vigor.HasValue && def.Type == CardType.CREATURE ? $"  ·  {def.Attack}/{def.Vigor}" : "";
+        var kick = Put($"{def.Strata}  ·  {type}  ·  COST {def.Cost}{stats}".ToUpperInvariant(), GetHeaderFont(18), 18, sc, P(vp, 60, 350), P(vp, 272, 366), false);
+        kick.AddThemeConstantOverride("outline_size", 4); kick.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.8f));
+        var name = Put(def.Name, GetCardNameFont(40), 40, Color.FromHtml("#F0C85E"), P(vp, 62, 366), P(vp, 270, 424), false);
+        name.AddThemeConstantOverride("outline_size", 6); name.AddThemeColorOverride("font_outline_color", new Color(0.06f, 0.03f, 0.01f, 0.9f));
+        float nameW = name.Size.X; int npx = 40;
+        while (npx > 24 && name.GetThemeFont("font").GetStringSize(def.Name, HorizontalAlignment.Left, -1, npx).X > nameW) npx--;
+        name.AddThemeFontSizeOverride("font_size", npx);
+
+        // the parchment: rules, keyword seals in rune-teal, reminders, and the flavour at the foot
+        var t0 = P(vp, 52, 440); var t1 = P(vp, 280, 666);
+        float w = t1.X - t0.X;
+        var col = new VBoxContainer { Position = t0, Size = t1 - t0, ClipContents = true, MouseFilter = MouseFilterEnum.Ignore };
+        col.AddThemeConstantOverride("separation", 8);
+        host.AddChild(col);
+        var ink = new Color(0.20f, 0.12f, 0.05f); var inkSoft = new Color(0.34f, 0.23f, 0.12f); var teal = new Color(0.06f, 0.33f, 0.34f);
+        Label L(string text, Font font, int px, Color c)
+        {
+            var l = new Label { Text = text, HorizontalAlignment = HorizontalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(w, 0), MouseFilter = MouseFilterEnum.Ignore };
+            l.AddThemeFontOverride("font", font); l.AddThemeFontSizeOverride("font_size", px);
+            l.AddThemeColorOverride("font_color", c);
+            l.SetMeta("skinned", true);
+            col.AddChild(l);
+            return l;
+        }
+        string rules = RulesTextRenderer.RenderAbilityTextOnly(def);
+        Label? rulesL = string.IsNullOrWhiteSpace(rules) ? null : L(rules, GetBodyFont(30), 30, ink);
+        var reminders = new List<Label>();
+        foreach (var kw in def.Keywords)
+        {
+            var chipRow = new CenterContainer { CustomMinimumSize = new Vector2(w, 0), MouseFilter = MouseFilterEnum.Ignore };
+            var chip = new PanelContainer { MouseFilter = MouseFilterEnum.Ignore };
+            chip.SetMeta("skinned", true);
+            chip.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = new Color(0.06f, 0.33f, 0.34f, 0.12f), BorderColor = new Color(0.06f, 0.40f, 0.40f, 0.85f),
+                BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
+                ContentMarginLeft = 14, ContentMarginRight = 14, ContentMarginTop = 2, ContentMarginBottom = 2,
+            });
+            var cl = new Label { Text = "ᛟ  " + RulesTextRenderer.FormatKeyword(kw).ToUpperInvariant(), MouseFilter = MouseFilterEnum.Ignore };
+            cl.AddThemeFontOverride("font", GetHeaderFont(18)); cl.AddThemeFontSizeOverride("font_size", 18);
+            cl.AddThemeColorOverride("font_color", teal);
+            cl.SetMeta("skinned", true);
+            chip.AddChild(cl);
+            chipRow.AddChild(chip);
+            col.AddChild(chipRow);
+            string rem = RulesSlab.KeywordReminder(kw, def.Type);
+            if (!string.IsNullOrEmpty(rem)) reminders.Add(L(rem, GetBodyFont(24), 24, inkSoft));
+        }
+        foreach (var term in RulesTextRenderer.KeywordReminderLines(def).Skip(def.Keywords.Count))
+            reminders.Add(L(term, GetBodyFont(24), 24, inkSoft));
+        col.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill, MouseFilter = MouseFilterEnum.Ignore });
+        Label? flavor = string.IsNullOrWhiteSpace(def.Flavor) ? null : L($"“{def.Flavor}”", ItalicFont ?? GetBodyFont(22), 22, new Color(0.40f, 0.28f, 0.16f));
+
+        float Height(Label l)
+        {
+            var f = l.GetThemeFont("font"); int px = l.GetThemeFontSize("font_size");
+            return f.GetMultilineStringSize(l.Text, HorizontalAlignment.Left, w, px).Y;
+        }
+        float Total()
+        {
+            float t = 0; int n = 0;
+            if (rulesL != null) { t += Height(rulesL); n++; }
+            t += def.Keywords.Count * 30; n += def.Keywords.Count;
+            foreach (var r in reminders) { t += Height(r); n++; }
+            if (flavor != null) { t += Height(flavor); n++; }
+            return t + n * 8;
+        }
+        float avail = t1.Y - t0.Y;
+        for (int step = 1; Total() > avail && step <= 10; step++)
+        {
+            if (rulesL != null) rulesL.AddThemeFontSizeOverride("font_size", 30 - step);
+            foreach (var r in reminders) r.AddThemeFontSizeOverride("font_size", 24 - step);
+            if (flavor != null) flavor.AddThemeFontSizeOverride("font_size", 22 - step);
+        }
+        if (flavor != null && Total() > avail) flavor.Visible = false;
+
+        string btnText = owned == 0 ? "Not yet found"
+            : locked ? "Core card"
+            : inDeck >= owned ? (owned == 1 ? "In your deck" : $"All {owned} in your deck")
+            : inDeck > 0 ? $"Add another  ·  {inDeck} in deck" : "Add to deck";
+        var b0 = P(vp, 44, 687); var b1 = P(vp, 290, 727);
+        var add = Plate(btnText, true, b1.Y - b0.Y, b1.X - b0.X);
+        add.Position = b0; add.Size = b1 - b0;
+        add.AddThemeFontSizeOverride("font_size", 28);
+        add.AddThemeColorOverride("font_color", new Color(0.86f, 1f, 0.97f));
+        add.AddThemeColorOverride("font_disabled_color", new Color(0.72f, 0.68f, 0.58f));
+        add.Disabled = owned == 0 || locked || inDeck >= owned;
+        string id = def.Id;
+        add.Pressed += () => AddToDeck(id);
+        host.AddChild(add);
     }
 
     private void RefreshCurve()

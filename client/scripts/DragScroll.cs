@@ -34,6 +34,9 @@ public partial class DragScroll : Node
     /// <summary>True from the moment a gesture became a drag until the next press begins.</summary>
     public bool Dragged { get; private set; }
 
+    /// <summary>FABLE-091b: when set, the list comes to rest on a whole multiple of this (rows that sit in painted slots).</summary>
+    public float Snap { get; set; }
+
     public static DragScroll Attach(ScrollContainer scroll)
     {
         var d = new DragScroll { _s = scroll, Name = "DragScroll" };
@@ -109,7 +112,21 @@ public partial class DragScroll : Node
 
     public override void _Process(double delta)
     {
-        if (_dragging || Mathf.Abs(_vel) < 12f || !IsInstanceValid(_s)) { if (!_dragging) _vel = 0; return; }
+        if (_dragging || Mathf.Abs(_vel) < 12f || !IsInstanceValid(_s))
+        {
+            if (!_dragging) _vel = 0;
+            if (Snap > 0 && !_dragging && !_armed && IsInstanceValid(_s))
+            {
+                float cur = _s.ScrollVertical, target = Mathf.Clamp(Mathf.Round(cur / Snap) * Snap, 0, MaxScroll());
+                if (Mathf.Abs(target - cur) >= 1f)
+                {
+                    _pos = Mathf.Lerp(cur, target, Mathf.Min(1f, (float)delta * 12f));
+                    if (Mathf.Abs(target - _pos) < 1f) _pos = target;
+                    _s.ScrollVertical = (int)Mathf.Round(_pos);
+                }
+            }
+            return;
+        }
         float dt = (float)delta;
         _pos = Mathf.Clamp(_pos + _vel * dt, 0, MaxScroll());
         _s.ScrollVertical = (int)_pos;
