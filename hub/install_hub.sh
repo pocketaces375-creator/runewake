@@ -13,7 +13,8 @@
 set -euo pipefail
 
 HUB_PORT="${HUB_PORT:-8765}"
-HUB_PROFILE="${HUB_PROFILE:-}"           # empty = default profile (Jett). e.g. HUB_PROFILE=tcgbot
+# Every bot gets the feature. "default" = Jett. Served at /<secret>/servers/<profile>/sse ; Jett also at /<secret>/sse
+HUB_PROFILES="${HUB_PROFILES:-default tcgbot vender compiler forge sentinel vega guardian brandbot gandalf sammy creditcious friend}"
 STATE_DIR="$HOME/.hub"
 mkdir -p "$STATE_DIR"
 
@@ -28,14 +29,19 @@ SECRET="$(cat "$STATE_DIR/secret_path")"
 # ---------- 1. Hermes mcp-serve plugin ----------
 log "Installing Hermes mcp-serve plugin"
 command -v hermes >/dev/null || { echo "hermes not on PATH for this user"; exit 1; }
-if [[ -n "$HUB_PROFILE" ]]; then
-  hermes -p "$HUB_PROFILE" plugins install mcp-serve || true
-else
-  hermes plugins install mcp-serve || true
-fi
-# smoke test: the server must start and answer stdio (handshake is enough)
-if [[ -n "$HUB_PROFILE" ]]; then HERMES_CMD=(hermes -p "$HUB_PROFILE" mcp-serve); else HERMES_CMD=(hermes mcp-serve); fi
-timeout 20 "${HERMES_CMD[@]}" --help >/dev/null 2>&1 || log "note: 'hermes mcp-serve --help' did not exit 0 (plugin may still work; continuing)"
+HERMES_BIN="$(command -v hermes)"
+for p in $HUB_PROFILES; do
+  if [[ "$p" == default ]]; then hermes plugins install mcp-serve || log "plugin install failed for default profile";
+  else hermes -p "$p" plugins install mcp-serve || log "plugin install failed for profile $p (does it exist?)"; fi
+done
+# one named server per profile (mcp-proxy JSON format: top-level mcpServers{name:{command,args}})
+python3 - "$HERMES_BIN" $HUB_PROFILES > "$STATE_DIR/servers.json" <<'PY'
+import json,sys
+hermes=sys.argv[1]; servers={}
+for p in sys.argv[2:]:
+    servers[p]={"command":hermes,"args":(["mcp-serve"] if p=="default" else ["-p",p,"mcp-serve"])}
+print(json.dumps({"mcpServers":servers},indent=2))
+PY
 
 # ---------- 2. mcp-proxy ----------
 log "Installing mcp-proxy (stdio -> HTTP)"
@@ -49,16 +55,15 @@ MCP_PROXY="$(command -v mcp-proxy || echo "$HOME/.local/bin/mcp-proxy")"
 # ---------- 3. systemd user service ----------
 log "Writing systemd user service hub-mcp"
 mkdir -p "$HOME/.config/systemd/user"
-HERMES_BIN="$(command -v hermes)"
-PROFILE_ARGS=""; [[ -n "$HUB_PROFILE" ]] && PROFILE_ARGS="-p $HUB_PROFILE"
 cat > "$HOME/.config/systemd/user/hub-mcp.service" <<EOF
 [Unit]
-Description=Hub: Hermes conversation bridge over HTTP (mcp-proxy -> hermes mcp-serve)
+Description=Hub: Hermes conversation bridge over HTTP (mcp-proxy -> hermes mcp-serve, all profiles)
 After=network-online.target
 
 [Service]
 Environment=PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=$MCP_PROXY --host=127.0.0.1 --port=$HUB_PORT --stateless --allow-origin='*' -- $HERMES_BIN $PROFILE_ARGS mcp-serve
+# root (/sse) = Jett; every bot also at /servers/<profile>/sse
+ExecStart=$MCP_PROXY --host=127.0.0.1 --port=$HUB_PORT --stateless --named-server-config $STATE_DIR/servers.json -- $HERMES_BIN mcp-serve
 Restart=always
 RestartSec=5
 
@@ -92,15 +97,12 @@ BASE="https://$HOST/$SECRET"
 printf '%s\n' "$BASE" > "$STATE_DIR/public_base_url"
 
 # ---------- 5. hand-off ----------
-cat <<EOF
-
-================  HUB IS LIVE  ================
-Paste into Claude  (Customize > Connectors > Add custom connector, auth = No sign-in):
-    $BASE/sse
-Paste into ChatGPT (Settings > Connectors > Advanced > Developer mode > Create, auth = No authentication):
-    $BASE/sse
-Status:   systemctl --user status hub-mcp ; tailscale funnel status
-Rotate the secret:  rm ~/.hub/secret_path && re-run this script (old URL dies instantly).
-Treat the URL like a password — it IS the password.
-===============================================
-EOF
+{
+echo "================  HUB IS LIVE  ================"
+echo "Add in Claude: Customize > Connectors > Add custom connector, auth = No sign-in. One connector per bot you want Claude to see:"
+echo "    Hub-Jett      $BASE/sse"
+for p in $HUB_PROFILES; do [[ $p == default ]] && continue; echo "    Hub-$p   $BASE/servers/$p/sse"; done
+echo "Status:   systemctl --user status hub-mcp ; tailscale funnel status ; curl -s http://127.0.0.1:$HUB_PORT/status"
+echo "Private: nothing is served at the bare host path — only under the 32-char secret. Rotate: rm ~/.hub/secret_path && re-run."
+echo "==============================================="
+} | tee "$STATE_DIR/URLS.txt"

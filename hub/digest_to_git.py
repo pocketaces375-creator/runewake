@@ -19,7 +19,10 @@ the error is written into the digest file instead of crashing.
 import asyncio, json, os, subprocess, sys, datetime, re, pathlib
 
 REPO = pathlib.Path(os.environ.get("HUB_DIGEST_REPO", os.path.expanduser("~/hub-digest")))
-PROFILES = [p for p in os.environ.get("HUB_PROFILES", "default,tcgbot,vender").split(",") if p]
+PROFILES = [p for p in os.environ.get(
+    "HUB_PROFILES",
+    "default,tcgbot,vender,compiler,forge,sentinel,vega,guardian,brandbot,gandalf,sammy,creditcious,friend").split(",") if p]
+NOW = []   # one line per conversation: who, where, last message, when  -> NOW.md ("agent currently doing X")
 LIMIT = int(os.environ.get("HUB_MSG_LIMIT", "40"))
 STATE = pathlib.Path(os.path.expanduser("~/.hub"))
 STATE.mkdir(exist_ok=True)
@@ -81,7 +84,19 @@ async def dump_profile(profile: str) -> str:
                 if lim_arg:
                     call[lim_arg] = LIMIT
                 try:
-                    out += ["```json", text_of(await s.call_tool("messages_read", call))[:12000], "```", ""]
+                    raw = text_of(await s.call_tool("messages_read", call))
+                    out += ["```json", raw[:12000], "```", ""]
+                    # NOW board: last STATUS: line if the bot posted one, else the last message
+                    try:
+                        msgs = json.loads(raw)
+                        if isinstance(msgs, dict):
+                            msgs = msgs.get("messages") or msgs.get("items") or []
+                        texts = [str(m.get("text") or m.get("content") or "") for m in msgs if isinstance(m, dict)]
+                        status = next((t for t in reversed(texts) if t.strip().upper().startswith("STATUS:")), None)
+                        last = texts[-1] if texts else ""
+                        NOW.append(f"- **{profile}** in `{title}`: {(status or last)[:220].replace(chr(10),' ')}")
+                    except Exception:
+                        NOW.append(f"- **{profile}** in `{title}`: (see digest/{profile}.md)")
                 except Exception as e:  # keep going; record the failure
                     out += [f"(messages_read failed: {e})", ""]
     return "\n".join(out)
@@ -105,6 +120,10 @@ async def main():
         (REPO / "digest" / f"{p}.md").write_text(md)
         index.append(f"- [{p}](digest/{p}.md)")
     (REPO / "DIGEST.md").write_text("\n".join(index) + "\n")
+    (REPO / "NOW.md").write_text(
+        f"# NOW — what each agent is doing (auto, {datetime.datetime.utcnow():%Y-%m-%d %H:%M}Z)\n\n"
+        "Bots post `STATUS: <what I'm doing>` when they start/finish work; otherwise this shows the last message.\n\n"
+        + "\n".join(NOW) + "\n")
     git("add", "-A")
     if git("diff", "--cached", "--quiet").returncode != 0:
         git("commit", "-m", f"digest {datetime.datetime.utcnow():%Y-%m-%d %H:%M}Z")

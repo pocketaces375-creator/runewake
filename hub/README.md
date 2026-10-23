@@ -1,9 +1,9 @@
-# The Hub — one place where Hermes, Claude and ChatGPT all meet
+# The Hub — one place where Hermes and Claude meet (ChatGPT dropped for now)
 
 Owner: Trikzos. Host: the mini PC (`/home/fictive`, already on Tailscale as `fictive-1.tailb48725.ts.net`).
 
 ## The idea in one sentence
-Jett is the front desk. Everything else — Claude, ChatGPT, the GPU box, the other 13 bots — plugs into
+Jett is the front desk. Everything else — Claude, the GPU box, the other 13 bots — plugs into
 **one door on the mini PC**, so you talk in Telegram and never copy-paste again.
 
 ```
@@ -13,7 +13,7 @@ Jett is the front desk. Everything else — Claude, ChatGPT, the GPU box, the ot
                  │  Jett + 13 bots (Hermes, DeepSeek V4 Flash)          │
                  │        │ state.db (every chat, every bot)            │
                  │        ▼                                             │
-                 │  hermes mcp-serve  ──► mcp-proxy :8765 ──► Funnel    │
+                 │  hermes mcp-serve (x14 bots) ─► mcp-proxy :8765 ─► Funnel    │
                  │  (read chats / send / wait for new / approve)        │
                  │                                                      │
                  │  Hermes can ALSO call out as an MCP client to:       │
@@ -38,27 +38,24 @@ Jett is the front desk. Everything else — Claude, ChatGPT, the GPU box, the ot
   `messages_send`, `channels_list`, `permissions_respond`, `attachments_fetch`.
 - **mcp-proxy** turns that into a local web endpoint on port 8765.
 - **Tailscale Funnel** (already on this box) publishes it at `https://fictive-1.tailb48725.ts.net/<32-char-secret>/sse`.
-- **Claude**: Customize → Connectors → Add custom connector → paste URL, auth "No sign-in". Works on web, phone and desktop,
-  and in Cowork sessions like this one.
-- **ChatGPT**: Settings → Connectors → Advanced → Developer mode → Create → same URL, "No authentication".
-  Needs Plus or Pro; ChatGPT asks you to confirm each *send* (writes) — reads are free-flowing.
+- **Every bot is served**: Jett at `/<secret>/sse`, each other profile at `/<secret>/servers/<profile>/sse`.
+- **Claude**: Customize → Connectors → Add custom connector → paste URL, auth "No sign-in". One connector per bot you want
+  Claude to see (start with Hub-Jett, Hub-tcgbot, Hub-vender). Works on web, phone and desktop, and in Cowork sessions.
 
-Security, one line: the secret in the URL is the key; rotate it any time with `rm ~/.hub/secret_path` + re-run.
+Private, one line: nothing answers at the bare hostname; only the 32-character secret path works, only you have it, and `rm ~/.hub/secret_path` + re-run kills the old one instantly.
 
 ### Layer 2 — the paper trail (same day, $0)
 `digest_to_git.py` on a 5-minute cron writes every bot's latest messages to a private repo (`hub-digest`).
 Why bother if Layer 1 exists: scheduled/unattended Claude shifts and anything without a live connector can still
 `git pull` and know what happened; it's also a free searchable log of every bot forever.
-Add the repo to Claude's authorized sources (same place you added runewake) and to ChatGPT's GitHub connector.
+It also writes **`NOW.md`** — one line per bot: what it's doing right now (from its last `STATUS:` post). Add the repo to Claude's authorized sources.
 
 ### Layer 3 — Hermes reaches out (when the GPU box is finalized)
 Hermes is already an MCP *client* (`~/.hermes/config.yaml` → `mcp_servers`). Give Jett these tools:
 - **GPU box** — run one small MCP/HTTP server there exposing `generate_music(prompt, lora)`, `generate_image(prompt)`,
   `train_lora(dataset)`, `llm_chat(prompt)` (local model for cheap/private turns). LAN-only over the direct cable; never Funnel'd.
 - **VendOps** — its FastAPI already exists; add a read-only MCP wrapper so Jett/Vender can answer "what sold today" without you.
-- **Claude / ChatGPT as *tools* for Jett** — optional; when Jett hits something DeepSeek can't do, it calls a `ask_claude`
-  tool (Anthropic API key, pay-per-use, pennies) or `ask_openai`. That's the "bridge" role you wanted OpenAI for — but
-  honestly it's cheaper to let Hermes call the API directly than to pay a subscription for a middleman.
+- **Claude as a *tool* for Jett** — optional later: an `ask_claude` tool (API key, pay-per-use) for the things DeepSeek can't do.
 
 ### Layer 4 — the single conversation
 With 1–3 in place, you only ever talk to Jett. Jett can: read what Claude posted, ask Claude/ChatGPT a question,
@@ -72,9 +69,15 @@ already sees everything via the connector; no pasting.
 | Image gen, ACE-Step music, LoRA training, stem separation | GPU box, local | electricity |
 | Private/cheap chat turns, summarizing chat logs for the digest | GPU box local LLM (Ollama/llama.cpp, 24 GB fits ~30B models at 4-bit) | $0 |
 | Architecture, hard code, Runewake conducting | Claude (your subscription) via the Hub connector | subscription |
-| Second opinion / fallback / extra quota | ChatGPT Plus via the same connector | $20/mo only if you want it |
+
+## The "check before you answer" rule (Claude side)
+Saved in Claude's memory for Trikzos: **before answering anything about Runewake/the TCG, VendOps, or any bot's work, Claude
+first reads the latest messages in that bot's chat through the Hub connector (or `hub-digest/NOW.md` + `digest/` when no
+connector is live), then answers with: what was last said, what the agent is currently doing, and an offer to relay a message.**
+Bot side: every bot posts `STATUS:` lines (see `BOT_RULES_HUB.md`) so that answer is accurate.
 
 ## Files
 - `install_hub.sh` — Layer 1, run on the mini PC as `fictive`.
 - `digest_to_git.py` — Layer 2 cron script.
+- `BOT_RULES_HUB.md` — the paragraph Jett appends to every bot's system prompt.
 - `MESSAGE_FOR_JETT.md` — paste this into Jett's Telegram to have him do the install.
