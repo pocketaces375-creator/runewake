@@ -11,6 +11,10 @@ After=network-online.target hub-mcp.service
 
 [Service]
 Environment=PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=FABLE_MODEL=sonnet
+Environment=FABLE_WAIT_FOR_BOT=90
+Environment=FABLE_COOLDOWN=20
+Environment=FABLE_DAILY_CAP=300
 WorkingDirectory=$HOME/hub/responder
 ExecStart=$HOME/.hub/venv/bin/python $HOME/hub/responder/fable_responder.py
 Restart=always
