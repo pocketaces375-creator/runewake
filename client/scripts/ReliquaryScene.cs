@@ -41,7 +41,13 @@ public partial class ReliquaryScene : Control
     private static bool Book => Painted || ResourceLoader.Exists("res://content/art/screens/ReliquaryScene.webp");
     /// <summary>FABLE-088: the approved book painting itself (ScreenSkin faithful): cards are laid into its 14 painted slots, a page at a time.</summary>
     private static bool Painted => ScreenSkin.Faithful("ReliquaryScene");
+    /// <summary>FABLE-097: the painted codex keeps its own tabs, title and plaques; the game draws only the live parts.</summary>
+    private static bool Words => ScreenSkin.Words("ReliquaryScene");
     private Control? _pageLayer;
+    private Label? _wordsShards, _wordsProgress;
+    private ColorRect? _wordsBar;
+    private readonly List<Panel> _tabGlow = new();
+    private Control? _topBar, _filterBar;
     private int _bookPage;
     private string _lastSig = "";
     private float _swipeFrom = -1;
@@ -102,6 +108,7 @@ public partial class ReliquaryScene : Control
         // ── Header ──
         var top = new Control { Position = Vector2.Zero, Size = new Vector2(vp.X, TopH), MouseFilter = MouseFilterEnum.Pass };
         AddChild(top);
+        _topBar = top;
         var topBg = new ColorRect { Color = new Color(0.082f, 0.072f, 0.061f), MouseFilter = MouseFilterEnum.Ignore };
         topBg.SetAnchorsPreset(LayoutPreset.FullRect);
         top.AddChild(topBg);
@@ -133,6 +140,7 @@ public partial class ReliquaryScene : Control
         // ── Filter bar ──
         var bar = new Control { Position = new Vector2(0, TopH), Size = new Vector2(vp.X, BarH), MouseFilter = MouseFilterEnum.Pass };
         AddChild(bar);
+        _filterBar = bar;
         if (Book) bar.AddChild(new ColorRect { Color = new Color(0.07f, 0.06f, 0.05f, Painted ? 1f : 0.86f), Size = new Vector2(vp.X, BarH), MouseFilter = MouseFilterEnum.Ignore });   // FABLE-086: the filters stay readable over the light pages
         bar.AddChild(new ColorRect { Color = Rule, Position = new Vector2(0, 0), Size = new Vector2(vp.X, 1), MouseFilter = MouseFilterEnum.Ignore });
         var barRow = new HBoxContainer { Position = new Vector2(40, 0), Size = new Vector2(vp.X - 80, BarH), MouseFilter = MouseFilterEnum.Pass };
@@ -219,10 +227,17 @@ public partial class ReliquaryScene : Control
 
         if (Painted)
         {
-            _pageLayer = new Control { MouseFilter = MouseFilterEnum.Pass };
+            // FABLE-095b: the swipe catcher covers only the book - a full-screen layer sat over the header and ate every
+            // tap on Back, Shop and the filters. The page layer itself ignores input; its cards and arrows take their own.
+            var swipe = new Control { MouseFilter = MouseFilterEnum.Pass };
+            swipe.SetAnchorsPreset(LayoutPreset.FullRect);
+            swipe.OffsetTop = Words ? A(0, 0.175f).Y : TopH + BarH;
+            swipe.OffsetBottom = Words ? A(0, 0.885f).Y - vp.Y : 0;
+            AddChild(swipe);
+            _pageLayer = new Control { MouseFilter = MouseFilterEnum.Ignore };
             _pageLayer.SetAnchorsPreset(LayoutPreset.FullRect);
             AddChild(_pageLayer);
-            _pageLayer.GuiInput += e =>
+            swipe.GuiInput += e =>
             {
                 Vector2? at = e switch { InputEventScreenTouch t => t.Position, InputEventMouseButton m when m.ButtonIndex == MouseButton.Left => m.Position, _ => null };
                 if (at is not Vector2 pt) return;
@@ -232,9 +247,80 @@ public partial class ReliquaryScene : Control
                 _swipeFrom = -1;
             };
         }
+        if (Words) BuildWordsChrome(vp);
         LoadAllCards();
         if (CampaignContext.CaptureOverrideStrataIdx >= 0) _selectedStrataIdx = CampaignContext.CaptureOverrideStrataIdx;
         Refresh();
+    }
+
+    /// <summary>
+    /// FABLE-097: the painted codex has its own tab row (ten tabs along the top of the pages), the ribbon for the
+    /// count, and three plaques at the foot (Back, shards, Shop). The game puts see-through buttons on them, a gold
+    /// ring on the chosen tabs, and draws only the numbers.
+    /// </summary>
+    private void BuildWordsChrome(Vector2 vp)
+    {
+        _topBar!.Visible = false; _filterBar!.Visible = false;
+        Button Ghost(float x0, float y0, float x1, float y1, Action onPress)
+        {
+            var a = A(x0, y0); var b = A(x1, y1);
+            var g = new Button { Position = a, Size = b - a, FocusMode = FocusModeEnum.None, MouseDefaultCursorShape = CursorShape.PointingHand };
+            StyleBoxFlat Box(Color c) => new() { BgColor = c, CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8 };
+            g.AddThemeStyleboxOverride("normal", Box(new Color(0, 0, 0, 0)));
+            g.AddThemeStyleboxOverride("hover", Box(new Color(1f, 0.86f, 0.45f, 0.14f)));
+            g.AddThemeStyleboxOverride("pressed", Box(new Color(0, 0, 0, 0.25f)));
+            g.AddThemeStyleboxOverride("focus", new StyleBoxEmpty());
+            g.SetMeta("skinned", true);
+            g.Pressed += () => { Click(); onPress(); };
+            AddChild(g);
+            return g;
+        }
+        // the ten tabs, equal widths across the painted strip
+        string[] tabs = { "Cards", "Relics", "Verdant", "Ember", "Tide", "Hollow", "Dawn", "Everything", "Found", "Missing" };
+        const float tx0 = 0.234f, tx1 = 0.769f, ty0 = 0.108f, ty1 = 0.168f;
+        float tw = (tx1 - tx0) / tabs.Length;
+        _tabGlow.Clear();
+        for (int i = 0; i < tabs.Length; i++)
+        {
+            int k = i;
+            float x0 = tx0 + i * tw, x1 = x0 + tw;
+            var glow = new Panel { Position = A(x0 + 0.003f, ty0), Size = A(x1 - 0.003f, ty1) - A(x0 + 0.003f, ty0), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+            glow.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+            {
+                BgColor = new Color(1f, 0.85f, 0.45f, 0.10f), BorderColor = new Color(0.95f, 0.80f, 0.42f), BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
+                ShadowColor = new Color(1f, 0.85f, 0.45f, 0.45f), ShadowSize = 10,
+            });
+            glow.SetMeta("skinned", true);
+            AddChild(glow);
+            _tabGlow.Add(glow);
+            Ghost(x0, ty0 - 0.01f, x1, ty1 + 0.01f, () =>
+            {
+                if (k == 0) _relicsTab = false;
+                else if (k == 1) _relicsTab = true;
+                else if (k <= 6) _selectedStrataIdx = _selectedStrataIdx == k - 1 ? 0 : k - 1;   // tap the chosen strata again: all of them
+                else _found = k - 7;
+                Refresh();
+            });
+        }
+        // the ribbon: the count and its gold bar
+        _wordsProgress = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = A(0.655f, 0.213f), Size = A(0.800f, 0.250f) - A(0.655f, 0.213f), MouseFilter = MouseFilterEnum.Ignore };
+        _wordsProgress.AddThemeFontOverride("font", GetBodyFont(20)); _wordsProgress.AddThemeFontSizeOverride("font_size", 20);
+        _wordsProgress.AddThemeColorOverride("font_color", new Color(0.28f, 0.20f, 0.11f));
+        _wordsProgress.SetMeta("skinned", true);
+        AddChild(_wordsProgress);
+        var track = new ColorRect { Color = new Color(0.30f, 0.22f, 0.12f, 0.35f), Position = A(0.672f, 0.262f), Size = A(0.792f, 0.270f) - A(0.672f, 0.262f), MouseFilter = MouseFilterEnum.Ignore };
+        track.SetMeta("skinned", true); AddChild(track);
+        _wordsBar = new ColorRect { Color = new Color(0.80f, 0.62f, 0.22f), Position = track.Position, Size = new Vector2(0, track.Size.Y), MouseFilter = MouseFilterEnum.Ignore };
+        _wordsBar.SetMeta("skinned", true); AddChild(_wordsBar);
+        // the plaques at the foot
+        Ghost(0.262f, 0.903f, 0.372f, 0.966f, () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"));
+        Ghost(0.629f, 0.903f, 0.740f, 0.966f, () => LoadScreen.Go(GetTree(), "res://scenes/shop/CardShopScene.tscn"));
+        _wordsShards = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = A(0.443f, 0.903f), Size = A(0.556f, 0.966f) - A(0.443f, 0.903f), MouseFilter = MouseFilterEnum.Ignore };
+        _wordsShards.AddThemeFontOverride("font", GetBodyFont(28)); _wordsShards.AddThemeFontSizeOverride("font_size", 28);
+        _wordsShards.AddThemeColorOverride("font_color", Violet);
+        _wordsShards.SetMeta("skinned", true);
+        AddChild(_wordsShards);
     }
 
     public override void _Process(double delta)
@@ -279,6 +365,11 @@ public partial class ReliquaryScene : Control
         int foundAll = _allCards.Count(c => Owned(c.Id) > 0);
         _progressText.Text = $"{foundAll} / {_allCards.Count} runes found";
         CallDeferred(nameof(FitProgress), (float)foundAll / Mathf.Max(1, _allCards.Count));
+        if (_wordsShards != null) _wordsShards.Text = $"✦ {progression.Shards} Shards";
+        if (_wordsProgress != null) _wordsProgress.Text = $"{foundAll} / {_allCards.Count} runes found";
+        if (_wordsBar != null) _wordsBar.Size = new Vector2((A(0.792f, 0) - A(0.672f, 0)).X * foundAll / Mathf.Max(1, _allCards.Count), _wordsBar.Size.Y);
+        for (int i = 0; i < _tabGlow.Count; i++)
+            _tabGlow[i].Visible = i == 0 ? !_relicsTab : i == 1 ? _relicsTab : i <= 6 ? _selectedStrataIdx == i - 1 : !_relicsTab && _found == i - 7;
 
         foreach (var c in _cardGrid.GetChildren()) c.QueueFree();
         _gridDrag?.Halt();
@@ -424,13 +515,13 @@ public partial class ReliquaryScene : Control
 
         // number tag
         var tag = new Label { Text = $"№ {_number[card.Id]:000}", Position = new Vector2(4, 0), Size = new Vector2(cardW - 8, tagH - 8), VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-        tag.AddThemeFontOverride("font", GetHeaderFont(22)); tag.AddThemeFontSizeOverride("font_size", 22);
+        tag.AddThemeFontOverride("font", GetHeaderFont(22)); tag.AddThemeFontSizeOverride("font_size", Words ? 15 : 22);
         tag.AddThemeColorOverride("font_color", found ? Gold : new Color(0.55f, 0.50f, 0.42f));
         cell.AddChild(tag);
         if (found && !CampaignContext.Progression.IsCardSeen(card.Id))
         {
             var nw = new Label { Text = "NEW", HorizontalAlignment = HorizontalAlignment.Right, Position = new Vector2(cardW - 90, 0), Size = new Vector2(86, tagH - 8), VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-            nw.AddThemeFontOverride("font", GetHeaderFont(20)); nw.AddThemeFontSizeOverride("font_size", 20);
+            nw.AddThemeFontOverride("font", GetHeaderFont(20)); nw.AddThemeFontSizeOverride("font_size", Words ? 14 : 20);
             nw.AddThemeColorOverride("font_color", Color.FromHtml("#8AC4FF"));
             cell.AddChild(nw);
         }
@@ -452,7 +543,7 @@ public partial class ReliquaryScene : Control
         else Veil(plate, card, cardW, cardH, face);
 
         var cap = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = new Vector2(0, tagH + cardH + 2), Size = new Vector2(cardW, capH - 2), MouseFilter = MouseFilterEnum.Ignore };
-        cap.AddThemeFontOverride("font", GetBodyFont(24)); cap.AddThemeFontSizeOverride("font_size", 24);
+        cap.AddThemeFontOverride("font", GetBodyFont(24)); cap.AddThemeFontSizeOverride("font_size", Words ? 17 : 24);
         if (found) { cap.Text = owned == 1 ? "One copy" : $"×{owned}"; cap.AddThemeColorOverride("font_color", new Color(0.78f, 0.72f, 0.58f)); }
         else { cap.Text = ""; }
         cell.AddChild(cap);

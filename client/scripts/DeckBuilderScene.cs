@@ -206,6 +206,15 @@ public partial class DeckBuilderScene : Control
 
     // ── FABLE-091: Deck Forge on Trikzos's approved painting (1376x768, stretched to the screen) ──
     private static bool Art => ScreenSkin.Faithful("DeckBuilderScene");
+    /// <summary>FABLE-097: the painting keeps its own static lettering; the game draws only what changes.</summary>
+    private static bool Words => ScreenSkin.Words("DeckBuilderScene");
+    private static void Painted(Control c) { if (Words) c.Visible = false; }
+    /// <summary>A button whose plaque and word are painted: its own word hidden, the painted one stays.</summary>
+    private static void PaintedWord(Button b)
+    {
+        if (!Words) return;
+        foreach (var k in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color" }) b.AddThemeColorOverride(k, new Color(0, 0, 0, 0));
+    }
     private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
     /// <summary>The rail's painted boxes: name + count, the two stat plaques, curve, factions, what it does, the buttons (x0, y0, x1, y1, side pad, top pad).</summary>
     // the twelve painted card slots of the display case (painting pixels)
@@ -313,6 +322,7 @@ public partial class DeckBuilderScene : Control
             var lbl = new Label { Text = StrataLabels[i], VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
             lbl.AddThemeFontOverride("font", GetBodyFont(28)); lbl.AddThemeFontSizeOverride("font_size", 28);
             inner.AddChild(lbl);
+            if (Words) { lbl.Modulate = new Color(1, 1, 1, 0); if (i > 0) sw_hide(inner); }
             // the button's own text is empty; size it from the label
             chip.CustomMinimumSize = new Vector2(lbl.GetThemeFont("font").GetStringSize(StrataLabels[i], HorizontalAlignment.Left, -1, 28).X + 36 + (i > 0 ? 24 : 0), 58);
             chip.Pressed += () => { Click(); _selectedStrataIdx = idx; UpdateFilterChips(); RefreshCardGrid(); };
@@ -333,12 +343,15 @@ public partial class DeckBuilderScene : Control
             foreach (var c in row.GetChildren()) if (c is not Label && c != _searchField && c != _filterChipRow) ((Control)c).Visible = false;
             title.AddThemeFontSizeOverride("font_size", 42);
             Place(title, 26, 8, 222, 56);
+            Painted(title);
             Place(_searchField, 232, 14, 464, 50);
             _searchField.AddThemeFontSizeOverride("font_size", 26);
             _filterChipRow.AddThemeConstantOverride("separation", 6);
             Place(_filterChipRow, 784, 9, 1356, 53);
             row.Visible = false;
         }
+
+        void sw_hide(HBoxContainer inner) { if (inner.GetChildCount() > 0 && inner.GetChild(0) is Control swc) swc.Modulate = new Color(1, 1, 1, 0); }
 
         // ── FABLE-053 layout: inspector | display case over the deck tray | stats rail ──
         _midX = Mg + InspW + Gp;
@@ -425,6 +438,7 @@ public partial class DeckBuilderScene : Control
         // FABLE-091: on the approved painting every block of the rail sits in its own painted box
         bool art = Art;
         CurveBars.OnPaper = FactionBar.OnPaper = art;
+        CurveBars.AxisPainted = Words;
         int slotIx = 0;
         VBoxContainer Section(float top = 0)
         {
@@ -459,6 +473,7 @@ public partial class DeckBuilderScene : Control
         _deckNameLabel.AddThemeColorOverride("font_color", Gold);
         nameRow.AddChild(_deckNameLabel);
         var rename = Quiet("✎  Rename", 170, 52, 24);
+        PaintedWord(rename);
         rename.Pressed += () => { Click(); ShowRenameDialog(); };
         nameRow.AddChild(rename);
 
@@ -506,6 +521,7 @@ public partial class DeckBuilderScene : Control
             cap.AddThemeFontOverride("font", GetHeaderFont(17)); cap.AddThemeFontSizeOverride("font_size", 17);
             cap.AddThemeColorOverride("font_color", MutedInk);
             v.AddChild(cap);
+            if (Words) cap.Modulate = new Color(1, 1, 1, 0);
             tiles.AddChild(t);
             return val;
         }
@@ -514,13 +530,13 @@ public partial class DeckBuilderScene : Control
 
         // curve
         var curveSec = Section(12);
-        curveSec.AddChild(SmallHeader("CURVE"));
+        curveSec.AddChild(PaintedHeader(SmallHeader("CURVE")));
         _curve = new CurveBars { CustomMinimumSize = new Vector2(0, art ? 102 : 112), MouseFilter = MouseFilterEnum.Ignore };
         curveSec.AddChild(_curve);
 
         // factions
         var facSec = Section(10);
-        facSec.AddChild(SmallHeader("FACTIONS"));
+        facSec.AddChild(PaintedHeader(SmallHeader("FACTIONS")));
         _factionBar = new FactionBar { CustomMinimumSize = new Vector2(0, 14), MouseFilter = MouseFilterEnum.Ignore };
         facSec.AddChild(_factionBar);
         _factionLegend = new Label { MouseFilter = MouseFilterEnum.Ignore, ClipText = true };
@@ -530,7 +546,7 @@ public partial class DeckBuilderScene : Control
 
         // what it does
         var doesSec = Section(10);
-        doesSec.AddChild(SmallHeader("WHAT IT DOES"));
+        doesSec.AddChild(PaintedHeader(SmallHeader("WHAT IT DOES")));
         _doesList = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
         _doesList.AddThemeConstantOverride("separation", 2);
         doesSec.AddChild(_doesList);
@@ -560,16 +576,17 @@ public partial class DeckBuilderScene : Control
         }
         var row1 = Row();
         _forgeButton = Plate("Save deck", true, art ? 56 : 66);
+        PaintedWord(_forgeButton);
         _forgeButton.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         _forgeButton.SizeFlagsStretchRatio = 2.2f;
         _forgeButton.Pressed += () => { Click(); OnSaveDraft(); };
         row1.AddChild(_forgeButton);
-        Small(row1, "◀ Back", OnBack, art ? 56 : 66, 24);
+        PaintedWord(Small(row1, "◀ Back", OnBack, art ? 56 : 66, 24));
         var row2 = Row();
         float h2 = art ? 53 : 58;
-        _playButton = Small(row2, "▶ Play this", OnPlayThisDeck, h2);
-        _decksButton = Small(row2, "My decks", ShowLoadDialog, h2);
-        Small(row2, "+ New deck", StartNewDeck, h2);
+        _playButton = Small(row2, "▶ Play this", OnPlayThisDeck, h2);   // its word changes (Playing / Play this): drawn
+        _decksButton = Small(row2, "My decks", ShowLoadDialog, h2); PaintedWord(_decksButton);
+        PaintedWord(Small(row2, "+ New deck", StartNewDeck, h2));
         if (art) _forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.86f, 0.92f, 0.86f, 0.72f));
         if (!art) rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
     }
@@ -1030,13 +1047,13 @@ public partial class DeckBuilderScene : Control
         float sh = (size.Y - 2 * pad - (rows - 1) * gap) / rows, sw = sh * 416f / 608f;
         float blockW = cols * sw + (cols - 1) * gap;
         float bx = size.X - pad - blockW;
-        Text("YOUR DECK", GetHeaderFont(24), 24, Gold, new Vector2(30, 24), new Vector2(bx - 50, 34));
+        Painted(Text("YOUR DECK", GetHeaderFont(24), 24, Gold, new Vector2(30, 24), new Vector2(bx - 50, 34)));
         Text($"{deck.Count}", GetHeaderFont(60), 60, Color.FromHtml("#F3DE95"), new Vector2(30, 62), new Vector2(120, 76)).AutowrapMode = TextServer.AutowrapMode.Off;
         float cw = GetHeaderFont(60).GetStringSize($"{deck.Count}", HorizontalAlignment.Left, -1, 60).X;
         Text($"/ {max}", GetHeaderFont(32), 32, MutedInk, new Vector2(30 + cw + 14, 80), new Vector2(120, 56));
         Text(open > 0 ? $"{open} open slots" : "Deck full", GetBodyFont(28), 28, new Color(0.80f, 0.74f, 0.61f), new Vector2(30, 150), new Vector2(bx - 50, 36));
-        Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32));
-        if (Art) ToggleButton("MINIMIZE  ▾", P(GetViewportRect().Size, 340, 704) - _tray.Position, P(GetViewportRect().Size, 455, 735) - P(GetViewportRect().Size, 340, 704));
+        Painted(Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32)));
+        if (Art) PaintedWord(ToggleButton("MINIMIZE  ▾", P(GetViewportRect().Size, 340, 704) - _tray.Position, P(GetViewportRect().Size, 455, 735) - P(GetViewportRect().Size, 340, 704)));
         else ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
 
         // FABLE-054: the deck's two artifacts, framed beside the count where they can't be missed
@@ -1047,6 +1064,7 @@ public partial class DeckBuilderScene : Control
         if (aR - aL < 2 * 56f + 14f) { aL = 30f; aTop = 150f; aSize = 56f; }   // narrow screen: under the count instead
         var cap = Text("◆  ARTIFACTS  ◆", GetHeaderFont(17), 17, Gold, new Vector2(aL, aTop - 30f), new Vector2(2 * aSize + 14f, 24));
         cap.HorizontalAlignment = HorizontalAlignment.Center;
+        Painted(cap);
         for (int a = 0; a < _artifacts.Length; a++)
             _tray.AddChild(ArtifactSlotTile(a, new Vector2(aL + a * (aSize + 14f), aTop), aSize, compact: false));
 
@@ -2084,6 +2102,8 @@ public partial class DeckBuilderScene : Control
         ContentMarginLeft = margin, ContentMarginRight = margin, ContentMarginTop = margin, ContentMarginBottom = margin,
     };
 
+    private static Control PaintedHeader(Control h) { if (Words) h.Modulate = new Color(1, 1, 1, 0); return h; }
+
     private static Control SmallHeader(string text, string? hint = null)
     {
         var v = new VBoxContainer();
@@ -2280,6 +2300,8 @@ public partial class CurveBars : Control
 {
     /// <summary>FABLE-091: drawn on light parchment (dark ink, bronze bars).</summary>
     public static bool OnPaper;
+    /// <summary>FABLE-097: the 0..7+ axis is painted under the bars; don't draw it again.</summary>
+    public static bool AxisPainted;
     public int[] Counts { get; set; } = new int[8];
     public override void _Draw()
     {
@@ -2303,6 +2325,7 @@ public partial class CurveBars : Control
                 var sz = num.GetStringSize(t, HorizontalAlignment.Left, -1, 22);
                 DrawString(num, new Vector2(x + w / 2 - sz.X / 2, rect.Position.Y - 10), t, HorizontalAlignment.Left, -1, 22, OnPaper ? new Color(0.22f, 0.13f, 0.05f) : new Color(0.96f, 0.93f, 0.86f));
             }
+            if (AxisPainted) continue;
             string lbl = i == n - 1 ? $"{i}+" : i.ToString();
             var ls = small.GetStringSize(lbl, HorizontalAlignment.Left, -1, 22);
             DrawString(small, new Vector2(x + w / 2 - ls.X / 2, Size.Y - 4), lbl, HorizontalAlignment.Left, -1, 22, OnPaper ? new Color(0.36f, 0.24f, 0.12f) : new Color(0.62f, 0.57f, 0.47f));

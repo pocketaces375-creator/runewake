@@ -241,7 +241,10 @@ public partial class SettingsScene : Control
 
     // ── FABLE-088: Trikzos's picked Settings painting is the screen; every row sits on its painted strip ──
     private bool _art;
+    private bool _words;   // FABLE-097: the painting keeps its own static lettering; the game draws only live values
     private float _artRowH = 76f;
+    /// <summary>A label the painting already shows: kept for layout, not drawn.</summary>
+    private void Painted(Control c) { if (_words) c.Modulate = new Color(1, 1, 1, 0); }
 
     private Vector2 A(Vector2 vp, float fx, float fy) => ScreenSkin.Art("SettingsScene", vp, fx, fy);
 
@@ -258,6 +261,7 @@ public partial class SettingsScene : Control
     private void BuildArtUI(Vector2 vp)
     {
         _art = true;
+        _words = ScreenSkin.Words("SettingsScene");
         var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);   // hidden by the painting (ScreenSkin), shows only if it fails to load
@@ -269,6 +273,7 @@ public partial class SettingsScene : Control
         title.AddThemeFontSizeOverride("font_size", 56);
         title.AddThemeColorOverride("font_color", Gold);
         AddChild(title);
+        Painted(title);
 
         float[] sliderY = { 0.385f, 0.459f, 0.533f, 0.607f };
         _masterSlider = SliderRow(Slot(vp, 0.180f, sliderY[0] - 0.034f, 0.488f, sliderY[0] + 0.034f), "Master");
@@ -310,9 +315,9 @@ public partial class SettingsScene : Control
         for (int i = 0; i < help.Length; i++)
         {
             float y = 0.548f + i * 0.0555f;
-            ActionRow(Slot(vp, 0.522f, y - 0.027f, 0.808f, y + 0.027f), help[i].Item1, false, help[i].Item2);
+            Painted(ActionRow(Slot(vp, 0.522f, y - 0.027f, 0.808f, y + 0.027f), help[i].Item1, false, help[i].Item2).GetParent<Control>());
         }
-        ActionRow(Slot(vp, 0.522f, 0.822f, 0.806f, 0.878f), "Reset all progress", true, ShowResetConfirm);
+        Painted(ActionRow(Slot(vp, 0.522f, 0.822f, 0.806f, 0.878f), "Reset all progress", true, ShowResetConfirm).GetParent<Control>());
 
         var b0 = A(vp, 0.192f, 0.806f); var b1 = A(vp, 0.300f, 0.872f);
         _backBtn = Plate("◂  Back", false, b1.X - b0.X, b1.Y - b0.Y);
@@ -334,9 +339,20 @@ public partial class SettingsScene : Control
             CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
             ShadowColor = new Color(0, 0, 0, 0.45f), ShadowSize = 6,
         };
-        _backBtn.AddThemeStyleboxOverride("normal", Wood(new Color(0.13f, 0.085f, 0.05f, 0.92f), new Color(0.62f, 0.47f, 0.24f)));
-        _backBtn.AddThemeStyleboxOverride("hover", Wood(new Color(0.20f, 0.13f, 0.07f, 0.95f), new Color(0.90f, 0.74f, 0.42f)));
-        _backBtn.AddThemeStyleboxOverride("pressed", Wood(new Color(0.08f, 0.05f, 0.03f, 0.95f), new Color(0.62f, 0.47f, 0.24f)));
+        if (false)   // (the v8 painting has no Back plaque of its own: the bronze button below is drawn in both modes)
+        {
+            _backBtn.AddThemeStyleboxOverride("normal", Wood(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)));
+            _backBtn.AddThemeStyleboxOverride("hover", Wood(new Color(1f, 0.86f, 0.45f, 0.14f), new Color(0.90f, 0.74f, 0.42f, 0.5f)));
+            _backBtn.AddThemeStyleboxOverride("pressed", Wood(new Color(0, 0, 0, 0.28f), new Color(0, 0, 0, 0)));
+            _backBtn.AddThemeColorOverride("font_color", new Color(0, 0, 0, 0)); _backBtn.AddThemeColorOverride("font_hover_color", new Color(0, 0, 0, 0));
+            _backBtn.AddThemeColorOverride("font_pressed_color", new Color(0, 0, 0, 0));
+        }
+        else
+        {
+            _backBtn.AddThemeStyleboxOverride("normal", Wood(new Color(0.13f, 0.085f, 0.05f, 0.92f), new Color(0.62f, 0.47f, 0.24f)));
+            _backBtn.AddThemeStyleboxOverride("hover", Wood(new Color(0.20f, 0.13f, 0.07f, 0.95f), new Color(0.90f, 0.74f, 0.42f)));
+            _backBtn.AddThemeStyleboxOverride("pressed", Wood(new Color(0.08f, 0.05f, 0.03f, 0.95f), new Color(0.62f, 0.47f, 0.24f)));
+        }
         _backBtn.SetMeta("skinned", true);
         _backBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.9f, 0.6f));
 
@@ -444,6 +460,7 @@ public partial class SettingsScene : Control
 
         var name = RowLabel(label, _art ? 28 : 34);
         name.CustomMinimumSize = new Vector2(_art ? 140 : 190, 0);
+        Painted(name);
         row.AddChild(name);
 
         var slider = new HSlider
@@ -483,8 +500,9 @@ public partial class SettingsScene : Control
 
         var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, Alignment = BoxContainer.AlignmentMode.Center };
         text.AddThemeConstantOverride("separation", 0);
-        text.AddChild(RowLabel(label, _art ? 28 : 34));
-        if (hint != null) text.AddChild(RowLabel(hint, 26, Muted));
+        var swLabel = RowLabel(label, _art ? 28 : 34); Painted(swLabel);
+        text.AddChild(swLabel);
+        if (hint != null) { var h = RowLabel(hint, 26, Muted); Painted(h); text.AddChild(h); }
         row.AddChild(text);
 
         var sw = new SettingsSwitch { SizeFlagsVertical = SizeFlags.ShrinkCenter, Brass = _art };

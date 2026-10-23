@@ -77,7 +77,9 @@ public partial class RewardsScene : Control
         if (Art)   // FABLE-091: on the painted plaque, bottom left
         {
             back.Position = P(vp, 98, 699); back.Size = back.CustomMinimumSize = P(vp, 276, 750) - back.Position;
+            if (Words) Ghost(back);   // FABLE-097: the plaque and its word are painted; the button is the touch area
         }
+        if (Words) { kicker.Visible = false; title.Visible = false; }   // painted (RevealStagger would fade them back in)
         back.Pressed += GoBack;
         AddChild(back);
 
@@ -290,6 +292,8 @@ public partial class RewardsScene : Control
 
     // ── FABLE-091: the approved painting, every word on its own painted strip, stone and plaque ─────────
     private static bool Art => ScreenSkin.Faithful("RewardsScene");
+    /// <summary>FABLE-097: the painting keeps its own static lettering - the game draws only what changes.</summary>
+    private static bool Words => ScreenSkin.Words("RewardsScene");
     /// <summary>A point of the 1376x768 painting on the screen (the painting is stretched to fill it).</summary>
     private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
     private static readonly Color Ink = new(0.21f, 0.13f, 0.06f), InkSoft = new(0.30f, 0.19f, 0.09f), RuneCyan = new(0.80f, 0.97f, 0.96f);
@@ -301,9 +305,25 @@ public partial class RewardsScene : Control
         var a = P(vp, x, y);
         var l = Text(_content, text, a.X, a.Y, P(vp, x + w, y).X - a.X, size, font, colour);
         l.HorizontalAlignment = align;
-        if (outline > 0) { l.AddThemeConstantOverride("outline_size", outline); l.AddThemeColorOverride("font_outline_color", new Color(0.03f, 0.05f, 0.06f, 0.9f)); }
+        if (outline > 0)   // FABLE-097: a soft shadow (as the painting's own lettering has), with only a thin dark rim
+        {
+            l.AddThemeConstantOverride("outline_size", Mathf.Max(2, outline / 3)); l.AddThemeColorOverride("font_outline_color", new Color(0.03f, 0.05f, 0.06f, 0.75f));
+            l.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.6f)); l.AddThemeConstantOverride("shadow_offset_x", 2); l.AddThemeConstantOverride("shadow_offset_y", 3);
+        }
         l.SetMeta("skinned", true);
         return l;
+    }
+
+    /// <summary>FABLE-097: a button whose plaque and word are painted: see-through, a warm glow when touched.</summary>
+    private static void Ghost(Button b)
+    {
+        StyleBoxFlat Box(Color c) => new() { BgColor = c, CornerRadiusTopLeft = 10, CornerRadiusTopRight = 10, CornerRadiusBottomLeft = 10, CornerRadiusBottomRight = 10 };
+        b.AddThemeStyleboxOverride("normal", Box(new Color(0, 0, 0, 0)));
+        b.AddThemeStyleboxOverride("hover", Box(new Color(1f, 0.86f, 0.45f, 0.14f)));
+        b.AddThemeStyleboxOverride("pressed", Box(new Color(0, 0, 0, 0.28f)));
+        b.AddThemeStyleboxOverride("disabled", Box(new Color(0, 0, 0, 0)));
+        foreach (var k in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_disabled_color" }) b.AddThemeColorOverride(k, new Color(0, 0, 0, 0));
+        b.SetMeta("skinned", true);
     }
 
     private Button ArtPlate(string text, bool primary, Vector2 vp, float x0, float y0, float x1, float y1, int font = 32)
@@ -337,10 +357,11 @@ public partial class RewardsScene : Control
         var (ticked, ready) = DailyRewards.LoginCalendarView(p, Today);
         bool claimedToday = ready < 0;
         int shownDay = claimedToday ? ticked : ready + 1;
-        ArtText("DAILY LOGIN", vp, 108, 118, 400, 23, head, label, outline: 4);
+        bool w = Words;
+        if (!w) ArtText("DAILY LOGIN", vp, 108, 118, 400, 23, head, label, outline: 4);
         ArtText(claimedToday ? $"Day {shownDay} of 7 claimed — see you tomorrow" : $"Day {shownDay} of 7 is waiting", vp, 108, 136, 700, 36,
             ThemeTokens.GetCardNameFont(36), claimedToday ? Parchment : Gold, outline: 7);
-        ArtText("Missed a day? Your week waits — it never resets.", vp, 900, 120, 392, 21, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
+        if (!w) ArtText("Missed a day? Your week waits — it never resets.", vp, 900, 120, 392, 21, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
         for (int i = 0; i < DailyRewards.LoginCalendar.Count && i < StoneX.Length; i++)
         {
             var state = i < ticked ? RewardStatus.Claimed : i == ready ? RewardStatus.Ready : RewardStatus.Locked;
@@ -368,7 +389,7 @@ public partial class RewardsScene : Control
             var bigCol = lit ? new Color(0.22f, 0.12f, 0.03f) : state == RewardStatus.Claimed ? new Color(0.62f, 0.72f, 0.70f) : RuneCyan;
             var smallCol = lit ? new Color(0.30f, 0.18f, 0.06f) : new Color(0.92f, 0.88f, 0.78f);
             int ol = lit ? 0 : 1;   // dark words on the lit stone, outlined light words on the others
-            var ls = new[]
+            var ls = w ? System.Array.Empty<Label>() : new[]   // the stones' own lettering stays when the painting has it
             {
                 ArtText($"DAY {i + 1}", vp, cx - 60, 190, 120, 20, ThemeTokens.GetHeaderFont(20), dayCol, HorizontalAlignment.Center, 5 * ol),
                 ArtText(big, vp, cx - 62, 206, 124, 42, ThemeTokens.GetCardNameFont(42), bigCol, HorizontalAlignment.Center, 7 * ol),
@@ -377,6 +398,12 @@ public partial class RewardsScene : Control
             if (state == RewardStatus.Claimed)
             {
                 foreach (var l in ls) l.Modulate = new Color(1, 1, 1, 0.62f);
+                if (w)   // a dark veil over the claimed stone, so the painted lettering reads as spent
+                {
+                    var veil = new Panel { Position = P(vp, cx - 52, 178), Size = P(vp, cx + 52, 282) - P(vp, cx - 52, 178), MouseFilter = MouseFilterEnum.Ignore };
+                    veil.AddThemeStyleboxOverride("panel", Rounded(new Color(0.02f, 0.03f, 0.04f, 0.45f), 26)); veil.SetMeta("skinned", true);
+                    _content.AddChild(veil);
+                }
                 var tick = ArtText("✓", vp, cx + 14, 168, 36, 34, Inter(34), Moss, HorizontalAlignment.Center, 6);
                 _ = tick;
             }
@@ -388,9 +415,9 @@ public partial class RewardsScene : Control
         if (!claimedToday) Pulse(claim);
 
         // today's matches, one painted parchment strip each
-        ArtText("TODAY'S MATCHES", vp, 108, 336, 400, 23, head, label, outline: 4);
+        if (!w) ArtText("TODAY'S MATCHES", vp, 108, 336, 400, 23, head, label, outline: 4);
         ArtText($"{p.Daily.MatchesToday} played  ·  {p.Daily.WinsToday} won today", vp, 108, 354, 600, 32, card, Parchment, outline: 6);
-        ArtText("Any duel counts — campaign or online.", vp, 560, 340, 332, 20, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
+        if (!w) ArtText("Any duel counts — campaign or online.", vp, 560, 340, 332, 20, body, new Color(0.80f, 0.74f, 0.62f), HorizontalAlignment.Right, 4);
         int row = 0;
         foreach (var t in DailyRewards.MatchTiers)
         {
@@ -399,13 +426,17 @@ public partial class RewardsScene : Control
             var st = DailyRewards.TierStatus(p, t, Today);
             int prog = DailyRewards.Progress(p, t, Today);
             float mid = (y0 + y1) / 2f;
-            ArtText(t.Title, vp, 124, y0 + 1, 330, 30, ThemeTokens.GetCardNameFont(30), Ink);
-            ArtText(t.Reward.Describe(), vp, 124, mid - 1, 330, 23, ThemeTokens.GetBodyFont(23), InkSoft);
-            var b0 = P(vp, 420, mid - 11); var b1 = P(vp, 700, mid - 5);
-            Bar(b0, b1 - b0, new Color(0.24f, 0.15f, 0.07f, 0.55f));
+            if (!w)
+            {
+                ArtText(t.Title, vp, 124, y0 + 1, 330, 30, ThemeTokens.GetCardNameFont(30), Ink);
+                ArtText(t.Reward.Describe(), vp, 124, mid - 1, 330, 23, ThemeTokens.GetBodyFont(23), InkSoft);
+            }
+            // the track: painted (x 382-701, 11 px tall, in the painting's own pixels) when the painting keeps its words
+            var b0 = w ? P(vp, 384, mid - 7) : P(vp, 420, mid - 11); var b1 = w ? P(vp, 700, mid + 2) : P(vp, 700, mid - 5);
+            if (!w) Bar(b0, b1 - b0, new Color(0.24f, 0.15f, 0.07f, 0.55f));
             float frac = t.Goal == 0 ? 1 : Mathf.Clamp((float)prog / t.Goal, 0, 1);
             if (frac > 0) Bar(b0, new Vector2(Mathf.Max(b1.Y - b0.Y, (b1.X - b0.X) * frac), b1.Y - b0.Y), st == RewardStatus.Claimed ? Moss.Darkened(0.2f) : new Color(0.72f, 0.50f, 0.14f));
-            ArtText($"{prog} / {t.Goal}", vp, 420, mid - 3, 280, 22, body, InkSoft, HorizontalAlignment.Center);
+            ArtText($"{prog} / {t.Goal}", vp, 420, w ? mid + 2 : mid - 3, 280, w ? 19 : 22, body, InkSoft, HorizontalAlignment.Center);
             var btn = ArtPlate(st == RewardStatus.Claimed ? "Claimed" : st == RewardStatus.Ready ? "Claim" : $"{t.Goal - prog} to go",
                 st == RewardStatus.Ready, vp, 727, y0 - 1, 885, y1 + 1, 30);
             btn.Disabled = st != RewardStatus.Ready;
@@ -420,9 +451,10 @@ public partial class RewardsScene : Control
         int total = 1 + DailyRewards.MatchTiers.Count;
         int done = (DailyRewards.LoginStatus(p, Today) == RewardStatus.Claimed ? 1 : 0)
                    + DailyRewards.MatchTiers.Count(t => DailyRewards.TierStatus(p, t, Today) == RewardStatus.Claimed);
-        ArtText("DAILY CHEST", vp, 948, 336, 360, 23, head, label, HorizontalAlignment.Center, 4);
-        _content.AddChild(ChestArt(cst, P(vp, 1128, 418)));
-        ArtText(DailyRewards.Chest.Describe(), vp, 948, 488, 360, 30, ThemeTokens.GetCardNameFont(30), Parchment, HorizontalAlignment.Center, 6);
+        if (!w) ArtText("DAILY CHEST", vp, 948, 336, 360, 23, head, label, HorizontalAlignment.Center, 4);
+        if (!w) _content.AddChild(ChestArt(cst, P(vp, 1128, 418)));
+        else if (cst == RewardStatus.Claimed) ArtText("✓", vp, 1098, 396, 60, 52, Inter(52), Moss, HorizontalAlignment.Center, 7);   // the painted chest stays lit; a tick once opened
+        if (!w) ArtText(DailyRewards.Chest.Describe(), vp, 948, 488, 360, 30, ThemeTokens.GetCardNameFont(30), Parchment, HorizontalAlignment.Center, 6);
         var why = ArtText(cst == RewardStatus.Claimed ? "Opened. A new chest arrives tomorrow."
                 : cst == RewardStatus.Ready ? "Everything claimed — open it!"
                 : $"Claim everything else today to open it  ({done} of {total})", vp, 955, 522, 346, 21, body, new Color(0.84f, 0.78f, 0.66f), HorizontalAlignment.Center, 4);

@@ -70,10 +70,17 @@ public partial class ScreenSkin : Node
     /// <summary>True when the scene has its approved painting installed.</summary>
     public static bool Faithful(string key) => FaithfulTex(key) != null;
 
-    /// <summary>FABLE-096: which approved painting a scene has - "tree" (the World-Tree night-sky Settings), "ui", or "" for none.</summary>
-    public static string Variant(string key) => Tex(key + "_tree.webp") != null ? "tree" : Tex(key + "_ui.webp") != null ? "ui" : "";
+    /// <summary>
+    /// Which approved painting a scene has: "words" (FABLE-097: the painting with its own lettering kept - only what
+    /// changes was erased, the game draws just the live values), "tree" (the World-Tree Settings), "ui" (every word
+    /// erased, the game draws them all), or "" for none.
+    /// </summary>
+    public static string Variant(string key) => Tex(key + "_words.webp") != null ? "words" : Tex(key + "_tree.webp") != null ? "tree" : Tex(key + "_ui.webp") != null ? "ui" : "";
 
-    private static Texture2D? FaithfulTex(string key) => Tex(key + "_tree.webp") ?? Tex(key + "_ui.webp");
+    /// <summary>FABLE-097: the painting carries its own static words; the game must not draw them again.</summary>
+    public static bool Words(string key) => Variant(key) == "words";
+
+    private static Texture2D? FaithfulTex(string key) => Tex(key + "_words.webp") ?? Tex(key + "_tree.webp") ?? Tex(key + "_ui.webp");
 
     /// <summary>Where the painting sits on a <paramref name="vp"/>-sized screen.</summary>
     public static Rect2 PlateRect(string key, Vector2 vp)
@@ -111,10 +118,10 @@ public partial class ScreenSkin : Node
             bg.SetAnchorsPreset(Control.LayoutPreset.FullRect);
             root.AddChild(bg);
             root.MoveChild(bg, 0);
-            if (fit)   // the bands beside the painting: the painting itself, wide and dim
+            if (fit)   // FABLE-097: the bands beside the painting are a soft, dark blur of it (a sharp dim copy doubled its corners)
             {
-                var side = new TextureRect { Name = "ScreenSkinSides", Texture = plate, MouseFilter = Control.MouseFilterEnum.Ignore, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                    StretchMode = TextureRect.StretchModeEnum.Scale, Modulate = new Color(0.32f, 0.30f, 0.28f) };
+                var side = new TextureRect { Name = "ScreenSkinSides", Texture = Blurred(key, plate), MouseFilter = Control.MouseFilterEnum.Ignore, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    StretchMode = TextureRect.StretchModeEnum.Scale, Modulate = new Color(0.30f, 0.29f, 0.28f) };
                 side.SetAnchorsPreset(Control.LayoutPreset.FullRect);
                 root.AddChild(side);
                 root.MoveChild(side, 0);
@@ -216,6 +223,19 @@ public partial class ScreenSkin : Node
         if (c is Button) { c.AddThemeColorOverride("font_hover_color", ink); c.AddThemeColorOverride("font_pressed_color", ink); }
         c.AddThemeConstantOverride("outline_size", 0);
         c.SetMeta("inked", true);
+    }
+
+    private static readonly Dictionary<string, Texture2D> Blurs = new();
+
+    /// <summary>The painting shrunk to a few dozen pixels and let the GPU smooth it back up: a heavy blur for free.</summary>
+    private static Texture2D Blurred(string key, Texture2D plate)
+    {
+        if (Blurs.TryGetValue(key, out var t)) return t;
+        var img = plate.GetImage();
+        if (img.IsCompressed()) img.Decompress();
+        img.Resize(48, 27, Image.Interpolation.Lanczos);
+        img.Resize(192, 108, Image.Interpolation.Cubic);
+        return Blurs[key] = ImageTexture.CreateFromImage(img);
     }
 
     private static Image? PlateImage(string key)
