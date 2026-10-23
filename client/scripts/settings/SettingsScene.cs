@@ -92,6 +92,7 @@ public partial class SettingsScene : Control
     private void BuildUI()
     {
         var vp = GetViewportRect().Size;
+        if (ScreenSkin.Variant("SettingsScene") == "tree") { BuildTreeUI(vp); return; }
         if (ScreenSkin.Faithful("SettingsScene")) { BuildArtUI(vp); return; }
 
         var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
@@ -543,6 +544,115 @@ public partial class SettingsScene : Control
 
         b.Pressed += () => onPress();
         return l;
+    }
+
+    /// <summary>FABLE-096: Settings on the World-Tree night-sky painting Trikzos picked (093): every row on its painted strip.</summary>
+    private void BuildTreeUI(Vector2 vp)
+    {
+        _art = true;
+        var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
+        bg.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(bg);
+
+        Label Word(string text, float x0, float y0, float x1, float y1, int px, Color col, HorizontalAlignment align = HorizontalAlignment.Center)
+        {
+            var a = A(vp, x0, y0); var b = A(vp, x1, y1);
+            var l = new Label { Text = text, HorizontalAlignment = align, VerticalAlignment = VerticalAlignment.Center, Position = a, Size = b - a, MouseFilter = MouseFilterEnum.Ignore };
+            l.AddThemeFontOverride("font", ThemeTokens.GetHeaderFont(px)); l.AddThemeFontSizeOverride("font_size", px);
+            l.AddThemeColorOverride("font_color", col);
+            l.AddThemeConstantOverride("outline_size", 5); l.AddThemeColorOverride("font_outline_color", new Color(0.03f, 0.02f, 0.01f, 0.85f));
+            l.SetMeta("skinned", true);
+            AddChild(l);
+            return l;
+        }
+        Word("SETTINGS", 0.407f, 0.023f, 0.592f, 0.091f, 52, Gold);
+        Word("SOUND", 0.186f, 0.212f, 0.488f, 0.252f, 28, GoldBright, HorizontalAlignment.Left);
+        Word("GAMEPLAY", 0.522f, 0.212f, 0.808f, 0.252f, 28, GoldBright, HorizontalAlignment.Left);
+        Word("HELP & STORY", 0.522f, 0.455f, 0.808f, 0.497f, 28, GoldBright, HorizontalAlignment.Left);
+
+        // the sound block: four sliders on the parchment, the mute switch on the wood below, the title music on its strip
+        float[] sliderY = { 0.2956f, 0.3737f, 0.4518f, 0.5300f };
+        _masterSlider = SliderRow(Slot(vp, 0.188f, sliderY[0] - 0.036f, 0.480f, sliderY[0] + 0.036f), "Master");
+        _musicSlider = SliderRow(Slot(vp, 0.188f, sliderY[1] - 0.036f, 0.480f, sliderY[1] + 0.036f), "Music");
+        _sfxSlider = SliderRow(Slot(vp, 0.188f, sliderY[2] - 0.036f, 0.480f, sliderY[2] + 0.036f), "Effects");
+        _ambientSlider = SliderRow(Slot(vp, 0.188f, sliderY[3] - 0.036f, 0.480f, sliderY[3] + 0.036f), "Ambience");
+        _muteSwitch = SwitchRow(Slot(vp, 0.184f, 0.582f, 0.486f, 0.648f), "Mute all sound", null, OnMuteToggled);
+        Label? musicLabel = null;
+        musicLabel = ActionRow(Slot(vp, 0.182f, 0.725f, 0.483f, 0.779f), "Title music:  " + AudioManager.TitleTrackName(AudioManager.TitleTrack), false, () =>
+        {
+            Click();
+            var list = AudioManager.TitleTracks;
+            int i = System.Array.FindIndex(list, t => t.Id == AudioManager.TitleTrack);
+            var next = list[(i + 1) % list.Length];
+            AudioManager.TitleTrack = next.Id;
+            musicLabel!.Text = "Title music:  " + next.Name;
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.CrossfadeMusic(next.Id, 1.0f);
+        });
+
+        _motionSwitch = SwitchRow(Slot(vp, 0.522f, 0.262f, 0.807f, 0.348f), "Reduce motion", "Fewer flashes, shakes and sweeps", on =>
+        {
+            CampaignContext.Settings.ReduceMotion = on;
+            MarkChanged(true);
+        });
+        Label? styleLabel = null;
+        styleLabel = ActionRow(Slot(vp, 0.522f, 0.362f, 0.807f, 0.419f), "Card style:  " + CardContrast.Names[Math.Clamp(CampaignContext.Settings.CardStyle, 0, 3)], false, () =>
+        {
+            Click();
+            CampaignContext.Settings.CardStyle = (CampaignContext.Settings.CardStyle + 1) % 4;
+            if (styleLabel != null) styleLabel.Text = "Card style:  " + CardContrast.Names[CampaignContext.Settings.CardStyle];
+            MarkChanged(true);
+        });
+        (string, Action)[] help =
+        {
+            ("Symbol key — what every sign in a fight means", () => { Click(); if (_dirty) Persist(); LoadScreen.Go(GetTree(), SymbolKeyScene.ScenePath); }),
+            ("Replay the tutorial", OnReplayTutorial), ("Replay the intro", OnReplayIntro),
+            ("Audio credits", ShowCreditsOverlay), ("Save check — is my progress safe?", ShowSaveCheck),
+        };
+        for (int i = 0; i < help.Length; i++)
+        {
+            float y = 0.547f + i * 0.056f;
+            ActionRow(Slot(vp, 0.524f, y - 0.027f, 0.805f, y + 0.027f), help[i].Item1, false, help[i].Item2);
+        }
+        ActionRow(Slot(vp, 0.527f, 0.822f, 0.806f, 0.881f), "Reset all progress", true, ShowResetConfirm);
+
+        var b0 = A(vp, 0.153f, 0.844f); var b1 = A(vp, 0.292f, 0.902f);
+        _backBtn = Plate("◂  Back", false, b1.X - b0.X, b1.Y - b0.Y);
+        _backBtn.Position = b0;
+        _backBtn.Pressed += () =>
+        {
+            Click();
+            if (_dirty) Persist();
+            LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
+        };
+        AddChild(_backBtn);
+        _backBtn.AddThemeFontSizeOverride("font_size", 32);
+        _backBtn.AddThemeColorOverride("font_color", GoldBright);
+        _backBtn.AddThemeColorOverride("font_hover_color", new Color(1f, 0.9f, 0.6f));
+        StyleBoxFlat Wood(Color bgc, Color edge) => new()
+        {
+            BgColor = bgc, BorderColor = edge, BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+            CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 8, CornerRadiusBottomRight = 8,
+        };
+        _backBtn.AddThemeStyleboxOverride("normal", Wood(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)));   // the painted plaque is the button
+        _backBtn.AddThemeStyleboxOverride("hover", Wood(new Color(1f, 0.86f, 0.45f, 0.12f), new Color(0.90f, 0.74f, 0.42f, 0.6f)));
+        _backBtn.AddThemeStyleboxOverride("pressed", Wood(new Color(0, 0, 0, 0.25f), new Color(0, 0, 0, 0)));
+        _backBtn.SetMeta("skinned", true);
+
+        var s0 = A(vp, 0.300f, 0.844f); var s1 = A(vp, 0.488f, 0.902f);
+        _status = new Label { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Position = s0, Size = s1 - s0, MouseFilter = MouseFilterEnum.Ignore };
+        _status.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(22));
+        _status.AddThemeFontSizeOverride("font_size", 22);
+        _status.AddThemeColorOverride("font_color", Cream);
+        AddChild(_status);
+
+        var v0 = A(vp, 0.520f, 0.888f); var v1 = A(vp, 0.806f, 0.915f);
+        var versionLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = v0, Size = v1 - v0,
+            MouseFilter = MouseFilterEnum.Ignore, Text = $"Runewake {VersionString()}" };
+        versionLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(17));
+        versionLabel.AddThemeFontSizeOverride("font_size", 17);
+        versionLabel.AddThemeColorOverride("font_color", new Color(0.72f, 0.66f, 0.56f));
+        AddChild(versionLabel);
     }
 
     private void StyleSlider(HSlider s)

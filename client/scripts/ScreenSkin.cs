@@ -68,12 +68,17 @@ public partial class ScreenSkin : Node
     }
 
     /// <summary>True when the scene has its approved painting installed.</summary>
-    public static bool Faithful(string key) => Tex(key + "_ui.webp") != null;
+    public static bool Faithful(string key) => FaithfulTex(key) != null;
+
+    /// <summary>FABLE-096: which approved painting a scene has - "tree" (the World-Tree night-sky Settings), "ui", or "" for none.</summary>
+    public static string Variant(string key) => Tex(key + "_tree.webp") != null ? "tree" : Tex(key + "_ui.webp") != null ? "ui" : "";
+
+    private static Texture2D? FaithfulTex(string key) => Tex(key + "_tree.webp") ?? Tex(key + "_ui.webp");
 
     /// <summary>Where the painting sits on a <paramref name="vp"/>-sized screen.</summary>
     public static Rect2 PlateRect(string key, Vector2 vp)
     {
-        if (System.Array.IndexOf(FitScenes, key) < 0 || Tex(key + "_ui.webp") is not Texture2D t) return new Rect2(Vector2.Zero, vp);
+        if (System.Array.IndexOf(FitScenes, key) < 0 || FaithfulTex(key) is not Texture2D t) return new Rect2(Vector2.Zero, vp);
         var s = t.GetSize(); float k = Mathf.Min(vp.X / s.X, vp.Y / s.Y);
         return new Rect2((vp - s * k) / 2f, s * k);
     }
@@ -89,7 +94,7 @@ public partial class ScreenSkin : Node
     {
         if (!IsInstanceValid(scene) || scene is not Control root) return;
         string key = Key(scene);
-        var plate = Tex(key + "_ui.webp") ?? Tex(key + ".webp");
+        var plate = FaithfulTex(key) ?? Tex(key + ".webp");
         if (plate != null)
         {
             foreach (var c in root.GetChildren())   // the flat / hero background layers the screen starts with
@@ -216,7 +221,7 @@ public partial class ScreenSkin : Node
     private static Image? PlateImage(string key)
     {
         if (Pixels.TryGetValue(key, out var img)) return img;
-        img = Tex(key + "_ui.webp")?.GetImage();
+        img = FaithfulTex(key)?.GetImage();
         if (img != null && img.IsCompressed()) img.Decompress();
         Pixels[key] = img;
         return img;
