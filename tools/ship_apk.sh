@@ -301,7 +301,7 @@ fi
 AAPT=/home/fictive/Android/Sdk/build-tools/34.0.0/aapt
 if [ -x "$AAPT" ]; then
   blocking "apk: launches landscape" bash -c \
-    "'$AAPT' dump badging '$APK' 2>/dev/null | grep -qiE 'screen.landscape|screenOrientation.*landscape'"
+    "'$AAPT' dump badging '$APK' 2>/dev/null | grep -qiE 'screen.landscape|screenOrientation.*landscape' || '$AAPT' dump xmltree '$APK' AndroidManifest.xml 2>/dev/null | grep -qE 'screenOrientation[^=]*=\\(type 0x10\\)0x(0|6|8|b)\$'"   # FABLE-089: userLandscape (0xb, either way up) is landscape; old aapt only implies the feature for 0/6/8
 fi
 
 # The full preflight stays advisory — it bundles cosmetic checks (portrait file
