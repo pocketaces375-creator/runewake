@@ -442,6 +442,7 @@ public partial class DeckBuilderScene : Control
                 m.AddChild(vb);
                 return vb;
             }
+            rail.AddChild(m);   // FABLE-094: the plain (no painting) rail lost its sections in 091 - each one belongs in the rail
             var v = new VBoxContainer();
             v.AddThemeConstantOverride("separation", 8);
             m.AddChild(v);
