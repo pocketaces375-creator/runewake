@@ -47,6 +47,7 @@ public partial class ReliquaryScene : Control
     private Label? _wordsShards, _wordsProgress;
     private ColorRect? _wordsBar;
     private readonly List<Panel> _tabGlow = new();
+    private readonly List<string> _tabKinds = new();
     private Control? _topBar, _filterBar;
     private int _bookPage;
     private string _lastSig = "";
@@ -275,41 +276,41 @@ public partial class ReliquaryScene : Control
             AddChild(g);
             return g;
         }
-        // the ten tabs, equal widths across the painted strip
-        string[] tabs = { "Cards", "Relics", "Verdant", "Ember", "Tide", "Hollow", "Dawn", "Everything", "Found", "Missing" };
-        const float tx0 = 0.234f, tx1 = 0.769f, ty0 = 0.108f, ty1 = 0.168f;
-        float tw = (tx1 - tx0) / tabs.Length;
-        _tabGlow.Clear();
+        // FABLE-098: the nine painted tabs of the approved codex (painting pixels: centre x, all 92-127 tall, 76 wide)
+        (string name, float cx)[] tabs = { ("Cards", 356), ("Relics", 440), ("Verdant", 523), ("Ember", 607), ("Hollow", 691), ("Dawn", 774), ("Everything", 857), ("Found", 940), ("Missing", 1022) };
+        int[] strataOf = { -1, -1, 1, 2, 4, 5, -1, -1, -1 };   // StrataOptions index for the coloured tabs (Tide has no tab: it shows under "every strata")
+        _tabGlow.Clear(); _tabKinds.Clear();
         for (int i = 0; i < tabs.Length; i++)
         {
             int k = i;
-            float x0 = tx0 + i * tw, x1 = x0 + tw;
-            var glow = new Panel { Position = A(x0 + 0.003f, ty0), Size = A(x1 - 0.003f, ty1) - A(x0 + 0.003f, ty0), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+            float x0 = (tabs[i].cx - 38) / 1376f, x1 = (tabs[i].cx + 38) / 1376f, ty0 = 92 / 768f, ty1 = 127 / 768f;
+            var glow = new Panel { Position = A(x0, ty0), Size = A(x1, ty1) - A(x0, ty0), MouseFilter = MouseFilterEnum.Ignore, Visible = false };
             glow.AddThemeStyleboxOverride("panel", new StyleBoxFlat
             {
-                BgColor = new Color(1f, 0.85f, 0.45f, 0.10f), BorderColor = new Color(0.95f, 0.80f, 0.42f), BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
-                CornerRadiusTopLeft = 8, CornerRadiusTopRight = 8, CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-                ShadowColor = new Color(1f, 0.85f, 0.45f, 0.45f), ShadowSize = 10,
+                BgColor = new Color(1f, 0.85f, 0.45f, 0.08f), BorderColor = new Color(0.98f, 0.84f, 0.46f), BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2,
+                CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6, CornerRadiusBottomLeft = 3, CornerRadiusBottomRight = 3,
+                ShadowColor = new Color(1f, 0.85f, 0.45f, 0.40f), ShadowSize = 8,
             });
             glow.SetMeta("skinned", true);
             AddChild(glow);
             _tabGlow.Add(glow);
-            Ghost(x0, ty0 - 0.01f, x1, ty1 + 0.01f, () =>
+            _tabKinds.Add(i == 0 ? "cards" : i == 1 ? "relics" : strataOf[i] > 0 ? "s" + strataOf[i] : "f" + (i - 6));
+            Ghost(x0, ty0 - 0.008f, x1, ty1 + 0.008f, () =>
             {
                 if (k == 0) _relicsTab = false;
                 else if (k == 1) _relicsTab = true;
-                else if (k <= 6) _selectedStrataIdx = _selectedStrataIdx == k - 1 ? 0 : k - 1;   // tap the chosen strata again: all of them
-                else _found = k - 7;
+                else if (strataOf[k] > 0) _selectedStrataIdx = _selectedStrataIdx == strataOf[k] ? 0 : strataOf[k];   // tap again: every strata
+                else _found = k - 6;
                 Refresh();
             });
         }
         // the ribbon: the count and its gold bar
-        _wordsProgress = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = A(0.655f, 0.213f), Size = A(0.800f, 0.250f) - A(0.655f, 0.213f), MouseFilter = MouseFilterEnum.Ignore };
-        _wordsProgress.AddThemeFontOverride("font", GetBodyFont(20)); _wordsProgress.AddThemeFontSizeOverride("font_size", 20);
+        _wordsProgress = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = A(940 / 1376f, 166 / 768f), Size = A(1098 / 1376f, 182 / 768f) - A(940 / 1376f, 166 / 768f), MouseFilter = MouseFilterEnum.Ignore };
+        _wordsProgress.AddThemeFontOverride("font", GetBodyFont(19)); _wordsProgress.AddThemeFontSizeOverride("font_size", 19);
         _wordsProgress.AddThemeColorOverride("font_color", new Color(0.28f, 0.20f, 0.11f));
         _wordsProgress.SetMeta("skinned", true);
         AddChild(_wordsProgress);
-        var track = new ColorRect { Color = new Color(0.30f, 0.22f, 0.12f, 0.35f), Position = A(0.672f, 0.262f), Size = A(0.792f, 0.270f) - A(0.672f, 0.262f), MouseFilter = MouseFilterEnum.Ignore };
+        var track = new ColorRect { Color = new Color(0.30f, 0.22f, 0.12f, 0.35f), Position = A(937 / 1376f, 185 / 768f), Size = A(1097 / 1376f, 190 / 768f) - A(937 / 1376f, 185 / 768f), MouseFilter = MouseFilterEnum.Ignore };
         track.SetMeta("skinned", true); AddChild(track);
         _wordsBar = new ColorRect { Color = new Color(0.80f, 0.62f, 0.22f), Position = track.Position, Size = new Vector2(0, track.Size.Y), MouseFilter = MouseFilterEnum.Ignore };
         _wordsBar.SetMeta("skinned", true); AddChild(_wordsBar);
@@ -367,9 +368,13 @@ public partial class ReliquaryScene : Control
         CallDeferred(nameof(FitProgress), (float)foundAll / Mathf.Max(1, _allCards.Count));
         if (_wordsShards != null) _wordsShards.Text = $"✦ {progression.Shards} Shards";
         if (_wordsProgress != null) _wordsProgress.Text = $"{foundAll} / {_allCards.Count} runes found";
-        if (_wordsBar != null) _wordsBar.Size = new Vector2((A(0.792f, 0) - A(0.672f, 0)).X * foundAll / Mathf.Max(1, _allCards.Count), _wordsBar.Size.Y);
-        for (int i = 0; i < _tabGlow.Count; i++)
-            _tabGlow[i].Visible = i == 0 ? !_relicsTab : i == 1 ? _relicsTab : i <= 6 ? _selectedStrataIdx == i - 1 : !_relicsTab && _found == i - 7;
+        if (_wordsBar != null) _wordsBar.Size = new Vector2((A(1097 / 1376f, 0) - A(937 / 1376f, 0)).X * foundAll / Mathf.Max(1, _allCards.Count), _wordsBar.Size.Y);
+        for (int i = 0; i < _tabGlow.Count && i < _tabKinds.Count; i++)
+        {
+            string kind = _tabKinds[i];
+            _tabGlow[i].Visible = kind == "cards" ? !_relicsTab : kind == "relics" ? _relicsTab
+                : kind[0] == 's' ? _selectedStrataIdx == kind[1] - '0' : !_relicsTab && _found == kind[1] - '0';
+        }
 
         foreach (var c in _cardGrid.GetChildren()) c.QueueFree();
         _gridDrag?.Halt();

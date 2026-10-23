@@ -375,7 +375,7 @@ public partial class RewardsScene : Control
                     Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add },
                     Texture = new GradientTexture2D
                     {
-                        Gradient = Grad(new Color(1f, 0.78f, 0.36f, 0.85f), new Color(1f, 0.70f, 0.30f, 0f)),
+                        Gradient = Grad(new Color(1f, 0.78f, 0.36f, w ? 0.42f : 0.85f), new Color(1f, 0.70f, 0.30f, 0f)),   // softer on the painted lettering
                         Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.5f, 0.55f), FillTo = new Vector2(0.5f, 1.02f), Width = 64, Height = 64,
                     },
                 };
@@ -408,7 +408,7 @@ public partial class RewardsScene : Control
                 _ = tick;
             }
         }
-        var claim = ArtPlate(claimedToday ? "Claimed" : $"Claim Day {shownDay}", !claimedToday, vp, 999, 197, 1286, 266, 36);
+        var claim = ArtPlate(claimedToday ? "Claimed" : $"Claim Day {shownDay}", !claimedToday, vp, 999, 197, w ? 1206 : 1286, 266, 36);   // FABLE-098: the words stop short of the painted wax seal
         claim.Disabled = claimedToday;
         claim.Name = "ClaimLogin";
         claim.Pressed += () => Claim(() => DailyRewards.ClaimLogin(Prog, Today, PickCard), $"Day {shownDay}");
@@ -438,7 +438,7 @@ public partial class RewardsScene : Control
             if (frac > 0) Bar(b0, new Vector2(Mathf.Max(b1.Y - b0.Y, (b1.X - b0.X) * frac), b1.Y - b0.Y), st == RewardStatus.Claimed ? Moss.Darkened(0.2f) : new Color(0.72f, 0.50f, 0.14f));
             ArtText($"{prog} / {t.Goal}", vp, 420, w ? mid + 2 : mid - 3, 280, w ? 19 : 22, body, InkSoft, HorizontalAlignment.Center);
             var btn = ArtPlate(st == RewardStatus.Claimed ? "Claimed" : st == RewardStatus.Ready ? "Claim" : $"{t.Goal - prog} to go",
-                st == RewardStatus.Ready, vp, 727, y0 - 1, 885, y1 + 1, 30);
+                st == RewardStatus.Ready, vp, 727, y0 - 1, w ? 824 : 885, y1 + 1, 30);
             btn.Disabled = st != RewardStatus.Ready;
             btn.Name = "Claim_" + t.Id;
             var id = t.Id; var title = t.Title;
@@ -460,7 +460,7 @@ public partial class RewardsScene : Control
                 : $"Claim everything else today to open it  ({done} of {total})", vp, 955, 522, 346, 21, body, new Color(0.84f, 0.78f, 0.66f), HorizontalAlignment.Center, 4);
         why.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         why.Size = new Vector2(why.Size.X, P(vp, 0, 576).Y - P(vp, 0, 522).Y);
-        var open = ArtPlate(cst == RewardStatus.Claimed ? "Opened" : "Open Chest", cst == RewardStatus.Ready, vp, 970, 584, 1285, 640, 34);
+        var open = ArtPlate(cst == RewardStatus.Claimed ? "Opened" : "Open Chest", cst == RewardStatus.Ready, vp, 970, 584, w ? 1208 : 1285, 640, 34);
         open.Disabled = cst != RewardStatus.Ready;
         open.Name = "ClaimChest";
         open.Pressed += () => Claim(() => DailyRewards.ClaimChest(Prog, Today, PickCard), "Daily Chest");

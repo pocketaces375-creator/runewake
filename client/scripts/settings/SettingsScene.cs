@@ -276,22 +276,26 @@ public partial class SettingsScene : Control
         Painted(title);
 
         float[] sliderY = { 0.385f, 0.459f, 0.533f, 0.607f };
-        _masterSlider = SliderRow(Slot(vp, 0.180f, sliderY[0] - 0.034f, 0.488f, sliderY[0] + 0.034f), "Master");
-        _musicSlider = SliderRow(Slot(vp, 0.180f, sliderY[1] - 0.034f, 0.488f, sliderY[1] + 0.034f), "Music");
-        _sfxSlider = SliderRow(Slot(vp, 0.180f, sliderY[2] - 0.034f, 0.488f, sliderY[2] + 0.034f), "Effects");
-        _ambientSlider = SliderRow(Slot(vp, 0.180f, sliderY[3] - 0.034f, 0.488f, sliderY[3] + 0.034f), "Ambience");
+        float sx1 = _words ? 657 / 1376f : 0.488f;   // FABLE-098: the percentages sit inside the painted parchment (where its arrows were)
+        _masterSlider = SliderRow(Slot(vp, 0.180f, sliderY[0] - 0.034f, sx1, sliderY[0] + 0.034f), "Master");
+        _musicSlider = SliderRow(Slot(vp, 0.180f, sliderY[1] - 0.034f, sx1, sliderY[1] + 0.034f), "Music");
+        _sfxSlider = SliderRow(Slot(vp, 0.180f, sliderY[2] - 0.034f, sx1, sliderY[2] + 0.034f), "Effects");
+        _ambientSlider = SliderRow(Slot(vp, 0.180f, sliderY[3] - 0.034f, sx1, sliderY[3] + 0.034f), "Ambience");
         _muteSwitch = SwitchRow(Slot(vp, 0.180f, 0.648f, 0.488f, 0.712f), "Mute all sound", null, OnMuteToggled);
         Label? musicLabel = null;
-        musicLabel = ActionRow(Slot(vp, 0.180f, 0.727f, 0.484f, 0.781f), "Title music:  " + AudioManager.TitleTrackName(AudioManager.TitleTrack), false, () =>
+        string musicPrefix = _words ? "" : "Title music:  ";
+        if (_words) _valueX = A(vp, 361 / 1376f, 0).X - A(vp, 0.180f, 0).X;   // just after the painted "Title music:"
+        musicLabel = ActionRow(Slot(vp, 0.180f, 0.727f, 0.484f, 0.781f), musicPrefix + AudioManager.TitleTrackName(AudioManager.TitleTrack), false, () =>
         {
             Click();
             var list = AudioManager.TitleTracks;
             int i = System.Array.FindIndex(list, t => t.Id == AudioManager.TitleTrack);
             var next = list[(i + 1) % list.Length];
             AudioManager.TitleTrack = next.Id;
-            musicLabel!.Text = "Title music:  " + next.Name;
+            musicLabel!.Text = musicPrefix + next.Name;
             GetNodeOrNull<AudioManager>("/root/AudioManager")?.CrossfadeMusic(next.Id, 1.0f);
         });
+        _valueX = -1;
 
         _motionSwitch = SwitchRow(Slot(vp, 0.522f, 0.364f, 0.808f, 0.420f), "Reduce motion", null, on =>
         {
@@ -299,13 +303,16 @@ public partial class SettingsScene : Control
             MarkChanged(true);
         });
         Label? styleLabel = null;
-        styleLabel = ActionRow(Slot(vp, 0.522f, 0.420f, 0.808f, 0.472f), "Card style:  " + CardContrast.Names[Math.Clamp(CampaignContext.Settings.CardStyle, 0, 3)], false, () =>
+        string stylePrefix = _words ? "" : "Card style:  ";
+        if (_words) _valueX = A(vp, 818 / 1376f, 0).X - A(vp, 0.522f, 0).X;   // just after the painted "Card style:"
+        styleLabel = ActionRow(Slot(vp, 0.522f, 0.420f, 0.808f, 0.472f), stylePrefix + CardContrast.Names[Math.Clamp(CampaignContext.Settings.CardStyle, 0, 3)], false, () =>
         {
             Click();
             CampaignContext.Settings.CardStyle = (CampaignContext.Settings.CardStyle + 1) % 4;
-            if (styleLabel != null) styleLabel.Text = "Card style:  " + CardContrast.Names[CampaignContext.Settings.CardStyle];
+            if (styleLabel != null) styleLabel.Text = stylePrefix + CardContrast.Names[CampaignContext.Settings.CardStyle];
             MarkChanged(true);
         });
+        _valueX = -1;
         (string, Action)[] help =
         {
             ("Symbol key — what every sign in a fight means", () => { Click(); if (_dirty) Persist(); LoadScreen.Go(GetTree(), SymbolKeyScene.ScenePath); }),
@@ -474,7 +481,7 @@ public partial class SettingsScene : Control
         StyleSlider(slider);
         row.AddChild(slider);
 
-        var value = RowLabel("100%", _art ? 24 : 30, _art ? Cream : Muted);
+        var value = RowLabel("100%", _art ? 24 : 30, _words ? new Color(0.27f, 0.17f, 0.08f) : _art ? Cream : Muted);   // dark ink on the painted parchment
         value.CustomMinimumSize = new Vector2(_art ? 66 : 92, 0);
         value.HorizontalAlignment = HorizontalAlignment.Right;
         row.AddChild(value);
@@ -521,6 +528,12 @@ public partial class SettingsScene : Control
         return sw;
     }
 
+    /// <summary>
+    /// FABLE-098: a row whose start is painted ("Card style:", "Title music:"): the game writes only the value, starting
+    /// <paramref name="valueX"/> screen pixels in from the row's left edge, and no arrow of its own (the painting has one).
+    /// </summary>
+    private float _valueX = -1;
+
     private Label ActionRow(VBoxContainer col, string label, bool danger, Action onPress)
     {
         var wrap = new MarginContainer();
@@ -555,10 +568,13 @@ public partial class SettingsScene : Control
         inner.SetAnchorsPreset(LayoutPreset.FullRect);
         inner.OffsetLeft = 20; inner.OffsetRight = -20;
         b.AddChild(inner);
+        if (_valueX >= 0) inner.AddChild(new Control { CustomMinimumSize = new Vector2(Mathf.Max(0, _valueX - 20), 1), MouseFilter = MouseFilterEnum.Ignore });
         var l = RowLabel(label, _art ? 26 : 34, danger ? (_art ? Cream : EmberText) : Cream);
         l.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         inner.AddChild(l);
-        inner.AddChild(RowLabel("›", _art ? 34 : 44, danger ? (_art ? Cream : EmberText) : Gold));
+        var arrow = RowLabel("›", _art ? 34 : 44, danger ? (_art ? Cream : EmberText) : Gold);
+        inner.AddChild(arrow);
+        if (_valueX >= 0) arrow.Modulate = new Color(1, 1, 1, 0);
 
         b.Pressed += () => onPress();
         return l;

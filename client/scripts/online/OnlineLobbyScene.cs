@@ -108,6 +108,17 @@ public partial class OnlineLobbyScene : Control
         };
         glow.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(glow);
+        // FABLE-098: with a painting behind the lobby (the war table), a soft veil keeps the menu readable over it.
+        // (a Control holding the veil, so ScreenSkin's sweep of flat background layers leaves it alone)
+        if (ResourceLoader.Exists("res://content/art/screens/OnlineLobbyScene.webp"))
+        {
+            var veil = new Control { MouseFilter = MouseFilterEnum.Ignore };
+            veil.SetAnchorsPreset(LayoutPreset.FullRect);
+            var dim = new ColorRect { Color = new Color(0.02f, 0.02f, 0.03f, 0.38f), MouseFilter = MouseFilterEnum.Ignore };
+            dim.SetAnchorsPreset(LayoutPreset.FullRect);
+            veil.AddChild(dim);
+            AddChild(veil);
+        }
 
         _kicker = Text("PLAY WITH FRIENDS", 26, 28, ThemeTokens.GetHeaderFont(28), new Color(0.75f, 0.68f, 0.52f));
         _title = Text("Online", 60, 84, ThemeTokens.GetCardNameFont(84), ThemeTokens.Gold);

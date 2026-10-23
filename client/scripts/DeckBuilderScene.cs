@@ -587,7 +587,7 @@ public partial class DeckBuilderScene : Control
         _playButton = Small(row2, "▶ Play this", OnPlayThisDeck, h2);   // its word changes (Playing / Play this): drawn
         _decksButton = Small(row2, "My decks", ShowLoadDialog, h2); PaintedWord(_decksButton);
         PaintedWord(Small(row2, "+ New deck", StartNewDeck, h2));
-        if (art) _forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.86f, 0.92f, 0.86f, 0.72f));
+        if (art && !Words) _forgeButton.AddThemeColorOverride("font_disabled_color", new Color(0.86f, 0.92f, 0.86f, 0.72f));
         if (!art) rail.AddChild(new Control { CustomMinimumSize = new Vector2(0, 22) });
     }
 
@@ -1048,10 +1048,12 @@ public partial class DeckBuilderScene : Control
         float blockW = cols * sw + (cols - 1) * gap;
         float bx = size.X - pad - blockW;
         Painted(Text("YOUR DECK", GetHeaderFont(24), 24, Gold, new Vector2(30, 24), new Vector2(bx - 50, 34)));
-        Text($"{deck.Count}", GetHeaderFont(60), 60, Color.FromHtml("#F3DE95"), new Vector2(30, 62), new Vector2(120, 76)).AutowrapMode = TextServer.AutowrapMode.Off;
+        // FABLE-098: on the painting the count, "/ 30" and the open slots sit between the painted YOUR DECK and "tap a card…"
+        float cy = Words ? 46 : 62, cpx = Words ? 54 : 60;
+        Text($"{deck.Count}", GetHeaderFont((int)cpx), (int)cpx, Color.FromHtml("#F3DE95"), new Vector2(30, cy), new Vector2(120, 76)).AutowrapMode = TextServer.AutowrapMode.Off;
         float cw = GetHeaderFont(60).GetStringSize($"{deck.Count}", HorizontalAlignment.Left, -1, 60).X;
-        Text($"/ {max}", GetHeaderFont(32), 32, MutedInk, new Vector2(30 + cw + 14, 80), new Vector2(120, 56));
-        Text(open > 0 ? $"{open} open slots" : "Deck full", GetBodyFont(28), 28, new Color(0.80f, 0.74f, 0.61f), new Vector2(30, 150), new Vector2(bx - 50, 36));
+        Text($"/ {max}", GetHeaderFont(32), Words ? 30 : 32, MutedInk, new Vector2(30 + cw + 14, cy + 18), new Vector2(120, 56));
+        Text(open > 0 ? $"{open} open slots" : "Deck full", GetBodyFont(28), Words ? 26 : 28, new Color(0.80f, 0.74f, 0.61f), new Vector2(30, Words ? 122 : 150), new Vector2(bx - 50, 36));
         Painted(Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32)));
         if (Art) PaintedWord(ToggleButton("MINIMIZE  ▾", P(GetViewportRect().Size, 340, 704) - _tray.Position, P(GetViewportRect().Size, 455, 735) - P(GetViewportRect().Size, 340, 704)));
         else ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
@@ -1065,6 +1067,16 @@ public partial class DeckBuilderScene : Control
         var cap = Text("◆  ARTIFACTS  ◆", GetHeaderFont(17), 17, Gold, new Vector2(aL, aTop - 30f), new Vector2(2 * aSize + 14f, 24));
         cap.HorizontalAlignment = HorizontalAlignment.Center;
         Painted(cap);
+        if (Words)   // FABLE-098: into the two painted artifact frames (painting pixels 443-521 and 530-610, 558-641)
+        {
+            var vpw = GetViewportRect().Size;
+            var f0 = P(vpw, 443, 558) - _tray.Position; var f1 = P(vpw, 530, 558) - _tray.Position;
+            float fh = P(vpw, 0, 641).Y - P(vpw, 0, 558).Y, fw0 = P(vpw, 521, 0).X - P(vpw, 443, 0).X, fw1 = P(vpw, 610, 0).X - P(vpw, 530, 0).X;
+            float side = fh - 6f;
+            _tray.AddChild(ArtifactSlotTile(0, f0 + new Vector2((fw0 - side) / 2f, 3f), side, compact: false));
+            if (_artifacts.Length > 1) _tray.AddChild(ArtifactSlotTile(1, f1 + new Vector2((fw1 - side) / 2f, 3f), side, compact: false));
+        }
+        else
         for (int a = 0; a < _artifacts.Length; a++)
             _tray.AddChild(ArtifactSlotTile(a, new Vector2(aL + a * (aSize + 14f), aTop), aSize, compact: false));
 
