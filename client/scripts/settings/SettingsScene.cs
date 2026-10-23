@@ -92,6 +92,7 @@ public partial class SettingsScene : Control
     private void BuildUI()
     {
         var vp = GetViewportRect().Size;
+        if (ScreenSkin.Faithful("SettingsScene")) { BuildArtUI(vp); return; }
 
         var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -237,6 +238,111 @@ public partial class SettingsScene : Control
         AddChild(versionLabel);
     }
 
+    // ── FABLE-088: Trikzos's picked Settings painting is the screen; every row sits on its painted strip ──
+    private bool _art;
+    private float _artRowH = 76f;
+
+    private Vector2 A(Vector2 vp, float fx, float fy) => ScreenSkin.Art("SettingsScene", vp, fx, fy);
+
+    private VBoxContainer Slot(Vector2 vp, float x0, float y0, float x1, float y1)
+    {
+        var a = A(vp, x0, y0); var b = A(vp, x1, y1);
+        var v = new VBoxContainer { Position = a, Size = b - a, Alignment = BoxContainer.AlignmentMode.Center };
+        v.AddThemeConstantOverride("separation", 0);
+        AddChild(v);
+        _artRowH = b.Y - a.Y;
+        return v;
+    }
+
+    private void BuildArtUI(Vector2 vp)
+    {
+        _art = true;
+        var bg = new ColorRect { Color = Color.FromHtml("#1A1714"), MouseFilter = MouseFilterEnum.Ignore };
+        bg.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(bg);   // hidden by the painting (ScreenSkin), shows only if it fails to load
+
+        var t0 = A(vp, 0.37f, 0.218f); var t1 = A(vp, 0.63f, 0.288f);
+        var title = new Label { Text = "SETTINGS", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Position = t0, Size = t1 - t0, MouseFilter = MouseFilterEnum.Ignore };
+        title.AddThemeFontOverride("font", ThemeTokens.GetHeaderFont(56));
+        title.AddThemeFontSizeOverride("font_size", 56);
+        title.AddThemeColorOverride("font_color", Gold);
+        AddChild(title);
+
+        float[] sliderY = { 0.385f, 0.459f, 0.533f, 0.607f };
+        _masterSlider = SliderRow(Slot(vp, 0.180f, sliderY[0] - 0.034f, 0.488f, sliderY[0] + 0.034f), "Master");
+        _musicSlider = SliderRow(Slot(vp, 0.180f, sliderY[1] - 0.034f, 0.488f, sliderY[1] + 0.034f), "Music");
+        _sfxSlider = SliderRow(Slot(vp, 0.180f, sliderY[2] - 0.034f, 0.488f, sliderY[2] + 0.034f), "Effects");
+        _ambientSlider = SliderRow(Slot(vp, 0.180f, sliderY[3] - 0.034f, 0.488f, sliderY[3] + 0.034f), "Ambience");
+        _muteSwitch = SwitchRow(Slot(vp, 0.180f, 0.648f, 0.488f, 0.712f), "Mute all sound", null, OnMuteToggled);
+        Label? musicLabel = null;
+        musicLabel = ActionRow(Slot(vp, 0.180f, 0.727f, 0.484f, 0.781f), "Title music:  " + AudioManager.TitleTrackName(AudioManager.TitleTrack), false, () =>
+        {
+            Click();
+            var list = AudioManager.TitleTracks;
+            int i = System.Array.FindIndex(list, t => t.Id == AudioManager.TitleTrack);
+            var next = list[(i + 1) % list.Length];
+            AudioManager.TitleTrack = next.Id;
+            musicLabel!.Text = "Title music:  " + next.Name;
+            GetNodeOrNull<AudioManager>("/root/AudioManager")?.CrossfadeMusic(next.Id, 1.0f);
+        });
+
+        _motionSwitch = SwitchRow(Slot(vp, 0.522f, 0.364f, 0.808f, 0.420f), "Reduce motion", null, on =>
+        {
+            CampaignContext.Settings.ReduceMotion = on;
+            MarkChanged(true);
+        });
+        Label? styleLabel = null;
+        styleLabel = ActionRow(Slot(vp, 0.522f, 0.420f, 0.808f, 0.472f), "Card style:  " + CardContrast.Names[Math.Clamp(CampaignContext.Settings.CardStyle, 0, 3)], false, () =>
+        {
+            Click();
+            CampaignContext.Settings.CardStyle = (CampaignContext.Settings.CardStyle + 1) % 4;
+            if (styleLabel != null) styleLabel.Text = "Card style:  " + CardContrast.Names[CampaignContext.Settings.CardStyle];
+            MarkChanged(true);
+        });
+        (string, Action)[] help =
+        {
+            ("Symbol key — what every sign in a fight means", () => { Click(); if (_dirty) Persist(); LoadScreen.Go(GetTree(), SymbolKeyScene.ScenePath); }),
+            ("Replay the tutorial", OnReplayTutorial), ("Replay the intro", OnReplayIntro),
+            ("Audio credits", ShowCreditsOverlay), ("Save check — is my progress safe?", ShowSaveCheck),
+        };
+        for (int i = 0; i < help.Length; i++)
+        {
+            float y = 0.548f + i * 0.0555f;
+            ActionRow(Slot(vp, 0.522f, y - 0.027f, 0.808f, y + 0.027f), help[i].Item1, false, help[i].Item2);
+        }
+        ActionRow(Slot(vp, 0.522f, 0.822f, 0.806f, 0.878f), "Reset all progress", true, ShowResetConfirm);
+
+        var b0 = A(vp, 0.192f, 0.806f); var b1 = A(vp, 0.300f, 0.872f);
+        _backBtn = Plate("◂  Back", false, b1.X - b0.X, b1.Y - b0.Y);
+        _backBtn.AddThemeFontSizeOverride("font_size", 26);
+        _backBtn.Position = b0;
+        _backBtn.Pressed += () =>
+        {
+            Click();
+            if (_dirty) Persist();
+            LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
+        };
+        AddChild(_backBtn);
+        ScreenSkin.Plaque(_backBtn);
+
+        var s0 = A(vp, 0.305f, 0.806f); var s1 = A(vp, 0.488f, 0.872f);
+        _status = new Label { Text = "", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Position = s0, Size = s1 - s0, MouseFilter = MouseFilterEnum.Ignore };
+        _status.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(22));
+        _status.AddThemeFontSizeOverride("font_size", 22);
+        _status.AddThemeColorOverride("font_color", Cream);
+        AddChild(_status);
+
+        var v0 = A(vp, 0.520f, 0.880f); var v1 = A(vp, 0.806f, 0.905f);
+        var versionLabel = new Label { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Position = v0, Size = v1 - v0,
+            MouseFilter = MouseFilterEnum.Ignore, Text = $"Runewake {VersionString()}" };
+        versionLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(17));
+        versionLabel.AddThemeFontSizeOverride("font_size", 17);
+        versionLabel.AddThemeColorOverride("font_color", new Color(0.62f, 0.56f, 0.46f));
+        AddChild(versionLabel);
+    }
+
     private static string VersionString()
     {
         string version = ProjectSettings.GetSetting("application/config/version", "dev").AsString();
@@ -314,16 +420,16 @@ public partial class SettingsScene : Control
 
     private HSlider SliderRow(VBoxContainer col, string label)
     {
-        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, 88) };
-        row.AddThemeConstantOverride("separation", 24);
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, _art ? _artRowH : 88) };
+        row.AddThemeConstantOverride("separation", _art ? 14 : 24);
         var wrap = new MarginContainer();
-        wrap.AddThemeConstantOverride("margin_left", (int)Pad);
-        wrap.AddThemeConstantOverride("margin_right", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_left", _art ? 10 : (int)Pad);
+        wrap.AddThemeConstantOverride("margin_right", _art ? 6 : (int)Pad);
         wrap.AddChild(row);
         col.AddChild(wrap);
 
-        var name = RowLabel(label);
-        name.CustomMinimumSize = new Vector2(190, 0);
+        var name = RowLabel(label, _art ? 28 : 34);
+        name.CustomMinimumSize = new Vector2(_art ? 140 : 190, 0);
         row.AddChild(name);
 
         var slider = new HSlider
@@ -337,8 +443,8 @@ public partial class SettingsScene : Control
         StyleSlider(slider);
         row.AddChild(slider);
 
-        var value = RowLabel("100%", 30, Muted);
-        value.CustomMinimumSize = new Vector2(92, 0);
+        var value = RowLabel("100%", _art ? 24 : 30, _art ? Cream : Muted);
+        value.CustomMinimumSize = new Vector2(_art ? 66 : 92, 0);
         value.HorizontalAlignment = HorizontalAlignment.Right;
         row.AddChild(value);
 
@@ -353,17 +459,17 @@ public partial class SettingsScene : Control
 
     private SettingsSwitch SwitchRow(VBoxContainer col, string label, string? hint, Action<bool> onToggle)
     {
-        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, hint == null ? 88 : 104) };
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2(0, _art ? _artRowH : hint == null ? 88 : 104) };
         row.AddThemeConstantOverride("separation", 24);
         var wrap = new MarginContainer();
-        wrap.AddThemeConstantOverride("margin_left", (int)Pad);
-        wrap.AddThemeConstantOverride("margin_right", (int)Pad);
+        wrap.AddThemeConstantOverride("margin_left", _art ? 12 : (int)Pad);
+        wrap.AddThemeConstantOverride("margin_right", _art ? 12 : (int)Pad);
         wrap.AddChild(row);
         col.AddChild(wrap);
 
         var text = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, Alignment = BoxContainer.AlignmentMode.Center };
         text.AddThemeConstantOverride("separation", 0);
-        text.AddChild(RowLabel(label));
+        text.AddChild(RowLabel(label, _art ? 28 : 34));
         if (hint != null) text.AddChild(RowLabel(hint, 26, Muted));
         row.AddChild(text);
 
@@ -386,14 +492,14 @@ public partial class SettingsScene : Control
     private Label ActionRow(VBoxContainer col, string label, bool danger, Action onPress)
     {
         var wrap = new MarginContainer();
-        wrap.AddThemeConstantOverride("margin_left", (int)(Pad - 20));
-        wrap.AddThemeConstantOverride("margin_right", (int)(Pad - 20));
-        wrap.AddThemeConstantOverride("margin_bottom", danger ? 30 : 0);
+        wrap.AddThemeConstantOverride("margin_left", _art ? 0 : (int)(Pad - 20));
+        wrap.AddThemeConstantOverride("margin_right", _art ? 0 : (int)(Pad - 20));
+        wrap.AddThemeConstantOverride("margin_bottom", danger && !_art ? 30 : 0);
         col.AddChild(wrap);
 
         var b = new Button
         {
-            Text = "", CustomMinimumSize = new Vector2(0, 80), FocusMode = FocusModeEnum.None,
+            Text = "", CustomMinimumSize = new Vector2(0, _art ? _artRowH : 80), FocusMode = FocusModeEnum.None,
             MouseDefaultCursorShape = CursorShape.PointingHand,
         };
         var normal = new StyleBoxFlat
@@ -417,10 +523,10 @@ public partial class SettingsScene : Control
         inner.SetAnchorsPreset(LayoutPreset.FullRect);
         inner.OffsetLeft = 20; inner.OffsetRight = -20;
         b.AddChild(inner);
-        var l = RowLabel(label, 34, danger ? EmberText : Cream);
+        var l = RowLabel(label, _art ? 26 : 34, danger ? (_art ? Cream : EmberText) : Cream);
         l.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         inner.AddChild(l);
-        inner.AddChild(RowLabel("›", 44, danger ? EmberText : Gold));
+        inner.AddChild(RowLabel("›", _art ? 34 : 44, danger ? (_art ? Cream : EmberText) : Gold));
 
         b.Pressed += () => onPress();
         return l;

@@ -38,7 +38,14 @@ public partial class ReliquaryScene : Control
     private const float TopH = 104f, BarH = 84f;
     /// <summary>FABLE-084: the painted open book (content/art/screens/ReliquaryScene.webp): pages from PageL to 1-PageL across,
     /// down to PageB, the spine Spine wide in the middle.</summary>
-    private static bool Book => ResourceLoader.Exists("res://content/art/screens/ReliquaryScene.webp");
+    private static bool Book => Painted || ResourceLoader.Exists("res://content/art/screens/ReliquaryScene.webp");
+    /// <summary>FABLE-088: the approved book painting itself (ScreenSkin faithful): cards are laid into its 14 painted slots, a page at a time.</summary>
+    private static bool Painted => ScreenSkin.Faithful("ReliquaryScene");
+    private Control? _pageLayer;
+    private int _bookPage;
+    private string _lastSig = "";
+    private float _swipeFrom = -1;
+    private Vector2 A(float fx, float fy) => ScreenSkin.Art("ReliquaryScene", GetViewportRect().Size, fx, fy);
     private const float PageL = 0.115f, PageB = 0.925f, Spine = 0.06f;
 
     private static readonly string[] StrataOptions = { "ALL", "VERDANT", "EMBER", "TIDE", "HOLLOW", "DAWN" };
@@ -112,6 +119,7 @@ public partial class ReliquaryScene : Control
         title.AddThemeFontOverride("font", GetCardNameFont(54)); title.AddThemeFontSizeOverride("font_size", 54);
         title.AddThemeColorOverride("font_color", Gold);
         top.AddChild(title);
+        if (Painted) { title.Visible = false; kicker.Visible = false; }   // the painted page carries "The Codex of Runes / Reliquary"
 
         var shop = Plate("Shop  ▶", true, 76, 260);
         shop.Position = new Vector2(vp.X - 40 - 260, (TopH - 76) / 2);
@@ -125,6 +133,7 @@ public partial class ReliquaryScene : Control
         // ── Filter bar ──
         var bar = new Control { Position = new Vector2(0, TopH), Size = new Vector2(vp.X, BarH), MouseFilter = MouseFilterEnum.Pass };
         AddChild(bar);
+        if (Book) bar.AddChild(new ColorRect { Color = new Color(0.07f, 0.06f, 0.05f, Painted ? 1f : 0.86f), Size = new Vector2(vp.X, BarH), MouseFilter = MouseFilterEnum.Ignore });   // FABLE-086: the filters stay readable over the light pages
         bar.AddChild(new ColorRect { Color = Rule, Position = new Vector2(0, 0), Size = new Vector2(vp.X, 1), MouseFilter = MouseFilterEnum.Ignore });
         var barRow = new HBoxContainer { Position = new Vector2(40, 0), Size = new Vector2(vp.X - 80, BarH), MouseFilter = MouseFilterEnum.Pass };
         barRow.AddThemeConstantOverride("separation", 36);
@@ -171,7 +180,13 @@ public partial class ReliquaryScene : Control
 
         // ── The shelves ──
         var shelf = new Control { Position = new Vector2(0, TopH + BarH), Size = new Vector2(vp.X, vp.Y - TopH - BarH), MouseFilter = MouseFilterEnum.Pass };
-        if (Book)   // FABLE-084: the open book Trikzos picked — the shelves are its two pages
+        if (Painted)   // relics scroll on the painted pages; cards are laid page by page into the slots (BuildBookPage)
+        {
+            var a = A(0.175f, 0.29f); var b = A(0.83f, 0.77f);
+            shelf.Position = a; shelf.Size = b - a;
+            topBg.Color = new Color(0.082f, 0.072f, 0.061f, 0.55f);
+        }
+        else if (Book)   // FABLE-084: the open book Trikzos picked — the shelves are its two pages
         {
             shelf.Position = new Vector2(vp.X * PageL, TopH + BarH + 6);
             shelf.Size = new Vector2(vp.X * (1 - 2 * PageL), vp.Y * PageB - TopH - BarH - 6);
@@ -202,6 +217,21 @@ public partial class ReliquaryScene : Control
         _cardGrid.AddThemeConstantOverride("separation", 34);
         _gridScroll.AddChild(_cardGrid);
 
+        if (Painted)
+        {
+            _pageLayer = new Control { MouseFilter = MouseFilterEnum.Pass };
+            _pageLayer.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(_pageLayer);
+            _pageLayer.GuiInput += e =>
+            {
+                Vector2? at = e switch { InputEventScreenTouch t => t.Position, InputEventMouseButton m when m.ButtonIndex == MouseButton.Left => m.Position, _ => null };
+                if (at is not Vector2 pt) return;
+                bool down = e is InputEventScreenTouch td ? td.Pressed : e is InputEventMouseButton md && md.Pressed;
+                if (down) { _swipeFrom = pt.X; return; }
+                if (_swipeFrom >= 0 && Mathf.Abs(pt.X - _swipeFrom) > 90) TurnPage(pt.X < _swipeFrom ? 1 : -1);
+                _swipeFrom = -1;
+            };
+        }
         LoadAllCards();
         if (CampaignContext.CaptureOverrideStrataIdx >= 0) _selectedStrataIdx = CampaignContext.CaptureOverrideStrataIdx;
         Refresh();
@@ -253,7 +283,77 @@ public partial class ReliquaryScene : Control
         foreach (var c in _cardGrid.GetChildren()) c.QueueFree();
         _gridDrag?.Halt();
         _gridScroll.ScrollVertical = 0;
+        string sig = $"{_relicsTab}{_selectedStrataIdx}{_found}";
+        if (sig != _lastSig) { _bookPage = 0; _lastSig = sig; }   // a new filter opens the book at its first page
+        if (_pageLayer != null) { foreach (var c in _pageLayer.GetChildren()) c.QueueFree(); _pageLayer.Visible = !_relicsTab; }
+        _gridScroll.Visible = !(Painted && !_relicsTab);
         if (_relicsTab) BuildRelicShelves(); else BuildCardShelves();
+    }
+
+    private void TurnPage(int dir)
+    {
+        int pages = Mathf.Max(1, Mathf.CeilToInt(_filteredCards.Count / 14f));
+        int next = Mathf.Clamp(_bookPage + dir, 0, pages - 1);
+        if (next == _bookPage) return;
+        _bookPage = next;
+        Click();
+        foreach (var c in _pageLayer!.GetChildren()) c.QueueFree();
+        BuildBookPage();
+    }
+
+    /// <summary>FABLE-088: fourteen cards into the painted slots (two rows of seven across both pages), arrows to turn the page.</summary>
+    private void BuildBookPage()
+    {
+        if (_pageLayer == null) return;
+        int pages = Mathf.Max(1, Mathf.CeilToInt(_filteredCards.Count / 14f));
+        _bookPage = Mathf.Clamp(_bookPage, 0, pages - 1);
+        var progression = CampaignContext.Progression;
+        for (int k = 0; k < 14; k++)
+        {
+            int idx = _bookPage * 14 + k;
+            if (idx >= _filteredCards.Count) break;
+            int row = k / 7, col = k % 7;
+            float x0 = row == 0 ? 0.2115f + col * 0.0857f : 0.2006f + col * 0.0889f, w = row == 0 ? 0.0654f : 0.0668f;
+            float y0 = row == 0 ? 0.310f : 0.5495f, y1 = row == 0 ? 0.473f : 0.703f;
+            var a = A(x0, y0); var b = A(x0 + w, y1);
+            float cardH = (b.Y - a.Y) + 14f, cardW = cardH * 416f / 608f;
+            const float tagH = 26f, capH = 28f;
+            var cell = CardCell(_filteredCards[idx], idx, cardW, cardH, tagH, capH);
+            cell.Position = new Vector2((a.X + b.X) / 2f - cardW / 2f, a.Y - 7f - tagH);
+            cell.Size = cell.CustomMinimumSize;
+            _pageLayer.AddChild(cell);
+            if (Owned(_filteredCards[idx].Id) > 0) progression.MarkCardSeen(_filteredCards[idx].Id);
+        }
+        if (_filteredCards.Count == 0)
+        {
+            var e0 = A(0.25f, 0.45f); var e1 = A(0.75f, 0.55f);
+            var empty = new Label { Text = _found == 1 ? "Nothing found here yet. Go delving." : "Nothing missing here — every rune of this kind is yours.",
+                HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = e0, Size = e1 - e0, MouseFilter = MouseFilterEnum.Ignore };
+            empty.AddThemeFontOverride("font", GetBodyFont(30)); empty.AddThemeFontSizeOverride("font_size", 30);
+            empty.AddThemeColorOverride("font_color", new Color(0.30f, 0.22f, 0.14f));
+            _pageLayer.AddChild(empty);
+        }
+        var l0 = A(0.40f, 0.735f); var l1 = A(0.60f, 0.772f);
+        var pageLbl = new Label { Text = $"Page {_bookPage + 1} of {pages}", HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
+            Position = l0, Size = l1 - l0, MouseFilter = MouseFilterEnum.Ignore };
+        pageLbl.AddThemeFontOverride("font", GetHeaderFont(22)); pageLbl.AddThemeFontSizeOverride("font_size", 22);
+        pageLbl.AddThemeColorOverride("font_color", new Color(0.36f, 0.26f, 0.15f));
+        _pageLayer.AddChild(pageLbl);
+        foreach (int dir in new[] { -1, 1 })
+        {
+            bool can = dir < 0 ? _bookPage > 0 : _bookPage < pages - 1;
+            var c = A(dir < 0 ? 0.135f : 0.865f, 0.51f);
+            var arrow = new Button { Text = dir < 0 ? "‹" : "›", FocusMode = FocusModeEnum.None, Disabled = !can, Position = c - new Vector2(46, 70), Size = new Vector2(92, 140) };
+            arrow.AddThemeFontOverride("font", GetCardNameFont(96)); arrow.AddThemeFontSizeOverride("font_size", 96);
+            arrow.AddThemeColorOverride("font_color", Gold); arrow.AddThemeColorOverride("font_hover_color", new Color(1f, 0.9f, 0.6f));
+            arrow.AddThemeColorOverride("font_disabled_color", new Color(0.5f, 0.45f, 0.38f, 0.35f));
+            arrow.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.9f)); arrow.AddThemeConstantOverride("outline_size", 8);
+            foreach (var st in new[] { "normal", "hover", "pressed", "disabled", "focus" }) arrow.AddThemeStyleboxOverride(st, new StyleBoxEmpty());
+            arrow.SetMeta("skinned", true);
+            int d = dir;
+            arrow.Pressed += () => TurnPage(d);
+            _pageLayer.AddChild(arrow);
+        }
     }
 
     private void FitProgress(float pct) { if (IsInstanceValid(_progressBar)) _progressBar.Size = new Vector2(pct * _progressTrack.Size.X, 8); }
@@ -270,6 +370,7 @@ public partial class ReliquaryScene : Control
         if (_found == 1) q = q.Where(c => Owned(c.Id) > 0);
         if (_found == 2) q = q.Where(c => Owned(c.Id) == 0);
         _filteredCards = q.ToList();
+        if (Painted) { BuildBookPage(); return; }
 
         var vp = GetViewportRect().Size;
         float avail = vp.X - 80 - 14;
@@ -757,6 +858,7 @@ public partial class ReliquaryScene : Control
 
     private void Style(Button b, bool selected, Color? accent)
     {
+        b.SetMeta("skinned", true);   // FABLE-088: the filter chips keep their own pills on the painted book
         var a = accent ?? Gold;
         StyleBoxFlat Box(bool hover) => new()
         {

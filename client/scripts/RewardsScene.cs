@@ -371,6 +371,18 @@ public partial class RewardsScene : Control
     /// <summary>A small chest drawn from panels: body, lid, clasp. Lit when it can be opened.</summary>
     private static Control ChestArt(RewardStatus st, Vector2 center)
     {
+        const string painted = "res://content/art/screens/chest.png";   // FABLE-088: the chest from Trikzos's picked Daily Rewards
+        if (ScreenSkin.Faithful("RewardsScene") && ResourceLoader.Exists(painted))
+        {
+            var tex = GD.Load<Texture2D>(painted);
+            var sz = tex.GetSize() * Mathf.Min(300f / tex.GetSize().X, 190f / tex.GetSize().Y);
+            var art = new TextureRect { Texture = tex, Position = center - sz / 2, Size = sz, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered, MouseFilter = MouseFilterEnum.Ignore,
+                Modulate = st == RewardStatus.Ready ? Colors.White : st == RewardStatus.Claimed ? new Color(0.55f, 0.55f, 0.55f) : new Color(0.75f, 0.75f, 0.75f) };
+            if (st == RewardStatus.Ready) Pulse(art);
+            art.SetMeta("skinned", true);
+            return art;
+        }
         var root = new Control { Position = center - new Vector2(110, 70), Size = new Vector2(220, 140), MouseFilter = MouseFilterEnum.Ignore };
         Color wood = st == RewardStatus.Locked ? new Color(0.30f, 0.24f, 0.18f) : new Color(0.52f, 0.34f, 0.18f);
         Color band = st == RewardStatus.Locked ? new Color(0.42f, 0.38f, 0.30f) : ThemeTokens.Gold;

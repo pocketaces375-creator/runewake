@@ -48,6 +48,7 @@ public partial class PackShopScene : Control
         MouseFilter = MouseFilterEnum.Stop;
 
         AddChild(new DrachmaRite.Backdrop { Size = _vp, MouseFilter = MouseFilterEnum.Ignore, MoonAt = new Vector2(0.06f, 0.115f) });
+        if (StyxArt.Backdrop != null) AddChild(new CosmosFx { Size = _vp, MouseFilter = MouseFilterEnum.Ignore });   // FABLE-088: a living sky over the cliffs
         if (StyxArt.Backdrop == null)   // FABLE-084: the painted cliffs carry their own frame
         {
             AddChild(new Meander { Position = Vector2.Zero, Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
@@ -55,7 +56,7 @@ public partial class PackShopScene : Control
         }
 
         var kicker = Lbl(this, "CARD PACKS  ·  A DRACHMA FOR THE GODS OF OLD", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
-        var title = Lbl(this, "Offering to the Ancient", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
+        var title = Lbl(this, "Offering to the Ancients", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
         Outline(kicker); Outline(title);
 
         _content = new Control { MouseFilter = MouseFilterEnum.Ignore };
@@ -79,6 +80,18 @@ public partial class PackShopScene : Control
         Render();
         _ = PackStore.Refresh();
         MenuButtons.BreatheTitle(title);
+        if (StyxArt.Backdrop != null)   // FABLE-088: the title burns with a slow golden glow
+        {
+            title.AddThemeColorOverride("font_shadow_color", new Color(1f, 0.78f, 0.35f, 0.55f));
+            title.AddThemeConstantOverride("shadow_outline_size", (int)(18 * _s));
+            title.AddThemeConstantOverride("shadow_offset_x", 0); title.AddThemeConstantOverride("shadow_offset_y", 0);
+            if (!CampaignContext.Settings.ReduceMotion)
+            {
+                var g = title.CreateTween().SetLoops();
+                g.TweenMethod(Callable.From<float>(a => title.AddThemeColorOverride("font_shadow_color", new Color(1f, 0.78f, 0.35f, a))), 0.25f, 0.65f, 2.2f).SetTrans(Tween.TransitionType.Sine);
+                g.TweenMethod(Callable.From<float>(a => title.AddThemeColorOverride("font_shadow_color", new Color(1f, 0.78f, 0.35f, a))), 0.65f, 0.25f, 2.2f).SetTrans(Tween.TransitionType.Sine);
+            }
+        }
         // FABLE-067: --packrite = open a free preview pack straight away (debug builds only; for tuning the rite)
         if (System.Array.IndexOf(OS.GetCmdlineArgs(), "--packrite") >= 0 && PackStore.PreviewMode)
         {
@@ -226,7 +239,7 @@ public partial class PackShopScene : Control
         _coinBob = _coin.CreateTween().SetLoops();
         _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
         _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
-        var hint = Lbl(_content, n > 0 ? "Make your offering — flick a drachma into the mist" : "Take a drachma, then offer it to the Ancient", cx, _vp.Y * 0.50f, cw,
+        var hint = Lbl(_content, n > 0 ? "Make your offering — flick a drachma into the mist" : "Take a drachma, then offer it to the Ancients", cx, _vp.Y * 0.50f, cw,
             (int)(32 * _s), ThemeTokens.GetHeaderFont((int)(32 * _s)), Gold, true);
         Outline(hint);
         if (n > 0)
@@ -403,6 +416,51 @@ public partial class PackShopScene : Control
     {
         l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.85f));
         l.AddThemeConstantOverride("outline_size", 5);
+    }
+
+    /// <summary>FABLE-088: the cosmos over the cliffs comes alive - stars twinkle, mist drifts through the chasm and rune sparks
+    /// rise from the deep where the offering falls. Still (drawn once) when Reduce motion is on.</summary>
+    private partial class CosmosFx : Control
+    {
+        private readonly float[] _stars;
+        private readonly float[] _motes;
+        private float _t;
+        private readonly bool _still = CampaignContext.Settings.ReduceMotion;
+        public CosmosFx()
+        {
+            var rng = new RandomNumberGenerator { Seed = 4242 };
+            _stars = new float[180 * 4];
+            for (int i = 0; i < _stars.Length; i += 4) { _stars[i] = rng.Randf(); _stars[i + 1] = rng.Randf() * 0.62f; _stars[i + 2] = rng.RandfRange(0.6f, 2.2f); _stars[i + 3] = rng.Randf() * 6.28f; }
+            _motes = new float[46 * 4];
+            for (int i = 0; i < _motes.Length; i += 4) { _motes[i] = rng.RandfRange(0.36f, 0.64f); _motes[i + 1] = rng.Randf(); _motes[i + 2] = rng.RandfRange(0.04f, 0.10f); _motes[i + 3] = rng.Randf() * 6.28f; }
+        }
+        public override void _Process(double delta) { if (_still) return; _t += (float)delta; QueueRedraw(); }
+        public override void _Draw()
+        {
+            float W = Size.X, H = Size.Y;
+            for (int i = 0; i < _stars.Length; i += 4)   // twinkling stars
+            {
+                float tw = 0.45f + 0.55f * Mathf.Sin(_t * (0.8f + _stars[i + 2]) + _stars[i + 3]);
+                var p = new Vector2(_stars[i] * W, _stars[i + 1] * H);
+                DrawCircle(p, _stars[i + 2] * 0.9f, new Color(0.92f, 0.94f, 1f, 0.18f + 0.55f * tw * tw));
+                if (_stars[i + 2] > 1.9f) DrawCircle(p, _stars[i + 2] * 3.2f, new Color(0.75f, 0.82f, 1f, 0.05f * tw));
+            }
+            for (int k = 0; k < 7; k++)   // mist banks drifting through the chasm
+            {
+                float x = ((k * 0.19f + _t * (0.006f + k * 0.0015f)) % 1.3f - 0.15f) * W, y = H * (0.62f + 0.05f * (k % 4));
+                for (int r = 5; r >= 1; r--)
+                    DrawCircle(new Vector2(x, y), H * (0.05f + 0.025f * r), new Color(0.78f, 0.82f, 0.9f, 0.012f));
+            }
+            for (int i = 0; i < _motes.Length; i += 4)   // rune sparks rising from the deep
+            {
+                float life = (_motes[i + 1] + _t * _motes[i + 2]) % 1f;
+                float x = _motes[i] * W + Mathf.Sin(_t * 0.9f + _motes[i + 3]) * W * 0.012f, y = H * (0.95f - 0.75f * life);
+                float a = Mathf.Sin(life * Mathf.Pi);
+                var c = (i / 4) % 3 == 0 ? new Color(1f, 0.82f, 0.45f) : new Color(0.62f, 0.86f, 1f);
+                DrawCircle(new Vector2(x, y), 2.2f + 1.6f * a, new Color(c.R, c.G, c.B, 0.75f * a));
+                DrawCircle(new Vector2(x, y), 7f + 4f * a, new Color(c.R, c.G, c.B, 0.10f * a));
+            }
+        }
     }
 
     /// <summary>FABLE-069: a carved stone stele — a Greek pediment on top, a gold rim, and (Runic) a Norse
