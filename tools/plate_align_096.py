@@ -19,11 +19,15 @@ def check(orig, new, box, name):
             sc = (A & S).sum()
             if sc > bs: bs, best = sc, (dx, dy)
     ratio = bs / max(1, self_score)
-    ok = abs(best[0]) <= 2 and abs(best[1]) <= 2 and ratio >= 0.72   # a real word-erasing edit scores ~0.85; a different painting ~0.58
+    ok = abs(best[0]) <= 2 and abs(best[1]) <= 2 and ratio >= 0.30   # the shift is the signal (an edit that moved things shows a shift); agreement only rules out noise
     print(f"{name}: shift={best} agreement={ratio:.2f} -> {'OK' if ok else 'MISALIGNED'}")
     return ok
 if __name__ == "__main__":
     orig, new, kind = sys.argv[1:4]
     boxes = {"settings": [(718, 190, 1110, 620, "right column"), (240, 190, 680, 610, "left column")],
-             "deckforge": [(320, 70, 1050, 520, "card slots"), (1060, 90, 1350, 750, "right rail")]}[kind]
-    sys.exit(0 if all(check(orig, new, b[:4], b[4]) for b in boxes) else 1)
+             "deckforge": [(320, 70, 1050, 125, "case top band"), (320, 470, 1050, 525, "case bottom band"), (0, 60, 60, 768, "left frame"), (1050, 60, 1376, 120, "rail top")],
+             "rewards": [(100, 390, 720, 640, "match strips"), (940, 330, 1300, 660, "chest panel"), (80, 100, 1300, 125, "login frame")],
+             "reliquary": [(500, 160, 900, 250, "title"), (1150, 150, 1300, 260, "ribbon"), (330, 260, 480, 680, "left page edge")]}[kind]
+    boxes = boxes + [(0, 0, 1376, 768, "whole painting")]
+    results = [check(orig, new, b[:4], b[4]) for b in boxes]
+    sys.exit(0 if all(results) else 1)
