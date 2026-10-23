@@ -186,7 +186,12 @@ public partial class OnlineLobbyScene : Control
     {
         var back = Plate("◀  Back to title", false, 380);   // FABLE-091: its own plate (it borrowed the old world map's style)
         back.Position = new Vector2(80, vp.Y - 120); back.Size = new Vector2(380, 84); back.CustomMinimumSize = new Vector2(380, 84);
-        back.Pressed += () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
+        back.Pressed += () =>
+        {
+            // FABLE-095: leaving from inside a lobby tells the server, so the other player isn't left waiting on a ghost
+            if (_view == View.Lobby && _sync != null && _sm?.Session != null && !string.IsNullOrEmpty(_id)) _ = _sync.Leave(_sm.Session, _id);
+            LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
+        };
         AddChild(back);
 
     }
@@ -298,7 +303,7 @@ public partial class OnlineLobbyScene : Control
         if (username.Length == 0) { SetStatus("Type your friend's username."); return; }
         SetStatus($"Challenging {username}…");
         var err = await _sm.ChallengePlayer(username, _id).ConfigureAwait(false);
-        CallDeferred(nameof(SetStatus), err ?? $"Challenge sent. {username} sees it on their Online screen.");
+        Later(nameof(SetStatus), err ?? $"Challenge sent. {username} sees it on their Online screen.");
     }
 
     private async Task PollInvites()
@@ -308,7 +313,7 @@ public partial class OnlineLobbyScene : Control
         var list = await _sm.MyChallenges().ConfigureAwait(false);
         _invitePolling = false;
         _invite = list.FirstOrDefault();
-        CallDeferred(nameof(ShowInvite));
+        Later(nameof(ShowInvite));
     }
 
     private void ShowInvite()
@@ -323,11 +328,11 @@ public partial class OnlineLobbyScene : Control
         var inv = _invite;
         if (_sm == null || inv == null) return;
         _invite = null;
-        CallDeferred(nameof(ShowInvite));
+        Later(nameof(ShowInvite));
         var code = await _sm.AnswerChallenge(inv.Id, accept).ConfigureAwait(false);
         if (!accept) return;
-        if (string.IsNullOrEmpty(code)) { CallDeferred(nameof(SetStatus), "That lobby has closed."); return; }
-        CallDeferred(nameof(JoinDeferred), code);
+        if (string.IsNullOrEmpty(code)) { Later(nameof(SetStatus), "That lobby has closed."); return; }
+        Later(nameof(JoinDeferred), code);
     }
 
     private void JoinDeferred(string code) => _ = Join(code);
@@ -339,7 +344,7 @@ public partial class OnlineLobbyScene : Control
         SetStatus("Opening a lobby…");
         _kind = kind;
         var r = await _sync.Create(_sm.Session, kind, target, kind == "coop" ? 5 : 2, me.Value.name, me.Value.cls, me.Value.deck).ConfigureAwait(false);
-        CallDeferred(nameof(AfterHost), r.ok, r.id, r.code, r.error);
+        Later(nameof(AfterHost), r.ok, r.id, r.code, r.error);
     }
 
     private void AfterHost(bool ok, string id, string code, string error)
@@ -359,16 +364,16 @@ public partial class OnlineLobbyScene : Control
         var f = await _sync.Find(_sm.Session, code).ConfigureAwait(false);
         if (!f.ok || f.found == null)
         {
-            CallDeferred(nameof(SetStatus), f.ok ? "No open lobby has that code." : "Couldn't look it up: " + f.error);
+            Later(nameof(SetStatus), f.ok ? "No open lobby has that code." : "Couldn't look it up: " + f.error);
             return;
         }
         if (f.found.State != "open")
         {
-            CallDeferred(nameof(SetStatus), "That match has already started.");
+            Later(nameof(SetStatus), "That match has already started.");
             return;
         }
         var j = await _sync.Join(_sm.Session, f.found.Id, me.Value.name, me.Value.cls, me.Value.deck).ConfigureAwait(false);
-        CallDeferred(nameof(AfterJoin), j.ok, f.found.Id, code.ToUpperInvariant(), f.found.Kind, f.found.HostName, j.error);
+        Later(nameof(AfterJoin), j.ok, f.found.Id, code.ToUpperInvariant(), f.found.Kind, f.found.HostName, j.error);
     }
 
     private void AfterJoin(bool ok, string id, string code, string kind, string hostName, string error)
@@ -393,7 +398,7 @@ public partial class OnlineLobbyScene : Control
         if (present < 2) { SetStatus("Nobody has joined yet."); return; }
         SetStatus("Starting…");
         var r = await _sync.Start(_sm.Session, _id).ConfigureAwait(false);
-        if (!r.ok) CallDeferred(nameof(SetStatus), "Couldn't start: " + r.error);
+        if (!r.ok) Later(nameof(SetStatus), "Couldn't start: " + r.error);
         // the poll sees "running" and launches, same as the guest's phone
     }
 
@@ -401,7 +406,7 @@ public partial class OnlineLobbyScene : Control
     {
         if (_sync != null && _sm?.Session != null && !string.IsNullOrEmpty(_id))
             await _sync.Leave(_sm.Session, _id).ConfigureAwait(false);
-        CallDeferred(nameof(ShowMenu));
+        Later(nameof(ShowMenu));
     }
 
     private async Task PollLobby()
@@ -410,9 +415,9 @@ public partial class OnlineLobbyScene : Control
         _polling = true;
         var r = await _sync.GetLobby(_sm.Session, _id).ConfigureAwait(false);
         _polling = false;
-        if (r.ok && r.lobby != null) CallDeferred(nameof(ApplyLobby), Godot.Variant.From(0));
-        _lobby = r.ok ? r.lobby : _lobby;
-        if (!r.ok) CallDeferred(nameof(SetStatus), "Connection hiccup: " + r.error);
+        _lobby = r.ok ? r.lobby : _lobby;   // FABLE-095: set before the screen is told, so it never reads the old lobby
+        if (r.ok && r.lobby != null) Later(nameof(ApplyLobby), Godot.Variant.From(0));
+        if (!r.ok) Later(nameof(SetStatus), "Connection hiccup: " + r.error);
     }
 
     private void ApplyLobby(Variant _)
@@ -480,7 +485,14 @@ public partial class OnlineLobbyScene : Control
         _kicker.Text = "PLAY WITH FRIENDS";
     }
 
-    private void SetStatus(string s) { if (_status != null) _status.Text = s; }
+    private void SetStatus(string s) { if (_status != null && IsInstanceValid(_status)) _status.Text = s; }
+
+    /// <summary>FABLE-095: a reply that lands after this screen was closed is dropped - it used to throw inside a background task.</summary>
+    private void Later(string method, params Variant[] args)
+    {
+        if (!IsInstanceValid(this)) return;
+        try { CallDeferred(method, args); } catch (ObjectDisposedException) { }
+    }
 
     private void PickCoopTarget()
     {

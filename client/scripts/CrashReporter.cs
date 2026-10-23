@@ -118,8 +118,12 @@ public partial class CrashReporter : Node
         if (args.Exception == null)
             return;
 
-        HandleCrash(args.Exception);
+        // FABLE-095: a background task that faulted (a lobby poll finishing after its screen was closed, a username
+        // refresh after sign-out) is reported, not treated as a crash - it used to throw the player back to the
+        // title from whatever they were doing, minutes later, when the garbage collector noticed it.
         args.SetObserved();
+        try { ReportNonFatal(args.Exception.GetBaseException()); } catch { }
+        DuelScene.ExitTrace("background task faulted (reported, not fatal): " + args.Exception.GetBaseException().GetType().Name + ": " + args.Exception.GetBaseException().Message);
     }
 
     // ——— Core crash handling ———

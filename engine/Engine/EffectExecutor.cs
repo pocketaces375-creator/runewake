@@ -1031,19 +1031,19 @@ public static class EffectExecutor
             return;
         }
 
+        // FABLE-095: a creature borrowed "this turn" goes home when it dies - its real owner's discard pile or
+        // Unearth queue, never the thief's (it used to become the thief's card for good)
+        var home = card.StolenFrom >= 0 && card.StolenFrom != card.Controller ? state.Player(card.StolenFrom) : owner;
+        lane.Occupant = null;
+        if (!ReferenceEquals(home, owner)) { card.Controller = home.Index; card.StolenFrom = -1; card.StolenFromLane = -1; }
         // Check Unearth first
-        bool unearthed = KeywordHandlers.OnDeath(card, owner);
+        bool unearthed = KeywordHandlers.OnDeath(card, home);
         if (unearthed)
             Fx.Emit(state, Fx.New(FxKind.Keyword, "UNEARTH").From(card).To(card));
         if (!unearthed)
         {
-            lane.Occupant = null;
             card.Zone = Zone.Discard;
-            owner.Discard.Add(card);
-        }
-        else
-        {
-            lane.Occupant = null;
+            home.Discard.Add(card);
         }
         // (LaneIndex is kept: "when this dies, hit the creature opposite it" still knows where it stood)
         TriggerBus.FireDeathEvents(state, card, owner.Index);

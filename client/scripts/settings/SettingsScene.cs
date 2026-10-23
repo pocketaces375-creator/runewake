@@ -492,12 +492,12 @@ public partial class SettingsScene : Control
 
         // the whole row is the hit area
         wrap.MouseFilter = MouseFilterEnum.Stop;
+        var rowTap = new TapGuard();   // FABLE-095: one tap is one flip (a touch arrives twice: as a touch and as an emulated click)
         wrap.GuiInput += e =>
         {
-            if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } mb && !sw.GetGlobalRect().HasPoint(mb.GlobalPosition))
-                sw.Flip();
-            else if (e is InputEventScreenTouch { Pressed: false } st && !sw.GetGlobalRect().HasPoint(st.Position))
-                sw.Flip();
+            if (!rowTap.AcceptRelease(e)) return;
+            var at = e is InputEventMouseButton mb ? mb.GlobalPosition : e is InputEventScreenTouch st ? st.Position : Vector2.Zero;
+            if (!sw.GetGlobalRect().HasPoint(at)) sw.Flip();
         };
         return sw;
     }
@@ -1068,10 +1068,13 @@ public partial class SettingsSwitch : Control
         Toggled?.Invoke(On);
     }
 
+    private readonly TapGuard _tap = new();
+
     public override void _GuiInput(InputEvent e)
     {
         // FABLE-072: a finger as well as a mouse (a touch that is not turned into a mouse event never flipped it)
-        if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } || e is InputEventScreenTouch { Pressed: false })
+        // FABLE-095: but one finger is one flip - the touch and its emulated click flipped it twice, so it looked dead
+        if (_tap.AcceptRelease(e))
         {
             Flip();
             AcceptEvent();

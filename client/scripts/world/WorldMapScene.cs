@@ -471,7 +471,7 @@ public partial class WorldMapScene : Control
         if (EncounterForge.IsFight(b))
         {
             WorldService.ArmFight(_page, b);
-            if (first) GetTree().CreateTimer(2.2).Timeout += () => Go(CampaignRun.DuelScenePath);
+            if (first) GetTree().CreateTimer(2.2).Timeout += () => { if (IsInstanceValid(this) && IsInsideTree()) Go(CampaignRun.DuelScenePath); };   // FABLE-095
             else Go(CampaignRun.DuelScenePath);
             return;
         }

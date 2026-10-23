@@ -166,10 +166,10 @@ public class ProgressionSnapshot
         }
 
         s.DeckCardIds.Clear(); s.DeckCardIds.AddRange(DeckCardIds);
-        s.SavedDecks.Clear(); foreach (var kv in SavedDecks) s.SavedDecks[kv.Key] = new List<string>(kv.Value);
+        s.SavedDecks.Clear(); foreach (var kv in SavedDecks) if (kv.Value != null) s.SavedDecks[kv.Key] = new List<string>(kv.Value);   // FABLE-095: a null list inside is dropped, not a throw
         // FABLE-072: a cloud copy that carries no artifact picks must not erase the ones on this phone
         if (DeckArtifacts.Count > 0 || s.DeckArtifacts.Count == 0)
-        { s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value); }
+        { s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) if (kv.Value != null) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value); }
         if (ActiveArtifacts.Count > 0 || s.ActiveArtifacts.Count == 0)
         { s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts); }
         s.ActiveDeckName = ActiveDeckName ?? "";
@@ -304,6 +304,7 @@ public class CloudSaveBundle
         // once; cheap, and it keeps one set of rules.
         foreach (var key in b.Slots.Keys.ToList())
         {
+            if (b.Slots[key] == null) { b.Slots.Remove(key); continue; }   // FABLE-095: {"slots":{"0":null}} is a missing slot, not a crash
             var fixedSlot = ProgressionSnapshot.FromJson(b.Slots[key].ToJson());
             if (fixedSlot != null) b.Slots[key] = fixedSlot; else b.Slots.Remove(key);
         }

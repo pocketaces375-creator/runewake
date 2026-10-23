@@ -89,11 +89,15 @@ public static class EncounterForge
         string? cardReward = null;
         if (blip.Kind is BlipKind.Warden or BlipKind.AreaBoss)
         {
-            var best = deck.Select(id => pool.First(c => c.Id == id))
-                           .OrderByDescending(c => (int)c.Rarity).ThenByDescending(c => c.PowerScore ?? 0).ThenBy(c => c.Id, StringComparer.Ordinal)
-                           .First();
-            drops.Insert(0, new DropEntry { CardId = best.Id, Rate = 1.0 });
-            if (blip.Kind == BlipKind.AreaBoss) cardReward = best.Id;
+            // FABLE-095: no guaranteed drop when the deck came out empty (content not loaded) - never a throw on a boss
+            var best = deck.Select(id => pool.FirstOrDefault(c => c.Id == id)).Where(c => c != null)
+                           .OrderByDescending(c => (int)c!.Rarity).ThenByDescending(c => c!.PowerScore ?? 0).ThenBy(c => c!.Id, StringComparer.Ordinal)
+                           .FirstOrDefault();
+            if (best != null)
+            {
+                drops.Insert(0, new DropEntry { CardId = best.Id, Rate = 1.0 });
+                if (blip.Kind == BlipKind.AreaBoss) cardReward = best.Id;
+            }
         }
 
         string cls = biome.Classes.Count > 0 ? biome.Classes[rng.NextInt(biome.Classes.Count)] : "";

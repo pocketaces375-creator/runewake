@@ -268,6 +268,9 @@ public sealed class CardInstance
         RedirectCharges = other.RedirectCharges;
         StolenFrom = other.StolenFrom;
         StolenFromLane = other.StolenFromLane;
+        ArtifactSlotIndex = other.ArtifactSlotIndex;   // FABLE-095: the copy lost these, so every artifact event after the first action reported slot -1
+        ArtifactClass = other.ArtifactClass;
+        SlotPool = other.SlotPool;
         Keywords = new List<string>(other.Keywords);
         GrantedKeywords = new HashSet<string>(other.GrantedKeywords);
         RemovedKeywords = new HashSet<string>(other.RemovedKeywords);

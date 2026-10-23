@@ -22,11 +22,31 @@ public partial class ScreenSkin : Node
     private static readonly Dictionary<string, Image?> Pixels = new();
     private Node? _scene;
     private bool _on;
+    // FABLE-095: nodes added this frame are walked together, once, after one short wait - one timer and one walk per
+    // node made every Deck Forge tap (hundreds of nodes) a hitch of hundreds of timers and thousands of passes
+    private readonly List<Node> _added = new();
+    private bool _walkPending;
 
     public override void _Ready() => GetTree().NodeAdded += n =>
     {
-        if (_on && _scene != null && IsInstanceValid(_scene) && (n is Control) && _scene.IsAncestorOf(n))
-            GetTree().CreateTimer(0.06).Timeout += () => { if (IsInstanceValid(n) && IsInstanceValid(_scene)) Walk(n, _scene); };
+        if (!_on || _scene == null || !IsInstanceValid(_scene) || n is not Control || !_scene.IsAncestorOf(n)) return;
+        _added.Add(n);
+        if (_walkPending) return;
+        _walkPending = true;
+        GetTree().CreateTimer(0.06).Timeout += () =>
+        {
+            _walkPending = false;
+            var batch = new HashSet<Node>(_added); _added.Clear();
+            if (_scene == null || !IsInstanceValid(_scene)) return;
+            foreach (var a in batch)
+            {
+                if (!IsInstanceValid(a) || !a.IsInsideTree()) continue;
+                bool covered = false;   // a node whose ancestor is also in the batch is walked with that ancestor
+                for (var p = a.GetParent(); p != null && p != _scene; p = p.GetParent())
+                    if (batch.Contains(p)) { covered = true; break; }
+                if (!covered) Walk(a, _scene);
+            }
+        };
     };
 
     public override void _Process(double delta)

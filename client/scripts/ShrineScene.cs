@@ -90,7 +90,7 @@ public partial class ShrineScene : Control
         var note = Text(line, 0, GetViewportRect().Size.Y - 230, 34, ThemeTokens.GetBodyFont(34), ThemeTokens.Gold);
         note.Modulate = new Color(1, 1, 1, 0);
         note.CreateTween().TweenProperty(note, "modulate:a", 1f, 0.4f);
-        GetTree().CreateTimer(1.6).Timeout += () => Leave("chose");
+        GetTree().CreateTimer(1.6).Timeout += () => { if (IsInstanceValid(this) && IsInsideTree()) Leave("chose"); };   // FABLE-095: not after Back
     }
 
     private void Leave(string why)

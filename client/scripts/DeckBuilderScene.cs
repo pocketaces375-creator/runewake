@@ -849,9 +849,11 @@ public partial class DeckBuilderScene : Control
     /// </summary>
     private async void RestoreGridScroll(int value)
     {
-        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-        if (IsInstanceValid(_gridScroll))
+        var tree = GetTree();
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        if (!IsInstanceValid(this)) return;   // FABLE-095: left the screen within a frame
+        await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        if (IsInstanceValid(this) && IsInstanceValid(_gridScroll))
             _gridScroll.ScrollVertical = value;
     }
 

@@ -192,8 +192,17 @@ public sealed class PvpSession
             switch (m.Type)
             {
                 case "move":
-                    var a = m.ReadAction();
-                    if (a == null) break;
+                    GameAction? a;
+                    try { a = m.ReadAction(); }
+                    catch (Exception) { a = null; }   // FABLE-095: a move this build cannot read (a newer action type)
+                    if (a == null)
+                    {
+                        // never throw out of Drain: the message would stay at the next sequence number and every later
+                        // Receive would throw again, freezing the match with no desync raised
+                        VersionMismatch = true; IsDesynced = true;
+                        Desynced?.Invoke(_applied, seat);
+                        return;
+                    }
                     if (_duel.State.CurrentPlayerIndex != seat && !_duel.State.IsGameOver)
                         return;                      // their move is ahead of ours: wait for our own turn to finish
                     if (!_duel.Submit(seat, a, out _))

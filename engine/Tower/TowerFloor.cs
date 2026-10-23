@@ -65,7 +65,10 @@ public sealed class TowerRaidDef
     public int PoolFor(int players)
     {
         if (SharedPoolByPlayers is { Count: > 0 } l && players >= 1)
-            return l[Math.Min(players, l.Count) - 1];
+        {
+            int n = l[Math.Min(players, l.Count) - 1];
+            if (n > 0) return n;   // FABLE-095: a 0 (or negative) entry means "use the shared pool", never "no pool"
+        }
         return SharedPool;
     }
 }

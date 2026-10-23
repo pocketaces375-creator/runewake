@@ -204,7 +204,8 @@ public partial class SyncManager : Node
             }
 
             var lastSynced = ParseIso(_meta.LastSyncedAt);
-            bool localEmpty = IsLocalEmpty();
+            bool localEmpty;
+            try { localEmpty = (await SnapshotAsync().ConfigureAwait(false)).IsEmptyProgress; } catch { localEmpty = false; }   // FABLE-095: read on the main thread
             var decision = CloudSaveSync.Decide(fetch.Save, lastSynced, _meta.Dirty, localEmpty);
             // FABLE-066: the fetch takes as long as the network does. If the player saved anything meanwhile
             // (edited a deck, won a fight), a restore would wipe it: ask instead of overwriting.
@@ -231,7 +232,7 @@ public partial class SyncManager : Node
                         Cloud = fetch.Save!,
                         CloudSummary = Summarize(fetch.Save!.Bundle) + $" · {Ago(fetch.Save.UpdatedAt)}"
                                        + (string.IsNullOrEmpty(fetch.Save.DeviceId) || fetch.Save.DeviceId == _deviceId ? "" : " · another device"),
-                        LocalSummary = Summarize(BuildLocalBundle()) + " · this device",
+                        LocalSummary = Summarize(await SnapshotAsync().ConfigureAwait(false)) + " · this device",
                     };
                     SetStatus("Two saves found — choose one");
                     Emit(SignalName.ConflictDetected);
@@ -352,7 +353,7 @@ public partial class SyncManager : Node
     {
         if (_cloud == null || Session == null) return;
         int gen = Volatile.Read(ref _saveGen);
-        var bundle = BuildLocalBundle();
+        var bundle = await SnapshotAsync().ConfigureAwait(false);
         var r = await _cloud.Push(Session, bundle, _deviceId, AppVersion()).ConfigureAwait(false);
         if (r.Ok)
         {
@@ -559,7 +560,7 @@ public partial class SyncManager : Node
                 return;
             }
 
-            var local = BuildLocalBundle();
+            var local = await SnapshotAsync().ConfigureAwait(false);
             var decision = CloudSaveSync.DecideOnSignIn(fetch.Save, local);
             GD.Print($"[SyncManager] signed in as {Label(account)} — {decision}");
             switch (decision)
@@ -650,10 +651,12 @@ public partial class SyncManager : Node
             var server = await _relics.FetchRelics(Session.UserId).ConfigureAwait(false);
             var localIds = new HashSet<string>(prog.DiscoveredRelics.Select(r => r.RelicInstanceId));
             int merged = 0;
-            foreach (var r in server) if (localIds.Add(r.RelicInstanceId)) { prog.AddRelic(r); merged++; }
+            var fromServer = server.Where(r => localIds.Add(r.RelicInstanceId)).ToList();
+            merged = fromServer.Count;
             var localOnly = prog.DiscoveredRelics.Where(r => server.All(s => s.RelicInstanceId != r.RelicInstanceId)).ToList();
             if (localOnly.Count > 0) await _relics.SyncRelics(Session.UserId, localOnly).ConfigureAwait(false);
-            if (merged > 0) OnMainThread(() => _save.Save());   // FABLE-055: never save from a background thread
+            // FABLE-095: the relic list is changed on the main thread too, not only saved there
+            if (merged > 0) OnMainThread(() => { foreach (var r in fromServer) prog.AddRelic(r); _save.Save(); });
             GD.Print($"[SyncManager] relics: {merged} merged from server, {localOnly.Count} pushed");
         }
         catch (Exception ex) { GD.PrintErr($"[SyncManager] relic sync failed: {ex.Message}"); }
@@ -700,7 +703,11 @@ public partial class SyncManager : Node
                 else if (File.Exists(SlotDbPath(slot)))
                     b.Slots[slot.ToString()] = ProgressionSnapshot.FromState(new SaveRepository(SlotDbPath(slot)).Load());
             }
-            catch (Exception ex) { GD.PrintErr($"[SyncManager] could not read slot {slot}: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                GD.PrintErr($"[SyncManager] could not read slot {slot}: {ex.Message}");
+                if (slot == active) throw;   // FABLE-095: never push a bundle that silently lacks the campaign being played
+            }
         }
         return b;
     }
@@ -951,18 +958,23 @@ public partial class SyncManager : Node
     /// <summary>Ask the server for this account's username (and claim a remembered one if it has none).</summary>
     public async Task RefreshUsername()
     {
-        if (_profiles == null || Session == null || !HasAccount) return;
-        var name = await _profiles.MyUsername(Session).ConfigureAwait(false);
-        if (string.IsNullOrEmpty(name) && ReadTextOrNull(UsernameToClaimPath) is string wanted && wanted.Trim().Length > 0)
+        if (_profiles == null || Session is not SupabaseSession session || !HasAccount) return;
+        try
         {
-            var (claim, _) = await _profiles.ClaimUsername(Session, wanted).ConfigureAwait(false);
-            if (claim == ProfileSync.Claim.Ok) name = wanted.Trim();
-            if (claim != ProfileSync.Claim.Missing && claim != ProfileSync.Claim.Failed) ForgetUsernameToClaim();
+            // FABLE-095: the session is held for the whole refresh (a sign-out mid-way nulled it under the second call)
+            var name = await _profiles.MyUsername(session).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(name) && ReadTextOrNull(UsernameToClaimPath) is string wanted && wanted.Trim().Length > 0)
+            {
+                var (claim, _) = await _profiles.ClaimUsername(session, wanted).ConfigureAwait(false);
+                if (claim == ProfileSync.Claim.Ok) name = wanted.Trim();
+                if (claim != ProfileSync.Claim.Missing && claim != ProfileSync.Claim.Failed) ForgetUsernameToClaim();
+            }
+            if (name == null || name == Username || Session == null) return;
+            Username = name.Length > 0 ? name : null;
+            WriteUsername();
+            CallDeferred(nameof(SetStatusDeferred), "Signed in · " + PublicLabel);
         }
-        if (name == null || name == Username) return;
-        Username = name.Length > 0 ? name : null;
-        WriteUsername();
-        CallDeferred(nameof(SetStatusDeferred), "Signed in · " + PublicLabel);
+        catch (Exception ex) { GD.PrintErr("[SyncManager] username refresh failed: " + ex.Message); }
     }
 
     private void SetStatusDeferred(string s) => SetStatus(s);
@@ -970,11 +982,25 @@ public partial class SyncManager : Node
     /// <summary>FABLE-055: run on the main thread (now if already there, else at the next idle frame).</summary>
     private static void OnMainThread(Action act)
     {
-        if (System.Threading.Thread.CurrentThread.ManagedThreadId == MainThreadId) act();
+        if (IsMainThread) act();
         else Callable.From(act).CallDeferred();
     }
 
-    private static readonly int MainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+    // FABLE-095: asked of the engine, not remembered in a static that could be initialised on a pool thread
+    private static bool IsMainThread => OS.GetThreadCallerId() == OS.GetMainThreadId();
+
+    /// <summary>
+    /// FABLE-095: the save, copied on the main thread. It was copied on the pool thread after an await, while a duel
+    /// or a pack opening changed it; "collection was modified" then dropped the active campaign from the bundle,
+    /// and the cloud copy was pushed without it.
+    /// </summary>
+    private Task<CloudSaveBundle> SnapshotAsync()
+    {
+        if (IsMainThread) return Task.FromResult(BuildLocalBundle());
+        var tcs = new TaskCompletionSource<CloudSaveBundle>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Callable.From(() => { try { tcs.SetResult(BuildLocalBundle()); } catch (Exception ex) { tcs.SetException(ex); } }).CallDeferred();
+        return tcs.Task;
+    }
 
     /// <summary>Pick or change the username. Ok, or a sentence saying why not.</summary>
     public async Task<(bool ok, string error)> SetUsername(string name)

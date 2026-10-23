@@ -18,7 +18,7 @@ public class PendingPack
     /// <summary>"play" (a Google Play purchase) or "preview" (a debug build's free test pack).</summary>
     [JsonPropertyName("source")] public string Source { get; set; } = "play";
 
-    public PendingPack Clone() => new() { Id = Id, Cards = new(Cards), Rarities = new(Rarities), Source = Source };
+    public PendingPack Clone() => new() { Id = Id ?? "", Cards = new(Cards ?? new()), Rarities = new(Rarities ?? new()), Source = Source ?? "play" };   // FABLE-095: null fields from a hand-edited file
 }
 
 /// <summary>A pack product in the shop. The price shown comes from Google Play when it is available.</summary>

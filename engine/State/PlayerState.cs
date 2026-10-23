@@ -243,6 +243,7 @@ public sealed class PlayerState
         DrainNext = other.DrainNext;
         Traps = other.Traps.ConvertAll(t => t.Clone());
         LastAttackedLaneIndex = other.LastAttackedLaneIndex;
+        HasMulliganed = other.HasMulliganed;   // FABLE-095
     }
 
     /// <summary>

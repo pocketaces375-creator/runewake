@@ -146,12 +146,13 @@ public static class TriggerBus
     {
         var pending = new List<(AbilityDef, CardInstance, int, int)>();
         CollectFromPlayer(state.Player(playerIndex), trigger, pending);
-        foreach (var (ability, source, ctl, _) in pending)
+        foreach (var (ability, source, ctl, laneIdx) in pending)
         {
             if (state.IsGameOver) return;
-            // a creature that left the board since the list was made doesn't act
-            if ((source.CardType == CardType.CREATURE || source.CardType == CardType.TOKEN || source.CardType == CardType.RELIC)
-                && source.Zone != Zone.Lane)
+            // a creature that left the board since the list was made doesn't act.
+            // FABLE-095: rune tokens live off the board (lane -1) and must not be skipped - every side event a rune
+            // listened for ("whenever an ally dies", "whenever you excavate") was dropped here, so runes never fired.
+            if (laneIdx >= 0 && source.Zone != Zone.Lane)
                 continue;
             RunAbility(state, ability, source, ctl);
         }

@@ -120,7 +120,9 @@ public static class DailyRewards
     public static DateOnly Effective(ProgressionState p, DateOnly today)
     {
         var seen = P(p.Daily.LastSeenDate);
-        return seen is DateOnly s && s > today ? s : today;
+        // FABLE-095: a date far ahead of today is a clock fault (a phone that booted with a wrong clock, a cloud save
+        // from one), not a day already seen - honouring it locked the rewards until the real date caught up.
+        return seen is DateOnly s && s > today && s <= today.AddDays(1) ? s : today;
     }
 
     /// <summary>Move the save onto today: a new day clears the match counters and the day's claims.</summary>
