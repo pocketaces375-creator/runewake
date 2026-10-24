@@ -296,7 +296,7 @@ public partial class RewardsScene : Control
     private static bool Words => ScreenSkin.Words("RewardsScene");
     /// <summary>A point of the 1376x768 painting on the screen (the painting is stretched to fill it).</summary>
     private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
-    private static readonly Color Ink = new(0.21f, 0.13f, 0.06f), InkSoft = new(0.30f, 0.19f, 0.09f), RuneCyan = new(0.80f, 0.97f, 0.96f);
+    private static readonly Color Ink = new(0.21f, 0.13f, 0.06f), InkSoft = new(0.30f, 0.19f, 0.09f), RuneCyan = new(0.74f, 0.92f, 0.90f);   // FABLE-103: a touch softer
     private static readonly float[] StoneX = { 172, 303, 425, 547, 669, 791, 913 };
     private static readonly (float y0, float y1)[] Strips = { (397, 446), (461, 508), (524, 571), (589, 635) };
 
@@ -413,6 +413,7 @@ public partial class RewardsScene : Control
         claim.Name = "ClaimLogin";
         claim.Pressed += () => Claim(() => DailyRewards.ClaimLogin(Prog, Today, PickCard), $"Day {shownDay}");
         if (!claimedToday) Pulse(claim);
+        if (w) Medallion(claim, vp, 1206, 197, 1286, 266);
 
         // today's matches, one painted parchment strip each
         if (!w) ArtText("TODAY'S MATCHES", vp, 108, 336, 400, 23, head, label, outline: 4);
@@ -444,6 +445,7 @@ public partial class RewardsScene : Control
             var id = t.Id; var title = t.Title;
             btn.Pressed += () => Claim(() => DailyRewards.ClaimTier(Prog, id, Today, PickCard), title);
             if (st == RewardStatus.Ready) Pulse(btn);
+            if (w) Medallion(btn, vp, 824, y0 - 1, 885, y1 + 1);
         }
 
         // the daily chest between its two rune stones
@@ -464,6 +466,17 @@ public partial class RewardsScene : Control
         open.Disabled = cst != RewardStatus.Ready;
         open.Name = "ClaimChest";
         open.Pressed += () => Claim(() => DailyRewards.ClaimChest(Prog, Today, PickCard), "Daily Chest");
+        if (w) Medallion(open, vp, 1208, 584, 1285, 640);
+    }
+
+    /// <summary>FABLE-103: the painted rune medallion at a button's end is part of the button - tapping it presses the button.</summary>
+    private void Medallion(Button owner, Vector2 vp, float x0, float y0, float x1, float y1)
+    {
+        var a = P(vp, x0, y0); var b = P(vp, x1, y1);
+        var hit = new Button { Position = a, Size = b - a, FocusMode = FocusModeEnum.None, MouseDefaultCursorShape = CursorShape.PointingHand };
+        Ghost(hit);
+        hit.Pressed += () => { if (IsInstanceValid(owner) && !owner.Disabled) owner.EmitSignal(BaseButton.SignalName.Pressed); };
+        _content.AddChild(hit);
     }
 
     // ── claiming ─────────────────────────────────────────────────────────

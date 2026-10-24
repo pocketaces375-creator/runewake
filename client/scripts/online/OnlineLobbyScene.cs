@@ -56,6 +56,10 @@ public partial class OnlineLobbyScene : Control
     private bool _invitePolling;
     private string _coopTarget = "";
     private string _coopTitle = "";
+    // FABLE-103: the war-table painting (OnlineLobbyScene_words.webp) - the lobby laid out on its stones, thrones and scrolls
+    private static bool Painted => ScreenSkin.Words("OnlineLobbyScene");
+    private Label _seatL = null!, _seatR = null!;
+    private Button? _chBtn, _copyBtn;
 
     public override void _Ready() => SceneGuard.Build(this, "OnlineLobbyScene", Build, "res://scenes/main/Main.tscn", "Back to title");
 
@@ -69,8 +73,16 @@ public partial class OnlineLobbyScene : Control
         try { BuildBackdrop(vp); } catch (Exception ex) { failed.Add(PartFailed("backdrop", ex)); }
         try { BuildBack(vp); } catch (Exception ex) { failed.Add(PartFailed("back", ex)); }
         try { BuildSync(); } catch (Exception ex) { failed.Add(PartFailed("cloud", ex)); }
-        try { BuildMenu(vp); } catch (Exception ex) { failed.Add(PartFailed("menu", ex)); }
-        try { BuildLobbyPane(vp); } catch (Exception ex) { failed.Add(PartFailed("lobby", ex)); }
+        if (Painted)
+        {
+            try { BuildPaintedMenu(vp); } catch (Exception ex) { failed.Add(PartFailed("menu", ex)); }
+            try { BuildPaintedLobby(vp); } catch (Exception ex) { failed.Add(PartFailed("lobby", ex)); }
+        }
+        else
+        {
+            try { BuildMenu(vp); } catch (Exception ex) { failed.Add(PartFailed("menu", ex)); }
+            try { BuildLobbyPane(vp); } catch (Exception ex) { failed.Add(PartFailed("lobby", ex)); }
+        }
         try { FinishBuild(); } catch (Exception ex) { failed.Add(PartFailed("status", ex)); }
         if (failed.Count > 0) SetStatus("Part of this screen could not load (" + string.Join("; ", failed) + "). Screenshot this for Fable.");
     }
@@ -110,7 +122,7 @@ public partial class OnlineLobbyScene : Control
         AddChild(glow);
         // FABLE-098: with a painting behind the lobby (the war table), a soft veil keeps the menu readable over it.
         // (a Control holding the veil, so ScreenSkin's sweep of flat background layers leaves it alone)
-        if (ResourceLoader.Exists("res://content/art/screens/OnlineLobbyScene.webp"))
+        if (!Painted && ResourceLoader.Exists("res://content/art/screens/OnlineLobbyScene.webp"))
         {
             var veil = new Control { MouseFilter = MouseFilterEnum.Ignore };
             veil.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -123,6 +135,20 @@ public partial class OnlineLobbyScene : Control
         _kicker = Text("PLAY WITH FRIENDS", 26, 28, ThemeTokens.GetHeaderFont(28), new Color(0.75f, 0.68f, 0.52f));
         _title = Text("Online", 60, 84, ThemeTokens.GetCardNameFont(84), ThemeTokens.Gold);
         _status = Text("", vp.Y - 150, 30, ThemeTokens.GetBodyFont(30), new Color(0.86f, 0.76f, 0.56f));
+        if (Painted)   // FABLE-103: the title is painted on the stone; the line under it and the bottom scroll are live
+        {
+            _title.Visible = false;
+            Place(_kicker, P(vp, 470, 133), P(vp, 905, 166));
+            _kicker.AddThemeFontSizeOverride("font_size", Px(vp, 19));
+            _kicker.AddThemeColorOverride("font_color", new Color(0.86f, 0.74f, 0.45f));
+            _kicker.AutowrapMode = TextServer.AutowrapMode.Off; _kicker.VerticalAlignment = VerticalAlignment.Center;
+            Place(_status, P(vp, 440, 693), P(vp, 945, 736));
+            _status.AddThemeFontSizeOverride("font_size", Px(vp, 15));
+            _status.AddThemeColorOverride("font_color", new Color(0.22f, 0.13f, 0.05f));   // dark ink on the scroll
+            _status.AddThemeConstantOverride("line_spacing", -3);
+            _status.VerticalAlignment = VerticalAlignment.Center;
+            _status.SetMeta("skinned", true);
+        }
 
     }
 
@@ -197,6 +223,11 @@ public partial class OnlineLobbyScene : Control
     {
         var back = Plate("◀  Back to title", false, 380);   // FABLE-091: its own plate (it borrowed the old world map's style)
         back.Position = new Vector2(80, vp.Y - 120); back.Size = new Vector2(380, 84); back.CustomMinimumSize = new Vector2(380, 84);
+        if (Painted)   // FABLE-103: the painted "Back to title" stone - its word is the painting's
+        {
+            back.CustomMinimumSize = Vector2.Zero; Place(back, P(vp, 934, 607), P(vp, 1142, 680));
+            foreach (var k in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color" }) back.AddThemeColorOverride(k, new Color(0, 0, 0, 0));
+        }
         back.Pressed += () =>
         {
             // FABLE-095: leaving from inside a lobby tells the server, so the other player isn't left waiting on a ghost
@@ -443,6 +474,7 @@ public partial class OnlineLobbyScene : Control
             lines.Add($"{(m.Me ? "▸ " : "")}{m.DisplayName}{cls}   ({tag})");
         }
         _players.Text = string.Join("\n", lines);
+        FillSeats(l);
         int present = l.Members.Count(m => m.Status != "left");
         _startBtn.Visible = _host;
         _startBtn.Disabled = present < 2;
@@ -482,6 +514,14 @@ public partial class OnlineLobbyScene : Control
         if (_inviteBanner != null) _inviteBanner.Visible = false;
         _title.Text = _kind == "coop" ? "Co-op lobby" : "Duel lobby";
         _kicker.Text = _host ? "YOUR LOBBY  ·  SHARE THIS CODE" : "LOBBY CODE";
+        if (Painted)
+        {
+            if (_kind == "coop") _kicker.Text = _host ? "CO-OP LOBBY  ·  SHARE THIS CODE" : "CO-OP LOBBY  ·  CODE";
+            if (_chBtn != null) _chBtn.Visible = _host && _kind == "pvp1v1";
+            if (_copyBtn != null) _copyBtn.Visible = !(_host && _kind == "pvp1v1");
+            _startBtn.Visible = _host; _readyBtn.Visible = !_host;
+            FillSeats(null);
+        }
         _poll = 10;   // poll at once
         _started = false;
     }
@@ -513,6 +553,182 @@ public partial class OnlineLobbyScene : Control
         var enc = next?.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(next.Encounter, out var e) ? e : null;
         enc ??= CampaignContext.EncounterIndex.Values.FirstOrDefault(x => !x.IsTutorial);
         if (enc != null) { _coopTarget = enc.Id; _coopTitle = enc.Name; }
+    }
+
+    // ── FABLE-103: the lobby on the war-table painting ──────────────────────
+    // painting pixels (1376x768, stretched to the screen): the code stone, the two thrones' parchments, the scroll under
+    // the table, the four stone buttons and the long scroll at the foot. Buttons turn see-through over their stones.
+
+    private static Vector2 P(Vector2 vp, float x, float y) => new(x / 1376f * vp.X, y / 768f * vp.Y);
+    private static int Px(Vector2 vp, float px) => Mathf.RoundToInt(px / 768f * vp.Y * 1.40f);
+    private static void Place(Control c, Vector2 a, Vector2 b) { c.Position = a; c.Size = b - a; }
+    private static readonly float[] StoneX = { 236, 468, 700, 934 };
+
+    private Button Stone(Control parent, Vector2 vp, int i, string text, bool primary)
+    {
+        var b = Plate(text, primary, 0);
+        b.CustomMinimumSize = Vector2.Zero;
+        Place(b, P(vp, StoneX[i] + 4, 609), P(vp, StoneX[i] + 204, 678));
+        b.AddThemeFontSizeOverride("font_size", Px(vp, 24));
+        b.AddThemeColorOverride("font_color", Color.FromHtml("#F0D89A"));
+        b.AddThemeColorOverride("font_disabled_color", new Color(0.55f, 0.52f, 0.46f));
+        b.AddThemeConstantOverride("outline_size", 5); b.AddThemeColorOverride("font_outline_color", new Color(0.03f, 0.03f, 0.03f, 0.85f));
+        parent.AddChild(b);
+        return b;
+    }
+
+    private Label ParchmentText(Control parent, Vector2 a, Vector2 b, int px)
+    {
+        var l = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, AutowrapMode = TextServer.AutowrapMode.WordSmart, ClipText = true, MouseFilter = MouseFilterEnum.Ignore };
+        Place(l, a, b);
+        l.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(px)); l.AddThemeFontSizeOverride("font_size", px);
+        l.AddThemeColorOverride("font_color", new Color(0.20f, 0.12f, 0.05f));
+        l.AddThemeConstantOverride("line_spacing", -2);
+        l.SetMeta("skinned", true);
+        parent.AddChild(l);
+        return l;
+    }
+
+    private static void StyleOnPainting(LineEdit e, int px, Color ink, Color hint)
+    {
+        e.AddThemeFontSizeOverride("font_size", px);
+        e.AddThemeColorOverride("font_color", ink);
+        e.AddThemeColorOverride("font_placeholder_color", hint);
+        e.AddThemeColorOverride("caret_color", ink);
+        var box = new StyleBoxFlat { BgColor = new Color(0, 0, 0, 0), BorderColor = new Color(ink, 0.35f), BorderWidthBottom = 2, ContentMarginLeft = 8, ContentMarginRight = 8 };
+        e.AddThemeStyleboxOverride("normal", box);
+        e.AddThemeStyleboxOverride("focus", box);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildPaintedMenu(Vector2 vp)
+    {
+        _menu = new Control { MouseFilter = MouseFilterEnum.Ignore };
+        _menu.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(_menu);
+        var ink = new Color(0.20f, 0.12f, 0.05f);
+
+        // the scroll under the table: your name (fixed when you have a username)
+        bool hasUsername = !string.IsNullOrEmpty(_sm?.Username);
+        _nameEdit = new LineEdit { Text = hasUsername ? _sm!.Username! : LoadName(), MaxLength = Usernames.MaxLength, PlaceholderText = "Your name", Editable = !hasUsername, Alignment = HorizontalAlignment.Center };
+        StyleEdit(_nameEdit);
+        StyleOnPainting(_nameEdit, Px(vp, 20), ink, new Color(0.42f, 0.32f, 0.20f));
+        if (hasUsername) _nameEdit.Text = "Playing as " + _sm!.Username!;
+        Place(_nameEdit, P(vp, 545, 540), P(vp, 828, 580));
+        _menu.AddChild(_nameEdit);
+
+        // the code stone: type a friend's code into it
+        _codeEdit = new LineEdit { MaxLength = 6, PlaceholderText = "CODE", Alignment = HorizontalAlignment.Center };
+        StyleEdit(_codeEdit, 40);
+        _codeEdit.AddThemeFontOverride("font", ThemeTokens.GetCardNameFont(80));
+        StyleOnPainting(_codeEdit, Px(vp, 52), new Color(0.03f, 0.17f, 0.17f), new Color(0.10f, 0.36f, 0.35f, 0.85f));
+        _codeEdit.AddThemeConstantOverride("outline_size", 6); _codeEdit.AddThemeColorOverride("font_outline_color", new Color(0.75f, 1f, 0.95f, 0.35f));
+        _codeEdit.TextChanged += t => { string u = t.ToUpperInvariant(); if (u != t) { _codeEdit.Text = u; _codeEdit.CaretColumn = u.Length; } };
+        _codeEdit.TextSubmitted += t => _ = Join(t.Trim());
+        Place(_codeEdit, P(vp, 530, 262), P(vp, 850, 345));
+        _menu.AddChild(_codeEdit);
+
+        // the thrones: you on the left, the empty seat on the right
+        var me = ParchmentText(_menu, P(vp, 324, 368), P(vp, 424, 462), Px(vp, 15));
+        string cls = CampaignContext.ChosenClass;
+        me.Text = (hasUsername ? _sm!.Username! : (LoadName() is { Length: > 0 } n ? n : "You")) + (string.IsNullOrEmpty(cls) ? "" : $"\n{char.ToUpperInvariant(cls[0])}{cls[1..]}");
+        var seat = ParchmentText(_menu, P(vp, 962, 368), P(vp, 1054, 466), Px(vp, 15));
+        seat.Text = "Host a duel, or type a friend's code";
+
+        var hostBtn = Stone(_menu, vp, 0, "Host a duel", true);
+        hostBtn.Pressed += () => _ = Host("pvp1v1", "pvp");
+        try { PickCoopTarget(); } catch (Exception ex) { DuelScene.ExitTrace("OnlineLobby: no co-op target: " + ex); }
+        var coopBtn = Stone(_menu, vp, 1, "Host co-op", false);
+        coopBtn.Disabled = string.IsNullOrEmpty(_coopTarget);
+        coopBtn.TooltipText = _coopTitle;
+        coopBtn.Pressed += () => _ = Host("coop", _coopTarget);
+        var joinBtn = Stone(_menu, vp, 2, "Join", false);
+        joinBtn.Pressed += () =>
+        {
+            string c = _codeEdit.Text.Trim();
+            if (c.Length == 0) { _codeEdit.GrabFocus(); SetStatus("Type the six-letter code into the glowing stone, then tap Join."); return; }
+            _ = Join(c);
+        };
+
+        // an invitation from a friend, by username: a banner over the table (keeps its own glass on the painting)
+        _inviteBanner = new PanelContainer { Visible = false, ZIndex = 5 };
+        Place(_inviteBanner, P(vp, 300, 470), P(vp, 1076, 530));
+        _inviteBanner.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0.06f, 0.12f, 0.12f, 0.96f), BorderColor = new Color(0.45f, 0.92f, 0.86f), BorderWidthLeft = 2, BorderWidthRight = 2, BorderWidthTop = 2, BorderWidthBottom = 2, CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14, CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14, ContentMarginLeft = 24, ContentMarginRight = 12, ShadowColor = new Color(0.3f, 0.95f, 0.88f, 0.35f), ShadowSize = 12 });
+        _inviteBanner.SetMeta("skinned", true);
+        AddChild(_inviteBanner);
+        var inv = new HBoxContainer(); inv.AddThemeConstantOverride("separation", 16);
+        _inviteBanner.AddChild(inv);
+        _inviteText = new Label { SizeFlagsHorizontal = SizeFlags.ExpandFill, VerticalAlignment = VerticalAlignment.Center, ClipText = true };
+        _inviteText.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(30)); _inviteText.AddThemeFontSizeOverride("font_size", 30);
+        _inviteText.AddThemeColorOverride("font_color", new Color(0.95f, 0.88f, 0.66f));
+        _inviteText.SetMeta("skinned", true);
+        inv.AddChild(_inviteText);
+        var accept = Plate("Accept", true, 200); accept.CustomMinimumSize = new Vector2(200, 60); accept.SetMeta("skinned", true);
+        accept.Pressed += () => _ = AnswerInvite(true);
+        inv.AddChild(accept);
+        var decline = Plate("Decline", false, 200); decline.CustomMinimumSize = new Vector2(200, 60); decline.SetMeta("skinned", true);
+        decline.Pressed += () => _ = AnswerInvite(false);
+        inv.AddChild(decline);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void BuildPaintedLobby(Vector2 vp)
+    {
+        _lobbyPane = new Control { MouseFilter = MouseFilterEnum.Ignore, Visible = false };
+        _lobbyPane.SetAnchorsPreset(LayoutPreset.FullRect);
+        AddChild(_lobbyPane);
+        // the code, carved into the glowing stone
+        _codeLabel = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+        Place(_codeLabel, P(vp, 520, 255), P(vp, 860, 352));
+        _codeLabel.AddThemeFontOverride("font", ThemeTokens.GetCardNameFont(90)); _codeLabel.AddThemeFontSizeOverride("font_size", Px(vp, 60));
+        _codeLabel.AddThemeColorOverride("font_color", new Color(0.03f, 0.17f, 0.17f));
+        _codeLabel.AddThemeConstantOverride("outline_size", 8); _codeLabel.AddThemeColorOverride("font_outline_color", new Color(0.75f, 1f, 0.95f, 0.40f));
+        _codeLabel.SetMeta("skinned", true);
+        _lobbyPane.AddChild(_codeLabel);
+        _players = new Label { Visible = false, MouseFilter = MouseFilterEnum.Ignore };   // the thrones show the players instead
+        _lobbyPane.AddChild(_players);
+        _seatL = ParchmentText(_lobbyPane, P(vp, 324, 368), P(vp, 424, 462), Px(vp, 15));
+        _seatR = ParchmentText(_lobbyPane, P(vp, 962, 368), P(vp, 1054, 466), Px(vp, 15));
+
+        // the scroll: a friend's username, for the host of a duel
+        _challengeEdit = new LineEdit { MaxLength = Usernames.MaxLength, PlaceholderText = "Friend's username", Alignment = HorizontalAlignment.Center };
+        StyleEdit(_challengeEdit, 34);
+        StyleOnPainting(_challengeEdit, Px(vp, 20), new Color(0.20f, 0.12f, 0.05f), new Color(0.42f, 0.32f, 0.20f));
+        Place(_challengeEdit, P(vp, 545, 540), P(vp, 828, 580));
+        _challengeEdit.TextSubmitted += t => _ = Challenge(t.Trim());
+        _challengeRow = _challengeEdit;
+        _lobbyPane.AddChild(_challengeEdit);
+
+        _chBtn = Stone(_lobbyPane, vp, 0, "Challenge", false);
+        _chBtn.Pressed += () => _ = Challenge(_challengeEdit.Text.Trim());
+        _copyBtn = Stone(_lobbyPane, vp, 0, "Copy code", false);
+        _copyBtn.Pressed += () => { DisplayServer.ClipboardSet(_code); SetStatus($"Code {_code} copied - send it to your friends."); };
+        _leaveBtn = Stone(_lobbyPane, vp, 1, "Leave", false);
+        _leaveBtn.Pressed += () => _ = Leave();
+        _readyBtn = Stone(_lobbyPane, vp, 2, "I'm ready", false);
+        _readyBtn.Pressed += () => _ = ToggleReady();
+        _startBtn = Stone(_lobbyPane, vp, 2, "Start", true);
+        _startBtn.Pressed += () => _ = Start();
+    }
+
+    /// <summary>FABLE-103: the host on the left throne, everyone else on the right (or the empty seat's line).</summary>
+    private void FillSeats(OnlinePlaySync.Lobby? l)
+    {
+        if (!Painted || _seatL == null) return;
+        string Who(OnlinePlaySync.Member m)
+        {
+            string cls = string.IsNullOrEmpty(m.ClassId) ? "" : $" · {char.ToUpperInvariant(m.ClassId[0])}{m.ClassId[1..]}";
+            string tag = m.Status == "left" ? "left" : m.Status == "ready" ? "ready" : m.Seat == 0 ? "host" : "joined";
+            return $"{m.DisplayName}{cls}\n({tag})";
+        }
+        if (l == null) { _seatL.Text = "…"; _seatR.Text = _kind == "coop" ? "Waiting for allies" : "Waiting for a challenger"; return; }
+        var ms = l.Members.OrderBy(m => m.Seat).ToList();
+        var host = ms.FirstOrDefault(m => m.Seat == 0);
+        _seatL.Text = host != null ? Who(host) : "…";
+        var rest = ms.Where(m => m.Seat != 0 && m.Status != "left").ToList();
+        _seatR.Text = rest.Count == 0 ? (_kind == "coop" ? "Waiting for allies" : "Waiting for a challenger") : string.Join("\n", rest.Select(Who));
+        int px = Px(GetViewportRect().Size, rest.Count > 1 ? 12 : 15);
+        _seatR.AddThemeFontSizeOverride("font_size", px);
     }
 
     // ── widgets ─────────────────────────────────────────────────────────────
