@@ -248,6 +248,10 @@ public static class CampaignContext
     /// <summary>FABLE-002: true only for the headless --tutorial capture run (auto-play, auto-dismiss, quit at end). A human never sees headless.</summary>
     public static bool TutorialHeadless { get; set; }
 
+    /// <summary>FABLE-104: true while the guided first duel is replayed from Settings. That fight pays nothing, clears no node
+    /// and leads back to Settings. Cleared when the duel's end screen is built.</summary>
+    public static bool TutorialReplay { get; set; }
+
     /// <summary>Artifact def IDs for the player in tutorial script mode (set by TutorialRunner).</summary>
     public static string[] TutorialPlayerArtifactIds { get; set; } = System.Array.Empty<string>();
 

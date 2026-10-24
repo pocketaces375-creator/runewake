@@ -17,8 +17,11 @@ public partial class DigScene : Control
     private DigState _digState = default!;
 
     // Layout
-    private const float TileSize = 72f;
-    private const float TileGap = 8f;
+    // FABLE-104: sizes follow the viewport height (design 1080) instead of fixed pixels
+    private float _scale = 1f;
+    private float TileSize = 72f;
+    private float TileGap = 8f;
+    private int Px(float designPx) => Mathf.Max(Mathf.RoundToInt(designPx * _scale), 8);
     private static readonly Color SoilColor = new(0.35f, 0.25f, 0.15f);
     private static readonly Color RevealColor = new(0.65f, 0.55f, 0.35f);
     private static readonly Color ShardColor = new(0.95f, 0.85f, 0.2f);
@@ -80,6 +83,8 @@ public partial class DigScene : Control
 
     private void BuildUI()
     {
+        _scale = GetViewportRect().Size.Y / 1080f;
+        TileGap = 12f * _scale;
         // Background
         Color bgColor = new(0.15f, 0.12f, 0.08f);
         var bg = new ColorRect
@@ -98,7 +103,7 @@ public partial class DigScene : Control
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0f, AnchorBottom = 0.08f
         };
-        _titleLabel.AddThemeFontSizeOverride("font_size", 28);
+        ThemeTokens.ApplyHeaderFont(_titleLabel, Px(54));
         _titleLabel.Modulate = new Color(0.9f, 0.85f, 0.7f);
         AddChild(_titleLabel);
 
@@ -111,7 +116,8 @@ public partial class DigScene : Control
             AnchorTop = 0.08f, AnchorBottom = 0.16f,
             AutowrapMode = TextServer.AutowrapMode.Word
         };
-        _descLabel.AddThemeFontSizeOverride("font_size", 14);
+        _descLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(Px(30)));
+        _descLabel.AddThemeFontSizeOverride("font_size", Px(30));
         _descLabel.Modulate = new Color(0.6f, 0.55f, 0.4f);
         AddChild(_descLabel);
 
@@ -123,7 +129,8 @@ public partial class DigScene : Control
             AnchorLeft = 0f, AnchorRight = 1f,
             AnchorTop = 0.16f, AnchorBottom = 0.22f
         };
-        _strikesLabel.AddThemeFontSizeOverride("font_size", 18);
+        _strikesLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(Px(36)));
+        _strikesLabel.AddThemeFontSizeOverride("font_size", Px(36));
         _strikesLabel.Modulate = new Color(0.9f, 0.7f, 0.4f);
         AddChild(_strikesLabel);
 
@@ -136,10 +143,12 @@ public partial class DigScene : Control
         AddChild(_gridContainer);
 
         // Build tile grid
+        float gridH = GetViewportRect().Size.Y * 0.53f;   // the grid container's height (anchors 0.22 - 0.75)
+        TileSize = Mathf.Min(120f * _scale, (gridH - (_siteDef.Rows - 1) * TileGap) / Mathf.Max(_siteDef.Rows, 1));
         float totalWidth = _siteDef.Cols * TileSize + (_siteDef.Cols - 1) * TileGap;
         float totalHeight = _siteDef.Rows * TileSize + (_siteDef.Rows - 1) * TileGap;
         float startX = (GetViewportRect().Size.X - totalWidth) / 2f;
-        float startY = (GetViewportRect().Size.Y * 0.48f) - (totalHeight / 2f);
+        float startY = (gridH - totalHeight) / 2f;   // centred inside the container, clear of the result text below
 
         for (int row = 0; row < _siteDef.Rows; row++)
         {
@@ -170,7 +179,8 @@ public partial class DigScene : Control
             AnchorTop = 0.75f, AnchorBottom = 0.85f,
             AutowrapMode = TextServer.AutowrapMode.Word
         };
-        _resultLabel.AddThemeFontSizeOverride("font_size", 16);
+        _resultLabel.AddThemeFontOverride("font", ThemeTokens.GetBodyFont(Px(32)));
+        _resultLabel.AddThemeFontSizeOverride("font_size", Px(32));
         _resultLabel.Modulate = new Color(0.9f, 0.85f, 0.8f);
         AddChild(_resultLabel);
 
@@ -181,6 +191,8 @@ public partial class DigScene : Control
             AnchorLeft = 0.1f, AnchorRight = 0.45f,
             AnchorTop = 0.88f, AnchorBottom = 0.96f
         };
+        _backButton.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(Px(36)));
+        _backButton.AddThemeFontSizeOverride("font_size", Px(36));
         _backButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -196,6 +208,8 @@ public partial class DigScene : Control
             AnchorTop = 0.88f, AnchorBottom = 0.96f,
             Visible = false
         };
+        _collectButton.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(Px(36)));
+        _collectButton.AddThemeFontSizeOverride("font_size", Px(36));
         _collectButton.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -219,7 +233,8 @@ public partial class DigScene : Control
         // Draw reward icon
         string iconText = GetRewardIcon(reward.Type, reward.Value);
         tileBtn.Text = iconText;
-        tileBtn.AddThemeFontSizeOverride("font_size", 20);
+        tileBtn.AddThemeFontOverride("font", ThemeTokens.GetButtonFont(Px(34)));
+        tileBtn.AddThemeFontSizeOverride("font_size", Px(34));
 
         // Update strikes display
         _strikesLabel.Text = $"Strikes: {_digState.StrikesRemaining}";

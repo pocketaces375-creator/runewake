@@ -123,29 +123,38 @@ public static class MenuButtons
         return box;
     }
 
+    // FABLE-104: each plate texture is generated pixel by pixel; the boxes are built once and shared (callers must not mutate them).
     /// <summary>FABLE-031: the one primary plate on the title — a warmer face and a gold rim.</summary>
+    private static StyleBox? _cPrimaryNormal;
     public static StyleBox PrimaryNormal() =>
-        Plate(Color.FromHtml("#5A4A22"), Color.FromHtml("#2A2112"), Color.FromHtml("#D9B75A"), 3.0f, 0.62f);
+        _cPrimaryNormal ??= Plate(Color.FromHtml("#5A4A22"), Color.FromHtml("#2A2112"), Color.FromHtml("#D9B75A"), 3.0f, 0.62f);
+    private static StyleBox? _cPrimaryHover;
     public static StyleBox PrimaryHover() =>
-        Plate(Color.FromHtml("#6B5828"), Color.FromHtml("#332816"), Color.FromHtml("#F0D27A"), 3.4f, 0.82f);
+        _cPrimaryHover ??= Plate(Color.FromHtml("#6B5828"), Color.FromHtml("#332816"), Color.FromHtml("#F0D27A"), 3.4f, 0.82f);
     /// <summary>FABLE-043: an ember plate for the one destructive answer in a confirmation.</summary>
+    private static StyleBox? _cDangerNormal;
     public static StyleBox DangerNormal() =>
-        Plate(Color.FromHtml("#4E2219"), Color.FromHtml("#1E0E0A"), Color.FromHtml("#C8563E"), 2.6f, 0.72f);
+        _cDangerNormal ??= Plate(Color.FromHtml("#4E2219"), Color.FromHtml("#1E0E0A"), Color.FromHtml("#C8563E"), 2.6f, 0.72f);
+    private static StyleBox? _cDangerHover;
     public static StyleBox DangerHover() =>
-        Plate(Color.FromHtml("#62291E"), Color.FromHtml("#28120D"), Color.FromHtml("#EE7A5E"), 3.2f, 0.86f);
+        _cDangerHover ??= Plate(Color.FromHtml("#62291E"), Color.FromHtml("#28120D"), Color.FromHtml("#EE7A5E"), 3.2f, 0.86f);
     /// <summary>FABLE-031: a slimmer, quieter plate for the secondary row.</summary>
+    private static StyleBox? _cQuietNormal;
     public static StyleBox QuietNormal() =>
-        Plate(Color.FromHtml("#2E2822"), Color.FromHtml("#16130F"), Color.FromHtml("#7E6A3C"), 1.8f, 0.46f);
+        _cQuietNormal ??= Plate(Color.FromHtml("#2E2822"), Color.FromHtml("#16130F"), Color.FromHtml("#7E6A3C"), 1.8f, 0.46f);
 
+    private static StyleBox? _cNormal;
     public static StyleBox Normal() =>
-        Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.2f, 0.58f);   // FABLE-019d: a little more glass
+        _cNormal ??= Plate(Color.FromHtml("#3B342C"), Color.FromHtml("#1A1613"), Color.FromHtml("#9E8447"), 2.2f, 0.58f);   // FABLE-019d: a little more glass
 
+    private static StyleBox? _cHover;
     public static StyleBox Hover() =>
-        Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.0f, 0.80f);
+        _cHover ??= Plate(Color.FromHtml("#4A4136"), Color.FromHtml("#2A241E"), EdgeHover, 3.0f, 0.80f);
 
     /// <summary>Pressed: the face darkens and the lip loses its light, so it sinks.</summary>
+    private static StyleBox? _cPressed;
     public static StyleBox Pressed() =>
-        Plate(Color.FromHtml("#1E1A16"), Color.FromHtml("#2C2621"), EdgePressed, 2.4f, 0.90f);
+        _cPressed ??= Plate(Color.FromHtml("#1E1A16"), Color.FromHtml("#2C2621"), EdgePressed, 2.4f, 0.90f);
 
     /// <summary>
     /// Give a button its hover/press feel.

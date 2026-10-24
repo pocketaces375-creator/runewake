@@ -134,6 +134,10 @@ public partial class DuelScene
         var encounter = CampaignContext.CurrentEncounter;
         bool arena = _arenaDuelEnded;
         bool campaign = _isCampaignEncounter && encounter != null;
+        // FABLE-104: Replay the tutorial pays nothing, clears no node and leads back to Settings.
+        bool tutorialReplay = campaign && SettingsScene.IsTutorialReplay(encounter);
+        if (tutorialReplay) { SettingsScene.EndTutorialReplay(); _loot.Clear(); }
+        else CampaignContext.TutorialReplay = false;
         string encName = arena ? (CampaignContext.ArenaEncounter?.Name ?? "") : OnlineMatch.Current?.OpponentName ?? (encounter?.Name ?? "");
         // FABLE-038: an online win pays a little Rune Dust, once.
         if (OnlineMatch.Current != null && playerWon && !_onlineRewarded && CampaignContext.Progression is { } oprog)
@@ -248,6 +252,13 @@ public partial class DuelScene
                 // FABLE-038: an online duel ends here; a rematch is a new lobby.
                 primary = PlateButton("Play online again", null, true, s);
                 ArmEndOfDuelButton(primary, "Continue", () => LeaveDuelFor(OnlineLobbyScene.ScenePath, "Play online again pressed"));
+                quietA = PlateButton("Back to title", null, false, s);
+                ArmEndOfDuelButton(quietA, "Back to title", () => LeaveDuelFor(MainMenuScenePath, "Back to title pressed"));
+            }
+            else if (tutorialReplay)
+            {
+                primary = PlateButton("Back to Settings", null, true, s);
+                ArmEndOfDuelButton(primary, "Continue", () => LeaveDuelFor("res://scenes/settings/SettingsScene.tscn", "Tutorial replay done"));
                 quietA = PlateButton("Back to title", null, false, s);
                 ArmEndOfDuelButton(quietA, "Back to title", () => LeaveDuelFor(MainMenuScenePath, "Back to title pressed"));
             }

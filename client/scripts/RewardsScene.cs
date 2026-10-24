@@ -101,7 +101,7 @@ public partial class RewardsScene : Control
         _tick += delta;
         if (_tick < 1.0 || _countdown == null) return;
         _tick = 0;
-        if (Today != _shownDay) Render();          // midnight passed while the page was open
+        if (DailyRewards.Effective(Prog, Today) != _shownDay) Render();          // midnight passed while the page was open
         else UpdateCountdown();
     }
 

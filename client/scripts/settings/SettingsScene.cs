@@ -1151,13 +1151,68 @@ public partial class SettingsScene : Control
         CampaignContext.TutorialHeadless = false;
         if (CampaignContext.EncounterIndex.Count == 0)
             CampaignContext.LoadEncounters();
+        // FABLE-104: a replay is practice. It must not clear a map node, advance the run or pay the Wayfarer's
+        // shards and drops a second time, so the fight uses a reward-free copy and the collection is restored after it.
+        CampaignContext.CurrentNodeId = null;
+        CampaignContext.TutorialReplay = true;
+        _replayCollection = null;
         if (CampaignContext.EncounterIndex.TryGetValue("r1_duel_wayfarer", out var wayfarer))
-            CampaignContext.CurrentEncounter = wayfarer;
+        {
+            var practice = RewardFreeCopy(wayfarer);
+            _replayEncounter = practice;
+            CampaignContext.CurrentEncounter = practice;
+            if (CampaignContext.Progression != null)
+            {
+                _replayCollection = new System.Collections.Generic.Dictionary<string, int>(CampaignContext.Progression.Collection);
+                _replayShards = CampaignContext.Progression.Shards;
+            }
+        }
         var profile = CampaignContext.ActiveProfile
             ?? (CampaignContext.Profiles.Count > 0 ? CampaignContext.Profiles[0] : null);
         if (profile != null)
             profile.TutorialDone = false;
         LoadScreen.Go(GetTree(), "res://scenes/duel/DuelScene.tscn");
+    }
+
+    // ── FABLE-104: tutorial replay bookkeeping (read by DuelScene.Victory) ──
+    private static Runewake.Engine.Cards.EncounterDef? _replayEncounter;
+    private static System.Collections.Generic.Dictionary<string, int>? _replayCollection;
+    private static int _replayShards;
+
+    private static Runewake.Engine.Cards.EncounterDef RewardFreeCopy(Runewake.Engine.Cards.EncounterDef src)
+    {
+        var copy = (Runewake.Engine.Cards.EncounterDef?)System.Text.Json.JsonSerializer.Deserialize(
+            System.Text.Json.JsonSerializer.Serialize(src), typeof(Runewake.Engine.Cards.EncounterDef)) ?? src;
+        copy.ShardReward = 0;
+        copy.DigChargeReward = 0;
+        copy.FragmentReward = null;
+        copy.CardReward = null;
+        copy.Drops = new();
+        return copy;
+    }
+
+    /// <summary>True when <paramref name="enc"/> is the practice copy made by Replay the tutorial and the replay flag is still up.</summary>
+    public static bool IsTutorialReplay(Runewake.Engine.Cards.EncounterDef? enc)
+        => CampaignContext.TutorialReplay && enc != null && ReferenceEquals(enc, _replayEncounter);
+
+    /// <summary>Ends the replay: puts back the collection and shards as they were before the fight and drops the flag.</summary>
+    public static void EndTutorialReplay()
+    {
+        try
+        {
+            var prog = CampaignContext.Progression;
+            if (prog != null && _replayCollection != null)
+            {
+                prog.Collection.Clear();
+                foreach (var kv in _replayCollection) prog.Collection[kv.Key] = kv.Value;
+                prog.Shards = _replayShards;
+                CampaignContext.SaveManager?.Save();
+            }
+        }
+        catch (System.Exception ex) { GD.PrintErr($"[Settings] tutorial replay restore failed: {ex.Message}"); }
+        _replayCollection = null;
+        _replayEncounter = null;
+        CampaignContext.TutorialReplay = false;
     }
 
     private static void ApplyAudioSettings(SettingsState s)

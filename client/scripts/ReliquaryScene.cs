@@ -315,7 +315,12 @@ public partial class ReliquaryScene : Control
         _wordsBar = new ColorRect { Color = new Color(0.80f, 0.62f, 0.22f), Position = track.Position, Size = new Vector2(0, track.Size.Y), MouseFilter = MouseFilterEnum.Ignore };
         _wordsBar.SetMeta("skinned", true); AddChild(_wordsBar);
         // the plaques at the foot
-        Ghost(0.262f, 0.903f, 0.372f, 0.966f, () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"));
+        var backGhost = Ghost(0.262f, 0.903f, 0.372f, 0.966f, () => LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn"));
+        // FABLE-104: the hardware Back key looks for a visible button reading "Back". The painted plaque already says it,
+        // so the word is there for the search only and drawn fully transparent.
+        backGhost.Text = "Back";
+        foreach (var col in new[] { "font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color" })
+            backGhost.AddThemeColorOverride(col, new Color(0, 0, 0, 0));
         Ghost(0.629f, 0.903f, 0.740f, 0.966f, () => LoadScreen.Go(GetTree(), "res://scenes/shop/CardShopScene.tscn"));
         _wordsShards = new Label { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, Position = A(0.443f, 0.903f), Size = A(0.556f, 0.966f) - A(0.443f, 0.903f), MouseFilter = MouseFilterEnum.Ignore };
         _wordsShards.AddThemeFontOverride("font", GetBodyFont(28)); _wordsShards.AddThemeFontSizeOverride("font_size", 28);

@@ -1323,39 +1323,63 @@ void fragment() {
     /// </summary>
     public override void _UnhandledInput(InputEvent @event)
     {
-        // Map node selection and touch pan: left click or touch not on any UI element
-        bool isTap = false;
-        Vector2 screenPos = Vector2.Zero;
+        // FABLE-104: one finger pans the map; a lift that moved less than TapSlopPx is a tap that picks a node.
+        // The touch is also delivered as an emulated mouse click: the TapGuard window swallows that second press.
+        if (@event is InputEventScreenTouch touch)
+        {
+            if (touch.Pressed)
+            {
+                if (_touchDragId != -1)
+                {
+                    _touchMulti = true;   // a second finger is a pinch, not a pan or a tap
+                    return;
+                }
+                if (_infoPanel.GetGlobalRect().HasPoint(touch.Position)) return;
+                if (!_tap.Accept(@event)) return;
+                _touchDragId = touch.Index;
+                _touchDragStart = touch.Position;
+                _containerStartPos = _mapContainer.Position;
+                _touchDragging = false;
+                _touchMulti = false;
+                return;
+            }
+            if (touch.Index == _touchDragId)
+            {
+                bool wasPan = _touchDragging || _touchMulti;
+                _touchDragId = -1;
+                _touchDragging = false;
+                _touchMulti = false;
+                if (!wasPan) SelectNodeAt(touch.Position);
+            }
+            return;
+        }
+        if (@event is InputEventScreenDrag drag)
+        {
+            if (drag.Index != _touchDragId || _touchMulti) return;
+            Vector2 delta = drag.Position - _touchDragStart;
+            if (!_touchDragging && delta.Length() >= TapSlopPx) _touchDragging = true;
+            if (_touchDragging)
+            {
+                _mapContainer.Position = _containerStartPos + delta;
+                ClampPan();
+                GetViewport().SetInputAsHandled();
+            }
+            return;
+        }
 
         if (@event is InputEventMouseButton click && click.Pressed && click.ButtonIndex == MouseButton.Left)
         {
-            isTap = true;
-            screenPos = click.Position;
+            // One finger press is one press: a tap also arrives as an emulated mouse click.
+            if (!_tap.Accept(@event)) return;
+            SelectNodeAt(click.Position);
         }
-        else if (@event is InputEventScreenTouch touch && touch.Pressed && _touchDragId == -1)
-        {
-            isTap = true;
-            screenPos = touch.Position;
-        }
-        else if (@event is InputEventScreenTouch touchRelease && !touchRelease.Pressed && touchRelease.Index == _touchDragId)
-        {
-            _touchDragId = -1;
-            _touchDragging = false;
-            return;
-        }
-        else if (@event is InputEventScreenDrag drag && drag.Index == _touchDragId && _touchDragging)
-        {
-            Vector2 delta = drag.Position - _touchDragStart;
-            _mapContainer.Position = _containerStartPos + delta;
-            ClampPan();
-            return;
-        }
+    }
 
-        if (!isTap) return;
+    private const float TapSlopPx = 12f;
+    private bool _touchMulti;
 
-        // One finger press is one press: a tap also arrives as an emulated mouse click.
-        if (!_tap.Accept(@event)) return;
-
+    private void SelectNodeAt(Vector2 screenPos)
+    {
         // Don't handle taps on the info panel
         if (_infoPanel.GetGlobalRect().HasPoint(screenPos))
             return;
@@ -1439,8 +1463,15 @@ void fragment() {
         _deckChipLabel.Text = playing != null ? $"Deck: {playing}" : "Deck: —";
     }
 
+    private PanelContainer? _deckPopup;
+
     private void ShowDeckPopup()
     {
+        // FABLE-104: one popup at a time; tapping the chip again replaces it
+        if (_deckPopup != null && IsInstanceValid(_deckPopup)) _deckPopup.QueueFree();
+        _deckPopup = null;
+        int fontPx = LabelFontPx();
+        float rowH = Mathf.Max(64f, _viewportHeight * 0.062f);
         string classId = GetActiveClass();
         // FABLE-066: this campaign's decks (the save is the truth); unfinished ones can't be picked
         var decks = DeckBook.All(CampaignContext.Progression, id => CardRegistry.Get(id)).ToList();
@@ -1454,17 +1485,19 @@ void fragment() {
             BorderWidthRight = 1, BorderWidthBottom = 1,
             CornerRadiusTopLeft = 6, CornerRadiusTopRight = 6,
             CornerRadiusBottomLeft = 6, CornerRadiusBottomRight = 6,
-            ContentMarginLeft = 10, ContentMarginTop = 8,
-            ContentMarginRight = 10, ContentMarginBottom = 8
+            ContentMarginLeft = 16, ContentMarginTop = 12,
+            ContentMarginRight = 16, ContentMarginBottom = 12
         };
         popup.AddThemeStyleboxOverride("panel", popupStyle);
-        popup.CustomMinimumSize = new Vector2(250, 200);
+        popup.CustomMinimumSize = new Vector2(Mathf.Max(420f, _viewportHeight * 0.4f), 0);
+        popup.ZIndex = 100;
 
         // Position near the chip
         var chipRect = _deckChip.GetGlobalRect();
         popup.Position = new Vector2(chipRect.Position.X - 60, chipRect.Position.Y + chipRect.Size.Y + 4);
 
         var vbox = new VBoxContainer();
+        vbox.AddThemeConstantOverride("separation", 8);
 
         // Title
         var title = new Label { Text = "Select Deck", HorizontalAlignment = HorizontalAlignment.Center };
@@ -1490,7 +1523,7 @@ void fragment() {
                 Text = "No decks saved yet.",
                 HorizontalAlignment = HorizontalAlignment.Center
             };
-            noDecks.AddThemeFontSizeOverride("font_size", 11);
+            noDecks.AddThemeFontSizeOverride("font_size", fontPx);
             noDecks.Modulate = new Color(0.70f, 0.65f, 0.50f, 0.80f);
             vbox.AddChild(noDecks);
         }
@@ -1501,10 +1534,10 @@ void fragment() {
                 var deckBtn = new Button
                 {
                     Text = deck.IsActive ? $"✓ {deck.Name}" : deck.IsComplete ? deck.Name : $"{deck.Name}  ({deck.Cards.Count}/{DeckRules.MaxSize} — unfinished)",
-                    CustomMinimumSize = new Vector2(0, 28),
+                    CustomMinimumSize = new Vector2(0, rowH),
                     Disabled = !deck.IsComplete,
                 };
-                deckBtn.AddThemeFontSizeOverride("font_size", 11);
+                deckBtn.AddThemeFontSizeOverride("font_size", BtnFontPx());
                 string capturedName = deck.Name;
                 deckBtn.Pressed += () =>
                 {
@@ -1521,8 +1554,8 @@ void fragment() {
         vbox.AddChild(new Control { CustomMinimumSize = new Vector2(0, 4) });
 
         // Close button
-        var closeBtn = new Button { Text = "Close" };
-        closeBtn.AddThemeFontSizeOverride("font_size", 10);
+        var closeBtn = new Button { Text = "Close", CustomMinimumSize = new Vector2(0, rowH) };
+        closeBtn.AddThemeFontSizeOverride("font_size", BtnFontPx());
         closeBtn.Pressed += () =>
         {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
@@ -1532,5 +1565,16 @@ void fragment() {
 
         popup.AddChild(vbox);
         AddChild(popup);
+        _deckPopup = popup;
+        // keep the taller popup on screen once it has its size
+        Callable.From(() =>
+        {
+            if (!IsInstanceValid(popup)) return;
+            var vp = GetViewportRect().Size;
+            var sz = popup.Size;
+            popup.Position = new Vector2(
+                Mathf.Clamp(popup.Position.X, 8f, Mathf.Max(8f, vp.X - sz.X - 8f)),
+                Mathf.Clamp(popup.Position.Y, 8f, Mathf.Max(8f, vp.Y - sz.Y - 8f)));
+        }).CallDeferred();
     }
 }

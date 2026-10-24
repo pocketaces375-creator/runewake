@@ -482,6 +482,23 @@ public partial class Main : Control
         Callable.From(LoadGameData).CallDeferred();
     }
 
+    private SyncManager? _hookedSync;
+    private SyncManager.StatusChangedEventHandler? _onSyncStatus;
+    private SyncManager.ConflictDetectedEventHandler? _onSyncConflict;
+    private SyncManager.CloudSaveAppliedEventHandler? _onSyncApplied;
+
+    private void UnhookSync()
+    {
+        var sm = _hookedSync;
+        _hookedSync = null;
+        if (sm == null || !IsInstanceValid(sm)) return;
+        if (_onSyncStatus != null) sm.StatusChanged -= _onSyncStatus;
+        if (_onSyncConflict != null) sm.ConflictDetected -= _onSyncConflict;
+        if (_onSyncApplied != null) sm.CloudSaveApplied -= _onSyncApplied;
+    }
+
+    public override void _ExitTree() => UnhookSync();
+
     public override void _Process(double delta)
     {
         // Rotate the primary rune wheel CW, one revolution per 90 seconds
@@ -864,15 +881,18 @@ public partial class Main : Control
         }
         // FABLE-061: paid packs — connect Google Play billing once per run (a purchase can finish any time)
         if (freshSync) PackStore.Init();
-        syncManager!.StatusChanged += status =>
+        // FABLE-104: the SyncManager lives on the tree root for the whole run, so these handlers (which capture this scene)
+        // are kept in fields and removed in _ExitTree; otherwise every visit to the title left one more behind.
+        UnhookSync();
+        _hookedSync = syncManager!;
+        _onSyncStatus = status =>
         {
             if (!IsInstanceValid(this)) return;
             if (_accountChip != null && IsInstanceValid(_accountChip))
                 _accountChip.Text = status.Length > 64 ? status.Substring(0, 63) + "…" : status;   // FABLE-019: room for the reason; full text in the panel
         };
-        _accountChip.Text = syncManager.Status;
-        syncManager.ConflictDetected += () => { if (IsInstanceValid(this)) AccountPanel.Open(this, syncManager); };
-        syncManager.CloudSaveApplied += () =>
+        _onSyncConflict = () => { if (IsInstanceValid(this)) AccountPanel.Open(this, syncManager!); };
+        _onSyncApplied = () =>
         {
             // The cloud save was written under us. Only reload if we are still
             // the title screen — mid-duel, the next launch will pick it up.
@@ -882,6 +902,10 @@ public partial class Main : Control
                 GetTree().ReloadCurrentScene();
             }
         };
+        syncManager.StatusChanged += _onSyncStatus;
+        _accountChip.Text = syncManager.Status;
+        syncManager.ConflictDetected += _onSyncConflict;
+        syncManager.CloudSaveApplied += _onSyncApplied;
         // FABLE-ACCOUNTS-1: with no session yet, the opening screen asks first
         // (Create account / Sign in / Play as guest) — signing in quietly as an
         // anonymous guest before the player has chosen would make a throwaway

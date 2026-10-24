@@ -656,7 +656,7 @@ public partial class DeckBuilderScene : Control
         const float captionH = CaptionH;
 
         bool isUnowned = ownedCount == 0;
-        bool isAtLimit = !isUnowned && ownedCount <= inDeckCount;
+        bool isAtLimit = !isUnowned && CopyLimit(ownedCount) <= inDeckCount;
 
         var cell = new Control
         {
@@ -752,7 +752,7 @@ public partial class DeckBuilderScene : Control
         };
         ApplyBodyFont(caption, Mathf.RoundToInt(Mathf.Clamp(gridW * 0.12f, 18f, 24f)));
         if (isUnowned) { caption.Text = "Not yet found"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#7A6F60")); }
-        else if (isAtLimit) { caption.Text = ownedCount == 1 ? "In your deck" : $"All {ownedCount} in your deck"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#9DBB84")); }
+        else if (isAtLimit) { caption.Text = DeckRules.IsSingleton || ownedCount == 1 ? "In your deck" : $"All {ownedCount} in your deck"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#9DBB84")); }
         else { caption.Text = $"Owned ×{ownedCount}"; caption.AddThemeColorOverride("font_color", Color.FromHtml("#BFB097")); }
         cell.AddChild(caption);
 
@@ -1386,6 +1386,9 @@ public partial class DeckBuilderScene : Control
     //  FABLE-053: the inspector
     // ════════════════════════════════════════════════════════════════
 
+    /// <summary>FABLE-104: how many copies of a card one deck may hold. The deck is singleton, so owning three still means one slot.</summary>
+    private static int CopyLimit(int owned) => DeckRules.IsSingleton ? Math.Min(owned, 1) : owned;
+
     private int OwnedCount(string id) => CampaignContext.Progression.Collection.TryGetValue(id, out var n) ? n : 0;
 
     private void OnGridTap(string cardId)
@@ -1400,7 +1403,7 @@ public partial class DeckBuilderScene : Control
         // second tap on the card already shown = add a copy
         int owned = OwnedCount(cardId), inDeck = _deckCardIds.Count(i => i == cardId);
         if (owned == 0) { Toast("You haven't found this card yet."); return; }
-        if (inDeck >= owned) { Toast(owned == 1 ? "Your only copy is already in the deck." : $"All {owned} copies are already in the deck."); return; }
+        if (inDeck >= CopyLimit(owned)) { Toast(DeckRules.IsSingleton ? "This card is already in the deck - a deck holds one copy of each." : owned == 1 ? "Your only copy is already in the deck." : $"All {owned} copies are already in the deck."); return; }
         AddToDeck(cardId);
     }
 
@@ -1498,11 +1501,11 @@ public partial class DeckBuilderScene : Control
 
         string btnText = owned == 0 ? "Not yet found"
             : locked ? "Core card"
-            : inDeck >= owned ? (owned == 1 ? "In your deck" : $"All {owned} in your deck")
+            : inDeck >= CopyLimit(owned) ? (DeckRules.IsSingleton || owned == 1 ? "In your deck" : $"All {owned} in your deck")
             : inDeck > 0 ? $"Add another  ·  {inDeck} in deck" : "Add to deck";
         var add = Plate(btnText, true, 76);
         add.AddThemeFontSizeOverride("font_size", 28);
-        add.Disabled = owned == 0 || locked || inDeck >= owned;
+        add.Disabled = owned == 0 || locked || inDeck >= CopyLimit(owned);
         string id = def.Id;
         add.Pressed += () => AddToDeck(id);
         _inspBody.AddChild(add);
@@ -1644,10 +1647,10 @@ public partial class DeckBuilderScene : Control
 
         string btnText = owned == 0 ? "Not yet found"
             : locked ? "Core card"
-            : inDeck >= owned ? (owned == 1 ? "In your deck" : $"All {owned} in your deck")
+            : inDeck >= CopyLimit(owned) ? (DeckRules.IsSingleton || owned == 1 ? "In your deck" : $"All {owned} in your deck")
             : inDeck > 0 ? $"Add another  ·  {inDeck} in deck" : "Add to deck";
         var b0 = P(vp, 44, 687); var b1 = P(vp, 290, 727);
-        bool canAdd = !(owned == 0 || locked || inDeck >= owned);
+        bool canAdd = !(owned == 0 || locked || inDeck >= CopyLimit(owned));
         var add = Plate(canAdd ? "+  " + btnText : btnText, true, b1.Y - b0.Y, b1.X - b0.X);
         add.Position = b0 + new Vector2(4, 2); add.Size = b1 - b0 - new Vector2(8, 4);
         add.Disabled = !canAdd;
