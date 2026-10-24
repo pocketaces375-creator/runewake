@@ -81,13 +81,3 @@ theme_override_colors/font_color = Color(0.85, 0.80, 0.70, 0.7)
 autowrap_mode = 2
 max_lines_visible = 2
 text = ""
-
-[node name="TouchArea" type="Control" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 10.0
-offset_bottom = 10.0
-mouse_filter = 0

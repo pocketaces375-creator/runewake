@@ -234,15 +234,28 @@ public partial class GameStateManager : Node
         try
         {
             _state = ApplyAction(action);
-            StateChanged?.Invoke();
-            CheckGameOver();
-            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] PlayCard failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
+        AfterApply("PlayCard");
+        return Success();
+    }
+
+    /// <summary>
+    /// FABLE-104: the screen's reaction to an applied action, and the game-over check, each on their own.
+    /// They used to sit inside the apply try: one exception in a render handler reported the action as
+    /// REFUSED (a Deny popup with the exception text) although the state had already changed, stopped
+    /// the StateChanged chain before the bot heard it, and skipped GameOver — a dead game.
+    /// </summary>
+    private void AfterApply(string what)
+    {
+        try { StateChanged?.Invoke(); }
+        catch (Exception ex) { GD.PrintErr($"[GameStateManager] {what}: a StateChanged handler threw: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}"); }
+        try { CheckGameOver(); }
+        catch (Exception ex) { GD.PrintErr($"[GameStateManager] {what}: GameOver handler threw: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}"); }
     }
 
     /// <summary>
@@ -282,15 +295,14 @@ public partial class GameStateManager : Node
         try
         {
             _state = ApplyAction(action);
-            StateChanged?.Invoke();
-            CheckGameOver();
-            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] Attack failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
+        AfterApply("Attack");
+        return Success();
     }
 
     /// <summary>
@@ -382,16 +394,14 @@ public partial class GameStateManager : Node
 
             // Log exhaustion AFTER the turn end (should show refresh)
             LogExhaustState("After TryEndTurn");
-
-            StateChanged?.Invoke();
-            CheckGameOver();
-            return Success();
         }
         catch (Exception ex)
         {
             GD.PrintErr($"[GameStateManager] EndTurn failed: {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}");
             return Error(ex.Message);
         }
+        AfterApply("EndTurn");
+        return Success();
     }
 
     // ——— Helpers ———

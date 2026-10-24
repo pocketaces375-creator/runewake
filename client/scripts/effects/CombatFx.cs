@@ -340,7 +340,12 @@ public partial class CombatFx : Control
         var at = TargetPoint(e);
         if (at is null) return 0f;
         int n = e.Amount;
-        (string text, Color c, string glyph) = e.Tag switch
+        // FABLE-104: GRANT_KEY / REMOVE_KEY carry the keyword after a colon ("GRANT_KEY:WARD")
+        string tag = e.Tag, kw = "Keyword";
+        int colon = tag.IndexOf(':');
+        if (colon >= 0) { kw = tag[(colon + 1)..]; tag = tag[..colon]; }
+        if (kw.Length > 1) kw = kw[0] + kw[1..].ToLowerInvariant();
+        (string text, Color c, string glyph) = tag switch
         {
             "DRAW" => ($"DRAW {Math.Max(1, n)}", Tide, "card"),
             "DISCARD" => ($"DISCARD {Math.Max(1, n)}", Hollow, "card"),
@@ -368,15 +373,15 @@ public partial class CombatFx : Control
             "FORGE" => ("FORGED", Ember, "up"),
             "HEAL_FULL" => ("RESTORED", Verdant, "heart"),
             "REDIRECT" => ("REDIRECT", Tide, "pierce"),
-            "GRANT_KEY" => ("+KEYWORD", Gold, "spell"),
-            "REMOVE_KEY" => ("−KEYWORD", Hollow, "spell"),
+            "GRANT_KEY" => ($"+{kw}", Gold, "spell"),
+            "REMOVE_KEY" => ($"−{kw}", Hollow, "spell"),
             "SET_STAT" => ("SET", Tide, "spell"),
             "REVIVE_TOKEN" => ("REVIVED", Verdant, "rune"),
             "UNEARTH_FROM_GRAVEYARD" => ("UNEARTHED", Verdant, "rune"),
             "SUMMON" => ("SUMMON", Gold, "rune"),
-            _ => (e.Tag.Replace('_', ' '), Gold, "spell")
+            _ => (tag.Replace('_', ' '), Gold, "spell")
         };
-        if (e.Tag is "ADD_CHARGE" or "RESET_CHARGES" && e.TargetsFace)
+        if (tag is "ADD_CHARGE" or "RESET_CHARGES" && e.TargetsFace)
         {
             // charges live on the artifact plates, not the face
             var plate = PlateOf(View(e.TargetSide), 0) ?? PlateOf(View(e.TargetSide), 1);

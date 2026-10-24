@@ -217,7 +217,9 @@ public partial class BotController : Node
                     var result = _gsm.TryEndTurn();
                     if (!result.Success)
                     {
-                        GD.PrintErr($"[BotController] TryEndTurn FAILED: {result.ErrorMessage}");
+                        // FABLE-104: this used to `return` with IsThinking still true and no timer armed —
+                        // the player was refused as "opponent acting" for the rest of the (dead) game.
+                        GiveUpTurn($"TryEndTurn FAILED: {result.ErrorMessage}");
                         return;
                     }
                     EndBotTurn();

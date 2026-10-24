@@ -360,6 +360,25 @@ public partial class HandCard : PanelContainer
         base._ExitTree();
     }
 
+    /// <summary>
+    /// FABLE-104: when a drag starts Godot takes the pointer away from this control, so the release
+    /// never arrives here. The hold timer then fired mid-drag (rules slab stuck open) and
+    /// _dragStarted / _isLongPressing stayed set, so the NEXT tap on this card was swallowed.
+    /// The drag's end is the release.
+    /// </summary>
+    public override void _Notification(int what)
+    {
+        base._Notification(what);
+        if (what == NotificationDragEnd)
+        {
+            StopHoldTimer();
+            bool wasPeeking = _isLongPressing;
+            _isLongPressing = false;
+            _dragStarted = false;
+            if (wasPeeking) LongPressEnded?.Invoke();
+        }
+    }
+
     private bool IsReleaseEvent(InputEvent @event)
     {
         return (@event is InputEventMouseButton mb && !mb.Pressed && mb.ButtonIndex == MouseButton.Left)
@@ -446,6 +465,7 @@ public partial class HandCard : PanelContainer
     public override Variant _GetDragData(Vector2 atPosition)
     {
         _dragStarted = true;
+        StopHoldTimer();   // FABLE-104: a card being dragged is not being read
         var preview = new TextureRect();
         preview.Texture = _artRect.Texture;
         preview.Size = new Vector2(Size.X * 0.9f, Size.Y * 0.9f);

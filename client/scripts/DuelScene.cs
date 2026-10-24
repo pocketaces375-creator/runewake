@@ -2591,6 +2591,13 @@ public partial class DuelScene : Control
 
         // TASK-CARD-TEXT-1: Dismiss rules slab on state change
         HideRulesSlab();
+        // FABLE-104: a prompt ("Select a lane to summon…") is about the tap that was pending; a state
+        // change means that moment has passed (informational toasts — Sigils, blessings — stay)
+        HideToast(promptOnly: true);
+        // FABLE-104: once the turn passes to the opponent, a card or attacker picked this turn is no
+        // longer picked — it used to survive the bot's turn invisibly and fire on the next lane tap
+        if (_gsm != null && _gsm.IsInitialized && _gsm.CurrentPlayerIndex != 0)
+            ClearPlayerSelection();
 
         // Get the current state from GSM
         var state = _gsm.State;
@@ -3804,8 +3811,7 @@ public partial class DuelScene : Control
                 return;
             }
             _inspectHandIndex = card.HandIndex;
-            UpdatePlayHighlights();
-            UpdateSelectionVisuals();
+            UpdatePlayHighlights();   // ends in UpdateSelectionVisuals (FABLE-104: once, not twice)
             PeekSelected(card);
             ShowCostNote($"Not enough Attunement — {card.CardName} costs {card.CardCost}, you have {currentAttune}. It refills and grows each turn.");
             return;
@@ -3853,41 +3859,63 @@ public partial class DuelScene : Control
             return;
         }
 
-        if (_input.State == InputController.InputState.SelectingAttacker)
-        {
-            // Cancel attacker selection and start playing this card instead
-            _input.CancelSelection();
-            _input.SelectCardForPlay(card.CardId);
-            _selectedHandIndex = card.HandIndex;
-            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
-                Moss);
-            UpdatePlayHighlights();
-            UpdateSelectionVisuals();
-        }
-        else if (_input.State == InputController.InputState.SelectingLane)
-        {
-            // Already in lane-selection mode — switch to this card
-            _input.CancelSelection();
-            _input.SelectCardForPlay(card.CardId);
-            _selectedHandIndex = card.HandIndex;
-            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
-                Moss);
-            UpdatePlayHighlights();
-            UpdateSelectionVisuals();
-        }
-        else
-        {
-            // Idle — enter lane-selection mode (tap-to-summon)
-            _input.SelectCardForPlay(card.CardId);
-            _selectedHandIndex = card.HandIndex;
-            ShowToast($"Select a lane to summon {card.CardName} (cost {card.CardCost})",
-                Moss);
-            UpdatePlayHighlights();
-            UpdateSelectionVisuals();
-        }
+        // Cancel whatever was pending (an attacker, or another card) and pick this card up.
+        // FABLE-104: one path for all three states — UpdatePlayHighlights already ends in
+        // UpdateSelectionVisuals, so the lift tween is started once, not twice.
+        if (_input.State != InputController.InputState.Idle) _input.CancelSelection();
+        _input.SelectCardForPlay(card.CardId);
+        _selectedHandIndex = card.HandIndex;
+        ShowToast(SelectionPrompt(card), Moss, prompt: true);
+        UpdatePlayHighlights();
         // FABLE-067: a tap shows the card the way press-and-hold does — big, with its rules beside it —
         // and keeps it up while you choose a lane (it closes when you play, deselect or cancel)
         PeekSelected(card);
+    }
+
+    /// <summary>
+    /// FABLE-104: what the next tap should be, by card type. A creature or relic wants an empty lane
+    /// of yours; a ritual with a CHOSEN target wants the creature it is aimed at; a ritual with no
+    /// choice to make is cast by tapping anywhere on the board (any lane tap is accepted for those).
+    /// </summary>
+    private string SelectionPrompt(HandCard card)
+    {
+        var def = CardRegistry.Get(card.CardId);
+        if (def?.Type == CardType.RITUAL)
+            return RitualAim(def) != null
+                ? $"Tap a creature to aim {card.CardName} (cost {card.CardCost})"
+                : $"Tap anywhere on the board to cast {card.CardName} (cost {card.CardCost})";
+        return $"Select a lane to summon {card.CardName} (cost {card.CardCost})";
+    }
+
+    /// <summary>
+    /// FABLE-104: the side(s) a CHOSEN ritual is aimed at — (mine, theirs) — from its first targeted
+    /// effect; null when the ritual has no chosen creature target (nothing to aim).
+    /// </summary>
+    private static (bool mine, bool theirs)? RitualAim(CardDef def)
+    {
+        foreach (var ab in def.Abilities)
+            foreach (var ef in ab.Effects)
+            {
+                var t = ef.Target;
+                if (t == null) continue;
+                if (!string.Equals(t.Filter, "CHOSEN", StringComparison.OrdinalIgnoreCase)) continue;
+                switch (t.Scope)
+                {
+                    case Runewake.Engine.Cards.Scope.ALLY_CREATURE: return (true, false);
+                    case Runewake.Engine.Cards.Scope.ENEMY_CREATURE: return (false, true);
+                    case Runewake.Engine.Cards.Scope.ANY_CREATURE: return (true, true);
+                }
+            }
+        return null;
+    }
+
+    /// <summary>FABLE-104: forget a picked card / attacker without any toast (the turn moved on).</summary>
+    private void ClearPlayerSelection()
+    {
+        if (_input == null) return;
+        if (_input.State != InputController.InputState.Idle) _input.CancelSelection();
+        _selectedHandIndex = -1;
+        _inspectHandIndex = -1;
     }
 
     private Label? _costNote;
@@ -3917,10 +3945,14 @@ public partial class DuelScene : Control
         MoveChild(_costNote, GetChildCount() - 1);
         _costNote.Modulate = Colors.White;
         _costNote.Visible = true;
-        var tw = _costNote.CreateTween();
-        tw.TweenInterval(2.6);
-        tw.TweenProperty(_costNote, "modulate:a", 0f, 0.5f);
+        // FABLE-104: one fade at a time — an earlier note's fade used to cut the next note short
+        if (_costNoteTween != null && _costNoteTween.IsValid()) _costNoteTween.Kill();
+        _costNoteTween = _costNote.CreateTween();
+        _costNoteTween.TweenInterval(2.6);
+        _costNoteTween.TweenProperty(_costNote, "modulate:a", 0f, 0.5f);
     }
+
+    private Tween? _costNoteTween;
 
     private void PeekSelected(HandCard card)
     {
@@ -3985,6 +4017,8 @@ public partial class DuelScene : Control
     private void HideRulesSlab()
     {
         _slabFromTap = false;
+        _slabCardId = null;   // FABLE-104: a hidden slab shows no card — the next tap on it must open it, not "toggle it off"
+
         if (_inspectHandIndex >= 0) { _inspectHandIndex = -1; Callable.From(UpdateSelectionVisuals).CallDeferred(); }
         if (_rulesSlabVisible)
         {
@@ -4047,6 +4081,7 @@ public partial class DuelScene : Control
         else
         {
             _deny?.HideNow();
+            HideToast();   // FABLE-104: the "select a lane…" prompt is answered
             GD.Print($"[DUEL_TRACE] OnPlayCardRequested SUCCESS: card={cardId} placed in lane {laneIndex}");
             // TASK-AUDIO-HOOK-1: Play sfx for card played / spell resolved
             var audio = GetNode<AudioManager>("/root/AudioManager");
@@ -4087,6 +4122,7 @@ public partial class DuelScene : Control
     private void OnSelectionCancelled()
     {
         if (_slabFromTap) HideRulesSlab();   // FABLE-067
+        HideToast(promptOnly: true);        // FABLE-104: nothing is pending any more
         foreach (var slot in _enemySlots) slot.Unhighlight();
         foreach (var slot in _playerSlots) slot.Unhighlight();
         UpdateSelectionVisuals();
@@ -4133,17 +4169,38 @@ public partial class DuelScene : Control
     /// </summary>
     private void UpdatePlayHighlights()
     {
+        foreach (var slot in _enemySlots) slot.Unhighlight();
         if (_input.State == InputController.InputState.SelectingLane)
         {
-            // Highlight all empty player lanes as valid summon targets
-            foreach (var slot in _playerSlots)
+            // FABLE-104: what glows is what the card wants. A creature/relic: your empty lanes. A ritual
+            // with a CHOSEN creature target: the occupied lanes on the side(s) it can be aimed at (it used
+            // to glow the empty lanes, and a tap there quietly hit the leftmost creature instead). A
+            // ritual with nothing to aim: nothing glows — any tap on the board casts it.
+            var def = _input.SelectedCardId != null ? CardRegistry.Get(_input.SelectedCardId) : null;
+            var myLanes = _gsm.GetLanes(0);
+            if (def?.Type == CardType.RITUAL)
             {
-                if (slot.LaneIndex < 5)
+                var aim = RitualAim(def);
+                foreach (var slot in _playerSlots)
                 {
-                    // Check if lane is empty via GSM
-                    var lanes = _gsm.GetLanes(0);
-                    var info = lanes[slot.LaneIndex];
-                    if (info.IsEmpty)
+                    if (slot.LaneIndex >= 5) continue;
+                    if (aim is { mine: true } && !myLanes[slot.LaneIndex].IsEmpty) slot.HighlightGoldPulse();
+                    else slot.Unhighlight();
+                }
+                if (aim is { theirs: true })
+                {
+                    var foeLanes = _gsm.GetLanes(1);
+                    foreach (var slot in _enemySlots)
+                        if (slot.LaneIndex < 5 && !foeLanes[slot.LaneIndex].IsEmpty) slot.HighlightGoldPulse();
+                }
+            }
+            else
+            {
+                // Highlight all empty player lanes as valid summon targets
+                foreach (var slot in _playerSlots)
+                {
+                    if (slot.LaneIndex >= 5) continue;
+                    if (myLanes[slot.LaneIndex].IsEmpty)
                         slot.HighlightGoldPulse();
                     else
                         slot.Unhighlight();
@@ -5258,6 +5315,11 @@ public partial class DuelScene : Control
         // TASK-AUDIO-HOOK-1: Button click
         GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
 
+        // FABLE-104: a card or attacker picked this turn does not carry over to the next one
+        ClearPlayerSelection();
+        HideToast(promptOnly: true);
+        UpdateSelectionVisuals();
+
         var result = _gsm.TryEndTurn();
         if (!result.Success)
         {
@@ -5277,7 +5339,7 @@ public partial class DuelScene : Control
         }
     }
 
-    private Label _toastLabel = default!;
+    private Label? _toastLabel;
 
     // ——— FABLE-002: explicit refusals ———
 
@@ -5320,37 +5382,54 @@ public partial class DuelScene : Control
     /// Persists for 4s visible, then fades over 1s — readable on a phone.
     /// Replaces any existing toast so they never overlap.
     /// </summary>
-    private void ShowToast(string message, Color color)
+    private bool _toastIsPrompt;
+
+    private void ShowToast(string message, Color color) => ShowToast(message, color, prompt: false);
+
+    /// <param name="prompt">FABLE-104: true for "what to tap next" prompts, which are put away as soon as
+    /// the pending tap happens or the moment passes; false for news (a Sigil sprang, a blessing).</param>
+    private void ShowToast(string message, Color color, bool prompt)
     {
         // Remove any existing toast before creating a new one
-        if (_toastLabel != null && IsInstanceValid(_toastLabel))
-        {
-            _toastLabel.QueueFree();
-        }
+        HideToast();
 
-        _toastLabel = new Label();
-        _toastLabel.Text = message;
-        _toastLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        _toastLabel.VerticalAlignment = VerticalAlignment.Center;
-        _toastLabel.AddThemeFontSizeOverride("font_size", 16);
-        _toastLabel.Modulate = color;
-        _toastLabel.AutowrapMode = TextServer.AutowrapMode.Word;
-        _toastLabel.Position = new Vector2(
+        var label = new Label();
+        _toastLabel = label;
+        _toastIsPrompt = prompt;
+        label.Text = message;
+        label.HorizontalAlignment = HorizontalAlignment.Center;
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.AddThemeFontSizeOverride("font_size", 16);
+        label.Modulate = color;
+        label.AutowrapMode = TextServer.AutowrapMode.Word;
+        label.Position = new Vector2(
             GetViewportRect().Size.X / 2f - 150,
             GetViewportRect().Size.Y / 2f - 30
         );
-        _toastLabel.Size = new Vector2(300, 60);
-        AddChild(_toastLabel);
+        label.Size = new Vector2(300, 60);
+        AddChild(label);
 
-        // Hold visible for 4s, then fade over 1s
-        var tween = CreateTween();
+        // Hold visible for 4s, then fade over 1s.
+        // FABLE-104: the tween is bound to THIS label (it dies with it). It used to be bound to the
+        // scene and its callback read the _toastLabel field at fire time — so a toast that replaced
+        // an older one was freed when the OLD toast's timer ran out, sometimes after a tenth of a second.
+        var tween = label.CreateTween();
         tween.TweenInterval(4.0);
-        tween.TweenProperty(_toastLabel, "modulate:a", 0.0f, 1.0f);
+        tween.TweenProperty(label, "modulate:a", 0.0f, 1.0f);
         tween.TweenCallback(Callable.From(() =>
         {
-            if (_toastLabel != null && IsInstanceValid(_toastLabel))
-                _toastLabel.QueueFree();
+            if (IsInstanceValid(label)) label.QueueFree();
+            if (_toastLabel == label) _toastLabel = null;
         }));
+    }
+
+    /// <summary>FABLE-104: put the toast away now. With <paramref name="promptOnly"/>, news toasts stay.</summary>
+    private void HideToast(bool promptOnly = false)
+    {
+        if (_toastLabel == null || !IsInstanceValid(_toastLabel)) { _toastLabel = null; return; }
+        if (promptOnly && !_toastIsPrompt) return;
+        _toastLabel.QueueFree();
+        _toastLabel = null;
     }
 
     // ——— Mulligan phase ———

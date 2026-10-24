@@ -128,10 +128,17 @@ public partial class LaneSlot : PanelContainer
         _statusLabel.OffsetTop = 2;
         content.AddChild(_statusLabel);
 
-        // Connect touch area for touch input
-        var touchArea = GetNodeOrNull<Control>("TouchArea");
-        if (touchArea != null)
-            touchArea.GuiInput += OnTouchAreaInput;
+        // Connect touch area for touch input.
+        // FABLE-104: the touch area is the topmost control of the slot and has a Stop mouse filter, so
+        // Godot's drop search ended at it — a card dragged onto a lane never reached _CanDropData below.
+        // It is now a LaneTouchArea (built here; the scene's plain Control is replaced) that forwards
+        // drops to this slot. Taps are unchanged: OnTouchAreaInput + its TapGuard.
+        var oldTouch = GetNodeOrNull<Control>("TouchArea");
+        if (oldTouch != null) { RemoveChild(oldTouch); oldTouch.QueueFree(); }
+        var touchArea = new LaneTouchArea { Name = "TouchArea", MouseFilter = MouseFilterEnum.Stop };
+        touchArea.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        AddChild(touchArea);
+        touchArea.GuiInput += OnTouchAreaInput;
 
         // Load the stone texture for the lane slot background
         var slotBg = GetNodeOrNull<TextureRect>("SlotBg");
@@ -296,9 +303,19 @@ public partial class LaneSlot : PanelContainer
         Size = CustomMinimumSize;
     }
 
+    /// <summary>FABLE-104: the one gold pulse this slot may run; killed by every other highlight call.</summary>
+    private Tween? _pulse;
+
+    private void StopPulse()
+    {
+        if (_pulse != null && _pulse.IsValid()) _pulse.Kill();
+        _pulse = null;
+    }
+
     public void HighlightAsSelected()
     {
         // Brighter, more saturated highlight for the actively selected attacker
+        StopPulse();
         _faceLabel.Visible = false;
         Modulate = new Color(1.3f, 1.15f, 0.7f, 1);
         // Gold border tint
@@ -323,6 +340,7 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void Highlight()
     {
+        StopPulse();
         _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 0.8f, 1);
     }
@@ -330,10 +348,14 @@ public partial class LaneSlot : PanelContainer
     public void HighlightGoldPulse()
     {
         _faceLabel.Visible = false;
-        var tween = CreateTween().SetLoops();
-        tween.TweenProperty(this, "modulate", new Color(1f, 0.85f, 0.3f, 1), 0.6f)
+        // FABLE-104: a looping tween was created on EVERY call and never killed — the lanes kept
+        // pulsing after the card was played, through the enemy's turn, and five more tweens piled
+        // on with each tap. One pulse per slot; already pulsing = leave it be.
+        if (_pulse != null && _pulse.IsValid()) return;
+        _pulse = CreateTween().SetLoops();
+        _pulse.TweenProperty(this, "modulate", new Color(1f, 0.85f, 0.3f, 1), 0.6f)
             .SetEase(Tween.EaseType.InOut).SetTrans(Tween.TransitionType.Sine);
-        tween.TweenProperty(this, "modulate", new Color(1, 1, 0.8f, 1), 0.6f)
+        _pulse.TweenProperty(this, "modulate", new Color(1, 1, 0.8f, 1), 0.6f)
             .SetEase(Tween.EaseType.InOut).SetTrans(Tween.TransitionType.Sine);
     }
 
@@ -342,6 +364,7 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void HighlightAsFaceTarget()
     {
+        StopPulse();
         Modulate = new Color(1, 0.9f, 0.4f, 1);
         _faceLabel.Visible = true;
     }
@@ -351,6 +374,7 @@ public partial class LaneSlot : PanelContainer
     /// </summary>
     public void Unhighlight()
     {
+        StopPulse();
         _faceLabel.Visible = false;
         Modulate = new Color(1, 1, 1, 1);
         // Restore occupied style if applicable
@@ -475,6 +499,21 @@ public partial class LaneSlot : PanelContainer
     }
 
     // ——— Drag-and-drop target ———
+
+    /// <summary>
+    /// FABLE-104: the slot's tap surface. A drop is answered by the slot itself (the search for a drop
+    /// target stops at a Stop-filter control, so this one must say yes on the slot's behalf).
+    /// </summary>
+    private partial class LaneTouchArea : Control
+    {
+        public override bool _CanDropData(Vector2 atPosition, Variant data)
+            => GetParent() is LaneSlot slot && slot._CanDropData(atPosition + Position, data);
+
+        public override void _DropData(Vector2 atPosition, Variant data)
+        {
+            if (GetParent() is LaneSlot slot) slot._DropData(atPosition + Position, data);
+        }
+    }
 
     public override bool _CanDropData(Vector2 atPosition, Variant data)
     {

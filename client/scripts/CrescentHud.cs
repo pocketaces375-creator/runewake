@@ -212,8 +212,10 @@ public partial class CrescentHud : Control
 
             // attunement text sits at the start of the crystal arc, by the screen edge
             var at = OnDial(v, CrystalR - 44f, 99f);
-            sd.AttuneText.Position = at - new Vector2(60f * S, 12f * S);
-            sd.AttuneText.Size = new Vector2(120f * S, 24f * S);
+            // FABLE-104: the box is centred on the arc but may not hang past the screen's right edge
+            float atW = 120f * S;
+            sd.AttuneText.Position = new Vector2(Mathf.Min(at.X - atW / 2f, _vp.X - atW), at.Y - 12f * S);
+            sd.AttuneText.Size = new Vector2(atW, 24f * S);
 
             // tokens on the outer edge
             float[] angles = { 97f, 118f, 139f };

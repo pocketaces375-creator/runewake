@@ -99,13 +99,20 @@ public partial class UxWalk : Node
         }
         var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == card.CardDefId);
         if (hc == null) { Fail("hand card node not found"); Snap(); Next(Step07); return; }
+        float restY = hc.Position.Y;   // its arc position; the lift is relative to it (FABLE-012: 10 px)
         _d.UxSelectCard(hc);
         _selId = card.CardDefId;
         Check("sel->SelectingLane", _input.State == InputController.InputState.SelectingLane);
-        Check("card in hand (y<0)", hc.Position.Y < 0f);
         Check("lane slots exist", _d.UxPlayerSlots.Count > 0);
-        Snap();
-        Next(Step03);
+        // the lift is a 0.1 s tween — measure it after it has run, not in the same frame
+        var lift = new Godot.Timer { OneShot = true, WaitTime = 0.25f };
+        lift.Timeout += () =>
+        {
+            Check("card lifted (y<rest)", IsInstanceValid(hc) && hc.Position.Y < restY - 1f);
+            Snap();
+            Next(Step03);
+        };
+        AddChild(lift); lift.Start();
     }
 
     void Step03() { _step = 3; GD.Print($"{T} BEGIN s03");
@@ -145,23 +152,33 @@ public partial class UxWalk : Node
         var card = hand[0];
         var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == card.CardDefId);
         if (hc == null) { Fail("card node null"); Snap(); Next(Step06); return; }
-        hc.LongPressStarted?.Invoke(null);
+        // the slab may still be up from s04's inspect — start from closed so s05 measures THIS press
+        hc.LongPressEnded?.Invoke();
+        _pressed = hc;
+        // what a real hold passes: the card's definition (null shows nothing)
+        hc.LongPressStarted?.Invoke(Runewake.Engine.Cards.CardRegistry.Get(card.CardDefId));
         var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
         t.Timeout += () =>
         {
             var slab = _d.FindChild("RulesSlab", true, false) as Control;
             Check("slab visible", slab != null && slab.Visible);
-            if (slab != null) Check("plaque w<=420", slab.Size.X <= 420f);
+            // FABLE-067: 460 px at 1080p (the card's art sits beside it), scaled by viewport height
+            float k = GetViewport().GetVisibleRect().Size.Y / 1080f;
+            if (slab != null) Check("plaque w<=460k", slab.Size.X <= 460f * k + 1f);
             Snap();
             Next(Step06);
         };
         AddChild(t); t.Start();
     }
 
+    private HandCard? _pressed;
+
     void Step06() { _step = 6; GD.Print($"{T} BEGIN s06");
-        var hc = _d.UxHandCards.FirstOrDefault(c => c.CardId == _selId);
-        if (hc != null) hc.LongPressEnded?.Invoke();
-        var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
+        // release the SAME card s05 pressed (it used to look for the card played in s03)
+        var hc = _pressed != null && IsInstanceValid(_pressed) ? _pressed : null;
+        if (hc != null) hc.LongPressEnded?.Invoke(); else Fail("no pressed card to release");
+        // RulesSlab.Hide fades for 0.12 s then waits 0.12 s before hiding
+        var t = new Godot.Timer { OneShot = true, WaitTime = 0.4f };
         t.Timeout += () =>
         {
             var slab = _d.FindChild("RulesSlab", true, false) as Control;
@@ -198,12 +215,27 @@ public partial class UxWalk : Node
         var t = new Godot.Timer { OneShot = true, WaitTime = 0.3f };
         t.Timeout += () =>
         {
+            int handBefore = _gsm.GetHand(0).Count;
+            int seqBefore = _gsm.State?.EventSeq ?? 0;
+            // a creature/relic lands in the lane; a ritual is cast (it never occupies a lane) —
+            // either way the card leaves the hand and the engine reports what happened
             _d.UxTapLane(4, true);
             var t2 = new Godot.Timer { OneShot = true, WaitTime = 0.5f };
             t2.Timeout += () =>
             {
-                var l4 = _gsm.GetLanes(0)[4];
-                Check($"lane4=={_selId}", l4.CardDefId == _selId);
+                var def = Runewake.Engine.Cards.CardRegistry.Get(_selId);
+                Check("card left hand", _gsm.GetHand(0).Count == handBefore - 1);
+                if (def?.Type == Runewake.Engine.Cards.CardType.RITUAL)
+                {
+                    bool cast = _gsm.State != null && _gsm.State.Events.Any(e =>
+                        e.Seq > seqBefore && e.Kind == Runewake.Engine.Engine.FxKind.Cast && e.SourceDefId == _selId);
+                    Check($"ritual {_selId} cast", cast);
+                }
+                else
+                {
+                    var l4 = _gsm.GetLanes(0)[4];
+                    Check($"lane4=={_selId}", l4.CardDefId == _selId);
+                }
                 Snap();
                 Next(Step09);
             };
@@ -251,7 +283,7 @@ public partial class UxWalk : Node
     void WalkLabels(Node node, float vw, float vh, int depth = 0)
     {
         if (depth > 50) return;
-        if (node is Label label && label.Visible)
+        if (node is Label label && label.IsVisibleInTree())   // a label inside a hidden panel is not on screen
         {
             string path = node.GetPath();
             var textSize = label.GetCombinedMinimumSize();
