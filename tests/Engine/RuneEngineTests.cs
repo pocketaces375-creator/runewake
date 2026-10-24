@@ -87,12 +87,15 @@ public class RuneEngineTests
         var config = MakeConfig(page, useAttacker: true);
         var state = GameState.Initialize(config);
 
-        // Sharp Roots is unconditional PASSIVE — no rune token created
-        // The BUFF effect would apply to creatures already on board, but at match
-        // start there are none. Creatures summoned later are unaffected by this
-        // one-time application. This is a known design limitation for PASSIVE runes
-        // that buff all creatures; they only work if creatures are already on board.
-        Assert.Empty(state.Players[0].RuneTokens);
+        // FABLE-104: "your creatures have +1 Attack" is an aura. The rune stays as a PASSIVE rune token that
+        // Auras.Recompute reads after every action, so a creature played later gets the +1 (it used to be applied
+        // once, at match start, to an empty board — the rune did nothing).
+        Assert.Single(state.Players[0].RuneTokens);
+        Assert.Equal(Trigger.PASSIVE, state.Players[0].RuneTokens[0].Abilities[0].Trigger);
+        state.Players[0].Attunement = 10;
+        var card = state.Players[0].Hand[0];
+        state = DuelEngine.Apply(state, new PlayCardAction { PlayerIndex = 0, CardInstanceId = card.InstanceId, LaneIndex = 0 });
+        Assert.Equal(4, state.Players[0].Lanes[0].Occupant!.CurrentAttack);   // 3 printed + 1 rune
     }
 
     [Fact]
@@ -279,10 +282,39 @@ public class RuneEngineTests
         var config = MakeConfig(page);
         var state = GameState.Initialize(config);
 
-        // Conditional PASSIVE should create a rune token with ON_TURN_START trigger
+        // FABLE-104: a conditional creature buff ("+2 Attack while damaged") is a conditional AURA — the token keeps
+        // its PASSIVE and condition; Auras.Recompute checks the condition after every action. It used to be an
+        // ON_TURN_START trigger with a PERMANENT buff, which stacked +2 every single turn.
         Assert.Single(state.Players[0].RuneTokens);
-        Assert.Equal(Trigger.ON_TURN_START, state.Players[0].RuneTokens[0].Abilities[0].Trigger);
+        Assert.Equal(Trigger.PASSIVE, state.Players[0].RuneTokens[0].Abilities[0].Trigger);
         Assert.NotNull(state.Players[0].RuneTokens[0].Abilities[0].Condition);
+    }
+
+    [Fact]
+    public void ConditionalPassive_NonAura_BecomesOnTurnStart_ThisTurn()
+    {
+        // FABLE-104: a conditional PASSIVE that is not a creature aura still becomes an ON_TURN_START trigger,
+        // and any buff it carries lasts the turn (no permanent stacking).
+        var rune = new RuneDef
+        {
+            Id = "rune_test_cond_mixed", Name = "Mixed", Description = "x", SlotType = RuneSlotType.UTILITY, Cost = 5,
+            Ability = new AbilityDef
+            {
+                Trigger = Trigger.PASSIVE,
+                Condition = new ConditionDef { Op = ConditionOp.TURN_GTE, Value = System.Text.Json.JsonSerializer.SerializeToElement(1) },
+                Effects = new()
+                {
+                    new EffectDef { Op = Op.ATTUNE, Target = new TargetDef { Scope = Scope.PLAYER_SELF }, Amount = 1 },
+                    new EffectDef { Op = Op.BUFF, Target = new TargetDef { Scope = Scope.ALLY_CREATURE, Count = TargetCount.All }, Attack = 2, Duration = Duration.PERMANENT }
+                }
+            }
+        };
+        var page = new RunePage();
+        page.Equip(rune);
+        var state = GameState.Initialize(MakeConfig(page));
+        var ab = state.Players[0].RuneTokens[0].Abilities[0];
+        Assert.Equal(Trigger.ON_TURN_START, ab.Trigger);
+        Assert.Equal(Duration.THIS_TURN, ab.Effects[1].Duration);
     }
 
     [Fact]

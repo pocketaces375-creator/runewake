@@ -38,11 +38,15 @@ public static class Auras
 
     private static void RecomputeOnce(GameState state)
     {
+        // FABLE-104: who already had an aura Ward before this pass (a Ward is granted once when the aura arrives,
+        // not refreshed after every action — "prevents the next instance of damage, then is removed")
+        var hadAuraWard = new HashSet<CardInstance>(ReferenceEqualityComparer.Instance);
         foreach (var p in state.Players)
             for (int i = 0; i < 5; i++)
             {
                 var c = p.Lanes[i].Occupant;
                 if (c is null) continue;
+                if (c.AuraKeywords.Contains("WARD")) hadAuraWard.Add(c);
                 c.AuraAttack = 0;
                 c.AuraVigor = 0;
                 c.AuraKeywords.Clear();
@@ -50,6 +54,7 @@ public static class Auras
 
         var sources = new List<(CardInstance src, int ctl, AbilityDef ability)>();
         foreach (var p in state.Players)
+        {
             for (int i = 0; i < 5; i++)
             {
                 var c = p.Lanes[i].Occupant;
@@ -59,6 +64,13 @@ public static class Auras
                     if (a.Trigger == Trigger.PASSIVE && TriggerBus.EvaluateCondition(a.Condition, c, p.Index, state))
                         sources.Add((c, p.Index, a));
             }
+            // FABLE-104: a rune's "your creatures have +1 Attack / Ward / Swift" is an aura too (RuneInjector keeps
+            // such runes as tokens with their PASSIVE). It used to be applied once at match start to an empty board.
+            foreach (var t in p.RuneTokens)
+                foreach (var a in t.Abilities)
+                    if (a.Trigger == Trigger.PASSIVE && TriggerBus.EvaluateCondition(a.Condition, t, p.Index, state))
+                        sources.Add((t, p.Index, a));
+        }
 
         // keywords first, so "your Swift creatures get +1 Attack" sees a Swift granted by another aura
         foreach (bool keywordPass in new[] { true, false })
@@ -75,7 +87,13 @@ public static class Auras
                         if (t is not CreatureTarget ct) continue;
                         if (isKey)
                         {
-                            if (!string.IsNullOrEmpty(e.Keyword)) ct.Card.AuraKeywords.Add(e.Keyword.ToUpperInvariant());
+                            if (string.IsNullOrEmpty(e.Keyword)) continue;
+                            string kw = e.Keyword.ToUpperInvariant();
+                            // FABLE-104: an aura Ward is a real Ward — there was a word with no shield behind it
+                            if (kw == "WARD" && ct.Card.WardRemaining < 1 && !hadAuraWard.Contains(ct.Card)
+                                && !ct.Card.EffectiveKeywords.Contains("WARD"))
+                                ct.Card.WardRemaining = 1;
+                            ct.Card.AuraKeywords.Add(kw);
                             continue;
                         }
                         int sign = e.Op == Op.DEBUFF ? -1 : 1;

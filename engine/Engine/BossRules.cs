@@ -101,7 +101,7 @@ public static class BossRules
             }
             else if (id == "crumble" && a.Length == 2 && state.TurnNumber >= a[0])
             {
-                next.Vigor -= a[1];
+                next.LoseVigor(a[1]);
                 if (next.Vigor <= 0)
                 {
                     state.IsGameOver = true;

@@ -528,8 +528,10 @@ public class ChargeTests
     }
 
     [Fact]
-    public void ChargeFull_DeferredClearedOnResetChargeTracking()
+    public void ChargeFull_DeferredSurvivesResetChargeTracking()
     {
+        // FABLE-104 / R20: a deferred charge-full is owed until it fires. Clearing it at the owner's turn start lost
+        // the effect for good when the 3rd Charge landed on the enemy's turn (and left the Charges stuck at max).
         var (state, slot) = CreateStateWithArtifact(
             maxCharges: 3,
             hasDeferredChargeFull: true);
@@ -541,7 +543,7 @@ public class ChargeTests
         Assert.True(slot.PendingChargeFull);
 
         slot.ResetChargeTracking();
-        Assert.False(slot.PendingChargeFull);
+        Assert.True(slot.PendingChargeFull);
         Assert.Equal(0, slot.ChargesGainedThisTurn);
     }
 

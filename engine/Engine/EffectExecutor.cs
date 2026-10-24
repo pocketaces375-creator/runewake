@@ -30,7 +30,13 @@ public static class EffectExecutor
             if (target is CreatureTarget gone && gone.Card.Zone != Zone.Lane && effect.Op != Op.BOUNCE) continue;
             // FABLE-064: ops with no event of their own still tell the screen "this did <op> to <target>"
             if (effect.Op is not (Op.DAMAGE or Op.HEAL or Op.BUFF or Op.DEBUFF or Op.DESTROY or Op.SUMMON))
-                Fx.Emit(state, Fx.New(FxKind.Effect, effect.Op.ToString()).From(source).To(target).N(effect.Amount ?? 0));
+            {
+                // FABLE-104: a keyword grant/removal names the keyword ("GRANT_KEY:WARD") so the screen can show it
+                string tag = effect.Op is Op.GRANT_KEY or Op.REMOVE_KEY && !string.IsNullOrEmpty(effect.Keyword)
+                    ? $"{effect.Op}:{effect.Keyword.ToUpperInvariant()}"
+                    : effect.Op.ToString();
+                Fx.Emit(state, Fx.New(FxKind.Effect, tag).From(source).To(target).N(effect.Amount ?? 0));
+            }
             switch (effect.Op)
             {
                 case Op.DAMAGE:
@@ -54,7 +60,7 @@ public static class EffectExecutor
                     ApplyDraw(target, effect.Amount ?? 1, state);
                     break;
                 case Op.DISCARD:
-                    ApplyDiscard(target, effect.Amount ?? 1, state);
+                    ApplyDiscard(target, effect.Amount ?? 1, state, effect.Target?.Filter);
                     break;
                 case Op.EXCAVATE:
                     ApplyExcavate(target, effect.Amount ?? 1, state);
@@ -197,7 +203,7 @@ public static class EffectExecutor
             int preShield = amount;
             amount = DamageInterceptor.Reduce(state, pt.Player, amount, DamageInterceptor.SourceSpell);
             if (amount < preShield) Fx.Emit(state, Fx.New(FxKind.Keyword, "SHIELD").From(source).ToFace(pt.Player.Index).N(preShield - amount));
-            pt.Player.Vigor -= amount;
+            pt.Player.LoseVigor(amount);
             if (amount > 0) Fx.Emit(state, Fx.New(FxKind.Damage, "SPELL").From(source).ToFace(pt.Player.Index).N(amount));
             if (pt.Player.Vigor <= 0)
             {
@@ -254,11 +260,12 @@ public static class EffectExecutor
     /// FABLE-DROP-1: THIS_TURN ends with the current turn. UNTIL_YOUR_NEXT_TURN — and WHILE_PRESENT, which
     /// artifact passives re-apply at the start of every one of their owner's turns — end when the source's
     /// controller starts their next turn. NEXT_TURN lasts through the source controller's next turn.
-    /// PERMANENT / WHILE_ATTACKING / none: permanent (as before).
+    /// WHILE_ATTACKING ends with the turn (FABLE-104). PERMANENT / none: permanent (as before).
     /// </summary>
     internal static TimedMod? MakeTimed(Duration? duration, CardInstance source, GameState state) => duration switch
     {
         Duration.THIS_TURN => new TimedMod { EndOfTurn = true },
+        Duration.WHILE_ATTACKING => new TimedMod { EndOfTurn = true },   // FABLE-104: it stacked for good, +1 every turn
         Duration.UNTIL_YOUR_NEXT_TURN => new TimedMod { ExpiresAtStartOfPlayer = source.Controller },
         Duration.WHILE_PRESENT when source.CardType == CardType.ARTIFACT => new TimedMod { ExpiresAtStartOfPlayer = source.Controller },
         Duration.NEXT_TURN => new TimedMod { ExpiresAtEndOfPlayersTurn = source.Controller, SkipFirstEnd = state.CurrentPlayerIndex == source.Controller },
@@ -297,7 +304,7 @@ public static class EffectExecutor
             {
                 // Fatigue
                 player.FatigueCounter++;
-                player.Vigor -= player.FatigueCounter;
+                player.LoseVigor(player.FatigueCounter);
                 Fx.Emit(state, Fx.New(FxKind.Damage, "FATIGUE").ToFace(player.Index).N(player.FatigueCounter));
                 if (player.Vigor <= 0)
                 {
@@ -308,7 +315,7 @@ public static class EffectExecutor
         }
     }
 
-    private static void ApplyDiscard(ResolvedTarget target, int amount, GameState state)
+    private static void ApplyDiscard(ResolvedTarget target, int amount, GameState state, string? filter = null)
     {
         PlayerState? player = target switch
         {
@@ -318,10 +325,14 @@ public static class EffectExecutor
         };
         if (player is null) return;
 
+        // FABLE-104: "discard a random card" really is random (seeded, so both phones agree); it used to take the
+        // newest card in hand every time
+        bool random = string.Equals(filter, "RANDOM", StringComparison.OrdinalIgnoreCase);
         for (int i = 0; i < amount && player.Hand.Count > 0; i++)
         {
-            var discarded = player.Hand[^1];
-            player.Hand.RemoveAt(player.Hand.Count - 1);
+            int idx = random ? state.Rng.NextInt(player.Hand.Count) : player.Hand.Count - 1;
+            var discarded = player.Hand[idx];
+            player.Hand.RemoveAt(idx);
             discarded.Zone = Zone.Discard;
             player.Discard.Add(discarded);
         }
@@ -440,6 +451,7 @@ public static class EffectExecutor
                 player.Lanes[i].Occupant = token;
                 KeywordHandlers.OnPlay(token);    // FABLE-DROP-1: a summoned Swift or Ward token works
                 Fx.Emit(state, Fx.New(FxKind.Summon, "TOKEN").From(source).To(token));
+                FireEntersPlay(state, token, player.Index);   // FABLE-104: "whenever you summon a creature" hears tokens
                 return;
             }
         }
@@ -448,7 +460,17 @@ public static class EffectExecutor
 
     private static void ApplyGrantKey(ResolvedTarget target, string keyword, Duration? duration, CardInstance source, GameState state)
     {
-        if (target is not CreatureTarget ct || string.IsNullOrEmpty(keyword)) return;
+        if (string.IsNullOrEmpty(keyword)) return;
+        // FABLE-104: a keyword granted to a PLAYER (Ancestral Blade: "your creatures have Ancestral Shield") goes on
+        // every creature that player has on the board. It used to be dropped, so the Blade never armed.
+        if (target is PlayerTarget pt)
+        {
+            for (int i = 0; i < 5; i++)
+                if (pt.Player.Lanes[i].Occupant is { } occ)
+                    ApplyGrantKey(new CreatureTarget(occ, pt.Player.Index, i), keyword, duration, source, state);
+            return;
+        }
+        if (target is not CreatureTarget ct) return;
         keyword = keyword.ToUpperInvariant();     // a rune grants "Ward"; every check reads "WARD"
         bool hadIt = ct.Card.EffectiveKeywords.Contains(keyword);
         ct.Card.GrantedKeywords.Add(keyword);
@@ -808,7 +830,10 @@ public static class EffectExecutor
                     IsExhausted = true
                 };
                 player.Lanes[i].Occupant = token;
+                KeywordHandlers.OnPlay(token);
+                token.IsExhausted = true;
                 Fx.Emit(state, Fx.New(FxKind.Summon, "TOKEN").From(source).To(token));
+                FireEntersPlay(state, token, player.Index);   // FABLE-104
                 return;
             }
         }
@@ -864,11 +889,18 @@ public static class EffectExecutor
 
         // Remove from discard and place in lane
         player.Discard.RemoveAt(bestIdx);
+        // FABLE-104: it died with its damage and debuffs still written on it; a raised creature comes back as printed
+        // (it used to return at 0 Vigor, which the aura pass then "healed" to 1)
+        KeywordHandlers.ResetForHand(best);
+        best.Controller = player.Index;
         best.Zone = Zone.Lane;
         best.LaneIndex = emptyLane;
         best.IsExhausted = true;
         player.Lanes[emptyLane].Occupant = best;
+        KeywordHandlers.OnPlay(best);
+        best.IsExhausted = true;   // raised, not played: it does not act this turn even with Swift
         Fx.Emit(state, Fx.New(FxKind.Summon, "UNEARTH").From(source).To(best));
+        FireEntersPlay(state, best, player.Index);
     }
 
     /// <summary>
@@ -1000,6 +1032,17 @@ public static class EffectExecutor
     }
 
     // ——— Helpers ———
+
+    /// <summary>
+    /// FABLE-104: a creature that entered play without being played from hand (a token, a raised corpse). The
+    /// summon listeners (artifacts, runes, "whenever you summon a creature" allies) hear it; its own entry
+    /// ability is not run — the engine's SUMMON already resolved what the card does.
+    /// </summary>
+    private static void FireEntersPlay(GameState state, CardInstance card, int controller)
+    {
+        if (state.IsGameOver || card.Zone != Zone.Lane) return;
+        TriggerBus.FireCardEvent(state, Trigger.ON_SUMMON, card, controller, listenersBothSides: true, ownAbilities: false);
+    }
 
     /// <summary>
     /// FABLE-DROP-1: THE one way a creature dies — combat, Venom, Fragile, spells and stat loss all come

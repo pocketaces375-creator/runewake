@@ -28,19 +28,32 @@ public static class RuneInjector
         {
             var ability = rune.Ability;
 
-            if (ability.Trigger == Trigger.PASSIVE && ability.Condition == null)
+            if (ability.Trigger == Trigger.PASSIVE && IsAura(ability))
+            {
+                // FABLE-104: "your creatures have +1 Attack / Ward / Swift (while …)" is an aura: the token keeps its
+                // PASSIVE and Auras.Recompute reads it after every action, condition included. It used to be applied
+                // once at match start — to an empty board — so four of the starter runes did nothing at all.
+                CreateRuneToken(state, player, ability, playerIndex);
+            }
+            else if (ability.Trigger == Trigger.PASSIVE && ability.Condition == null)
             {
                 // Unconditional PASSIVE — apply immediately
                 ApplyPassiveEffect(state, player, ability, playerIndex);
             }
             else if (ability.Trigger == Trigger.PASSIVE && ability.Condition != null)
             {
-                // Conditional PASSIVE — register as ON_TURN_START with the condition
+                // Conditional PASSIVE — register as ON_TURN_START with the condition. FABLE-104: its buffs last the
+                // turn (a "while" effect re-checked every turn), they used to be PERMANENT and stack every turn.
                 var modifiedAbility = new AbilityDef
                 {
                     Trigger = Trigger.ON_TURN_START,
                     Condition = ability.Condition,
-                    Effects = ability.Effects
+                    Effects = ability.Effects.Select(e =>
+                    {
+                        var c = CardInstance.CloneEffect(e);
+                        if (c.Op is Op.BUFF or Op.DEBUFF or Op.GRANT_KEY) c.Duration = Duration.THIS_TURN;
+                        return c;
+                    }).ToList()
                 };
                 CreateRuneToken(state, player, modifiedAbility, playerIndex);
             }
@@ -51,6 +64,12 @@ public static class RuneInjector
             }
         }
     }
+
+    /// <summary>FABLE-104: every effect is a continuous creature modifier Auras.Recompute knows how to hold.</summary>
+    private static bool IsAura(AbilityDef ability) =>
+        ability.Effects.Count > 0 && ability.Effects.All(e =>
+            e.Op is Op.BUFF or Op.DEBUFF or Op.GRANT_KEY
+            && e.Target?.Scope is Scope.ALLY_CREATURE or Scope.ENEMY_CREATURE or Scope.ANY_CREATURE);
 
     /// <summary>
     /// Apply the effects of a passive, unconditional ability directly.

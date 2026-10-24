@@ -49,6 +49,13 @@ public static class TargetResolver
             foreach (var f in target.Filter.Split('+'))
                 pool = ApplyFilter(pool, f.Trim(), target.Tiebreak, source, sourcePlayer, state);
 
+        // FABLE-104: Sealed — "cannot be targeted by enemy abilities" (rules §8). An enemy effect that picks
+        // creatures (anything short of the whole board) skips them; a board-wide "ALL" still reaches them.
+        bool boardWide = target.Count is { IsAll: true };
+        if (!boardWide && target.Scope is Scope.ENEMY_CREATURE or Scope.ANY_CREATURE)
+            pool = pool.Where(t => t is not CreatureTarget ct || ct.PlayerIndex == sourcePlayer.Index
+                || !KeywordHandlers.IsSealed(ct.Card)).ToList();
+
         // FABLE-DROP-1: a ritual's aim. A single-target creature effect with no positional rule picks the
         // creature in the lane the ritual was played on, if there is one there that qualifies.
         if (state.AimLane is int aim && target.Scope is Scope.ENEMY_CREATURE or Scope.ALLY_CREATURE or Scope.ANY_CREATURE
@@ -251,8 +258,23 @@ public static class TargetResolver
             "HAS_PERMANENT_BUFF" => pool
                 .Where(t => t is CreatureTarget ct && (ct.Card.AttackModifier > 0 || ct.Card.VigorModifier > 0))
                 .ToList(),
-            _ => pool
+            // FABLE-104
+            "EXHAUSTED" => pool.Where(t => t is CreatureTarget ct && ct.Card.IsExhausted).ToList(),
+            "FULL_VIGOR" => pool.Where(t => t is CreatureTarget ct && ct.Card.Damage == 0).ToList(),
+            "ALL" => pool,
+            // FABLE-104: a filter the engine does not know matches NOTHING (it used to match everything, so
+            // "destroy an exhausted ally" destroyed any ally). Said once per filter so content typos are seen.
+            _ => Unknown(filter)
         };
+    }
+
+    private static readonly HashSet<string> _warned = new();
+    private static List<ResolvedTarget> Unknown(string filter)
+    {
+        lock (_warned)
+            if (_warned.Add(filter))
+                System.Console.Error.WriteLine($"[TargetResolver] unknown target filter '{filter}' — it matches no target");
+        return new List<ResolvedTarget>();
     }
 
     private static List<ResolvedTarget> Shuffled(List<ResolvedTarget> pool, GameState state)
@@ -276,9 +298,9 @@ public static class TargetResolver
             return pool.Take(1).ToList(); // default to 1
 
         var c = count.Value;
-        if (c.IsAll)
+        if (c.IsAll || c.Value <= 0)   // FABLE-104: "count": 0 (the starter runes) means every target, not one
             return pool;
 
-        return pool.Take(Math.Max(1, c.Value)).ToList();
+        return pool.Take(c.Value).ToList();
     }
 }

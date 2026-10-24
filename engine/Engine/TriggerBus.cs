@@ -85,13 +85,16 @@ public static class TriggerBus
     /// that watch for that event. Other creatures on the board do NOT fire: before this, summoning any
     /// creature re-ran the ON_SUMMON of every creature already in play.
     /// </summary>
-    public static void FireCardEvent(GameState state, Trigger trigger, CardInstance card, int controller, bool listenersBothSides)
+    public static void FireCardEvent(GameState state, Trigger trigger, CardInstance card, int controller, bool listenersBothSides, bool ownAbilities = true)
     {
+        // FABLE-104: ownAbilities=false — a token or raised creature entering play: the listeners hear it, the card's
+        // own entry ability is not re-run (so nothing fires twice when the engine already resolved it)
         int times = trigger == Trigger.ON_SUMMON && card.EffectiveKeywords.Contains("ECHO") ? 2 : 1;
-        for (int t = 0; t < times; t++)
-            foreach (var ability in card.Abilities.ToList())
-                if (ability.Trigger == trigger)
-                    RunAbility(state, ability, card, controller);
+        if (ownAbilities)
+            for (int t = 0; t < times; t++)
+                foreach (var ability in card.Abilities.ToList())
+                    if (ability.Trigger == trigger)
+                        RunAbility(state, ability, card, controller);
 
         var listeners = new List<(AbilityDef, CardInstance, int, int)>();
         CollectListeners(state.Player(controller), trigger, listeners);
@@ -396,7 +399,7 @@ public static class TriggerBus
             ConditionOp.ATTUNEMENT_GTE => player.AttunementMax,
             ConditionOp.CONTROLS_KEYWORD => HasAnyCreatureWithKeyword(player, condition.Value?.GetString() ?? "") ? 1 : 0,
             ConditionOp.CONTROLS_STRATA => HasAnyCreatureWithStrata(player, condition.Value?.GetString() ?? "") ? 1 : 0,
-            ConditionOp.DAMAGED_THIS_TURN => player.Vigor < player.MaxVigor ? 1 : 0,
+            ConditionOp.DAMAGED_THIS_TURN => player.DamageTakenThisTurn > 0 ? 1 : 0,   // FABLE-104: was "below max Vigor"
             ConditionOp.RITUALS_CAST_GTE => 0, // Not tracked yet — stub
             // Artifact conditions
             ConditionOp.ATTACKERS_THIS_TURN_GTE => player.AttackCountThisTurn,
@@ -444,7 +447,7 @@ public static class TriggerBus
             ConditionOp.ATTUNEMENT_GTE => actual >= threshold,
             ConditionOp.CONTROLS_KEYWORD => actual >= 1,
             ConditionOp.CONTROLS_STRATA => actual >= 1,
-            ConditionOp.DAMAGED_THIS_TURN => actual >= threshold,
+            ConditionOp.DAMAGED_THIS_TURN => actual >= Math.Max(1, threshold),   // FABLE-104: no "value" meant 0 >= 0 — always true
             ConditionOp.RITUALS_CAST_GTE => actual >= threshold,
             // Artifact conditions
             ConditionOp.ATTACKERS_THIS_TURN_GTE => actual >= threshold,

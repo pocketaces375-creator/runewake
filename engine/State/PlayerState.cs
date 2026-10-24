@@ -181,6 +181,17 @@ public sealed class PlayerState
     /// <summary>Lane of this player's creature that was attacked last (for ON_ALLY_ATTACKED targets).</summary>
     public int? LastAttackedLaneIndex { get; set; }
 
+    /// <summary>FABLE-104: Vigor this player lost since the end of their previous turn (DAMAGED_THIS_TURN). Cleared when they end their turn.</summary>
+    public int DamageTakenThisTurn { get; set; }
+
+    /// <summary>FABLE-104: the one place face damage lands, so "damaged this turn" is counted wherever it comes from.</summary>
+    public void LoseVigor(int amount)
+    {
+        if (amount <= 0) return;
+        Vigor -= amount;
+        DamageTakenThisTurn += amount;
+    }
+
     public PlayerState(int index, int startingVigor = 25)
     {
         Index = index;
@@ -244,6 +255,7 @@ public sealed class PlayerState
         Traps = other.Traps.ConvertAll(t => t.Clone());
         LastAttackedLaneIndex = other.LastAttackedLaneIndex;
         HasMulliganed = other.HasMulliganed;   // FABLE-095
+        DamageTakenThisTurn = other.DamageTakenThisTurn;   // FABLE-104
     }
 
     /// <summary>

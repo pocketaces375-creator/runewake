@@ -372,13 +372,14 @@ public class RulingWarriorTests
         state = Attack(state, 0, 1);
         Assert.Equal(2, state.Players[0].AttackCountThisTurn);
 
-        // End P0's turn → P1's turn starts.  P0's counters aren't touched yet.
+        // End P0's turn → P1's turn starts. FABLE-104: the turn just completed IS "last turn" from now on, so the
+        // Bulwark's "no attackers last turn" reads it during P1's turn (it used to be two turns stale here).
         state = EndTurn(state, 0);
-        Assert.Equal(2, state.Players[0].AttackCountThisTurn); // still 2
-        Assert.Equal(0, state.Players[0].AttackCountLastTurn); // not yet persisted
+        Assert.Equal(2, state.Players[0].AttackCountThisTurn); // still 2 until P0's next turn starts
+        Assert.Equal(2, state.Players[0].AttackCountLastTurn); // persisted at end of turn
+        Assert.False(Eval(Cond(ConditionOp.NO_ATTACKERS_LAST_TURN), state, 0));
 
-        // End P1's turn → P0's turn starts: P0's AttackCountThisTurn (2) is
-        // persisted to AttackCountLastTurn, then reset to 0.
+        // End P1's turn → P0's turn starts: AttackCountLastTurn stays 2, AttackCountThisTurn resets to 0.
         state = EndTurn(state, 1);
         Assert.Equal(2, state.Players[0].AttackCountLastTurn);
         Assert.Equal(0, state.Players[0].AttackCountThisTurn); // reset for the new turn

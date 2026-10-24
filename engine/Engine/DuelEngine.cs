@@ -96,6 +96,13 @@ public static partial class DuelEngine
         MechanicOps.OnTurnEnd(state, action.PlayerIndex);
         ExpireTimed(state, endOfTurnOf: action.PlayerIndex, startOfTurnOf: null);
         TruncateHand(endingPlayer);
+        // FABLE-104: "your most recent completed turn" is THIS one from now on. It was only copied at the start of the
+        // player's next turn, so during the enemy's turn (Bulwark's "no attackers last turn") it was two turns stale.
+        endingPlayer.AttackCountLastTurn = endingPlayer.AttackCountThisTurn;
+        // FABLE-104: "damaged this turn" (was "below max Vigor") counts the Vigor a player lost since the end of their
+        // previous turn — the enemy's turn and their own — so a relic that wakes "if you took damage", a hammer that
+        // charges when you were hit, or a rune "while damaged" all see the blows the enemy landed. Cleared here.
+        endingPlayer.DamageTakenThisTurn = 0;
 
         // Tick suppression on the ending player's Artifacts (counted in owner's turns)
         // But we also tick AFTER triggers so ON_ARTIFACT_UNSUPPRESS can fire correctly
@@ -103,7 +110,10 @@ public static partial class DuelEngine
 
         // 1.5 Deferred ON_CHARGE_FULL — fire any artifact triggers with timing END_OF_TURN
         // that had PendingChargeFull set during this turn (Censer, Grimoire per G8).
+        // FABLE-104 / R20: "at the end of whichever turn the 3rd Charge landed" — the active player's first (G1),
+        // then the other's. It used to fire the ending player's only; a fill on the enemy's turn was lost for good.
         FireDeferredChargeFull(state, endingPlayer);
+        FireDeferredChargeFull(state, state.Player(state.OpponentIndex(action.PlayerIndex)));
 
         // 1.6 Auto-charge gain for artifacts with gain_on="on_turn_end"
         AutoGainCharges(endingPlayer, state, "on_turn_end");
@@ -482,9 +492,10 @@ public static partial class DuelEngine
             if (defenderKilled && attacker.EffectiveKeywords.Contains("PIERCE") && !hedgeBlockPierce)
             {
                 int neededToKill = defender.MaxVigorNow - (defender.Damage - dealtToDefender);
-                int excessDamage = System.Math.Max(0, attackPower - neededToKill);
+                // FABLE-104: the excess is what actually got through — Armor and shields on the blocker shave it too
+                int excessDamage = System.Math.Max(0, dealtToDefender - neededToKill);
                 excessDamage = DamageInterceptor.Reduce(state, opponent, excessDamage, DamageInterceptor.SourceAttack);
-                opponent.Vigor -= excessDamage;
+                opponent.LoseVigor(excessDamage);
                 Fx.Emit(state, Fx.New(FxKind.Keyword, "PIERCE").From(attacker).To(defender).N(excessDamage));
                 if (excessDamage > 0)
                     Fx.Emit(state, Fx.New(FxKind.Damage, "PIERCE").From(attacker).ToFace(opponent.Index).N(excessDamage));
@@ -506,7 +517,7 @@ public static partial class DuelEngine
             attackPower = DamageInterceptor.Reduce(state, opponent, attackPower, DamageInterceptor.SourceAttack);
             if (attackPower < unshielded)
                 Fx.Emit(state, Fx.New(FxKind.Keyword, "SHIELD").From(attacker).ToFace(opponent.Index).N(unshielded - attackPower));
-            opponent.Vigor -= attackPower;
+            opponent.LoseVigor(attackPower);
             if (attackPower > 0)
                 Fx.Emit(state, Fx.New(FxKind.Damage, "ATTACK").From(attacker).ToFace(opponent.Index).N(attackPower));
             CheckGameOver(state, opponent);
@@ -673,7 +684,7 @@ public static partial class DuelEngine
         {
             // Fatigue
             player.FatigueCounter++;
-            player.Vigor -= player.FatigueCounter;
+            player.LoseVigor(player.FatigueCounter);
             Fx.Emit(state, Fx.New(FxKind.Damage, "FATIGUE").ToFace(player.Index).N(player.FatigueCounter));
             if (player.Vigor <= 0)
             {
@@ -760,7 +771,7 @@ public static partial class DuelEngine
     /// Cadenced passives (effects with a Cadence) fire in their cadence phase
     /// (e.g. <see cref="EffectDef.CadenceOnTurnStart"/>) and are skipped here.
     /// </summary>
-    private static void ApplyArtifactPassives(GameState state, PlayerState player)
+    internal static void ApplyArtifactPassives(GameState state, PlayerState player)
     {
         state.FxMuted = true;   // FABLE-064: the same standing buffs every turn are not news
         try { ApplyArtifactPassivesInner(state, player); }

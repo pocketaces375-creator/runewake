@@ -289,6 +289,7 @@ public sealed class ArtifactSlot
         HasTriggeredThisTurn = false;   // FABLE-064: a new turn, a fresh artifact
         ChargesGainedThisTurn = 0;
         ChargesGainedThisTurnByCreature.Clear();
-        PendingChargeFull = false;
+        // FABLE-104: PendingChargeFull is NOT cleared here — a fill on the enemy's turn fires at the end of that turn
+        // (R20); clearing it at the owner's turn start lost the effect and left the Charges stuck at max for good.
     }
 }

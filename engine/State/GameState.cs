@@ -283,6 +283,10 @@ public sealed class GameState
             Engine.BossRules.ApplyAtStart(state);
         }
 
+        // FABLE-104: Artifacts are active from turn 1 (spec §3). The first player's passives (cost discounts,
+        // damage shields) were only applied at the start of their SECOND turn; P1's were applied when P0 ended turn 1.
+        Engine.DuelEngine.ApplyArtifactPassives(state, state.Players[0]);
+
         return state;
     }
 
@@ -556,6 +560,7 @@ public sealed class GameState
             h = HashInt(h, pl.PreyAttackCountThisTurn);
             h = HashInt(h, pl.FirstAttackerLaneIndex ?? -1);
             h = HashInt(h, pl.FirstAttackedLaneIndex ?? -1);
+            h = HashInt(h, pl.DamageTakenThisTurn);   // FABLE-104
 
             // Damage-prevention shields (player)
             h = HashInt(h, pl.DamageShields.Count);

@@ -317,7 +317,7 @@ public static class MechanicOps
         }
         if (p.Burn > 0 && !state.IsGameOver)
         {
-            p.Vigor -= p.Burn;
+            p.LoseVigor(p.Burn);
             Fx.Emit(state, Fx.New(FxKind.Damage, "BURN").ToFace(p.Index).N(p.Burn));
             p.Burn--;
             if (p.Vigor <= 0)
