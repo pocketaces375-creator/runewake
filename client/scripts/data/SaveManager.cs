@@ -255,6 +255,6 @@ public class SaveManager
         // snapshot is the one list of all fields (AccountsTests checks it by
         // reflection), so reuse it rather than keep a second list in step.
         to.Version = from.Version;
-        Runewake.Engine.Supabase.ProgressionSnapshot.FromState(from).ApplyTo(to);
+        Runewake.Engine.Supabase.ProgressionSnapshot.FromState(from).ApplyTo(to, keepLocalArtifactsWhenEmpty: false);   // FABLE-104: another campaign's picks must not carry over
     }
 }

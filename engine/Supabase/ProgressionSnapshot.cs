@@ -137,8 +137,12 @@ public class ProgressionSnapshot
     /// not a merge — the merge decision (whose save wins) is made by the caller
     /// BEFORE this is called, on updated_at. Collections are cleared then
     /// filled so the state object's own instances are kept.
+    ///
+    /// FABLE-104: <paramref name="keepLocalArtifactsWhenEmpty"/> is for a CLOUD RESTORE only (FABLE-072): a cloud copy that
+    /// carries no artifact picks must not erase this phone's. Loading a campaign from its own save file into the live state
+    /// passes false - the picks of the campaign just left must not follow the player into another one.
     /// </summary>
-    public void ApplyTo(ProgressionState s)
+    public void ApplyTo(ProgressionState s, bool keepLocalArtifactsWhenEmpty = true)
     {
         s.Shards = Shards;
         s.DigCharges = DigCharges;
@@ -168,9 +172,9 @@ public class ProgressionSnapshot
         s.DeckCardIds.Clear(); s.DeckCardIds.AddRange(DeckCardIds);
         s.SavedDecks.Clear(); foreach (var kv in SavedDecks) if (kv.Value != null) s.SavedDecks[kv.Key] = new List<string>(kv.Value);   // FABLE-095: a null list inside is dropped, not a throw
         // FABLE-072: a cloud copy that carries no artifact picks must not erase the ones on this phone
-        if (DeckArtifacts.Count > 0 || s.DeckArtifacts.Count == 0)
+        if (DeckArtifacts.Count > 0 || !keepLocalArtifactsWhenEmpty || s.DeckArtifacts.Count == 0)
         { s.DeckArtifacts.Clear(); foreach (var kv in DeckArtifacts) if (kv.Value != null) s.DeckArtifacts[kv.Key] = new List<string>(kv.Value); }
-        if (ActiveArtifacts.Count > 0 || s.ActiveArtifacts.Count == 0)
+        if (ActiveArtifacts.Count > 0 || !keepLocalArtifactsWhenEmpty || s.ActiveArtifacts.Count == 0)
         { s.ActiveArtifacts.Clear(); s.ActiveArtifacts.AddRange(ActiveArtifacts); }
         s.ActiveDeckName = ActiveDeckName ?? "";
 

@@ -100,6 +100,14 @@ exception when others then
   raise notice 'OK: a stranger cannot read the moves';
 end $$;
 select pg_temp.check((select count(*) from public.expedition_moves) = 0, 'a stranger sees no move rows directly (RLS)');
+-- FABLE-104: an open lobby's code is not listable by players who are not in it
+select pg_temp.act_as('a0000000-0000-0000-0000-00000000000a');
+create temp table t_open as select public.create_expedition_v2('pvp1v1', 'pvp', 2, 'Alice', 'battlemage', '["a","b"]'::jsonb) as r;
+select pg_temp.act_as('c0000000-0000-0000-0000-00000000000c');
+select pg_temp.check((select count(*) from public.expeditions) = 0, 'a stranger cannot list expeditions (open lobbies included)');
+select pg_temp.check((select public.find_expedition(r->>'code') is not null from t_open), 'but the code still finds the lobby through find_expedition');
+select pg_temp.act_as('a0000000-0000-0000-0000-00000000000a');
+select public.leave_expedition((r->>'id')::uuid) from t_open;
 
 -- ── leave + finish ────────────────────────────────────────────────────────
 select pg_temp.act_as('b0000000-0000-0000-0000-00000000000b');
@@ -108,6 +116,7 @@ select pg_temp.check((select (public.lobby((r->>'id')::uuid)->'members'->1->>'st
 select pg_temp.act_as('a0000000-0000-0000-0000-00000000000a');
 select public.finish_expedition((select (r->>'id')::uuid from t), '{"winner":0}'::jsonb);
 select pg_temp.check((select (public.lobby((r->>'id')::uuid)->>'state') = 'done' from t), 'the match is done');
+select pg_temp.check((select public.post_move((r->>'id')::uuid, 2, '{"t":"move","seat":0,"seq":2}'::jsonb) > 0 from t), 'FABLE-104: the last move still lands after the result was reported');
 select pg_temp.check((select public.find_expedition(r->>'code') is null from t), 'a finished match''s code is free again');
 
 reset role;

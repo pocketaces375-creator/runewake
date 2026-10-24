@@ -245,12 +245,90 @@ public partial class SyncManager : Node
         }
     }
 
+    /// <summary>
+    /// FABLE-104: only ONE session refresh or sign-in at a time, whoever asks (the sync, the lobby poll, a duel). Two refreshes
+    /// with the same refresh token can make the server throw the whole token family away. Lock order: the sync gate may
+    /// be held while taking this lock, never the other way round.
+    /// </summary>
+    private readonly SemaphoreSlim _sessionLock = new(1, 1);
+
     /// <summary>Get a usable session: refresh, or sign in anonymously. False = offline/failed, status set.</summary>
     private async Task<bool> EnsureSession()
     {
+        await _sessionLock.WaitAsync().ConfigureAwait(false);
+        try { return await EnsureSessionCore(60, false).ConfigureAwait(false); }
+        finally { _sessionLock.Release(); }
+    }
+
+    /// <summary>
+    /// FABLE-104: the session for a network call, refreshed first when under two minutes of life are left - online play
+    /// used to carry the token it started with, so a duel died (every call a 401) once the hour ran out. After a 401 pass
+    /// the token that was refused: if nobody has refreshed since, it is refreshed now (once, whoever asks first); if
+    /// someone has, the fresh session is returned without another round trip. Null when there is no session at all;
+    /// when the refresh cannot be done (offline) the current session comes back and the call reports its own error.
+    /// Safe from any thread.
+    /// </summary>
+    public async Task<SupabaseSession?> GetSessionAsync(string? rejectedToken = null)
+    {
+        if (_auth == null || !_config.IsConfigured) return Session;
+        bool Fresh(SupabaseSession? s) => s is { IsValid: true } && !s.NeedsRefresh(marginSeconds: 120) && (rejectedToken == null || s.AccessToken != rejectedToken);
+        if (Fresh(Session)) return Session;
+        await _sessionLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (Fresh(Session)) return Session;
+            bool force = rejectedToken != null && Session != null && Session.AccessToken == rejectedToken;
+            await EnsureSessionCore(120, force).ConfigureAwait(false);
+            return Session;
+        }
+        catch (Exception ex) { GD.PrintErr($"[SyncManager] session refresh failed: {ex.Message}"); return Session; }
+        finally { _sessionLock.Release(); }
+    }
+
+    /// <summary>
+    /// FABLE-104: does this error text (OnlinePlaySync hands back only text) mean the access token was refused? PostgREST says
+    /// "JWT expired" / PGRST301; our own client says "Not signed in" / "Session expired" when it has no usable session.
+    /// </summary>
+    public static bool IsAuthError(string? error)
+    {
+        if (string.IsNullOrEmpty(error)) return false;
+        string e = error.ToLowerInvariant();
+        return e.Contains("jwt") || e.Contains("pgrst301") || e.Contains("session expired") || e.Contains("not signed in")
+            || e.Contains("unauthorized") || e.Contains("invalid token");
+    }
+
+    /// <summary>
+    /// FABLE-104: run one network call with a session that is fresh enough; when the answer is "your token was refused",
+    /// refresh once and run it again (the calls used here are safe to repeat: post_move is idempotent by seq, the rest
+    /// either did nothing on a 401 or can be asked again). With no session at all the call is made with an empty one and
+    /// answers "Not signed in" without touching the network.
+    /// </summary>
+    public async Task<T> Authed<T>(Func<SupabaseSession, Task<T>> call, Func<T, string?> errorOf)
+    {
+        var s = await GetSessionAsync().ConfigureAwait(false) ?? new SupabaseSession();
+        var r = await call(s).ConfigureAwait(false);
+        if (!IsAuthError(errorOf(r)) || !s.IsValid) return r;
+        var s2 = await GetSessionAsync(s.AccessToken).ConfigureAwait(false);
+        if (s2 == null || !s2.IsValid || s2.AccessToken == s.AccessToken) return r;
+        return await call(s2).ConfigureAwait(false);
+    }
+
+    /// <summary>FABLE-104: the server said this refresh token is finished (not a hiccup: a 5xx, a rate limit and a bad connection are NOT this).</summary>
+    private static bool RefreshTokenDead(SupabaseAuth.AuthResult r)
+    {
+        if (r.Status is not (400 or 401 or 403)) return false;
+        string e = (r.Error ?? "").ToLowerInvariant();
+        return e.Contains("invalid_grant") || e.Contains("refresh_token_not_found") || e.Contains("refresh token not found")
+            || e.Contains("already used") || e.Contains("refresh_token_already_used") || e.Contains("session_not_found")
+            || e.Contains("invalid refresh token");
+    }
+
+    /// <summary>Caller holds <see cref="_sessionLock"/>.</summary>
+    private async Task<bool> EnsureSessionCore(int marginSeconds, bool force)
+    {
         if (_auth == null) return false;
 
-        if (Session != null && Session.IsValid && !Session.NeedsRefresh())
+        if (!force && Session != null && Session.IsValid && !Session.NeedsRefresh(marginSeconds: marginSeconds))
             return true;
 
         if (Session != null && !string.IsNullOrEmpty(Session.RefreshToken))
@@ -259,12 +337,20 @@ public partial class SyncManager : Node
             if (r.Ok) { AdoptSession(r.Session!); return true; }
             if (r.Status == 0) { SetStatus(r.Error); return false; }   // FABLE-019: carries the reason
 
-            // The server rejected the refresh token outright: the session is
-            // dead. For a GUEST we can just make a new guest — but their save
+            // FABLE-104: only a refresh token the server has REJECTED means the session is dead. A 5xx, a rate limit or a
+            // proxy's odd answer used to be treated the same: the guest was silently replaced by a brand-new user, and
+            // their cloud save, relics and purchased packs stayed behind under the old id.
+            GD.PrintErr($"[SyncManager] refresh failed ({r.Status}): {r.Error}");
+            if (!RefreshTokenDead(r))
+            {
+                SetStatus("Could not refresh the sign-in — " + r.Error);
+                RecordError(r.Error);
+                return false;
+            }
+            // The session is dead. For a GUEST we can just make a new guest — but their save
             // is under the old user id, so keep the old session file where
             // the account panel can find it. For a LINKED account, never
             // silently replace it: say so and let them sign back in.
-            GD.PrintErr($"[SyncManager] refresh rejected ({r.Status}): {r.Error}");
             if (IsLinked)
             {
                 SetStatus("Signed out — sign in again with " + Session.Email);
@@ -324,7 +410,9 @@ public partial class SyncManager : Node
             // three or four times). Push once, after the burst.
             while ((DateTime.UtcNow - _lastSaveUtc).TotalSeconds < 6)
                 await Task.Delay(1500).ConfigureAwait(false);
-            if (!await _gate.WaitAsync(0).ConfigureAwait(false)) return;
+            // FABLE-104: the gate is busy (the startup sync, a sign-in, the relic sync): wait for it, never drop the push.
+            // If it stays busy the save is marked and the finally below schedules this again - after the wait, so it cannot spin.
+            if (!await _gate.WaitAsync(TimeSpan.FromSeconds(60)).ConfigureAwait(false)) { _savedWhileScheduled = true; return; }
             try
             {
                 if (!await EnsureSession().ConfigureAwait(false)) return;
@@ -700,7 +788,7 @@ public partial class SyncManager : Node
             {
                 if (slot == active && _save != null)
                     b.Slots[slot.ToString()] = ProgressionSnapshot.FromState(_save.State);
-                else if (File.Exists(SlotDbPath(slot)))
+                else if (SaveRepository.Exists(SlotDbPath(slot)))   // FABLE-104: a phone without SQLite has only the .json file save
                     b.Slots[slot.ToString()] = ProgressionSnapshot.FromState(new SaveRepository(SlotDbPath(slot)).Load());
             }
             catch (Exception ex)
@@ -1014,14 +1102,23 @@ public partial class SyncManager : Node
         return (true, "");
     }
 
+    // FABLE-104: these three used to send whatever token the phone held; now a session that is about to expire is refreshed first
     public Task<string?> ChallengePlayer(string username, string expeditionId)
-        => _profiles == null || Session == null ? Task.FromResult<string?>("Sign in first.") : _profiles.ChallengePlayer(Session, username, expeditionId);
+        => _profiles == null || Session == null ? Task.FromResult<string?>("Sign in first.") : Authed(s => _profiles.ChallengePlayer(s, username, expeditionId), r => r);
 
-    public Task<List<ProfileSync.Challenge>> MyChallenges()
-        => _profiles == null || Session == null || !HasAccount ? Task.FromResult(new List<ProfileSync.Challenge>()) : _profiles.MyChallenges(Session);
+    public async Task<List<ProfileSync.Challenge>> MyChallenges()
+    {
+        if (_profiles == null || Session == null || !HasAccount) return new List<ProfileSync.Challenge>();
+        var s = await GetSessionAsync().ConfigureAwait(false);
+        return s == null ? new List<ProfileSync.Challenge>() : await _profiles.MyChallenges(s).ConfigureAwait(false);
+    }
 
-    public Task<string?> AnswerChallenge(string id, bool accept)
-        => _profiles == null || Session == null ? Task.FromResult<string?>(null) : _profiles.AnswerChallenge(Session, id, accept);
+    public async Task<string?> AnswerChallenge(string id, bool accept)
+    {
+        if (_profiles == null || Session == null) return null;
+        var s = await GetSessionAsync().ConfigureAwait(false);
+        return s == null ? null : await _profiles.AnswerChallenge(s, id, accept).ConfigureAwait(false);
+    }
 
     private void SetStatus(string s)
     {

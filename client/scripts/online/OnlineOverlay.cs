@@ -69,17 +69,22 @@ public partial class OnlineOverlay : Control
 
     public override void _Process(double delta)
     {
-        if (_finished) return;
+        // FABLE-104: the wire keeps running after the duel is over - the winning move (and its hash) may still be on its way
+        // to the other phone. It used to stop here, with the move unsent and the result already reported.
         _m.Pump(delta);
         _strip.Text = _m.Status;
         _strip.Modulate = _m.Pvp?.IsMyTurn == true ? ThemeTokens.Gold : new Color(0.85f, 0.82f, 0.74f);
-        if (_m.Broken && _brokenPanel == null) ShowBroken();
-        if (_m.Pvp != null && _m.Pvp.State.IsGameOver)
+        bool over = _m.Pvp != null && _m.Pvp.State.IsGameOver;
+        if (_m.Broken && _brokenPanel == null && !over) ShowBroken();
+        if (over)
         {
-            _finished = true;
-            _gsm.ActionSink = null;
-            _gsm.ConcedeSink = null;
-            _m.ReportResult(_m.Pvp.State.WinnerIndex == _m.LocalSeat);
+            if (!_finished)
+            {
+                _finished = true;
+                _gsm.ActionSink = null;
+                _gsm.ConcedeSink = null;
+            }
+            _m.ReportResult(_m.Pvp!.State.WinnerIndex == _m.LocalSeat);   // waits until the queue is empty, then reports once
         }
     }
 

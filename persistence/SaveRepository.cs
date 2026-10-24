@@ -44,7 +44,32 @@ public sealed class SaveRepository
     /// two writers at once failed with "database is locked" — and a failed save used to delete the file.
     /// </summary>
     private static readonly Dictionary<string, object> FileGates = new();
-    private object Gate { get { lock (FileGates) { if (!FileGates.TryGetValue(_dbPath, out var g)) FileGates[_dbPath] = g = new object(); return g; } } }
+    private object Gate => GateFor(_dbPath);
+    private static object GateFor(string dbPath) { lock (FileGates) { if (!FileGates.TryGetValue(dbPath, out var g)) FileGates[dbPath] = g = new object(); return g; } }
+
+    /// <summary>
+    /// FABLE-104: every file one campaign's save lives in. The FABLE-069 file save (.json, its .bak and .tmp) used to be
+    /// left behind when a campaign was deleted, and the next campaign in that slot loaded it back (the newer of file and
+    /// database wins). The settings file is NOT part of the campaign and is kept.
+    /// </summary>
+    public static string[] SaveFilesOf(string dbPath) => new[]
+    {
+        dbPath, dbPath + "-wal", dbPath + "-shm", dbPath + "-journal",
+        dbPath + ".json", dbPath + ".json.bak", dbPath + ".json.tmp",
+    };
+
+    /// <summary>FABLE-104: delete a campaign's whole save (database, journals, file save and its copies). Best effort; true when nothing is left.</summary>
+    public static bool DeleteAll(string dbPath)
+    {
+        lock (GateFor(dbPath))
+        {
+            foreach (var f in SaveFilesOf(dbPath)) TryDeleteFile(f);
+            return SaveFilesOf(dbPath).All(f => !File.Exists(f));
+        }
+    }
+
+    /// <summary>FABLE-104: is there a save for this slot in any form (database or file save)? The cloud bundle needs it: with no SQLite on the phone only the .json exists.</summary>
+    public static bool Exists(string dbPath) => File.Exists(dbPath) || File.Exists(dbPath + ".json") || File.Exists(dbPath + ".json.bak");
 
     /// <summary>Create a repository rooted at the given SQLite file path.</summary>
     public SaveRepository(string dbPath)
@@ -131,7 +156,7 @@ public sealed class SaveRepository
                 var snap = file == null ? null : ProgressionSnapshot.FromJson(file.Progression);
                 if (snap == null) continue;
                 var state = new ProgressionState { Version = CurrentSchemaVersion };
-                snap.ApplyTo(state);
+                snap.ApplyTo(state, keepLocalArtifactsWhenEmpty: false);   // FABLE-104: a fresh state - nothing local to keep
                 savedAt = file!.SavedAt;
                 if (path != _jsonPath) RepairLog.Add("The file save was unreadable — loaded its previous copy (.bak).");
                 return state;

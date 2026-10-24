@@ -448,11 +448,9 @@ public static class CampaignContext
         {
             try
             {
-                foreach (var ext in new[] { "", "-wal", "-shm" })
-                {
-                    string f = SaveDbPath(saveId) + ext;
-                    if (System.IO.File.Exists(f)) System.IO.File.Delete(f);
-                }
+                // FABLE-104: the database AND the file save (.json, .bak, .tmp) - a leftover .json came back as the "new" campaign
+                if (!Runewake.Persistence.SaveRepository.DeleteAll(SaveDbPath(saveId)))
+                    GD.PrintErr($"[CampaignContext] save {saveId}: some files could not be deleted");
             }
             catch (Exception ex) { GD.PrintErr($"[CampaignContext] could not delete save file {saveId}: {ex.Message}"); }
         }

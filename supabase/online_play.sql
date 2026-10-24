@@ -168,7 +168,9 @@ begin
   select m.seat into v_seat from public.expedition_members m where m.expedition_id = p_id and m.user_id = auth.uid();
   if v_seat is null then raise exception 'not a member'; end if;
   select state into v_state from public.expeditions where id = p_id;
-  if v_state <> 'running' then raise exception 'expedition is %', v_state; end if;
+  -- FABLE-104: 'done' still takes rows. The winner's phone reports the result the moment the last move is made,
+  -- and that last move (and its hash) may still be on its way: refusing it left the loser waiting forever.
+  if v_state not in ('running', 'done') then raise exception 'expedition is %', v_state; end if;
   select coalesce(max(seq) + 1, 0) into v_next from public.expedition_moves where expedition_id = p_id and seat = v_seat;
   if p_seq < v_next then
     -- a retry of a move that already landed: idempotent

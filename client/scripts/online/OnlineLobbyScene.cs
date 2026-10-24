@@ -60,6 +60,11 @@ public partial class OnlineLobbyScene : Control
     private static bool Painted => ScreenSkin.Words("OnlineLobbyScene");
     private Label _seatL = null!, _seatR = null!;
     private Button? _chBtn, _copyBtn;
+    // FABLE-104: one lobby action at a time (Host / Join / Challenge). A double tap used to open two lobbies, or join twice,
+    // and whichever answer landed last decided which lobby the screen polled.
+    private bool _busy;
+    private bool _leaving;
+    private Button? _hostBtn, _coopBtn, _joinBtn;
 
     public override void _Ready() => SceneGuard.Build(this, "OnlineLobbyScene", Build, "res://scenes/main/Main.tscn", "Back to title");
 
@@ -197,12 +202,14 @@ public partial class OnlineLobbyScene : Control
         var hostBtn = Plate("Host a duel  ·  1v1", true);
         hostBtn.Pressed += () => _ = Host("pvp1v1", "pvp");
         col.AddChild(hostBtn);
+        _hostBtn = hostBtn;
 
         try { PickCoopTarget(); } catch (Exception ex) { DuelScene.ExitTrace("OnlineLobby: no co-op target: " + ex); }
         var coopBtn = Plate(string.IsNullOrEmpty(_coopTarget) ? "Host a co-op fight" : $"Host a co-op fight  ·  {_coopTitle}", false);
         coopBtn.Disabled = string.IsNullOrEmpty(_coopTarget);
         coopBtn.Pressed += () => _ = Host("coop", _coopTarget);
         col.AddChild(coopBtn);
+        _coopBtn = coopBtn;
 
         var joinRow = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
         joinRow.AddThemeConstantOverride("separation", 16);
@@ -214,6 +221,7 @@ public partial class OnlineLobbyScene : Control
         var joinBtn = Plate("Join", false, 280);
         joinBtn.Pressed += () => _ = Join(_codeEdit.Text.Trim());
         joinRow.AddChild(joinBtn);
+        _joinBtn = joinBtn;
 
         MenuButtons.RevealStagger(new Control[] { _kicker, _title, nameRow, col });
     }
@@ -231,7 +239,7 @@ public partial class OnlineLobbyScene : Control
         back.Pressed += () =>
         {
             // FABLE-095: leaving from inside a lobby tells the server, so the other player isn't left waiting on a ghost
-            if (_view == View.Lobby && _sync != null && _sm?.Session != null && !string.IsNullOrEmpty(_id)) _ = _sync.Leave(_sm.Session, _id);
+            if (_view == View.Lobby && _sync != null && _sm != null && _sm.Session != null && !string.IsNullOrEmpty(_id)) { _leaving = true; string leaveId = _id; _ = _sm.Authed(s => _sync.Leave(s, leaveId), x => x.error); }
             LoadScreen.Go(GetTree(), "res://scenes/main/Main.tscn");
         };
         AddChild(back);
@@ -275,6 +283,7 @@ public partial class OnlineLobbyScene : Control
         chBtn.Pressed += () => _ = Challenge(_challengeEdit.Text.Trim());
         _challengeEdit.TextSubmitted += t => _ = Challenge(t.Trim());
         cr.AddChild(chBtn);
+        _chBtn = chBtn;
 
         var row = new HBoxContainer { Position = new Vector2(vp.X / 2f - 520, vp.Y - 260), Size = new Vector2(1040, 100), Alignment = BoxContainer.AlignmentMode.Center };
         row.AddThemeConstantOverride("separation", 30);
@@ -341,11 +350,33 @@ public partial class OnlineLobbyScene : Control
 
     private async Task Challenge(string username)
     {
-        if (_sm == null || string.IsNullOrEmpty(_id)) return;
+        if (_busy || _sm == null || string.IsNullOrEmpty(_id)) return;
         if (username.Length == 0) { SetStatus("Type your friend's username."); return; }
+        SetBusy(true);
         SetStatus($"Challenging {username}…");
-        var err = await _sm.ChallengePlayer(username, _id).ConfigureAwait(false);
-        Later(nameof(SetStatus), err ?? $"Challenge sent. {username} sees it on their Online screen.");
+        try
+        {
+            var err = await _sm.ChallengePlayer(username, _id).ConfigureAwait(false);
+            Later(nameof(EndBusy), err ?? $"Challenge sent. {username} sees it on their Online screen.");
+        }
+        catch (Exception ex) { Later(nameof(EndBusy), "Couldn't send the challenge: " + ex.Message); }
+    }
+
+    /// <summary>FABLE-104: lock the lobby actions (main thread only).</summary>
+    private void SetBusy(bool busy)
+    {
+        _busy = busy;
+        if (_hostBtn != null && IsInstanceValid(_hostBtn)) _hostBtn.Disabled = busy;
+        if (_coopBtn != null && IsInstanceValid(_coopBtn)) _coopBtn.Disabled = busy || string.IsNullOrEmpty(_coopTarget);
+        if (_joinBtn != null && IsInstanceValid(_joinBtn)) _joinBtn.Disabled = busy;
+        if (_chBtn != null && IsInstanceValid(_chBtn)) _chBtn.Disabled = busy;
+    }
+
+    /// <summary>FABLE-104: an action finished (deferred to the main thread): unlock, and say how it went.</summary>
+    private void EndBusy(string status)
+    {
+        SetBusy(false);
+        if (!string.IsNullOrEmpty(status)) SetStatus(status);
     }
 
     private async Task PollInvites()
@@ -381,16 +412,23 @@ public partial class OnlineLobbyScene : Control
 
     private async Task Host(string kind, string target)
     {
-        if (_sync == null || _sm?.Session == null) return;
+        if (_busy || _sync == null || _sm?.Session == null) return;
         var me = MyLoadout(); if (me == null) return;
+        SetBusy(true);
         SetStatus("Opening a lobby…");
         _kind = kind;
-        var r = await _sync.Create(_sm.Session, kind, target, kind == "coop" ? 5 : 2, me.Value.name, me.Value.cls, me.Value.deck).ConfigureAwait(false);
-        Later(nameof(AfterHost), r.ok, r.id, r.code, r.error);
+        try
+        {
+            var m = me.Value;
+            var r = await _sm.Authed(s => _sync.Create(s, kind, target, kind == "coop" ? 5 : 2, m.name, m.cls, m.deck), x => x.error).ConfigureAwait(false);
+            Later(nameof(AfterHost), r.ok, r.id, r.code, r.error);
+        }
+        catch (Exception ex) { Later(nameof(EndBusy), "Couldn't open a lobby: " + ex.Message); }
     }
 
     private void AfterHost(bool ok, string id, string code, string error)
     {
+        SetBusy(false);
         if (!ok) { SetStatus("Couldn't open a lobby: " + error); return; }
         _id = id; _code = code; _host = true;
         ShowLobby();
@@ -399,27 +437,35 @@ public partial class OnlineLobbyScene : Control
 
     private async Task Join(string code)
     {
-        if (_sync == null || _sm?.Session == null) return;
+        if (_busy || _sync == null || _sm?.Session == null) return;
         if (code.Length != 6) { SetStatus("A code is six characters."); return; }
         var me = MyLoadout(); if (me == null) return;
+        SetBusy(true);
         SetStatus("Looking for that lobby…");
-        var f = await _sync.Find(_sm.Session, code).ConfigureAwait(false);
-        if (!f.ok || f.found == null)
+        try
         {
-            Later(nameof(SetStatus), f.ok ? "No open lobby has that code." : "Couldn't look it up: " + f.error);
-            return;
+            var m = me.Value;
+            var f = await _sm.Authed(s => _sync.Find(s, code), x => x.error).ConfigureAwait(false);
+            if (!f.ok || f.found == null)
+            {
+                Later(nameof(EndBusy), f.ok ? "No open lobby has that code." : "Couldn't look it up: " + f.error);
+                return;
+            }
+            if (f.found.State != "open")
+            {
+                Later(nameof(EndBusy), "That match has already started.");
+                return;
+            }
+            var found = f.found;
+            var j = await _sm.Authed(s => _sync.Join(s, found.Id, m.name, m.cls, m.deck), x => x.error).ConfigureAwait(false);
+            Later(nameof(AfterJoin), j.ok, found.Id, code.ToUpperInvariant(), found.Kind, found.HostName, j.error);
         }
-        if (f.found.State != "open")
-        {
-            Later(nameof(SetStatus), "That match has already started.");
-            return;
-        }
-        var j = await _sync.Join(_sm.Session, f.found.Id, me.Value.name, me.Value.cls, me.Value.deck).ConfigureAwait(false);
-        Later(nameof(AfterJoin), j.ok, f.found.Id, code.ToUpperInvariant(), f.found.Kind, f.found.HostName, j.error);
+        catch (Exception ex) { Later(nameof(EndBusy), "Couldn't join: " + ex.Message); }
     }
 
     private void AfterJoin(bool ok, string id, string code, string kind, string hostName, string error)
     {
+        SetBusy(false);
         if (!ok) { SetStatus("Couldn't join: " + error); return; }
         _id = id; _code = code; _host = false; _kind = kind;
         ShowLobby();
@@ -430,7 +476,8 @@ public partial class OnlineLobbyScene : Control
     {
         if (_sync == null || _sm?.Session == null || _lobby?.Mine == null) return;
         bool ready = _lobby.Mine.Status != "ready";
-        await _sync.SetReady(_sm.Session, _id, ready).ConfigureAwait(false);
+        string id = _id;
+        await _sm.Authed(s => _sync.SetReady(s, id, ready), x => x.error).ConfigureAwait(false);
     }
 
     private async Task Start()
@@ -439,15 +486,18 @@ public partial class OnlineLobbyScene : Control
         int present = _lobby?.Members.Count(m => m.Status != "left") ?? 0;
         if (present < 2) { SetStatus("Nobody has joined yet."); return; }
         SetStatus("Starting…");
-        var r = await _sync.Start(_sm.Session, _id).ConfigureAwait(false);
+        string id = _id;
+        var r = await _sm.Authed(s => _sync.Start(s, id), x => x.error).ConfigureAwait(false);
         if (!r.ok) Later(nameof(SetStatus), "Couldn't start: " + r.error);
         // the poll sees "running" and launches, same as the guest's phone
     }
 
     private async Task Leave()
     {
-        if (_sync != null && _sm?.Session != null && !string.IsNullOrEmpty(_id))
-            await _sync.Leave(_sm.Session, _id).ConfigureAwait(false);
+        _leaving = true;   // FABLE-104: a poll answer still in flight must not start the match we are leaving
+        string id = _id;
+        if (_sync != null && _sm?.Session != null && !string.IsNullOrEmpty(id))
+            await _sm.Authed(s => _sync.Leave(s, id), x => x.error).ConfigureAwait(false);
         Later(nameof(ShowMenu));
     }
 
@@ -455,17 +505,27 @@ public partial class OnlineLobbyScene : Control
     {
         if (_sync == null || _sm?.Session == null) return;
         _polling = true;
-        var r = await _sync.GetLobby(_sm.Session, _id).ConfigureAwait(false);
-        _polling = false;
-        _lobby = r.ok ? r.lobby : _lobby;   // FABLE-095: set before the screen is told, so it never reads the old lobby
-        if (r.ok && r.lobby != null) Later(nameof(ApplyLobby), Godot.Variant.From(0));
-        if (!r.ok) Later(nameof(SetStatus), "Connection hiccup: " + r.error);
+        string id = _id;
+        OnlinePlaySync.Lobby? lobby = null; bool ok = false; string error = "";
+        try
+        {
+            var r = await _sm.Authed(s => _sync.GetLobby(s, id), x => x.error).ConfigureAwait(false);
+            ok = r.ok; lobby = r.lobby; error = r.error;
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally { _polling = false; }
+        // FABLE-104: the answer is for the lobby we asked about; if we have left it (or moved to another) since, drop it
+        if (_view != View.Lobby || _leaving || !string.Equals(id, _id, StringComparison.OrdinalIgnoreCase)) return;
+        _lobby = ok ? lobby : _lobby;   // FABLE-095: set before the screen is told, so it never reads the old lobby
+        if (ok && lobby != null) Later(nameof(ApplyLobby), Godot.Variant.From(0));
+        if (!ok) Later(nameof(SetStatus), "Connection hiccup: " + error);
     }
 
     private void ApplyLobby(Variant _)
     {
         var l = _lobby;
         if (l == null) return;
+        if (_view != View.Lobby || _leaving || !string.Equals(l.Id, _id, StringComparison.OrdinalIgnoreCase)) return;   // FABLE-104: a late answer for a lobby we left
         var lines = new List<string>();
         foreach (var m in l.Members.OrderBy(m => m.Seat))
         {
@@ -489,7 +549,7 @@ public partial class OnlineLobbyScene : Control
         }
         if (l.State == "running" && l.Seed != null && !_started)
         {
-            var match = OnlineMatch.FromLobby(l, _sync!, _sm!.Session!);
+            var match = OnlineMatch.FromLobby(l, _sync!, _sm!);
             if (match == null) { SetStatus("Couldn't build the match from the lobby."); return; }
             _started = true;
             OnlineMatch.Current = match;
@@ -506,6 +566,7 @@ public partial class OnlineLobbyScene : Control
     private void ShowLobby()
     {
         _view = View.Lobby;
+        _leaving = false;
         _menu.Visible = false;
         _lobbyPane.Visible = true;
         _codeLabel.Text = _code;
@@ -529,6 +590,7 @@ public partial class OnlineLobbyScene : Control
     private void ShowMenu()
     {
         _view = View.Menu;
+        _leaving = false;
         _id = ""; _code = ""; _lobby = null; _started = false;
         _menu.Visible = true;
         _lobbyPane.Visible = false;
@@ -636,13 +698,16 @@ public partial class OnlineLobbyScene : Control
         seat.Text = "Host a duel, or type a friend's code";
 
         var hostBtn = Stone(_menu, vp, 0, "Host a duel", true);
+        _hostBtn = hostBtn;
         hostBtn.Pressed += () => _ = Host("pvp1v1", "pvp");
         try { PickCoopTarget(); } catch (Exception ex) { DuelScene.ExitTrace("OnlineLobby: no co-op target: " + ex); }
         var coopBtn = Stone(_menu, vp, 1, "Host co-op", false);
         coopBtn.Disabled = string.IsNullOrEmpty(_coopTarget);
         coopBtn.TooltipText = _coopTitle;
+        _coopBtn = coopBtn;
         coopBtn.Pressed += () => _ = Host("coop", _coopTarget);
         var joinBtn = Stone(_menu, vp, 2, "Join", false);
+        _joinBtn = joinBtn;
         joinBtn.Pressed += () =>
         {
             string c = _codeEdit.Text.Trim();

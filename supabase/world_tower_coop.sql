@@ -260,7 +260,7 @@ $$;
 
 drop policy if exists "expeditions: read open or mine" on public.expeditions;
 create policy "expeditions: read open or mine" on public.expeditions for select
-  using (state = 'open' or public.is_expedition_member(id));
+  using (public.is_expedition_member(id));   -- FABLE-104: was "state = 'open' or ..." - it let any player list every open lobby's invite code
 drop policy if exists "members: read my expeditions" on public.expedition_members;
 create policy "members: read my expeditions" on public.expedition_members for select
   using (public.is_expedition_member(expedition_id));

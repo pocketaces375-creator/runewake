@@ -42,6 +42,9 @@ fi
 if [ -f "$ROOT/supabase/online_play.sql" ]; then
   $P -d rw -f "$ROOT/supabase/online_play.sql" 2>&1 | grep -v NOTICE || true
   $P -d rw -f "$ROOT/supabase/online_play.sql" 2>&1 | grep -v NOTICE || true
+  # FABLE-104: the hardening migration on top (idempotent, same result as the edits in the two base files)
+  $P -d rw -f "$ROOT/supabase/online_hardening_104.sql" 2>&1 | grep -v NOTICE || true
+  $P -d rw -f "$ROOT/supabase/online_hardening_104.sql" 2>&1 | grep -v NOTICE || true
   OUT3=$($P -d rw -tA -f "$ROOT/supabase/online_play_test.sql" 2>&1) || { echo "$OUT3" | tail -5; echo "  ✗ online play checks failed"; exit 1; }
   echo "$OUT3" | grep -E "OK:" | sed 's/^psql:[^:]*:[0-9]*: NOTICE:  //; s/^/  /'
   echo "$OUT3" | grep -q "ALL FABLE-038 SUPABASE CHECKS PASSED" || { echo "  ✗ online play checks did not finish"; exit 1; }

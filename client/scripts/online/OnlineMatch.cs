@@ -45,7 +45,7 @@ public sealed class OnlineMatch
     public DateTime LastContact { get; private set; } = DateTime.UtcNow;
 
     private readonly OnlinePlaySync _sync;
-    private readonly SupabaseSession _session;
+    private readonly SyncManager _sm;   // FABLE-104: asked for a fresh session before every call - a pinned copy of the token died after an hour
     private readonly ConcurrentQueue<string> _outbound = new();      // JSON payloads, in order
     private readonly ConcurrentQueue<string> _inbound = new();       // JSON payloads from the server
     private readonly ConcurrentQueue<string> _errors = new();
@@ -64,11 +64,11 @@ public sealed class OnlineMatch
         ? $"Your game and {OpponentName}'s don't match — different versions or card data. Update both to the newest build, then play again."
         : $"Your game and {OpponentName}'s disagree about what happened, so the match can't continue. Leave and start a new one — and send Fable the log.";
 
-    private OnlineMatch(string id, string kind, int seat, string me, string them, OnlinePlaySync sync, SupabaseSession session,
+    private OnlineMatch(string id, string kind, int seat, string me, string them, OnlinePlaySync sync, SyncManager sm,
                         PvpSession? pvp, CoopSession? coop)
     {
         ExpeditionId = id; Kind = kind; LocalSeat = seat; MyName = me; OpponentName = them;
-        _sync = sync; _session = session; Pvp = pvp; Coop = coop;
+        _sync = sync; _sm = sm; Pvp = pvp; Coop = coop;
         if (pvp != null) pvp.Outbound += Enqueue;
         if (coop?.Network != null) coop.Network.Outbound += Enqueue;
     }
@@ -76,7 +76,7 @@ public sealed class OnlineMatch
     // ── building a match from a started lobby ───────────────────────────────
 
     /// <summary>Both phones build the identical duel from the lobby's seed and seats.</summary>
-    public static OnlineMatch? FromLobby(OnlinePlaySync.Lobby lobby, OnlinePlaySync sync, SupabaseSession session)
+    public static OnlineMatch? FromLobby(OnlinePlaySync.Lobby lobby, OnlinePlaySync sync, SyncManager sm)
     {
         var mine = lobby.Mine;
         if (mine == null || lobby.Seed is not long seed) return null;
@@ -89,7 +89,7 @@ public sealed class OnlineMatch
             if (seats.Count < 2) return null;
             var duel = new PvpDuel((ulong)seed, seats[0], seats[1]);
             var pvp = new PvpSession(duel, mine.Seat);
-            var match = new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, session, pvp, null);
+            var match = new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, sm, pvp, null);
             pvp.Hello();   // FABLE-042: compare the freshly built duels before anyone moves
             return match;
         }
@@ -110,7 +110,7 @@ public sealed class OnlineMatch
         var net = new LockstepSession(exp, mine.Seat);
         var coop = new CoopSession(exp, mine.Seat) { Network = net, Title = enc.Name };
         CoopSession.Current = coop;
-        return new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, session, null, coop);
+        return new OnlineMatch(lobby.Id, lobby.Kind, mine.Seat, mine.DisplayName, them, sync, sm, null, coop);
     }
 
     // FABLE-054: the posted deck carries the member's two artifact picks (see SeatConfig.FromPosted)
@@ -169,15 +169,38 @@ public sealed class OnlineMatch
             }
         }
         catch (Exception ex) { GD.PrintErr($"[Online] final flush: {ex.Message}"); }
-        await _sync.Leave(_session, ExpeditionId).ConfigureAwait(false);
+        // FABLE-104: the scene closed before the result was reported (the pump had not seen the queue empty yet): report it now, after the flush
+        try
+        {
+            if (!Reported && Pvp is { State.IsGameOver: true } done)
+            {
+                Reported = true;
+                await _sm.Authed(s => _sync.Finish(s, ExpeditionId, new { winner_seat = done.State.WinnerIndex, reported_by = LocalSeat, moves = done.MovesApplied }), _ => null).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex) { GD.PrintErr($"[Online] final report: {ex.Message}"); }
+        await _sm.Authed(s => _sync.Leave(s, ExpeditionId), r => r.error).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Called every frame once the duel is over; reports the result ONCE, and only after everything this phone queued has
+    /// reached the server (FABLE-104). Reporting at once moved the match to 'done' while the winning move was still on its
+    /// way: it was refused, the loser never saw the end, and later "won" by the winner leaving. After 20 s of waiting
+    /// (the server is not taking the moves) it reports anyway.
+    /// </summary>
     public void ReportResult(bool iWon)
     {
         if (Reported) return;
+        if (_reportAskedAt < 0) _reportAskedAt = _clockTotal;
+        bool flushed = _outbound.IsEmpty && System.Threading.Volatile.Read(ref _inFlight) == 0;
+        if (!flushed && _clockTotal - _reportAskedAt < 20) return;
         Reported = true;
-        _ = _sync.Finish(_session, ExpeditionId, new { winner_seat = iWon ? LocalSeat : 1 - LocalSeat, reported_by = LocalSeat, moves = Pvp?.MovesApplied ?? 0 });
+        var result = new { winner_seat = iWon ? LocalSeat : 1 - LocalSeat, reported_by = LocalSeat, moves = Pvp?.MovesApplied ?? 0 };
+        _ = _sm.Authed(s => _sync.Finish(s, ExpeditionId, result), _ => null);
     }
+
+    private double _clockTotal;
+    private double _reportAskedAt = -1;
 
     private void Enqueue(string json) => _outbound.Enqueue(json);
     private static string Short(string e) => string.IsNullOrEmpty(e) ? "no answer" : e.Length > 60 ? e.Substring(0, 60) + "…" : e;
@@ -188,10 +211,13 @@ public sealed class OnlineMatch
     public void Pump(double delta)
     {
         _clock += delta;
+        _clockTotal += delta;
         _presenceClock += delta;
         bool myTurn = Pvp?.IsMyTurn ?? false;
         double period = myTurn ? Math.Max(PollSeconds, 2.0) : PollSeconds;
-        if (_clock >= period || !_outbound.IsEmpty) { _clock = 0; FlushNow(); }
+        // FABLE-104: once the result is reported and nothing is queued, this phone has nothing more to say or learn
+        bool settled = Reported && _outbound.IsEmpty;
+        if (!settled && (_clock >= period || !_outbound.IsEmpty)) { _clock = 0; FlushNow(); }
 
         while (_inbound.TryDequeue(out var json))
         {
@@ -239,7 +265,8 @@ public sealed class OnlineMatch
             // 1. post everything queued, in order; stop at the first failure and retry next time
             while (_outbound.TryPeek(out var json))
             {
-                var r = await _sync.PostMove(_session, ExpeditionId, _nextSeq, json).ConfigureAwait(false);
+                int seq = _nextSeq;
+                var r = await _sm.Authed(s => _sync.PostMove(s, ExpeditionId, seq, json), x => x.error).ConfigureAwait(false);
                 if (!r.ok)
                 {
                     if (r.error.Contains("sequence gap") || r.error.Contains("expedition is"))
@@ -255,7 +282,8 @@ public sealed class OnlineMatch
             }
 
             // 2. fetch what is new
-            var m = await _sync.MovesSince(_session, ExpeditionId, _cursor).ConfigureAwait(false);
+            long cursor = _cursor;
+            var m = await _sm.Authed(s => _sync.MovesSince(s, ExpeditionId, cursor), x => x.error).ConfigureAwait(false);
             if (m.ok)
             {
                 LastContact = DateTime.UtcNow;
@@ -273,7 +301,7 @@ public sealed class OnlineMatch
             // 3. now and then, who is still here
             if (presence)
             {
-                var l = await _sync.GetLobby(_session, ExpeditionId).ConfigureAwait(false);
+                var l = await _sm.Authed(s => _sync.GetLobby(s, ExpeditionId), x => x.error).ConfigureAwait(false);
                 if (l.ok && l.lobby != null)
                 {
                     var other = l.lobby.Members.Where(x => !x.Me).ToList();

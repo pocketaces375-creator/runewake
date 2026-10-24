@@ -49,4 +49,26 @@ public class ArtifactPersistenceTests
         ProgressionSnapshot.FromState(src).ApplyTo(local);
         Assert.Equal(Picks, local.ActiveArtifacts);
     }
+
+    [Fact]
+    public void Loading_another_campaign_into_the_live_state_does_not_carry_the_old_picks_over()
+    {
+        // FABLE-104: SaveManager.CopyInto passes keepLocalArtifactsWhenEmpty:false - campaign B has no picks of its own
+        var live = new ProgressionState();
+        live.ActiveArtifacts.AddRange(Picks);
+        live.DeckArtifacts["Mine"] = new List<string>(Picks);
+        ProgressionSnapshot.FromState(new ProgressionState { Shards = 7 }).ApplyTo(live, keepLocalArtifactsWhenEmpty: false);
+        Assert.Equal(7, live.Shards);
+        Assert.Empty(live.ActiveArtifacts);
+        Assert.Empty(live.DeckArtifacts);
+    }
+
+    [Fact]
+    public void The_default_stays_the_cloud_restore_rule()
+    {
+        var live = new ProgressionState();
+        live.ActiveArtifacts.AddRange(Picks);
+        ProgressionSnapshot.FromState(new ProgressionState()).ApplyTo(live);
+        Assert.Equal(Picks, live.ActiveArtifacts);
+    }
 }
