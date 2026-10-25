@@ -652,13 +652,14 @@ void fragment() {
             GetNode<AudioManager>("/root/AudioManager").PlaySfx("click");
             LoadScreen.Go(GetTree(), "res://scenes/runepage/RunePageScene.tscn");
         };
+        _runePageBtn.Visible = false;   // FABLE-105 (Trikzos): the Rune Page is off the map for now - it will likely come back later (see docs/ROADMAP_NOTES.md)
         AddChild(_runePageBtn);
 
         _reliquaryBtn = new Button
         {
             Text = "Reliquary",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.850f, AnchorBottom = 0.912f
+            AnchorTop = 0.785f, AnchorBottom = 0.847f   // FABLE-105: up one slot while the Rune Page is hidden
         };
         StyleButton(_reliquaryBtn, goldText: false);
         _reliquaryBtn.Pressed += () => {
@@ -671,7 +672,7 @@ void fragment() {
         {
             Text = "Settings",
             AnchorLeft = xL, AnchorRight = xL + btnW,
-            AnchorTop = 0.915f, AnchorBottom = 0.977f
+            AnchorTop = 0.850f, AnchorBottom = 0.912f   // FABLE-105: up one slot while the Rune Page is hidden
         };
         StyleButton(_settingsBtn, goldText: false);
         _settingsBtn.Pressed += () => {
@@ -713,8 +714,12 @@ void fragment() {
         {
             var icon = iconScene.Instantiate<MapNodeIcon>();
 
+            // FABLE-105 (Trikzos): a place on the map is named for its ground - "Grey Saddle", "Ash Wreck" - the way a
+            // real map names a pass or a stronghold. Who waits there is told in the node panel when it is tapped.
             string displayName;
-            if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
+            if (!string.IsNullOrEmpty(mapNode.Place))
+                displayName = mapNode.Place;
+            else if (mapNode.Encounter != null && CampaignContext.EncounterIndex.TryGetValue(mapNode.Encounter, out var enc))
                 displayName = enc.ShortName ?? enc.Name;   // FABLE-068
             else
                 displayName = PlaceName(mapNode.Type);
@@ -1155,6 +1160,7 @@ void fragment() {
             MapNodeType.Merchant => "MERCHANT · TRADE",
             _ => "DESTINATION",
         };
+        if (!string.IsNullOrEmpty(mapNode.Place) && mapNode.Place != displayName) _infoKind.Text += "  ·  " + mapNode.Place.ToUpperInvariant();   // FABLE-105: where it stands
 
         // Rewards — hide when none, show pretty list when present
         if (mapNode.Rewards is { Count: > 0 })

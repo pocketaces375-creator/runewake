@@ -8,54 +8,83 @@
    "strata2": "EMBER",
    "board_skin": "start_tide",
    "positions": {
-    "r1_n01": [
-     330,
-     440
-    ],
-    "r1_n02": [
-     465,
-     308
-    ],
-    "r1_n03": [
-     496,
-     530
-    ],
-    "r1_n04": [
-     612,
-     259
-    ],
-    "r1_n05": [
-     651,
-     536
-    ],
-    "r1_n06": [
-     768,
-     226
-    ],
-    "r1_n07": [
-     744,
-     382
-    ],
-    "r1_n08": [
-     810,
-     525
-    ],
-    "r1_n09": [
-     921,
-     278
-    ],
-    "r1_n10": [
-     944,
-     439
+    "r1_n12": [
+     1255,
+     300
     ],
     "r1_n11": [
-     1098,
-     338
+     1090,
+     395
     ],
-    "r1_n12": [
-     1227,
-     433
+    "r1_n04": [
+     495,
+     210
+    ],
+    "r1_n09": [
+     880,
+     275
+    ],
+    "r1_n07": [
+     735,
+     395
+    ],
+    "r1_n08": [
+     560,
+     460
+    ],
+    "r1_n01": [
+     105,
+     300
+    ],
+    "r1_n02": [
+     305,
+     200
+    ],
+    "r1_n05": [
+     420,
+     400
+    ],
+    "r1_n06": [
+     700,
+     280
+    ],
+    "r1_n10": [
+     870,
+     440
+    ],
+    "r1_n13": [
+     215,
+     118
+    ],
+    "r1_n14": [
+     455,
+     572
+    ],
+    "r1_n15": [
+     930,
+     140
+    ],
+    "r1_n16": [
+     880,
+     560
     ]
+   },
+   "places": {
+    "r1_n01": "Sounding Haven",
+    "r1_n02": "Pale Peak",
+    "r1_n04": "Grey Cascade",
+    "r1_n05": "Drift Verge",
+    "r1_n06": "Cold Scree",
+    "r1_n07": "Kelp Hollow",
+    "r1_n08": "Tidewashed Cove",
+    "r1_n09": "Salt Saddle",
+    "r1_n10": "Foam Oxbow",
+    "r1_n11": "Wrack Pass",
+    "r1_n12": "Brine Point",
+    "r1_n13": "Gull Stair",
+    "r1_n14": "Mist Horn",
+    "r1_n15": "Low Fang",
+    "r1_n16": "Sounding Vault"
    },
    "encounters": {
     "r1_n01": "sz_battlemage_n01",
@@ -66,7 +95,11 @@
     "r1_n09": "sz_battlemage_n09",
     "r1_n10": "sz_battlemage_n10",
     "r1_n11": "sz_battlemage_n11",
-    "r1_n12": "sz_battlemage_n12"
+    "r1_n12": "sz_battlemage_n12",
+    "r1_n13": "sz_battlemage_n13",
+    "r1_n14": "sz_battlemage_n14",
+    "r1_n15": "sz_battlemage_n15",
+    "r1_n16": "sz_battlemage_n16"
    }
   },
   "necromancer": {
@@ -75,54 +108,83 @@
    "strata2": "DAWN",
    "board_skin": "start_hollow",
    "positions": {
-    "r1_n01": [
-     1220,
-     470
-    ],
-    "r1_n02": [
-     1056,
-     560
-    ],
-    "r1_n03": [
-     1087,
-     338
-    ],
-    "r1_n04": [
-     903,
-     567
-    ],
-    "r1_n05": [
-     942,
-     290
-    ],
-    "r1_n06": [
-     746,
-     556
-    ],
-    "r1_n07": [
-     812,
-     413
-    ],
-    "r1_n08": [
-     788,
-     257
-    ],
-    "r1_n09": [
-     615,
-     464
-    ],
-    "r1_n10": [
-     638,
-     303
+    "r1_n12": [
+     90,
+     240
     ],
     "r1_n11": [
-     463,
-     358
+     345,
+     335
     ],
-    "r1_n12": [
-     367,
-     231
+    "r1_n04": [
+     880,
+     275
+    ],
+    "r1_n09": [
+     495,
+     210
+    ],
+    "r1_n07": [
+     745,
+     330
+    ],
+    "r1_n08": [
+     930,
+     500
+    ],
+    "r1_n01": [
+     1240,
+     275
+    ],
+    "r1_n02": [
+     1080,
+     265
+    ],
+    "r1_n05": [
+     1000,
+     405
+    ],
+    "r1_n06": [
+     620,
+     240
+    ],
+    "r1_n10": [
+     560,
+     460
+    ],
+    "r1_n13": [
+     985,
+     165
+    ],
+    "r1_n14": [
+     1130,
+     420
+    ],
+    "r1_n15": [
+     385,
+     80
+    ],
+    "r1_n16": [
+     455,
+     572
     ]
+   },
+   "places": {
+    "r1_n01": "Hollow Hull",
+    "r1_n02": "Barrow Horn",
+    "r1_n04": "Shade Gate",
+    "r1_n05": "Wither Clearing",
+    "r1_n06": "Knell Notch",
+    "r1_n07": "Grave Sentinels",
+    "r1_n08": "Ghost Stair",
+    "r1_n09": "Bone Cascade",
+    "r1_n10": "Pale Cove",
+    "r1_n11": "Night Gap",
+    "r1_n12": "Rust Ness",
+    "r1_n13": "Crow Pass",
+    "r1_n14": "Sorrow Peak",
+    "r1_n15": "Dusk Crag",
+    "r1_n16": "Hollow Fang"
    },
    "encounters": {
     "r1_n01": "sz_necromancer_n01",
@@ -133,7 +195,11 @@
     "r1_n09": "sz_necromancer_n09",
     "r1_n10": "sz_necromancer_n10",
     "r1_n11": "sz_necromancer_n11",
-    "r1_n12": "sz_necromancer_n12"
+    "r1_n12": "sz_necromancer_n12",
+    "r1_n13": "sz_necromancer_n13",
+    "r1_n14": "sz_necromancer_n14",
+    "r1_n15": "sz_necromancer_n15",
+    "r1_n16": "sz_necromancer_n16"
    }
   },
   "paladin": {
@@ -142,54 +208,83 @@
    "strata2": "VERDANT",
    "board_skin": "start_dawn",
    "positions": {
-    "r1_n01": [
-     1190,
-     300
-    ],
-    "r1_n02": [
-     1026,
-     210
-    ],
-    "r1_n03": [
-     1057,
-     432
-    ],
-    "r1_n04": [
-     873,
-     203
-    ],
-    "r1_n05": [
-     912,
-     480
-    ],
-    "r1_n06": [
-     716,
-     214
-    ],
-    "r1_n07": [
-     782,
-     357
-    ],
-    "r1_n08": [
-     758,
-     513
-    ],
-    "r1_n09": [
-     585,
-     306
-    ],
-    "r1_n10": [
-     608,
-     467
+    "r1_n12": [
+     90,
+     240
     ],
     "r1_n11": [
-     433,
-     412
+     215,
+     335
     ],
-    "r1_n12": [
-     337,
-     539
+    "r1_n04": [
+     850,
+     515
+    ],
+    "r1_n09": [
+     330,
+     425
+    ],
+    "r1_n07": [
+     735,
+     395
+    ],
+    "r1_n08": [
+     700,
+     280
+    ],
+    "r1_n01": [
+     1240,
+     275
+    ],
+    "r1_n02": [
+     1060,
+     455
+    ],
+    "r1_n05": [
+     960,
+     200
+    ],
+    "r1_n06": [
+     560,
+     460
+    ],
+    "r1_n10": [
+     505,
+     320
+    ],
+    "r1_n13": [
+     950,
+     370
+    ],
+    "r1_n14": [
+     675,
+     66
+    ],
+    "r1_n15": [
+     455,
+     572
+    ],
+    "r1_n16": [
+     495,
+     120
     ]
+   },
+   "places": {
+    "r1_n01": "Clear Hull",
+    "r1_n02": "Lark Slope",
+    "r1_n04": "Sun Horn",
+    "r1_n05": "Fair Crossroads",
+    "r1_n06": "Glory Cove",
+    "r1_n07": "Morning Clearing",
+    "r1_n08": "Halo Foothills",
+    "r1_n09": "Gilt Grove",
+    "r1_n10": "Amber Oxbow",
+    "r1_n11": "High Deepwood",
+    "r1_n12": "White Ness",
+    "r1_n13": "Bright Heart",
+    "r1_n14": "Gold Scree",
+    "r1_n15": "Noon Fang",
+    "r1_n16": "Clear Pass"
    },
    "encounters": {
     "r1_n01": "sz_paladin_n01",
@@ -200,7 +295,11 @@
     "r1_n09": "sz_paladin_n09",
     "r1_n10": "sz_paladin_n10",
     "r1_n11": "sz_paladin_n11",
-    "r1_n12": "sz_paladin_n12"
+    "r1_n12": "sz_paladin_n12",
+    "r1_n13": "sz_paladin_n13",
+    "r1_n14": "sz_paladin_n14",
+    "r1_n15": "sz_paladin_n15",
+    "r1_n16": "sz_paladin_n16"
    }
   },
   "druid": {
@@ -209,54 +308,83 @@
    "strata2": "HOLLOW",
    "board_skin": "start_verdant",
    "positions": {
-    "r1_n01": [
-     330,
-     330
-    ],
-    "r1_n02": [
-     495,
-     237
-    ],
-    "r1_n03": [
-     467,
-     460
-    ],
-    "r1_n04": [
-     649,
-     228
-    ],
-    "r1_n05": [
-     615,
-     506
-    ],
-    "r1_n06": [
-     809,
-     236
-    ],
-    "r1_n07": [
-     745,
-     381
-    ],
-    "r1_n08": [
-     772,
-     537
-    ],
-    "r1_n09": [
-     943,
-     326
-    ],
-    "r1_n10": [
-     923,
-     487
+    "r1_n12": [
+     1255,
+     300
     ],
     "r1_n11": [
-     1099,
-     430
+     1090,
+     395
     ],
-    "r1_n12": [
-     1198,
-     555
+    "r1_n04": [
+     495,
+     210
+    ],
+    "r1_n09": [
+     880,
+     275
+    ],
+    "r1_n07": [
+     735,
+     395
+    ],
+    "r1_n08": [
+     560,
+     460
+    ],
+    "r1_n01": [
+     105,
+     300
+    ],
+    "r1_n02": [
+     305,
+     200
+    ],
+    "r1_n05": [
+     420,
+     400
+    ],
+    "r1_n06": [
+     700,
+     280
+    ],
+    "r1_n10": [
+     870,
+     440
+    ],
+    "r1_n13": [
+     215,
+     118
+    ],
+    "r1_n14": [
+     455,
+     572
+    ],
+    "r1_n15": [
+     930,
+     140
+    ],
+    "r1_n16": [
+     880,
+     560
     ]
+   },
+   "places": {
+    "r1_n01": "Moss Haven",
+    "r1_n02": "Willow Spire",
+    "r1_n04": "Dew Falls",
+    "r1_n05": "Oakshade Eaves",
+    "r1_n06": "Wild Foothills",
+    "r1_n07": "Root Clearing",
+    "r1_n08": "Thorn Cove",
+    "r1_n09": "Fern Notch",
+    "r1_n10": "Briar Bend",
+    "r1_n11": "Hazel Gate",
+    "r1_n12": "Bramble Point",
+    "r1_n13": "Elder Stair",
+    "r1_n14": "Deep Fang",
+    "r1_n15": "Green Crag",
+    "r1_n16": "Moss Vault"
    },
    "encounters": {
     "r1_n01": "sz_druid_n01",
@@ -267,7 +395,11 @@
     "r1_n09": "sz_druid_n09",
     "r1_n10": "sz_druid_n10",
     "r1_n11": "sz_druid_n11",
-    "r1_n12": "sz_druid_n12"
+    "r1_n12": "sz_druid_n12",
+    "r1_n13": "sz_druid_n13",
+    "r1_n14": "sz_druid_n14",
+    "r1_n15": "sz_druid_n15",
+    "r1_n16": "sz_druid_n16"
    }
   },
   "rogue": {
@@ -276,54 +408,83 @@
    "strata2": "EMBER",
    "board_skin": "start_dusk",
    "positions": {
-    "r1_n01": [
-     330,
-     470
-    ],
-    "r1_n02": [
-     492,
-     556
-    ],
-    "r1_n03": [
-     462,
-     342
-    ],
-    "r1_n04": [
-     642,
-     562
-    ],
-    "r1_n05": [
-     604,
-     295
-    ],
-    "r1_n06": [
-     797,
-     552
-    ],
-    "r1_n07": [
-     733,
-     413
-    ],
-    "r1_n08": [
-     757,
-     263
-    ],
-    "r1_n09": [
-     927,
-     462
-    ],
-    "r1_n10": [
-     905,
-     307
+    "r1_n12": [
+     1255,
+     300
     ],
     "r1_n11": [
-     1077,
-     360
+     1135,
+     255
     ],
-    "r1_n12": [
-     1172,
-     237
+    "r1_n04": [
+     640,
+     445
+    ],
+    "r1_n09": [
+     950,
+     370
+    ],
+    "r1_n07": [
+     745,
+     330
+    ],
+    "r1_n08": [
+     570,
+     275
+    ],
+    "r1_n01": [
+     105,
+     300
+    ],
+    "r1_n02": [
+     330,
+     425
+    ],
+    "r1_n05": [
+     410,
+     250
+    ],
+    "r1_n06": [
+     850,
+     515
+    ],
+    "r1_n10": [
+     880,
+     275
+    ],
+    "r1_n13": [
+     380,
+     590
+    ],
+    "r1_n14": [
+     460,
+     105
+    ],
+    "r1_n15": [
+     1060,
+     455
+    ],
+    "r1_n16": [
+     930,
+     140
     ]
+   },
+   "places": {
+    "r1_n01": "Sorrow Landing",
+    "r1_n02": "Pale Bower",
+    "r1_n04": "Shade Elder",
+    "r1_n05": "Grave Spire",
+    "r1_n06": "Dusk Peak",
+    "r1_n07": "Ghost Circle",
+    "r1_n08": "Night Scree",
+    "r1_n09": "Knell Deepwood",
+    "r1_n10": "Bone Saddle",
+    "r1_n11": "Wither Stronghold",
+    "r1_n12": "Barrow Point",
+    "r1_n13": "Crow Clearing",
+    "r1_n14": "Rust Mouth",
+    "r1_n15": "Hollow Foothills",
+    "r1_n16": "Sorrow Crag"
    },
    "encounters": {
     "r1_n01": "sz_rogue_n01",
@@ -334,7 +495,11 @@
     "r1_n09": "sz_rogue_n09",
     "r1_n10": "sz_rogue_n10",
     "r1_n11": "sz_rogue_n11",
-    "r1_n12": "sz_rogue_n12"
+    "r1_n12": "sz_rogue_n12",
+    "r1_n13": "sz_rogue_n13",
+    "r1_n14": "sz_rogue_n14",
+    "r1_n15": "sz_rogue_n15",
+    "r1_n16": "sz_rogue_n16"
    }
   },
   "astrologist": {
@@ -343,54 +508,83 @@
    "strata2": "DAWN",
    "board_skin": "start_astral",
    "positions": {
-    "r1_n01": [
-     340,
-     270
-    ],
-    "r1_n02": [
-     473,
-     402
-    ],
-    "r1_n03": [
-     507,
-     185
-    ],
-    "r1_n04": [
-     619,
-     453
-    ],
-    "r1_n05": [
-     662,
-     182
-    ],
-    "r1_n06": [
-     775,
-     489
-    ],
-    "r1_n07": [
-     753,
-     335
-    ],
-    "r1_n08": [
-     821,
-     196
-    ],
-    "r1_n09": [
-     928,
-     441
-    ],
-    "r1_n10": [
-     953,
-     284
+    "r1_n12": [
+     1255,
+     300
     ],
     "r1_n11": [
-     1107,
-     386
+     1135,
+     255
     ],
-    "r1_n12": [
-     1236,
-     295
+    "r1_n04": [
+     478,
+     428
+    ],
+    "r1_n09": [
+     950,
+     370
+    ],
+    "r1_n07": [
+     735,
+     395
+    ],
+    "r1_n08": [
+     570,
+     275
+    ],
+    "r1_n01": [
+     105,
+     300
+    ],
+    "r1_n02": [
+     265,
+     445
+    ],
+    "r1_n05": [
+     410,
+     250
+    ],
+    "r1_n06": [
+     850,
+     515
+    ],
+    "r1_n10": [
+     880,
+     275
+    ],
+    "r1_n13": [
+     340,
+     605
+    ],
+    "r1_n14": [
+     460,
+     105
+    ],
+    "r1_n15": [
+     1060,
+     455
+    ],
+    "r1_n16": [
+     930,
+     140
     ]
+   },
+   "places": {
+    "r1_n01": "Low Landing",
+    "r1_n02": "Drift Ring",
+    "r1_n04": "Brine Arches",
+    "r1_n05": "Cold Peak",
+    "r1_n06": "Mist Crag",
+    "r1_n07": "Gull Clearing",
+    "r1_n08": "Kelp Stair",
+    "r1_n09": "Sounding Grove",
+    "r1_n10": "Grey Gap",
+    "r1_n11": "Tidewashed Eyrie",
+    "r1_n12": "Pale Point",
+    "r1_n13": "Salt Tree",
+    "r1_n14": "Wrack Cave",
+    "r1_n15": "Foam Foothills",
+    "r1_n16": "Low Spire"
    },
    "encounters": {
     "r1_n01": "sz_astrologist_n01",
@@ -401,7 +595,11 @@
     "r1_n09": "sz_astrologist_n09",
     "r1_n10": "sz_astrologist_n10",
     "r1_n11": "sz_astrologist_n11",
-    "r1_n12": "sz_astrologist_n12"
+    "r1_n12": "sz_astrologist_n12",
+    "r1_n13": "sz_astrologist_n13",
+    "r1_n14": "sz_astrologist_n14",
+    "r1_n15": "sz_astrologist_n15",
+    "r1_n16": "sz_astrologist_n16"
    }
   },
   "warrior": {
@@ -410,54 +608,83 @@
    "strata2": "DAWN",
    "board_skin": "start_ember",
    "positions": {
-    "r1_n01": [
-     1220,
-     390
-    ],
-    "r1_n02": [
-     1070,
-     275
-    ],
-    "r1_n03": [
-     1070,
-     505
-    ],
-    "r1_n04": [
-     920,
-     246
-    ],
-    "r1_n05": [
-     920,
-     534
-    ],
-    "r1_n06": [
-     762,
-     235
-    ],
-    "r1_n07": [
-     808,
-     390
-    ],
-    "r1_n08": [
-     762,
-     545
-    ],
-    "r1_n09": [
-     620,
-     310
-    ],
-    "r1_n10": [
-     620,
-     476
+    "r1_n12": [
+     90,
+     240
     ],
     "r1_n11": [
-     455,
-     396
+     270,
+     270
     ],
-    "r1_n12": [
-     342,
-     511
+    "r1_n04": [
+     850,
+     515
+    ],
+    "r1_n09": [
+     330,
+     425
+    ],
+    "r1_n07": [
+     735,
+     395
+    ],
+    "r1_n08": [
+     700,
+     280
+    ],
+    "r1_n01": [
+     1240,
+     275
+    ],
+    "r1_n02": [
+     1000,
+     405
+    ],
+    "r1_n05": [
+     925,
+     250
+    ],
+    "r1_n06": [
+     560,
+     460
+    ],
+    "r1_n10": [
+     505,
+     320
+    ],
+    "r1_n13": [
+     1130,
+     420
+    ],
+    "r1_n14": [
+     960,
+     118
+    ],
+    "r1_n15": [
+     455,
+     572
+    ],
+    "r1_n16": [
+     495,
+     120
     ]
+   },
+   "places": {
+    "r1_n01": "Copper Bones",
+    "r1_n02": "Burnt Clearing",
+    "r1_n04": "Char Peak",
+    "r1_n05": "Slag Hollow",
+    "r1_n06": "Cinder Landing",
+    "r1_n07": "Smoulder Glade",
+    "r1_n08": "Flint Foothills",
+    "r1_n09": "Iron Deepwood",
+    "r1_n10": "Kiln Reach",
+    "r1_n11": "Scorched Pass",
+    "r1_n12": "Ash Ness",
+    "r1_n13": "Forge Fang",
+    "r1_n14": "Brass Delve",
+    "r1_n15": "Red Crag",
+    "r1_n16": "Copper Gate"
    },
    "encounters": {
     "r1_n01": "sz_warrior_n01",
@@ -468,7 +695,11 @@
     "r1_n09": "sz_warrior_n09",
     "r1_n10": "sz_warrior_n10",
     "r1_n11": "sz_warrior_n11",
-    "r1_n12": "sz_warrior_n12"
+    "r1_n12": "sz_warrior_n12",
+    "r1_n13": "sz_warrior_n13",
+    "r1_n14": "sz_warrior_n14",
+    "r1_n15": "sz_warrior_n15",
+    "r1_n16": "sz_warrior_n16"
    }
   }
  }

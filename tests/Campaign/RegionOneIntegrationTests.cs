@@ -330,11 +330,11 @@ public class RegionOneIntegrationTests : IDisposable
         Assert.True(progression.MarkNodeCleared("r1_n01"));
         Assert.True(progression.IsNodeCleared("r1_n01"));
 
-        // 10. Verify r1_n02 and r1_n03 now unlock (they require r1_n01)
+        // 10. Verify r1_n02 and r1_n05 now unlock (they require r1_n01; the supply cache between them is gone - FABLE-105)
         var unlockedNodes = MapUnlockEvaluator.GetUnlockedNodes(region, progression.ClearedNodes);
         Assert.Contains("r1_n01", unlockedNodes); // cleared node still shown
         Assert.Contains("r1_n02", unlockedNodes);
-        Assert.Contains("r1_n03", unlockedNodes);
+        Assert.Contains("r1_n05", unlockedNodes);
 
         // r1_n04 requires r1_n02 which is not cleared → still locked
         Assert.DoesNotContain("r1_n04", unlockedNodes);

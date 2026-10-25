@@ -88,6 +88,11 @@ public class StartZoneTests
                     Assert.Equal(wayfarer.Deck, e.Deck);       // the guided first duel scripts against this exact deck
                     Assert.Null(e.Lesson);
                 }
+                else if (node is "r1_n13" or "r1_n14" or "r1_n15" or "r1_n16")
+                {
+                    Assert.False(e.IsTutorial);                // FABLE-105: the side fights teach nothing new - they are for exploring
+                    Assert.DoesNotContain("{place}", string.Join(" ", e.DialogueIntro!));
+                }
                 else
                 {
                     Assert.False(e.IsTutorial);
@@ -102,5 +107,44 @@ public class StartZoneTests
     public void Only_the_guided_first_duels_are_tutorials()
     {
         Assert.Equal(Classes.Length, Encounters().Values.Count(e => e.IsTutorial));
+    }
+
+    /// <summary>
+    /// FABLE-105 (docs/WORLD_TERRAIN.md): every zone's map uses the whole island - the path runs end to end, places
+    /// never crowd, nothing stands under the banner, the button column or the node panel, every node has a place name,
+    /// and the side fights reach the land the path leaves (the south isle, the northern spit).
+    /// </summary>
+    [Fact]
+    public void Every_zone_map_uses_the_whole_island()
+    {
+        var region = Region1();
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(Root, "content", "map", "terrain", "region_01.json")));
+        var keepOut = doc.RootElement.GetProperty("keep_out").EnumerateArray().Select(k => k.GetProperty("box").EnumerateArray().Select(v => v.GetInt32()).ToArray()).ToList();
+        var areas = doc.RootElement.GetProperty("areas").EnumerateArray()
+            .ToDictionary(a => a.GetProperty("id").GetString()!, a => a.GetProperty("box").EnumerateArray().Select(v => v.GetInt32()).ToArray());
+        bool In(int[] b, int[] p) => p[0] >= b[0] && p[0] <= b[2] && p[1] >= b[1] && p[1] <= b[3];
+        foreach (var c in Classes)
+        {
+            var z = Zones.For(c)!;
+            Assert.Equal(region.Nodes.Count, z.Positions.Count);
+            foreach (var n in region.Nodes)
+            {
+                Assert.True(z.Places.TryGetValue(n.Id, out var place) && place.Length > 3, $"{c} {n.Id}: no place name");
+                Assert.DoesNotContain(keepOut, b => In(b, z.Positions[n.Id]));
+            }
+            var pts = z.Positions.Values.ToList();
+            for (int i = 0; i < pts.Count; i++)
+                for (int j = i + 1; j < pts.Count; j++)
+                {
+                    double d = System.Math.Sqrt(System.Math.Pow(pts[i][0] - pts[j][0], 2) + System.Math.Pow(pts[i][1] - pts[j][1], 2));
+                    Assert.True(d >= 90, $"{c}: two places only {d:0} px apart");
+                }
+            Assert.True(pts.Min(p => p[0]) < 250 && pts.Max(p => p[0]) > 1150, $"{c}: the map does not reach both ends of the island");
+            int startX = z.Positions["r1_n01"][0], bossX = z.Positions["r1_n12"][0];
+            Assert.True(System.Math.Abs(bossX - startX) > 900, $"{c}: the path does not cross the island ({startX} -> {bossX})");
+            var reached = z.Positions.Values.SelectMany(p => areas.Where(a => In(a.Value, p)).Select(a => a.Key)).ToHashSet();
+            Assert.Contains("south_isle", reached);
+            Assert.True(reached.Count >= 10, $"{c}: only {reached.Count} parts of the island carry a place");
+        }
     }
 }

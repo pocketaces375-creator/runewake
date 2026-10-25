@@ -32,8 +32,9 @@ ROOT = Path(__file__).resolve().parent.parent
 # ── the path shape, laid on a different stretch of the map plate (1536×704) per class ──────────────
 SHAPE = [(0, 0), (-1, 1), (1, 1), (-1.25, 2), (1.25, 2), (-1.35, 3.05), (0, 2.75), (1.35, 3.05),
          (-0.7, 4), (0.75, 4), (0, 5), (0, 6)]
-NODES = [f"r1_n{i:02d}" for i in range(1, 13)]
+NODES = [f"r1_n{i:02d}" for i in range(1, 13) if i != 3]   # FABLE-105: r1_n03 (the supply cache) is gone
 FIGHTS = ["r1_n01", "r1_n02", "r1_n04", "r1_n05", "r1_n06", "r1_n09", "r1_n10", "r1_n11", "r1_n12"]
+SIDE = ["r1_n13", "r1_n14", "r1_n15", "r1_n16"]   # FABLE-105: optional fights on the land the path leaves empty
 
 # node: (tier for deck/drops, enemy Vigor, shard, dig charges, fragment (P=primary,S=secondary, amount), modifier)
 NODE_RULES = {
@@ -514,10 +515,160 @@ def layout(spec):
     r = math.radians(angle)
     dx, dy = math.cos(r), math.sin(r)
     out = {}
-    for n, (u, v) in zip(NODES, shape):
+    for n, (u, v) in zip([f"r1_n{i:02d}" for i in range(1, 13)], shape):   # the shape still has the cache's slot; it stays empty
+        if n not in NODES: continue
         if mirror: u = -u
         out[n] = [round(x0 + v * along * dx - u * across * dy), round(y0 + v * along * dy + u * across * dx)]
     return out
+
+
+# ── FABLE-105: the terrain rules (docs/WORLD_TERRAIN.md) ─────────────────────────────────────────────
+# Where every node stands is decided by tools/map_layout.py: the main path crosses the whole island along the
+# plate's road, every place on a terrain spot that fits it, side places on the land the path leaves empty, and
+# each named for its ground. This script only feeds it each zone's start side and mirror, and writes the result.
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location("map_layout", ROOT / "tools" / "map_layout.py")
+map_layout = _ilu.module_from_spec(_spec); _spec.loader.exec_module(map_layout)
+
+
+# ── FABLE-105: the side places - off the main path, on the land it leaves empty (tools/map_layout.py) ─────────
+# node: (tier, enemy Vigor, shards, dig charges, fragment, modifier) - optional fights, no lesson, gentle pay
+SIDE_RULES = {
+    "r1_n13": (2, 20, 45, 0, None, None),
+    "r1_n14": (2, 20, 45, 0, None, None),
+    "r1_n15": (3, 21, 60, 1, None, None),
+    "r1_n16": (3, 21, 70, 0, None, None),
+}
+# class -> node -> (name, portrait class, intro, outro); {place} becomes the name of the ground the fight stands on
+SIDE_FOES = {
+ "battlemage": {
+  "r1_n13": ("Rain-Caller Wenna", "battlemage",
+             ["On {place} the rain falls upward into a cloud that never moves. A woman stands under it, catching nothing.",
+              "\"Every drop that goes up is one the Void keeps. Help me bring them down - the hard way.\""],
+             ["Wenna lowers her hands, and for the first time in a year the rain on {place} falls down."]),
+  "r1_n14": ("Salvager Druce", "rogue",
+             ["A wreck-picker has claimed {place}, and everything the Void washes onto it.",
+              "\"Finders keepers. You found me, so I suppose that makes you mine.\""],
+             ["Druce tosses you a sea-glass coin. \"Fair's fair. The beach is yours till the next tide.\""]),
+  "r1_n15": ("The Seal-Eater", "battlemage",
+             ["Something on {place} has been gnawing the old raiders' seals off the stones, one by one.",
+              "It turns. It has a mouth where its face should be, and the chalk-dust of a hundred seals on its teeth."],
+             ["The thing comes apart into chalk and rain. Behind it, the gnawed seals on {place} begin to glow again."]),
+  "r1_n16": ("Lamp-Keeper Abel", "warrior",
+             ["The light on {place} has burned the wrong colour since the last Breach. Its keeper lets no one near it.",
+              "\"It shows the Void the way in. I know. But it's MY light.\""],
+             ["Abel lets the lamp go dark and sits down on the stair. \"Light it again in the morning,\" he says. \"The right colour.\""]),
+ },
+ "necromancer": {
+  "r1_n13": ("Grave-Robber Mott", "rogue",
+             ["Fresh earth on {place}, and a shovel still standing in it.",
+              "\"Nobody down here's using it,\" says the man with the sack. \"Bones are bones.\""],
+             ["Mott drops the sack. It rattles. \"Put 'em back yourself, then.\""]),
+  "r1_n14": ("The Unquiet Ferrywoman", "necromancer",
+             ["On {place} a woman in a sodden shroud waits beside a boat with no bottom.",
+              "\"The fare is a memory. Yours will do.\""],
+             ["She pushes off into the mist without you. \"Another time,\" drifts back across the water."]),
+  "r1_n15": ("Brother Candle", "paladin",
+             ["A monk of the Ward keeps vigil on {place}, a candle in each hand and a hammer in his belt.",
+              "\"Nothing dead walks past my light. Are you dead? Let's find out.\""],
+             ["Brother Candle's flames gutter. \"Alive,\" he says, surprised. \"Mostly. Go on.\""]),
+  "r1_n16": ("The Ossified Hound", "necromancer",
+             ["Something on {place} is digging. Bone scrapes on bone.",
+              "A hound made of a dozen hounds lifts its head from the hole and growls without breath."],
+             ["The hound falls into a neat pile of bones, as if it had only been waiting to be told to rest."]),
+ },
+ "paladin": {
+  "r1_n13": ("Sister Ashlin, Penitent", "paladin",
+             ["A penitent kneels on {place}, wearing her own armour backwards.",
+              "\"I swore an oath I could not keep. Strike me until it feels kept.\""],
+             ["Ashlin rises and turns her armour the right way round. \"Thank you. It's heavier like this.\""]),
+  "r1_n14": ("Toll-Knight Garrow", "warrior",
+             ["A knight has strung a toll-chain across {place}, and nobody remembers giving him the right.",
+              "\"One coin, or one fight. I'm hoping you're short of coin.\""],
+             ["Garrow unhooks the chain. \"Keep the coin. That was worth more.\""]),
+  "r1_n15": ("The Hollow Reliquary", "necromancer",
+             ["On {place} a reliquary has cracked open, and what was kept inside is walking.",
+              "It wears a saint's ring on every finger, and none of them are its own."],
+             ["The relic-thing kneels and stills. The rings slide off, one by one, back into the box."]),
+  "r1_n16": ("Pilgrim Rhosyn", "druid",
+             ["A pilgrim has stopped on {place} and planted something where she stopped.",
+              "\"The Ward wants walls. I want a garden. Let's see which grows faster.\""],
+             ["Rhosyn laughs and takes up her staff. \"A garden, then. When you're done with the walls.\""]),
+ },
+ "druid": {
+  "r1_n13": ("The Moss-Back Elk", "druid",
+             ["On {place} an elk older than the trees has grown moss to its knees.",
+              "It lowers antlers hung with nests and lets you know whose ground this is."],
+             ["The elk snorts, satisfied, and wades back into the green of {place}."]),
+  "r1_n14": ("Fungal Shepherd Ivo", "necromancer",
+             ["Pale caps grow in rings on {place}, and a man in a mushroom-cloth cloak tends them.",
+              "\"They only eat the dead parts of the wood. You look a little dead around the edges.\""],
+             ["Ivo's rings wilt. \"Fine. The wood keeps its dead. For now.\""]),
+  "r1_n15": ("Woodcutter Hask", "warrior",
+             ["Stumps all across {place}, fresh-cut, and an axe still singing in the last one.",
+              "\"Trees grow back,\" says the woodcutter. \"So will you, maybe.\""],
+             ["Hask shoulders his axe and looks at the stumps as if for the first time. \"I'll plant some,\" he mutters."]),
+  "r1_n16": ("The Thornwife", "druid",
+             ["A woman made of bramble sits on {place}, singing to the thorns.",
+              "\"The wake took my orchard. I'll take something back.\""],
+             ["The Thornwife's song softens to a hum, and a single white flower opens on {place}."]),
+ },
+ "rogue": {
+  "r1_n13": ("Dune-Strider Oyelaran", "warrior",
+             ["Footprints cross {place} and stop. The man who made them is standing behind you.",
+              "\"The Sands eat the slow. Let's see how slow you are.\""],
+             ["Oyelaran grins and is gone, leaving footprints that start nowhere."]),
+  "r1_n14": ("The Sand-Sworn Thief", "rogue",
+             ["On {place} a thief is burying something that keeps trying to climb out.",
+              "\"Don't look at it. Look at me. Look at my knives.\""],
+             ["The thief bolts. Whatever was buried stays buried, which is probably for the best."]),
+  "r1_n15": ("Tomb-Cat Mehet", "necromancer",
+             ["A wrapped and gilded cat the size of a horse is sunning itself on {place}.",
+              "It opens one gold eye. Then the other. It stretches. That is never good."],
+             ["Mehet yawns, decides you are not worth the trouble, and curls back up on {place}."]),
+  "r1_n16": ("Cartographer Pell", "astrologist",
+             ["A mapmaker sits on {place}, drawing roads that aren't there yet.",
+              "\"Anything I draw, the Sands believe. I'm drawing a road that goes through you.\""],
+             ["Pell scrubs out the line. \"Around you, then. Hold still while I redraw.\""]),
+ },
+ "astrologist": {
+  "r1_n13": ("Comet-Watcher Ines", "astrologist",
+             ["On {place} a woman lies on her back, counting stars that fall the wrong way.",
+              "\"One of them landed here. I'd like it back. You're standing on it.\""],
+             ["Ines pockets a warm, glowing stone. \"Thank you. It wanted to go home.\""]),
+  "r1_n14": ("The Tide-Clock", "battlemage",
+             ["Something brass and enormous ticks on {place}, and the sea moves when it does.",
+              "Its hands point at you. All of them."],
+             ["The Tide-Clock winds down with a long sigh, and the sea around {place} settles to its own time."]),
+  "r1_n15": ("The Moon-Blind Hermit", "necromancer",
+             ["A hermit on {place} has stared at the moon until the moon stared back.",
+              "\"It told me you'd come. It didn't say you'd lose.\""],
+             ["The hermit blinks, and for a moment his eyes are his own. \"Was it ever talking to me?\""]),
+  "r1_n16": ("Star-Pilgrim Oduya", "paladin",
+             ["A pilgrim has walked from the far side of the sky to {place}. She is not done walking.",
+              "\"The heavens test everyone they meet. I am the heavens' errand.\""],
+             ["Oduya bows. \"You pass. The heavens will be insufferable about it.\""]),
+ },
+ "warrior": {
+  "r1_n13": ("Plough-Giant Hobbe", "warrior",
+             ["On {place} a farmer as tall as a barn is ploughing rocks.",
+              "\"A furrow's got to run straight. You're in the way of straight.\""],
+             ["Hobbe steps around you, and the furrow on {place} bends for the first time in a hundred years."]),
+  "r1_n14": ("The Scarecrow Muster", "necromancer",
+             ["Scarecrows line {place} in ranks, and one of them is giving orders.",
+              "\"Crows we could stand. Crows and thieves we will not.\""],
+             ["The scarecrows slump back onto their poles, satisfied that you are neither."]),
+  "r1_n15": ("Cairn-Breaker Joss", "rogue",
+             ["Someone on {place} has been pulling down the old cairns for the stone.",
+              "\"The dead don't need walls. I do.\""],
+             ["Joss sets the last stone back on the cairn, grumbling. \"Fine. Fine. I'll quarry.\""]),
+  "r1_n16": ("Harvest-Queen Edda", "druid",
+             ["The last sheaf on {place} is crowned with poppies, and the woman wearing them carries a sickle.",
+              "\"Every harvest takes a champion. This year it's going to take you.\""],
+             ["Edda laughs and sets the poppy crown on your head. \"Next year, then. Grow strong.\""]),
+ },
+}
+
 
 def main():
     cards = load_cards()
@@ -533,10 +684,16 @@ def main():
         # the n09 elite teaches its keyword, the n04 elite teaches what an elite is
         node_enc = {}
         signatures_used = set()
-        for node in FIGHTS:
-            tier, vigor, shard, dig, frag, modifier = NODE_RULES[node]
+        x0, mirror = z["layout"][0], z["layout"][5]
+        positions, places, _areas = map_layout.layout(x0 > 768, mirror, z["strata"], seed=(ci + 1) * 77)   # FABLE-105
+        foes = dict(z["foes"])
+        for node, (fname, fcls, fin, fout) in SIDE_FOES[cls].items():
+            foes[node] = (fname, fcls, [l.replace("{place}", places[node]) for l in fin], [l.replace("{place}", places[node]) for l in fout])
+        rules = dict(NODE_RULES, **SIDE_RULES)
+        for node in FIGHTS + SIDE:
+            tier, vigor, shard, dig, frag, modifier = rules[node]
             vigor += tune.get("vigor", {}).get(node, 0)
-            name, opp, intro, outro = z["foes"][node]
+            name, opp, intro, outro = foes[node]
             eid = f"sz_{cls}_{node[3:]}"
             seed = (ci + 1) * 1000 + int(node[-2:])
             lesson = lessons.get(node)
@@ -578,8 +735,16 @@ def main():
             node_enc[node] = eid
         zones_out[cls] = {
             "name": z["zone"], "strata": z["strata"], "strata2": z["strata2"], "board_skin": z["skin"],
-            "positions": layout(z["layout"]), "encounters": node_enc,
+            "positions": positions, "places": places, "encounters": node_enc,
         }
+    # FABLE-105: the base region (the Fallow Reach, shown when no class zone applies) stands on the terrain too
+    for base in (ROOT / "content" / "map" / "region_01.json", ROOT / "client" / "content" / "map" / "region_01.json"):
+        region = json.load(open(base))
+        snapped, base_places, _ = map_layout.layout(False, False, region.get("strata", "VERDANT"), seed=5)
+        for n in region["nodes"]:
+            n["position"] = snapped[n["id"]]
+            n["place"] = base_places[n["id"]]
+        base.write_text(json.dumps(region, indent=2, ensure_ascii=False) + "\n")
     zones_doc = {"_doc": "FABLE-068: each class's starting zone. Overlays region_01 (same node ids and unlocks). Generated by tools/gen_start_zones.py.",
                  "base_region": "region_01", "zones": zones_out}
     pack = {"_doc": "FABLE-068: the class starting zones' encounters. Generated by tools/gen_start_zones.py.", "encounters": encounters}

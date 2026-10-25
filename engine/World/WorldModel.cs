@@ -71,11 +71,15 @@ public sealed class Blip
     public int Index { get; init; }
     public BlipKind Kind { get; init; }
     public EventKind? Event { get; init; }
-    /// <summary>Display name ("Whispering Hollow").</summary>
-    public string Name { get; init; } = "";
-    /// <summary>Position on a 1000 x 600 page canvas.</summary>
-    public int X { get; init; }
-    public int Y { get; init; }
+    /// <summary>Display name ("Whispering Hollow") — FABLE-105: taken from the terrain the place stands on ("Thornlit Pass").</summary>
+    public string Name { get; set; } = "";
+    /// <summary>Position on a 1000 x 600 page canvas — FABLE-105: snapped onto a terrain spot when one fits.</summary>
+    public int X { get; set; }
+    public int Y { get; set; }
+    /// <summary>FABLE-105: the terrain feature this place stands on ("mountain_range"), or null when it stands in open country.</summary>
+    public string? Terrain { get; set; }
+    /// <summary>FABLE-105: the spot on that feature ("pass", "ford", "barrow").</summary>
+    public string? Spot { get; set; }
     /// <summary>Column (0 = page entry side).</summary>
     public int Column { get; init; }
     /// <summary>Indices (same page) this blip's roads lead to.</summary>
@@ -100,6 +104,8 @@ public sealed class WorldPage
     public int PagesInArea { get; init; }
     public bool IsLastPageOfArea => Address.Page == PagesInArea - 1;
     public List<Blip> Blips { get; init; } = new();
+    /// <summary>FABLE-105: the page's terrain — what the painting shows, where, and the prompt that paints it.</summary>
+    public TerrainPlan? Terrain { get; init; }
     public string Key => Address.Key(GeneratorVersion);
 
     /// <summary>The page's closing fight: Warden, or AreaBoss on the last page.</summary>

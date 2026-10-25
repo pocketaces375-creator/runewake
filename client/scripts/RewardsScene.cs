@@ -206,9 +206,9 @@ public partial class RewardsScene : Control
         if (state == RewardStatus.Claimed)
         {
             var tick = Text(box, "✓", size.X - 44, 6, 36, 30, Inter(30), Moss, center: true);
-            box.Modulate = new Color(1, 1, 1, 0.78f);
-            _ = tick;
+            _ = tick;   // FABLE-105: claimed stays at full brightness - the days light up as you claim them
         }
+        else if (state == RewardStatus.Locked) box.Modulate = new Color(1, 1, 1, 0.62f);
         return box;
     }
 
@@ -395,14 +395,35 @@ public partial class RewardsScene : Control
                 ArtText(big, vp, cx - 62, 206, 124, 42, ThemeTokens.GetCardNameFont(42), bigCol, HorizontalAlignment.Center, 7 * ol),
                 ArtText(small, vp, cx - 70, 248, 140, 19, ThemeTokens.GetBodyFont(19), smallCol, HorizontalAlignment.Center, 5 * ol),
             };
-            if (state == RewardStatus.Claimed)
+            // FABLE-105 (Trikzos): the stones light up AS YOU CLAIM them. Claimed = the painting's full cyan glow plus a tick;
+            // today's = half-veiled with the gold pulse (so it is still the one to tap); the days ahead = dark, waiting.
+            if (state != RewardStatus.Claimed)
             {
-                foreach (var l in ls) l.Modulate = new Color(1, 1, 1, 0.62f);
-                if (w)   // a dark veil over the claimed stone, so the painted lettering reads as spent
+                foreach (var l in ls) l.Modulate = new Color(1, 1, 1, state == RewardStatus.Ready ? 0.85f : 0.55f);
+                if (w)
                 {
                     var veil = new Panel { Position = P(vp, cx - 52, 178), Size = P(vp, cx + 52, 282) - P(vp, cx - 52, 178), MouseFilter = MouseFilterEnum.Ignore };
-                    veil.AddThemeStyleboxOverride("panel", Rounded(new Color(0.02f, 0.03f, 0.04f, 0.45f), 26)); veil.SetMeta("skinned", true);
+                    veil.AddThemeStyleboxOverride("panel", Rounded(new Color(0.02f, 0.03f, 0.04f, state == RewardStatus.Ready ? 0.22f : 0.58f), 26)); veil.SetMeta("skinned", true);
                     _content.AddChild(veil);
+                }
+            }
+            else
+            {
+                if (w)   // a soft cyan halo behind the claimed stone: it is lit now
+                {
+                    var h0 = P(vp, cx - 74, 160); var h1 = P(vp, cx + 74, 300);
+                    var halo = new TextureRect
+                    {
+                        Position = h0, Size = h1 - h0, MouseFilter = MouseFilterEnum.Ignore, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, StretchMode = TextureRect.StretchModeEnum.Scale,
+                        Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add },
+                        Texture = new GradientTexture2D
+                        {
+                            Gradient = Grad(new Color(RuneCyan.R, RuneCyan.G, RuneCyan.B, 0.30f), new Color(RuneCyan.R, RuneCyan.G, RuneCyan.B, 0f)),
+                            Fill = GradientTexture2D.FillEnum.Radial, FillFrom = new Vector2(0.5f, 0.5f), FillTo = new Vector2(0.5f, 1.0f), Width = 64, Height = 64,
+                        },
+                    };
+                    halo.SetMeta("skinned", true);
+                    _content.AddChild(halo);
                 }
                 var tick = ArtText("✓", vp, cx + 14, 168, 36, 34, Inter(34), Moss, HorizontalAlignment.Center, 6);
                 _ = tick;

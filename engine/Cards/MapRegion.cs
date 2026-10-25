@@ -59,6 +59,9 @@ public class MapNode
 
     /// <summary>Optional zone grouping label for the map renderer.</summary>
     public string? Zone { get; set; }
+
+    /// <summary>FABLE-105: the name of the ground the node stands on ("Greyspine Pass"), from the map's terrain (docs/WORLD_TERRAIN.md).</summary>
+    public string? Place { get; set; }
 }
 
 /// <summary>

@@ -3,32 +3,35 @@
   "name": "The Fallow Reach",
   "strata": "VERDANT",
   "strata2": "DAWN",
+  "board_skin": "default",
   "nodes": [
     {
       "id": "r1_n01",
       "type": "Duel",
       "position": [
-        700,
-        190
+        105,
+        300
       ],
       "connects": [
         "r1_n02",
-        "r1_n03"
+        "r1_n05"
       ],
       "encounter": "r1_duel_wayfarer",
       "rewards": [
         "shard:30"
-      ]
+      ],
+      "place": "Green Anchorage"
     },
     {
       "id": "r1_n02",
       "type": "Duel",
       "position": [
-        500,
-        300
+        270,
+        270
       ],
       "connects": [
-        "r1_n04"
+        "r1_n04",
+        "r1_n13"
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -40,31 +43,15 @@
       "rewards": [
         "shard:40",
         "dig_charge:1"
-      ]
-    },
-    {
-      "id": "r1_n03",
-      "type": "Cache",
-      "position": [
-        880,
-        272
       ],
-      "connects": [
-        "r1_n05"
-      ],
-      "unlock": {
-        "op": "NODES_CLEARED",
-        "value": [
-          "r1_n01"
-        ]
-      }
+      "place": "Root Gap"
     },
     {
       "id": "r1_n04",
       "type": "Elite",
       "position": [
-        330,
-        418
+        495,
+        210
       ],
       "connects": [
         "r1_n06",
@@ -81,40 +68,44 @@
         "shard:80",
         "fragment:verdant:2",
         "dig_charge:1"
-      ]
+      ],
+      "place": "Wild Cascade"
     },
     {
       "id": "r1_n05",
       "type": "Duel",
       "position": [
-        1052,
-        352
+        420,
+        400
       ],
       "connects": [
         "r1_n07",
-        "r1_n08"
+        "r1_n08",
+        "r1_n14"
       ],
       "unlock": {
         "op": "NODES_CLEARED",
         "value": [
-          "r1_n03"
+          "r1_n01"
         ]
       },
       "encounter": "r1_duel_wildwood",
       "rewards": [
         "shard:50"
-      ]
+      ],
+      "place": "Hazel Eaves"
     },
     {
       "id": "r1_n06",
       "type": "Duel",
       "position": [
-        556,
-        448
+        700,
+        280
       ],
       "connects": [
         "r1_n09",
-        "r1_n10"
+        "r1_n10",
+        "r1_n15"
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -125,14 +116,15 @@
       "encounter": "r1_duel_grove_warden",
       "rewards": [
         "shard:50"
-      ]
+      ],
+      "place": "Deep Scree"
     },
     {
       "id": "r1_n07",
       "type": "Dig",
       "position": [
-        760,
-        420
+        735,
+        395
       ],
       "connects": [
         "r1_n09",
@@ -148,14 +140,15 @@
       "rewards": [
         "shard:20"
       ],
-      "encounter": "region_01_dig"
+      "encounter": "region_01_dig",
+      "place": "Thorn Clearing"
     },
     {
       "id": "r1_n08",
       "type": "Merchant",
       "position": [
-        1156,
-        434
+        560,
+        460
       ],
       "connects": [
         "r1_n10"
@@ -165,14 +158,15 @@
         "value": [
           "r1_n05"
         ]
-      }
+      },
+      "place": "Elder Haven"
     },
     {
       "id": "r1_n09",
       "type": "Elite",
       "position": [
-        648,
-        512
+        880,
+        275
       ],
       "connects": [
         "r1_n11"
@@ -189,17 +183,19 @@
         "shard:100",
         "fragment:ember:2",
         "dig_charge:2"
-      ]
+      ],
+      "place": "Dew Saddle"
     },
     {
       "id": "r1_n10",
       "type": "Duel",
       "position": [
-        872,
-        502
+        870,
+        440
       ],
       "connects": [
-        "r1_n11"
+        "r1_n11",
+        "r1_n16"
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -212,14 +208,15 @@
       "encounter": "r1_duel_silt_reader",
       "rewards": [
         "shard:60"
-      ]
+      ],
+      "place": "Moss Oxbow"
     },
     {
       "id": "r1_n11",
       "type": "Warden",
       "position": [
-        982,
-        548
+        1090,
+        395
       ],
       "connects": [
         "r1_n12"
@@ -235,16 +232,16 @@
       "rewards": [
         "shard:150",
         "fragment:dawn:3",
-        "dig_charge:3",
-        "card:signature"
-      ]
+        "dig_charge:3"
+      ],
+      "place": "Briar Notch"
     },
     {
       "id": "r1_n12",
       "type": "WardenBoss",
       "position": [
-        772,
-        586
+        1255,
+        300
       ],
       "unlock": {
         "op": "NODES_CLEARED",
@@ -257,7 +254,93 @@
         "shard:300",
         "fragment:dawn:5",
         "dig_charge:5"
-      ]
+      ],
+      "place": "Bramble Point"
+    },
+    {
+      "id": "r1_n13",
+      "type": "Duel",
+      "position": [
+        215,
+        118
+      ],
+      "connects": [],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "r1_n02"
+        ]
+      },
+      "encounter": "r1_duel_thornbark",
+      "rewards": [
+        "shard:45"
+      ],
+      "zone": "side",
+      "place": "Willow Slope"
+    },
+    {
+      "id": "r1_n14",
+      "type": "Duel",
+      "position": [
+        455,
+        572
+      ],
+      "connects": [],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "r1_n05"
+        ]
+      },
+      "encounter": "r1_duel_wildwood",
+      "rewards": [
+        "shard:45"
+      ],
+      "zone": "side",
+      "place": "Fern Spire"
+    },
+    {
+      "id": "r1_n15",
+      "type": "Duel",
+      "position": [
+        930,
+        140
+      ],
+      "connects": [],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "r1_n06"
+        ]
+      },
+      "encounter": "r1_duel_grove_warden",
+      "rewards": [
+        "shard:60",
+        "dig_charge:1"
+      ],
+      "zone": "side",
+      "place": "Oakshade Peak"
+    },
+    {
+      "id": "r1_n16",
+      "type": "Duel",
+      "position": [
+        880,
+        560
+      ],
+      "connects": [],
+      "unlock": {
+        "op": "NODES_CLEARED",
+        "value": [
+          "r1_n10"
+        ]
+      },
+      "encounter": "r1_duel_silt_reader",
+      "rewards": [
+        "shard:70"
+      ],
+      "zone": "side",
+      "place": "Green Delve"
     }
   ]
 }

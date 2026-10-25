@@ -927,7 +927,7 @@ public partial class DeckBuilderScene : Control
         float availWidth = _leftPanel.Size.X - 40;
         if (availWidth <= 0) availWidth = 800;
         float gap = 26f, rowSep = 14f, topPad = 12f;
-        int rowsWanted = s_trayOpen || Art ? 2 : 3;
+        int rowsWanted = s_trayOpen ? 2 : 3;   // FABLE-105: minimized = three rows again, on the painting too
         float byHeight = ((_leftPanel.Size.Y - topPad - rowsWanted * (CaptionH + rowSep)) / rowsWanted) * 416f / 608f;
         float byWidth = (availWidth - 5 * gap) / 6f;
         float cardW = Mathf.Clamp(Mathf.Min(byHeight, byWidth), 120f, 416f);
@@ -1023,22 +1023,38 @@ public partial class DeckBuilderScene : Control
             return l;
         }
 
-        if (!s_trayOpen && !Art)   // FABLE-103: on the painting the tray is the painted one - it never collapses into the slim bar
+        if (!s_trayOpen)
         {
+            // FABLE-105 (Trikzos): the deck lives at the bottom and MINIMIZE hides it - as it was before 103, without the glitch.
+            // On the painting the tray keeps its painted size, so the slim bar is one band centred in it, over a dark lid
+            // that puts the painted lettering and frames to sleep until SHOW DECK lifts it.
+            float bandH = Art ? Mathf.Min(TrayClosedH, size.Y) : size.Y;
+            float by = Art ? (size.Y - bandH) / 2f : 0f;
+            float bx0 = Art ? 24f : 0f, bw = size.X - 2 * bx0;
+            if (Art)
+            {
+                var lid = new Panel { Position = new Vector2(10, 8), Size = size - new Vector2(20, 16), MouseFilter = MouseFilterEnum.Stop };
+                var lidBox = Glass(0, new Color(0.79f, 0.66f, 0.30f, 0.28f));
+                lidBox.BgColor = new Color(0.075f, 0.065f, 0.055f, 0.975f);   // opaque enough that the painted lettering sleeps
+                lid.AddThemeStyleboxOverride("panel", lidBox);
+                lid.SetMeta("skinned", true);
+                _tray.AddChild(lid);
+            }
             // slim bar: title, a fanned stack of the deck, open slots, SHOW DECK
-            Text($"YOUR DECK  ·  {deck.Count} / {max}", GetHeaderFont(22), 22, Gold, new Vector2(26, 0), new Vector2(300, size.Y));
+            Text($"YOUR DECK  ·  {deck.Count} / {max}", GetHeaderFont(22), 22, Gold, new Vector2(bx0 + 26, by), new Vector2(300, bandH));
             // FABLE-054: the two artifacts ride along in the slim bar too
-            float aS = size.Y - 18f;
+            float aS = bandH - 18f;
             for (int a = 0; a < _artifacts.Length; a++)
-                _tray.AddChild(ArtifactSlotTile(a, new Vector2(300 + a * (aS + 10), 9f), aS, compact: true));
-            float mh = size.Y - 22f, mw = mh * 416f / 608f, x0 = 300f + 2 * (aS + 10) + 30f;
-            float room = size.X - 240f - 200f - x0;   // leave space for the open-slots note and SHOW DECK
+                _tray.AddChild(ArtifactSlotTile(a, new Vector2(bx0 + 300 + a * (aS + 10), by + 9f), aS, compact: true));
+            float mh = bandH - 22f, mw = mh * 416f / 608f, x0 = bx0 + 300f + 2 * (aS + 10) + 30f;
+            float room = bx0 + bw - 240f - 200f - x0;   // leave space for the open-slots note and SHOW DECK
             float step = deck.Count > 1 ? Mathf.Min(mw - 8f, (room - mw) / (deck.Count - 1)) : mw;
             for (int i = 0; i < deck.Count; i++)
-                _tray.AddChild(Mini(deck[i], new Vector2(x0 + i * step, 11f), new Vector2(mw, mh), removable: false));
+                _tray.AddChild(Mini(deck[i], new Vector2(x0 + i * step, by + 11f), new Vector2(mw, mh), removable: false));
             Text(open > 0 ? $"+ {open} open slots" : "deck full", GetBodyFont(24), 24, MutedInk,
-                new Vector2(x0 + (deck.Count > 0 ? (deck.Count - 1) * step + mw + 24f : 0f), 0), new Vector2(200, size.Y));
-            ToggleButton("SHOW DECK  ▴", new Vector2(size.X - 214, (size.Y - 46) / 2), new Vector2(190, 46));
+                new Vector2(x0 + (deck.Count > 0 ? (deck.Count - 1) * step + mw + 24f : 0f), by), new Vector2(200, bandH));
+            var show = ToggleButton("SHOW DECK  ▴", new Vector2(bx0 + bw - 214, by + (bandH - 46) / 2), new Vector2(190, 46));
+            if (Art) StyleRuneButton(show, true, 17);
             return;
         }
 
@@ -1055,12 +1071,11 @@ public partial class DeckBuilderScene : Control
         Text($"/ {max}", GetHeaderFont(32), Words ? 30 : 32, MutedInk, new Vector2(30 + cw + 14, cy + 18), new Vector2(120, 56));
         Text(open > 0 ? $"{open} open slots" : "Deck full", GetBodyFont(28), Words ? 26 : 28, new Color(0.80f, 0.74f, 0.61f), new Vector2(30, Words ? 122 : 150), new Vector2(bx - 50, 36));
         Painted(Text("tap a card to take it out", GetBodyFont(23), 23, MutedInk, new Vector2(30, 186), new Vector2(bx - 50, 32)));
-        if (Art)   // FABLE-103: the painted plaque under the count opens the whole deck, big enough to read and tap
+        if (Art)   // FABLE-105: the painted plaque under the count is MINIMIZE again (the 103 VIEW DECK page is gone)
         {
             var vb = GetViewportRect().Size;
-            var view = ToggleButton("VIEW DECK  ▴", P(vb, 340, 704) - _tray.Position, P(vb, 455, 735) - P(vb, 340, 704));
-            view.Pressed -= ToggleTray; view.Pressed += ShowDeckView;
-            StyleRuneButton(view, true, 17);
+            var mini = ToggleButton("MINIMIZE  ▾", P(vb, 340, 704) - _tray.Position, P(vb, 455, 735) - P(vb, 340, 704));
+            StyleRuneButton(mini, true, 17);
         }
         else ToggleButton("MINIMIZE  ▾", new Vector2(30, size.Y - 24 - 48), new Vector2(190, 48));
 
@@ -2230,54 +2245,6 @@ public partial class DeckBuilderScene : Control
         b.AddThemeConstantOverride("outline_size", 4); b.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.7f));
         b.MouseDefaultCursorShape = live ? CursorShape.PointingHand : CursorShape.Arrow;
         b.SetMeta("skinned", true);
-    }
-
-    /// <summary>FABLE-103: the whole deck, one big card per kind with its count. Tap a card to take one copy out.</summary>
-    private void ShowDeckView()
-    {
-        Click();
-        var vp = GetViewportRect().Size;
-        var (overlay, body) = Modal(vp.X * 0.88f, vp.Y * 0.90f);
-        body.AddThemeConstantOverride("separation", 14);
-        body.AddChild(ModalTitle($"YOUR DECK  ·  {_deckCardIds.Count} / {DeckRules.MaxSize}"));
-        var hint = ModalText(_deckCardIds.Count == 0 ? "No cards yet - tap cards in the case to add them." : "Tap a card to take one copy out.");
-        hint.AddThemeFontSizeOverride("font_size", 24);
-        body.AddChild(hint);
-        var scroll = new ScrollContainer { SizeFlagsVertical = SizeFlags.ExpandFill, HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
-        body.AddChild(scroll);
-        float cw = Mathf.Clamp(vp.Y * 0.20f, 120f, 190f), ch = cw * 608f / 416f, gap = 18f;
-        float innerW = vp.X * 0.88f - 2 * 48f - 24f;
-        var grid = new GridContainer { Columns = Mathf.Max(3, Mathf.FloorToInt((innerW + gap) / (cw + gap))), SizeFlagsHorizontal = SizeFlags.ShrinkCenter };
-        grid.AddThemeConstantOverride("h_separation", (int)gap); grid.AddThemeConstantOverride("v_separation", 12);
-        var center = new CenterContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        center.AddChild(grid);
-        scroll.AddChild(center);
-        foreach (var g in SortedDeck().GroupBy(x => x))
-        {
-            string id = g.Key; int n = g.Count(); bool locked = _lockedCardIds.Contains(id);
-            var cell = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-            cell.AddThemeConstantOverride("separation", 4);
-            var hit = new Button { CustomMinimumSize = new Vector2(cw, ch), FocusMode = FocusModeEnum.None, MouseDefaultCursorShape = locked ? CursorShape.Arrow : CursorShape.PointingHand };
-            foreach (var st in new[] { "normal", "hover", "pressed", "disabled", "focus" }) hit.AddThemeStyleboxOverride(st, new StyleBoxEmpty());
-            hit.AddChild(Mini(id, Vector2.Zero, new Vector2(cw, ch), removable: false));
-            hit.Pressed += () =>
-            {
-                if (locked) { Toast("Core cards stay in this deck."); return; }
-                Click(); RemoveFromDeck(id);
-                overlay.QueueFree(); ShowDeckView();
-            };
-            cell.AddChild(hit);
-            var cnt = new Label { Text = locked ? $"×{n}  ·  core" : $"×{n}", HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-            cnt.AddThemeFontOverride("font", GetHeaderFont(24)); cnt.AddThemeFontSizeOverride("font_size", 24);
-            cnt.AddThemeColorOverride("font_color", Color.FromHtml("#F3DE95"));
-            cell.AddChild(cnt);
-            grid.AddChild(cell);
-        }
-        var row = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        body.AddChild(row);
-        var done = Plate("Done", true, 70, 260);
-        done.Pressed += () => { Click(); overlay.QueueFree(); };
-        row.AddChild(done);
     }
 
     private static Button Quiet(string text, float w, float h, int size)

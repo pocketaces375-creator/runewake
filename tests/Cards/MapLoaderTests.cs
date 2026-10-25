@@ -32,7 +32,7 @@ public class MapLoaderTests
         Assert.Contains(MapNodeType.Warden, types);
         Assert.Contains(MapNodeType.WardenBoss, types);
         Assert.Contains(MapNodeType.Dig, types);
-        Assert.Contains(MapNodeType.Cache, types);   // FABLE-075: the Shrine became a supply cache
+        Assert.DoesNotContain(MapNodeType.Cache, types);   // FABLE-105 (Trikzos): the supply cache is gone from the map
         Assert.Contains(MapNodeType.Merchant, types);
     }
 
@@ -61,9 +61,9 @@ public class MapLoaderTests
     }
 
     [Fact]
-    public void LoadRegion_FallbackReach_Has12Nodes()
+    public void LoadRegion_FallbackReach_Has15Nodes()
     {
-        Assert.Equal(12, Region.Nodes.Count);
+        Assert.Equal(15, Region.Nodes.Count);   // FABLE-105: eleven on the path (the supply cache is gone) + four side fights
     }
 
     [Fact]
@@ -167,12 +167,12 @@ public class MapLoaderTests
     [Fact]
     public void Unlock_ClearFirstNode_ConnectingNodesBecomeAvailable()
     {
-        // Clear r1_n01 → r1_n02 and r1_n03 unlock (they require only r1_n01)
+        // Clear r1_n01 → r1_n02 and r1_n05 unlock (they require only r1_n01; FABLE-105 removed the supply cache between them)
         var cleared = new HashSet<string> { "r1_n01" };
         var unlocked = MapUnlockEvaluator.GetUnlockedNodes(Region, cleared);
         Assert.Contains("r1_n01", unlocked); // cleared node is still "unlocked" for display
         Assert.Contains("r1_n02", unlocked);
-        Assert.Contains("r1_n03", unlocked);
+        Assert.Contains("r1_n05", unlocked);
         // r1_n04 requires r1_n02 (not cleared) → still locked
         Assert.DoesNotContain("r1_n04", unlocked);
     }
@@ -192,7 +192,7 @@ public class MapLoaderTests
     public void Unlock_MultiPrereq_RequiresAllToBeCleared()
     {
         // r1_n07 (Dig) requires [r1_n04, r1_n05]
-        var cleared = new HashSet<string> { "r1_n01", "r1_n02", "r1_n03", "r1_n04" };
+        var cleared = new HashSet<string> { "r1_n01", "r1_n02", "r1_n04" };
         var unlocked = MapUnlockEvaluator.GetUnlockedNodes(Region, cleared);
         Assert.DoesNotContain("r1_n07", unlocked); // r1_n05 not cleared yet
 
@@ -207,7 +207,7 @@ public class MapLoaderTests
         // Clear every node before r1_n12 (the boss)
         var cleared = new HashSet<string>
         {
-            "r1_n01", "r1_n02", "r1_n03", "r1_n04", "r1_n05",
+            "r1_n01", "r1_n02", "r1_n04", "r1_n05",
             "r1_n06", "r1_n07", "r1_n08", "r1_n09", "r1_n10", "r1_n11"
         };
         var unlocked = MapUnlockEvaluator.GetUnlockedNodes(Region, cleared);

@@ -36,7 +36,19 @@ public static class WorldService
     private static readonly Dictionary<string, HashSet<string>> _discovered = new();
 
     public static AtlasDef Atlas => _atlas ??= AtlasDef.FromJson(Godot.FileAccess.GetFileAsString("res://content/world/atlas.json"));
-    public static WorldGenerator Generator => _gen ??= new WorldGenerator(Atlas);
+    /// <summary>FABLE-105: the terrain rules ride with the atlas; a missing or broken terrain.json falls back to the built-in lexicon.</summary>
+    public static TerrainLexicon Terrain
+    {
+        get
+        {
+            if (_terrain != null) return _terrain;
+            try { _terrain = TerrainLexicon.FromJson(Godot.FileAccess.GetFileAsString("res://content/world/terrain.json")); }
+            catch (System.Exception ex) { GD.PrintErr($"[WorldService] terrain.json: {ex.Message} - using the built-in terrain"); _terrain = TerrainLexicon.BuiltIn(); }
+            return _terrain;
+        }
+    }
+    private static TerrainLexicon? _terrain;
+    public static WorldGenerator Generator => _gen ??= new WorldGenerator(Atlas, Terrain);
     public static List<CardDef> Pool => _pool ??= EncounterForge.PlayablePool(CardRegistry.GetAll());
 
     /// <summary>The player's world progress, rebuilt from the save (cheap: it's a set scan).</summary>

@@ -103,6 +103,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 TOOLS = Path(__file__).resolve().parent
+ROOT = TOOLS.parent
 REPO = TOOLS.parent
 HOME = Path(os.environ.get("STYLE_LORA_HOME", str(Path.home() / "runewake_art_archive" / "style_lora")))
 INBOX = HOME / "inbox"
@@ -261,6 +262,22 @@ CAPTION_SYSTEM = (
 )
 
 
+def _terrain_caption_rule():
+    """FABLE-105 (docs/WORLD_TERRAIN.md): a MAP is captioned in the terrain vocabulary, feature by feature with its
+    3x3 cell, in exactly the grammar the game's map prompts use — so the LoRA learns that these words put these
+    shapes in these places. The words come from content/world/terrain.json, never from here."""
+    try:
+        lex = json.loads((ROOT / "content" / "world" / "terrain.json").read_text())
+    except (OSError, ValueError):
+        return ""
+    feats = "; ".join(f"{k.replace('_', ' ')} = {v['paint']}" for k, v in lex["features"].items())
+    cells = ", ".join(lex["grid"]["cells"])
+    return (" If the picture is a MAP seen from above, caption it as terrain instead: start with 'top-down map of', then name every "
+            "land feature you can see using ONLY these feature words and give each its position on a three-by-three grid "
+            f"({cells}), in the form 'in the north-west, a jagged mountain range; in the centre, a winding river'. Feature words: {feats}. "
+            "Name the ones you see, west to east, up to seven; then say where the road runs if there is one. Up to 60 words for a map.")
+
+
 SPEND_LOG = HOME.parent / "spend.jsonl"    # FABLE-BATCH-1: one line per paid call (what it was, what OpenRouter charged)
 
 
@@ -319,7 +336,7 @@ def caption_one(path, mock=False):
     for attempt in range(3):
         try:
             d = _openrouter({"model": CAPTION_MODEL, "temperature": 0.4, "max_tokens": 200, "messages": [
-                {"role": "system", "content": CAPTION_SYSTEM},
+                {"role": "system", "content": CAPTION_SYSTEM + _terrain_caption_rule()},
                 {"role": "user", "content": [{"type": "text", "text": "Caption this image."},
                                              {"type": "image_url", "image_url": {"url": _data_url(path)}}]}]})
             text = (d.get("choices") or [{}])[0].get("message", {}).get("content") or ""

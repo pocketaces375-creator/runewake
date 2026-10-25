@@ -108,6 +108,20 @@ public partial class WorldMapScene : Control
         });
         AddChild(plate);
 
+        // FABLE-105: the page's own painting, when it has been made (tools/world_map_paint.py paints the page from its
+        // terrain plan and files it as content/art/world/<biome>_<instance>_<page>.webp). The places stand on the
+        // terrain that painting shows, because both came from the same plan. Pages not yet painted keep the fog.
+        string paintPath = $"res://content/art/world/{_page.Address.Biome}_{_page.Address.Instance}_{_page.Address.Page}.webp";
+        if (ResourceLoader.Exists(paintPath))
+        {
+            var paint = new TextureRect
+            {
+                Texture = ResourceLoader.Load<Texture2D>(paintPath), Position = _mapRect.Position, Size = _mapRect.Size,
+                StretchMode = TextureRect.StretchModeEnum.Scale, ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize, MouseFilter = MouseFilterEnum.Ignore,
+            };
+            AddChild(paint);
+        }
+
         _canvas = new Control { Position = _mapRect.Position, Size = _mapRect.Size, MouseFilter = MouseFilterEnum.Pass };
         AddChild(_canvas);
         _roads = new RoadLayer { Scene = this, Size = _mapRect.Size, MouseFilter = MouseFilterEnum.Ignore };

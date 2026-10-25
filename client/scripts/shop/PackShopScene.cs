@@ -55,9 +55,11 @@ public partial class PackShopScene : Control
             AddChild(new Meander { Position = new Vector2(0, _vp.Y - 30 * _s), Size = new Vector2(_vp.X, 30 * _s), MouseFilter = MouseFilterEnum.Ignore });
         }
 
-        var kicker = Lbl(this, "CARD PACKS  ·  A DRACHMA FOR THE GODS OF OLD", 0, 42 * _s, _vp.X, (int)(24 * _s), ThemeTokens.GetHeaderFont((int)(24 * _s)), Kicker, true);
+        int kick = (int)((StyxArt.Backdrop != null ? 30 : 24) * _s);   // FABLE-105: larger over the starlight, and shadowed
+        var kicker = Lbl(this, "CARD PACKS  ·  A DRACHMA FOR THE GODS OF OLD", 0, (StyxArt.Backdrop != null ? 36 : 42) * _s, _vp.X, kick, ThemeTokens.GetHeaderFont(kick), new Color(0.92f, 0.86f, 0.70f), true);
         var title = Lbl(this, "Offering to the Ancients", 0, 70 * _s, _vp.X, (int)(80 * _s), ThemeTokens.GetCardNameFont((int)(80 * _s)), Gold, true);
         Outline(kicker); Outline(title);
+        if (StyxArt.Backdrop != null) Halo(Outline2(kicker));   // FABLE-105b: the kicker floats on the stars with a soft halo
 
         _content = new Control { MouseFilter = MouseFilterEnum.Ignore };
         _content.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -69,6 +71,7 @@ public partial class PackShopScene : Control
         AddChild(back);
         _status = Lbl(this, "", _vp.X * 0.36f, _vp.Y - 112 * _s, _vp.X * 0.62f, (int)(28 * _s), ThemeTokens.GetBodyFont((int)(28 * _s)), Gold, true);
         Outline(_status);
+        if (StyxArt.Backdrop != null) { _status.Position = new Vector2(_vp.X * 0.19f, _vp.Y * 0.655f); _status.Size = new Vector2(_vp.X * 0.62f, 34 * _s); }   // FABLE-105: notices land under the scroll, over the chasm
 
         if (CardRegistry.GetAll().Count == 0)
             foreach (var set in new[] { "verdant", "ember", "tide", "hollow", "dawn" })
@@ -224,38 +227,50 @@ public partial class PackShopScene : Control
 
     /// <summary>FABLE-084: Trikzos's cliff design — the offers carved on two altars at the cliff edges, the purse and
     /// the flick in the middle over the chasm, the odds under the title.</summary>
+    // FABLE-105 (Trikzos): the words on the cliffs could not be read - gold on starlight, parchment on mist. The painting
+    // stays exactly as it is; the words now sit where words belong on this screen: each offer on a bronze-framed wood
+    // panel standing on its cliff top, and everything the player needs to know (what a drachma returns, how to offer
+    // it, where packs are sold) on one scroll in the mist between them. The Buy plaques are always bright and always
+    // answer a tap - when the store cannot sell yet, the tap says why instead of showing a dead grey button.
     private void RenderCliffs(string? why, int n)
     {
         var st = PackStore.Status;
         double relic = st?.RelicChance ?? Packs.RelicChance;
-        Outline(Lbl(_content, $"Each drachma returns 1 Common · 1 Uncommon · 1 Rare {Math.Round((1 - relic) * 100)}%, or a Relic {Math.Round(relic * 100)}%",
-            0, _vp.Y * 0.165f, _vp.X, (int)(26 * _s), ThemeTokens.GetBodyFont((int)(26 * _s)), Parchment, true));
         float cx = _vp.X * 0.30f, cw = _vp.X * 0.40f;
         Outline(Lbl(_content, "YOUR DRACHMAE", cx, _vp.Y * 0.835f, cw, (int)(26 * _s), ThemeTokens.GetHeaderFont((int)(26 * _s)), Kicker, true));
         Outline(Lbl(_content, n == 0 ? "None yet" : $"× {n}", cx, _vp.Y * 0.87f, cw, (int)(56 * _s), ThemeTokens.GetCardNameFont((int)(56 * _s)), n > 0 ? Gold : Parchment, true));
-        _coin = new DrachmaRite.Drachma { Radius = 58f * _s, Position = DrachmaRite.CoinSpot(_vp), MouseFilter = MouseFilterEnum.Ignore };
-        _coin.Modulate = n > 0 ? Colors.White : new Color(1, 1, 1, 0.28f);
-        _content.AddChild(_coin);
-        _coinBob = _coin.CreateTween().SetLoops();
-        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
-        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
-        var hint = Lbl(_content, n > 0 ? "Make your offering — flick a drachma into the mist" : "Take a drachma, then offer it to the Ancients", cx, _vp.Y * 0.50f, cw,
-            (int)(32 * _s), ThemeTokens.GetHeaderFont((int)(32 * _s)), Gold, true);
-        Outline(hint);
+
+        // FABLE-105b (Trikzos): no banner in the middle - the words float on the painting again, as they did before,
+        // made readable with a soft dark halo (a wide blurred shadow) instead of a box. The odds sit under the title.
+        Halo(Outline2(Lbl(_content, $"Each drachma returns 1 Common · 1 Uncommon · 1 Rare ({Math.Round((1 - relic) * 100)}%) or a Relic ({Math.Round(relic * 100)}%)",
+            0, _vp.Y * 0.165f, _vp.X, (int)(28 * _s), ThemeTokens.GetBodyFont((int)(28 * _s)), new Color(0.97f, 0.93f, 0.84f), true)));
+        var hint = Lbl(_content, n > 0 ? "Make your offering — flick a drachma into the mist" : "Take a drachma, then offer it to the Ancients", cx - _vp.X * 0.04f, _vp.Y * 0.46f, cw + _vp.X * 0.08f,
+            (int)(34 * _s), ThemeTokens.GetHeaderFont((int)(34 * _s)), Gold, true);
+        Halo(Outline2(hint));
+        if (why != null) Halo(Outline2(Para(_content, why, cx, _vp.Y * 0.535f, cw, 70 * _s, (int)(25 * _s), new Color(0.98f, 0.86f, 0.64f), true)));
         if (n > 0)
         {
             var pulse = hint.CreateTween().SetLoops();
             pulse.TweenProperty(hint, "modulate:a", 0.45f, 0.8f).SetTrans(Tween.TransitionType.Sine);
             pulse.TweenProperty(hint, "modulate:a", 1f, 0.8f).SetTrans(Tween.TransitionType.Sine);
         }
-        var size = new Vector2(_vp.X * 0.19f, _vp.Y * 0.60f);
+
+        _coin = new DrachmaRite.Drachma { Radius = 58f * _s, Position = DrachmaRite.CoinSpot(_vp), MouseFilter = MouseFilterEnum.Ignore };
+        _coin.Modulate = n > 0 ? Colors.White : new Color(1, 1, 1, 0.28f);
+        _content.AddChild(_coin);
+        _coinBob = _coin.CreateTween().SetLoops();
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y - 6f * _s, 0.9f).SetTrans(Tween.TransitionType.Sine);
+        _coinBob.TweenProperty(_coin, "position:y", _coin.Position.Y, 0.9f).SetTrans(Tween.TransitionType.Sine);
+
+        // the offers: a small wood panel standing on each cliff top (FABLE-105b: about a third smaller)
+        var size = new Vector2(_vp.X * 0.165f, _vp.Y * 0.36f);
         for (int i = 0; i < Packs.Products.Count && i < 2; i++)
-            BuildOffer(Packs.Products[i], new Vector2(i == 0 ? _vp.X * 0.075f : _vp.X * 0.735f, _vp.Y * 0.255f), size, why, i == 1);
-        if (why != null) Outline(Para(_content, why, cx, _vp.Y * 0.58f, cw, 64 * _s, (int)(24 * _s), new Color(0.95f, 0.78f, 0.52f), true));
+            BuildOffer(Packs.Products[i], new Vector2(i == 0 ? _vp.X * 0.07f : _vp.X * 0.765f, _vp.Y * 0.36f), size, why, i == 1);
     }
 
     private void BuildOffer(PackProduct p, Vector2 pos, Vector2 size, string? why, bool bestValue)
     {
+        if (StyxArt.Backdrop != null) { BuildOfferPanel(p, pos, size, why, bestValue); return; }
         var stele = new Stele { Position = pos, Size = size, MouseFilter = MouseFilterEnum.Pass, Accent = bestValue ? new Color(0.98f, 0.80f, 0.35f) : new Color(0.80f, 0.70f, 0.48f) };
         _content.AddChild(stele);
         float pedH = size.X * 0.30f;
@@ -291,6 +306,49 @@ public partial class PackShopScene : Control
         var id = p.Id;
         buy.Pressed += () => { Click(); PackStore.Buy(id); };
         stele.AddChild(buy);
+    }
+
+    /// <summary>FABLE-105: an offer on the cliffs - a bronze-framed wood panel with the coins, the count, the price and a bright Buy plaque.</summary>
+    private void BuildOfferPanel(PackProduct p, Vector2 pos, Vector2 size, string? why, bool bestValue)
+    {
+        var panel = new Panel { Position = pos, Size = size, MouseFilter = MouseFilterEnum.Pass };
+        if (!ScreenSkin.Wood(panel)) panel.AddThemeStyleboxOverride("panel", Glass(Vector2.Zero, size).GetThemeStylebox("panel"));
+        _content.AddChild(panel);
+        // the coins this buys, resting along the top rail
+        int shown = Math.Min(p.Packs, 5);
+        float cr = (p.Packs == 1 ? 26f : 19f) * _s;
+        for (int i = 0; i < shown; i++)
+        {
+            var c = new DrachmaRite.Drachma { Radius = cr, MouseFilter = MouseFilterEnum.Ignore };
+            float spread = (shown - 1) * cr * 0.95f;
+            c.Position = new Vector2(size.X / 2 - spread / 2 + i * cr * 0.95f, 44 * _s + Math.Abs(i - (shown - 1) / 2f) * 3f * _s);
+            c.Spin = i % 2 == 0 ? 0f : 0.35f;
+            panel.AddChild(c);
+        }
+        if (bestValue)
+        {
+            var tag = new Panel { Position = new Vector2(size.X / 2 - 80 * _s, -16 * _s), Size = new Vector2(160 * _s, 34 * _s), MouseFilter = MouseFilterEnum.Ignore };
+            tag.AddThemeStyleboxOverride("panel", Rounded(new Color(0.62f, 0.13f, 0.12f), (int)(8 * _s), new Color(0.98f, 0.80f, 0.35f)));
+            tag.SetMeta("skinned", true);
+            panel.AddChild(tag);
+            Lbl(tag, "BEST VALUE", 0, 0, 160 * _s, (int)(19 * _s), ThemeTokens.GetHeaderFont((int)(19 * _s)), new Color(1f, 0.90f, 0.70f), true);
+        }
+        float y = 76 * _s;
+        Lbl(panel, p.Packs == 1 ? "1 Drachma" : $"{p.Packs} Drachmae", 0, y, size.X, (int)(34 * _s), ThemeTokens.GetCardNameFont((int)(34 * _s)), Gold, true);
+        y += 46 * _s;
+        Para(panel, $"{p.Packs * Packs.CardsPerPack} cards  ·  {p.Packs} Rare{(p.Packs == 1 ? "" : "s")} guaranteed", 12 * _s, y, size.X - 24 * _s, 56 * _s, (int)(21 * _s), Parchment, true);
+        y += 54 * _s;
+        Lbl(panel, PackStore.PreviewMode ? "free (preview)" : PackStore.PriceOf(p), 0, y, size.X, (int)(36 * _s), ThemeTokens.GetCardNameFont((int)(36 * _s)), Silver, true);
+        string label = PackStore.PreviewMode ? "Take it" : $"Buy  {PackStore.PriceOf(p)}";
+        var buy = Plate(label, true, size.X - 36 * _s, 72 * _s);
+        buy.Position = new Vector2(18 * _s, size.Y - 72 * _s - 20 * _s);
+        buy.AddThemeFontSizeOverride("font_size", (int)(28 * _s));
+        buy.Name = "Buy_" + p.Id;
+        ScreenSkin.Plaque(buy);   // the bronze plaque, bright - never a dead grey button
+        var id = p.Id;
+        if (why != null) buy.Pressed += () => { Click(); Say(why); };
+        else buy.Pressed += () => { Click(); PackStore.Buy(id); };
+        panel.AddChild(buy);
     }
 
     private void BuildOdds(Vector2 pos, Vector2 size)
@@ -412,10 +470,28 @@ public partial class PackShopScene : Control
         return sb;
     }
 
+    /// <summary>FABLE-105b: a heavier ink line for words floating on the cliffs.</summary>
+    private static Label Outline2(Label l)
+    {
+        l.AddThemeColorOverride("font_outline_color", new Color(0.02f, 0.02f, 0.04f, 0.95f));
+        l.AddThemeConstantOverride("outline_size", 9);
+        return l;
+    }
+
+    /// <summary>FABLE-105b: a soft dark halo behind floating words - a wide blurred shadow, no box. Reads over starlight and mist alike.</summary>
+    private static Label Halo(Label l)
+    {
+        l.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.62f));
+        l.AddThemeConstantOverride("shadow_outline_size", 22);
+        l.AddThemeConstantOverride("shadow_offset_x", 0); l.AddThemeConstantOverride("shadow_offset_y", 0);
+        return l;
+    }
+
     private static void Outline(Label l)
     {
         l.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.85f));
-        l.AddThemeConstantOverride("outline_size", 5);
+        l.AddThemeConstantOverride("outline_size", StyxArt.Backdrop != null ? 8 : 5);   // FABLE-105: a heavier ink line over the painting
+        if (StyxArt.Backdrop != null) { l.AddThemeColorOverride("font_shadow_color", new Color(0, 0, 0, 0.7f)); l.AddThemeConstantOverride("shadow_offset_y", 2); }
     }
 
     /// <summary>FABLE-088: the cosmos over the cliffs comes alive - stars twinkle, mist drifts through the chasm and rune sparks

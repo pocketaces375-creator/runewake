@@ -27,6 +27,9 @@ switch (command)
     case "pvp-bot":
         Environment.Exit(PvpBot.Run(args));
         break;
+    case "world-page":
+        Environment.Exit(WorldPageCmd.Run(args));
+        break;
     default:
         Console.Error.WriteLine($"Unknown command: {command}");
         PrintUsage();
@@ -36,6 +39,7 @@ switch (command)
 static void PrintUsage()
 {
     Console.WriteLine("Usage:");
+    Console.WriteLine("  Runewake.Sim world-page --biome <id> --instance <n> --page <n> [--root <repo>] [--prompt-only]   (FABLE-105: terrain plan + painter prompt)");
     Console.WriteLine("  Runewake.Sim run --deck-a <path> --deck-b <path> [--games <N>] [--seed <N>]");
     Console.WriteLine("                    [--artifacts-path <path>] [--class-a <name>] [--class-b <name>]");
     Console.WriteLine("                    [--compensation <0|1|2|3|4>]");

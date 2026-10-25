@@ -22,6 +22,8 @@ public sealed class StartZone
     [JsonPropertyName("positions")] public Dictionary<string, int[]> Positions { get; set; } = new();
     /// <summary>Node id → encounter id.</summary>
     [JsonPropertyName("encounters")] public Dictionary<string, string> Encounters { get; set; } = new();
+    /// <summary>FABLE-105: node id → the place name its terrain gives it ("Grey Hollow").</summary>
+    [JsonPropertyName("places")] public Dictionary<string, string> Places { get; set; } = new();
 }
 
 public sealed class StartZoneSet
@@ -55,6 +57,7 @@ public sealed class StartZoneSet
         {
             if (z.Positions.TryGetValue(node.Id, out var p) && p is { Length: 2 }) node.Position = new[] { p[0], p[1] };
             if (node.Encounter != null && z.Encounters.TryGetValue(node.Id, out var enc) && !string.IsNullOrEmpty(enc)) node.Encounter = enc;
+            if (z.Places.TryGetValue(node.Id, out var place) && !string.IsNullOrEmpty(place)) node.Place = place;
         }
         return region;
     }

@@ -167,6 +167,17 @@ public partial class ScreenSkin : Node
         }
     }
 
+    /// <summary>FABLE-105: the bronze-framed wood panel (panel.png) under a block of words that a painting leaves unreadable.</summary>
+    public static bool Wood(Control c, float alpha = 0.96f)
+    {
+        var tex = Tex("panel.png");
+        if (tex == null) return false;
+        var old = c.HasThemeStyleboxOverride("panel") ? c.GetThemeStylebox("panel") : new StyleBoxFlat();
+        c.AddThemeStyleboxOverride("panel", Box(tex, old, new Color(1, 1, 1, alpha)));
+        c.SetMeta("skinned", true);
+        return true;
+    }
+
     /// <summary>The older bronze plaque, for a button with no painted plaque under it (Settings' Back).</summary>
     public static void Plaque(Button b, Texture2D? tex = null)
     {

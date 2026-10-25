@@ -1,0 +1,176 @@
+{
+  "//": "FABLE-105 - THE TERRAIN RULES. One vocabulary shared by three things that must agree: (1) the prompt a map painting is generated from, (2) where the game puts its places on that painting, (3) what those places are called. See docs/WORLD_TERRAIN.md. Engine: engine/World/Terrain.cs. Tools: tools/world_map_paint.py, tools/gen_start_zones.py, tools/style_lora.py (captions use these words).",
+  "grid_doc": "Every plan speaks in a 3x3 grid so the painter and the game mean the same spot. Canvas is 1000 x 600 (world pages) or the plate's own pixels (campaign maps).",
+  "grid": {
+    "cells": ["north-west", "north", "north-east", "west", "centre", "east", "south-west", "south", "south-east"]
+  },
+  "painter": {
+    "trigger": "runewake map",
+    "style": "top-down painted fantasy atlas map, aged parchment tones, hand-painted relief, soft golden light from the upper right, no text, no labels, no compass rose, no borders, no legend",
+    "roads": "a faint dotted road enters from the west edge and winds east across the land, ending at the stronghold on the east side",
+    "negative": "text, letters, labels, watermark, compass, legend, border frame, photo, 3d render, grid lines"
+  },
+  "features": {
+    "mountain_range": {
+      "paint": "a jagged mountain range of grey rock and snow-touched peaks",
+      "cells_wide": 2,
+      "spots": [
+        { "kind": "pass",     "nouns": ["Pass", "Gap", "Saddle", "Notch", "Gate"],            "fits": ["Warden", "AreaBoss", "Elite", "Duel"] },
+        { "kind": "peak",     "nouns": ["Peak", "Spire", "Crag", "Horn", "Fang"],    "fits": ["Elite", "Duel", "Lore"] },
+        { "kind": "foothill", "nouns": ["Foothills", "Scree", "Slope", "Stair"],  "fits": ["Duel", "Merchant", "Dig"] },
+        { "kind": "cave",     "nouns": ["Cave", "Delve", "Mouth", "Hollow", "Vault"],         "fits": ["Dig", "Lore", "Duel"] },
+        { "kind": "hold",     "nouns": ["Stronghold", "Hold", "Keep", "Eyrie", "Watch"],      "fits": ["Warden", "AreaBoss", "Elite"] }
+      ]
+    },
+    "forest": {
+      "paint": "a dense old-growth forest, dark green canopy with a few giant ancient trees rising above it",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "heart",    "nouns": ["Heart", "Deepwood", "Grove", "Bower"],               "fits": ["Elite", "Duel", "Lore", "Warden", "AreaBoss"] },
+        { "kind": "eaves",    "nouns": ["Eaves", "Verge", "Edge", "Thicket"],                 "fits": ["Duel", "Merchant"] },
+        { "kind": "clearing", "nouns": ["Clearing", "Glade", "Ring", "Hollow"],               "fits": ["Duel", "Merchant", "Lore", "Dig"] },
+        { "kind": "elder",    "nouns": ["Elder", "Oak", "Yew", "Ash", "Tree"],                "fits": ["Lore", "Elite", "Duel"] }
+      ]
+    },
+    "ancient_grove": {
+      "paint": "a ring of colossal ancient trees, their roots knotted into the earth, pale light between the trunks",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "root",     "nouns": ["Roots", "Rootdeep", "Knot", "Cradle"],               "fits": ["Dig", "Lore", "Duel"] },
+        { "kind": "crown",    "nouns": ["Crown", "Canopy", "Throne", "Seat"],                 "fits": ["Warden", "AreaBoss", "Elite"] },
+        { "kind": "ring",     "nouns": ["Ring", "Circle", "Court"],                           "fits": ["Duel", "Merchant", "Lore"] }
+      ]
+    },
+    "river": {
+      "paint": "a winding river that forks once, pale water catching the light",
+      "cells_wide": 2,
+      "spots": [
+        { "kind": "ford",     "nouns": ["Ford", "Crossing", "Shallows", "Wade"],              "fits": ["Merchant", "Duel", "Warden"] },
+        { "kind": "bend",     "nouns": ["Bend", "Oxbow", "Reach"],                    "fits": ["Duel", "Dig"] },
+        { "kind": "falls",    "nouns": ["Falls", "Cascade", "Leap"],                 "fits": ["Elite", "Lore", "Duel"] },
+        { "kind": "source",   "nouns": ["Spring", "Wellhead", "Source", "Rise"],              "fits": ["Lore", "Dig", "Duel"] },
+        { "kind": "bridge",   "nouns": ["Bridge", "Span", "Arches"],                          "fits": ["Warden", "Elite", "Merchant"] }
+      ]
+    },
+    "lake": {
+      "paint": "a still dark lake with a small wooded island",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "shore",    "nouns": ["Shore", "Strand", "Landing", "Shallows"],            "fits": ["Duel", "Merchant"] },
+        { "kind": "isle",     "nouns": ["Isle", "Holm", "Eyot"],                              "fits": ["Elite", "Lore", "Warden", "AreaBoss"] },
+        { "kind": "deeps",    "nouns": ["Deeps", "Drowning", "Mirror"],                       "fits": ["Dig", "Lore", "Duel"] }
+      ]
+    },
+    "marsh": {
+      "paint": "a brooding marsh of reed beds, black pools and drowned trees",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "causeway", "nouns": ["Causeway", "Walk", "Path", "Stilts"],                "fits": ["Merchant", "Duel", "Warden"] },
+        { "kind": "pool",     "nouns": ["Pool", "Mere", "Sink", "Mire"],                      "fits": ["Dig", "Duel", "Lore"] },
+        { "kind": "hummock",  "nouns": ["Hummock", "Tussock", "Rise", "Island"],              "fits": ["Elite", "Duel"] }
+      ]
+    },
+    "coast": {
+      "paint": "a rugged coastline of sea cliffs, a sheltered cove and breaking surf",
+      "cells_wide": 2,
+      "spots": [
+        { "kind": "cove",     "nouns": ["Cove", "Landing", "Haven", "Anchorage"],             "fits": ["Merchant", "Duel"] },
+        { "kind": "headland", "nouns": ["Point", "Ness", "Headland"],                 "fits": ["Elite", "Warden", "AreaBoss", "Lore"] },
+        { "kind": "cliffs",   "nouns": ["Cliffs", "Bluff", "Drop", "Edge"],                   "fits": ["Duel", "Dig", "Lore"] },
+        { "kind": "wreck",    "nouns": ["Wreck", "Bones", "Hull"],                            "fits": ["Dig", "Lore", "Duel"] }
+      ]
+    },
+    "ruins": {
+      "paint": "the broken ruins of an older people, fallen columns and a standing arch, half swallowed by the land",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "ruin",     "nouns": ["Ruins", "Remnant", "Stones", "Arch", "Columns"],     "fits": ["Dig", "Lore", "Duel", "Elite"] },
+        { "kind": "barrow",   "nouns": ["Barrow", "Tomb", "Cairn", "Crypt"],                  "fits": ["Dig", "Lore", "Elite"] },
+        { "kind": "tower",    "nouns": ["Watch", "Tower", "Spire", "Beacon"],                 "fits": ["Warden", "Elite", "Duel"] }
+      ]
+    },
+    "stronghold": {
+      "paint": "a dark fortress on high ground, walls and a single great gate facing west",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "gate",     "nouns": ["Gate", "Stronghold", "Hold", "Keep", "Bastion"],     "fits": ["Warden", "AreaBoss", "Elite"] },
+        { "kind": "wall",     "nouns": ["Wall", "Rampart", "Outwork", "Gatehouse"],           "fits": ["Duel", "Elite"] },
+        { "kind": "yard",     "nouns": ["Yard", "Market", "Stables", "Ward"],                 "fits": ["Merchant", "Duel"] }
+      ]
+    },
+    "plain": {
+      "paint": "open rolling grassland crossed by a pale road, a few lone standing stones",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "field",    "nouns": ["Fields", "Meadow", "Downs", "Lea", "Flats"],         "fits": ["Duel", "Merchant"] },
+        { "kind": "road",     "nouns": ["Crossroads", "Waystation", "Milestone", "Toll"],     "fits": ["Merchant", "Duel", "Warden"] },
+        { "kind": "stones",   "nouns": ["Stones", "Circle", "Menhir", "Sentinels"],           "fits": ["Lore", "Dig", "Elite"] }
+      ]
+    },
+    "canyon": {
+      "paint": "a deep red-rock canyon with layered walls and a dry riverbed at the bottom",
+      "cells_wide": 2,
+      "spots": [
+        { "kind": "rim",      "nouns": ["Rim", "Edge", "Overlook", "Brink"],                  "fits": ["Duel", "Elite", "Lore"] },
+        { "kind": "floor",    "nouns": ["Floor", "Bed", "Bottom", "Wash"],                    "fits": ["Duel", "Dig", "Merchant"] },
+        { "kind": "narrows",  "nouns": ["Narrows", "Throat", "Gorge", "Cut"],                 "fits": ["Warden", "Elite", "Duel"] }
+      ]
+    },
+    "volcano": {
+      "paint": "a smoking volcano, black slopes veined with glowing lava",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "crater",   "nouns": ["Crater", "Caldera", "Maw", "Furnace"],               "fits": ["AreaBoss", "Warden", "Elite"] },
+        { "kind": "flow",     "nouns": ["Flow", "Vein", "Scar", "Run"],                       "fits": ["Duel", "Elite"] },
+        { "kind": "ashfield", "nouns": ["Ashfield", "Cinders", "Slag", "Embers"],             "fits": ["Duel", "Dig", "Merchant"] }
+      ]
+    },
+    "mine": {
+      "paint": "an old mine cut into a hillside, timber headframes and spoil heaps",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "adit",     "nouns": ["Adit", "Shaft", "Drift", "Delve", "Working"],        "fits": ["Dig", "Duel", "Lore"] },
+        { "kind": "camp",     "nouns": ["Camp", "Yard", "Tipple", "Smithy"],                  "fits": ["Merchant", "Duel"] },
+        { "kind": "deep",     "nouns": ["Deep", "Pit", "Undercroft", "Gallery"],              "fits": ["Warden", "Elite", "AreaBoss"] }
+      ]
+    },
+    "glacier": {
+      "paint": "a blue-white glacier spilling between peaks, crevassed and cold",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "tongue",   "nouns": ["Tongue", "Foot", "Snout", "Melt"],                   "fits": ["Duel", "Merchant"] },
+        { "kind": "crevasse", "nouns": ["Crevasse", "Rift", "Crack", "Chasm"],                "fits": ["Dig", "Lore", "Elite"] },
+        { "kind": "icefall",  "nouns": ["Icefall", "Wall", "Face"],                           "fits": ["Warden", "Elite", "Duel"] }
+      ]
+    },
+    "dunes": {
+      "paint": "a sea of golden dunes with a dry salt pan and bleached bones",
+      "cells_wide": 2,
+      "spots": [
+        { "kind": "dune",     "nouns": ["Dune", "Crest", "Drift", "Sands"],                   "fits": ["Duel", "Elite"] },
+        { "kind": "oasis",    "nouns": ["Oasis", "Well", "Palms", "Spring"],                  "fits": ["Merchant", "Duel", "Lore"] },
+        { "kind": "pan",      "nouns": ["Pan", "Flat", "Glass", "Salt"],                      "fits": ["Dig", "Duel", "Warden"] }
+      ]
+    },
+    "observatory": {
+      "paint": "a half-sunken domed observatory of white stone, its great lens cracked, tide pools around it",
+      "cells_wide": 1,
+      "spots": [
+        { "kind": "dome",     "nouns": ["Dome", "Lens", "Orrery", "Eye"],                     "fits": ["AreaBoss", "Warden", "Lore"] },
+        { "kind": "stair",    "nouns": ["Stair", "Steps", "Gallery", "Terrace"],              "fits": ["Duel", "Elite", "Merchant"] },
+        { "kind": "pools",    "nouns": ["Pools", "Shallows", "Basin"],                        "fits": ["Dig", "Duel"] }
+      ]
+    }
+  },
+  "biomes_doc": "menu: the features a page of this biome can show (duplicates allowed and likely); always: features every page has; keep: the guardian's feature on the east side.",
+  "biomes": {
+    "elvenwood":           { "menu": ["forest", "forest", "ancient_grove", "river", "mountain_range", "lake", "ruins", "plain"], "always": ["forest"], "keep": "stronghold" },
+    "deepdelve":           { "menu": ["mountain_range", "mountain_range", "mine", "canyon", "ruins", "river", "volcano"],         "always": ["mountain_range"], "keep": "mine" },
+    "saltglass":           { "menu": ["coast", "coast", "marsh", "plain", "ruins", "river", "lake"],                             "always": ["coast"], "keep": "stronghold" },
+    "barrowmarch":         { "menu": ["marsh", "marsh", "ruins", "ruins", "forest", "river", "plain"],                           "always": ["marsh", "ruins"], "keep": "ruins" },
+    "sunscar":             { "menu": ["dunes", "canyon", "plain", "ruins", "mountain_range", "river"],                           "always": ["dunes"], "keep": "stronghold" },
+    "lost_forge":          { "menu": ["volcano", "mountain_range", "mine", "canyon", "ruins"],                                   "always": ["volcano"], "keep": "mine" },
+    "moonwell":            { "menu": ["ancient_grove", "forest", "lake", "lake", "river", "ruins"],                              "always": ["ancient_grove", "lake"], "keep": "ancient_grove" },
+    "drowned_observatory": { "menu": ["coast", "observatory", "marsh", "ruins", "lake"],                                         "always": ["observatory", "coast"], "keep": "observatory" }
+  }
+}

@@ -40,11 +40,15 @@ public static class StableHash
 public sealed class WorldGenerator
 {
     private readonly AtlasDef _atlas;
+    private readonly TerrainLexicon _terrain;
     private readonly Dictionary<PageAddress, WorldPage> _cache = new();
 
-    public WorldGenerator(AtlasDef atlas) { _atlas = atlas; }
+    public WorldGenerator(AtlasDef atlas) : this(atlas, null) { }
+    /// <summary>FABLE-105: with the terrain rules (content/world/terrain.json); the built-in lexicon when none is given.</summary>
+    public WorldGenerator(AtlasDef atlas, TerrainLexicon? terrain) { _atlas = atlas; _terrain = terrain ?? TerrainLexicon.BuiltIn(); }
 
     public AtlasDef Atlas => _atlas;
+    public TerrainLexicon Terrain => _terrain;
 
     private SeededRng Rng(params object[] parts) =>
         new(StableHash.Of(new object[] { _atlas.Seed, _atlas.Version }.Concat(parts).ToArray()));
@@ -143,7 +147,7 @@ public sealed class WorldGenerator
                             {
                                 kind = BlipKind.Event;
                                 double e = rng.NextU64() / (double)ulong.MaxValue;
-                                ev = e < 0.30 ? EventKind.Shrine : e < 0.50 ? EventKind.Merchant : e < 0.80 ? EventKind.Dig : EventKind.Cache;
+                                ev = e < 0.40 ? EventKind.Merchant : EventKind.Dig;   // FABLE-105 (Trikzos): no more supply caches or cairns - merchants and digs only
                             }
                         }
                     }
@@ -213,6 +217,12 @@ public sealed class WorldGenerator
         // Last regular column → guardian.
         for (int i = colStart[cols - 1]; i < colStart[cols]; i++) Link(blips[i], idx);
 
+        // ── Terrain (FABLE-105) ──────────────────────────────────────────
+        // Its own rng stream, so nothing above changes: the same page has the same places, kinds and
+        // roads it always had — they now stand on the terrain the painting shows, and are named for it.
+        var plan = TerrainPlanner.Plan(Rng("terrain", addr.Biome, addr.Instance, addr.Page), _terrain, biome.Id, biome.Name, biome.Strata, places: n);
+        SettleOnTerrain(Rng("terrain-names", addr.Biome, addr.Instance, addr.Page), plan, biome, blips, cols);
+
         return new WorldPage
         {
             Address = addr,
@@ -222,9 +232,53 @@ public sealed class WorldGenerator
             Strata2 = biome.Strata2,
             PagesInArea = pages,
             Blips = blips,
+            Terrain = plan,
         };
 
         static void Link(Blip from, int to) { if (!from.Next.Contains(to)) from.Next.Add(to); }
+    }
+
+    /// <summary>
+    /// FABLE-105: every place steps onto the nearest free terrain spot that suits it (a Warden to a pass or a
+    /// gate, a Dig to a cave or a barrow, a Merchant to a ford) and takes its name from that spot. A place with
+    /// no spot in reach stays where it was, named for the nearest feature. The guardian keeps its own name and
+    /// its post at the keep. Column order is preserved: a spot is only taken within reach, x counted double.
+    /// </summary>
+    private static void SettleOnTerrain(SeededRng rng, TerrainPlan plan, BiomeDef biome, List<Blip> blips, int cols)
+    {
+        var used = new HashSet<string>();
+        double reach = Math.Max(150, 2.4 * (840.0 / Math.Max(1, cols)));
+        // the choosy kinds first, so a Warden is not left with a meadow
+        foreach (var b in blips.OrderBy(b => b.Kind switch { BlipKind.Warden or BlipKind.AreaBoss => 0, BlipKind.Elite => 1, BlipKind.Lore => 2, BlipKind.Event => 3, _ => 4 }).ThenBy(b => b.Index))
+        {
+            if (b.Kind is BlipKind.Warden or BlipKind.AreaBoss)
+            {
+                var keep = plan.Keep;
+                if (keep != null) { b.Terrain = keep.Id; b.Spot = keep.Spots.FirstOrDefault()?.Kind; }
+                continue;   // the guardian's name is the Warden's or the boss's own
+            }
+            if (b.Kind == BlipKind.Gateway) continue;   // "A Hidden Road" stays hidden
+            string fit = TerrainNames.FitKey(b.Kind, b.Event);
+            var spot = plan.Claim(b.X, b.Y, fit, reach);
+            if (spot != null)
+            {
+                b.X = Math.Clamp(spot.X, 30, 900); b.Y = Math.Clamp(spot.Y, 30, 570);
+                b.Terrain = spot.Feature; b.Spot = spot.Kind;
+                b.Name = TerrainNames.Place(rng, biome.PlaceAdjectives, spot, used);
+            }
+            else
+            {
+                var near = plan.Nearest(b.X, b.Y);
+                if (near != null)
+                {
+                    b.Terrain = near.Id;
+                    var any = near.Spots.FirstOrDefault(s => s.Fits_(fit)) ?? near.Spots[0];
+                    b.Spot = any.Kind;
+                    b.Name = TerrainNames.Place(rng, biome.PlaceAdjectives, any, used);
+                }
+                else used.Add(b.Name);
+            }
+        }
     }
 
     public string BlipId(PageAddress addr, int index) => $"{addr.Key(_atlas.Version)}:{index}";

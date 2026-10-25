@@ -368,3 +368,18 @@ Region expansions on a quarterly cadence, Codex season arcs, PvP (Delve and Pure
 ## Critical path
 
 `P0-02` (mobile export) and `P1-*` (engine) are the only true blockers. If the engine is right, everything else is replaceable. If the engine is wrong, everything else has to be rewritten. Spend the extra week on Phase 1.
+
+---
+
+## Standing notes from Trikzos (kept here so they are not lost)
+
+* **2026-10-25 — The Forge stays.** The map's *Forge* button and `scenes/forge/ForgeScene.tscn` remain in the
+  project and are to be built out (crafting with shards and fragments; see `docs/ARTIFACTS_FORGE.md`).
+* **2026-10-25 — The Rune Page is hidden for now, not removed.** `MapScene` keeps `_runePageBtn` with
+  `Visible = false`; `RunePageScene`, `CampaignContext.CurrentRunePage` and the saved rune page are untouched.
+  Trikzos: "we will likely bring this feature back later" — flip the one line to show it again.
+* **2026-10-25 — Supply caches are gone.** `r1_n03` left region_01 (r1_n01 now opens r1_n05 directly), and
+  the world generator no longer deals Shrine/Cache events (merchants and digs only). The enums stay for old saves.
+* **2026-10-25 — Terrain rules are law for every new map.** See `docs/WORLD_TERRAIN.md`: planned before painted,
+  places on the terrain, named for it, LoRA captioned in the same words. New campaign regions: 14+ nodes,
+  each on an annotated feature of the plate.
